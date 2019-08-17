@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "lib": ["es2015", "dom"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmitOnError": true,
+    "noUnusedLocals": true,
+    "outDir": "lib",
+    "rootDir": "src",
+    "strict": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "esModuleInterop": true,
+    "target": "es2015",
+    "types": ["jest"]
+  },
+  "include": ["src/*", "src/editors/*", "src/editors/codemirror/*", "src/jumpers/*", "src/languages/*"]
+}
