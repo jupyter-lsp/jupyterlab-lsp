@@ -1,10 +1,11 @@
 import {JupyterFrontEnd, JupyterFrontEndPlugin} from '@jupyterlab/application';
 import {ICommandPalette} from "@jupyterlab/apputils";
-import {INotebookTracker} from "@jupyterlab/notebook";
+import {INotebookTracker, Notebook, NotebookPanel} from "@jupyterlab/notebook";
 import {CodeMirrorEditor} from '@jupyterlab/codemirror';
 import {FileEditor, IEditorTracker} from '@jupyterlab/fileeditor';
-import {ISettingRegistry} from '@jupyterlab/coreutils';
+import {ISettingRegistry, PathExt} from '@jupyterlab/coreutils';
 import {IDocumentManager} from '@jupyterlab/docmanager';
+import { Cell } from '@jupyterlab/cells';
 
 import {FileEditorJumper} from "@krassowski/jupyterlab_go_to_definition/lib/jumpers/fileeditor";
 import {NotebookJumper} from "@krassowski/jupyterlab_go_to_definition/lib/jumpers/notebook";
@@ -19,6 +20,8 @@ import {CodeEditor} from "@jupyterlab/codeeditor";
 import {ICompletionManager} from '@jupyterlab/completer';
 import * as lsProtocol from "vscode-languageserver-protocol";
 import {LSPConnector} from "./completion";
+import CodeMirror = require("codemirror");
+import { ShowHintOptions } from 'codemirror';
 
 
 
@@ -37,12 +40,488 @@ class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
 }
 
+interface ICellTransform {
+  editor: CodeMirror.Editor,
+  line_shift: number;
+}
+
+// TODO: use proxy, as in https://stackoverflow.com/questions/51865430/typescript-compiler-does-not-know-about-es6-proxy-trap-on-class
+// @ts-ignore
+class DocDispatcher implements CodeMirror.Doc {
+
+  notebook_map: NotebookAsSingleEditor;
+
+  constructor(notebook_map: NotebookAsSingleEditor) {
+    // TODO
+    this.notebook_map = notebook_map
+  }
+
+  markText(from: CodeMirror.Position, to: CodeMirror.Position, options?: CodeMirror.TextMarkerOptions): CodeMirror.TextMarker {
+    // TODO: edgecase: from and to in different cells
+    let editor = this.notebook_map.get_editor_at(from);
+    return editor.getDoc().markText(this.notebook_map.transform(from), this.notebook_map.transform(to), options);
+  }
+
+  getValue(seperator?: string): string {
+    return this.notebook_map.getValue();
+  }
+
+  getCursor(start?: string): CodeMirror.Position {
+    let active_editor = this.notebook_map.notebook.activeCell.editor as CodeMirrorEditor;
+    return active_editor.editor.getDoc().getCursor(start);
+  }
+  
+
+}
+
+class NotebookAsSingleEditor implements CodeMirror.Editor {
+  notebook: Notebook;
+  notebook_panel: NotebookPanel;
+  line_cell_map: Map<number, ICellTransform>;
+  cell_line_map: Map<Cell, number>;
+
+  constructor(notebook_panel: NotebookPanel) {
+    this.notebook_panel = notebook_panel;
+    this.notebook = notebook_panel.content;
+    this.line_cell_map = new Map();
+    this.cell_line_map = new Map()
+  }
+
+  showHint: (options: ShowHintOptions) => void;
+  state: any;
+
+  addKeyMap(map: string | CodeMirror.KeyMap, bottom?: boolean): void {
+  }
+
+  addLineClass(line: any, where: string, _class_: string): CodeMirror.LineHandle {
+    return undefined;
+  }
+
+  addLineWidget(line: any, node: HTMLElement, options?: CodeMirror.LineWidgetOptions): CodeMirror.LineWidget {
+    return undefined;
+  }
+
+  addOverlay(mode: any, options?: any): void {
+    for (let cell of this.notebook.widgets) {
+      // TODO: use some more intelligent strategy to determine editors to test
+      let cm_editor = cell.editor as CodeMirrorEditor;
+      cm_editor.editor.addOverlay(mode, options);
+    }
+  }
+
+  // @ts-ignore
+  addPanel(node: HTMLElement, options?: ShowPanelOptions): Panel {
+    return undefined;
+  }
+
+  addWidget(pos: CodeMirror.Position, node: HTMLElement, scrollIntoView: boolean): void {
+  }
+
+  // @ts-ignore
+  blockComment(from: Position, to: Position, options?: CommentOptions): void {
+  }
+
+  charCoords(pos: CodeMirror.Position, mode?: "window" | "page" | "local"): { left: number; right: number; top: number; bottom: number } {
+    return {bottom: 0,left: 0, right: 0, top: 0};
+  }
+
+  clearGutter(gutterID: string): void {
+  }
+
+  coordsChar(object: { left: number; top: number }, mode?: "window" | "page" | "local"): CodeMirror.Position {
+    for (let cell of this.notebook.widgets) {
+      // TODO: use some more intelligent strategy to determine editors to test
+      let cm_editor = cell.editor as CodeMirrorEditor;
+      let pos = cm_editor.editor.coordsChar(object, mode);
+
+      // @ts-ignore
+      if(pos.outside === true) {
+        continue
+      }
+      return {
+        ...pos,
+        line: pos.line + this.cell_line_map.get(cell)
+      };
+    }
+  }
+
+  cursorCoords(where?: boolean, mode?: "window" | "page" | "local"): { left: number; top: number; bottom: number };
+  cursorCoords(where?: CodeMirror.Position | null, mode?: "window" | "page" | "local"): { left: number; top: number; bottom: number };
+  cursorCoords(where?: boolean | CodeMirror.Position | null, mode?: "window" | "page" | "local"): { left: number; top: number; bottom: number } {
+
+    if (typeof where !== "boolean") {
+      let editor = this.get_editor_at(where);
+      return editor.cursorCoords(this.transform(where));
+    }
+    return {bottom: 0, left: 0, top: 0};
+  }
+
+  defaultCharWidth(): number {
+    return (this.notebook.widgets[0].editor as CodeMirrorEditor).editor.defaultCharWidth();
+  }
+
+  defaultTextHeight(): number {
+    return (this.notebook.widgets[0].editor as CodeMirrorEditor).editor.defaultTextHeight();
+  }
+
+  endOperation(): void {
+    for (let cell of this.notebook.widgets) {
+      let cm_editor = cell.editor as CodeMirrorEditor;
+      cm_editor.editor.endOperation()
+    }
+  }
+
+  execCommand(name: string): void {
+    for (let cell of this.notebook.widgets) {
+      let cm_editor = cell.editor as CodeMirrorEditor;
+      cm_editor.editor.execCommand(name)
+    }
+
+  }
+
+  findPosH(start: CodeMirror.Position, amount: number, unit: string, visually: boolean): { line: number; ch: number; hitSide?: boolean } {
+    return {ch: 0, line: 0};
+  }
+
+  findPosV(start: CodeMirror.Position, amount: number, unit: string): { line: number; ch: number; hitSide?: boolean } {
+    return {ch: 0, line: 0};
+  }
+
+  findWordAt(pos: CodeMirror.Position): CodeMirror.Range {
+    return undefined;
+  }
+
+  focus(): void {
+  }
+
+  getDoc(): CodeMirror.Doc {
+    let dummy_doc = new DocDispatcher(this);
+    // @ts-ignore
+    return dummy_doc;
+  }
+
+  getGutterElement(): HTMLElement {
+    return undefined;
+  }
+
+  getInputField(): HTMLTextAreaElement {
+    return undefined;
+  }
+
+  getLineTokens(line: number, precise?: boolean): CodeMirror.Token[] {
+    return [];
+  }
+
+  getModeAt(pos: CodeMirror.Position): any {
+  }
+
+  getOption(option: string): any {
+  }
+
+  getScrollInfo(): CodeMirror.ScrollInfo {
+    return undefined;
+  }
+
+  getScrollerElement(): HTMLElement {
+    return undefined;
+  }
+
+  getStateAfter(line?: number): any {
+  }
+
+  getTokenAt(pos: CodeMirror.Position, precise?: boolean): CodeMirror.Token {
+    let editor = this.get_editor_at(pos);
+    return editor.getTokenAt(this.transform(pos));
+  }
+
+  getTokenTypeAt(pos: CodeMirror.Position): string {
+    let editor = this.get_editor_at(pos);
+    return editor.getTokenTypeAt(this.transform(pos));
+  }
+
+  // TODO: make a mapper class, with mapping function only
+  get_editor_at(pos: CodeMirror.Position) {
+    return this.line_cell_map.get(pos.line).editor
+  }
+
+  transform(pos: CodeMirror.Position): CodeMirror.Position {
+    return {
+      ...pos,
+      // DOES it work like that? TODO
+      line: pos.line - this.line_cell_map.get(pos.line).line_shift,
+    }
+  }
+
+  getValue(seperator?: string): string {
+    let value = '';
+    this.line_cell_map.clear();
+    let last_line = 0;
+    this.notebook.widgets.every((cell) => {
+      let codemirror_editor = cell.editor as CodeMirrorEditor;
+      if(cell.model.type == 'code') {
+        let lines = codemirror_editor.editor.getValue(seperator);
+        // TODO: use blacklist for cells with foreign language code
+        //  TODO: have a second LSP for foreign language!
+        if (lines.startsWith('%%'))
+          return true;
+        // TODO one line is necessary, next two lines are to silence linters - ideally this would be configurable
+        value += lines + '\n';// + '\n\n';
+        let cell_lines = lines.split('\n').length;
+        this.cell_line_map.set(cell, last_line);
+        for(let i = 0; i < cell_lines; i++) {
+          // TODO: use better structure (tree with ranges?)
+          this.line_cell_map.set(
+            last_line + i, {editor: codemirror_editor.editor, line_shift: last_line}
+          )
+        }
+        // definitely works without it
+        last_line += cell_lines// + 2
+      }
+      return true;
+    });
+
+    return value;
+  }
+
+  getViewport(): { from: number; to: number } {
+    return {from: 0, to: 0};
+  }
+
+  getWrapperElement(): HTMLElement {
+    return this.notebook_panel.node;
+  }
+
+  hasFocus(): boolean {
+    return false;
+  }
+
+  heightAtLine(line: any, mode?: "window" | "page" | "local", includeWidgets?: boolean): number {
+    return 0;
+  }
+
+  indentLine(line: number, dir?: string): void {
+  }
+
+  isReadOnly(): boolean {
+    return false;
+  }
+
+  lineAtHeight(height: number, mode?: "window" | "page" | "local"): number {
+    return 0;
+  }
+
+  // @ts-ignore
+  lineComment(from: Position, to: Position, options?: CommentOptions): void {
+  }
+
+  lineInfo(line: any): { line: any; handle: any; text: string; gutterMarkers: any; textClass: string; bgClass: string; wrapClass: string; widgets: any } {
+    return {
+      bgClass: "", gutterMarkers: undefined, handle: undefined,
+      line: undefined, text: "", textClass: "", widgets: undefined,
+      wrapClass: "" };
+  }
+
+  off(eventName: string, handler: (instance: CodeMirror.Editor) => void): void;
+  off(eventName: "change", handler: (instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList) => void): void;
+  off(eventName: "changes", handler: (instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void): void;
+  off(eventName: "beforeChange", handler: (instance: CodeMirror.Editor, change: CodeMirror.EditorChangeCancellable) => void): void;
+  off(eventName: "cursorActivity", handler: (instance: CodeMirror.Editor) => void): void;
+  off(eventName: "beforeSelectionChange", handler: (instance: CodeMirror.Editor, selection: { head: CodeMirror.Position; anchor: CodeMirror.Position }) => void): void;
+  off(eventName: "viewportChange", handler: (instance: CodeMirror.Editor, from: number, to: number) => void): void;
+  off(eventName: "gutterClick", handler: (instance: CodeMirror.Editor, line: number, gutter: string, clickEvent: Event) => void): void;
+  off(eventName: "focus", handler: (instance: CodeMirror.Editor) => void): void;
+  off(eventName: "blur", handler: (instance: CodeMirror.Editor) => void): void;
+  off(eventName: "scroll", handler: (instance: CodeMirror.Editor) => void): void;
+  off(eventName: "update", handler: (instance: CodeMirror.Editor) => void): void;
+  off(eventName: "renderLine", handler: (instance: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void): void;
+  off(eventName: "mousedown" | "dblclick" | "touchstart" | "contextmenu" | "keydown" | "keypress" | "keyup" | "cut" | "copy" | "paste" | "dragstart" | "dragenter" | "dragover" | "dragleave" | "drop", handler: (instance: CodeMirror.Editor, event: Event) => void): void;
+  off(eventName: string, handler: (doc: CodeMirror.Doc, event: any) => void): void;
+  off(eventName: string | "change" | "changes" | "beforeChange" | "cursorActivity" | "beforeSelectionChange" | "viewportChange" | "gutterClick" | "focus" | "blur" | "scroll" | "update" | "renderLine" | CodeMirror.DOMEvent, handler: ((instance: CodeMirror.Editor) => void) | ((instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList) => void) | ((instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void) | ((instance: CodeMirror.Editor, change: CodeMirror.EditorChangeCancellable) => void) | ((instance: CodeMirror.Editor, selection: { head: CodeMirror.Position; anchor: CodeMirror.Position }) => void) | ((instance: CodeMirror.Editor, from: number, to: number) => void) | ((instance: CodeMirror.Editor, line: number, gutter: string, clickEvent: Event) => void) | ((instance: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void) | ((instance: CodeMirror.Editor, event: Event) => void) | ((doc: CodeMirror.Doc, event: any) => void)): void {
+  }
+
+  on(eventName: string, handler: (instance: CodeMirror.Editor) => void): void;
+  on(eventName: "change", handler: (instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList) => void): void;
+  on(eventName: "changes", handler: (instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void): void;
+  on(eventName: "beforeChange", handler: (instance: CodeMirror.Editor, change: CodeMirror.EditorChangeCancellable) => void): void;
+  on(eventName: "cursorActivity", handler: (instance: CodeMirror.Editor) => void): void;
+  on(eventName: "beforeSelectionChange", handler: (instance: CodeMirror.Editor, selection: { head: CodeMirror.Position; anchor: CodeMirror.Position }) => void): void;
+  on(eventName: "viewportChange", handler: (instance: CodeMirror.Editor, from: number, to: number) => void): void;
+  on(eventName: "gutterClick", handler: (instance: CodeMirror.Editor, line: number, gutter: string, clickEvent: Event) => void): void;
+  on(eventName: "focus", handler: (instance: CodeMirror.Editor) => void): void;
+  on(eventName: "blur", handler: (instance: CodeMirror.Editor) => void): void;
+  on(eventName: "scroll", handler: (instance: CodeMirror.Editor) => void): void;
+  on(eventName: "update", handler: (instance: CodeMirror.Editor) => void): void;
+  on(eventName: "renderLine", handler: (instance: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void): void;
+  on(eventName: "mousedown" | "dblclick" | "touchstart" | "contextmenu" | "keydown" | "keypress" | "keyup" | "cut" | "copy" | "paste" | "dragstart" | "dragenter" | "dragover" | "dragleave" | "drop", handler: (instance: CodeMirror.Editor, event: Event) => void): void;
+  on(eventName: "overwriteToggle", handler: (instance: CodeMirror.Editor, overwrite: boolean) => void): void;
+  on(eventName: string, handler: (doc: CodeMirror.Doc, event: any) => void): void;
+  on(eventName: string | "change" | "changes" | "beforeChange" | "cursorActivity" | "beforeSelectionChange" | "viewportChange" | "gutterClick" | "focus" | "blur" | "scroll" | "update" | "renderLine" | CodeMirror.DOMEvent | "overwriteToggle", handler: ((instance: CodeMirror.Editor) => void) | ((instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList) => void) | ((instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void) | ((instance: CodeMirror.Editor, change: CodeMirror.EditorChangeCancellable) => void) | ((instance: CodeMirror.Editor, selection: { head: CodeMirror.Position; anchor: CodeMirror.Position }) => void) | ((instance: CodeMirror.Editor, from: number, to: number) => void) | ((instance: CodeMirror.Editor, line: number, gutter: string, clickEvent: Event) => void) | ((instance: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void) | ((instance: CodeMirror.Editor, event: Event) => void) | ((instance: CodeMirror.Editor, overwrite: boolean) => void) | ((doc: CodeMirror.Doc, event: any) => void)): void {
+
+    for (let cell of this.notebook.widgets) {
+      // TODO: use some more intelligent strategy to determine editors to test
+      let cm_editor = cell.editor as CodeMirrorEditor;
+      // TODO: wrap the handler
+      // @ts-ignore
+      return cm_editor.editor.on(eventName, handler);
+    }
+  }
+
+  operation<T>(fn: () => T): T {
+    return undefined;
+  }
+
+  refresh(): void {
+  }
+
+  removeKeyMap(map: string | CodeMirror.KeyMap): void {
+  }
+
+  removeLineClass(line: any, where: string, class_?: string): CodeMirror.LineHandle {
+    return undefined;
+  }
+
+  removeOverlay(mode: any): void {
+  }
+
+  scrollIntoView(pos: CodeMirror.Position | null, margin?: number): void;
+  scrollIntoView(pos: { left: number; top: number; right: number; bottom: number }, margin?: number): void;
+  scrollIntoView(pos: { line: number; ch: number }, margin?: number): void;
+  scrollIntoView(pos: { from: CodeMirror.Position; to: CodeMirror.Position }, margin?: number): void;
+  scrollIntoView(pos: CodeMirror.Position | null | { left: number; top: number; right: number; bottom: number } | { line: number; ch: number } | { from: CodeMirror.Position; to: CodeMirror.Position }, margin?: number): void {
+  }
+
+  scrollTo(x?: number | null, y?: number | null): void {
+  }
+
+  setGutterMarker(line: any, gutterID: string, value: HTMLElement | null): CodeMirror.LineHandle {
+    return undefined;
+  }
+
+  setOption(option: string, value: any): void {
+  }
+
+  setSize(width: any, height: any): void {
+  }
+
+  setValue(content: string): void {
+  }
+
+  startOperation(): void {
+  }
+
+  swapDoc(doc: CodeMirror.Doc): CodeMirror.Doc {
+    return undefined;
+  }
+
+  // @ts-ignore
+  toggleComment(options?: CommentOptions): void {
+  }
+
+  toggleOverwrite(value?: boolean): void {
+  }
+
+  triggerOnKeyDown(event: Event): void {
+  }
+
+  // @ts-ignore
+  uncomment(from: Position, to: Position, options?: CommentOptions): boolean {
+    return false;
+  }
+}
+
+/*
+class NotebookAsSingleIEditor extends CodeMirrorEditor {
+  constructor(props: any) {
+    //super(props);
+
+  }
+
+}*/
+
+class NotebookAdapter {
+
+  editor: Notebook;
+  widget: NotebookPanel;
+  connection: LspWsConnection;
+  adapter: CodeMirrorAdapterExtension;
+
+  constructor(editor_widget: NotebookPanel, jumper: NotebookJumper, app: JupyterFrontEnd, completion_manager: ICompletionManager) {
+    this.widget = editor_widget;
+    this.editor = editor_widget.content;
+
+    let cm_editor = new NotebookAsSingleEditor(editor_widget) as CodeMirror.Editor;
+    // TODO: reconsider where language, path and cwd belong
+    const interval: number = setInterval(()=>{
+      // TOOD: only connect when: isVisible && has mime
+      // maybe use this.widget.content.rendermime.* ?
+      if(!(this.widget.content.isVisible && this.widget.content.widgets.length > 0 && this.widget.content.rendermime.mimeTypes.length && cm_editor.getValue().length > 1)) {
+
+        console.log('Notebook not ready, retrying...');
+        return;
+      }
+
+      clearInterval(interval);
+
+      let document_path = this.widget.context.path;
+      let root_path = PathExt.dirname(document_path);
+      let value = jumper.language;
+      // TODO
+      // this.widget.context.pathChanged
+      console.log(root_path)
+      console.log(document_path)
+      console.log(value)
+      console.log(this.editor.widgets.length)
+      console.log(cm_editor.getValue().length)
+      this.connection = new LspWsConnection({
+        serverUri: 'ws://localhost/' + value,
+        languageId: value,
+        // paths handling needs testing on Windows and with other language servers
+        // PathExt.join(root, jumper.cwd)
+        // PathExt.join(root, jumper.path)
+        rootUri: 'file:///' + root_path,
+        documentUri: 'file:///' + document_path,
+        documentText: () => cm_editor.getValue(),
+      }).connect(new WebSocket('ws://localhost:3000/' + value));
+
+      // @ts-ignore
+      this.adapter = new CodeMirrorAdapterExtension(this.connection, {
+        quickSuggestionsDelay: 50,
+      }, cm_editor);
+
+      // detach the adapters contextmenu for now:
+      // @ts-ignore
+      //this.adapter.editor.getWrapperElement().removeEventListener('contextmenu', this.adapter.editorListeners.contextmenu);
+      // TODO: this needs to await till the notebook is fully loaded
+
+      const cell_to_connector_map: Map<Cell, LSPConnector> = new Map();
+      // lazily register completion connectors on cells
+      this.widget.content.activeCellChanged.connect((notebook, cell) => {
+
+        // skip if already registered
+        if(cell_to_connector_map.has(cell))
+          return;
+
+        const connector = new LSPConnector({
+          editor: cell.editor,
+          connection: this.connection
+        });
+        completion_manager.register({
+          connector,
+          editor: cell.editor,
+          parent: cell,
+        });
+
+      })
+    }, 500)
+  }
+}
+
 
 class FileEditorAdapter {
 
   editor: FileEditor;
   widget: IDocumentWidget;
-  jumper: FileEditorJumper;
+  jumper: FileEditorJumper
   adapter: CodeMirrorAdapterExtension;
   connection: LspWsConnection;
   app: JupyterFrontEnd;
@@ -70,7 +549,7 @@ class FileEditorAdapter {
 
     // @ts-ignore
     this.adapter = new CodeMirrorAdapterExtension(this.connection, {
-      quickSuggestionsDelay: 10,
+      quickSuggestionsDelay: 50,
     }, cm_editor.editor);
 
     // detach the adapters contextmenu for now:
@@ -81,6 +560,7 @@ class FileEditorAdapter {
     // @ts-ignore
     this.connection.on('goTo', (locations) => {
       // TODO: implement selector for multiple locations
+      //  (like when there are multiple definitions or usages)
 
       let location = locations[0];
 
@@ -255,12 +735,20 @@ const plugin: JupyterFrontEndPlugin<void> = {
         command: cmd.id
       });
     }
+    console.log('aasdde')
 
     notebookTracker.widgetAdded.connect((sender, widget) => {
 
       // btw: notebookTracker.currentWidget.content === notebook
       //let jumper = new NotebookJumper(widget, documentManager);
       let notebook = widget.content;
+      //if (.editor instanceof CodeMirrorEditor) {
+        let jumper = new NotebookJumper(widget, documentManager);
+        //let extension = new CodeMirrorExtension(fileEditor.editor, jumper);
+        new NotebookAdapter(widget, jumper, app, completion_manager);
+        //file_editor_adapters.set(fileEditor.id, adapter);
+        //extension.connect();
+      //}
 
       // timeout ain't elegant but the widgets are not populated at the start-up time
       // (notebook.widgets.length === 1) - some time is needed for that,

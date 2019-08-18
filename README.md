@@ -4,7 +4,7 @@
 [![Binder](https://beta.mybinder.org/badge.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab/tree/examples/demo.ipynb)
 
 
-### Experimental
+### This extension is highly experimental!
 
 ```bash
 git clone https://github.com/krassowski/jupyterlab-lsp.git
@@ -54,6 +54,11 @@ ln -s /usr usr
 ```
 
 If your user does not have sufficient permissions to traverse the entire path, you will not be able to open the file.
+
+### Under the hood
+
+This would not be possible if not the fantastic work of https://github.com/wylieconlon/lsp-editor-adapter.
+
 
 ## Prerequisites
 
