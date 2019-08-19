@@ -3,6 +3,8 @@ import {CompletionHandler, ContextConnector} from "@jupyterlab/completer";
 import {CodeEditor} from "@jupyterlab/codeeditor";
 import {IPosition, LspWsConnection} from "lsp-editor-adapter";
 import {ReadonlyJSONObject} from "@phosphor/coreutils";
+import {completionItemKindNames} from "./lsp";
+import {until_ready} from "./utils";
 
 /**
  * A LSP connector for completion handlers.
@@ -75,29 +77,6 @@ function convert_position(position: CodeEditor.IPosition): IPosition {
   }
 }
 
-async function sleep(timeout: number) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve()
-    }, timeout);
-  })
-}
-
-function once_set(x: any, max_retrials: number = 35) {
-  return new Promise(async (resolve, reject) => {
-    let i = 0;
-    while (x.set !== true) {
-      i += 1;
-      if (i > max_retrials) {
-        reject('Too many retrials');
-        break
-      }
-      console.log('waiting');
-      await sleep(50)
-    }
-    resolve(x.value);
-  });
-}
 
 interface IItemType extends ReadonlyJSONObject {
   // the item value
@@ -106,42 +85,6 @@ interface IItemType extends ReadonlyJSONObject {
   type: string
 }
 
-// LSP defaults
-export namespace CompletionItemKind {
-  export const Text = 1;
-  export const Method = 2;
-  export const Function = 3;
-  export const Constructor = 4;
-  export const Field = 5;
-  export const Variable = 6;
-  export const Class = 7;
-  export const Interface = 8;
-  export const Module = 9;
-  export const Property = 10;
-  export const Unit = 11;
-  export const Value = 12;
-  export const Enum = 13;
-  export const Keyword = 14;
-  export const Snippet = 15;
-  export const Color = 16;
-  export const File = 17;
-  export const Reference = 18;
-  export const Folder = 19;
-  export const EnumMember = 20;
-  export const Constant = 21;
-  export const Struct = 22;
-  export const Event = 23;
-  export const Operator = 24;
-  export const TypeParameter = 25;
-}
-
-
-export const itemKinds: Record<number, string> = {};
-
-for(let key of Object.keys(CompletionItemKind)) {
-  // @ts-ignore
-  itemKinds[CompletionItemKind[key]] = key;
-}
 
 /**
  * A namespace for Private functionality.
@@ -191,7 +134,6 @@ namespace Private {
     //}
     //*/
 
-    // todo: regexpr?
     //if(completion_characters.indexOf(typedCharacter) === -1)
     //  return
 
@@ -210,6 +152,7 @@ namespace Private {
         end: convert_position(end),
         text: token.value
       },
+      // TODO: use force invoke on completion characters
       //completion_characters.find((c) => c === typedCharacter)
       typedCharacter,
       //lsProtocol.CompletionTriggerKind.TriggerCharacter,
@@ -220,7 +163,7 @@ namespace Private {
       result.set = true;
       return args
     });
-    await once_set(result);
+    await until_ready(() => result.set);
 
     console.log(result);
 
@@ -244,7 +187,7 @@ namespace Private {
       matches.push(text);
       types.push({
         text: text,
-        type: match.kind ? itemKinds[match.kind] : ''
+        type: match.kind ? completionItemKindNames[match.kind] : ''
       })
     }
     console.log(matches)

@@ -5,438 +5,221 @@ import {CodeMirrorEditor} from '@jupyterlab/codemirror';
 import {FileEditor, IEditorTracker} from '@jupyterlab/fileeditor';
 import {ISettingRegistry, PathExt} from '@jupyterlab/coreutils';
 import {IDocumentManager} from '@jupyterlab/docmanager';
-import { Cell } from '@jupyterlab/cells';
+import {Cell} from '@jupyterlab/cells';
 
 import {FileEditorJumper} from "@krassowski/jupyterlab_go_to_definition/lib/jumpers/fileeditor";
 import {NotebookJumper} from "@krassowski/jupyterlab_go_to_definition/lib/jumpers/notebook";
 
 import 'codemirror/addon/hint/show-hint.css';
 import 'codemirror/addon/hint/show-hint';
+import '../style/index.css'
 
 import 'lsp-editor-adapter/lib/codemirror-lsp.css';
-import {CodeMirrorAdapter, IPosition, LspWsConnection} from 'lsp-editor-adapter';
+import {CodeMirrorAdapter, ILspConnection, IPosition, ITextEditorOptions, LspWsConnection} from 'lsp-editor-adapter';
 import {IDocumentWidget} from "@jupyterlab/docregistry";
 import {CodeEditor} from "@jupyterlab/codeeditor";
 import {ICompletionManager} from '@jupyterlab/completer';
 import * as lsProtocol from "vscode-languageserver-protocol";
 import {LSPConnector} from "./completion";
+import {NotebookAsSingleEditor} from "./notebook_mapper";
+import {diagnosticSeverityNames} from './lsp';
+import {Widget} from '@phosphor/widgets';
+import {IRenderMimeRegistry} from "@jupyterlab/rendermime";
+import {FreeTooltip} from "./free_tooltip";
+import {getModifierState, until_ready} from "./utils";
 import CodeMirror = require("codemirror");
-import { ShowHintOptions } from 'codemirror';
 
+
+class PositionConverter {
+  static lsp_to_cm(position: lsProtocol.Position): CodeMirror.Position {
+    return {line: position.line, ch: position.character};
+  }
+
+  static cm_to_jl(position: CodeMirror.Position): CodeEditor.IPosition {
+    return {line: position.line, column: position.ch};
+  }
+}
+
+
+/*
+Feedback: anchor - not clear from docs
+bundle - very not clear from the docs, interface or better docs would be nice to have
+ */
+
+// TODO: settings
+const hover_modifier = 'Control';
 
 
 class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
-  public handleGoTo(locations: any) {
+  private marked_diagnostics: CodeMirror.TextMarker[] = [];
+  protected create_tooltip: (markup: lsProtocol.MarkupContent, cm_editor: CodeMirror.Editor, position: CodeMirror.Position) => FreeTooltip;
+  private _tooltip: FreeTooltip;
+  private show_next_tooltip: boolean;
+  private last_hover_response: lsProtocol.Hover;
+
+  constructor(connection: ILspConnection, options: ITextEditorOptions, editor: CodeMirror.Editor, create_tooltip: (markup: lsProtocol.MarkupContent, cm_editor: CodeMirror.Editor, position: CodeMirror.Position) => FreeTooltip) {
+    super(connection, options, editor);
+    this.create_tooltip = create_tooltip;
+
     // @ts-ignore
-    this._removeTooltip();
+    let listeners = this.editorListeners;
+
+    let wrapper = this.editor.getWrapperElement();
+    // detach the adapters contextmenu
+    wrapper.removeEventListener('contextmenu', listeners.contextmenu);
+
+    // show hover after pressing the modifier key
+    wrapper.addEventListener('keydown', (event: KeyboardEvent) => {
+      if(!hover_modifier || getModifierState(event, hover_modifier)) {
+        this.show_next_tooltip = true;
+        this.handleHover(this.last_hover_response)
+      }
+    })
+  }
+
+  public handleGoTo(locations: any) {
+    this.remove_tooltip();
 
     // do NOT handle GoTo actions here
   }
 
   public handleCompletion(completions: lsProtocol.CompletionItem[]) {
     // do NOT handle completion here
+
+    // TODO: UNLESS the trigger character was typed!
   };
 
-}
+  protected static get_markup(response: lsProtocol.Hover): lsProtocol.MarkupContent {
+    let contents = response.contents;
 
-interface ICellTransform {
-  editor: CodeMirror.Editor,
-  line_shift: number;
-}
+    // this causes the webpack to fail "Module not found: Error: Can't resolve 'net'" for some reason
+    // if (lsProtocol.MarkedString.is(contents))
+    ///  contents = [contents];
 
-// TODO: use proxy, as in https://stackoverflow.com/questions/51865430/typescript-compiler-does-not-know-about-es6-proxy-trap-on-class
-// @ts-ignore
-class DocDispatcher implements CodeMirror.Doc {
+    if(typeof contents === "string")
+      contents = [contents as lsProtocol.MarkedString];
 
-  notebook_map: NotebookAsSingleEditor;
+    if(!Array.isArray(contents))
+      return contents as lsProtocol.MarkupContent;
 
-  constructor(notebook_map: NotebookAsSingleEditor) {
-    // TODO
-    this.notebook_map = notebook_map
-  }
+    // now we have MarkedString
+    let content = contents[0];
 
-  markText(from: CodeMirror.Position, to: CodeMirror.Position, options?: CodeMirror.TextMarkerOptions): CodeMirror.TextMarker {
-    // TODO: edgecase: from and to in different cells
-    let editor = this.notebook_map.get_editor_at(from);
-    return editor.getDoc().markText(this.notebook_map.transform(from), this.notebook_map.transform(to), options);
-  }
-
-  getValue(seperator?: string): string {
-    return this.notebook_map.getValue();
-  }
-
-  getCursor(start?: string): CodeMirror.Position {
-    let active_editor = this.notebook_map.notebook.activeCell.editor as CodeMirrorEditor;
-    return active_editor.editor.getDoc().getCursor(start);
-  }
-  
-
-}
-
-class NotebookAsSingleEditor implements CodeMirror.Editor {
-  notebook: Notebook;
-  notebook_panel: NotebookPanel;
-  line_cell_map: Map<number, ICellTransform>;
-  cell_line_map: Map<Cell, number>;
-
-  constructor(notebook_panel: NotebookPanel) {
-    this.notebook_panel = notebook_panel;
-    this.notebook = notebook_panel.content;
-    this.line_cell_map = new Map();
-    this.cell_line_map = new Map()
-  }
-
-  showHint: (options: ShowHintOptions) => void;
-  state: any;
-
-  addKeyMap(map: string | CodeMirror.KeyMap, bottom?: boolean): void {
-  }
-
-  addLineClass(line: any, where: string, _class_: string): CodeMirror.LineHandle {
-    return undefined;
-  }
-
-  addLineWidget(line: any, node: HTMLElement, options?: CodeMirror.LineWidgetOptions): CodeMirror.LineWidget {
-    return undefined;
-  }
-
-  addOverlay(mode: any, options?: any): void {
-    for (let cell of this.notebook.widgets) {
-      // TODO: use some more intelligent strategy to determine editors to test
-      let cm_editor = cell.editor as CodeMirrorEditor;
-      cm_editor.editor.addOverlay(mode, options);
-    }
-  }
-
-  // @ts-ignore
-  addPanel(node: HTMLElement, options?: ShowPanelOptions): Panel {
-    return undefined;
-  }
-
-  addWidget(pos: CodeMirror.Position, node: HTMLElement, scrollIntoView: boolean): void {
-  }
-
-  // @ts-ignore
-  blockComment(from: Position, to: Position, options?: CommentOptions): void {
-  }
-
-  charCoords(pos: CodeMirror.Position, mode?: "window" | "page" | "local"): { left: number; right: number; top: number; bottom: number } {
-    return {bottom: 0,left: 0, right: 0, top: 0};
-  }
-
-  clearGutter(gutterID: string): void {
-  }
-
-  coordsChar(object: { left: number; top: number }, mode?: "window" | "page" | "local"): CodeMirror.Position {
-    for (let cell of this.notebook.widgets) {
-      // TODO: use some more intelligent strategy to determine editors to test
-      let cm_editor = cell.editor as CodeMirrorEditor;
-      let pos = cm_editor.editor.coordsChar(object, mode);
-
-      // @ts-ignore
-      if(pos.outside === true) {
-        continue
-      }
+    if(typeof content === "string") {
+      // coerce to MarkedString  object
       return {
-        ...pos,
-        line: pos.line + this.cell_line_map.get(cell)
+        kind: 'plaintext',
+        value: content
       };
     }
-  }
-
-  cursorCoords(where?: boolean, mode?: "window" | "page" | "local"): { left: number; top: number; bottom: number };
-  cursorCoords(where?: CodeMirror.Position | null, mode?: "window" | "page" | "local"): { left: number; top: number; bottom: number };
-  cursorCoords(where?: boolean | CodeMirror.Position | null, mode?: "window" | "page" | "local"): { left: number; top: number; bottom: number } {
-
-    if (typeof where !== "boolean") {
-      let editor = this.get_editor_at(where);
-      return editor.cursorCoords(this.transform(where));
-    }
-    return {bottom: 0, left: 0, top: 0};
-  }
-
-  defaultCharWidth(): number {
-    return (this.notebook.widgets[0].editor as CodeMirrorEditor).editor.defaultCharWidth();
-  }
-
-  defaultTextHeight(): number {
-    return (this.notebook.widgets[0].editor as CodeMirrorEditor).editor.defaultTextHeight();
-  }
-
-  endOperation(): void {
-    for (let cell of this.notebook.widgets) {
-      let cm_editor = cell.editor as CodeMirrorEditor;
-      cm_editor.editor.endOperation()
-    }
-  }
-
-  execCommand(name: string): void {
-    for (let cell of this.notebook.widgets) {
-      let cm_editor = cell.editor as CodeMirrorEditor;
-      cm_editor.editor.execCommand(name)
-    }
-
-  }
-
-  findPosH(start: CodeMirror.Position, amount: number, unit: string, visually: boolean): { line: number; ch: number; hitSide?: boolean } {
-    return {ch: 0, line: 0};
-  }
-
-  findPosV(start: CodeMirror.Position, amount: number, unit: string): { line: number; ch: number; hitSide?: boolean } {
-    return {ch: 0, line: 0};
-  }
-
-  findWordAt(pos: CodeMirror.Position): CodeMirror.Range {
-    return undefined;
-  }
-
-  focus(): void {
-  }
-
-  getDoc(): CodeMirror.Doc {
-    let dummy_doc = new DocDispatcher(this);
-    // @ts-ignore
-    return dummy_doc;
-  }
-
-  getGutterElement(): HTMLElement {
-    return undefined;
-  }
-
-  getInputField(): HTMLTextAreaElement {
-    return undefined;
-  }
-
-  getLineTokens(line: number, precise?: boolean): CodeMirror.Token[] {
-    return [];
-  }
-
-  getModeAt(pos: CodeMirror.Position): any {
-  }
-
-  getOption(option: string): any {
-  }
-
-  getScrollInfo(): CodeMirror.ScrollInfo {
-    return undefined;
-  }
-
-  getScrollerElement(): HTMLElement {
-    return undefined;
-  }
-
-  getStateAfter(line?: number): any {
-  }
-
-  getTokenAt(pos: CodeMirror.Position, precise?: boolean): CodeMirror.Token {
-    let editor = this.get_editor_at(pos);
-    return editor.getTokenAt(this.transform(pos));
-  }
-
-  getTokenTypeAt(pos: CodeMirror.Position): string {
-    let editor = this.get_editor_at(pos);
-    return editor.getTokenTypeAt(this.transform(pos));
-  }
-
-  // TODO: make a mapper class, with mapping function only
-  get_editor_at(pos: CodeMirror.Position) {
-    return this.line_cell_map.get(pos.line).editor
-  }
-
-  transform(pos: CodeMirror.Position): CodeMirror.Position {
-    return {
-      ...pos,
-      // DOES it work like that? TODO
-      line: pos.line - this.line_cell_map.get(pos.line).line_shift,
-    }
-  }
-
-  getValue(seperator?: string): string {
-    let value = '';
-    this.line_cell_map.clear();
-    let last_line = 0;
-    this.notebook.widgets.every((cell) => {
-      let codemirror_editor = cell.editor as CodeMirrorEditor;
-      if(cell.model.type == 'code') {
-        let lines = codemirror_editor.editor.getValue(seperator);
-        // TODO: use blacklist for cells with foreign language code
-        //  TODO: have a second LSP for foreign language!
-        if (lines.startsWith('%%'))
-          return true;
-        // TODO one line is necessary, next two lines are to silence linters - ideally this would be configurable
-        value += lines + '\n';// + '\n\n';
-        let cell_lines = lines.split('\n').length;
-        this.cell_line_map.set(cell, last_line);
-        for(let i = 0; i < cell_lines; i++) {
-          // TODO: use better structure (tree with ranges?)
-          this.line_cell_map.set(
-            last_line + i, {editor: codemirror_editor.editor, line_shift: last_line}
-          )
-        }
-        // definitely works without it
-        last_line += cell_lines// + 2
+    else
+      return {
+        kind: "markdown",
+        value: "```" + content.language + '\n' + content.value + "```"
       }
-      return true;
+  }
+
+  protected remove_tooltip() {
+    // @ts-ignore
+    this._removeHover(); // this removes the underlines
+
+    if(this._tooltip !== undefined)
+      this._tooltip.dispose();
+  }
+
+  public handleHover(response: lsProtocol.Hover) {
+    this.remove_tooltip();
+
+    if (!response || !response.contents || (Array.isArray(response.contents) && response.contents.length === 0)) {
+      return;
+    }
+
+    this.highlight_range(response.range, 'cm-lp-hover-available');
+
+    this.last_hover_response = null;
+    if (!this.show_next_tooltip) {
+      this.last_hover_response = response;
+      return;
+    }
+
+    const markup = CodeMirrorAdapterExtension.get_markup(response);
+    // @ts-ignore
+    let position = this.hoverCharacter;
+    // TODO this is where the idea of mapping notebooks with an object pretending to be an editor has a weak side...
+
+    let cm_editor = this.editor;
+    if((cm_editor as NotebookAsSingleEditor).get_editor_at !== undefined)
+      cm_editor = (cm_editor as NotebookAsSingleEditor).get_editor_at(position as CodeMirror.Position);
+
+    this._tooltip = this.create_tooltip(markup, cm_editor, position);
+  }
+  protected highlight_range(range: lsProtocol.Range, class_name: string) {
+    // @ts-ignore
+    let hover_character = this.hoverCharacter as CodeMirror.Position;
+
+    let start: CodeMirror.Position;
+    let end: CodeMirror.Position;
+
+    if (range) {
+      start = PositionConverter.lsp_to_cm(range.start);
+      end = PositionConverter.lsp_to_cm(range.end);
+    } else {
+      // construct range manually using the token information
+      let token = this.editor.getTokenAt(hover_character);
+      start = {line: hover_character.line, ch: token.start};
+      end = {line: hover_character.line, ch: token.end};
+    }
+
+    // @ts-ignore
+    this.hoverMarker = this.editor.getDoc().markText(start, end, {
+      className: class_name,
+    });
+  }
+
+  public handleMouseOver(event: MouseEvent) {
+    // proceed when no hover modifier or hover modifier pressed
+    this.show_next_tooltip = !hover_modifier || getModifierState(event, hover_modifier);
+
+    return super.handleMouseOver(event);
+  }
+
+  public handleDiagnostic(response: lsProtocol.PublishDiagnosticsParams) {
+    /*
+    TODO: the base class has the gutter support, like this
+    this.editor.clearGutter('CodeMirror-lsp');
+     */
+    this.marked_diagnostics.forEach((marker) => {
+      marker.clear();
     });
 
-    return value;
-  }
+    this.marked_diagnostics = [];
+    response.diagnostics.forEach((diagnostic: lsProtocol.Diagnostic) => {
+      const start = PositionConverter.lsp_to_cm(diagnostic.range.start);
+      const end = PositionConverter.lsp_to_cm(diagnostic.range.end);
 
-  getViewport(): { from: number; to: number } {
-    return {from: 0, to: 0};
-  }
+      const doc = this.editor.getDoc();
+      const severity = diagnosticSeverityNames[diagnostic.severity];
+      this.marked_diagnostics.push(doc.markText(start, end, {
+        title: diagnostic.message,
+        className: 'cm-lsp-diagnostic cm-lsp-diagnostic-' + severity,
+      }));
 
-  getWrapperElement(): HTMLElement {
-    return this.notebook_panel.node;
-  }
+      /*
+      TODO and this:
+        const childEl = document.createElement('div');
+        childEl.classList.add('CodeMirror-lsp-guttermarker');
+        childEl.title = diagnostic.message;
+        this.editor.setGutterMarker(start.line, 'CodeMirror-lsp', childEl);
 
-  hasFocus(): boolean {
-    return false;
-  }
-
-  heightAtLine(line: any, mode?: "window" | "page" | "local", includeWidgets?: boolean): number {
-    return 0;
-  }
-
-  indentLine(line: number, dir?: string): void {
-  }
-
-  isReadOnly(): boolean {
-    return false;
-  }
-
-  lineAtHeight(height: number, mode?: "window" | "page" | "local"): number {
-    return 0;
-  }
-
-  // @ts-ignore
-  lineComment(from: Position, to: Position, options?: CommentOptions): void {
-  }
-
-  lineInfo(line: any): { line: any; handle: any; text: string; gutterMarkers: any; textClass: string; bgClass: string; wrapClass: string; widgets: any } {
-    return {
-      bgClass: "", gutterMarkers: undefined, handle: undefined,
-      line: undefined, text: "", textClass: "", widgets: undefined,
-      wrapClass: "" };
-  }
-
-  off(eventName: string, handler: (instance: CodeMirror.Editor) => void): void;
-  off(eventName: "change", handler: (instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList) => void): void;
-  off(eventName: "changes", handler: (instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void): void;
-  off(eventName: "beforeChange", handler: (instance: CodeMirror.Editor, change: CodeMirror.EditorChangeCancellable) => void): void;
-  off(eventName: "cursorActivity", handler: (instance: CodeMirror.Editor) => void): void;
-  off(eventName: "beforeSelectionChange", handler: (instance: CodeMirror.Editor, selection: { head: CodeMirror.Position; anchor: CodeMirror.Position }) => void): void;
-  off(eventName: "viewportChange", handler: (instance: CodeMirror.Editor, from: number, to: number) => void): void;
-  off(eventName: "gutterClick", handler: (instance: CodeMirror.Editor, line: number, gutter: string, clickEvent: Event) => void): void;
-  off(eventName: "focus", handler: (instance: CodeMirror.Editor) => void): void;
-  off(eventName: "blur", handler: (instance: CodeMirror.Editor) => void): void;
-  off(eventName: "scroll", handler: (instance: CodeMirror.Editor) => void): void;
-  off(eventName: "update", handler: (instance: CodeMirror.Editor) => void): void;
-  off(eventName: "renderLine", handler: (instance: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void): void;
-  off(eventName: "mousedown" | "dblclick" | "touchstart" | "contextmenu" | "keydown" | "keypress" | "keyup" | "cut" | "copy" | "paste" | "dragstart" | "dragenter" | "dragover" | "dragleave" | "drop", handler: (instance: CodeMirror.Editor, event: Event) => void): void;
-  off(eventName: string, handler: (doc: CodeMirror.Doc, event: any) => void): void;
-  off(eventName: string | "change" | "changes" | "beforeChange" | "cursorActivity" | "beforeSelectionChange" | "viewportChange" | "gutterClick" | "focus" | "blur" | "scroll" | "update" | "renderLine" | CodeMirror.DOMEvent, handler: ((instance: CodeMirror.Editor) => void) | ((instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList) => void) | ((instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void) | ((instance: CodeMirror.Editor, change: CodeMirror.EditorChangeCancellable) => void) | ((instance: CodeMirror.Editor, selection: { head: CodeMirror.Position; anchor: CodeMirror.Position }) => void) | ((instance: CodeMirror.Editor, from: number, to: number) => void) | ((instance: CodeMirror.Editor, line: number, gutter: string, clickEvent: Event) => void) | ((instance: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void) | ((instance: CodeMirror.Editor, event: Event) => void) | ((doc: CodeMirror.Doc, event: any) => void)): void {
-  }
-
-  on(eventName: string, handler: (instance: CodeMirror.Editor) => void): void;
-  on(eventName: "change", handler: (instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList) => void): void;
-  on(eventName: "changes", handler: (instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void): void;
-  on(eventName: "beforeChange", handler: (instance: CodeMirror.Editor, change: CodeMirror.EditorChangeCancellable) => void): void;
-  on(eventName: "cursorActivity", handler: (instance: CodeMirror.Editor) => void): void;
-  on(eventName: "beforeSelectionChange", handler: (instance: CodeMirror.Editor, selection: { head: CodeMirror.Position; anchor: CodeMirror.Position }) => void): void;
-  on(eventName: "viewportChange", handler: (instance: CodeMirror.Editor, from: number, to: number) => void): void;
-  on(eventName: "gutterClick", handler: (instance: CodeMirror.Editor, line: number, gutter: string, clickEvent: Event) => void): void;
-  on(eventName: "focus", handler: (instance: CodeMirror.Editor) => void): void;
-  on(eventName: "blur", handler: (instance: CodeMirror.Editor) => void): void;
-  on(eventName: "scroll", handler: (instance: CodeMirror.Editor) => void): void;
-  on(eventName: "update", handler: (instance: CodeMirror.Editor) => void): void;
-  on(eventName: "renderLine", handler: (instance: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void): void;
-  on(eventName: "mousedown" | "dblclick" | "touchstart" | "contextmenu" | "keydown" | "keypress" | "keyup" | "cut" | "copy" | "paste" | "dragstart" | "dragenter" | "dragover" | "dragleave" | "drop", handler: (instance: CodeMirror.Editor, event: Event) => void): void;
-  on(eventName: "overwriteToggle", handler: (instance: CodeMirror.Editor, overwrite: boolean) => void): void;
-  on(eventName: string, handler: (doc: CodeMirror.Doc, event: any) => void): void;
-  on(eventName: string | "change" | "changes" | "beforeChange" | "cursorActivity" | "beforeSelectionChange" | "viewportChange" | "gutterClick" | "focus" | "blur" | "scroll" | "update" | "renderLine" | CodeMirror.DOMEvent | "overwriteToggle", handler: ((instance: CodeMirror.Editor) => void) | ((instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList) => void) | ((instance: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void) | ((instance: CodeMirror.Editor, change: CodeMirror.EditorChangeCancellable) => void) | ((instance: CodeMirror.Editor, selection: { head: CodeMirror.Position; anchor: CodeMirror.Position }) => void) | ((instance: CodeMirror.Editor, from: number, to: number) => void) | ((instance: CodeMirror.Editor, line: number, gutter: string, clickEvent: Event) => void) | ((instance: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void) | ((instance: CodeMirror.Editor, event: Event) => void) | ((instance: CodeMirror.Editor, overwrite: boolean) => void) | ((doc: CodeMirror.Doc, event: any) => void)): void {
-
-    for (let cell of this.notebook.widgets) {
-      // TODO: use some more intelligent strategy to determine editors to test
-      let cm_editor = cell.editor as CodeMirrorEditor;
-      // TODO: wrap the handler
-      // @ts-ignore
-      return cm_editor.editor.on(eventName, handler);
+      do we want gutters?
+     */
+      });
     }
-  }
 
-  operation<T>(fn: () => T): T {
-    return undefined;
-  }
-
-  refresh(): void {
-  }
-
-  removeKeyMap(map: string | CodeMirror.KeyMap): void {
-  }
-
-  removeLineClass(line: any, where: string, class_?: string): CodeMirror.LineHandle {
-    return undefined;
-  }
-
-  removeOverlay(mode: any): void {
-  }
-
-  scrollIntoView(pos: CodeMirror.Position | null, margin?: number): void;
-  scrollIntoView(pos: { left: number; top: number; right: number; bottom: number }, margin?: number): void;
-  scrollIntoView(pos: { line: number; ch: number }, margin?: number): void;
-  scrollIntoView(pos: { from: CodeMirror.Position; to: CodeMirror.Position }, margin?: number): void;
-  scrollIntoView(pos: CodeMirror.Position | null | { left: number; top: number; right: number; bottom: number } | { line: number; ch: number } | { from: CodeMirror.Position; to: CodeMirror.Position }, margin?: number): void {
-  }
-
-  scrollTo(x?: number | null, y?: number | null): void {
-  }
-
-  setGutterMarker(line: any, gutterID: string, value: HTMLElement | null): CodeMirror.LineHandle {
-    return undefined;
-  }
-
-  setOption(option: string, value: any): void {
-  }
-
-  setSize(width: any, height: any): void {
-  }
-
-  setValue(content: string): void {
-  }
-
-  startOperation(): void {
-  }
-
-  swapDoc(doc: CodeMirror.Doc): CodeMirror.Doc {
-    return undefined;
-  }
-
-  // @ts-ignore
-  toggleComment(options?: CommentOptions): void {
-  }
-
-  toggleOverwrite(value?: boolean): void {
-  }
-
-  triggerOnKeyDown(event: Event): void {
-  }
-
-  // @ts-ignore
-  uncomment(from: Position, to: Position, options?: CommentOptions): boolean {
-    return false;
-  }
-}
-
-/*
-class NotebookAsSingleIEditor extends CodeMirrorEditor {
-  constructor(props: any) {
-    //super(props);
 
   }
 
-}*/
 
 class NotebookAdapter {
 
@@ -444,75 +227,124 @@ class NotebookAdapter {
   widget: NotebookPanel;
   connection: LspWsConnection;
   adapter: CodeMirrorAdapterExtension;
+  notebook_as_editor: NotebookAsSingleEditor;
+  completion_manager: ICompletionManager;
+  // TODO: make jumper optional?
+  jumper: NotebookJumper;
+  rendermime_registry: IRenderMimeRegistry;
 
-  constructor(editor_widget: NotebookPanel, jumper: NotebookJumper, app: JupyterFrontEnd, completion_manager: ICompletionManager) {
+  constructor(editor_widget: NotebookPanel, jumper: NotebookJumper, app: JupyterFrontEnd, completion_manager: ICompletionManager, rendermime_registry: IRenderMimeRegistry) {
     this.widget = editor_widget;
     this.editor = editor_widget.content;
+    this.completion_manager = completion_manager;
+    this.jumper = jumper;
+    this.notebook_as_editor = new NotebookAsSingleEditor(editor_widget);
+    this.rendermime_registry = rendermime_registry;
+    this.init_once_ready().then()
+  }
 
-    let cm_editor = new NotebookAsSingleEditor(editor_widget) as CodeMirror.Editor;
+  is_ready() {
+    return (
+      this.widget.context.isReady &&
+      this.widget.content.isVisible &&
+      this.widget.content.widgets.length > 0 &&
+      this.notebook_as_editor.getValue().length > 0 &&
+      // @ts-ignore
+      this.widget.model.metadata.get('language_info').name != ''
+    )
+  }
+
+  async init_once_ready(){
+    let document_path = this.widget.context.path;
+    console.log('waiting for', document_path, 'to fully load');
+    await until_ready(this.is_ready.bind(this), -1);
+    console.log(document_path, 'ready for LSP connection');
+
+    let cm_editor = this.notebook_as_editor as CodeMirror.Editor;
     // TODO: reconsider where language, path and cwd belong
-    const interval: number = setInterval(()=>{
-      // TOOD: only connect when: isVisible && has mime
-      // maybe use this.widget.content.rendermime.* ?
-      if(!(this.widget.content.isVisible && this.widget.content.widgets.length > 0 && this.widget.content.rendermime.mimeTypes.length && cm_editor.getValue().length > 1)) {
 
-        console.log('Notebook not ready, retrying...');
-        return;
-      }
+    let root_path = PathExt.dirname(document_path);
+    // TODO instead use mime types in servers.yml?
+    // @ts-ignore
+    let value = this.widget.model.metadata.get('language_info').name;
+    // TODO
+    // this.widget.context.pathChanged
 
-      clearInterval(interval);
+    // TODO: use native jupyterlab tooltips, fix autocompletion (see how it is done by default), using BOTH kernel and LSP
+    //  change style for inspections so that unused variables are greyed out if there is enough info in diagnostics message
+    console.log('Root path:', root_path, 'Language:', value);
+    this.connection = new LspWsConnection({
+      serverUri: 'ws://localhost/' + value,
+      languageId: value,
+      // paths handling needs testing on Windows and with other language servers
+      // PathExt.join(root, jumper.cwd)
+      // PathExt.join(root, jumper.path)
+      rootUri: 'file:///' + root_path,
+      documentUri: 'file:///' + document_path,
+      documentText: this.get_notebook_content.bind(this),
+    }).connect(new WebSocket('ws://localhost:3000/' + value));
 
-      let document_path = this.widget.context.path;
-      let root_path = PathExt.dirname(document_path);
-      let value = jumper.language;
-      // TODO
-      // this.widget.context.pathChanged
-      console.log(root_path)
-      console.log(document_path)
-      console.log(value)
-      console.log(this.editor.widgets.length)
-      console.log(cm_editor.getValue().length)
-      this.connection = new LspWsConnection({
-        serverUri: 'ws://localhost/' + value,
-        languageId: value,
-        // paths handling needs testing on Windows and with other language servers
-        // PathExt.join(root, jumper.cwd)
-        // PathExt.join(root, jumper.path)
-        rootUri: 'file:///' + root_path,
-        documentUri: 'file:///' + document_path,
-        documentText: () => cm_editor.getValue(),
-      }).connect(new WebSocket('ws://localhost:3000/' + value));
+    // @ts-ignore
+    await until_ready(() => this.connection.isConnected, -1, 150);
+    console.log(document_path, 'connected to LSP');
 
-      // @ts-ignore
-      this.adapter = new CodeMirrorAdapterExtension(this.connection, {
+    // @ts-ignore
+    this.adapter = new CodeMirrorAdapterExtension(
+      this.connection, {
         quickSuggestionsDelay: 50,
-      }, cm_editor);
+      },
+      cm_editor,
+      (markup: lsProtocol.MarkupContent, cm_editor: CodeMirror.Editor, position: CodeMirror.Position) => {
+        const bundle = markup.kind === 'plaintext' ? {'text/plain': markup.value} : {'text/markdown': markup.value};
+        const tooltip = new FreeTooltip({
+          anchor: this.widget.content,
+          bundle: bundle,
+          editor: this.notebook_as_editor.cm_editor_to_ieditor.get(cm_editor),
+          rendermime: this.rendermime_registry,
+          position: PositionConverter.cm_to_jl(this.notebook_as_editor.transform(position)),
+          moveToLineEnd: false
+        }, );
+        Widget.attach(tooltip, document.body);
+        return tooltip
+      }
+    );
 
-      // detach the adapters contextmenu for now:
-      // @ts-ignore
-      //this.adapter.editor.getWrapperElement().removeEventListener('contextmenu', this.adapter.editorListeners.contextmenu);
-      // TODO: this needs to await till the notebook is fully loaded
+    // refresh server held state after every change
+    // note this may be changed soon: https://github.com/jupyterlab/jupyterlab/issues/5382#issuecomment-515643504
+    this.widget.model.contentChanged.connect(this.refresh_lsp_notebook_image.bind(this));
 
-      const cell_to_connector_map: Map<Cell, LSPConnector> = new Map();
-      // lazily register completion connectors on cells
-      this.widget.content.activeCellChanged.connect((notebook, cell) => {
+    // and refresh it after the cell was activated, just to make sure that the first experience is ok
+    this.widget.content.activeCellChanged.connect(this.refresh_lsp_notebook_image.bind(this));
 
-        // skip if already registered
-        if(cell_to_connector_map.has(cell))
-          return;
 
-        const connector = new LSPConnector({
-          editor: cell.editor,
-          connection: this.connection
-        });
-        completion_manager.register({
-          connector,
-          editor: cell.editor,
-          parent: cell,
-        });
+    const cell_to_connector_map: Map<Cell, LSPConnector> = new Map();
+    // lazily register completion connectors on cells
+    this.widget.content.activeCellChanged.connect((notebook, cell) => {
 
-      })
-    }, 500)
+      // skip if already registered
+      if(cell_to_connector_map.has(cell))
+        return;
+
+      const connector = new LSPConnector({
+        editor: cell.editor,
+        connection: this.connection
+      });
+      this.completion_manager.register({
+        connector,
+        editor: cell.editor,
+        parent: cell,
+      });
+
+    });
+  }
+
+  get_notebook_content() {
+    return this.notebook_as_editor.getValue()
+  }
+
+  refresh_lsp_notebook_image(slot: any) {
+    // TODO this is fired too often currently, debounce!
+    this.connection.sendChange()
   }
 }
 
@@ -521,14 +353,16 @@ class FileEditorAdapter {
 
   editor: FileEditor;
   widget: IDocumentWidget;
-  jumper: FileEditorJumper
+  jumper: FileEditorJumper;
   adapter: CodeMirrorAdapterExtension;
   connection: LspWsConnection;
   app: JupyterFrontEnd;
+  rendermime_registry: IRenderMimeRegistry;
 
-  constructor(editor_widget: IDocumentWidget<FileEditor>, jumper: FileEditorJumper, app: JupyterFrontEnd, completion_manager: ICompletionManager) {
+  constructor(editor_widget: IDocumentWidget<FileEditor>, jumper: FileEditorJumper, app: JupyterFrontEnd, completion_manager: ICompletionManager, rendermime_registry: IRenderMimeRegistry) {
     this.widget = editor_widget;
     this.editor = editor_widget.content;
+    this.rendermime_registry = rendermime_registry;
 
     this.app = app;
     // let root = PageConfig.getOption('serverRoot');
@@ -548,9 +382,25 @@ class FileEditorAdapter {
     }).connect(new WebSocket('ws://localhost:3000/' + value));
 
     // @ts-ignore
-    this.adapter = new CodeMirrorAdapterExtension(this.connection, {
-      quickSuggestionsDelay: 50,
-    }, cm_editor.editor);
+    this.adapter = new CodeMirrorAdapterExtension(
+      this.connection,
+      {
+        quickSuggestionsDelay: 50,
+      },
+      cm_editor.editor,
+      (markup: lsProtocol.MarkupContent, cm_editor: CodeMirror.Editor, position: CodeMirror.Position) => {
+        const bundle = markup.kind === 'plaintext' ? {'text/plain': markup.value} : {'text/markdown': markup.value};
+        const tooltip = new FreeTooltip({
+          anchor: this.widget.content,
+          bundle: bundle,
+          editor: this.editor.editor,
+          rendermime: rendermime_registry,
+          position: PositionConverter.cm_to_jl(position),
+          moveToLineEnd: false
+        });
+        Widget.attach(tooltip, document.body);
+        return tooltip
+      });
 
     // detach the adapters contextmenu for now:
     // @ts-ignore
@@ -645,7 +495,7 @@ const file_editor_adapters: Map<string, FileEditorAdapter> = new Map();
  */
 const plugin: JupyterFrontEndPlugin<void> = {
   id: '@krassowski/jupyterlab-lsp:plugin',
-  requires: [IEditorTracker, INotebookTracker, ISettingRegistry, ICommandPalette, IDocumentManager, ICompletionManager],
+  requires: [IEditorTracker, INotebookTracker, ISettingRegistry, ICommandPalette, IDocumentManager, ICompletionManager, IRenderMimeRegistry],
   activate: (
     app: JupyterFrontEnd,
     fileEditorTracker: IEditorTracker,
@@ -653,7 +503,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
     settingRegistry: ISettingRegistry,
     palette: ICommandPalette,
     documentManager: IDocumentManager,
-    completion_manager: ICompletionManager
+    completion_manager: ICompletionManager,
+    rendermime_registry: IRenderMimeRegistry
   ) => {
 
     //CodeMirrorExtension.configure();
@@ -674,7 +525,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       if (fileEditor.editor instanceof CodeMirrorEditor) {
         let jumper = new FileEditorJumper(widget, documentManager);
         //let extension = new CodeMirrorExtension(fileEditor.editor, jumper);
-        let adapter = new FileEditorAdapter(widget, jumper, app, completion_manager);
+        let adapter = new FileEditorAdapter(widget, jumper, app, completion_manager, rendermime_registry);
         file_editor_adapters.set(fileEditor.id, adapter);
         //extension.connect();
       }
@@ -735,41 +586,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
         command: cmd.id
       });
     }
-    console.log('aasdde')
 
     notebookTracker.widgetAdded.connect((sender, widget) => {
-
-      // btw: notebookTracker.currentWidget.content === notebook
-      //let jumper = new NotebookJumper(widget, documentManager);
-      let notebook = widget.content;
-      //if (.editor instanceof CodeMirrorEditor) {
-        let jumper = new NotebookJumper(widget, documentManager);
-        //let extension = new CodeMirrorExtension(fileEditor.editor, jumper);
-        new NotebookAdapter(widget, jumper, app, completion_manager);
-        //file_editor_adapters.set(fileEditor.id, adapter);
-        //extension.connect();
-      //}
-
-      // timeout ain't elegant but the widgets are not populated at the start-up time
-      // (notebook.widgets.length === 1) - some time is needed for that,
-      // and I can't see any callbacks for cells.
-
-      // more insane idea would be to have it run once every 2 seconds
-      // more reasonable thing would be to create a PR with .onAddCell
-      setTimeout(() => {
-        // now (notebook.widgets.length is likely > 1)
-        notebook.widgets.every((cell) => {
-
-          return true
-        });
-      }, 2000);
-
-      // for that cells which will be added later:
-      notebook.activeCellChanged.connect((notebook, cell) => {
-        if(cell === undefined)
-          return;
-
-      });
+      // NOTE: assuming that the default cells content factory produces CodeMirror editors(!)
+      let jumper = new NotebookJumper(widget, documentManager);
+      new NotebookAdapter(widget, jumper, app, completion_manager, rendermime_registry);
 
     });
 
