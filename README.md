@@ -13,6 +13,7 @@
 
 ##### In progress:
 - completer (autocompletion), including auto invokation on certain characters (e.g. '.' (dot) in Python)
+- better got to definition, including notebook
 
 
 ##### Planned:
