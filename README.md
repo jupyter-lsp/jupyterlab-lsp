@@ -9,10 +9,10 @@
 - hover over any piece of code; if an underline appears, you can press <kbd>Control</kbd> to get a tooltip with function/class signature, module documentation or any other piece of information that the language server provides
 - linting: critical errors have red underline, warnings are orange, etc. Hover over the underlined code to see the linter's message
 - go to definition: use context menu entries to jump to definition (currently only in the file editor) 
-- highlight usages: just place your cursor on a variable, funciton ect and all the usages will be highlighted
+- highlight usages: just place your cursor on a variable, function ect and all the usages will be highlighted (only file editor or a single cell as well)
 
 ##### In progress:
-- completer (autocompletion), including auto invokation on certain characters (e.g. '.' (dot) in Python)
+- completer (autocompletion), including auto invocation on certain characters (e.g. '.' (dot) in Python)
 - better got to definition, including notebook
 
 

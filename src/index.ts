@@ -122,7 +122,7 @@ class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
   protected remove_tooltip() {
     // @ts-ignore
-    this._removeHover(); // this removes the underlines
+    this._removeHover(); // this removes underlines
 
     if(this._tooltip !== undefined)
       this._tooltip.dispose();
