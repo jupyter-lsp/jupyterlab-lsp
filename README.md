@@ -3,7 +3,7 @@
 <!--[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) [![codebeat badge](TODO)](https://codebeat.co/projects/github-com-krassowski-jupyterlab-lsp-master) -->
 <!--[![Binder](https://beta.mybinder.org/badge.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab/tree/examples/demo.ipynb)-->
 
-**This extension is highly experimental, though you are encouraged to try it, leave feedback and/or a PR**
+*This extension is highly experimental, though you are encouraged to try it, leave feedback and/or a PR*
 
 ## Features overview:
 
