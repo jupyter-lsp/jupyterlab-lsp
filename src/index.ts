@@ -337,8 +337,8 @@ class NotebookAdapter {
       // paths handling needs testing on Windows and with other language servers
       // PathExt.join(root, jumper.cwd)
       // PathExt.join(root, jumper.path)
-      rootUri: 'file:///' + root_path,
-      documentUri: 'file:///' + document_path,
+      rootUri: 'file://' + root_path,
+      documentUri: 'file://' + document_path,
       documentText: this.get_notebook_content.bind(this),
     }).connect(new WebSocket('ws://localhost:3000/' + language));
 
