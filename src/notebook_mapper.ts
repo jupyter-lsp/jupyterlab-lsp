@@ -245,33 +245,41 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
     this.cell_line_map.clear();
     this.cm_editor_to_ieditor.clear();
 
+    // TODO: make this configurable
+    let empty_lines_between_cells = 2;
+    let lines_padding = '\n'.repeat(empty_lines_between_cells);
+
     let last_line = 0;
+    let all_lines: Array<string> = [];
     this.notebook.widgets.every((cell) => {
       let codemirror_editor = cell.editor as CodeMirrorEditor;
       let cm_editor = codemirror_editor.editor;
       this.cm_editor_to_ieditor.set(cm_editor, cell.editor);
 
+
       if (cell.model.type == 'code') {
         let lines = cm_editor.getValue(seperator);
         // TODO: use blacklist for cells with foreign language code
-        //  TODO: have a second LSP for foreign language!
+        //  TODO: have a second LSP for the foreign language!
         if (lines.startsWith('%%'))
           return true;
-        // TODO one line is necessary, next two lines are to silence linters - ideally this would be configurable
-        value += lines + '\n' + '\n\n';
+        // one empty line is necessary to separate code blocks, next 'n' lines are to silence linters
+        // and the final cell does not get the additional lines (thanks to the use of join, see below)
+        all_lines.push(lines + '\n');
         let cell_lines = lines.split('\n').length;
         this.cell_line_map.set(cell, last_line);
         for (let i = 0; i < cell_lines; i++) {
+
           // TODO: use better structure (tree with ranges?)
           this.line_cell_map.set(
             last_line + i, {editor: cm_editor, line_shift: last_line}
           )
         }
-        // definitely works without it
-        last_line += cell_lines + 2
+        last_line += cell_lines + empty_lines_between_cells
       }
       return true;
     });
+    value = all_lines.join(lines_padding);
 
     return value;
   }
