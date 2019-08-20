@@ -78,8 +78,12 @@ langservers:
 
 4. Each time before starting JupyterLab, run:
 ```bash
-node node_modules/jsonrpc-ws-proxy/dist/server.js --port 3000 --languageServers servers.yml
+node path_to_jupyterlab_staging/node_modules/jsonrpc-ws-proxy/dist/server.js --port 3000 --languageServers servers.yml
 ```
+
+where `path_to_jupyterlab_staging` is the location of JupyterLab staging directory. Here are example locations on Ubuntu:
+- if you use pyenv it should be in `~/.pyenv/versions/YOUR_VERSION_OR_VENV/share/jupyter/lab/staging/`
+- if you use local installation, it might be in `~/.local/lib/python3.6/site-packages/jupyterlab/staging/` (where instead of python3.6 you should use your Python3 version having JupyterLab installed)
 
 5. (Optional) to enable opening files outside of the root directory (the place where you start JupyterLab),
 create `.lsp_symlink` and symlink your `home`, `usr`, or any other location which include the files that you wish to make possible to open in there:
@@ -97,7 +101,7 @@ If your user does not have sufficient permissions to traverse the entire path, y
 To update already installed extension:
 
 ```bash
-jupyter labextension update @krassowski/jupyterlab_lsp
+jupyter labextension update @krassowski/jupyterlab-lsp
 ```
 
 ## Development
