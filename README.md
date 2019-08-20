@@ -15,7 +15,7 @@
 ![inspections](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/inspections.png)
 
 - go to definition: use context menu entries to jump to definition (currently only in the file editor) 
-- highlight usages: just place your cursor on a variable, function ect and all the usages will be highlighted (only file editor or a single cell as well)
+- highlight usages: just place your cursor on a variable, function etc and all the usages will be highlighted (works only in the file editor or within a single cell)
 - advanced autocompletion - even when the kernel is off!
 
 ![autocompletion](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.png)
