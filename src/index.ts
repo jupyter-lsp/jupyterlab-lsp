@@ -65,6 +65,11 @@ class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
         this.show_next_tooltip = true;
         this.handleHover(this.last_hover_response)
       }
+    });
+
+    wrapper.addEventListener('keyup', () => {
+      // TODO: the updates frequency and triggers will require a review and a clean up
+      this.connection.sendChange();
     })
   }
 
@@ -187,6 +192,20 @@ class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     // add new markers, keep track of the added ones
     let doc = this.editor.getDoc();
 
+    let transform: (position: CodeMirror.Position) => CodeMirror.Position;
+    let get_cell_id: (position: CodeMirror.Position) => string;
+
+    const notebook_as_editor = this.editor as NotebookAsSingleEditor;
+
+    // duck typing: does it implement transform and get_cell_at?
+    if(notebook_as_editor.transform !== undefined && notebook_as_editor.get_cell_at !== undefined) {
+      transform = position => notebook_as_editor.transform(position);
+      get_cell_id = position => notebook_as_editor.get_cell_at(position).id;
+    } else {
+      transform = position => position;
+      get_cell_id = position => '';
+    }
+
     response.diagnostics.forEach((diagnostic: lsProtocol.Diagnostic) => {
       const start = PositionConverter.lsp_to_cm(diagnostic.range.start);
       const end = PositionConverter.lsp_to_cm(diagnostic.range.end);
@@ -200,7 +219,18 @@ class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       //   stringifier; such a stringifier could also prevent the possibility of having a false
       //   negative due to a different ordering of keys
       // obviously, the hash would prevent recovery of info from the key.
-      let diagnostic_hash = JSON.stringify(diagnostic);
+      let diagnostic_hash = JSON.stringify({
+        ...diagnostic,
+        // the apparent marker position will change in the notebook with every line change for each marker
+        // after the (inserted/removed) line - but such markers should not be invalidated,
+        // i.e. the invalidation should be performed in the cell space, not in the notebook coordinate space,
+        // thus we transform the coordinates and keep the cell id in the hash
+        range: {
+          start: transform(start),
+          end: transform(end)
+        },
+        cell: get_cell_id(start)
+      });
       markers_to_retain.add(diagnostic_hash);
 
       if(!this.marked_diagnostics.has(diagnostic_hash)) {
@@ -229,14 +259,11 @@ class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
      */
     });
 
-    // TODO: this is not enough; the apparent marker position will change in notebook with every line change
-    //  for each marker after the (inserted/removed) line, however those markers should not be invalidated,
-    //  i.e. the invalidation should be performed in the cell space, not in the notebook coordinate space.
     // remove the markers which were not included in the new message
     this.marked_diagnostics.forEach((marker: CodeMirror.TextMarker, diagnostic_hash: string) => {
       if(!markers_to_retain.has(diagnostic_hash)) {
+        this.marked_diagnostics.delete(diagnostic_hash);
         marker.clear();
-        this.marked_diagnostics.delete(diagnostic_hash)
       }
     });
 

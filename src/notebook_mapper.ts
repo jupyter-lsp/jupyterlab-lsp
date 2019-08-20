@@ -6,6 +6,7 @@ import { ShowHintOptions } from "codemirror";
 import {CodeEditor} from "@jupyterlab/codeeditor";
 
 interface ICellTransform {
+  cell: Cell,
   editor: CodeMirror.Editor,
   line_shift: number;
 }
@@ -23,7 +24,11 @@ class DocDispatcher implements CodeMirror.Doc {
   markText(from: CodeMirror.Position, to: CodeMirror.Position, options?: CodeMirror.TextMarkerOptions): CodeMirror.TextMarker {
     // TODO: edgecase: from and to in different cells
     let editor = this.notebook_map.get_editor_at(from);
-    return editor.getDoc().markText(this.notebook_map.transform(from), this.notebook_map.transform(to), options);
+    return editor.getDoc().markText(this.transform(from), this.transform(to), options);
+  }
+
+  transform(position: CodeMirror.Position) {
+    return this.notebook_map.transform(position)
   }
 
   getValue(seperator?: string): string {
@@ -227,8 +232,12 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
   }
 
   // TODO: make a mapper class, with mapping function only
-  get_editor_at(pos: CodeMirror.Position) {
+  get_editor_at(pos: CodeMirror.Position): CodeMirror.Editor {
     return this.line_cell_map.get(pos.line).editor
+  }
+
+  get_cell_at(pos: CodeMirror.Position): Cell {
+    return this.line_cell_map.get(pos.line).cell
   }
 
   transform(pos: CodeMirror.Position): CodeMirror.Position {
@@ -272,7 +281,7 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
 
           // TODO: use better structure (tree with ranges?)
           this.line_cell_map.set(
-            last_line + i, {editor: cm_editor, line_shift: last_line}
+            last_line + i, {editor: cm_editor, line_shift: last_line, cell}
           )
         }
         last_line += cell_lines + empty_lines_between_cells
