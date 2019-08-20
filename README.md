@@ -19,6 +19,10 @@
 ##### Planned:
 - "rename" action
 
+##### May be included:
+- Gutter with linter results
+
+
 ### This extension is highly experimental!
 
 ```bash
