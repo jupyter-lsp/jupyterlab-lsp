@@ -69,8 +69,6 @@ export class LSPConnector extends DataConnector<CompletionHandler.IReply,
     // Find the token at the cursor
     const cursor = editor.getCursorPosition();
     const token = editor.getTokenForPosition(cursor);
-    console.log(cursor)
-    console.log(token)
 
     const start = editor.getPositionAt(token.offset);
     const end = editor.getPositionAt(token.offset + token.value.length);
@@ -106,17 +104,8 @@ export class LSPConnector extends DataConnector<CompletionHandler.IReply,
     //if(completion_characters.indexOf(typedCharacter) === -1)
     //  return
 
-    // in Node v11.13.0, once() was added which would enable using native promises here:
-    // https://nodejs.org/api/events.html#events_events_once_emitter_name
-    // but it has not been implemented in 'events':
-    // https://nodejs.org/api/events.html
-    // yet (as for today they match Node.js v10.1)
-    // There is an issue:
-    // https://github.com/Gozala/events/issues/63
-
     let transform = this.transform_coordinates;
-    console.log(transform(PositionConverter.ce_to_cm(cursor)));
-    //
+
     connection.getCompletion(
       transform(PositionConverter.ce_to_cm(cursor)),
       {
@@ -130,14 +119,22 @@ export class LSPConnector extends DataConnector<CompletionHandler.IReply,
       //lsProtocol.CompletionTriggerKind.TriggerCharacter,
     );
     let result: any = {set: false};
+
+    // in Node v11.13.0, once() was added which would enable using native promises, see:
+    // https://nodejs.org/api/events.html#events_events_once_emitter_name
+    // but it has not been implemented in 'events':
+    // https://nodejs.org/api/events.html
+    // yet (as for today they match Node.js v10.1)
+    // There is an issue:
+    // https://github.com/Gozala/events/issues/63
+
+    // TODO leaky leak ('MaxListenersExceededWarning'), IMO it only happens when the callback fails...
     connection.once(event, (args: any) => {
       result.value = args;
       result.set = true;
       return args
     });
     await until_ready(() => result.set);
-
-    console.log(result);
 
     let matches: Array<string> = [];
     const types: Array<IItemType> = [];
