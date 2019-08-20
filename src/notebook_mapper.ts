@@ -114,15 +114,20 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
       if (pos.outside === true) {
         continue
       }
-      // TODO: if cell is not known, refresh; also, worth fundung why not working now anyway
-      let shift = this.cell_line_map.get(cell);
-      if (shift === undefined)
-        throw Error('Cell not found in cell_line_map')
-      return {
-        ...pos,
-        line: pos.line + shift
-      };
+
+      return this.transform_to_notebook(cell, pos)
     }
+  }
+
+  transform_to_notebook(cell: Cell, position: CodeMirror.Position): CodeMirror.Position {
+    // TODO: if cell is not known, refresh
+    let shift = this.cell_line_map.get(cell);
+    if (shift === undefined)
+      throw Error('Cell not found in cell_line_map');
+    return {
+      ...position,
+      line: position.line + shift
+    };
   }
 
   cursorCoords(where?: boolean, mode?: "window" | "page" | "local"): { left: number; top: number; bottom: number };

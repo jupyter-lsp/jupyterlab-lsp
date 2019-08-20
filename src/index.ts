@@ -5,7 +5,6 @@ import {CodeMirrorEditor} from '@jupyterlab/codemirror';
 import {FileEditor, IEditorTracker} from '@jupyterlab/fileeditor';
 import {ISettingRegistry, PathExt} from '@jupyterlab/coreutils';
 import {IDocumentManager} from '@jupyterlab/docmanager';
-import {Cell} from '@jupyterlab/cells';
 
 import {FileEditorJumper} from "@krassowski/jupyterlab_go_to_definition/lib/jumpers/fileeditor";
 import {NotebookJumper} from "@krassowski/jupyterlab_go_to_definition/lib/jumpers/notebook";
@@ -27,18 +26,9 @@ import {Widget} from '@phosphor/widgets';
 import {IRenderMimeRegistry} from "@jupyterlab/rendermime";
 import {FreeTooltip} from "./free_tooltip";
 import {getModifierState, until_ready} from "./utils";
+import {PositionConverter} from "./converter";
+
 import CodeMirror = require("codemirror");
-
-
-class PositionConverter {
-  static lsp_to_cm(position: lsProtocol.Position): CodeMirror.Position {
-    return {line: position.line, ch: position.character};
-  }
-
-  static cm_to_jl(position: CodeMirror.Position): CodeEditor.IPosition {
-    return {line: position.line, column: position.ch};
-  }
-}
 
 
 /*
@@ -317,23 +307,29 @@ class NotebookAdapter {
     this.widget.content.activeCellChanged.connect(this.refresh_lsp_notebook_image.bind(this));
 
 
-    const cell_to_connector_map: Map<Cell, LSPConnector> = new Map();
-    // lazily register completion connectors on cells
+    // register completion connectors on cells
+
+    // see https://github.com/jupyterlab/jupyterlab/blob/c0e9eb94668832d1208ad3b00a9791ef181eca4c/packages/completer-extension/src/index.ts#L198-L213
+    const cell = this.widget.content.activeCell;
+    const connector = new LSPConnector({
+      editor: cell.editor,
+      connection: this.connection,
+      coordinates_transform: (position: CodeMirror.Position) => this.notebook_as_editor.transform_to_notebook(cell, position)
+    });
+    const handler = this.completion_manager.register({
+      connector,
+      editor: cell.editor,
+      parent: this.widget,
+    });
     this.widget.content.activeCellChanged.connect((notebook, cell) => {
-
-      // skip if already registered
-      if(cell_to_connector_map.has(cell))
-        return;
-
       const connector = new LSPConnector({
         editor: cell.editor,
-        connection: this.connection
+        connection: this.connection,
+        coordinates_transform: (position: CodeMirror.Position) => this.notebook_as_editor.transform_to_notebook(cell, position)
       });
-      this.completion_manager.register({
-        connector,
-        editor: cell.editor,
-        parent: cell,
-      });
+
+      handler.editor = cell.editor;
+      handler.connector = connector;
 
     });
   }
@@ -447,7 +443,8 @@ class FileEditorAdapter {
 
     const connector = new LSPConnector({
       editor: this.editor.editor,
-      connection: this.connection
+      connection: this.connection,
+      coordinates_transform: null
     });
     completion_manager.register({
       connector,

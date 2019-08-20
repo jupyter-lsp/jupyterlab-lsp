@@ -10,10 +10,12 @@
 - linting: critical errors have red underline, warnings are orange, etc. Hover over the underlined code to see the linter's message
 - go to definition: use context menu entries to jump to definition (currently only in the file editor) 
 - highlight usages: just place your cursor on a variable, function ect and all the usages will be highlighted (only file editor or a single cell as well)
+- advanced autocompletion - even when the kernel is off!
 
 ##### In progress:
-- completer (autocompletion), including auto invocation on certain characters (e.g. '.' (dot) in Python)
-- better got to definition, including notebook
+- auto invocation of completer on certain characters (e.g. '.' (dot) in Python)
+- completer: merge suggestions from LSP, kernel and tokens (currently LSP and tokens only)
+- better go-to-definition functionality, including notebook
 
 
 ##### Planned:

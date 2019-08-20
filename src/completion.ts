@@ -1,10 +1,13 @@
 import {DataConnector} from "@jupyterlab/coreutils";
 import {CompletionHandler, ContextConnector} from "@jupyterlab/completer";
 import {CodeEditor} from "@jupyterlab/codeeditor";
-import {IPosition, LspWsConnection} from "lsp-editor-adapter";
+import {LspWsConnection} from "lsp-editor-adapter";
 import {ReadonlyJSONObject} from "@phosphor/coreutils";
 import {completionItemKindNames} from "./lsp";
 import {until_ready} from "./utils";
+import { PositionConverter } from "./converter";
+import CodeMirror = require("codemirror");
+
 
 /**
  * A LSP connector for completion handlers.
@@ -12,6 +15,12 @@ import {until_ready} from "./utils";
 export class LSPConnector extends DataConnector<CompletionHandler.IReply,
   void,
   CompletionHandler.IRequest> {
+  private readonly _editor: CodeEditor.IEditor;
+  private readonly _connection: LspWsConnection;
+  private _completion_characters: Array<string>;
+  private _context_connector: ContextConnector;
+  transform_coordinates: (position: CodeMirror.Position) => CodeMirror.Position;
+
   /**
    * Create a new LSP connector for completion requests.
    *
@@ -22,7 +31,11 @@ export class LSPConnector extends DataConnector<CompletionHandler.IReply,
     this._editor = options.editor;
     this._connection = options.connection;
     this._completion_characters = this._connection.getLanguageCompletionCharacters();
-    this._context_connector = new ContextConnector({editor: options.editor})
+    this._context_connector = new ContextConnector({editor: options.editor});
+    this.transform_coordinates = (
+      options.coordinates_transform !== null ?
+        options.coordinates_transform : (position => position)
+    )
   }
 
   /**
@@ -38,7 +51,7 @@ export class LSPConnector extends DataConnector<CompletionHandler.IReply,
       if (this._completion_characters === undefined)
         this._completion_characters = this._connection.getLanguageCompletionCharacters();
 
-      return Private.hint(this._editor, this._connection, this._completion_characters).catch((e) => {
+      return this.hint(this._editor, this._connection, this._completion_characters).catch((e) => {
           console.log(e);
           return this._context_connector.fetch(request)
         }
@@ -48,53 +61,7 @@ export class LSPConnector extends DataConnector<CompletionHandler.IReply,
     }
   }
 
-  private readonly _editor: CodeEditor.IEditor;
-  private readonly _connection: LspWsConnection;
-  private _completion_characters: Array<string>;
-  private _context_connector: ContextConnector;
-}
-
-/**
- * A namespace for LSP connector statics.
- */
-export namespace LSPConnector {
-  /**
-   * The instantiation options for cell completion handlers.
-   */
-  export interface IOptions {
-    /**
-     * The session used by the LSP connector.
-     */
-    editor: CodeEditor.IEditor;
-    connection: LspWsConnection;
-  }
-}
-
-function convert_position(position: CodeEditor.IPosition): IPosition {
-  return {
-    line: position.line,
-    ch: position.column
-  }
-}
-
-
-interface IItemType extends ReadonlyJSONObject {
-  // the item value
-  text: string
-  // the item type
-  type: string
-}
-
-
-/**
- * A namespace for Private functionality.
- */
-namespace Private {
-  /**
-   * Get a list of completion hints from a tokenization
-   * of the editor.
-   */
-  export async function hint(
+  async hint(
     editor: CodeEditor.IEditor,
     connection: LspWsConnection,
     completion_characters: Array<string>
@@ -102,6 +69,8 @@ namespace Private {
     // Find the token at the cursor
     const cursor = editor.getCursorPosition();
     const token = editor.getTokenForPosition(cursor);
+    console.log(cursor)
+    console.log(token)
 
     const start = editor.getPositionAt(token.offset);
     const end = editor.getPositionAt(token.offset + token.value.length);
@@ -145,11 +114,14 @@ namespace Private {
     // There is an issue:
     // https://github.com/Gozala/events/issues/63
 
+    let transform = this.transform_coordinates;
+    console.log(transform(PositionConverter.ce_to_cm(cursor)));
+    //
     connection.getCompletion(
-      convert_position(cursor),
+      transform(PositionConverter.ce_to_cm(cursor)),
       {
-        start: convert_position(start),
-        end: convert_position(end),
+        start: transform(PositionConverter.ce_to_cm(start)),
+        end: transform(PositionConverter.ce_to_cm(end)),
         text: token.value
       },
       // TODO: use force invoke on completion characters
@@ -211,5 +183,33 @@ namespace Private {
       }
     };
   }
+}
 
+/**
+ * A namespace for LSP connector statics.
+ */
+export namespace LSPConnector {
+  /**
+   * The instantiation options for cell completion handlers.
+   */
+  export interface IOptions {
+    /**
+     * The editor used by the LSP connector.
+     */
+    editor: CodeEditor.IEditor;
+    /**
+     * The connection used by the LSP connector.
+     */
+    connection: LspWsConnection;
+    coordinates_transform: (position: CodeMirror.Position) => CodeMirror.Position
+
+  }
+}
+
+
+interface IItemType extends ReadonlyJSONObject {
+  // the item value
+  text: string
+  // the item type
+  type: string
 }
