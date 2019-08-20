@@ -440,8 +440,8 @@ class FileEditorAdapter {
       // paths handling needs testing on Windows and with other language servers
       // PathExt.join(root, jumper.cwd)
       // PathExt.join(root, jumper.path)
-      rootUri: 'file:///' + jumper.cwd,
-      documentUri: 'file:///' + jumper.path,
+      rootUri: 'file://' + jumper.cwd,
+      documentUri: 'file://' + jumper.path,
       documentText: () => cm_editor.editor.getValue(),
     }).connect(new WebSocket('ws://localhost:3000/' + value));
 
