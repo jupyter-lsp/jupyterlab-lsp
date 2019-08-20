@@ -8,7 +8,7 @@
 ## Features overview:
 
 ### Implemented:
-- hover over any piece of code; if an underline appears, you can press <kbd>Control</kbd> to get a tooltip with function/class signature, module documentation or any other piece of information that the language server provides
+- hover over any piece of code; if an underline appears, you can press <kbd>Ctrl</kbd> to get a tooltip with function/class signature, module documentation or any other piece of information that the language server provides
 
 ![hover](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/hover.png)
 
