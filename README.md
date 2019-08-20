@@ -7,10 +7,18 @@
 
 ##### Working:
 - hover over any piece of code; if an underline appears, you can press <kbd>Control</kbd> to get a tooltip with function/class signature, module documentation or any other piece of information that the language server provides
+
+![hover](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/hover.png)
+
 - linting: critical errors have red underline, warnings are orange, etc. Hover over the underlined code to see the linter's message
+
+![inspections](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/inspections.png)
+
 - go to definition: use context menu entries to jump to definition (currently only in the file editor) 
-- highlight usages: just place your cursor on a variable, function ect and all the usages will be highlighted (only file editor or a single cell as well)
+- highlight usages: just place your cursor on a variable, function etc and all the usages will be highlighted (works only in the file editor or within a single cell)
 - advanced autocompletion - even when the kernel is off!
+
+![autocompletion](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.png)
 
 ##### In progress:
 - auto invocation of completer on certain characters (e.g. '.' (dot) in Python)
