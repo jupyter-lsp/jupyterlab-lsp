@@ -85,10 +85,10 @@ This would not be possible if not the fantastic work of https://github.com/wylie
 
 * JupyterLab
 
-## Installation (not published yet!)
+## Installation
 
 ```bash
-jupyter labextension install @krassowski/jupyterlab_lsp
+jupyter labextension install @krassowski/jupyterlab_lsp@next
 ```
 
 To update already installed extension:
