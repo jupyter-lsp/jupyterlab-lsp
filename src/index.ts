@@ -42,7 +42,7 @@ const hover_modifier = 'Control';
 
 class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
-  private marked_diagnostics: CodeMirror.TextMarker[] = [];
+  private marked_diagnostics: Map<string, CodeMirror.TextMarker> = new Map();
   protected create_tooltip: (markup: lsProtocol.MarkupContent, cm_editor: CodeMirror.Editor, position: CodeMirror.Position) => FreeTooltip;
   private _tooltip: FreeTooltip;
   private show_next_tooltip: boolean;
@@ -179,21 +179,45 @@ class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     TODO: the base class has the gutter support, like this
     this.editor.clearGutter('CodeMirror-lsp');
      */
-    this.marked_diagnostics.forEach((marker) => {
-      marker.clear();
-    });
 
-    this.marked_diagnostics = [];
+    // Note: no deep equal for Sets or Maps in JS:
+    // https://stackoverflow.com/a/29759699
+    const markers_to_retain: Set<string> = new Set<string>();
+
+    // add new markers, keep track of the added ones
+    let doc = this.editor.getDoc();
+
     response.diagnostics.forEach((diagnostic: lsProtocol.Diagnostic) => {
       const start = PositionConverter.lsp_to_cm(diagnostic.range.start);
       const end = PositionConverter.lsp_to_cm(diagnostic.range.end);
 
-      const doc = this.editor.getDoc();
       const severity = diagnosticSeverityNames[diagnostic.severity];
-      this.marked_diagnostics.push(doc.markText(start, end, {
-        title: diagnostic.message,
-        className: 'cm-lsp-diagnostic cm-lsp-diagnostic-' + severity,
-      }));
+
+      // what a pity there is no hash in the standard library...
+      // we could use this: https://stackoverflow.com/a/7616484 though it may not be worth it:
+      //   the stringified diagnostic objects are only about 100-200 JS characters anyway,
+      //   depending on the message length; this could be reduced using some structure-aware
+      //   stringifier; such a stringifier could also prevent the possibility of having a false
+      //   negative due to a different ordering of keys
+      // obviously, the hash would prevent recovery of info from the key.
+      let diagnostic_hash = JSON.stringify(diagnostic);
+      markers_to_retain.add(diagnostic_hash);
+
+      if(!this.marked_diagnostics.has(diagnostic_hash)) {
+        let options: CodeMirror.TextMarkerOptions = {
+          title: diagnostic.message + (diagnostic.source ? ' (' + diagnostic.source + ')' : ''),
+          className: 'cm-lsp-diagnostic cm-lsp-diagnostic-' + severity,
+        };
+        let marker;
+        try { marker = doc.markText(start, end, options); }
+        catch (e) {
+          console.warn('Marking inspection (diagnostic text) failed, see following logs (2):');
+          console.log(diagnostic);
+          console.log(e);
+          return;
+        }
+        this.marked_diagnostics.set(diagnostic_hash, marker);
+      }
 
       /*
       TODO and this:
@@ -201,14 +225,24 @@ class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
         childEl.classList.add('CodeMirror-lsp-guttermarker');
         childEl.title = diagnostic.message;
         this.editor.setGutterMarker(start.line, 'CodeMirror-lsp', childEl);
-
       do we want gutters?
      */
-      });
-    }
+    });
 
+    // TODO: this is not enough; the apparent marker position will change in notebook with every line change
+    //  for each marker after the (inserted/removed) line, however those markers should not be invalidated,
+    //  i.e. the invalidation should be performed in the cell space, not in the notebook coordinate space.
+    // remove the markers which were not included in the new message
+    this.marked_diagnostics.forEach((marker: CodeMirror.TextMarker, diagnostic_hash: string) => {
+      if(!markers_to_retain.has(diagnostic_hash)) {
+        marker.clear();
+        this.marked_diagnostics.delete(diagnostic_hash)
+      }
+    });
 
   }
+
+}
 
 
 class NotebookAdapter {
@@ -246,9 +280,9 @@ class NotebookAdapter {
 
   async init_once_ready(){
     let document_path = this.widget.context.path;
-    console.log('waiting for', document_path, 'to fully load');
+    console.log('LSP: waiting for', document_path, 'to fully load');
     await until_ready(this.is_ready.bind(this), -1);
-    console.log(document_path, 'ready for LSP connection');
+    console.log('LSP:', document_path, 'ready for connection');
 
     let cm_editor = this.notebook_as_editor as CodeMirror.Editor;
     // TODO: reconsider where language, path and cwd belong
@@ -262,7 +296,7 @@ class NotebookAdapter {
 
     // TODO: use native jupyterlab tooltips, fix autocompletion (see how it is done by default), using BOTH kernel and LSP
     //  change style for inspections so that unused variables are greyed out if there is enough info in diagnostics message
-    console.log('Root path:', root_path, 'Language:', value);
+    console.log('LSP: will connect using root path:', root_path, 'and language:', value);
     this.connection = new LspWsConnection({
       serverUri: 'ws://localhost/' + value,
       languageId: value,
@@ -276,7 +310,7 @@ class NotebookAdapter {
 
     // @ts-ignore
     await until_ready(() => this.connection.isConnected, -1, 150);
-    console.log(document_path, 'connected to LSP');
+    console.log('LSP:', document_path, 'connected');
 
     // @ts-ignore
     this.adapter = new CodeMirrorAdapterExtension(
