@@ -289,7 +289,6 @@ class NotebookAdapter {
     this.editor = editor_widget.content;
     this.completion_manager = completion_manager;
     this.jumper = jumper;
-    this.notebook_as_editor = new NotebookAsSingleEditor(editor_widget);
     this.rendermime_registry = rendermime_registry;
     this.init_once_ready().then()
   }
@@ -299,7 +298,6 @@ class NotebookAdapter {
       this.widget.context.isReady &&
       this.widget.content.isVisible &&
       this.widget.content.widgets.length > 0 &&
-      this.notebook_as_editor.getValue().length > 0 &&
       // @ts-ignore
       this.widget.model.metadata.get('language_info').name != ''
     )
@@ -311,29 +309,38 @@ class NotebookAdapter {
     await until_ready(this.is_ready.bind(this), -1);
     console.log('LSP:', document_path, 'ready for connection');
 
-    let cm_editor = this.notebook_as_editor as CodeMirror.Editor;
-    // TODO: reconsider where language, path and cwd belong
-
     let root_path = PathExt.dirname(document_path);
     // TODO instead use mime types in servers.yml?
     // @ts-ignore
-    let value = this.widget.model.metadata.get('language_info').name;
+    let language = this.widget.model.metadata.get('language_info').name;
     // TODO
     // this.widget.context.pathChanged
 
+    this.notebook_as_editor = new NotebookAsSingleEditor(
+      this.widget,
+      // filter out line magics if the language is python
+      language == 'python' ? '^%.*' : '',
+      // the pass is used to silence the linters in places where the line would otherwise be filtered out
+      language == 'python' ? 'pass' : ''
+      // TODO: ideally we would allow to substitute code for magics, etc
+    );
+
+    let cm_editor = this.notebook_as_editor as CodeMirror.Editor;
+    // TODO: reconsider where language, path and cwd belong
+
     // TODO: use native jupyterlab tooltips, fix autocompletion (see how it is done by default), using BOTH kernel and LSP
     //  change style for inspections so that unused variables are greyed out if there is enough info in diagnostics message
-    console.log('LSP: will connect using root path:', root_path, 'and language:', value);
+    console.log('LSP: will connect using root path:', root_path, 'and language:', language);
     this.connection = new LspWsConnection({
-      serverUri: 'ws://localhost/' + value,
-      languageId: value,
+      serverUri: 'ws://localhost/' + language,
+      languageId: language,
       // paths handling needs testing on Windows and with other language servers
       // PathExt.join(root, jumper.cwd)
       // PathExt.join(root, jumper.path)
       rootUri: 'file:///' + root_path,
       documentUri: 'file:///' + document_path,
       documentText: this.get_notebook_content.bind(this),
-    }).connect(new WebSocket('ws://localhost:3000/' + value));
+    }).connect(new WebSocket('ws://localhost:3000/' + language));
 
     // @ts-ignore
     await until_ready(() => this.connection.isConnected, -1, 150);

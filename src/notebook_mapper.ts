@@ -53,13 +53,17 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
   line_cell_map: Map<number, ICellTransform>;
   cell_line_map: Map<Cell, number>;
   cm_editor_to_ieditor: Map<CodeMirror.Editor, CodeEditor.IEditor>;
+  line_filter: string;
+  private filtered_out_line_replacement: string;
 
-  constructor(notebook_panel: NotebookPanel) {
+  constructor(notebook_panel: NotebookPanel, line_filter: string = '', filtered_out_line_replacement ='') {
     this.notebook_panel = notebook_panel;
     this.notebook = notebook_panel.content;
     this.line_cell_map = new Map();
     this.cell_line_map = new Map();
     this.cm_editor_to_ieditor = new Map();
+    this.line_filter = line_filter;
+    this.filtered_out_line_replacement = filtered_out_line_replacement;
   }
 
   showHint: (options: ShowHintOptions) => void;
@@ -101,7 +105,7 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
       let editor = this.get_editor_at(pos);
       return editor.charCoords(pos, mode);
     } catch (e) {
-      console.log(e)
+      console.log(e);
       return {bottom: 0, left: 0, right: 0, top: 0};
     }
   }
@@ -274,17 +278,25 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
           return true;
         // one empty line is necessary to separate code blocks, next 'n' lines are to silence linters
         // and the final cell does not get the additional lines (thanks to the use of join, see below)
-        all_lines.push(lines + '\n');
-        let cell_lines = lines.split('\n').length;
+        let filtered_lines = new Array<string>();
+        let lines_array = lines.split('\n');
         this.cell_line_map.set(cell, last_line);
-        for (let i = 0; i < cell_lines; i++) {
+        for (let i = 0; i < lines_array.length; i++) {
 
           // TODO: use better structure (tree with ranges?)
           this.line_cell_map.set(
             last_line + i, {editor: cm_editor, line_shift: last_line, cell}
-          )
+          );
+
+          if (!this.line_filter || lines_array[i].match(this.line_filter) === null)
+            filtered_lines.push(lines_array[i]);
+          else
+            filtered_lines.push(this.filtered_out_line_replacement)
         }
-        last_line += cell_lines + empty_lines_between_cells
+
+        all_lines.push(filtered_lines.join('\n') + '\n');
+        // note filtered_lines.length === lines_array.length
+        last_line += filtered_lines.length + empty_lines_between_cells
       }
       return true;
     });
