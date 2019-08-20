@@ -93,7 +93,7 @@ ln -s /usr usr
 If your user does not have sufficient permissions to traverse the entire path, you will not be able to open the file.
 
 
-### Update
+### Updatng the extension
 To update already installed extension:
 
 ```bash
