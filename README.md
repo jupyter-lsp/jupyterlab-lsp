@@ -3,9 +3,11 @@
 <!--[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) [![codebeat badge](TODO)](https://codebeat.co/projects/github-com-krassowski-jupyterlab-lsp-master) -->
 [![Binder](https://beta.mybinder.org/badge.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab/tree/examples/demo.ipynb)
 
-### Features overview:
+**This extension is highly experimental, though you are encouraged to try it, leave feedback and/or a PR**
 
-##### Working:
+## Features overview:
+
+### Implemented:
 - hover over any piece of code; if an underline appears, you can press <kbd>Control</kbd> to get a tooltip with function/class signature, module documentation or any other piece of information that the language server provides
 
 ![hover](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/hover.png)
@@ -20,30 +22,36 @@
 
 ![autocompletion](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.png)
 
-##### In progress:
+### In progress:
 - auto invocation of completer on certain characters (e.g. '.' (dot) in Python)
 - completer: merge suggestions from LSP, kernel and tokens (currently LSP and tokens only)
 - better go-to-definition functionality, including notebook
 
 
-##### Planned:
+### Planned:
 - "rename" action
 
-##### May be included:
+### May be included:
 - Gutter with linter results
 
 
-### This extension is highly experimental!
+## Under the hood
+
+This would not be possible if not the fantastic work of https://github.com/wylieconlon/lsp-editor-adapter.
+
+## Prerequisites
+
+* JupyterLab
+
+## Installation
+
+1. install the extension:
 
 ```bash
-git clone https://github.com/krassowski/jupyterlab-lsp.git
-cd jupyterlab-lsp
-# dev-dependencies may be needed as well
-npm install .
-jupyter labextension install .
+jupyter labextension install @krassowski/jupyterlab-lsp
 ```
 
-Install servers for languages of your choice. Below are examples for Python (with [pyls](https://github.com/palantir/python-language-server)) and R (with [languageserver](https://github.com/REditorSupport/languageserver)):
+2. install servers for languages of your choice. Below are examples for Python (with [pyls](https://github.com/palantir/python-language-server)) and R (with [languageserver](https://github.com/REditorSupport/languageserver)):
 
 ```bash
 pip install python-language-server[all]
@@ -53,7 +61,9 @@ pip install python-language-server[all]
 R -e 'install.packages("languageserver")'
 ```
 
-create file called `servers.yml`:
+For the full list of language servers see the [Microsoft's list](https://microsoft.github.io/language-server-protocol/implementors/servers/); it may also be good to visit the repository of each server as many provide some additional configuration options.
+
+3. create `servers.yml` file:
 
 ```yaml
 langservers:
@@ -66,14 +76,12 @@ langservers:
     - languageserver::run()
 ```
 
-For the full list of language servers see the [Microsoft's list](https://microsoft.github.io/language-server-protocol/implementors/servers/); it may also be good to visit the repository of each server as many provide some additional configuration options.
-
-Then run (TODO: could this be started by the extension?):
+4. Each time before starting JupyterLab, run:
 ```bash
 node node_modules/jsonrpc-ws-proxy/dist/server.js --port 3000 --languageServers servers.yml
 ```
 
-To enable opening files outside of the root directory (the place where you start JupyterLab),
+5. (Optional) to enable opening files outside of the root directory (the place where you start JupyterLab),
 create `.lsp_symlink` and symlink your `home`, `usr`, or any other location which include the files that you wish to make possible to open in there:
 ```bash
 mkdir .lsp_symlink
@@ -84,21 +92,8 @@ ln -s /usr usr
 
 If your user does not have sufficient permissions to traverse the entire path, you will not be able to open the file.
 
-### Under the hood
 
-This would not be possible if not the fantastic work of https://github.com/wylieconlon/lsp-editor-adapter.
-
-
-## Prerequisites
-
-* JupyterLab
-
-## Installation
-
-```bash
-jupyter labextension install @krassowski/jupyterlab_lsp@next
-```
-
+### Update
 To update already installed extension:
 
 ```bash
