@@ -195,8 +195,9 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     const notebook_as_editor = this.editor as NotebookAsSingleEditor;
     if (notebook_as_editor.transform !== undefined) {
       return position => notebook_as_editor.transform(position);
+    } else {
+      return position => position;
     }
-    else { return position => position; }
   }
 
   public get_editor_index(position: CodeMirror.Position): number {
@@ -206,15 +207,18 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       return notebook_as_editor.notebook.widgets.findIndex(other_cell => {
         return cell == other_cell;
       });
-    } else { return 0; }
+    } else {
+      return 0;
+    }
   }
 
   public get get_cell_id(): (position: CodeMirror.Position) => string {
     const notebook_as_editor = this.editor as NotebookAsSingleEditor;
     if (notebook_as_editor.get_cell_at !== undefined) {
       return position => notebook_as_editor.get_cell_at(position).id;
+    } else {
+      return position => '';
     }
-    else { return position => ''; }
   }
 
   public handleDiagnostic(response: lsProtocol.PublishDiagnosticsParams) {

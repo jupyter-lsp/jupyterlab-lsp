@@ -1,26 +1,21 @@
 import { JupyterLabWidgetAdapter } from './jupyterlab';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
-import { CodeMirror, CodeMirrorAdapterExtension } from './codemirror';
+import { CodeMirror } from './codemirror';
 import { NotebookAsSingleEditor } from '../notebook_mapper';
 import { ICompletionManager } from '@jupyterlab/completer';
 import { NotebookJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { until_ready } from '../utils';
-import * as lsProtocol from 'vscode-languageserver-protocol';
-import { FreeTooltip } from '../free_tooltip';
-import { PositionConverter } from '../converter';
-import { Widget } from '@phosphor/widgets';
 import { LSPConnector } from '../completion';
+import { CodeEditor } from '@jupyterlab/codeeditor';
 
 export class NotebookAdapter extends JupyterLabWidgetAdapter {
   editor: Notebook;
   widget: NotebookPanel;
   notebook_as_editor: NotebookAsSingleEditor;
   completion_manager: ICompletionManager;
-  // TODO: make jumper optional?
-  jumper: NotebookJumper;
-  rendermime_registry: IRenderMimeRegistry;
+  jumper: NotebookJumper; // TODO: make jumper optional?
 
   constructor(
     editor_widget: NotebookPanel,
@@ -29,12 +24,11 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     completion_manager: ICompletionManager,
     rendermime_registry: IRenderMimeRegistry
   ) {
-    super(app);
+    super(app, rendermime_registry);
     this.widget = editor_widget;
     this.editor = editor_widget.content;
     this.completion_manager = completion_manager;
     this.jumper = jumper;
-    this.rendermime_registry = rendermime_registry;
     this.init_once_ready().then();
   }
 
@@ -57,6 +51,10 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     return language_metadata.name;
   }
 
+  find_ce_editor(cm_editor: CodeMirror.Editor): CodeEditor.IEditor {
+    return this.notebook_as_editor.cm_editor_to_ieditor.get(cm_editor);
+  }
+
   async init_once_ready() {
     console.log('LSP: waiting for', this.document_path, 'to fully load');
     await until_ready(this.is_ready.bind(this), -1);
@@ -74,43 +72,8 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       // TODO: ideally we would allow to substitute code for magics, etc
     );
 
-    let cm_editor = this.notebook_as_editor as CodeMirror.Editor;
-
     this.connect();
-
-    // @ts-ignore
-    await until_ready(() => this.connection.isConnected, -1, 150);
-    console.log('LSP:', this.document_path, 'connected');
-
-    this.adapter = new CodeMirrorAdapterExtension(
-      this.connection,
-      {
-        quickSuggestionsDelay: 50
-      },
-      cm_editor,
-      (
-        markup: lsProtocol.MarkupContent,
-        cm_editor: CodeMirror.Editor,
-        position: CodeMirror.Position
-      ) => {
-        const bundle =
-          markup.kind === 'plaintext'
-            ? { 'text/plain': markup.value }
-            : { 'text/markdown': markup.value };
-        const tooltip = new FreeTooltip({
-          anchor: this.widget.content,
-          bundle: bundle,
-          editor: this.notebook_as_editor.cm_editor_to_ieditor.get(cm_editor),
-          rendermime: this.rendermime_registry,
-          position: PositionConverter.cm_to_ce(
-            this.notebook_as_editor.transform(position)
-          ),
-          moveToLineEnd: false
-        });
-        Widget.attach(tooltip, document.body);
-        return tooltip;
-      }
-    );
+    this.create_adapter();
 
     // refresh server held state after every change
     // note this may be changed soon: https://github.com/jupyterlab/jupyterlab/issues/5382#issuecomment-515643504

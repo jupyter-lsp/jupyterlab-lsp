@@ -4,15 +4,28 @@ import { CodeMirror, CodeMirrorAdapterExtension } from './codemirror';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
 import { PositionConverter } from '../converter';
+import { CodeEditor } from '@jupyterlab/codeeditor';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import * as lsProtocol from 'vscode-languageserver-protocol';
+import { FreeTooltip } from '../free_tooltip';
+import { Widget } from '@phosphor/widgets';
+import { IDocumentWidget } from '@jupyterlab/docregistry';
+import { until_ready } from '../utils';
 
 export abstract class JupyterLabWidgetAdapter {
   app: JupyterFrontEnd;
   connection: LspWsConnection;
   jumper: CodeJumper;
   adapter: CodeMirrorAdapterExtension;
+  rendermime_registry: IRenderMimeRegistry;
+  widget: IDocumentWidget;
 
-  protected constructor(app: JupyterFrontEnd) {
+  protected constructor(
+    app: JupyterFrontEnd,
+    rendermime_registry: IRenderMimeRegistry
+  ) {
     this.app = app;
+    this.rendermime_registry = rendermime_registry;
   }
 
   abstract get document_path(): string;
@@ -29,8 +42,9 @@ export abstract class JupyterLabWidgetAdapter {
   abstract get_document_content(): string;
 
   abstract get cm_editor(): CodeMirror.Editor;
+  abstract find_ce_editor(cm_editor: CodeMirror.Editor): CodeEditor.IEditor;
 
-  connect() {
+  async connect() {
     console.log(
       'LSP: will connect using root path:',
       this.root_path,
@@ -106,6 +120,20 @@ export abstract class JupyterLabWidgetAdapter {
         true
       );
     });
+
+    // @ts-ignore
+    await until_ready(() => this.connection.isConnected, -1, 150);
+    console.log('LSP:', this.document_path, 'connected.');
+  }
+
+  create_adapter() {
+    this.adapter = new CodeMirrorAdapterExtension(
+      this.connection,
+      { quickSuggestionsDelay: 50 },
+      this.cm_editor,
+      this.create_tooltip.bind(this)
+    );
+    console.log('LSP: Adapter for', this.document_path, 'is ready.');
   }
 
   get_doc_position_from_context_menu(): IPosition {
@@ -131,5 +159,26 @@ export abstract class JupyterLabWidgetAdapter {
       },
       'window'
     );
+  }
+
+  protected create_tooltip(
+    markup: lsProtocol.MarkupContent,
+    cm_editor: CodeMirror.Editor,
+    position: CodeMirror.Position
+  ): FreeTooltip {
+    const bundle =
+      markup.kind === 'plaintext'
+        ? { 'text/plain': markup.value }
+        : { 'text/markdown': markup.value };
+    const tooltip = new FreeTooltip({
+      anchor: this.widget.content,
+      bundle: bundle,
+      editor: this.find_ce_editor(cm_editor),
+      rendermime: this.rendermime_registry,
+      position: PositionConverter.cm_to_ce(this.adapter.transform(position)),
+      moveToLineEnd: false
+    });
+    Widget.attach(tooltip, document.body);
+    return tooltip;
   }
 }

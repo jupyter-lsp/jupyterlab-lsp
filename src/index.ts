@@ -166,6 +166,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     // this lets it be before "Clear outputs" which is the last entry of the
     // CodeCell contextmenu and plays nicely with the first notebook entry
     // ('Clear all outputs') thus should stay as the last one.
+    // see https://github.com/blink1073/jupyterlab/blob/3592afd328116a588e3307b4cdd9bcabc7fe92bb/packages/notebook-extension/src/index.ts#L802
     // TODO: PR bumping rank of clear all outputs instead?
     app.contextMenu.addItem({
       type: 'separator',
