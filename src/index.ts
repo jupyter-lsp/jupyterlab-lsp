@@ -47,6 +47,7 @@ class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   private _tooltip: FreeTooltip;
   private show_next_tooltip: boolean;
   private last_hover_response: lsProtocol.Hover;
+  private last_hover_character: CodeMirror.Position;
 
   constructor(connection: ILspConnection, options: ITextEditorOptions, editor: CodeMirror.Editor, create_tooltip: (markup: lsProtocol.MarkupContent, cm_editor: CodeMirror.Editor, position: CodeMirror.Position) => FreeTooltip) {
     super(connection, options, editor);
@@ -61,7 +62,7 @@ class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
     // show hover after pressing the modifier key
     wrapper.addEventListener('keydown', (event: KeyboardEvent) => {
-      if(!hover_modifier || getModifierState(event, hover_modifier)) {
+      if((!hover_modifier || getModifierState(event, hover_modifier)) && this.hover_character === this.last_hover_character) {
         this.show_next_tooltip = true;
         this.handleHover(this.last_hover_response)
       }
@@ -71,6 +72,11 @@ class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       // TODO: the updates frequency and triggers will require a review and a clean up
       this.connection.sendChange();
     })
+  }
+
+  get hover_character() {
+    // @ts-ignore
+    return this.hoverCharacter;
   }
 
   public handleGoTo(locations: any) {
@@ -135,12 +141,12 @@ class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     this.last_hover_response = null;
     if (!this.show_next_tooltip) {
       this.last_hover_response = response;
+      this.last_hover_character = this.hover_character;
       return;
     }
 
     const markup = CodeMirrorAdapterExtension.get_markup(response);
-    // @ts-ignore
-    let position = this.hoverCharacter;
+    let position = this.hover_character;
     // TODO this is where the idea of mapping notebooks with an object pretending to be an editor has a weak side...
 
     let cm_editor = this.editor;
@@ -150,8 +156,7 @@ class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     this._tooltip = this.create_tooltip(markup, cm_editor, position);
   }
   protected highlight_range(range: lsProtocol.Range, class_name: string) {
-    // @ts-ignore
-    let hover_character = this.hoverCharacter as CodeMirror.Position;
+    let hover_character = this.hover_character as CodeMirror.Position;
 
     let start: CodeMirror.Position;
     let end: CodeMirror.Position;
@@ -335,8 +340,6 @@ class NotebookAdapter {
       serverUri: 'ws://localhost/' + language,
       languageId: language,
       // paths handling needs testing on Windows and with other language servers
-      // PathExt.join(root, jumper.cwd)
-      // PathExt.join(root, jumper.path)
       rootUri: 'file://' + root_path,
       documentUri: 'file://' + document_path,
       documentText: this.get_notebook_content.bind(this),
