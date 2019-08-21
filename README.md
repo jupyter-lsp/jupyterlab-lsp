@@ -3,27 +3,39 @@
 <!--[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) [![codebeat badge](TODO)](https://codebeat.co/projects/github-com-krassowski-jupyterlab-lsp-master) -->
 <!--[![Binder](https://beta.mybinder.org/badge.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab/tree/examples/demo.ipynb)-->
 
-_This extension is highly experimental, though you are encouraged to try it, leave feedback and/or a PR_
+_This extension is in its early days, but you are welcom to check it out, leave feedback and/or a PR_
 
 ## Features overview:
 
-### Implemented:
+### Implemented
+
+Examples below are for Python, but it works as well for R:
 
 - hover over any piece of code; if an underline appears, you can press <kbd>Ctrl</kbd> to get a tooltip with function/class signature, module documentation or any other piece of information that the language server provides
 
-![hover](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/hover.png)
+  ![hover](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/hover.png)
 
 - linting: critical errors have red underline, warnings are orange, etc. Hover over the underlined code to see the linter's message
 
-![inspections](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/inspections.png)
+  ![inspections](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/inspections.png)
 
 - go to definition: use context menu entries to jump to definition
+
+  ![jump](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/jump_to_definition.png)
+
 - highlight usages: just place your cursor on a variable, function etc and all the usages will be highlighted (works only in the file editor or within a single cell)
+
 - auto invocation of completer on certain characters, for example '.' (dot) in Python
+
+  ![invoke](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/auto_invoke.png)
+
 - automatic signature suggestions
+
+  ![signature](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/signature.png)
+
 - advanced autocompletion (even when the kernel is off)
 
-![autocompletion](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.png)
+  ![autocompletion](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.png)
 
 ### In progress:
 
