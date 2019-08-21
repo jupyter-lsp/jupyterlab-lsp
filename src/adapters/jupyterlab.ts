@@ -61,69 +61,68 @@ export abstract class JupyterLabWidgetAdapter {
     }).connect(new WebSocket('ws://localhost:3000/' + this.language));
 
     // @ts-ignore
-    this.connection.on('goTo', locations => {
-      // TODO: implement selector for multiple locations
-      //  (like when there are multiple definitions or usages)
-      if (locations.length === 0) {
-        console.log('No jump targets found');
-        return;
-      }
-      console.log('Will jump to the first of suggested locations:', locations);
-
-      let location = locations[0];
-
-      let uri: string = decodeURI(location.uri);
-      let current_uri = this.connection.getDocumentUri();
-
-      let cm_position = PositionConverter.lsp_to_cm(location.range.start);
-      let editor_index = this.adapter.get_editor_index(cm_position);
-      let transformed_position = this.adapter.transform(cm_position);
-      let transformed_ce_position = PositionConverter.cm_to_ce(
-        transformed_position
-      );
-
-      console.log(
-        'Jumping to',
-        transformed_position,
-        'in',
-        editor_index,
-        'editor of',
-        uri
-      );
-
-      if (uri == current_uri) {
-        this.jumper.jump({
-          token: {
-            offset: this.jumper.getOffset(
-              transformed_ce_position,
-              editor_index
-            ),
-            value: ''
-          },
-          index: editor_index
-        });
-        return;
-      }
-
-      if (uri.startsWith('file://')) {
-        uri = uri.slice(7);
-      }
-
-      this.jumper.global_jump(
-        {
-          // TODO: there are many files which are not symlinks
-          uri: '.lsp_symlink/' + uri,
-          editor_index: editor_index,
-          line: transformed_ce_position.line,
-          column: transformed_ce_position.column
-        },
-        true
-      );
-    });
+    this.connection.on('goTo', this.handle_jump.bind(this));
 
     // @ts-ignore
     await until_ready(() => this.connection.isConnected, -1, 150);
     console.log('LSP:', this.document_path, 'connected.');
+  }
+
+  handle_jump(locations: lsProtocol.Location[]) {
+    // TODO: implement selector for multiple locations
+    //  (like when there are multiple definitions or usages)
+    if (locations.length === 0) {
+      console.log('No jump targets found');
+      return;
+    }
+    console.log('Will jump to the first of suggested locations:', locations);
+
+    let location = locations[0];
+
+    let uri: string = decodeURI(location.uri);
+    let current_uri = this.connection.getDocumentUri();
+
+    let cm_position = PositionConverter.lsp_to_cm(location.range.start);
+    let editor_index = this.adapter.get_editor_index(cm_position);
+    let transformed_position = this.adapter.transform(cm_position);
+    let transformed_ce_position = PositionConverter.cm_to_ce(
+      transformed_position
+    );
+
+    console.log(
+      'Jumping to',
+      transformed_position,
+      'in',
+      editor_index,
+      'editor of',
+      uri
+    );
+
+    if (uri == current_uri) {
+      this.jumper.jump({
+        token: {
+          offset: this.jumper.getOffset(transformed_ce_position, editor_index),
+          value: ''
+        },
+        index: editor_index
+      });
+      return;
+    }
+
+    if (uri.startsWith('file://')) {
+      uri = uri.slice(7);
+    }
+
+    this.jumper.global_jump(
+      {
+        // TODO: there are many files which are not symlinks
+        uri: '.lsp_symlink/' + uri,
+        editor_index: editor_index,
+        line: transformed_ce_position.line,
+        column: transformed_ce_position.column
+      },
+      true
+    );
   }
 
   create_adapter() {
