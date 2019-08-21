@@ -19,7 +19,7 @@ Examples below are for Python, but it works as well for R:
 
   ![inspections](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/inspections.png)
 
-- go to definition: use context menu entries to jump to definition
+- go to definition: use the context menu entries to jump to definitions
 
   ![jump](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/jump_to_definition.png)
 
