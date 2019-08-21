@@ -41,9 +41,10 @@ class DocDispatcher implements CodeMirror.Doc {
   }
 
   getCursor(start?: string): CodeMirror.Position {
-    let active_editor = this.notebook_map.notebook.activeCell
-      .editor as CodeMirrorEditor;
-    return active_editor.editor.getDoc().getCursor(start);
+    let cell = this.notebook_map.notebook.activeCell;
+    let active_editor = cell.editor as CodeMirrorEditor;
+    let cursor = active_editor.editor.getDoc().getCursor(start);
+    return this.notebook_map.transform_to_notebook(cell, cursor);
   }
 }
 
@@ -192,14 +193,16 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
     return { bottom: 0, left: 0, top: 0 };
   }
 
+  get any_editor(): CodeMirror.Editor {
+    return (this.notebook.widgets[0].editor as CodeMirrorEditor).editor;
+  }
+
   defaultCharWidth(): number {
-    return (this.notebook.widgets[0]
-      .editor as CodeMirrorEditor).editor.defaultCharWidth();
+    return this.any_editor.defaultCharWidth();
   }
 
   defaultTextHeight(): number {
-    return (this.notebook.widgets[0]
-      .editor as CodeMirrorEditor).editor.defaultTextHeight();
+    return this.any_editor.defaultTextHeight();
   }
 
   endOperation(): void {
@@ -257,9 +260,13 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
     return [];
   }
 
-  getModeAt(pos: CodeMirror.Position): any {}
+  getModeAt(pos: CodeMirror.Position): any {
+    return this.get_editor_at(pos).getModeAt(this.transform(pos));
+  }
 
-  getOption(option: string): any {}
+  getOption(option: string): any {
+    return this.any_editor.getOption(option);
+  }
 
   getScrollInfo(): CodeMirror.ScrollInfo {
     return undefined;
@@ -302,7 +309,7 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
   }
 
   getValue(seperator?: string): string {
-    let value = '';
+    let value;
     this.line_cell_map.clear();
     this.cell_line_map.clear();
     this.cm_editor_to_ieditor.clear();
@@ -693,13 +700,38 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
       | ((instance: CodeMirror.Editor, overwrite: boolean) => void)
       | ((doc: CodeMirror.Doc, event: any) => void)
   ): void {
+    let wrapped_handler = (instance_or_doc: any, a: any, b: any, c: any) => {
+      let editor = instance_or_doc as CodeMirror.Editor;
+      try {
+        editor.getDoc();
+        // @ts-ignore
+        return handler(this, a, b, c);
+      } catch (e) {
+        // TODO verify that the error was due to getDoc not existing on editor
+        console.log(e);
+        // also this is not currently in use
+        console.log('Dispatching wrapped doc handler with', this);
+        // @ts-ignore
+        return handler(this.getDoc(), a, b, c);
+      }
+    };
+
+    const cells_with_handlers = new Set<Cell>();
+
     for (let cell of this.notebook.widgets) {
       // TODO: use some more intelligent strategy to determine editors to test
-      let cm_editor = cell.editor as CodeMirrorEditor;
-      // TODO: wrap the handler
+      let cm_editor = (cell.editor as CodeMirrorEditor).editor;
+      cells_with_handlers.add(cell);
       // @ts-ignore
-      return cm_editor.editor.on(eventName, handler);
+      cm_editor.on(eventName, wrapped_handler);
     }
+    this.notebook.activeCellChanged.connect((notebook, cell) => {
+      let cm_editor = (cell.editor as CodeMirrorEditor).editor;
+      if (!cells_with_handlers.has(cell)) {
+        // @ts-ignore
+        cm_editor.on(eventName, wrapped_handler);
+      }
+    });
   }
 
   operation<T>(fn: () => T): T {

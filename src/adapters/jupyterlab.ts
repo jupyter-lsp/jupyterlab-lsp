@@ -19,13 +19,16 @@ export abstract class JupyterLabWidgetAdapter {
   adapter: CodeMirrorAdapterExtension;
   rendermime_registry: IRenderMimeRegistry;
   widget: IDocumentWidget;
+  private invoke_command: string;
 
   protected constructor(
     app: JupyterFrontEnd,
-    rendermime_registry: IRenderMimeRegistry
+    rendermime_registry: IRenderMimeRegistry,
+    invoke: string
   ) {
     this.app = app;
     this.rendermime_registry = rendermime_registry;
+    this.invoke_command = invoke;
   }
 
   abstract get document_path(): string;
@@ -43,6 +46,10 @@ export abstract class JupyterLabWidgetAdapter {
 
   abstract get cm_editor(): CodeMirror.Editor;
   abstract find_ce_editor(cm_editor: CodeMirror.Editor): CodeEditor.IEditor;
+
+  invoke_completer() {
+    return this.app.commands.execute(this.invoke_command);
+  }
 
   async connect() {
     console.log(
@@ -130,7 +137,8 @@ export abstract class JupyterLabWidgetAdapter {
       this.connection,
       { quickSuggestionsDelay: 50 },
       this.cm_editor,
-      this.create_tooltip.bind(this)
+      this.create_tooltip.bind(this),
+      this.invoke_completer.bind(this)
     );
     console.log('LSP: Adapter for', this.document_path, 'is ready.');
   }

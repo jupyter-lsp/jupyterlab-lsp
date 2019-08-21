@@ -25,6 +25,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   private last_hover_response: lsProtocol.Hover;
   private last_hover_character: CodeMirror.Position;
 
+  invoke_completer: Function;
+
   constructor(
     connection: ILspConnection,
     options: ITextEditorOptions,
@@ -33,10 +35,12 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       markup: lsProtocol.MarkupContent,
       cm_editor: CodeMirror.Editor,
       position: CodeMirror.Position
-    ) => FreeTooltip
+    ) => FreeTooltip,
+    invoke_completer: Function
   ) {
     super(connection, options, editor);
     this.create_tooltip = create_tooltip;
+    this.invoke_completer = invoke_completer;
 
     // @ts-ignore
     let listeners = this.editorListeners;
@@ -65,7 +69,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     });
   }
 
-  get hover_character() {
+  get hover_character(): CodeMirror.Position {
     // @ts-ignore
     return this.hoverCharacter;
   }
@@ -81,7 +85,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     // TODO: UNLESS the trigger character was typed!
   }
 
-  protected static get_markup(
+  protected static get_markup_for_hover(
     response: lsProtocol.Hover
   ): lsProtocol.MarkupContent {
     let contents = response.contents;
@@ -144,22 +148,105 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       return;
     }
 
-    const markup = CodeMirrorAdapterExtension.get_markup(response);
+    const markup = CodeMirrorAdapterExtension.get_markup_for_hover(response);
     let position = this.hover_character;
-    // TODO this is where the idea of mapping notebooks with an object pretending to be an editor has a weak side...
-
-    let cm_editor = this.editor;
-    if ((cm_editor as NotebookAsSingleEditor).get_editor_at !== undefined) {
-      cm_editor = (cm_editor as NotebookAsSingleEditor).get_editor_at(
-        position as CodeMirror.Position
-      );
-    }
+    let cm_editor = this.get_cm_editor(position);
 
     this._tooltip = this.create_tooltip(markup, cm_editor, position);
   }
 
+  get_cm_editor(position: CodeMirror.Position) {
+    // TODO necessity to have dependency on position is where the idea of mapping notebooks
+    //  with an object pretending to be an editor has a weak side...
+    let cm_editor = this.editor;
+    if ((cm_editor as NotebookAsSingleEditor).get_editor_at !== undefined) {
+      cm_editor = (cm_editor as NotebookAsSingleEditor).get_editor_at(position);
+    }
+    return cm_editor;
+  }
+
+  get_language_at(position: CodeMirror.Position, editor?: CodeMirror.Editor) {
+    if (typeof editor === 'undefined') { editor = this.editor; }
+    return editor.getModeAt(position).name;
+  }
+
+  protected get_markup_for_signature_help(
+    response: lsProtocol.SignatureHelp,
+    language: string
+  ): lsProtocol.MarkupContent {
+    let signatures = new Array<string>();
+
+    response.signatures.forEach((item: lsProtocol.SignatureInformation) => {
+      let markdown = '```' + language + '\n' + item.label + '\n```';
+      if (item.documentation) {
+        markdown += '\n';
+        // TODO: make use of the MarkupContent object instead
+        for (let line of item.documentation.toString().split('\n')) {
+          if (line.trim() == item.label.trim()) { continue; }
+          if (line.startsWith('>>>')) {
+            line = '```' + language + '\n' + line.substr(3) + '\n```';
+          }
+          markdown += line + '\n';
+        }
+      }
+      signatures.push(markdown);
+    });
+
+    return {
+      kind: 'markdown',
+      value: signatures.join('\n\n')
+    };
+  }
+
+  public handleSignature(response: lsProtocol.SignatureHelp) {
+    this.remove_tooltip();
+
+    // @ts-ignore
+    let token = this.token;
+    if (!token || !response || !response.signatures.length) {
+      return;
+    }
+
+    let position: CodeMirror.Position = token.start;
+
+    let language = this.get_language_at(position);
+    let markup = this.get_markup_for_signature_help(response, language);
+    let cm_editor = this.get_cm_editor(position);
+
+    this._tooltip = this.create_tooltip(markup, cm_editor, position);
+  }
+
+  public handleChange(cm: CodeMirror.Editor, change: CodeMirror.EditorChange) {
+    // based on https://github.com/wylieconlon/lsp-editor-adapter/blob/e80e44310f8c12f87f3da9be07772102610ce517/src/codemirror-adapter.ts#L65
+    // ISC licence (TODO: move this to the fork to separate out the ISC code)
+    this.remove_tooltip();
+
+    const location = this.editor.getDoc().getCursor('end');
+    this.connection.sendChange();
+
+    const completionCharacters = this.connection.getLanguageCompletionCharacters();
+    const signatureCharacters = this.connection.getLanguageSignatureCharacters();
+
+    const code = this.editor.getValue();
+    const lines = code.split('\n');
+    const line = lines[location.line];
+    const typedCharacter = line[location.ch - 1];
+
+    if (completionCharacters.indexOf(typedCharacter) > -1) {
+      this.invoke_completer();
+    } else if (signatureCharacters.indexOf(typedCharacter) > -1) {
+      // @ts-ignore
+      this.token = this._getTokenEndingAtPosition(
+        code,
+        location,
+        signatureCharacters
+      );
+      this.connection.getSignatureHelp(location);
+    }
+  }
+
   protected highlight_range(range: lsProtocol.Range, class_name: string) {
-    let hover_character = this.hover_character as CodeMirror.Position;
+    let hover_character = this.hover_character;
 
     let start: CodeMirror.Position;
     let end: CodeMirror.Position;
