@@ -31,6 +31,12 @@
     "clean": "rimraf lib",
     "prepare": "npm run clean && npm run build",
     "watch": "tsc -w",
+    "lint": "npm run prettier && npm run tslint",
+    "lint:check": "npm run prettier:check && npm run tslint:check",
+    "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
+    "prettier:check": "prettier --list-different '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
+    "tslint": "tslint --fix -c tslint.json --project tsconfig.json '**/*{.ts,.tsx}'",
+    "tslint:check": "tslint -c tslint.json --project tsconfig.json '**/*{.ts,.tsx}'",
     "test": "npx jest"
   },
   "dependencies": {
@@ -58,16 +64,20 @@
     "react": "^16.8.4"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.4.3",
     "@jupyterlab/testutils": "^1.0.0-alpha.6",
-    "@types/codemirror": "^0.0.74",
     "@types/chai": "^4.1.7",
+    "@types/codemirror": "^0.0.74",
     "@types/jest": "^23.3.11",
     "chai": "^4.2.0",
     "jest": "^24.7.1",
+    "prettier": "^1.18.2",
     "rimraf": "^2.6.1",
     "ts-jest": "^24.0.2",
-    "typescript": "~3.4.5",
-    "@babel/preset-env": "^7.4.3"
+    "tslint": "^5.19.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-plugin-prettier": "^2.0.1",
+    "typescript": "~3.4.5"
   },
   "jupyterlab": {
     "extension": true,

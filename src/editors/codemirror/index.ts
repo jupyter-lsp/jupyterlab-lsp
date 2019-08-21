@@ -1,1 +1,1 @@
-export { CodeMirrorTokensProvider } from "./tokens"
+export { CodeMirrorTokensProvider } from './tokens';

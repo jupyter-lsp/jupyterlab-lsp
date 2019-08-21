@@ -1,7 +1,7 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { Notebook } from "@jupyterlab/notebook";
+import { Notebook } from '@jupyterlab/notebook';
 import { ArrayExt } from '@phosphor/algorithm';
 
 /**
@@ -66,8 +66,4 @@ function _findTargetCell(notebook: Notebook, event: MouseEvent) {
   return { target: target, index: index };
 }
 
-export {
-  _ensureFocus,
-  _findCell,
-  _findTargetCell
-}
+export { _ensureFocus, _findCell, _findTargetCell };

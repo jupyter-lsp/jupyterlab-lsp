@@ -1,9 +1,9 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 // (Parts of the FreeTooltip code are copy-paste from Tooltip, ideally this would be PRed be merged)
-import {Tooltip} from "@jupyterlab/tooltip";
-import {CodeEditor} from "@jupyterlab/codeeditor";
-import {HoverBox} from "@jupyterlab/apputils";
+import { Tooltip } from '@jupyterlab/tooltip';
+import { CodeEditor } from '@jupyterlab/codeeditor';
+import { HoverBox } from '@jupyterlab/apputils';
 
 const MIN_HEIGHT = 20;
 const MAX_HEIGHT = 250;
@@ -38,7 +38,8 @@ export class FreeTooltip extends Tooltip {
     // Find the start of the current token for hover box placement.
     // @ts-ignore
     const editor = this._editor as CodeEditor.IEditor;
-    const cursor: CodeEditor.IPosition = this.position === null ? editor.getCursorPosition() : this.position;
+    const cursor: CodeEditor.IPosition =
+      this.position === null ? editor.getCursorPosition() : this.position;
 
     const end = editor.getOffsetAt(cursor);
     const line = editor.getLine(cursor.line);
@@ -73,7 +74,7 @@ export class FreeTooltip extends Tooltip {
       maxHeight: MAX_HEIGHT,
       minHeight: MIN_HEIGHT,
       node: this.node,
-      offset: {horizontal: -1 * paddingLeft},
+      offset: { horizontal: -1 * paddingLeft },
       privilege: 'below',
       style: style
     });

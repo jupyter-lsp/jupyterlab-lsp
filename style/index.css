@@ -1,35 +1,35 @@
 .cm-lsp-diagnostic {
-     text-decoration-line: underline;
-     /* For Chrome */
-     text-decoration-skip-ink: none;
+  text-decoration-line: underline;
+  /* For Chrome */
+  text-decoration-skip-ink: none;
 }
 
 .cm-lsp-diagnostic-Error {
-     /*
+  /*
      "wavy" would be ideal, but there seems to be a bug in Chrome which makes it fail to render the last character
      see: https://stackoverflow.com/questions/57559588/how-to-make-the-wavy-underline-extend-cover-all-the-characters-in-chrome
      an alternative would be to use background image trick to simulate the underline
      */
 
-     text-decoration-style: dashed;
-     text-decoration-color: red;
+  text-decoration-style: dashed;
+  text-decoration-color: red;
 }
 
 .cm-lsp-diagnostic-Warning {
-     text-decoration-style: dashed;
-     text-decoration-color: orange;
+  text-decoration-style: dashed;
+  text-decoration-color: orange;
 }
 
 .cm-lsp-diagnostic-Information {
-     text-decoration-style: dotted;
-     text-decoration-color: yellow;
+  text-decoration-style: dotted;
+  text-decoration-color: yellow;
 }
 
 .cm-lsp-diagnostic-Hint {
-     text-decoration-style: dotted;
-     text-decoration-color: blue;
+  text-decoration-style: dotted;
+  text-decoration-color: blue;
 }
 
 .cm-lp-hover-available {
-     text-decoration: underline;
+  text-decoration: underline;
 }

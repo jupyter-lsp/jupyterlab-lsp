@@ -15,5 +15,9 @@
     "target": "es2015",
     "types": ["jest"]
   },
-  "include": ["src/*", "src/editors/*", "src/editors/codemirror/*", "src/jumpers/*", "src/languages/*"]
+  "include": [
+    "src/*",
+    "src/editors/*",
+    "src/adapters/*"
+  ]
 }

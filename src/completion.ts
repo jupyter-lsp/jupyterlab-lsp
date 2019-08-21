@@ -1,12 +1,12 @@
-import {DataConnector} from "@jupyterlab/coreutils";
-import {CompletionHandler, ContextConnector} from "@jupyterlab/completer";
-import {CodeEditor} from "@jupyterlab/codeeditor";
-import {LspWsConnection} from "lsp-editor-adapter";
-import {ReadonlyJSONObject} from "@phosphor/coreutils";
-import {completionItemKindNames} from "./lsp";
-import {until_ready} from "./utils";
-import { PositionConverter } from "./converter";
-import CodeMirror = require("codemirror");
+import { DataConnector } from '@jupyterlab/coreutils';
+import { CompletionHandler, ContextConnector } from '@jupyterlab/completer';
+import { CodeEditor } from '@jupyterlab/codeeditor';
+import { LspWsConnection } from 'lsp-editor-adapter';
+import { ReadonlyJSONObject } from '@phosphor/coreutils';
+import { completionItemKindNames } from './lsp';
+import { until_ready } from './utils';
+import { PositionConverter } from './converter';
+import CodeMirror = require('codemirror');
 
 /*
 Feedback: anchor - not clear from docs
@@ -16,9 +16,11 @@ bundle - very not clear from the docs, interface or better docs would be nice to
 /**
  * A LSP connector for completion handlers.
  */
-export class LSPConnector extends DataConnector<CompletionHandler.IReply,
+export class LSPConnector extends DataConnector<
+  CompletionHandler.IReply,
   void,
-  CompletionHandler.IRequest> {
+  CompletionHandler.IRequest
+> {
   private readonly _editor: CodeEditor.IEditor;
   private readonly _connection: LspWsConnection;
   private _completion_characters: Array<string>;
@@ -35,11 +37,11 @@ export class LSPConnector extends DataConnector<CompletionHandler.IReply,
     this._editor = options.editor;
     this._connection = options.connection;
     this._completion_characters = this._connection.getLanguageCompletionCharacters();
-    this._context_connector = new ContextConnector({editor: options.editor});
-    this.transform_coordinates = (
-      options.coordinates_transform !== null ?
-        options.coordinates_transform : (position => position)
-    )
+    this._context_connector = new ContextConnector({ editor: options.editor });
+    this.transform_coordinates =
+      options.coordinates_transform !== null
+        ? options.coordinates_transform
+        : position => position;
   }
 
   /**
@@ -50,18 +52,21 @@ export class LSPConnector extends DataConnector<CompletionHandler.IReply,
   fetch(
     request: CompletionHandler.IRequest
   ): Promise<CompletionHandler.IReply> {
-
     try {
-      if (this._completion_characters === undefined)
+      if (this._completion_characters === undefined) {
         this._completion_characters = this._connection.getLanguageCompletionCharacters();
+      }
 
-      return this.hint(this._editor, this._connection, this._completion_characters).catch((e) => {
-          console.log(e);
-          return this._context_connector.fetch(request)
-        }
-      )
+      return this.hint(
+        this._editor,
+        this._connection,
+        this._completion_characters
+      ).catch(e => {
+        console.log(e);
+        return this._context_connector.fetch(request);
+      });
     } catch (e) {
-      return this._context_connector.fetch(request)
+      return this._context_connector.fetch(request);
     }
   }
 
@@ -84,7 +89,7 @@ export class LSPConnector extends DataConnector<CompletionHandler.IReply,
     // without sendChange we (sometimes) get outdated suggestions
     connection.sendChange();
 
-    //let request_completion: Function;
+    // let request_completion: Function;
     let event: string;
 
     // nope - do not do this; we need to get the signature (yes)
@@ -93,19 +98,18 @@ export class LSPConnector extends DataConnector<CompletionHandler.IReply,
     // to the matches...
     // Suggested in https://github.com/jupyterlab/jupyterlab/issues/7044, TODO PR
 
-
-    //if (signatureCharacters.indexOf(typedCharacter) !== -1) {
+    // if (signatureCharacters.indexOf(typedCharacter) !== -1) {
     //  // @ts-ignore
     //  request_completion = connection.getSignatureHelp.bind(this);
     //  event = 'signature'
-    //} else {
+    // } else {
     // @ts-ignore
-    //request_completion = connection.getCompletion.bind(this);
+    // request_completion = connection.getCompletion.bind(this);
     event = 'completion';
-    //}
-    //*/
+    // }
+    // */
 
-    //if(completion_characters.indexOf(typedCharacter) === -1)
+    // if(completion_characters.indexOf(typedCharacter) === -1)
     //  return
 
     let transform = this.transform_coordinates;
@@ -118,11 +122,11 @@ export class LSPConnector extends DataConnector<CompletionHandler.IReply,
         text: token.value
       },
       // TODO: use force invoke on completion characters
-      //completion_characters.find((c) => c === typedCharacter)
-      typedCharacter,
-      //lsProtocol.CompletionTriggerKind.TriggerCharacter,
+      // completion_characters.find((c) => c === typedCharacter)
+      typedCharacter
+      // lsProtocol.CompletionTriggerKind.TriggerCharacter,
     );
-    let result: any = {set: false};
+    let result: any = { set: false };
 
     // in Node v11.13.0, once() was added which would enable using native promises, see:
     // https://nodejs.org/api/events.html#events_events_once_emitter_name
@@ -136,7 +140,7 @@ export class LSPConnector extends DataConnector<CompletionHandler.IReply,
     connection.once(event, (args: any) => {
       result.value = args;
       result.set = true;
-      return args
+      return args;
     });
     await until_ready(() => result.set);
 
@@ -161,10 +165,10 @@ export class LSPConnector extends DataConnector<CompletionHandler.IReply,
       types.push({
         text: text,
         type: match.kind ? completionItemKindNames[match.kind] : ''
-      })
+      });
     }
-    console.log(matches)
-    console.log(types)
+    console.log(matches);
+    console.log(types);
 
     return {
       // note in the ContextCompleter it was:
@@ -202,15 +206,15 @@ export namespace LSPConnector {
      * The connection used by the LSP connector.
      */
     connection: LspWsConnection;
-    coordinates_transform: (position: CodeMirror.Position) => CodeMirror.Position
-
+    coordinates_transform: (
+      position: CodeMirror.Position
+    ) => CodeMirror.Position;
   }
 }
 
-
 interface IItemType extends ReadonlyJSONObject {
   // the item value
-  text: string
+  text: string;
   // the item type
-  type: string
+  type: string;
 }

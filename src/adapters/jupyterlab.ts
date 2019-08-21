@@ -1,5 +1,5 @@
-import {LspWsConnection} from "lsp-editor-adapter";
-import {PathExt} from "@jupyterlab/coreutils";
+import { LspWsConnection } from 'lsp-editor-adapter';
+import { PathExt } from '@jupyterlab/coreutils';
 
 export abstract class JupyterLabWidgetAdapter {
   connection: LspWsConnection;
@@ -18,14 +18,19 @@ export abstract class JupyterLabWidgetAdapter {
   abstract get_document_content(): string;
 
   connect() {
-    console.log('LSP: will connect using root path:', this.root_path, 'and language:', this.language);
+    console.log(
+      'LSP: will connect using root path:',
+      this.root_path,
+      'and language:',
+      this.language
+    );
     this.connection = new LspWsConnection({
       serverUri: 'ws://localhost/' + this.language,
       languageId: this.language,
       // paths handling needs testing on Windows and with other language servers
       rootUri: 'file://' + this.root_path,
       documentUri: 'file://' + this.document_path,
-      documentText: this.get_document_content.bind(this),
+      documentText: this.get_document_content.bind(this)
     }).connect(new WebSocket('ws://localhost:3000/' + this.language));
   }
 }

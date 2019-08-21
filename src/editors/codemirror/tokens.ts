@@ -1,6 +1,5 @@
-import { ITokensProvider } from "../editor";
-import { CodeMirrorEditor } from "@jupyterlab/codemirror";
-
+import { ITokensProvider } from '../editor';
+import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 
 export class CodeMirrorTokensProvider implements ITokensProvider {
   editor: CodeMirrorEditor;

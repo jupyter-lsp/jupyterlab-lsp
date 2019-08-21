@@ -3,11 +3,12 @@
 <!--[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) [![codebeat badge](TODO)](https://codebeat.co/projects/github-com-krassowski-jupyterlab-lsp-master) -->
 <!--[![Binder](https://beta.mybinder.org/badge.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab/tree/examples/demo.ipynb)-->
 
-*This extension is highly experimental, though you are encouraged to try it, leave feedback and/or a PR*
+_This extension is highly experimental, though you are encouraged to try it, leave feedback and/or a PR_
 
 ## Features overview:
 
 ### Implemented:
+
 - hover over any piece of code; if an underline appears, you can press <kbd>Ctrl</kbd> to get a tooltip with function/class signature, module documentation or any other piece of information that the language server provides
 
 ![hover](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/hover.png)
@@ -16,24 +17,25 @@
 
 ![inspections](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/inspections.png)
 
-- go to definition: use context menu entries to jump to definition (currently only in the file editor) 
+- go to definition: use context menu entries to jump to definition (currently only in the file editor)
 - highlight usages: just place your cursor on a variable, function etc and all the usages will be highlighted (works only in the file editor or within a single cell)
 - advanced autocompletion - even when the kernel is off!
 
 ![autocompletion](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.png)
 
 ### In progress:
+
 - auto invocation of completer on certain characters (e.g. '.' (dot) in Python)
 - completer: merge suggestions from LSP, kernel and tokens (currently LSP and tokens only)
 - better go-to-definition functionality, including notebook
 
-
 ### Planned:
+
 - "rename" action
 
 ### May be included:
-- Gutter with linter results
 
+- Gutter with linter results
 
 ## Under the hood
 
@@ -41,7 +43,7 @@ This would not be possible if not the fantastic work of https://github.com/wylie
 
 ## Prerequisites
 
-* JupyterLab
+- JupyterLab
 
 ## Installation
 
@@ -77,16 +79,19 @@ langservers:
 ```
 
 4. Each time before starting JupyterLab, run:
+
 ```bash
 node path_to_jupyterlab_staging/node_modules/jsonrpc-ws-proxy/dist/server.js --port 3000 --languageServers servers.yml
 ```
 
 where `path_to_jupyterlab_staging` is the location of JupyterLab staging directory. Here are example locations on Ubuntu:
+
 - if you use pyenv it should be in `~/.pyenv/versions/YOUR_VERSION_OR_VENV/share/jupyter/lab/staging/`
 - if you use local installation, it might be in `~/.local/lib/python3.6/site-packages/jupyterlab/staging/` (where instead of python3.6 you should use your Python3 version having JupyterLab installed)
 
 5. (Optional) to enable opening files outside of the root directory (the place where you start JupyterLab),
-create `.lsp_symlink` and symlink your `home`, `usr`, or any other location which include the files that you wish to make possible to open in there:
+   create `.lsp_symlink` and symlink your `home`, `usr`, or any other location which include the files that you wish to make possible to open in there:
+
 ```bash
 mkdir .lsp_symlink
 cd .lsp_symlink
@@ -96,8 +101,8 @@ ln -s /usr usr
 
 If your user does not have sufficient permissions to traverse the entire path, you will not be able to open the file.
 
-
 ### Updatng the extension
+
 To update already installed extension:
 
 ```bash

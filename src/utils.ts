@@ -1,24 +1,28 @@
 export async function sleep(timeout: number) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     setTimeout(() => {
-      resolve()
+      resolve();
     }, timeout);
-  })
+  });
 }
 
 // TODO: there is a JL native version of this which uses adaptive rate, maybe use instead?
-export function until_ready(is_ready: any, max_retrials: number = 35, interval = 50, verbose = false) {
+export function until_ready(
+  is_ready: any,
+  max_retrials: number = 35,
+  interval = 50,
+  verbose = false
+) {
   return new Promise(async (resolve, reject) => {
     let i = 0;
     while (is_ready() !== true) {
       i += 1;
       if (max_retrials != -1 && i > max_retrials) {
         reject('Too many retrials');
-        break
+        break;
       }
-      if (verbose)
-        console.log('waiting');
-      await sleep(interval)
+      if (verbose) { console.log('waiting'); }
+      await sleep(interval);
     }
     resolve(is_ready);
   });
@@ -27,7 +31,10 @@ export function until_ready(is_ready: any, max_retrials: number = 35, interval =
 /**
  * TODO: this is slightly modified copy paste from jupyterlab-go-to-definition/editors/codemirror/extension.ts;
  */
-export function getModifierState(event: MouseEvent | KeyboardEvent, modifierKey: string): boolean {
+export function getModifierState(
+  event: MouseEvent | KeyboardEvent,
+  modifierKey: string
+): boolean {
   // Note: Safari does not support getModifierState on MouseEvent, see:
   // https://github.com/krassowski/jupyterlab-go-to-definition/issues/3
   // thus AltGraph and others are not supported on Safari
@@ -35,7 +42,7 @@ export function getModifierState(event: MouseEvent | KeyboardEvent, modifierKey:
   // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/getModifierState
 
   if (event.getModifierState !== undefined) {
-    return event.getModifierState(modifierKey)
+    return event.getModifierState(modifierKey);
   }
 
   switch (modifierKey) {
@@ -48,6 +55,8 @@ export function getModifierState(event: MouseEvent | KeyboardEvent, modifierKey:
     case 'Meta':
       return event.metaKey;
     default:
-      console.warn(`State of the modifier key "${modifierKey}" could not be determined.`)
+      console.warn(
+        `State of the modifier key "${modifierKey}" could not be determined.`
+      );
   }
 }
