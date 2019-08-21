@@ -45,6 +45,9 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     // detach the adapters contextmenu
     wrapper.removeEventListener('contextmenu', listeners.contextmenu);
 
+    // TODO: actually we only need the connection...
+    //  the tooltips and suggestions will need re-writing to JL standards anyway
+
     // show hover after pressing the modifier key
     wrapper.addEventListener('keydown', (event: KeyboardEvent) => {
       if (
@@ -91,7 +94,9 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       contents = [contents as lsProtocol.MarkedString];
     }
 
-    if (!Array.isArray(contents)) { return contents as lsProtocol.MarkupContent; }
+    if (!Array.isArray(contents)) {
+      return contents as lsProtocol.MarkupContent;
+    }
 
     // now we have MarkedString
     let content = contents[0];
@@ -114,7 +119,9 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     // @ts-ignore
     this._removeHover(); // this removes underlines
 
-    if (this._tooltip !== undefined) { this._tooltip.dispose(); }
+    if (this._tooltip !== undefined) {
+      this._tooltip.dispose();
+    }
   }
 
   public handleHover(response: lsProtocol.Hover) {

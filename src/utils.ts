@@ -21,7 +21,9 @@ export function until_ready(
         reject('Too many retrials');
         break;
       }
-      if (verbose) { console.log('waiting'); }
+      if (verbose) {
+        console.log('waiting');
+      }
       await sleep(interval);
     }
     resolve(is_ready);

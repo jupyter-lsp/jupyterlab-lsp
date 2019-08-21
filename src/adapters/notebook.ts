@@ -30,7 +30,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     completion_manager: ICompletionManager,
     rendermime_registry: IRenderMimeRegistry
   ) {
-    super();
+    super(app);
     this.widget = editor_widget;
     this.editor = editor_widget.content;
     this.completion_manager = completion_manager;
@@ -155,6 +155,10 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
 
   get_notebook_content() {
     return this.notebook_as_editor.getValue();
+  }
+
+  get cm_editor() {
+    return this.notebook_as_editor;
   }
 
   get_document_content() {

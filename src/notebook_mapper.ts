@@ -164,7 +164,9 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
   ): CodeMirror.Position {
     // TODO: if cell is not known, refresh
     let shift = this.cell_line_map.get(cell);
-    if (shift === undefined) { throw Error('Cell not found in cell_line_map'); }
+    if (shift === undefined) {
+      throw Error('Cell not found in cell_line_map');
+    }
     return {
       ...position,
       line: position.line + shift
@@ -270,7 +272,9 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
   getStateAfter(line?: number): any {}
 
   getTokenAt(pos: CodeMirror.Position, precise?: boolean): CodeMirror.Token {
-    if (pos === undefined) { return; }
+    if (pos === undefined) {
+      return;
+    }
     let editor = this.get_editor_at(pos);
     return editor.getTokenAt(this.transform(pos));
   }
@@ -318,7 +322,9 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
         let lines = cm_editor.getValue(seperator);
         // TODO: use blacklist for cells with foreign language code
         //  TODO: have a second LSP for the foreign language!
-        if (lines.startsWith('%%')) { return true; }
+        if (lines.startsWith('%%')) {
+          return true;
+        }
         // one empty line is necessary to separate code blocks, next 'n' lines are to silence linters
         // and the final cell does not get the additional lines (thanks to the use of join, see below)
         let filtered_lines = new Array<string>();
@@ -337,8 +343,9 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
             lines_array[i].match(this.line_filter) === null
           ) {
             filtered_lines.push(lines_array[i]);
+          } else {
+            filtered_lines.push(this.filtered_out_line_replacement);
           }
-          else { filtered_lines.push(this.filtered_out_line_replacement); }
         }
 
         all_lines.push(filtered_lines.join('\n') + '\n');

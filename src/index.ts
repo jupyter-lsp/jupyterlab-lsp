@@ -18,13 +18,50 @@ import '../style/index.css';
 
 import 'lsp-editor-adapter/lib/codemirror-lsp.css';
 import { IPosition, LspWsConnection } from 'lsp-editor-adapter';
-import { CodeEditor } from '@jupyterlab/codeeditor';
 import { ICompletionManager } from '@jupyterlab/completer';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { NotebookAdapter } from './adapters/notebook';
 import { FileEditorAdapter } from './adapters/file_editor';
+import { JupyterLabWidgetAdapter } from './adapters/jupyterlab';
 
 const file_editor_adapters: Map<string, FileEditorAdapter> = new Map();
+const notebook_adapters: Map<string, NotebookAdapter> = new Map();
+
+const lsp_commands = [
+  {
+    id: 'lsp_get_definition',
+    execute: (connection: LspWsConnection, position: IPosition) =>
+      connection.getDefinition(position),
+    isEnabled: (connection: LspWsConnection) =>
+      connection.isDefinitionSupported(),
+    label: 'Jump to definition'
+  },
+  {
+    id: 'lsp_get_type_definition',
+    execute: (connection: LspWsConnection, position: IPosition) =>
+      connection.getTypeDefinition(position),
+    isEnabled: (connection: LspWsConnection) =>
+      connection.isTypeDefinitionSupported(),
+    label: 'Highlight type definition'
+  },
+  {
+    id: 'lsp_get_references',
+    execute: (connection: LspWsConnection, position: IPosition) =>
+      connection.getReferences(position),
+    isEnabled: (connection: LspWsConnection) =>
+      connection.isReferencesSupported(),
+    label: 'Highlight references'
+  }
+];
+
+function is_context_menu_over_token(adapter: JupyterLabWidgetAdapter) {
+  let docPosition = adapter.get_doc_position_from_context_menu();
+  if (!docPosition) {
+    return false;
+  }
+  let token = adapter.cm_editor.getTokenAt(docPosition);
+  return token.string !== '';
+}
 
 /**
  * The plugin registration information.
@@ -50,8 +87,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     completion_manager: ICompletionManager,
     rendermime_registry: IRenderMimeRegistry
   ) => {
-    // CodeMirrorExtension.configure();
-
     fileEditorTracker.widgetUpdated.connect((sender, widget) => {
       console.log(sender);
       console.log(widget);
@@ -65,7 +100,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
       if (fileEditor.editor instanceof CodeMirrorEditor) {
         let jumper = new FileEditorJumper(widget, documentManager);
-        // let extension = new CodeMirrorExtension(fileEditor.editor, jumper);
         let adapter = new FileEditorAdapter(
           widget,
           jumper,
@@ -74,51 +108,16 @@ const plugin: JupyterFrontEndPlugin<void> = {
           rendermime_registry
         );
         file_editor_adapters.set(fileEditor.id, adapter);
-        // extension.connect();
       }
     });
 
-    let file_editor_commands = [
-      {
-        id: 'lsp_get_definition',
-        execute: (connection: LspWsConnection, position: IPosition) =>
-          connection.getDefinition(position),
-        isEnabled: (connection: LspWsConnection) =>
-          connection.isDefinitionSupported(),
-        label: 'Jump to definition'
-      },
-      {
-        id: 'lsp_get_type_definition',
-        execute: (connection: LspWsConnection, position: IPosition) =>
-          connection.getTypeDefinition(position),
-        isEnabled: (connection: LspWsConnection) =>
-          connection.isTypeDefinitionSupported(),
-        label: 'Highlight type definition'
-      },
-      {
-        id: 'lsp_get_references',
-        execute: (connection: LspWsConnection, position: IPosition) =>
-          connection.getReferences(position),
-        isEnabled: (connection: LspWsConnection) =>
-          connection.isReferencesSupported(),
-        label: 'Highlight references'
-      }
-    ];
-
-    let is_context_menu_over_token = () => {
+    let is_context_menu_over_file_editor_token = () => {
       let fileEditor = fileEditorTracker.currentWidget.content;
       let adapter = file_editor_adapters.get(fileEditor.id);
-      let docPosition = adapter.get_doc_position_from_context_menu();
-      if (!docPosition) { return false; }
-      let ce_position: CodeEditor.IPosition = {
-        line: docPosition.line,
-        column: docPosition.ch
-      };
-      let token = adapter.editor.editor.getTokenForPosition(ce_position);
-      return token.value !== '';
+      return is_context_menu_over_token(adapter);
     };
 
-    for (let cmd of file_editor_commands) {
+    for (let cmd of lsp_commands) {
       app.commands.addCommand(cmd.id, {
         execute: () => {
           let fileEditor = fileEditorTracker.currentWidget.content;
@@ -133,7 +132,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
             adapter && adapter.connection && cmd.isEnabled(adapter.connection)
           );
         },
-        isVisible: is_context_menu_over_token,
+        isVisible: is_context_menu_over_file_editor_token,
         label: cmd.label
       });
 
@@ -146,14 +145,59 @@ const plugin: JupyterFrontEndPlugin<void> = {
     notebookTracker.widgetAdded.connect((sender, widget) => {
       // NOTE: assuming that the default cells content factory produces CodeMirror editors(!)
       let jumper = new NotebookJumper(widget, documentManager);
-      new NotebookAdapter(
+      let adapter = new NotebookAdapter(
         widget,
         jumper,
         app,
         completion_manager,
         rendermime_registry
       );
+      notebook_adapters.set(widget.id, adapter);
     });
+
+    // TODO de-duplicate commands creation, use some kind of an interface or factory
+    let is_context_menu_over_notebook_token = () => {
+      let notebook = notebookTracker.currentWidget;
+      let adapter = notebook_adapters.get(notebook.id);
+      return is_context_menu_over_token(adapter);
+    };
+
+    // position context menu entries after 10th but before 11th default entry
+    // this lets it be before "Clear outputs" which is the last entry of the
+    // CodeCell contextmenu and plays nicely with the first notebook entry
+    // ('Clear all outputs') thus should stay as the last one.
+    // TODO: PR bumping rank of clear all outputs instead?
+    app.contextMenu.addItem({
+      type: 'separator',
+      selector: '.jp-Notebook .jp-CodeCell',
+      rank: 10 + 1 / (lsp_commands.length + 2)
+    });
+    let i = 1;
+    for (let cmd of lsp_commands) {
+      i += 1;
+      app.commands.addCommand(cmd.id + '_notebook', {
+        execute: () => {
+          let notebook = notebookTracker.currentWidget;
+          let adapter = notebook_adapters.get(notebook.id);
+          let docPosition = adapter.get_doc_position_from_context_menu();
+          cmd.execute(adapter.connection, docPosition);
+        },
+        isEnabled: () => {
+          let notebook = notebookTracker.currentWidget;
+          let adapter = notebook_adapters.get(notebook.id);
+          return (
+            adapter && adapter.connection && cmd.isEnabled(adapter.connection)
+          );
+        },
+        isVisible: is_context_menu_over_notebook_token,
+        label: cmd.label
+      });
+      app.contextMenu.addItem({
+        selector: '.jp-Notebook .jp-CodeCell',
+        command: cmd.id + '_notebook',
+        rank: 10 + i / (lsp_commands.length + 2)
+      });
+    }
 
     function updateOptions(settings: ISettingRegistry.ISettings): void {
       // let options = settings.composite;
@@ -177,6 +221,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
         console.error(reason.message);
       });
 
+    /*
     // Add an application command
     const cmdIds = {
       // in future add more commands
@@ -252,6 +297,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     ];
 
     bindings.map(binding => app.commands.addKeyBinding(binding));
+    */
   },
   autoStart: true
 };
