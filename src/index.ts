@@ -125,14 +125,14 @@ const plugin: JupyterFrontEndPlugin<void> = {
           let docPosition = adapter.get_doc_position_from_context_menu();
           cmd.execute(adapter.connection, docPosition);
         },
-        isEnabled: () => {
+        isEnabled: is_context_menu_over_file_editor_token,
+        isVisible: () => {
           let fileEditor = fileEditorTracker.currentWidget.content;
           let adapter = file_editor_adapters.get(fileEditor.id);
           return (
             adapter && adapter.connection && cmd.isEnabled(adapter.connection)
           );
         },
-        isVisible: is_context_menu_over_file_editor_token,
         label: cmd.label
       });
 
@@ -183,14 +183,14 @@ const plugin: JupyterFrontEndPlugin<void> = {
           let docPosition = adapter.get_doc_position_from_context_menu();
           cmd.execute(adapter.connection, docPosition);
         },
-        isEnabled: () => {
+        isEnabled: is_context_menu_over_notebook_token,
+        isVisible: () => {
           let notebook = notebookTracker.currentWidget;
           let adapter = notebook_adapters.get(notebook.id);
           return (
             adapter && adapter.connection && cmd.isEnabled(adapter.connection)
           );
         },
-        isVisible: is_context_menu_over_notebook_token,
         label: cmd.label
       });
       app.contextMenu.addItem({
