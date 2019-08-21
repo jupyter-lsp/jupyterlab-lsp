@@ -8,6 +8,10 @@ import {until_ready} from "./utils";
 import { PositionConverter } from "./converter";
 import CodeMirror = require("codemirror");
 
+/*
+Feedback: anchor - not clear from docs
+bundle - very not clear from the docs, interface or better docs would be nice to have
+ */
 
 /**
  * A LSP connector for completion handlers.
