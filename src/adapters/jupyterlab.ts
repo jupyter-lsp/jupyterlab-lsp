@@ -1,13 +1,15 @@
 import { IPosition, LspWsConnection } from 'lsp-editor-adapter';
 import { PathExt } from '@jupyterlab/coreutils';
-import { CodeMirror } from './codemirror';
+import { CodeMirror, CodeMirrorAdapterExtension } from './codemirror';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
+import { PositionConverter } from '../converter';
 
 export abstract class JupyterLabWidgetAdapter {
   app: JupyterFrontEnd;
   connection: LspWsConnection;
   jumper: CodeJumper;
+  adapter: CodeMirrorAdapterExtension;
 
   protected constructor(app: JupyterFrontEnd) {
     this.app = app;
@@ -48,24 +50,44 @@ export abstract class JupyterLabWidgetAdapter {
     this.connection.on('goTo', locations => {
       // TODO: implement selector for multiple locations
       //  (like when there are multiple definitions or usages)
-      console.log('Will jump:', locations);
+      if (locations.length === 0) {
+        console.log('No jump targets found');
+        return;
+      }
+      console.log('Will jump to the first of suggested locations:', locations);
 
       let location = locations[0];
 
-      // @ts-ignore
-      let uri: string = location.uri;
-
+      let uri: string = decodeURI(location.uri);
       let current_uri = this.connection.getDocumentUri();
 
-      // @ts-ignore
-      let line = location.range.start.line;
-      // @ts-ignore
-      let column = location.range.start.character;
+      let cm_position = PositionConverter.lsp_to_cm(location.range.start);
+      let editor_index = this.adapter.get_editor_index(cm_position);
+      let transformed_position = this.adapter.transform(cm_position);
+      let transformed_ce_position = PositionConverter.cm_to_ce(
+        transformed_position
+      );
+
+      console.log(
+        'Jumping to',
+        transformed_position,
+        'in',
+        editor_index,
+        'editor of',
+        uri
+      );
 
       if (uri == current_uri) {
-        this.jumper.jump(
-          this.jumper.getJumpPosition({ line: line, column: column })
-        );
+        this.jumper.jump({
+          token: {
+            offset: this.jumper.getOffset(
+              transformed_ce_position,
+              editor_index
+            ),
+            value: ''
+          },
+          index: editor_index
+        });
         return;
       }
 
@@ -73,14 +95,13 @@ export abstract class JupyterLabWidgetAdapter {
         uri = uri.slice(7);
       }
 
-      console.log(uri);
       this.jumper.global_jump(
         {
           // TODO: there are many files which are not symlinks
           uri: '.lsp_symlink/' + uri,
-          editor_index: 0,
-          line: line,
-          column: column
+          editor_index: editor_index,
+          line: transformed_ce_position.line,
+          column: transformed_ce_position.column
         },
         true
       );

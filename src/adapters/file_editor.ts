@@ -18,7 +18,6 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
   editor: FileEditor;
   widget: IDocumentWidget;
   jumper: FileEditorJumper;
-  adapter: CodeMirrorAdapterExtension;
   connection: LspWsConnection;
   rendermime_registry: IRenderMimeRegistry;
 
@@ -57,7 +56,6 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
 
     this.connect();
 
-    // @ts-ignore
     this.adapter = new CodeMirrorAdapterExtension(
       this.connection,
       {
@@ -78,7 +76,7 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
           bundle: bundle,
           editor: this.editor.editor,
           rendermime: rendermime_registry,
-          position: PositionConverter.cm_to_jl(position),
+          position: PositionConverter.cm_to_ce(position),
           moveToLineEnd: false
         });
         Widget.attach(tooltip, document.body);

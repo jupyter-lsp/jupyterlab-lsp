@@ -188,6 +188,35 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     return super.handleMouseOver(event);
   }
 
+  // duck typing: to enable use of notebook mapper
+  public get transform(): (
+    position: CodeMirror.Position
+  ) => CodeMirror.Position {
+    const notebook_as_editor = this.editor as NotebookAsSingleEditor;
+    if (notebook_as_editor.transform !== undefined) {
+      return position => notebook_as_editor.transform(position);
+    }
+    else { return position => position; }
+  }
+
+  public get_editor_index(position: CodeMirror.Position): number {
+    const notebook_as_editor = this.editor as NotebookAsSingleEditor;
+    if (notebook_as_editor.get_cell_at !== undefined) {
+      let cell = notebook_as_editor.get_cell_at(position);
+      return notebook_as_editor.notebook.widgets.findIndex(other_cell => {
+        return cell == other_cell;
+      });
+    } else { return 0; }
+  }
+
+  public get get_cell_id(): (position: CodeMirror.Position) => string {
+    const notebook_as_editor = this.editor as NotebookAsSingleEditor;
+    if (notebook_as_editor.get_cell_at !== undefined) {
+      return position => notebook_as_editor.get_cell_at(position).id;
+    }
+    else { return position => ''; }
+  }
+
   public handleDiagnostic(response: lsProtocol.PublishDiagnosticsParams) {
     /*
     TODO: the base class has the gutter support, like this
@@ -201,22 +230,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     // add new markers, keep track of the added ones
     let doc = this.editor.getDoc();
 
-    let transform: (position: CodeMirror.Position) => CodeMirror.Position;
-    let get_cell_id: (position: CodeMirror.Position) => string;
-
-    const notebook_as_editor = this.editor as NotebookAsSingleEditor;
-
-    // duck typing: does it implement transform and get_cell_at?
-    if (
-      notebook_as_editor.transform !== undefined &&
-      notebook_as_editor.get_cell_at !== undefined
-    ) {
-      transform = position => notebook_as_editor.transform(position);
-      get_cell_id = position => notebook_as_editor.get_cell_at(position).id;
-    } else {
-      transform = position => position;
-      get_cell_id = position => '';
-    }
+    let transform = this.transform;
+    let get_cell_id = this.get_cell_id;
 
     response.diagnostics.forEach((diagnostic: lsProtocol.Diagnostic) => {
       const start = PositionConverter.lsp_to_cm(diagnostic.range.start);

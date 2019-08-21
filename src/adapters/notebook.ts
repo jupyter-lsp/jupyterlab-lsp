@@ -16,7 +16,6 @@ import { LSPConnector } from '../completion';
 export class NotebookAdapter extends JupyterLabWidgetAdapter {
   editor: Notebook;
   widget: NotebookPanel;
-  adapter: CodeMirrorAdapterExtension;
   notebook_as_editor: NotebookAsSingleEditor;
   completion_manager: ICompletionManager;
   // TODO: make jumper optional?
@@ -83,7 +82,6 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     await until_ready(() => this.connection.isConnected, -1, 150);
     console.log('LSP:', this.document_path, 'connected');
 
-    // @ts-ignore
     this.adapter = new CodeMirrorAdapterExtension(
       this.connection,
       {
@@ -104,7 +102,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
           bundle: bundle,
           editor: this.notebook_as_editor.cm_editor_to_ieditor.get(cm_editor),
           rendermime: this.rendermime_registry,
-          position: PositionConverter.cm_to_jl(
+          position: PositionConverter.cm_to_ce(
             this.notebook_as_editor.transform(position)
           ),
           moveToLineEnd: false
