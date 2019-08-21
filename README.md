@@ -17,7 +17,7 @@ _This extension is highly experimental, though you are encouraged to try it, lea
 
 ![inspections](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/inspections.png)
 
-- go to definition: use context menu entries to jump to definition (currently only in the file editor)
+- go to definition: use context menu entries to jump to definition
 - highlight usages: just place your cursor on a variable, function etc and all the usages will be highlighted (works only in the file editor or within a single cell)
 - advanced autocompletion - even when the kernel is off!
 
@@ -27,7 +27,6 @@ _This extension is highly experimental, though you are encouraged to try it, lea
 
 - auto invocation of completer on certain characters (e.g. '.' (dot) in Python)
 - completer: merge suggestions from LSP, kernel and tokens (currently LSP and tokens only)
-- better go-to-definition functionality, including notebook
 
 ### Planned:
 

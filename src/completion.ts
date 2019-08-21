@@ -113,6 +113,7 @@ export class LSPConnector extends DataConnector<
     //  return
 
     let transform = this.transform_coordinates;
+    console.log(token);
 
     connection.getCompletion(
       transform(PositionConverter.ce_to_cm(cursor)),
