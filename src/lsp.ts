@@ -42,5 +42,13 @@ export function inverse_namespace(namespace: object): Record<number, string> {
   return records;
 }
 
+/**
+ * Why programmatic solution rather than hard-coding the namespace the other way around?
+ * Because the namespaces are copy-paste from the LSP specification, and it will be easier
+ * to maintain this way in the future.
+ *
+ * Why not simply import from lsProtocol?
+ * Because this triggers some strange webpack issue as an additional package would need to be included.
+ */
 export const diagnosticSeverityNames = inverse_namespace(DiagnosticSeverity);
 export const completionItemKindNames = inverse_namespace(CompletionItemKind);
