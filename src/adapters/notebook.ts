@@ -65,8 +65,9 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
 
     this.notebook_as_editor = new NotebookAsSingleEditor(
       this.widget,
-      // filter out line magics if the language is python
-      this.language == 'python' ? '^%.*' : '',
+      // TODO: find better, language agnostic solution (or at least verify that kernel is IPython, not plain Python)
+      // temporary workaround: filter out IPython line magics and shell assignments if the language is python
+      this.language == 'python' ? '^[%!].*' : '',
       // the pass is used to silence the linters in places where the line would otherwise be filtered out
       this.language == 'python' ? 'pass' : ''
       // TODO: ideally we would allow to substitute code for magics, etc
