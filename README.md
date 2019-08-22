@@ -33,21 +33,27 @@ Examples below are for Python, but it works as well for R:
 
   ![signature](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/signature.png)
 
-- advanced autocompletion (even when the kernel is off)
+- advanced autocompletion (even when the kernel is off);
 
   ![autocompletion](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.png)
 
-### In progress:
+  when a kernel is available the suggestions from the kernel (such as keys of a dict and columns of a DataFrame autocompletion) are merged with the suggestions from LSP (currently only in notebook).
 
-- completer: merge suggestions from LSP, kernel and tokens (currently LSP and tokens only)
+### Coming soon:
+
+- multiple LSP connections per notebook, e.g. SQL embedded in a Python notebook, or R (using rpy2) embedded in Python notebook.
+- autocompleter with documentation and sorting based on LSP suggestions
+- unit tests
+- system of settings, including option for aggressive autocompletion (like in hinterland)
 
 ### Planned:
 
-- "rename" action
+- "rename" action (PR welcome)
 
-### May be included:
+### Low priority:
 
 - Gutter with linter results
+- Use the kernel session for autocompletion in FileEditor if available (PR welcome)
 
 ## Under the hood
 
