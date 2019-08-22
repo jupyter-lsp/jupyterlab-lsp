@@ -1,5 +1,10 @@
 import { DataConnector } from '@jupyterlab/coreutils';
-import { CompletionHandler, ContextConnector } from '@jupyterlab/completer';
+import {
+  CompletionHandler,
+  ContextConnector,
+  KernelConnector,
+  CompletionConnector
+} from '@jupyterlab/completer';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { LspWsConnection } from 'lsp-editor-adapter';
 import { ReadonlyJSONObject } from '@phosphor/coreutils';
@@ -7,6 +12,7 @@ import { completionItemKindNames } from './lsp';
 import { until_ready } from './utils';
 import { PositionConverter } from './converter';
 import CodeMirror = require('codemirror');
+import { IClientSession } from '@jupyterlab/apputils';
 
 /*
 Feedback: anchor - not clear from docs
@@ -25,6 +31,8 @@ export class LSPConnector extends DataConnector<
   private readonly _connection: LspWsConnection;
   private _completion_characters: Array<string>;
   private _context_connector: ContextConnector;
+  private _kernel_connector: KernelConnector;
+  private _kernel_and_context_connector: CompletionConnector;
   transform_coordinates: (position: CodeMirror.Position) => CodeMirror.Position;
 
   /**
@@ -38,10 +46,23 @@ export class LSPConnector extends DataConnector<
     this._connection = options.connection;
     this._completion_characters = this._connection.getLanguageCompletionCharacters();
     this._context_connector = new ContextConnector({ editor: options.editor });
+    if (options.session) {
+      let kernel_options = { editor: options.editor, session: options.session };
+      this._kernel_connector = new KernelConnector(kernel_options);
+      this._kernel_and_context_connector = new CompletionConnector(
+        kernel_options
+      );
+    }
     this.transform_coordinates =
       options.coordinates_transform !== null
         ? options.coordinates_transform
         : position => position;
+  }
+
+  get fallback_connector() {
+    return this._kernel_and_context_connector
+      ? this._kernel_and_context_connector
+      : this._context_connector;
   }
 
   /**
@@ -57,16 +78,25 @@ export class LSPConnector extends DataConnector<
         this._completion_characters = this._connection.getLanguageCompletionCharacters();
       }
 
+      if (this._kernel_connector) {
+        return Promise.all([
+          this._kernel_connector.fetch(request),
+          this.hint(this._editor, this._connection, this._completion_characters)
+        ]).then(([kernel, lsp]) =>
+          this.merge_replies(kernel, lsp, this._editor)
+        );
+      }
+
       return this.hint(
         this._editor,
         this._connection,
         this._completion_characters
       ).catch(e => {
         console.log(e);
-        return this._context_connector.fetch(request);
+        return this.fallback_connector.fetch(request);
       });
     } catch (e) {
-      return this._context_connector.fetch(request);
+      return this.fallback_connector.fetch(request);
     }
   }
 
@@ -147,8 +177,7 @@ export class LSPConnector extends DataConnector<
 
     let matches: Array<string> = [];
     const types: Array<IItemType> = [];
-
-    let no_prefix = true;
+    let all_non_prefixed = true;
     for (let match of result.value) {
       // there are more interesting things to be extracted and passed to the metadata:
       // detail: "__main__"
@@ -158,9 +187,8 @@ export class LSPConnector extends DataConnector<
       // label: "mean(data)"
       // sortText: "amean"
       let text = match.insertText ? match.insertText : match.label;
-      if (text.toLowerCase().startsWith(token.value.toLowerCase())) {
-        no_prefix = false;
-      }
+
+      if (text.startsWith(token.value)) { all_non_prefixed = false; }
 
       matches.push(text);
       types.push({
@@ -168,8 +196,6 @@ export class LSPConnector extends DataConnector<
         type: match.kind ? completionItemKindNames[match.kind] : ''
       });
     }
-    console.log(matches);
-    console.log(types);
 
     return {
       // note in the ContextCompleter it was:
@@ -181,11 +207,98 @@ export class LSPConnector extends DataConnector<
       // a different workaround would be to prepend the token.value prefix:
       // text = token.value + text;
       // but it did not work for "from statistics <tab>" and lead to "from statisticsimport" (no space)
-      start: no_prefix ? token.offset + token.value.length : token.offset,
+      start: token.offset + (all_non_prefixed ? 1 : 0),
       end: token.offset + token.value.length,
       matches: matches,
       metadata: {
         _jupyter_types_experimental: types
+      }
+    };
+  }
+
+  private merge_replies(
+    kernel: CompletionHandler.IReply,
+    lsp: CompletionHandler.IReply,
+    editor: CodeEditor.IEditor
+  ) {
+    // This is based on https://github.com/jupyterlab/jupyterlab/blob/f1bc02ced61881df94c49929837c49c022f5b115/packages/completer/src/connector.ts#L78
+    // Copyright (c) Jupyter Development Team.
+    // Distributed under the terms of the Modified BSD License.
+
+    // If one is empty, return the other.
+    if (kernel.matches.length === 0) {
+      return lsp;
+    } else if (lsp.matches.length === 0) {
+      return kernel;
+    }
+    console.log('merging LSP and kernel completions:', lsp, kernel);
+
+    // Populate the result with a copy of the lsp matches.
+    const matches = lsp.matches.slice();
+    const types = lsp.metadata._jupyter_types_experimental as Array<IItemType>;
+
+    // Cache all the lsp matches in a memo.
+    const memo = new Set<string>(matches);
+    const memo_types = new Map<string, string>(
+      types.map(v => [v.text, v.type])
+    );
+
+    let prefix = '';
+
+    // if the kernel used a wider range, get the previous characters to strip the prefix off,
+    // so that both use the same range
+    if (lsp.start > kernel.start) {
+      const cursor = editor.getCursorPosition();
+      const line = editor.getLine(cursor.line);
+      prefix = line.substring(kernel.start, kernel.end);
+      console.log('will remove prefix from kernel response:', prefix);
+    }
+
+    let remove_prefix = (value: string) => {
+      if (value.startsWith(prefix)) {
+        return value.substr(prefix.length);
+      }
+      return value;
+    };
+
+    // TODO push the CompletionItem suggestion with proper sorting, this is a mess
+    let priority_matches = new Set<string>();
+
+    if (typeof kernel.metadata._jupyter_types_experimental !== 'undefined') {
+      let kernel_types = kernel.metadata._jupyter_types_experimental as Array<
+        IItemType
+      >;
+      kernel_types.forEach(itemType => {
+        let text = remove_prefix(itemType.text);
+        if (!memo_types.has(text)) {
+          memo_types.set(text, itemType.type);
+          if (itemType.type != '<unknown>') {
+            priority_matches.add(text);
+          }
+        }
+      });
+    }
+
+    // Add each context match that is not in the memo to the result.
+    kernel.matches.forEach(match => {
+      match = remove_prefix(match);
+      if (!memo.has(match) && !priority_matches.has(match)) {
+        matches.push(match);
+      }
+    });
+
+    let final_matches: Array<string> = Array.from(priority_matches).concat(
+      matches
+    );
+    let merged_types: Array<IItemType> = Array.from(memo_types.entries()).map(
+      ([key, value]) => ({ text: key, type: value })
+    );
+
+    return {
+      ...lsp,
+      matches: final_matches,
+      metadata: {
+        _jupyter_types_experimental: merged_types
       }
     };
   }
@@ -210,6 +323,8 @@ export namespace LSPConnector {
     coordinates_transform: (
       position: CodeMirror.Position
     ) => CodeMirror.Position;
+
+    session?: IClientSession;
   }
 }
 

@@ -94,7 +94,8 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       editor: cell.editor,
       connection: this.connection,
       coordinates_transform: (position: CodeMirror.Position) =>
-        this.notebook_as_editor.transform_to_notebook(cell, position)
+        this.notebook_as_editor.transform_to_notebook(cell, position),
+      session: this.widget.session
     });
     const handler = this.completion_manager.register({
       connector,
@@ -106,7 +107,8 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
         editor: cell.editor,
         connection: this.connection,
         coordinates_transform: (position: CodeMirror.Position) =>
-          this.notebook_as_editor.transform_to_notebook(cell, position)
+          this.notebook_as_editor.transform_to_notebook(cell, position),
+        session: this.widget.session
       });
 
       handler.editor = cell.editor;

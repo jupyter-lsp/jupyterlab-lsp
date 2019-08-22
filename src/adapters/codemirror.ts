@@ -166,7 +166,9 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   }
 
   get_language_at(position: CodeMirror.Position, editor?: CodeMirror.Editor) {
-    if (typeof editor === 'undefined') { editor = this.editor; }
+    if (typeof editor === 'undefined') {
+      editor = this.editor;
+    }
     return editor.getModeAt(position).name;
   }
 
@@ -182,7 +184,9 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
         markdown += '\n';
         // TODO: make use of the MarkupContent object instead
         for (let line of item.documentation.toString().split('\n')) {
-          if (line.trim() == item.label.trim()) { continue; }
+          if (line.trim() == item.label.trim()) {
+            continue;
+          }
           if (line.startsWith('>>>')) {
             line = '```' + language + '\n' + line.substr(3) + '\n```';
           }
