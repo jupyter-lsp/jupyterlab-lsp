@@ -41,10 +41,14 @@ Examples below are for Python, but it works as well for R:
 
 ### Coming soon:
 
-- multiple LSP connections per notebook, e.g. SQL embedded in a Python notebook, or R (using rpy2) embedded in Python notebook.
+- multiple LSP connections per notebook, e.g. SQL or R (using rpy2) embedded in Python notebook.
 - autocompleter with documentation and sorting based on LSP suggestions
 - unit tests
-- system of settings, including option for aggressive autocompletion (like in hinterland)
+- system of settings, including options:
+  - to enable aggressive autocompletion (like in hinterland)
+  - to change the verbosity of signature hints (whether to show documentation, number of lines to be shown)
+ 
+If a feature you need is not on this list (or the lists below) please feel free to suggest it by opening an issue.
 
 ### Planned:
 
