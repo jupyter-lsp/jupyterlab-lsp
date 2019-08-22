@@ -721,13 +721,15 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
     for (let cell of this.notebook.widgets) {
       // TODO: use some more intelligent strategy to determine editors to test
       let cm_editor = (cell.editor as CodeMirrorEditor).editor;
-      cells_with_handlers.add(cell);
-      // @ts-ignore
-      cm_editor.on(eventName, wrapped_handler);
+      if(cell.model.type === 'code') {
+        cells_with_handlers.add(cell);
+        // @ts-ignore
+        cm_editor.on(eventName, wrapped_handler);
+      }
     }
     this.notebook.activeCellChanged.connect((notebook, cell) => {
       let cm_editor = (cell.editor as CodeMirrorEditor).editor;
-      if (!cells_with_handlers.has(cell)) {
+      if (!cells_with_handlers.has(cell) && cell.model.type === 'code') {
         // @ts-ignore
         cm_editor.on(eventName, wrapped_handler);
       }

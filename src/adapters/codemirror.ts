@@ -276,7 +276,13 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     this.show_next_tooltip =
       !hover_modifier || getModifierState(event, hover_modifier);
 
-    return super.handleMouseOver(event);
+    try {
+      return super.handleMouseOver(event);
+    } catch (e) {
+      if (!(e.message === 'Cell not found in cell_line_map' || e.message === "Cannot read property 'string' of undefined")) {
+        throw e;
+      }
+    }
   }
 
   // duck typing: to enable use of notebook mapper
