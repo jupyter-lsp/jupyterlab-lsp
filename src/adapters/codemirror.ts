@@ -12,6 +12,8 @@ import { PositionConverter } from '../converter';
 import { diagnosticSeverityNames } from '../lsp';
 // TODO: settings
 const hover_modifier = 'Control';
+const default_severity = 2;
+
 
 export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   private marked_diagnostics: Map<string, CodeMirror.TextMarker> = new Map();
@@ -318,6 +320,43 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     }
   }
 
+  protected collapse_overlapping_diagnostics(diagnostics: lsProtocol.Diagnostic[]): Map<lsProtocol.Range, lsProtocol.Diagnostic[]> {
+
+    // Because Range is not a primitive types, the equality of the objects having
+    // the same parameters won't be compared (thus considered equal) in Map.
+    // an alternative would be using nested [start line][start character][end line][end character] structure,
+    // which would increase the code complexity, but reduce memory use and may be slightly faster.
+
+    // Instead, a intermediate step of mapping through a stringified representation of Range is needed:
+    const range_id_to_range = new Map<string, lsProtocol.Range>();
+    const range_id_to_diagnostics = new Map<string, lsProtocol.Diagnostic[]>();
+
+    function get_range_id(range: lsProtocol.Range) {
+      return range.start.line + ',' + range.start.character + ',' + range.end.line + ',' + range.end.character
+    }
+
+    diagnostics.forEach((diagnostic: lsProtocol.Diagnostic) => {
+        let range = diagnostic.range;
+        let range_id = get_range_id(range);
+        range_id_to_range.set(range_id, range);
+        if(range_id_to_diagnostics.has(range_id)) {
+          let ranges_list = range_id_to_diagnostics.get(range_id);
+          ranges_list.push(diagnostic)
+        } else {
+          range_id_to_diagnostics.set(range_id, [diagnostic])
+        }
+    });
+
+    let map = new Map<lsProtocol.Range, lsProtocol.Diagnostic[]>();
+
+    range_id_to_diagnostics.forEach((range_diagnostics: lsProtocol.Diagnostic[], range_id: string) => {
+      let range = range_id_to_range.get(range_id);
+      map.set(range, range_diagnostics);
+    });
+
+    return map;
+  }
+
   public handleDiagnostic(response: lsProtocol.PublishDiagnosticsParams) {
     /*
     TODO: the base class has the gutter support, like this
@@ -334,11 +373,20 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     let transform = this.transform;
     let get_cell_id = this.get_cell_id;
 
-    response.diagnostics.forEach((diagnostic: lsProtocol.Diagnostic) => {
-      const start = PositionConverter.lsp_to_cm(diagnostic.range.start);
-      const end = PositionConverter.lsp_to_cm(diagnostic.range.end);
+    // TODO: diagnostic messages are over-writen
+    //  test case: from statistics import mean, bisect_left
+    //  and do not use either; expected: title has "mean imported but unused; bisect_left imported and unused'
+    //  so we should look for identical ranges and merge messages.
 
-      const severity = diagnosticSeverityNames[diagnostic.severity];
+    let diagnostics_by_range = this.collapse_overlapping_diagnostics(response.diagnostics);
+
+    diagnostics_by_range.forEach((diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
+      const start = PositionConverter.lsp_to_cm(range.start);
+      const end = PositionConverter.lsp_to_cm(range.end);
+
+      let highest_severity_code = diagnostics.map(diagnostic => diagnostic.severity || default_severity).sort()[0];
+
+      const severity = diagnosticSeverityNames[highest_severity_code];
 
       // what a pity there is no hash in the standard library...
       // we could use this: https://stackoverflow.com/a/7616484 though it may not be worth it:
@@ -348,7 +396,13 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       //   negative due to a different ordering of keys
       // obviously, the hash would prevent recovery of info from the key.
       let diagnostic_hash = JSON.stringify({
-        ...diagnostic,
+        // diagnostics without ranges
+        diagnostics: diagnostics.map(
+          diagnostic => [
+            diagnostic.severity, diagnostic.message, diagnostic.code,
+            diagnostic.source, diagnostic.relatedInformation
+          ]
+        ),
         // the apparent marker position will change in the notebook with every line change for each marker
         // after the (inserted/removed) line - but such markers should not be invalidated,
         // i.e. the invalidation should be performed in the cell space, not in the notebook coordinate space,
@@ -363,9 +417,9 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
       if (!this.marked_diagnostics.has(diagnostic_hash)) {
         let options: CodeMirror.TextMarkerOptions = {
-          title:
-            diagnostic.message +
-            (diagnostic.source ? ' (' + diagnostic.source + ')' : ''),
+          title: diagnostics.map(
+            d => d.message + (d.source ? ' (' + d.source + ')' : '')
+          ).join('\n'),
           className: 'cm-lsp-diagnostic cm-lsp-diagnostic-' + severity
         };
         let marker;
@@ -375,7 +429,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
           console.warn(
             'Marking inspection (diagnostic text) failed, see following logs (2):'
           );
-          console.log(diagnostic);
+          console.log(diagnostics);
           console.log(e);
           return;
         }
