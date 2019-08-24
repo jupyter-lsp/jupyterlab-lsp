@@ -375,10 +375,10 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     let transform = this.transform;
     let get_cell_id = this.get_cell_id;
 
-    // TODO: diagnostic messages are over-writen
+    // TODO: test for diagnostic messages not being over-writen
     //  test case: from statistics import mean, bisect_left
     //  and do not use either; expected: title has "mean imported but unused; bisect_left imported and unused'
-    //  so we should look for identical ranges and merge messages.
+    // TODO: test case for severity class always being set, even if diagnostic has no severity
 
     let diagnostics_by_range = this.collapse_overlapping_diagnostics(response.diagnostics);
 
