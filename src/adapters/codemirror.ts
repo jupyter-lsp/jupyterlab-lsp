@@ -10,8 +10,10 @@ import { getModifierState } from '../utils';
 import { NotebookAsSingleEditor } from '../notebook_mapper';
 import { PositionConverter } from '../converter';
 import { diagnosticSeverityNames } from '../lsp';
+
+export type KeyModifier = 'Alt' | 'Control' | 'Shift' | 'Meta' | 'AltGraph';
 // TODO: settings
-const hover_modifier = 'Control';
+const hover_modifier: KeyModifier = 'Control';
 const default_severity = 2;
 
 
