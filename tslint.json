@@ -101,7 +101,8 @@
       "check-format",
       "allow-leading-underscore",
       "ban-keywords",
-      "allow-pascal-case"
+      "allow-pascal-case",
+      "allow-snake-case"
     ],
     "whitespace": [
       true,

@@ -1,13 +1,30 @@
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { Cell } from '@jupyterlab/cells';
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
-import CodeMirror = require('codemirror');
 import { ShowHintOptions } from 'codemirror';
 import { CodeEditor } from '@jupyterlab/codeeditor';
+import CodeMirror = require('codemirror');
 
-interface ICellTransform {
+interface IMagicOverride {
+  pattern: string;
+  replacement: string;
+}
+
+/**
+ * the expressions will be tested in the order of definition
+ */
+export interface ILanguageMagicsOverrides {
+  line_magics?: IMagicOverride[];
+  cell_magics?: IMagicOverride[];
+}
+
+interface IVirtualLineMeta {
   cell: Cell;
   editor: CodeMirror.Editor;
+  /**
+   * Should this line be inspected?
+   */
+  inspect: boolean;
   line_shift: number;
 }
 
@@ -48,6 +65,55 @@ class DocDispatcher implements CodeMirror.Doc {
   }
 }
 
+abstract class MagicsMap extends Map<RegExp, string> {
+  constructor(magic_overrides: IMagicOverride[]) {
+    super(magic_overrides.map(m => [new RegExp(m.pattern), m.replacement]));
+  }
+
+  abstract override_for(code: string): string | null;
+
+  protected _override_for(code: string): string | null {
+    for (let [key, value] of this) {
+      if (code.match(key)) {
+        return code.replace(key, value);
+      }
+    }
+    return null;
+  }
+}
+
+class CellMagicsMap extends MagicsMap {
+  override_for(cell: string): string | null {
+    const line_end = cell.indexOf('\n');
+    let first_line = line_end === -1 ? cell : cell.substring(0, line_end);
+    return super._override_for(first_line);
+  }
+}
+
+
+class LineMagicsMap extends MagicsMap {
+  override_for(line: string): string | null {
+    return super._override_for(line);
+  }
+
+  replace_all(raw_lines: string[]): {lines: string[], should_inspect: boolean[]} {
+    let substituted_lines = new Array<string>();
+    let should_inspect = new Array<boolean>();
+
+    for (let i = 0; i < raw_lines.length; i++) {
+      let line = raw_lines[i];
+      let override = this.override_for(line);
+      substituted_lines.push(override === null ? line : override);
+      should_inspect.push(override === null);
+    }
+    return {
+      lines: substituted_lines,
+      should_inspect: should_inspect
+    };
+  }
+}
+
+
 // TODO: use proxy, as in https://stackoverflow.com/questions/51865430/typescript-compiler-does-not-know-about-es6-proxy-trap-on-class ?
 // TODO: make all un-implemented methods issue a warning to a console for improved diagnostics
 //  or just remove them altogether and suppress with ts-ignore so it will be more obvious what is implemented and what is not
@@ -55,24 +121,23 @@ class DocDispatcher implements CodeMirror.Doc {
 export class NotebookAsSingleEditor implements CodeMirror.Editor {
   notebook: Notebook;
   notebook_panel: NotebookPanel;
-  line_cell_map: Map<number, ICellTransform>;
+  line_cell_map: Map<number, IVirtualLineMeta>;
   cell_line_map: Map<Cell, number>;
   cm_editor_to_ieditor: Map<CodeMirror.Editor, CodeEditor.IEditor>;
-  line_filter: string;
-  private filtered_out_line_replacement: string;
+  cell_magics_overrides: CellMagicsMap;
+  line_magics_overrides: LineMagicsMap;
 
   constructor(
     notebook_panel: NotebookPanel,
-    line_filter: string = '',
-    filtered_out_line_replacement = ''
+    overrides: ILanguageMagicsOverrides
   ) {
     this.notebook_panel = notebook_panel;
     this.notebook = notebook_panel.content;
     this.line_cell_map = new Map();
     this.cell_line_map = new Map();
     this.cm_editor_to_ieditor = new Map();
-    this.line_filter = line_filter;
-    this.filtered_out_line_replacement = filtered_out_line_replacement;
+    this.cell_magics_overrides = new CellMagicsMap(overrides.cell_magics);
+    this.line_magics_overrides = new LineMagicsMap(overrides.line_magics);
   }
 
   showHint: (options: ShowHintOptions) => void;
@@ -325,39 +390,44 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
       let cm_editor = codemirror_editor.editor;
       this.cm_editor_to_ieditor.set(cm_editor, cell.editor);
 
-      if (cell.model.type == 'code') {
-        let lines = cm_editor.getValue(seperator);
-        // TODO: use blacklist for cells with foreign language code
-        //  TODO: have a second LSP for the foreign language!
-        if (lines.startsWith('%%')) {
-          return true;
-        }
-        // one empty line is necessary to separate code blocks, next 'n' lines are to silence linters
-        // and the final cell does not get the additional lines (thanks to the use of join, see below)
-        let filtered_lines = new Array<string>();
-        let lines_array = lines.split('\n');
+      if (cell.model.type === 'code') {
+        let cell_code = cm_editor.getValue(seperator);
+        // every code cell is placed into the cell-map
         this.cell_line_map.set(cell, last_line);
-        for (let i = 0; i < lines_array.length; i++) {
-          // TODO: use better structure (tree with ranges?)
+
+        let lines: Array<string>;
+        let should_inspect: Array<boolean>;
+        //  TODO: create additional LSP servers for foreign languages introduced in cell magics
+
+        // cell magics are replaced if requested and matched
+        let cell_override = this.cell_magics_overrides.override_for(cell_code);
+        if (cell_override !== null) {
+          lines = cell_override.split('\n');
+          should_inspect = lines.map(l => false);
+        } else {
+          // otherwise, we replace line magics - if any
+          let result = this.line_magics_overrides.replace_all(
+            cell_code.split('\n')
+          );
+          lines = result.lines;
+          should_inspect = result.should_inspect;
+        }
+
+        // TODO: use better structure (tree with ranges?)
+        for (let i = 0; i < lines.length; i++) {
           this.line_cell_map.set(last_line + i, {
             editor: cm_editor,
             line_shift: last_line,
+            inspect: should_inspect[i],
             cell
           });
-
-          if (
-            !this.line_filter ||
-            lines_array[i].match(this.line_filter) === null
-          ) {
-            filtered_lines.push(lines_array[i]);
-          } else {
-            filtered_lines.push(this.filtered_out_line_replacement);
-          }
         }
 
-        all_lines.push(filtered_lines.join('\n') + '\n');
-        // note filtered_lines.length === lines_array.length
-        last_line += filtered_lines.length + empty_lines_between_cells;
+        // one empty line is necessary to separate code blocks, next 'n' lines are to silence linters;
+        // the final cell does not get the additional lines (thanks to the use of join, see below)
+        all_lines.push(lines.join('\n') + '\n');
+
+        last_line += lines.length + empty_lines_between_cells;
       }
       return true;
     });
@@ -721,7 +791,7 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
     for (let cell of this.notebook.widgets) {
       // TODO: use some more intelligent strategy to determine editors to test
       let cm_editor = (cell.editor as CodeMirrorEditor).editor;
-      if(cell.model.type === 'code') {
+      if (cell.model.type === 'code') {
         cells_with_handlers.add(cell);
         // @ts-ignore
         cm_editor.on(eventName, wrapped_handler);
