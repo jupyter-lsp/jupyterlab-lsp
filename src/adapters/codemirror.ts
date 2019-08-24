@@ -323,17 +323,17 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   }
 
   protected collapse_overlapping_diagnostics(diagnostics: lsProtocol.Diagnostic[]): Map<lsProtocol.Range, lsProtocol.Diagnostic[]> {
-
-    // Because Range is not a primitive types, the equality of the objects having
+    // because Range is not a primitive types, the equality of the objects having
     // the same parameters won't be compared (thus considered equal) in Map.
+
+    // instead, a intermediate step of mapping through a stringified representation of Range is needed:
     // an alternative would be using nested [start line][start character][end line][end character] structure,
     // which would increase the code complexity, but reduce memory use and may be slightly faster.
+    type RangeID = string;
+    const range_id_to_range = new Map<RangeID, lsProtocol.Range>();
+    const range_id_to_diagnostics = new Map<RangeID, lsProtocol.Diagnostic[]>();
 
-    // Instead, a intermediate step of mapping through a stringified representation of Range is needed:
-    const range_id_to_range = new Map<string, lsProtocol.Range>();
-    const range_id_to_diagnostics = new Map<string, lsProtocol.Diagnostic[]>();
-
-    function get_range_id(range: lsProtocol.Range) {
+    function get_range_id(range: lsProtocol.Range): RangeID {
       return range.start.line + ',' + range.start.character + ',' + range.end.line + ',' + range.end.character
     }
 
@@ -351,7 +351,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
     let map = new Map<lsProtocol.Range, lsProtocol.Diagnostic[]>();
 
-    range_id_to_diagnostics.forEach((range_diagnostics: lsProtocol.Diagnostic[], range_id: string) => {
+    range_id_to_diagnostics.forEach((range_diagnostics: lsProtocol.Diagnostic[], range_id: RangeID) => {
       let range = range_id_to_range.get(range_id);
       map.set(range, range_diagnostics);
     });
