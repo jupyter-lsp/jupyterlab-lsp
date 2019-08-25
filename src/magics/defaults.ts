@@ -4,7 +4,7 @@ import { IOverridesRegistry } from './overrides';
  * Interactive kernels often provide additional functionality invoked by so-called magics,
  * which use distinctive syntax. This features may however not be interpreted correctly by
  * the general purpose language linters. To avoid false-positives making the linter useless
- * for any specific language when magics are use, regular expressions can be used to replace
+ * for any specific language when magics are used, regular expressions can be used to replace
  * the magics with linter-friendly substitutes; this will be made user configurable.
  */
 export const language_specific_overrides: IOverridesRegistry = {

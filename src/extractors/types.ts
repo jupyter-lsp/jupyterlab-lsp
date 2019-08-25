@@ -16,7 +16,7 @@ export interface IExtractedCode {
   host_code: string | null;
   /**
    * Should the foreign code be appended (False) to the previously established virtual document of the same language,
-   * or is it standalone snippet which requires separate connection?
+   * or is it standalone snippet which requires separate connection (True)?
    */
   is_standalone: boolean;
 }
