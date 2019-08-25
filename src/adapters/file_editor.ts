@@ -10,11 +10,13 @@ import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { ICompletionManager } from '@jupyterlab/completer';
 import { LSPConnector } from '../completion';
 import { CodeEditor } from '@jupyterlab/codeeditor';
+import { VirtualFileEditor } from '../virtual/editors/file_editor';
 
 export class FileEditorAdapter extends JupyterLabWidgetAdapter {
   editor: FileEditor;
   jumper: FileEditorJumper;
-  connection: LspWsConnection;
+  main_connection: LspWsConnection;
+  virtual_editor: VirtualFileEditor;
 
   get document_path() {
     return this.widget.context.path;
@@ -52,12 +54,14 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     this.widget = editor_widget;
     this.editor = editor_widget.content;
 
-    this.connect().then();
+    this.virtual_editor = new VirtualFileEditor(this.language, this.cm_editor);
+
+    this.connect(this.virtual_editor.virtual_document).then();
     this.create_adapter();
 
     const connector = new LSPConnector({
       editor: this.editor.editor,
-      connection: this.connection,
+      connection: this.main_connection,
       coordinates_transform: null
     });
     completion_manager.register({

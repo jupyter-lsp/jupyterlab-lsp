@@ -7,15 +7,14 @@ import {
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { FreeTooltip } from '../free_tooltip';
 import { getModifierState } from '../utils';
-import { NotebookAsSingleEditor } from '../notebook_mapper';
 import { PositionConverter } from '../converter';
 import { diagnosticSeverityNames } from '../lsp';
+import { VirtualEditor } from '../virtual/editor';
 
 export type KeyModifier = 'Alt' | 'Control' | 'Shift' | 'Meta' | 'AltGraph';
 // TODO: settings
 const hover_modifier: KeyModifier = 'Control';
 const default_severity = 2;
-
 
 export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   private marked_diagnostics: Map<string, CodeMirror.TextMarker> = new Map();
@@ -28,13 +27,14 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   private show_next_tooltip: boolean;
   private last_hover_response: lsProtocol.Hover;
   private last_hover_character: CodeMirror.Position;
+  editor: VirtualEditor;
 
   invoke_completer: Function;
 
   constructor(
     connection: ILspConnection,
     options: ITextEditorOptions,
-    editor: CodeMirror.Editor,
+    editor: VirtualEditor,
     create_tooltip: (
       markup: lsProtocol.MarkupContent,
       cm_editor: CodeMirror.Editor,
@@ -162,11 +162,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   get_cm_editor(position: CodeMirror.Position) {
     // TODO necessity to have dependency on position is where the idea of mapping notebooks
     //  with an object pretending to be an editor has a weak side...
-    let cm_editor = this.editor;
-    if ((cm_editor as NotebookAsSingleEditor).get_editor_at !== undefined) {
-      cm_editor = (cm_editor as NotebookAsSingleEditor).get_editor_at(position);
-    }
-    return cm_editor;
+    return this.editor.get_cm_editor(position);
   }
 
   get_language_at(position: CodeMirror.Position, editor?: CodeMirror.Editor) {
@@ -188,7 +184,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
         markdown += '\n';
         // TODO: make use of the MarkupContent object instead
         for (let line of item.documentation.toString().split('\n')) {
-          if (line.trim() == item.label.trim()) {
+          if (line.trim() === item.label.trim()) {
             continue;
           }
           if (line.startsWith('>>>')) {
@@ -283,46 +279,20 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     try {
       return super.handleMouseOver(event);
     } catch (e) {
-      if (!(e.message === 'Cell not found in cell_line_map' || e.message === "Cannot read property 'string' of undefined")) {
+      if (
+        !(
+          e.message === 'Cell not found in cell_line_map' ||
+          e.message === "Cannot read property 'string' of undefined"
+        )
+      ) {
         throw e;
       }
     }
   }
 
-  // duck typing: to enable use of notebook mapper
-  public get transform(): (
-    position: CodeMirror.Position
-  ) => CodeMirror.Position {
-    const notebook_as_editor = this.editor as NotebookAsSingleEditor;
-    if (notebook_as_editor.transform !== undefined) {
-      return position => notebook_as_editor.transform(position);
-    } else {
-      return position => position;
-    }
-  }
-
-  public get_editor_index(position: CodeMirror.Position): number {
-    const notebook_as_editor = this.editor as NotebookAsSingleEditor;
-    if (notebook_as_editor.get_cell_at !== undefined) {
-      let cell = notebook_as_editor.get_cell_at(position);
-      return notebook_as_editor.notebook.widgets.findIndex(other_cell => {
-        return cell == other_cell;
-      });
-    } else {
-      return 0;
-    }
-  }
-
-  public get get_cell_id(): (position: CodeMirror.Position) => string {
-    const notebook_as_editor = this.editor as NotebookAsSingleEditor;
-    if (notebook_as_editor.get_cell_at !== undefined) {
-      return position => notebook_as_editor.get_cell_at(position).id;
-    } else {
-      return position => '';
-    }
-  }
-
-  protected collapse_overlapping_diagnostics(diagnostics: lsProtocol.Diagnostic[]): Map<lsProtocol.Range, lsProtocol.Diagnostic[]> {
+  protected collapse_overlapping_diagnostics(
+    diagnostics: lsProtocol.Diagnostic[]
+  ): Map<lsProtocol.Range, lsProtocol.Diagnostic[]> {
     // because Range is not a primitive types, the equality of the objects having
     // the same parameters won't be compared (thus considered equal) in Map.
 
@@ -334,27 +304,37 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     const range_id_to_diagnostics = new Map<RangeID, lsProtocol.Diagnostic[]>();
 
     function get_range_id(range: lsProtocol.Range): RangeID {
-      return range.start.line + ',' + range.start.character + ',' + range.end.line + ',' + range.end.character
+      return (
+        range.start.line +
+        ',' +
+        range.start.character +
+        ',' +
+        range.end.line +
+        ',' +
+        range.end.character
+      );
     }
 
     diagnostics.forEach((diagnostic: lsProtocol.Diagnostic) => {
-        let range = diagnostic.range;
-        let range_id = get_range_id(range);
-        range_id_to_range.set(range_id, range);
-        if(range_id_to_diagnostics.has(range_id)) {
-          let ranges_list = range_id_to_diagnostics.get(range_id);
-          ranges_list.push(diagnostic)
-        } else {
-          range_id_to_diagnostics.set(range_id, [diagnostic])
-        }
+      let range = diagnostic.range;
+      let range_id = get_range_id(range);
+      range_id_to_range.set(range_id, range);
+      if (range_id_to_diagnostics.has(range_id)) {
+        let ranges_list = range_id_to_diagnostics.get(range_id);
+        ranges_list.push(diagnostic);
+      } else {
+        range_id_to_diagnostics.set(range_id, [diagnostic]);
+      }
     });
 
     let map = new Map<lsProtocol.Range, lsProtocol.Diagnostic[]>();
 
-    range_id_to_diagnostics.forEach((range_diagnostics: lsProtocol.Diagnostic[], range_id: RangeID) => {
-      let range = range_id_to_range.get(range_id);
-      map.set(range, range_diagnostics);
-    });
+    range_id_to_diagnostics.forEach(
+      (range_diagnostics: lsProtocol.Diagnostic[], range_id: RangeID) => {
+        let range = range_id_to_range.get(range_id);
+        map.set(range, range_diagnostics);
+      }
+    );
 
     return map;
   }
@@ -372,73 +352,79 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     // add new markers, keep track of the added ones
     let doc = this.editor.getDoc();
 
-    let transform = this.transform;
-    let get_cell_id = this.get_cell_id;
+    let transform = this.editor.transform;
+    let get_cell_id = this.editor.get_cell_id;
 
     // TODO: test for diagnostic messages not being over-writen
     //  test case: from statistics import mean, bisect_left
     //  and do not use either; expected: title has "mean imported but unused; bisect_left imported and unused'
     // TODO: test case for severity class always being set, even if diagnostic has no severity
 
-    let diagnostics_by_range = this.collapse_overlapping_diagnostics(response.diagnostics);
+    let diagnostics_by_range = this.collapse_overlapping_diagnostics(
+      response.diagnostics
+    );
 
-    diagnostics_by_range.forEach((diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
-      const start = PositionConverter.lsp_to_cm(range.start);
-      const end = PositionConverter.lsp_to_cm(range.end);
+    diagnostics_by_range.forEach(
+      (diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
+        const start = PositionConverter.lsp_to_cm(range.start);
+        const end = PositionConverter.lsp_to_cm(range.end);
 
-      let highest_severity_code = diagnostics.map(diagnostic => diagnostic.severity || default_severity).sort()[0];
+        let highest_severity_code = diagnostics
+          .map(diagnostic => diagnostic.severity || default_severity)
+          .sort()[0];
 
-      const severity = diagnosticSeverityNames[highest_severity_code];
+        const severity = diagnosticSeverityNames[highest_severity_code];
 
-      // what a pity there is no hash in the standard library...
-      // we could use this: https://stackoverflow.com/a/7616484 though it may not be worth it:
-      //   the stringified diagnostic objects are only about 100-200 JS characters anyway,
-      //   depending on the message length; this could be reduced using some structure-aware
-      //   stringifier; such a stringifier could also prevent the possibility of having a false
-      //   negative due to a different ordering of keys
-      // obviously, the hash would prevent recovery of info from the key.
-      let diagnostic_hash = JSON.stringify({
-        // diagnostics without ranges
-        diagnostics: diagnostics.map(
-          diagnostic => [
-            diagnostic.severity, diagnostic.message, diagnostic.code,
-            diagnostic.source, diagnostic.relatedInformation
-          ]
-        ),
-        // the apparent marker position will change in the notebook with every line change for each marker
-        // after the (inserted/removed) line - but such markers should not be invalidated,
-        // i.e. the invalidation should be performed in the cell space, not in the notebook coordinate space,
-        // thus we transform the coordinates and keep the cell id in the hash
-        range: {
-          start: transform(start),
-          end: transform(end)
-        },
-        cell: get_cell_id(start)
-      });
-      markers_to_retain.add(diagnostic_hash);
+        // what a pity there is no hash in the standard library...
+        // we could use this: https://stackoverflow.com/a/7616484 though it may not be worth it:
+        //   the stringified diagnostic objects are only about 100-200 JS characters anyway,
+        //   depending on the message length; this could be reduced using some structure-aware
+        //   stringifier; such a stringifier could also prevent the possibility of having a false
+        //   negative due to a different ordering of keys
+        // obviously, the hash would prevent recovery of info from the key.
+        let diagnostic_hash = JSON.stringify({
+          // diagnostics without ranges
+          diagnostics: diagnostics.map(diagnostic => [
+            diagnostic.severity,
+            diagnostic.message,
+            diagnostic.code,
+            diagnostic.source,
+            diagnostic.relatedInformation
+          ]),
+          // the apparent marker position will change in the notebook with every line change for each marker
+          // after the (inserted/removed) line - but such markers should not be invalidated,
+          // i.e. the invalidation should be performed in the cell space, not in the notebook coordinate space,
+          // thus we transform the coordinates and keep the cell id in the hash
+          range: {
+            start: transform(start),
+            end: transform(end)
+          },
+          cell: get_cell_id(start)
+        });
+        markers_to_retain.add(diagnostic_hash);
 
-      if (!this.marked_diagnostics.has(diagnostic_hash)) {
-        let options: CodeMirror.TextMarkerOptions = {
-          title: diagnostics.map(
-            d => d.message + (d.source ? ' (' + d.source + ')' : '')
-          ).join('\n'),
-          className: 'cm-lsp-diagnostic cm-lsp-diagnostic-' + severity
-        };
-        let marker;
-        try {
-          marker = doc.markText(start, end, options);
-        } catch (e) {
-          console.warn(
-            'Marking inspection (diagnostic text) failed, see following logs (2):'
-          );
-          console.log(diagnostics);
-          console.log(e);
-          return;
+        if (!this.marked_diagnostics.has(diagnostic_hash)) {
+          let options: CodeMirror.TextMarkerOptions = {
+            title: diagnostics
+              .map(d => d.message + (d.source ? ' (' + d.source + ')' : ''))
+              .join('\n'),
+            className: 'cm-lsp-diagnostic cm-lsp-diagnostic-' + severity
+          };
+          let marker;
+          try {
+            marker = doc.markText(start, end, options);
+          } catch (e) {
+            console.warn(
+              'Marking inspection (diagnostic text) failed, see following logs (2):'
+            );
+            console.log(diagnostics);
+            console.log(e);
+            return;
+          }
+          this.marked_diagnostics.set(diagnostic_hash, marker);
         }
-        this.marked_diagnostics.set(diagnostic_hash, marker);
-      }
 
-      /*
+        /*
       TODO and this:
         const childEl = document.createElement('div');
         childEl.classList.add('CodeMirror-lsp-guttermarker');
@@ -446,7 +432,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
         this.editor.setGutterMarker(start.line, 'CodeMirror-lsp', childEl);
       do we want gutters?
      */
-    });
+      }
+    );
 
     // remove the markers which were not included in the new message
     this.marked_diagnostics.forEach(

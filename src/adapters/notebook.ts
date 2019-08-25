@@ -1,10 +1,7 @@
 import { JupyterLabWidgetAdapter } from './jupyterlab';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { CodeMirror } from './codemirror';
-import {
-  ILanguageMagicsOverrides,
-  NotebookAsSingleEditor
-} from '../notebook_mapper';
+import { VirtualEditorForNotebook } from '../virtual/editors/notebook';
 import { ICompletionManager } from '@jupyterlab/completer';
 import { NotebookJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
@@ -12,48 +9,45 @@ import { JupyterFrontEnd } from '@jupyterlab/application';
 import { until_ready } from '../utils';
 import { LSPConnector } from '../completion';
 import { CodeEditor } from '@jupyterlab/codeeditor';
+import { IForeignCodeExtractorsRegistry } from '../extractors/types';
+import { RegExpForeignCodeExtractor } from '../extractors/regexp';
+import { language_specific_overrides } from '../magics/defaults';
 
-interface IOverridesRegistry {
-  [language: string]: ILanguageMagicsOverrides;
-}
+// TODO: make the regex code extractors configurable
 
-/**
- * Interactive kernels often provide additional functionality invoked by so-called magics,
- * which use distinctive syntax. This features may however not be interpreted correctly by
- * the general purpose language linters. To avoid false-positives making the linter useless
- * for any specific language when magics are use, regular expressions can be used to replace
- * the magics with linter-friendly substitutes; this will be made user configurable.
- */
-const language_specific_overrides: IOverridesRegistry = {
-  python: {
-    // if a match for expresion in the key is found against a line, the line is replaced with the value
-    line_magics: [
-      // filter out IPython line magics and shell assignments
-      { pattern: '^[%!](.+)', replacement: '$1()' }
-    ],
-    // if a match for expresion in the key is found at the beginning of a cell, the entire cell is replaced with the value
-    cell_magics: [
-      // rpy2 extension R magic - this should likely go as an example to the user documentation, rather than being a default
-      //   only handles simple one input - one output case
-      { pattern: '%%R -i (.+) -o (.+)( .*)?', replacement: '$2 = R($1)' },
-      //   handle one input
-      { pattern: '%%R -i (.+)( .*)?', replacement: 'R($1)' },
-      //   handle one output
-      { pattern: '%%R -o (.+)( .*)?', replacement: '$1 = R()' },
-      //   handle no input/output arguments
-      { pattern: '%%R( .*)?', replacement: 'R()' },
-      // skip all other cell magics;
-      //   the call (even if invalid) will make linters think that the magic symbol was used in the code,
-      //   and silence potential "imported bu unused" messages
-      { pattern: '%%(.+)( )?(.*)', replacement: '$1()' }
-    ]
-  }
+let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
+  // general note: to match new lines use [^] instead of dot, unless the target is ES2018, then use /s
+  python: [
+    // R magic will always be in the same, single R-namespace
+    new RegExpForeignCodeExtractor({
+      language: 'R',
+      pattern: '%%R( [^]*)?\n([^]*)',
+      extract_to_foreign: '$2',
+      keep_in_host: true,
+      is_standalone: false
+    }),
+    // most magics are standalone, i.e. consecutive code cells with the same magic create two different namespaces
+    new RegExpForeignCodeExtractor({
+      language: 'python',
+      pattern: '%%python( [^]*)?\n(.*)',
+      extract_to_foreign: '$2',
+      keep_in_host: false,
+      is_standalone: true
+    }),
+    new RegExpForeignCodeExtractor({
+      language: 'python',
+      pattern: '%%timeit( [^]*)?\n(.*)',
+      extract_to_foreign: '$2',
+      keep_in_host: false,
+      is_standalone: true
+    })
+  ]
 };
 
 export class NotebookAdapter extends JupyterLabWidgetAdapter {
   editor: Notebook;
   widget: NotebookPanel;
-  notebook_as_editor: NotebookAsSingleEditor;
+  virtual_editor: VirtualEditorForNotebook;
   completion_manager: ICompletionManager;
   jumper: NotebookJumper; // TODO: make jumper optional?
 
@@ -77,7 +71,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       this.widget.context.isReady &&
       this.widget.content.isVisible &&
       this.widget.content.widgets.length > 0 &&
-      this.language != ''
+      this.language !== ''
     );
   }
 
@@ -92,7 +86,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
   }
 
   find_ce_editor(cm_editor: CodeMirror.Editor): CodeEditor.IEditor {
-    return this.notebook_as_editor.cm_editor_to_ieditor.get(cm_editor);
+    return this.virtual_editor.cm_editor_to_cell.get(cm_editor).editor;
   }
 
   async init_once_ready() {
@@ -103,12 +97,14 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     // TODO
     // this.widget.context.pathChanged
 
-    this.notebook_as_editor = new NotebookAsSingleEditor(
+    this.virtual_editor = new VirtualEditorForNotebook(
       this.widget,
-      language_specific_overrides[this.language]
+      this.language,
+      language_specific_overrides,
+      foreign_code_extractors
     );
 
-    this.connect();
+    this.connect(this.virtual_editor.virtual_document);
     this.create_adapter();
 
     // refresh server held state after every change
@@ -128,9 +124,9 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     const cell = this.widget.content.activeCell;
     const connector = new LSPConnector({
       editor: cell.editor,
-      connection: this.connection,
+      connection: this.main_connection,
       coordinates_transform: (position: CodeMirror.Position) =>
-        this.notebook_as_editor.transform_to_notebook(cell, position),
+        this.virtual_editor.transform_from_notebook(cell, position),
       session: this.widget.session
     });
     const handler = this.completion_manager.register({
@@ -141,9 +137,9 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     this.widget.content.activeCellChanged.connect((notebook, cell) => {
       const connector = new LSPConnector({
         editor: cell.editor,
-        connection: this.connection,
+        connection: this.main_connection,
         coordinates_transform: (position: CodeMirror.Position) =>
-          this.notebook_as_editor.transform_to_notebook(cell, position),
+          this.virtual_editor.transform_from_notebook(cell, position),
         session: this.widget.session
       });
 
@@ -152,20 +148,12 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     });
   }
 
-  get_notebook_content() {
-    return this.notebook_as_editor.getValue();
-  }
-
-  get cm_editor() {
-    return this.notebook_as_editor;
-  }
-
   get_document_content() {
-    return this.get_notebook_content();
+    return this.virtual_editor.getValue();
   }
 
   refresh_lsp_notebook_image(slot: any) {
     // TODO this is fired too often currently, debounce!
-    this.connection.sendChange();
+    this.main_connection.sendChange();
   }
 }

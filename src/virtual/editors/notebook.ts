@@ -2,37 +2,17 @@ import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { Cell } from '@jupyterlab/cells';
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { ShowHintOptions } from 'codemirror';
-import { CodeEditor } from '@jupyterlab/codeeditor';
+import { IOverridesRegistry } from '../../magics/overrides';
+import { IForeignCodeExtractorsRegistry } from '../../extractors/types';
+import { VirtualDocument } from '../document';
+import { VirtualEditor } from '../editor';
 import CodeMirror = require('codemirror');
-
-interface IMagicOverride {
-  pattern: string;
-  replacement: string;
-}
-
-/**
- * the expressions will be tested in the order of definition
- */
-export interface ILanguageMagicsOverrides {
-  line_magics?: IMagicOverride[];
-  cell_magics?: IMagicOverride[];
-}
-
-interface IVirtualLineMeta {
-  cell: Cell;
-  editor: CodeMirror.Editor;
-  /**
-   * Should this line be inspected?
-   */
-  inspect: boolean;
-  line_shift: number;
-}
 
 // @ts-ignore
 class DocDispatcher implements CodeMirror.Doc {
-  notebook_map: NotebookAsSingleEditor;
+  notebook_map: VirtualEditorForNotebook;
 
-  constructor(notebook_map: NotebookAsSingleEditor) {
+  constructor(notebook_map: VirtualEditorForNotebook) {
     // TODO
     this.notebook_map = notebook_map;
   }
@@ -50,7 +30,7 @@ class DocDispatcher implements CodeMirror.Doc {
   }
 
   transform(position: CodeMirror.Position) {
-    return this.notebook_map.transform(position);
+    return this.notebook_map.transform_from_document(position);
   }
 
   getValue(seperator?: string): string {
@@ -61,83 +41,74 @@ class DocDispatcher implements CodeMirror.Doc {
     let cell = this.notebook_map.notebook.activeCell;
     let active_editor = cell.editor as CodeMirrorEditor;
     let cursor = active_editor.editor.getDoc().getCursor(start);
-    return this.notebook_map.transform_to_notebook(cell, cursor);
+    return this.notebook_map.transform_from_notebook(cell, cursor);
   }
 }
-
-abstract class MagicsMap extends Map<RegExp, string> {
-  constructor(magic_overrides: IMagicOverride[]) {
-    super(magic_overrides.map(m => [new RegExp(m.pattern), m.replacement]));
-  }
-
-  abstract override_for(code: string): string | null;
-
-  protected _override_for(code: string): string | null {
-    for (let [key, value] of this) {
-      if (code.match(key)) {
-        return code.replace(key, value);
-      }
-    }
-    return null;
-  }
-}
-
-class CellMagicsMap extends MagicsMap {
-  override_for(cell: string): string | null {
-    const line_end = cell.indexOf('\n');
-    let first_line = line_end === -1 ? cell : cell.substring(0, line_end);
-    return super._override_for(first_line);
-  }
-}
-
-
-class LineMagicsMap extends MagicsMap {
-  override_for(line: string): string | null {
-    return super._override_for(line);
-  }
-
-  replace_all(raw_lines: string[]): {lines: string[], should_inspect: boolean[]} {
-    let substituted_lines = new Array<string>();
-    let should_inspect = new Array<boolean>();
-
-    for (let i = 0; i < raw_lines.length; i++) {
-      let line = raw_lines[i];
-      let override = this.override_for(line);
-      substituted_lines.push(override === null ? line : override);
-      should_inspect.push(override === null);
-    }
-    return {
-      lines: substituted_lines,
-      should_inspect: should_inspect
-    };
-  }
-}
-
 
 // TODO: use proxy, as in https://stackoverflow.com/questions/51865430/typescript-compiler-does-not-know-about-es6-proxy-trap-on-class ?
 // TODO: make all un-implemented methods issue a warning to a console for improved diagnostics
 //  or just remove them altogether and suppress with ts-ignore so it will be more obvious what is implemented and what is not
 //  ideally there would be some kind of a construct which defines a subset of CodeMirror.Editor (Interface?) needed for the adapter
-export class NotebookAsSingleEditor implements CodeMirror.Editor {
+export class VirtualEditorForNotebook extends VirtualEditor {
   notebook: Notebook;
   notebook_panel: NotebookPanel;
-  line_cell_map: Map<number, IVirtualLineMeta>;
-  cell_line_map: Map<Cell, number>;
-  cm_editor_to_ieditor: Map<CodeMirror.Editor, CodeEditor.IEditor>;
-  cell_magics_overrides: CellMagicsMap;
-  line_magics_overrides: LineMagicsMap;
+  notebook_line_to_virtual_document: Map<number, VirtualDocument>;
+
+  first_line_of_notebook_cell_to_virtual_line: Map<Cell, number>;
+  cm_editor_to_cell: Map<CodeMirror.Editor, Cell>;
+  language: string;
 
   constructor(
     notebook_panel: NotebookPanel,
-    overrides: ILanguageMagicsOverrides
+    language: string,
+    overrides_registry: IOverridesRegistry,
+    foreign_code_extractors: IForeignCodeExtractorsRegistry
   ) {
+    super(language, overrides_registry, foreign_code_extractors);
     this.notebook_panel = notebook_panel;
     this.notebook = notebook_panel.content;
-    this.line_cell_map = new Map();
-    this.cell_line_map = new Map();
-    this.cm_editor_to_ieditor = new Map();
-    this.cell_magics_overrides = new CellMagicsMap(overrides.cell_magics);
-    this.line_magics_overrides = new LineMagicsMap(overrides.line_magics);
+    this.first_line_of_notebook_cell_to_virtual_line = new Map();
+    this.cm_editor_to_cell = new Map();
+    this.overrides_registry = overrides_registry;
+    this.code_extractors = foreign_code_extractors;
+    this.language = language;
+    let handler = {
+      get: function(
+        target: VirtualEditorForNotebook,
+        prop: keyof CodeMirror.Editor,
+        receiver: any
+      ) {
+        if (!(prop in target)) {
+          console.warn(
+            `Unimplemented method ${prop} for VirtualEditorForNotebook`
+          );
+          return;
+        } else {
+          return Reflect.get(target, prop, receiver);
+        }
+      }
+    };
+    return new Proxy(this, handler);
+  }
+  public get transform(): (
+    position: CodeMirror.Position
+  ) => CodeMirror.Position {
+    return position => this.transform_from_document(position);
+  }
+
+  public get_editor_index(position: CodeMirror.Position): number {
+    let cell = this.get_cell_at(position);
+    return this.notebook.widgets.findIndex(other_cell => {
+      return cell === other_cell;
+    });
+  }
+
+  public get get_cell_id(): (position: CodeMirror.Position) => string {
+    return position => this.get_cell_at(position).id;
+  }
+
+  get_cm_editor(position: CodeMirror.Position) {
+    return this.get_editor_at(position);
   }
 
   showHint: (options: ShowHintOptions) => void;
@@ -220,16 +191,16 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
         continue;
       }
 
-      return this.transform_to_notebook(cell, pos);
+      return this.transform_from_notebook(cell, pos);
     }
   }
 
-  transform_to_notebook(
+  transform_from_notebook(
     cell: Cell,
     position: CodeMirror.Position
   ): CodeMirror.Position {
     // TODO: if cell is not known, refresh
-    let shift = this.cell_line_map.get(cell);
+    let shift = this.first_line_of_notebook_cell_to_virtual_line.get(cell);
     if (shift === undefined) {
       throw Error('Cell not found in cell_line_map');
     }
@@ -253,7 +224,7 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
   ): { left: number; top: number; bottom: number } {
     if (typeof where !== 'boolean') {
       let editor = this.get_editor_at(where);
-      return editor.cursorCoords(this.transform(where));
+      return editor.cursorCoords(this.transform_from_document(where));
     }
     return { bottom: 0, left: 0, top: 0 };
   }
@@ -326,7 +297,7 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
   }
 
   getModeAt(pos: CodeMirror.Position): any {
-    return this.get_editor_at(pos).getModeAt(this.transform(pos));
+    return this.get_editor_at(pos).getModeAt(this.transform_from_document(pos));
   }
 
   getOption(option: string): any {
@@ -348,92 +319,61 @@ export class NotebookAsSingleEditor implements CodeMirror.Editor {
       return;
     }
     let editor = this.get_editor_at(pos);
-    return editor.getTokenAt(this.transform(pos));
+    return editor.getTokenAt(this.transform_from_document(pos));
   }
 
   getTokenTypeAt(pos: CodeMirror.Position): string {
     let editor = this.get_editor_at(pos);
-    return editor.getTokenTypeAt(this.transform(pos));
+    return editor.getTokenTypeAt(this.transform_from_document(pos));
   }
 
   // TODO: make a mapper class, with mapping function only
   get_editor_at(pos: CodeMirror.Position): CodeMirror.Editor {
-    return this.line_cell_map.get(pos.line).editor;
+    return this.virtual_document.virtual_lines.get(pos.line).editor_coordinates
+      .editor;
   }
 
   get_cell_at(pos: CodeMirror.Position): Cell {
-    return this.line_cell_map.get(pos.line).cell;
+    let cm_editor = this.virtual_document.virtual_lines.get(pos.line)
+      .editor_coordinates.editor;
+    return this.cm_editor_to_cell.get(cm_editor);
   }
 
-  transform(pos: CodeMirror.Position): CodeMirror.Position {
+  transform_from_document(pos: CodeMirror.Position): CodeMirror.Position {
+    // from virtual document space to notebook space
     return {
       ...pos,
-      // DOES it work like that? TODO
-      line: pos.line - this.line_cell_map.get(pos.line).line_shift
+      line:
+        pos.line -
+        this.virtual_document.virtual_lines.get(pos.line).editor_coordinates
+          .line_shift
     };
   }
 
   getValue(seperator?: string): string {
-    let value;
-    this.line_cell_map.clear();
-    this.cell_line_map.clear();
-    this.cm_editor_to_ieditor.clear();
+    this.virtual_document.clear();
+    this.first_line_of_notebook_cell_to_virtual_line.clear();
+    this.cm_editor_to_cell.clear();
 
-    // TODO: make this configurable
-    let empty_lines_between_cells = 2;
-    let lines_padding = '\n'.repeat(empty_lines_between_cells);
-
-    let last_line = 0;
-    let all_lines: Array<string> = [];
     this.notebook.widgets.every(cell => {
       let codemirror_editor = cell.editor as CodeMirrorEditor;
       let cm_editor = codemirror_editor.editor;
-      this.cm_editor_to_ieditor.set(cm_editor, cell.editor);
+      this.cm_editor_to_cell.set(cm_editor, cell);
 
       if (cell.model.type === 'code') {
         let cell_code = cm_editor.getValue(seperator);
         // every code cell is placed into the cell-map
-        this.cell_line_map.set(cell, last_line);
+        this.first_line_of_notebook_cell_to_virtual_line.set(
+          cell,
+          this.virtual_document.last_line
+        );
 
-        let lines: Array<string>;
-        let should_inspect: Array<boolean>;
-        //  TODO: create additional LSP servers for foreign languages introduced in cell magics
-
-        // cell magics are replaced if requested and matched
-        let cell_override = this.cell_magics_overrides.override_for(cell_code);
-        if (cell_override !== null) {
-          lines = cell_override.split('\n');
-          should_inspect = lines.map(l => false);
-        } else {
-          // otherwise, we replace line magics - if any
-          let result = this.line_magics_overrides.replace_all(
-            cell_code.split('\n')
-          );
-          lines = result.lines;
-          should_inspect = result.should_inspect;
-        }
-
-        // TODO: use better structure (tree with ranges?)
-        for (let i = 0; i < lines.length; i++) {
-          this.line_cell_map.set(last_line + i, {
-            editor: cm_editor,
-            line_shift: last_line,
-            inspect: should_inspect[i],
-            cell
-          });
-        }
-
-        // one empty line is necessary to separate code blocks, next 'n' lines are to silence linters;
-        // the final cell does not get the additional lines (thanks to the use of join, see below)
-        all_lines.push(lines.join('\n') + '\n');
-
-        last_line += lines.length + empty_lines_between_cells;
+        this.virtual_document.append_code_block(cell_code, cm_editor);
       }
       return true;
     });
-    value = all_lines.join(lines_padding);
 
-    return value;
+    return this.virtual_document.value;
   }
 
   getViewport(): { from: number; to: number } {

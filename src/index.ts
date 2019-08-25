@@ -59,7 +59,7 @@ function is_context_menu_over_token(adapter: JupyterLabWidgetAdapter) {
   if (!docPosition) {
     return false;
   }
-  let token = adapter.cm_editor.getTokenAt(docPosition);
+  let token = adapter.virtual_editor.getTokenAt(docPosition);
   return token.string !== '';
 }
 
@@ -123,14 +123,14 @@ const plugin: JupyterFrontEndPlugin<void> = {
           let fileEditor = fileEditorTracker.currentWidget.content;
           let adapter = file_editor_adapters.get(fileEditor.id);
           let docPosition = adapter.get_doc_position_from_context_menu();
-          cmd.execute(adapter.connection, docPosition);
+          cmd.execute(adapter.main_connection, docPosition);
         },
         isEnabled: is_context_menu_over_file_editor_token,
         isVisible: () => {
           let fileEditor = fileEditorTracker.currentWidget.content;
           let adapter = file_editor_adapters.get(fileEditor.id);
           return (
-            adapter && adapter.connection && cmd.isEnabled(adapter.connection)
+            adapter && adapter.main_connection && cmd.isEnabled(adapter.main_connection)
           );
         },
         label: cmd.label
@@ -181,14 +181,14 @@ const plugin: JupyterFrontEndPlugin<void> = {
           let notebook = notebookTracker.currentWidget;
           let adapter = notebook_adapters.get(notebook.id);
           let docPosition = adapter.get_doc_position_from_context_menu();
-          cmd.execute(adapter.connection, docPosition);
+          cmd.execute(adapter.main_connection, docPosition);
         },
         isEnabled: is_context_menu_over_notebook_token,
         isVisible: () => {
           let notebook = notebookTracker.currentWidget;
           let adapter = notebook_adapters.get(notebook.id);
           return (
-            adapter && adapter.connection && cmd.isEnabled(adapter.connection)
+            adapter && adapter.main_connection && cmd.isEnabled(adapter.main_connection)
           );
         },
         label: cmd.label

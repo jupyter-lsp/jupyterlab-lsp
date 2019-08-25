@@ -11,10 +11,18 @@ import { FreeTooltip } from '../free_tooltip';
 import { Widget } from '@phosphor/widgets';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { until_ready } from '../utils';
+import { VirtualEditor } from '../virtual/editor';
+import { VirtualDocument } from '../virtual/document';
 
+/**
+ * Foreign code: low level adapter is not aware of the presence of foreign languages;
+ * it operates on the virtual document and must not attempt to infer the language dependencies
+ * as this would make the logic of inspections caching impossible to maintain, thus the WidgetAdapter
+ * has to handle that, keeping multiple connections and multiple virtual documents.
+ */
 export abstract class JupyterLabWidgetAdapter {
   app: JupyterFrontEnd;
-  connection: LspWsConnection;
+  connections: Map<VirtualDocument.virtual_identifier_suffix, LspWsConnection>;
   jumper: CodeJumper;
   adapter: CodeMirrorAdapterExtension;
   rendermime_registry: IRenderMimeRegistry;
@@ -29,8 +37,10 @@ export abstract class JupyterLabWidgetAdapter {
     this.app = app;
     this.rendermime_registry = rendermime_registry;
     this.invoke_command = invoke;
+    this.connections = new Map();
   }
 
+  abstract virtual_editor: VirtualEditor;
   abstract get document_path(): string;
 
   // TODO use mime types instead? Mime types would be set instead of language in servers.yml.
@@ -44,38 +54,47 @@ export abstract class JupyterLabWidgetAdapter {
 
   abstract get_document_content(): string;
 
-  abstract get cm_editor(): CodeMirror.Editor;
   abstract find_ce_editor(cm_editor: CodeMirror.Editor): CodeEditor.IEditor;
 
   invoke_completer() {
     return this.app.commands.execute(this.invoke_command);
   }
 
-  async connect() {
-    console.log(
-      'LSP: will connect using root path:',
-      this.root_path,
-      'and language:',
-      this.language
+  get main_connection(): LspWsConnection {
+    return this.connections.get(
+      this.virtual_editor.virtual_document.virtual_identifier_suffix
     );
-    this.connection = new LspWsConnection({
-      serverUri: 'ws://localhost/' + this.language,
-      languageId: this.language,
+  }
+
+  async connect(virtual_document: VirtualDocument) {
+    let language = virtual_document.language;
+    console.log(
+      `LSP: will connect using root path: ${this.root_path} and language: ${language}`
+    );
+    let connection = new LspWsConnection({
+      serverUri: 'ws://localhost/' + language,
+      languageId: language,
       // paths handling needs testing on Windows and with other language servers
       rootUri: 'file:///' + this.root_path,
       documentUri: 'file:///' + this.document_path,
       documentText: this.get_document_content.bind(this)
-    }).connect(new WebSocket('ws://localhost:3000/' + this.language));
+    }).connect(new WebSocket('ws://localhost:3000/' + language));
 
     // @ts-ignore
-    this.connection.on('goTo', this.handle_jump.bind(this));
+    connection.on('goTo', locations => this.handle_jump(locations, language));
+    this.connections.set(
+      virtual_document.virtual_identifier_suffix,
+      connection
+    );
 
     // @ts-ignore
-    await until_ready(() => this.connection.isConnected, -1, 150);
+    await until_ready(() => connection.isConnected, -1, 150);
     console.log('LSP:', this.document_path, 'connected.');
   }
 
-  handle_jump(locations: lsProtocol.Location[]) {
+  handle_jump(locations: lsProtocol.Location[], language: string) {
+    let connection = this.connections.get(language);
+
     // TODO: implement selector for multiple locations
     //  (like when there are multiple definitions or usages)
     if (locations.length === 0) {
@@ -87,25 +106,20 @@ export abstract class JupyterLabWidgetAdapter {
     let location = locations[0];
 
     let uri: string = decodeURI(location.uri);
-    let current_uri = this.connection.getDocumentUri();
+    let current_uri = connection.getDocumentUri();
 
     let cm_position = PositionConverter.lsp_to_cm(location.range.start);
-    let editor_index = this.adapter.get_editor_index(cm_position);
-    let transformed_position = this.adapter.transform(cm_position);
+    let editor_index = this.virtual_editor.get_editor_index(cm_position);
+    let transformed_position = this.virtual_editor.transform(cm_position);
     let transformed_ce_position = PositionConverter.cm_to_ce(
       transformed_position
     );
 
     console.log(
-      'Jumping to',
-      transformed_position,
-      'in',
-      editor_index,
-      'editor of',
-      uri
+      `Jumping to ${transformed_position} in ${editor_index} editor of ${uri}`
     );
 
-    if (uri == current_uri) {
+    if (uri === current_uri) {
       this.jumper.jump({
         token: {
           offset: this.jumper.getOffset(transformed_ce_position, editor_index),
@@ -134,9 +148,9 @@ export abstract class JupyterLabWidgetAdapter {
 
   create_adapter() {
     this.adapter = new CodeMirrorAdapterExtension(
-      this.connection,
+      this.main_connection,
       { quickSuggestionsDelay: 50 },
-      this.cm_editor,
+      this.virtual_editor,
       this.create_tooltip.bind(this),
       this.invoke_completer.bind(this)
     );
@@ -159,7 +173,7 @@ export abstract class JupyterLabWidgetAdapter {
       top = event.clientY;
       event.stopPropagation();
     }
-    return this.cm_editor.coordsChar(
+    return this.virtual_editor.coordsChar(
       {
         left: left,
         top: top
@@ -182,7 +196,9 @@ export abstract class JupyterLabWidgetAdapter {
       bundle: bundle,
       editor: this.find_ce_editor(cm_editor),
       rendermime: this.rendermime_registry,
-      position: PositionConverter.cm_to_ce(this.adapter.transform(position)),
+      position: PositionConverter.cm_to_ce(
+        this.virtual_editor.transform(position)
+      ),
       moveToLineEnd: false
     });
     Widget.attach(tooltip, document.body);
