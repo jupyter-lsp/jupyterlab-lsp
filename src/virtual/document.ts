@@ -1,4 +1,7 @@
-import {IForeignCodeExtractor, IForeignCodeExtractorsRegistry} from '../extractors/types';
+import {
+  IForeignCodeExtractor,
+  IForeignCodeExtractorsRegistry
+} from '../extractors/types';
 import { CellMagicsMap, LineMagicsMap } from '../magics/maps';
 import { IOverridesRegistry } from '../magics/overrides';
 import CodeMirror = require('codemirror');
@@ -17,14 +20,21 @@ interface IVirtualLine {
 }
 
 /**
- * A notebook can hold one or more virtual documents.
+ * A notebook can hold one or more virtual documents; there is always one,
+ * "root" document, corresponding to the language of the kernel. All other
+ * virtual documents are extracted out of the notebook, based on magics,
+ * or other syntax constructs, depending on the kernel language.
  *
  * Virtual documents represent the underlying code in a single language,
  * which has been parsed excluding interactive kernel commands (magics)
  * which could be misunderstood by the specific LSP server.
  *
- * VirtualDocument has minimal awareness of the notebook,
- * being able to transform its content back to the notebook space.
+ * VirtualDocument has no awareness of the notebook or editor it lives in,
+ * however it is able to transform its content back to the notebook space,
+ * as it keeps editor coordinates for each virtual line.
+ *
+ * The notebook/editor aware transformations are preferred to be placed in
+ * VirtualEditor descendants rather than here.
  */
 export class VirtualDocument {
   parent: VirtualDocument;
