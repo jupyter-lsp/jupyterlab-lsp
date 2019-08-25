@@ -62,3 +62,26 @@ export function getModifierState(
       );
   }
 }
+
+export class DefaultMap<K, V> extends Map<K, V> {
+  constructor(
+    private default_factory: (...args: any[]) => V,
+    entries?: ReadonlyArray<readonly [K, V]> | null
+  ) {
+    super(entries);
+  }
+
+  get(k: K): V {
+    return this.get_or_create(k);
+  }
+
+  get_or_create(k: K, ...args: any[]): V {
+    if (this.has(k)) {
+      return super.get(k);
+    } else {
+      let v = this.default_factory(...args);
+      this.set(k, v);
+      return v;
+    }
+  }
+}

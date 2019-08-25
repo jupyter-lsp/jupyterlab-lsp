@@ -4,7 +4,9 @@ import {
 } from '../extractors/types';
 import { CellMagicsMap, LineMagicsMap } from '../magics/maps';
 import { IOverridesRegistry } from '../magics/overrides';
+import { DefaultMap } from '../utils';
 import CodeMirror = require('codemirror');
+import { Signal } from '@phosphor/signaling';
 
 interface IEditorCoordinates {
   editor: CodeMirror.Editor;
@@ -17,6 +19,13 @@ interface IVirtualLine {
    * Should inspections for this virtual line be presented?
    */
   inspect: boolean;
+}
+
+type language = string;
+
+interface IForeignContext {
+  foreign_document: VirtualDocument;
+  parent_host: VirtualDocument;
 }
 
 /**
@@ -37,20 +46,29 @@ interface IVirtualLine {
  * VirtualEditor descendants rather than here.
  */
 export class VirtualDocument {
-  parent: VirtualDocument;
-  language: string;
-  foreign_documents: Map<string, VirtualDocument>;
-  foreign_extractors: IForeignCodeExtractor[];
-  virtual_lines: Map<number, IVirtualLine>;
+  public language: string;
+  public last_line: number;
+  public foreign_document_closed: Signal<VirtualDocument, IForeignContext>;
+  public foreign_document_opened: Signal<VirtualDocument, IForeignContext>;
+  public readonly instance_id: number;
+  public standalone: boolean;
+  public virtual_lines: Map<number, IVirtualLine>; // probably should go protected
 
-  cell_magics_overrides: CellMagicsMap;
-  line_magics_overrides: LineMagicsMap;
+  protected foreign_extractors: IForeignCodeExtractor[];
+  protected overrides_registry: IOverridesRegistry;
+  protected foreign_extractors_registry: IForeignCodeExtractorsRegistry;
+  protected lines: Array<string>;
 
-  overrides_registry: IOverridesRegistry;
-  foreign_extractors_registry: IForeignCodeExtractorsRegistry;
+  // TODO: merge into unused documents {standalone: Map, continuous: Map} ?
+  protected unused_documents: Set<VirtualDocument>;
+  protected unused_standalone_documents: DefaultMap<language, Array<VirtualDocument>>;
 
-  last_line: number;
-  lines: Array<string>;
+  private readonly parent: VirtualDocument;
+  private _remaining_lifetime: number;
+  private cell_magics_overrides: CellMagicsMap;
+  private line_magics_overrides: LineMagicsMap;
+  private static instances_count = 0;
+  private foreign_documents: Map<VirtualDocument.virtual_id, VirtualDocument>;
 
   // TODO: make this configurable, depending on the language used
   blank_lines_between_cells: number = 2;
@@ -63,6 +81,7 @@ export class VirtualDocument {
     language: string,
     overrides_registry: IOverridesRegistry,
     foreign_code_extractors: IForeignCodeExtractorsRegistry,
+    standalone: boolean,
     parent?: VirtualDocument
   ) {
     this.language = language;
@@ -84,17 +103,98 @@ export class VirtualDocument {
     this.foreign_documents = new Map();
     this.overrides_registry = overrides_registry;
     this.lines = [];
+    this.standalone = standalone;
+    this.instance_id = VirtualDocument.instances_count;
+    VirtualDocument.instances_count += 1;
+    this.unused_standalone_documents = new DefaultMap(
+      () => new Array<VirtualDocument>()
+    );
+    this._remaining_lifetime = 10;
+    this.foreign_document_closed = new Signal(this);
+    this.foreign_document_opened = new Signal(this);
+  }
+
+  /**
+   * When this counter goes down to 0, the document will be destroyed and the associated connection will be closed;
+   * This is meant to reduce the number of open connections when a a foreign code snippet was removed from the document.
+   *
+   * Note: top level virtual documents are currently immortal (unless killed by other means); it might be worth
+   * implementing culling of unused documents, but if and only if JupyterLab will also implement culling of
+   * idle kernels - otherwise the user experience could be a bit inconsistent, and we would need to invent our own rules.
+   */
+  protected get remaining_lifetime() {
+    if (!this.parent) {
+      return Infinity;
+    }
+    return this._remaining_lifetime;
+  }
+  protected set remaining_lifetime(value: number) {
+    if (this.parent) {
+      this._remaining_lifetime = value;
+    }
   }
 
   clear() {
+    // TODO - deep clear (assure that there is no memory leak)
+    this.unused_standalone_documents.clear();
+
+    for (let document of this.foreign_documents.values()) {
+      document.clear();
+      if (document.standalone) {
+        // once the standalone document was cleared, we may want to remove it and close connection;
+        // but wait, this is a waste of resources (opening a connection takes 1-3 seconds) and,
+        // since this is cleaned anyway, we could use it for another standalone document of the same language.
+        let set = this.unused_standalone_documents.get(document.language);
+        set.push(document);
+      }
+    }
+    this.unused_documents = new Set(this.foreign_documents.values());
     this.virtual_lines.clear();
     this.last_line = 0;
     this.lines = [];
   }
 
-  append_code_block(cell_code: string, cm_editor: CodeMirror.Editor) {
+  private forward_closed_signal(host: VirtualDocument, context: IForeignContext) {
+    this.foreign_document_closed.emit(context);
+  }
+
+  private forward_opened_signal(host: VirtualDocument, context: IForeignContext) {
+    this.foreign_document_opened.emit(context);
+  }
+
+  // TODO: what could be refactored into "ForeignDocumentsManager" has started to emerge;
+  //   we should consider refactoring later on.
+  private open_foreign(
+    language: language,
+    standalone: boolean
+  ): VirtualDocument {
+    let document = new VirtualDocument(
+      language,
+      this.overrides_registry,
+      this.foreign_extractors_registry,
+      standalone
+    );
+    this.foreign_document_opened.emit({
+      foreign_document: document,
+      parent_host: this
+    });
+    // pass through any future signals
+    document.foreign_document_closed.connect(this.forward_closed_signal);
+    document.foreign_document_opened.connect(this.forward_opened_signal);
+
+    this.foreign_documents.set(document.virtual_id, document);
+
+    return document;
+  }
+
+  append_code_block(
+    cell_code: string,
+    cm_editor: CodeMirror.Editor
+  ): Map<number, VirtualDocument> {
     let lines: Array<string>;
     let should_inspect: Array<boolean>;
+    let line_document_map = new Map<number, VirtualDocument>();
+
     //  TODO: create additional LSP servers for foreign languages introduced in cell magics
 
     // first, check if there is any foreign code:
@@ -106,21 +206,34 @@ export class VirtualDocument {
       }
 
       let foreign_document: VirtualDocument;
-      if (this.foreign_documents.has(extractor.language)) {
+      // if not standalone, try to append to existing document
+      let foreign_exists = this.foreign_documents.has(extractor.language);
+      if (!extractor.standalone && foreign_exists) {
         foreign_document = this.foreign_documents.get(extractor.language);
       } else {
-        foreign_document = new VirtualDocument(
-          extractor.language,
-          this.overrides_registry,
-          this.foreign_extractors_registry
+        // if standalone, try to re-use existing connection to the server
+        let unused_standalone = this.unused_standalone_documents.get(
+          extractor.language
         );
-        this.foreign_documents.set(extractor.language, foreign_document);
+        if (extractor.standalone && unused_standalone.length > 0) {
+          foreign_document = unused_standalone.pop();
+        } else {
+          // if (previous document does not exists) or (extractor produces standalone documents
+          // and no old standalone document could be reused): create a new document
+          foreign_document = this.open_foreign(
+            extractor.language,
+            extractor.standalone
+          );
+        }
       }
 
       // TODO
       // result.foreign_coordinates;
       foreign_document.append_code_block(result.foreign_code, cm_editor);
       cell_code = result.host_code;
+
+      // not breaking - many extractors are allowed to process the code, one after each other
+      // (think JS and CSS in HTML, or %R inside of %%timeit).
     }
 
     // cell magics are replaced if requested and matched
@@ -152,26 +265,74 @@ export class VirtualDocument {
     this.lines.push(lines.join('\n') + '\n');
 
     this.last_line += lines.length + this.blank_lines_between_cells;
+
+    return line_document_map;
   }
 
   get value() {
     let lines_padding = '\n'.repeat(this.blank_lines_between_cells);
+    // TODO: require the editor to do this
+    // once all the foreign documents were refreshed, the unused documents (and their connections)
+    // should be terminated if their lifetime expired
+    this.close_expired_documents();
     return this.lines.join(lines_padding);
   }
 
-  get virtual_identifier_suffix(): VirtualDocument.virtual_identifier_suffix {
-    if (!this.parent) {
-      return '';
+  close_expired_documents() {
+    for (let document of this.unused_documents.values()) {
+      document.remaining_lifetime -= 1;
+      if (document.remaining_lifetime <= 0) {
+        this.close_foreign(document);
+      }
     }
-    return this.parent.virtual_identifier_suffix + '_' + this.language;
+  }
+
+  close_foreign(document: VirtualDocument) {
+    this.foreign_document_closed.emit({
+      foreign_document: document,
+      parent_host: this
+    });
+    // remove it from foreign documents list
+    this.foreign_documents.delete(document.virtual_id);
+    // and delete the documents within it
+    document.close_all_foreign_documents();
+
+    document.foreign_document_closed.disconnect(this.forward_closed_signal);
+    document.foreign_document_opened.disconnect(this.forward_opened_signal);
+  }
+
+  close_all_foreign_documents() {
+    for (let document of this.foreign_documents.values()) {
+      this.close_foreign(document);
+    }
+  }
+
+  get virtual_id(): VirtualDocument.virtual_id {
+    // for easier debugging, the language information is included in the ID:
+    return this.standalone
+      ? this.instance_id + '(' + this.language + ')'
+      : this.language;
+  }
+
+  get id_path(): VirtualDocument.id_path {
+    if (!this.parent) {
+      return this.virtual_id;
+    }
+    return this.parent.id_path + '-' + this.virtual_id;
   }
 }
 
 export namespace VirtualDocument {
   /**
-   * Identifier is used to aide assignment of the connection to the virtual document
+   * Identifier composed of `virtual_id`s of a nested structure of documents,
+   * used to aide assignment of the connection to the virtual document
    * handling specific, nested language usage; it will be appended to the file name
    * when creating a connection.
    */
-  export type virtual_identifier_suffix = string;
+  export type id_path = string;
+  /**
+   * Instance identifier for standalone documents (snippets), or language identifier
+   * for documents which should be interpreted as one when stretched across cells.
+   */
+  export type virtual_id = string;
 }

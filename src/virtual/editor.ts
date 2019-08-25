@@ -22,7 +22,8 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
     this.virtual_document = new VirtualDocument(
       language,
       overrides_registry,
-      foreign_code_extractors
+      foreign_code_extractors,
+      false
     );
   }
 

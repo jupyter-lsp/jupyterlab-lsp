@@ -369,6 +369,9 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
         const start = PositionConverter.lsp_to_cm(range.start);
         const end = PositionConverter.lsp_to_cm(range.end);
 
+        // TODO
+        // this.editor.virtual_document.solve_line(range.start.line);
+
         let highest_severity_code = diagnostics
           .map(diagnostic => diagnostic.severity || default_severity)
           .sort()[0];

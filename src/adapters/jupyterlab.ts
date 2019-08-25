@@ -22,7 +22,7 @@ import { VirtualDocument } from '../virtual/document';
  */
 export abstract class JupyterLabWidgetAdapter {
   app: JupyterFrontEnd;
-  connections: Map<VirtualDocument.virtual_identifier_suffix, LspWsConnection>;
+  connections: Map<VirtualDocument.id_path, LspWsConnection>;
   jumper: CodeJumper;
   adapter: CodeMirrorAdapterExtension;
   rendermime_registry: IRenderMimeRegistry;
@@ -61,12 +61,18 @@ export abstract class JupyterLabWidgetAdapter {
   }
 
   get main_connection(): LspWsConnection {
-    return this.connections.get(
-      this.virtual_editor.virtual_document.virtual_identifier_suffix
-    );
+    return this.connections.get(this.virtual_editor.virtual_document.id_path);
   }
 
   async connect(virtual_document: VirtualDocument) {
+    virtual_document.foreign_document_opened.connect((host, context) => {
+      this.connect(context.foreign_document);
+    });
+    virtual_document.foreign_document_closed.connect((host, context) => {
+      let connection = this.connections.get(context.foreign_document.id_path);
+      connection.close();
+    });
+
     let language = virtual_document.language;
     console.log(
       `LSP: will connect using root path: ${this.root_path} and language: ${language}`
@@ -82,10 +88,7 @@ export abstract class JupyterLabWidgetAdapter {
 
     // @ts-ignore
     connection.on('goTo', locations => this.handle_jump(locations, language));
-    this.connections.set(
-      virtual_document.virtual_identifier_suffix,
-      connection
-    );
+    this.connections.set(virtual_document.id_path, connection);
 
     // @ts-ignore
     await until_ready(() => connection.isConnected, -1, 150);

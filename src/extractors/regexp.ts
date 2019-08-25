@@ -4,11 +4,13 @@ export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
   options: RegExpForeignCodeExtractor.IOptions;
   language: string;
   expression: RegExp;
+  standalone: boolean;
 
   constructor(options: RegExpForeignCodeExtractor.IOptions) {
     this.language = options.language;
     this.options = options;
     this.expression = new RegExp(options.pattern);
+    this.standalone = this.options.is_standalone;
   }
 
   extract_foreign_code(code: string): IExtractedCode {
@@ -33,15 +35,13 @@ export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
         foreign_coordinates: {
           start: match.index,
           end: match.index + match[0].length
-        },
-        is_standalone: this.options.is_standalone
+        }
       };
     } else {
       return {
         host_code: code,
         foreign_code: null,
-        foreign_coordinates: null,
-        is_standalone: this.options.is_standalone
+        foreign_coordinates: null
       };
     }
   }

@@ -14,11 +14,6 @@ export interface IExtractedCode {
    * Code to be retained in the virtual document of the host.
    */
   host_code: string | null;
-  /**
-   * Should the foreign code be appended (False) to the previously established virtual document of the same language,
-   * or is it standalone snippet which requires separate connection (True)?
-   */
-  is_standalone: boolean;
 }
 
 /**
@@ -49,6 +44,11 @@ export interface IForeignCodeExtractor {
    * Split the code into the host and foreign code (if any foreign code was detected)
    */
   extract_foreign_code(code: string): IExtractedCode;
+  /**
+   * Does the extractor produce code which should be appended to the previously established virtual document (False)
+   * of the same language, or does it produce standalone snippets which require separate connections (True)?
+   */
+  standalone: boolean;
 }
 
 export interface IForeignCodeExtractorsRegistry {

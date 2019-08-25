@@ -44,4 +44,14 @@ export class VirtualFileEditor extends VirtualEditor {
   get_cm_editor(position: CodeMirror.Position): CodeMirror.Editor {
     return undefined;
   }
+
+  // TODO: force re-definition of this method (in base class, so that it is never proxied)
+  getValue(seperator?: string): string {
+    this.virtual_document.clear();
+    this.virtual_document.append_code_block(
+      this.cm_editor.getValue(seperator),
+      this.cm_editor
+    );
+    return this.virtual_document.value;
+  }
 }

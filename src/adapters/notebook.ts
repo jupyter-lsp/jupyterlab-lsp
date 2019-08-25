@@ -49,7 +49,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
   widget: NotebookPanel;
   virtual_editor: VirtualEditorForNotebook;
   completion_manager: ICompletionManager;
-  jumper: NotebookJumper; // TODO: make jumper optional?
+  jumper: NotebookJumper;
 
   constructor(
     editor_widget: NotebookPanel,
