@@ -45,10 +45,6 @@ class DocDispatcher implements CodeMirror.Doc {
   }
 }
 
-// TODO: use proxy, as in https://stackoverflow.com/questions/51865430/typescript-compiler-does-not-know-about-es6-proxy-trap-on-class ?
-// TODO: make all un-implemented methods issue a warning to a console for improved diagnostics
-//  or just remove them altogether and suppress with ts-ignore so it will be more obvious what is implemented and what is not
-//  ideally there would be some kind of a construct which defines a subset of CodeMirror.Editor (Interface?) needed for the adapter
 export class VirtualEditorForNotebook extends VirtualEditor {
   notebook: Notebook;
   notebook_panel: NotebookPanel;

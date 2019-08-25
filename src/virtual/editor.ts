@@ -3,7 +3,12 @@ import { IOverridesRegistry } from '../magics/overrides';
 import { IForeignCodeExtractorsRegistry } from '../extractors/types';
 import CodeMirror = require('codemirror');
 
-
+/**
+ * VirtualEditor extends the CodeMirror.Editor interface; its subclasses may either
+ * fast-forward any requests to an existing instance of the CodeMirror.Editor
+ * (using ES6 Proxy), or implement custom behaviour, allowing for the use of
+ * virtual documents representing code in complex entities such as notebooks.
+ */
 export abstract class VirtualEditor implements CodeMirror.Editor {
   virtual_document: VirtualDocument;
   overrides_registry: IOverridesRegistry;

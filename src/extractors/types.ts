@@ -10,6 +10,9 @@ export interface IExtractedCode {
     start: number;
     end: number;
   };
+  /**
+   * Code to be retained in the virtual document of the host.
+   */
   host_code: string | null;
   /**
    * Should the foreign code be appended (False) to the previously established virtual document of the same language,
