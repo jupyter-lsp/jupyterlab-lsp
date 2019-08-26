@@ -1,14 +1,15 @@
 import { VirtualEditor } from '../editor';
 import { CodeMirror } from '../../adapters/codemirror';
+import { IEditorPosition, IRootPosition } from '../../positioning';
 
 export class VirtualFileEditor extends VirtualEditor {
   protected cm_editor: CodeMirror.Editor;
 
-  constructor(language: string, cm_editor: CodeMirror.Editor) {
+  constructor(language: string, path: string, cm_editor: CodeMirror.Editor) {
     // TODO: for now the magics and extractors are not used in FileEditor,
     //  although it would make sense to pass extractors (e.g. for CSS in HTML,
     //  or SQL in Python files) in the future.
-    super(language, {}, {});
+    super(language, path, {}, {});
     this.cm_editor = cm_editor;
     let handler = {
       get: function(
@@ -26,22 +27,23 @@ export class VirtualFileEditor extends VirtualEditor {
     return new Proxy(this, handler);
   }
 
-  // duck typing: to enable use of notebook mapper
-  public get transform(): (
+  public transform_virtual_to_source(
     position: CodeMirror.Position
-  ) => CodeMirror.Position {
-    return position => position;
+  ): CodeMirror.Position {
+    return position;
+  }
+  public transform_editor_to_root(
+    cm_editor: CodeMirror.Editor,
+    position: IEditorPosition
+  ): IRootPosition {
+    return (position as unknown) as IRootPosition;
   }
 
   public get_editor_index(position: CodeMirror.Position): number {
     return 0;
   }
 
-  public get get_cell_id(): (position: CodeMirror.Position) => string {
-    return position => '';
-  }
-
-  get_cm_editor(position: CodeMirror.Position): CodeMirror.Editor {
+  get_cm_editor(position: IRootPosition): CodeMirror.Editor {
     return undefined;
   }
 

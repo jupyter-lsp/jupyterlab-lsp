@@ -54,15 +54,18 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     this.widget = editor_widget;
     this.editor = editor_widget.content;
 
-    this.virtual_editor = new VirtualFileEditor(this.language, this.cm_editor);
+    this.virtual_editor = new VirtualFileEditor(
+      this.language,
+      this.document_path,
+      this.cm_editor
+    );
 
     this.connect(this.virtual_editor.virtual_document).then();
-    this.create_adapter();
 
     const connector = new LSPConnector({
       editor: this.editor.editor,
-      connection: this.main_connection,
-      coordinates_transform: null
+      connections: this.connections,
+      virtual_editor: this.virtual_editor
     });
     completion_manager.register({
       connector,

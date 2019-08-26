@@ -1,15 +1,14 @@
+import {CodeEditor} from "@jupyterlab/codeeditor";
+
 export interface IExtractedCode {
   /**
    * Foreign code (may be empty, for example line of '%R') or null if none.
    */
   foreign_code: string | null;
   /**
-   * Offsets of the foreign code relative to the original source.
+   * Range of the foreign code relative to the original source.
    */
-  foreign_coordinates: {
-    start: number;
-    end: number;
-  };
+  range: CodeEditor.IRange;
   /**
    * Code to be retained in the virtual document of the host.
    */

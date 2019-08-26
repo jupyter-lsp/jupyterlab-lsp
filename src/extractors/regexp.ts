@@ -1,4 +1,25 @@
 import { IExtractedCode, IForeignCodeExtractor } from './types';
+import { CodeEditor } from '@jupyterlab/codeeditor';
+
+// TODO: needs heavy unit testing
+export function position_at_offset(
+  offset: number,
+  lines: string[]
+): CodeEditor.IPosition {
+  let line = 0;
+  let column = 0;
+  for (let text_line of lines) {
+    // each line has a new line symbol which is accounted for in offset!
+    if (text_line.length + 1 <= offset) {
+      offset -= (text_line.length + 1);
+      line += 1;
+    } else {
+      column = offset;
+      break;
+    }
+  }
+  return { line, column };
+}
 
 export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
   options: RegExpForeignCodeExtractor.IOptions;
@@ -26,22 +47,37 @@ export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
         host_code = code.replace(this.expression, this.options.keep_in_host);
       }
 
+      let lines = code.split('\n');
+
+      let foreign_code = code.replace(
+        this.expression,
+        this.options.extract_to_foreign
+      );
+      // TODO this assumes that the extraction does not modify
+      let index = code.indexOf(foreign_code);
+      if (index === -1) {
+        throw Error('Internal error of RegExpr matcher');
+      }
+      // TODO???
+      index += 1
+      if (position_at_offset(index, lines).line === 0){
+        throw Error();
+      }
+
       return {
         host_code: host_code,
-        foreign_code: code.replace(
-          this.expression,
-          this.options.extract_to_foreign
-        ),
-        foreign_coordinates: {
-          start: match.index,
-          end: match.index + match[0].length
+        foreign_code: foreign_code,
+        range: {
+          // TODO: this could be slightly optimized (start at start)
+          start: position_at_offset(index, lines),
+          end: position_at_offset(index + match[0].length, lines)
         }
       };
     } else {
       return {
         host_code: code,
         foreign_code: null,
-        foreign_coordinates: null
+        range: null
       };
     }
   }
