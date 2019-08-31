@@ -163,6 +163,7 @@ export class VirtualDocument {
       start: { line: 0, column: 0 },
       end: { line: 0, column: 0 }
     };
+    this.unused_documents = new Set();
   }
 
   /**
@@ -302,55 +303,70 @@ export class VirtualDocument {
 
   _shift: CodeEditor.IRange;
 
+  extract_foreign_code(cell_code: string, cm_editor: CodeMirror.Editor) {
+    let foreign_document_map = new Map<CodeEditor.IRange, VirtualDocument>();
+
+    for (let extractor of this.foreign_extractors) {
+      // first, check if there is any foreign code:
+      if (!extractor.has_foreign_code(cell_code)) {
+        continue;
+      }
+
+      let results = extractor.extract_foreign_code(cell_code);
+
+      let kept_cell_code = '';
+
+      for (let result of results) {
+        if (result.foreign_code !== null) {
+          let foreign_document: VirtualDocument;
+          // if not standalone, try to append to existing document
+          let foreign_exists = this.foreign_documents.has(extractor.language);
+          if (!extractor.standalone && foreign_exists) {
+            foreign_document = this.foreign_documents.get(extractor.language);
+            this.unused_documents.delete(foreign_document);
+          } else {
+            // if standalone, try to re-use existing connection to the server
+            let unused_standalone = this.unused_standalone_documents.get(
+              extractor.language
+            );
+            if (extractor.standalone && unused_standalone.length > 0) {
+              foreign_document = unused_standalone.pop();
+            } else {
+              // if (previous document does not exists) or (extractor produces standalone documents
+              // and no old standalone document could be reused): create a new document
+              foreign_document = this.open_foreign(
+                extractor.language,
+                extractor.standalone
+              );
+            }
+          }
+
+          foreign_document.append_code_block(result.foreign_code, cm_editor);
+
+          foreign_document_map.set(result.range, foreign_document);
+          // TODO to constructor!, TODO remove map?
+          foreign_document._shift = result.range;
+        }
+        if (result.host_code !== null) {
+          kept_cell_code += result.host_code;
+        }
+      }
+      // not breaking - many extractors are allowed to process the code, one after each other
+      // (think JS and CSS in HTML, or %R inside of %%timeit).
+
+      cell_code = kept_cell_code;
+    }
+
+    return { cell_code_kept: cell_code, foreign_document_map };
+  }
+
   append_code_block(cell_code: string, cm_editor: CodeMirror.Editor) {
     let source_cell_lines = cell_code.split('\n');
     let lines: Array<string>;
     let should_inspect: Array<boolean>;
 
-    //  TODO: create additional LSP servers for foreign languages introduced in cell magics
-    let foreign_document_map = new Map<CodeEditor.IRange, VirtualDocument>();
-
-    // first, check if there is any foreign code:
-    // let is_line_foreign = new Array<boolean>();
-    for (let extractor of this.foreign_extractors) {
-      let result = extractor.extract_foreign_code(cell_code);
-      if (result.foreign_code === null) {
-        continue;
-      }
-
-      let foreign_document: VirtualDocument;
-      // if not standalone, try to append to existing document
-      let foreign_exists = this.foreign_documents.has(extractor.language);
-      if (!extractor.standalone && foreign_exists) {
-        foreign_document = this.foreign_documents.get(extractor.language);
-        this.unused_documents.delete(foreign_document);
-      } else {
-        // if standalone, try to re-use existing connection to the server
-        let unused_standalone = this.unused_standalone_documents.get(
-          extractor.language
-        );
-        if (extractor.standalone && unused_standalone.length > 0) {
-          foreign_document = unused_standalone.pop();
-        } else {
-          // if (previous document does not exists) or (extractor produces standalone documents
-          // and no old standalone document could be reused): create a new document
-          foreign_document = this.open_foreign(
-            extractor.language,
-            extractor.standalone
-          );
-        }
-      }
-
-      foreign_document.append_code_block(result.foreign_code, cm_editor);
-      cell_code = result.host_code;
-
-      foreign_document_map.set(result.range, foreign_document);
-      // TODO to constructor!, TODO remove map?
-      foreign_document._shift = result.range;
-
-      // not breaking - many extractors are allowed to process the code, one after each other
-      // (think JS and CSS in HTML, or %R inside of %%timeit).
-    }
+    let { cell_code_kept, foreign_document_map } = this.extract_foreign_code(cell_code, cm_editor);
+    cell_code = cell_code_kept;
 
     // cell magics are replaced if requested and matched
     let cell_override = this.cell_magics_overrides.override_for(cell_code);

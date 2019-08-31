@@ -11,7 +11,7 @@ export function position_at_offset(
   for (let text_line of lines) {
     // each line has a new line symbol which is accounted for in offset!
     if (text_line.length + 1 <= offset) {
-      offset -= (text_line.length + 1);
+      offset -= text_line.length + 1;
       line += 1;
     } else {
       column = offset;
@@ -24,62 +24,84 @@ export function position_at_offset(
 export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
   options: RegExpForeignCodeExtractor.IOptions;
   language: string;
+  global_expression: RegExp;
+  test_expression: RegExp;
   expression: RegExp;
   standalone: boolean;
 
   constructor(options: RegExpForeignCodeExtractor.IOptions) {
     this.language = options.language;
     this.options = options;
+    this.global_expression = new RegExp(options.pattern, 'g');
+    this.test_expression = new RegExp(options.pattern, 'g');
     this.expression = new RegExp(options.pattern);
     this.standalone = this.options.is_standalone;
   }
 
-  extract_foreign_code(code: string): IExtractedCode {
-    let match = code.match(this.expression);
-    if (match) {
-      let host_code: string | null;
+  has_foreign_code(code: string): boolean {
+    let result = this.test_expression.test(code);
+    this.test_expression.lastIndex = 0;
+    return result;
+  }
 
-      if (this.options.keep_in_host === true) {
-        host_code = code;
-      } else if (this.options.keep_in_host === false) {
-        host_code = null;
-      } else {
-        host_code = code.replace(this.expression, this.options.keep_in_host);
-      }
+  extract_foreign_code(code: string): IExtractedCode[] {
+    let lines = code.split('\n');
 
-      let lines = code.split('\n');
+    let extracts = new Array<IExtractedCode>();
 
-      let foreign_code = code.replace(
+    let started_from = this.global_expression.lastIndex;
+    let match: RegExpExecArray = this.global_expression.exec(code);
+    let host_code_fragment: string;
+
+    while (match !== null) {
+      let matched_string = match[0];
+      let foreign_code_fragment = matched_string.replace(
         this.expression,
         this.options.extract_to_foreign
       );
-      // TODO this assumes that the extraction does not modify
-      let index = code.indexOf(foreign_code);
-      if (index === -1) {
-        throw Error('Internal error of RegExpr matcher');
-      }
-      // TODO???
-      index += 1
-      if (position_at_offset(index, lines).line === 0){
-        throw Error();
+
+      // NOTE:
+      // match.index + matched_string.length === this.sticky_expression.lastIndex
+
+      let end = this.global_expression.lastIndex;
+
+      if (this.options.keep_in_host) {
+        host_code_fragment = code.substring(started_from, end);
+      } else {
+        if (started_from === match.index) {
+          host_code_fragment = '';
+        } else {
+          host_code_fragment = code.substring(started_from, match.index) + '\n';
+        }
       }
 
-      return {
-        host_code: host_code,
-        foreign_code: foreign_code,
+      extracts.push({
+        host_code: host_code_fragment,
+        foreign_code: foreign_code_fragment,
         range: {
           // TODO: this could be slightly optimized (start at start)
-          start: position_at_offset(index, lines),
-          end: position_at_offset(index + match[0].length, lines)
+          start: position_at_offset(
+            match.index + matched_string.indexOf(foreign_code_fragment),
+            lines
+          ),
+          end: position_at_offset(end, lines)
         }
-      };
-    } else {
-      return {
-        host_code: code,
+      });
+
+      started_from = this.global_expression.lastIndex;
+      match = this.global_expression.exec(code);
+    }
+
+    if (started_from !== code.length) {
+      let final_host_code_fragment = code.substring(started_from, code.length);
+      extracts.push({
+        host_code: final_host_code_fragment,
         foreign_code: null,
         range: null
-      };
+      });
     }
+
+    return extracts;
   }
 }
 
@@ -104,15 +126,14 @@ namespace RegExpForeignCodeExtractor {
      */
     extract_to_foreign: string;
     /**
-     * String specifying match groups to be extracted from the regular expression match,
-     * for the use in virtual document of the host language, or boolean if everything (true)
-     * or nothing (false) should be kept in the host document.
+     * String boolean if everything (true) or nothing (false) should be kept in the host document.
      *
      * For the R example this should be empty if we wish to ignore the cell,
      * but usually a better option is to retain the foreign code and use language
-     * specific overrides to suppress the magic in a more controlled way.
+     * specific overrides to suppress the magic in a more controlled way, providing
+     * dummy python code to handle cell input/output.
      */
-    keep_in_host: string | boolean;
+    keep_in_host: boolean;
     /**
      * Should the foreign code be appended (False) to the previously established virtual document of the same language,
      * or is it standalone snippet which requires separate connection?
