@@ -22,7 +22,15 @@ let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
     // R magic will always be in the same, single R-namespace
     new RegExpForeignCodeExtractor({
       language: 'R',
-      pattern: '%%R( .*?)?\n([^]*)',
+      pattern: '^%%R( .*?)?\n([^]*)',
+      extract_to_foreign: '$2',
+      keep_in_host: true,
+      is_standalone: false
+    }),
+    // R line magic
+    new RegExpForeignCodeExtractor({
+      language: 'R',
+      pattern: '(^|\n)%R (.*)\n',
       extract_to_foreign: '$2',
       keep_in_host: true,
       is_standalone: false
@@ -30,14 +38,14 @@ let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
     // most magics are standalone, i.e. consecutive code cells with the same magic create two different namespaces
     new RegExpForeignCodeExtractor({
       language: 'python',
-      pattern: '%%python( .*?)?\n(.*)',
+      pattern: '^%%python( .*?)?\n(.*)',
       extract_to_foreign: '$2',
       keep_in_host: false,
       is_standalone: true
     }),
     new RegExpForeignCodeExtractor({
       language: 'python',
-      pattern: '%%timeit( .*?)?\n(.*)',
+      pattern: '^%%timeit( .*?)?\n(.*)',
       extract_to_foreign: '$2',
       keep_in_host: false,
       is_standalone: true

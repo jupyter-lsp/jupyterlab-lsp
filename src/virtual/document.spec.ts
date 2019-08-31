@@ -9,7 +9,6 @@ print("plotted")
 `;
 
 describe('RegExpForeignCodeExtractor', () => {
-
   let r_line_extractor_removing = new RegExpForeignCodeExtractor({
     language: 'R',
     pattern: '(^|\n)%R (.*)\n',
