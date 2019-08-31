@@ -17,6 +17,12 @@ print("df created")
 print("plotted")
 `;
 
+let HTML_IN_PYTHON = `
+x = """<a href="#">
+<b>important</b> link
+</a>""";
+print(x)`;
+
 describe('positionAtOffset', () => {
   it('works with single line', () => {
     let position = position_at_offset(0, ['']);
@@ -103,11 +109,36 @@ describe('RegExpForeignCodeExtractor', () => {
   });
 
   describe('#extract_foreign_code()', () => {
+    it('should work with non-line magic and non-cell magic code snippets as well', () => {
+      // Note: in the real application, one should NOT use regular expressions for HTML extraction
+
+      let html_extractor = new RegExpForeignCodeExtractor({
+        language: 'HTML',
+        pattern: '<(.*?)( .*?)?>([^]*?)</\\1>',
+        extract_to_foreign: '<$1$2>$3</$1>',
+        keep_in_host: false,
+        is_standalone: false
+      });
+
+      let results = html_extractor.extract_foreign_code(HTML_IN_PYTHON);
+      expect(results.length).to.equal(2);
+      let result = results[0];
+      // TODO: is tolerating the new line added here ok?
+      expect(result.host_code).to.equal('\nx = """\n');
+      expect(result.foreign_code).to.equal(
+        '<a href="#">\n<b>important</b> link\n</a>'
+      );
+      expect(result.range.start.line).to.equal(1);
+      expect(result.range.start.column).to.equal(7);
+      expect(result.range.end.line).to.equal(3);
+      expect(result.range.end.column).to.equal(4);
+      let last_bit = results[1];
+      expect(last_bit.host_code).to.equal('""";\nprint(x)');
+    });
 
     it('should extract cell magics and keep in host', () => {
       let results = r_cell_extractor.extract_foreign_code(R_CELL_MAGIC_EXISTS);
       expect(results.length).to.equal(1);
-
       let result = results[0];
 
       expect(result.host_code).to.equal(R_CELL_MAGIC_EXISTS);
