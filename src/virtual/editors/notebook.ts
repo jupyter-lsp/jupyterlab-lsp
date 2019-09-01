@@ -616,6 +616,22 @@ export class VirtualEditorForNotebook extends VirtualEditor {
       }
     };
 
+    this.forEveryBlockEditor(cm_editor => {
+      // @ts-ignore
+      cm_editor.on(eventName, wrapped_handler);
+    });
+  }
+
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject) {
+    this.forEveryBlockEditor(cm_editor => {
+      cm_editor.getWrapperElement().addEventListener(type, listener);
+    });
+  }
+
+  forEveryBlockEditor(
+    callback: (cm_editor: CodeMirror.Editor) => any,
+    monitor_for_new_blocks = true
+  ) {
     const cells_with_handlers = new Set<Cell>();
 
     for (let cell of this.notebook.widgets) {
@@ -623,16 +639,16 @@ export class VirtualEditorForNotebook extends VirtualEditor {
       let cm_editor = (cell.editor as CodeMirrorEditor).editor;
       if (cell.model.type === 'code') {
         cells_with_handlers.add(cell);
-        // @ts-ignore
-        cm_editor.on(eventName, wrapped_handler);
+        callback(cm_editor);
       }
     }
-    this.notebook.activeCellChanged.connect((notebook, cell) => {
-      let cm_editor = (cell.editor as CodeMirrorEditor).editor;
-      if (!cells_with_handlers.has(cell) && cell.model.type === 'code') {
-        // @ts-ignore
-        cm_editor.on(eventName, wrapped_handler);
-      }
-    });
-  }
+    if(monitor_for_new_blocks) {
+      this.notebook.activeCellChanged.connect((notebook, cell) => {
+        let cm_editor = (cell.editor as CodeMirrorEditor).editor;
+        if (!cells_with_handlers.has(cell) && cell.model.type === 'code') {
+          callback(cm_editor);
+        }
+      });
+    }
+  };
 }

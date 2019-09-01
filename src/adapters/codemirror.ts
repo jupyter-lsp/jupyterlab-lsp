@@ -60,6 +60,14 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     let listeners = this.editorListeners;
 
     let wrapper = this.editor.getWrapperElement();
+    this.editor.addEventListener(
+      'mouseleave',
+      this.remove_range_highlight.bind(this)
+    );
+    wrapper.addEventListener(
+      'mouseleave',
+      this.remove_range_highlight.bind(this)
+    );
     // detach the adapters contextmenu
     wrapper.removeEventListener('contextmenu', listeners.contextmenu);
 
@@ -68,6 +76,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
     // show hover after pressing the modifier key
     wrapper.addEventListener('keydown', (event: KeyboardEvent) => {
+      //event.target
       if (
         (!hover_modifier || getModifierState(event, hover_modifier)) &&
         this.hover_character === this.last_hover_character
@@ -129,9 +138,13 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     }
   }
 
-  protected remove_tooltip() {
+  protected remove_range_highlight() {
     // @ts-ignore
     this._removeHover(); // this removes underlines
+  }
+
+  protected remove_tooltip() {
+    this.remove_range_highlight();
 
     if (this._tooltip !== undefined) {
       this._tooltip.dispose();

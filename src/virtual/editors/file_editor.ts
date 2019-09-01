@@ -56,4 +56,8 @@ export class VirtualFileEditor extends VirtualEditor {
     );
     return this.virtual_document.value;
   }
+
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject) {
+    this.cm_editor.getWrapperElement().addEventListener(type, listener);
+  }
 }

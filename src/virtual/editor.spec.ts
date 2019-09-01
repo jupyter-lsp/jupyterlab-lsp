@@ -29,8 +29,12 @@ class VirtualEditorImplementation extends VirtualEditor {
   ): CodeMirror.Position {
     return undefined;
   }
-}
 
+  addEventListener(
+    type: string,
+    listener: EventListener | EventListenerObject
+  ): void {}
+}
 
 describe('VirtualEditor', () => {
   let r_line_extractor = new RegExpForeignCodeExtractor({
