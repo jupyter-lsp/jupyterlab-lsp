@@ -443,12 +443,14 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     let diagnostics_by_range = this.collapse_overlapping_diagnostics(
       response.diagnostics
     );
+    console.log(this.virtual_document.value)
+    console.log(this.virtual_document.last_virtual_line)
 
     diagnostics_by_range.forEach(
       (diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
         const start = PositionConverter.lsp_to_cm(range.start) as IVirtualPosition;
         const end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
-        if (start.line > this.virtual_document.source_lines.size) {
+        if (start.line > this.virtual_document.last_virtual_line) {
           console.log(
             'Malformed diagnostic was skipped (out of lines) ',
             diagnostics
@@ -466,7 +468,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
           console.log(
             `Ignoring inspections from ${response.uri}`,
             ` (this region is covered by a another virtual document: ${document.uri})`,
-            ` inspections: ${diagnostics}.`
+            ` inspections: `,
+            diagnostics
           );
           return;
         }
@@ -477,7 +480,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
             .skip_inspect.indexOf(document.id_path) !== -1
         ) {
           console.log(
-            'Ignoring inspections silenced for this document:', diagnostics
+            'Ignoring inspections silenced for this document:',
+            diagnostics
           );
           return;
         }
@@ -556,14 +560,13 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     );
   }
 
-  private transform_virtual_position_to_root_position(start: IVirtualPosition): IRootPosition {
+  private transform_virtual_position_to_root_position(
+    start: IVirtualPosition
+  ): IRootPosition {
     let cm_editor = this.virtual_document.virtual_lines.get(start.line).editor;
     let editor_position = this.virtual_document.transform_virtual_to_editor(
       start
     );
-    return this.editor.transform_editor_to_root(
-      cm_editor,
-      editor_position
-    );
+    return this.editor.transform_editor_to_root(cm_editor, editor_position);
   }
 }

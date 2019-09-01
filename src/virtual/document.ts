@@ -85,7 +85,7 @@ function within_range(
  */
 export class VirtualDocument {
   public language: string;
-  private last_virtual_line: number;
+  public last_virtual_line: number;
   public foreign_document_closed: Signal<VirtualDocument, IForeignContext>;
   public foreign_document_opened: Signal<VirtualDocument, IForeignContext>;
   public readonly instance_id: number;
@@ -117,6 +117,7 @@ export class VirtualDocument {
   // TODO: make this configurable, depending on the language used
   blank_lines_between_cells: number = 2;
   last_source_line: number;
+  private shift_by_editor: Map<CodeMirror.Editor, CodeEditor.IRange>;
 
   /* Ideas
   signal: on foreign document added
@@ -158,11 +159,8 @@ export class VirtualDocument {
     this._remaining_lifetime = 10;
     this.foreign_document_closed = new Signal(this);
     this.foreign_document_opened = new Signal(this);
-    this._shift = {
-      start: { line: 0, column: 0 },
-      end: { line: 0, column: 0 }
-    };
     this.unused_documents = new Set();
+    this.shift_by_editor = new Map();
   }
 
   /**
@@ -300,8 +298,6 @@ export class VirtualDocument {
     } as IVirtualPosition;
   }
 
-  _shift: CodeEditor.IRange;
-
   extract_foreign_code(cell_code: string, cm_editor: CodeMirror.Editor) {
     let foreign_document_map = new Map<CodeEditor.IRange, VirtualDocument>();
 
@@ -344,8 +340,7 @@ export class VirtualDocument {
           foreign_document.append_code_block(result.foreign_code, cm_editor);
 
           foreign_document_map.set(result.range, foreign_document);
-          // TODO to constructor!, TODO remove map?
-          foreign_document._shift = result.range;
+          foreign_document.shift_by_editor.set(cm_editor, result.range);
         }
         if (result.host_code !== null) {
           kept_cell_code += result.host_code;
@@ -482,7 +477,8 @@ export class VirtualDocument {
     return this.unshift(
       this.transform_source_to_editor(
         this.transform_virtual_to_source(virtual_position)
-      )
+      ),
+      this.virtual_lines.get(virtual_position.line).editor
     );
   }
 
@@ -508,15 +504,25 @@ export class VirtualDocument {
   }
    */
 
-  unshift(pos: IEditorPosition): IEditorPosition {
+  unshift(pos: IEditorPosition, cm_editor: CodeMirror.Editor): IEditorPosition {
     // TODO: shift and unshift should be done in the offset space?
+    let shift: CodeEditor.IRange;
+    if (this.shift_by_editor.has(cm_editor)) {
+      shift = this.shift_by_editor.get(cm_editor);
+    } else {
+      shift = {
+        start: { line: 0, column: 0 },
+        end: { line: 0, column: 0 }
+      };
+    }
+    console.log('UNSHIFTING', pos, shift)
     let transformed = {
       ...pos,
-      line: pos.line + this._shift.start.line,
-      ch: pos.ch + (pos.line === 0 ? this._shift.start.column : 0)
+      line: pos.line + shift.start.line,
+      ch: pos.ch + (pos.line === 0 ? shift.start.column : 0)
     };
     if (this.parent) {
-      return this.parent.unshift(transformed);
+      return this.parent.unshift(transformed, cm_editor);
     }
     return transformed;
   }
