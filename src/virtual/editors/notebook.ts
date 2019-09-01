@@ -8,7 +8,7 @@ import { VirtualEditor } from '../editor';
 import CodeMirror = require('codemirror');
 import {
   IEditorPosition,
-  IRootPosition,
+  IRootPosition, ISourcePosition,
   IVirtualPosition
 } from '../../positioning';
 
@@ -90,7 +90,9 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     };
     return new Proxy(this, handler);
   }
-  public transform_virtual_to_source(position: CodeMirror.Position): CodeMirror.Position {
+  public transform_virtual_to_source(
+    position: IVirtualPosition
+  ): ISourcePosition {
     return this.virtual_document.transform_virtual_to_source(position);
   }
 

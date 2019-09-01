@@ -270,16 +270,24 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   protected highlight_range(range: lsProtocol.Range, class_name: string) {
     let hover_character = this.hover_character;
 
-    let start: CodeMirror.Position;
-    let end: CodeMirror.Position;
+    let start: IVirtualPosition;
+    let end: IVirtualPosition;
 
     let start_in_editor: any;
     let end_in_editor: any;
 
     let cm_editor: any;
+    /* Already checked before
+    let { document } = this.editor.get_virtual_document(hover_character);
+
+    if (document !== this.virtual_document) {
+      console.log('Skipping highlight: should be handled be another virtual document');
+    }
+     */
+
     if (range) {
-      start = PositionConverter.lsp_to_cm(range.start);
-      end = PositionConverter.lsp_to_cm(range.end);
+      start = PositionConverter.lsp_to_cm(range.start) as IVirtualPosition;
+      end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
 
       start_in_editor = this.virtual_document.transform_virtual_to_editor(
         start
