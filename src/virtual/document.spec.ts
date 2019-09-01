@@ -37,7 +37,7 @@ describe('RegExpForeignCodeExtractor', () => {
       );
       expect(foreign_document_map.size).to.equal(2);
 
-      let r_document = foreign_document_map.get(
+      let { virtual_document: r_document } = foreign_document_map.get(
         foreign_document_map.keys().next().value
       );
       expect(r_document.language).to.equal('R');

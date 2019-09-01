@@ -28,6 +28,14 @@ interface IVirtualLine {
   editor: CodeMirror.Editor;
 }
 
+interface IVirtualDocumentBlock {
+  /**
+   * Line corresponding to the block in the entire foreign document
+   */
+  virtual_line: number;
+  virtual_document: VirtualDocument;
+}
+
 interface ISourceLine {
   virtual_line: number;
   editor: CodeMirror.Editor;
@@ -36,7 +44,7 @@ interface ISourceLine {
   /**
    * Everything which is not in the range of foreign documents belongs to the host.
    */
-  foreign_documents_map: Map<IRange, VirtualDocument>;
+  foreign_documents_map: Map<IRange, IVirtualDocumentBlock>;
 }
 
 interface IForeignContext {
@@ -149,7 +157,6 @@ export class VirtualDocument {
     this.source_lines = new Map();
     this.foreign_documents = new Map();
     this.overrides_registry = overrides_registry;
-    this.lines = [];
     this.standalone = standalone;
     this.instance_id = VirtualDocument.instances_count;
     VirtualDocument.instances_count += 1;
@@ -161,6 +168,7 @@ export class VirtualDocument {
     this.foreign_document_opened = new Signal(this);
     this.unused_documents = new Set();
     this.shift_by_editor = new Map();
+    this.clear();
   }
 
   /**
@@ -253,13 +261,13 @@ export class VirtualDocument {
       column: position.ch
     };
 
-    for (let [range, document] of source_line.foreign_documents_map) {
-      // console.log('Range', range)
+    for (let [range, {virtual_document: document}] of source_line.foreign_documents_map) {
       if (within_range(source_position_ce, range)) {
         let source_position_cm = {
           line: source_position_ce.line - range.start.line,
           ch: source_position_ce.column - range.start.column
         };
+
         return document.document_at_source_position(
           source_position_cm as ISourcePosition
         );
@@ -269,29 +277,52 @@ export class VirtualDocument {
     return this;
   }
 
+  is_within_foreign(source_position: ISourcePosition): boolean {
+    let source_line = this.source_lines.get(source_position.line);
+
+    let source_position_ce: CodeEditor.IPosition = {
+      line: source_line.editor_line,
+      column: source_position.ch
+    };
+    for (let [range] of source_line.foreign_documents_map) {
+      if (within_range(source_position_ce, range)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   virtual_position_at_document(
     source_position: ISourcePosition
   ): IVirtualPosition {
     let source_line = this.source_lines.get(source_position.line);
     let virtual_line = source_line.virtual_line;
 
+    // position inside the cell (block)
     let source_position_ce: CodeEditor.IPosition = {
       line: source_line.editor_line,
       column: source_position.ch
     };
 
-    for (let [range, document] of source_line.foreign_documents_map) {
-      // console.log('Range', range)
+    for (let [range, {virtual_line, virtual_document: document}] of source_line.foreign_documents_map) {
       if (within_range(source_position_ce, range)) {
+        // position inside the foreign document block
         let source_position_cm = {
           line: source_position_ce.line - range.start.line,
           ch: source_position_ce.column - range.start.column
         };
-        return document.virtual_position_at_document(
-          source_position_cm as ISourcePosition
-        );
+        if (document.is_within_foreign(source_position_cm as ISourcePosition)) {
+          return this.virtual_position_at_document(
+            source_position_cm as ISourcePosition
+          );
+        } else {
+          // where in this block in the entire foreign document?
+          source_position_cm.line += virtual_line;
+          return source_position_cm as IVirtualPosition;
+        }
       }
     }
+
     return {
       ch: source_position.ch,
       line: virtual_line
@@ -299,7 +330,7 @@ export class VirtualDocument {
   }
 
   extract_foreign_code(cell_code: string, cm_editor: CodeMirror.Editor) {
-    let foreign_document_map = new Map<CodeEditor.IRange, VirtualDocument>();
+    let foreign_document_map = new Map<CodeEditor.IRange, IVirtualDocumentBlock>();
 
     for (let extractor of this.foreign_extractors) {
       // first, check if there is any foreign code:
@@ -337,9 +368,11 @@ export class VirtualDocument {
             }
           }
 
+          foreign_document_map.set(result.range, {
+            virtual_line: foreign_document.last_virtual_line,
+            virtual_document: foreign_document
+          });
           foreign_document.append_code_block(result.foreign_code, cm_editor);
-
-          foreign_document_map.set(result.range, foreign_document);
           foreign_document.shift_by_editor.set(cm_editor, result.range);
         }
         if (result.host_code !== null) {
@@ -360,7 +393,10 @@ export class VirtualDocument {
     let lines: Array<string>;
     let skip_inspect: Array<Array<VirtualDocument.id_path>>;
 
-    let { cell_code_kept, foreign_document_map } = this.extract_foreign_code(cell_code, cm_editor);
+    let { cell_code_kept, foreign_document_map } = this.extract_foreign_code(
+      cell_code,
+      cm_editor
+    );
     cell_code = cell_code_kept;
 
     // cell magics are replaced if requested and matched
@@ -463,7 +499,6 @@ export class VirtualDocument {
   }
 
   transform_source_to_editor(pos: CodeMirror.Position): IEditorPosition {
-    // console.log(this.source_lines)
     return {
       ...pos,
       line: this.source_lines.get(pos.line).editor_line,
@@ -515,7 +550,6 @@ export class VirtualDocument {
         end: { line: 0, column: 0 }
       };
     }
-    console.log('UNSHIFTING', pos, shift)
     let transformed = {
       ...pos,
       line: pos.line + shift.start.line,

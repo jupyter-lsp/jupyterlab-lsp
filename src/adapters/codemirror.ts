@@ -271,9 +271,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       start_in_editor = this.virtual_document.transform_virtual_to_editor(
         start
       );
-      end_in_editor = this.virtual_document.transform_virtual_to_editor(
-        end
-      );
+      end_in_editor = this.virtual_document.transform_virtual_to_editor(end);
 
       cm_editor = this.editor.get_editor_at_root_position(hover_character);
     } else {
@@ -443,8 +441,6 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     let diagnostics_by_range = this.collapse_overlapping_diagnostics(
       response.diagnostics
     );
-    console.log(this.virtual_document.value)
-    console.log(this.virtual_document.last_virtual_line)
 
     diagnostics_by_range.forEach(
       (diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {

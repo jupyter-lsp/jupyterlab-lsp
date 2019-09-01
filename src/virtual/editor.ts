@@ -20,7 +20,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
   overrides_registry: IOverridesRegistry;
   code_extractors: IForeignCodeExtractorsRegistry;
 
-  protected constructor(
+  public constructor(
     language: string,
     path: string,
     overrides_registry: IOverridesRegistry,
@@ -72,9 +72,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
   transform_root_position_to_editor_position(
     root_position: IRootPosition
   ): IEditorPosition {
-    return this.virtual_document.root.transform_source_to_editor(
-      root_position
-    );
+    return this.virtual_document.root.transform_source_to_editor(root_position);
   }
 }
 
