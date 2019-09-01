@@ -14,12 +14,13 @@ import {
   IVirtualPosition
 } from '../positioning';
 import IRange = CodeEditor.IRange;
+type language = string;
 
 interface IVirtualLine {
   /**
-   * Should inspections for this virtual line be presented?
+   * Inspections for which document should be skipped for this virtual line?
    */
-  inspect: boolean;
+  skip_inspect: Array<VirtualDocument.id_path>;
   /**
    * Where does the virtual line belongs to in the source document?
    */
@@ -37,8 +38,6 @@ interface ISourceLine {
    */
   foreign_documents_map: Map<IRange, VirtualDocument>;
 }
-
-type language = string;
 
 interface IForeignContext {
   foreign_document: VirtualDocument;
@@ -308,6 +307,7 @@ export class VirtualDocument {
 
     for (let extractor of this.foreign_extractors) {
       // first, check if there is any foreign code:
+
       if (!extractor.has_foreign_code(cell_code)) {
         continue;
       }
@@ -363,7 +363,7 @@ export class VirtualDocument {
   append_code_block(cell_code: string, cm_editor: CodeMirror.Editor) {
     let source_cell_lines = cell_code.split('\n');
     let lines: Array<string>;
-    let should_inspect: Array<boolean>;
+    let skip_inspect: Array<Array<VirtualDocument.id_path>>;
 
     let { cell_code_kept, foreign_document_map } = this.extract_foreign_code(cell_code, cm_editor);
     cell_code = cell_code_kept;
@@ -372,19 +372,21 @@ export class VirtualDocument {
     let cell_override = this.cell_magics_overrides.override_for(cell_code);
     if (cell_override !== null) {
       lines = cell_override.split('\n');
-      should_inspect = lines.map(l => false);
+      skip_inspect = lines.map(l => [this.id_path]);
     } else {
       // otherwise, we replace line magics - if any
       let result = this.line_magics_overrides.replace_all(
         cell_code.split('\n')
       );
       lines = result.lines;
-      should_inspect = result.should_inspect;
+      skip_inspect = result.skip_inspect.map(skip =>
+        skip ? [this.id_path] : []
+      );
     }
 
     for (let i = 0; i < lines.length; i++) {
       this.virtual_lines.set(this.last_virtual_line + i, {
-        inspect: should_inspect[i],
+        skip_inspect: skip_inspect[i],
         editor: cm_editor,
         // TODO this is incorrect, wont work if something was extracted
         source_line: this.last_source_line + i

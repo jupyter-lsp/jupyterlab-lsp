@@ -30,7 +30,7 @@ let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
     // R line magic
     new RegExpForeignCodeExtractor({
       language: 'R',
-      pattern: '(^|\n)%R (.*)\n',
+      pattern: '(^|\n)%R (.*)\n?',
       extract_to_foreign: '$2',
       keep_in_host: true,
       is_standalone: false

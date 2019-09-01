@@ -11,7 +11,7 @@ print("plotted")
 describe('RegExpForeignCodeExtractor', () => {
   let r_line_extractor_removing = new RegExpForeignCodeExtractor({
     language: 'R',
-    pattern: '(^|\n)%R (.*)\n',
+    pattern: '(^|\n)%R (.*)\n?',
     extract_to_foreign: '$2',
     keep_in_host: false,
     is_standalone: false
@@ -32,7 +32,9 @@ describe('RegExpForeignCodeExtractor', () => {
         foreign_document_map
       } = document.extract_foreign_code(R_LINE_MAGICS, null);
 
-      expect(cell_code_kept).to.equal('print("df created")\nprint("plotted")\n');
+      expect(cell_code_kept).to.equal(
+        'print("df created")\nprint("plotted")\n'
+      );
       expect(foreign_document_map.size).to.equal(2);
 
       let r_document = foreign_document_map.get(

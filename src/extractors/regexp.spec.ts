@@ -70,7 +70,7 @@ describe('RegExpForeignCodeExtractor', () => {
 
   let r_line_extractor = new RegExpForeignCodeExtractor({
     language: 'R',
-    pattern: '(^|\n)%R (.*\n)',
+    pattern: '(^|\n)%R (.*)\n?',
     extract_to_foreign: '$2',
     keep_in_host: true,
     is_standalone: false
@@ -167,7 +167,7 @@ describe('RegExpForeignCodeExtractor', () => {
     it('should extract multiple line magics deleting them from host', () => {
       let r_line_extractor = new RegExpForeignCodeExtractor({
         language: 'R',
-        pattern: '(^|\n)%R (.*\n)',
+        pattern: '(^|\n)%R (.*)\n?',
         extract_to_foreign: '$2',
         keep_in_host: false,
         is_standalone: false
@@ -179,12 +179,12 @@ describe('RegExpForeignCodeExtractor', () => {
 
       let first_magic = results[0];
 
-      expect(first_magic.foreign_code).to.equal('df = data.frame()\n');
+      expect(first_magic.foreign_code).to.equal('df = data.frame()');
       expect(first_magic.host_code).to.equal('');
 
       let second_magic = results[1];
 
-      expect(second_magic.foreign_code).to.equal('ggplot(df)\n');
+      expect(second_magic.foreign_code).to.equal('ggplot(df)');
       expect(second_magic.host_code).to.equal('print("df created")\n');
 
       let final_bit = results[2];
@@ -201,12 +201,12 @@ describe('RegExpForeignCodeExtractor', () => {
 
       let first_magic = results[0];
 
-      expect(first_magic.foreign_code).to.equal('df = data.frame()\n');
+      expect(first_magic.foreign_code).to.equal('df = data.frame()');
       expect(first_magic.host_code).to.equal('%R df = data.frame()\n');
 
       let second_magic = results[1];
 
-      expect(second_magic.foreign_code).to.equal('ggplot(df)\n');
+      expect(second_magic.foreign_code).to.equal('ggplot(df)');
       expect(second_magic.host_code).to.equal(
         'print("df created")\n%R ggplot(df)\n'
       );
@@ -215,6 +215,14 @@ describe('RegExpForeignCodeExtractor', () => {
 
       expect(final_bit.foreign_code).to.equal(null);
       expect(final_bit.host_code).to.equal('print("plotted")\n');
+    });
+
+    it('should extract single line magic which does not end with a blank line', () => {
+      let results = r_line_extractor.extract_foreign_code('%R test');
+
+      expect(results.length).to.eq(1);
+      let result = results[0];
+      expect(result.foreign_code).to.equal('test');
     });
 
     it('should not extract magic-like text from the middle of the cell', () => {

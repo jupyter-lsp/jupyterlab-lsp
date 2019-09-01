@@ -32,19 +32,19 @@ export class LineMagicsMap extends MagicsMap {
 
   replace_all(
     raw_lines: string[]
-  ): { lines: string[]; should_inspect: boolean[] } {
+  ): { lines: string[]; skip_inspect: boolean[] } {
     let substituted_lines = new Array<string>();
-    let should_inspect = new Array<boolean>();
+    let skip_inspect = new Array<boolean>();
 
     for (let i = 0; i < raw_lines.length; i++) {
       let line = raw_lines[i];
       let override = this.override_for(line);
       substituted_lines.push(override === null ? line : override);
-      should_inspect.push(override === null);
+      skip_inspect.push(override !== null);
     }
     return {
       lines: substituted_lines,
-      should_inspect: should_inspect
+      skip_inspect: skip_inspect
     };
   }
 }

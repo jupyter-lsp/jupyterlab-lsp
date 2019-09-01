@@ -471,8 +471,14 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
           return;
         }
 
-        if (!document.virtual_lines.get(start.line).inspect) {
-          console.log(`Ignoring silenced inspections: ${diagnostics}.`);
+        if (
+          document.virtual_lines
+            .get(start.line)
+            .skip_inspect.indexOf(document.id_path) !== -1
+        ) {
+          console.log(
+            'Ignoring inspections silenced for this document:', diagnostics
+          );
           return;
         }
 
