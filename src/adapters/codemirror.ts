@@ -6,10 +6,17 @@ import {
 } from 'lsp-editor-adapter';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { FreeTooltip } from '../free_tooltip';
-import { getModifierState } from '../utils';
+import { DefaultMap, getModifierState } from '../utils';
 import { PositionConverter } from '../converter';
 import { diagnosticSeverityNames } from '../lsp';
 import { VirtualEditor } from '../virtual/editor';
+import { VirtualDocument } from '../virtual/document';
+import {
+  IEditorPosition,
+  is_equal,
+  IRootPosition,
+  IVirtualPosition
+} from '../positioning';
 
 export type KeyModifier = 'Alt' | 'Control' | 'Shift' | 'Meta' | 'AltGraph';
 // TODO: settings
@@ -21,7 +28,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   protected create_tooltip: (
     markup: lsProtocol.MarkupContent,
     cm_editor: CodeMirror.Editor,
-    position: CodeMirror.Position
+    position: IEditorPosition
   ) => FreeTooltip;
   private _tooltip: FreeTooltip;
   private show_next_tooltip: boolean;
@@ -30,6 +37,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   editor: VirtualEditor;
 
   invoke_completer: Function;
+  private unique_editor_ids: DefaultMap<CodeMirror.Editor, number>;
+  private signature_character: IRootPosition;
 
   constructor(
     connection: ILspConnection,
@@ -38,18 +47,30 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     create_tooltip: (
       markup: lsProtocol.MarkupContent,
       cm_editor: CodeMirror.Editor,
-      position: CodeMirror.Position
+      position: IEditorPosition
     ) => FreeTooltip,
-    invoke_completer: Function
+    invoke_completer: Function,
+    private virtual_document: VirtualDocument
   ) {
     super(connection, options, editor);
     this.create_tooltip = create_tooltip;
     this.invoke_completer = invoke_completer;
+    this.unique_editor_ids = new DefaultMap(() => this.unique_editor_ids.size);
 
     // @ts-ignore
     let listeners = this.editorListeners;
 
     let wrapper = this.editor.getWrapperElement();
+    this.editor.addEventListener(
+      'mouseleave',
+      // TODO: remove_tooltip() but allow the mouse to leave if it enters the tooltip
+      //  (a bit tricky: normally we would just place the tooltip within, but it was designed to be attached to body)
+      this.remove_range_highlight.bind(this)
+    );
+    wrapper.addEventListener(
+      'mouseleave',
+      this.remove_range_highlight.bind(this)
+    );
     // detach the adapters contextmenu
     wrapper.removeEventListener('contextmenu', listeners.contextmenu);
 
@@ -73,10 +94,30 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     });
   }
 
-  get hover_character(): CodeMirror.Position {
-    // @ts-ignore
-    return this.hoverCharacter;
+  private _completionCharacters: string[];
+  private _signatureCharacters: string[];
+
+  get completionCharacters() {
+    if (
+      typeof this._completionCharacters === 'undefined' ||
+      !this._completionCharacters.length
+    ) {
+      this._completionCharacters = this.connection.getLanguageCompletionCharacters();
+    }
+    return this._completionCharacters;
   }
+
+  get signatureCharacters() {
+    if (
+      typeof this._signatureCharacters === 'undefined' ||
+      !this._signatureCharacters.length
+    ) {
+      this._signatureCharacters = this.connection.getLanguageSignatureCharacters();
+    }
+    return this._signatureCharacters;
+  }
+
+  protected hover_character: IRootPosition;
 
   public handleGoTo(locations: any) {
     this.remove_tooltip();
@@ -86,7 +127,6 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
   public handleCompletion(completions: lsProtocol.CompletionItem[]) {
     // do NOT handle completion here
-    // TODO: UNLESS the trigger character was typed!
   }
 
   protected static get_markup_for_hover(
@@ -123,9 +163,14 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     }
   }
 
-  protected remove_tooltip() {
+  protected remove_range_highlight() {
     // @ts-ignore
     this._removeHover(); // this removes underlines
+    this.last_hover_character = null;
+  }
+
+  protected remove_tooltip() {
+    this.remove_range_highlight();
 
     if (this._tooltip !== undefined) {
       this._tooltip.dispose();
@@ -134,8 +179,11 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
   public handleHover(response: lsProtocol.Hover) {
     this.remove_tooltip();
+    this.last_hover_character = null;
+    this.last_hover_response = null;
 
     if (
+      !this.hover_character ||
       !response ||
       !response.contents ||
       (Array.isArray(response.contents) && response.contents.length === 0)
@@ -145,7 +193,6 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
     this.highlight_range(response.range, 'cm-lp-hover-available');
 
-    this.last_hover_response = null;
     if (!this.show_next_tooltip) {
       this.last_hover_response = response;
       this.last_hover_character = this.hover_character;
@@ -153,22 +200,20 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     }
 
     const markup = CodeMirrorAdapterExtension.get_markup_for_hover(response);
-    let position = this.hover_character;
-    let cm_editor = this.get_cm_editor(position);
+    let root_position = this.hover_character;
+    let cm_editor = this.get_cm_editor(root_position);
+    let editor_position = this.editor.root_position_to_editor_position(
+      root_position
+    );
 
-    this._tooltip = this.create_tooltip(markup, cm_editor, position);
+    this._tooltip = this.create_tooltip(markup, cm_editor, editor_position);
   }
 
-  get_cm_editor(position: CodeMirror.Position) {
-    // TODO necessity to have dependency on position is where the idea of mapping notebooks
-    //  with an object pretending to be an editor has a weak side...
+  get_cm_editor(position: IRootPosition) {
     return this.editor.get_cm_editor(position);
   }
 
-  get_language_at(position: CodeMirror.Position, editor?: CodeMirror.Editor) {
-    if (typeof editor === 'undefined') {
-      editor = this.editor;
-    }
+  get_language_at(position: IEditorPosition, editor: CodeMirror.Editor) {
     return editor.getModeAt(position).name;
   }
 
@@ -205,70 +250,160 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   public handleSignature(response: lsProtocol.SignatureHelp) {
     this.remove_tooltip();
 
-    // @ts-ignore
-    let token = this.token;
-    if (!token || !response || !response.signatures.length) {
+    if (!this.signature_character || !response || !response.signatures.length) {
       return;
     }
 
-    let position: CodeMirror.Position = token.start;
-
-    let language = this.get_language_at(position);
+    let root_position = this.signature_character;
+    let cm_editor = this.get_cm_editor(root_position);
+    let editor_position = this.editor.root_position_to_editor_position(
+      root_position
+    );
+    let language = this.get_language_at(editor_position, cm_editor);
     let markup = this.get_markup_for_signature_help(response, language);
-    let cm_editor = this.get_cm_editor(position);
 
-    this._tooltip = this.create_tooltip(markup, cm_editor, position);
+    this._tooltip = this.create_tooltip(markup, cm_editor, editor_position);
   }
 
   public handleChange(cm: CodeMirror.Editor, change: CodeMirror.EditorChange) {
-    // based on https://github.com/wylieconlon/lsp-editor-adapter/blob/e80e44310f8c12f87f3da9be07772102610ce517/src/codemirror-adapter.ts#L65
-    // ISC licence (TODO: move this to the fork to separate out the ISC code)
     this.remove_tooltip();
 
-    const location = this.editor.getDoc().getCursor('end');
+    const root_position = this.editor
+      .getDoc()
+      .getCursor('end') as IRootPosition;
+
     this.connection.sendChange();
 
-    const completionCharacters = this.connection.getLanguageCompletionCharacters();
-    const signatureCharacters = this.connection.getLanguageSignatureCharacters();
+    if (!change.text.length || !change.text[0].length) {
+      // deletion - ignore
+      return;
+    }
 
-    const code = this.editor.getValue();
-    const lines = code.split('\n');
-    const line = lines[location.line];
-    const typedCharacter = line[location.ch - 1];
+    let last_character: string;
 
-    if (completionCharacters.indexOf(typedCharacter) > -1) {
+    if (change.origin === 'paste') {
+      last_character = change.text[0][change.text.length - 1];
+    } else {
+      last_character = change.text[0][0];
+    }
+
+    if (this.completionCharacters.indexOf(last_character) > -1) {
+      // TODO: pass info that we start from autocompletion (to avoid having . completion in comments etc)
       this.invoke_completer();
-    } else if (signatureCharacters.indexOf(typedCharacter) > -1) {
-      // @ts-ignore
-      this.token = this._getTokenEndingAtPosition(
-        code,
-        location,
-        signatureCharacters
+    } else if (this.signatureCharacters.indexOf(last_character) > -1) {
+      this.signature_character = root_position;
+      let virtual_position = this.editor.root_position_to_virtual_position(
+        root_position
       );
-      this.connection.getSignatureHelp(location);
+      this.connection.getSignatureHelp(virtual_position);
     }
   }
 
   protected highlight_range(range: lsProtocol.Range, class_name: string) {
     let hover_character = this.hover_character;
 
-    let start: CodeMirror.Position;
-    let end: CodeMirror.Position;
+    let start: IVirtualPosition;
+    let end: IVirtualPosition;
+
+    let start_in_editor: any;
+    let end_in_editor: any;
+
+    let cm_editor: any;
+    // NOTE: foreign document ranges are checked before the request is sent,
+    // no need to to this again here.
 
     if (range) {
-      start = PositionConverter.lsp_to_cm(range.start);
-      end = PositionConverter.lsp_to_cm(range.end);
+      start = PositionConverter.lsp_to_cm(range.start) as IVirtualPosition;
+      end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
+
+      start_in_editor = this.virtual_document.transform_virtual_to_editor(
+        start
+      );
+      end_in_editor = this.virtual_document.transform_virtual_to_editor(end);
+
+      cm_editor = this.editor.get_editor_at_root_position(hover_character);
     } else {
       // construct range manually using the token information
+      cm_editor = this.virtual_document.root.get_editor_at_source_line(
+        hover_character
+      );
       let token = this.editor.getTokenAt(hover_character);
-      start = { line: hover_character.line, ch: token.start };
-      end = { line: hover_character.line, ch: token.end };
+
+      let start_in_root = {
+        line: hover_character.line,
+        ch: token.start
+      } as IRootPosition;
+      let end_in_root = {
+        line: hover_character.line,
+        ch: token.end
+      } as IRootPosition;
+
+      start_in_editor = this.editor.root_position_to_editor_position(
+        start_in_root
+      );
+      end_in_editor = this.editor.root_position_to_editor_position(
+        end_in_root
+      );
     }
 
     // @ts-ignore
-    this.hoverMarker = this.editor.getDoc().markText(start, end, {
-      className: class_name
-    });
+    this.hoverMarker = cm_editor
+      .getDoc()
+      .markText(start_in_editor, end_in_editor, { className: class_name });
+  }
+
+  protected position_from_mouse(ev: MouseEvent): IRootPosition {
+    return this.editor.coordsChar(
+      {
+        left: ev.clientX,
+        top: ev.clientY
+      },
+      'window'
+    ) as IRootPosition;
+  }
+
+  protected is_token_empty(token: CodeMirror.Token) {
+    return token.string.length === 0;
+    // TODO  || token.type.length === 0? (sometimes the underline is shown on meaningless tokens)
+  }
+
+  // @ts-ignore
+  public _handleMouseOver(event: MouseEvent) {
+    // currently the events are coming from notebook panel; ideally these would be connected to individual cells,
+    // (only cells with code) instead, but this is more complex to implement right. In any case filtering
+    // is needed to determine in hovered character belongs to this virtual document
+
+    let root_position = this.position_from_mouse(event);
+
+    // happens because mousemove is attached to panel, not individual code cells,
+    // and because some regions of the editor (between lines) have no characters
+    if (typeof root_position === 'undefined') {
+      this.remove_range_highlight();
+      this.hover_character = null;
+      return;
+    }
+
+    let token = this.editor.getTokenAt(root_position);
+
+    let document = this.editor.document_as_root_position(root_position);
+    let virtual_position = this.editor.root_position_to_virtual_position(root_position);
+
+    if (
+      this.is_token_empty(token) ||
+      document !== this.virtual_document ||
+      // @ts-ignore
+      !this._isEventInsideVisible(event)
+    ) {
+      this.remove_range_highlight();
+      this.hover_character = null;
+      return;
+    }
+
+    if (!is_equal(root_position, this.hover_character)) {
+      this.hover_character = root_position;
+      // @ts-ignore
+      this.debouncedGetHover(virtual_position);
+    }
   }
 
   public handleMouseOver(event: MouseEvent) {
@@ -277,7 +412,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       !hover_modifier || getModifierState(event, hover_modifier);
 
     try {
-      return super.handleMouseOver(event);
+      return this._handleMouseOver(event);
     } catch (e) {
       if (
         !(
@@ -340,20 +475,14 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   }
 
   public handleDiagnostic(response: lsProtocol.PublishDiagnosticsParams) {
-    /*
-    TODO: the base class has the gutter support, like this
-    this.editor.clearGutter('CodeMirror-lsp');
-     */
+    /* TODO: gutters */
 
-    // Note: no deep equal for Sets or Maps in JS:
-    // https://stackoverflow.com/a/29759699
+    // Note: no deep equal for Sets or Maps in JS
     const markers_to_retain: Set<string> = new Set<string>();
 
     // add new markers, keep track of the added ones
-    let doc = this.editor.getDoc();
 
-    let transform = this.editor.transform;
-    let get_cell_id = this.editor.get_cell_id;
+    // from virtual to notebook
 
     // TODO: test for diagnostic messages not being over-writen
     //  test case: from statistics import mean, bisect_left
@@ -366,11 +495,45 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
     diagnostics_by_range.forEach(
       (diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
-        const start = PositionConverter.lsp_to_cm(range.start);
-        const end = PositionConverter.lsp_to_cm(range.end);
+        const start = PositionConverter.lsp_to_cm(
+          range.start
+        ) as IVirtualPosition;
+        const end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
+        if (start.line > this.virtual_document.last_virtual_line) {
+          console.log(
+            'Malformed diagnostic was skipped (out of lines) ',
+            diagnostics
+          );
+          return;
+        }
+        // assuming that we got a response for this document
+        let start_in_root = this.transform_virtual_position_to_root_position(
+          start
+        );
+        let document = this.editor.document_as_root_position(start_in_root);
 
-        // TODO
-        // this.editor.virtual_document.solve_line(range.start.line);
+        // TODO why do I get signals from the other connection in the first place?
+        if (this.virtual_document !== document) {
+          console.log(
+            `Ignoring inspections from ${response.uri}`,
+            ` (this region is covered by a another virtual document: ${document.uri})`,
+            ` inspections: `,
+            diagnostics
+          );
+          return;
+        }
+
+        if (
+          document.virtual_lines
+            .get(start.line)
+            .skip_inspect.indexOf(document.id_path) !== -1
+        ) {
+          console.log(
+            'Ignoring inspections silenced for this document:',
+            diagnostics
+          );
+          return;
+        }
 
         let highest_severity_code = diagnostics
           .map(diagnostic => diagnostic.severity || default_severity)
@@ -378,6 +541,10 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
         const severity = diagnosticSeverityNames[highest_severity_code];
 
+        let cm_editor = document.get_editor_at_virtual_line(start);
+
+        let start_in_editor = document.transform_virtual_to_editor(start);
+        let end_in_editor = document.transform_virtual_to_editor(end);
         // what a pity there is no hash in the standard library...
         // we could use this: https://stackoverflow.com/a/7616484 though it may not be worth it:
         //   the stringified diagnostic objects are only about 100-200 JS characters anyway,
@@ -399,10 +566,10 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
           // i.e. the invalidation should be performed in the cell space, not in the notebook coordinate space,
           // thus we transform the coordinates and keep the cell id in the hash
           range: {
-            start: transform(start),
-            end: transform(end)
+            start: start_in_editor,
+            end: end_in_editor
           },
-          cell: get_cell_id(start)
+          editor: this.unique_editor_ids.get(cm_editor)
         });
         markers_to_retain.add(diagnostic_hash);
 
@@ -415,7 +582,9 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
           };
           let marker;
           try {
-            marker = doc.markText(start, end, options);
+            marker = cm_editor
+              .getDoc()
+              .markText(start_in_editor, end_in_editor, options);
           } catch (e) {
             console.warn(
               'Marking inspection (diagnostic text) failed, see following logs (2):'
@@ -426,15 +595,6 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
           }
           this.marked_diagnostics.set(diagnostic_hash, marker);
         }
-
-        /*
-      TODO and this:
-        const childEl = document.createElement('div');
-        childEl.classList.add('CodeMirror-lsp-guttermarker');
-        childEl.title = diagnostic.message;
-        this.editor.setGutterMarker(start.line, 'CodeMirror-lsp', childEl);
-      do we want gutters?
-     */
       }
     );
 
@@ -447,5 +607,15 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
         }
       }
     );
+  }
+
+  private transform_virtual_position_to_root_position(
+    start: IVirtualPosition
+  ): IRootPosition {
+    let cm_editor = this.virtual_document.virtual_lines.get(start.line).editor;
+    let editor_position = this.virtual_document.transform_virtual_to_editor(
+      start
+    );
+    return this.editor.transform_editor_to_root(cm_editor, editor_position);
   }
 }

@@ -1,15 +1,14 @@
+import { CodeEditor } from '@jupyterlab/codeeditor';
+
 export interface IExtractedCode {
   /**
    * Foreign code (may be empty, for example line of '%R') or null if none.
    */
   foreign_code: string | null;
   /**
-   * Offsets of the foreign code relative to the original source.
+   * Range of the foreign code relative to the original source.
    */
-  foreign_coordinates: {
-    start: number;
-    end: number;
-  };
+  range: CodeEditor.IRange;
   /**
    * Code to be retained in the virtual document of the host.
    */
@@ -43,12 +42,16 @@ export interface IForeignCodeExtractor {
   /**
    * Split the code into the host and foreign code (if any foreign code was detected)
    */
-  extract_foreign_code(code: string): IExtractedCode;
+  extract_foreign_code(code: string): IExtractedCode[];
   /**
    * Does the extractor produce code which should be appended to the previously established virtual document (False)
    * of the same language, or does it produce standalone snippets which require separate connections (True)?
    */
   standalone: boolean;
+  /**
+   * Test if there is any foreign code in provided code snippet.
+   */
+  has_foreign_code(code: string): boolean;
 }
 
 export interface IForeignCodeExtractorsRegistry {

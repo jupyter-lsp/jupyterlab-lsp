@@ -12,7 +12,14 @@ import { Widget } from '@phosphor/widgets';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { until_ready } from '../utils';
 import { VirtualEditor } from '../virtual/editor';
-import { VirtualDocument } from '../virtual/document';
+import { VirtualDocument} from '../virtual/document';
+import { Signal } from '@phosphor/signaling';
+import { IEditorPosition, IVirtualPosition } from '../positioning';
+
+interface IDocumentConnectedData {
+  document: VirtualDocument;
+  connection: LspWsConnection;
+}
 
 /**
  * Foreign code: low level adapter is not aware of the presence of foreign languages;
@@ -28,6 +35,10 @@ export abstract class JupyterLabWidgetAdapter {
   rendermime_registry: IRenderMimeRegistry;
   widget: IDocumentWidget;
   private invoke_command: string;
+  protected document_connected: Signal<
+    JupyterLabWidgetAdapter,
+    IDocumentConnectedData
+  >;
 
   protected constructor(
     app: JupyterFrontEnd,
@@ -38,6 +49,7 @@ export abstract class JupyterLabWidgetAdapter {
     this.rendermime_registry = rendermime_registry;
     this.invoke_command = invoke;
     this.connections = new Map();
+    this.document_connected = new Signal(this);
   }
 
   abstract virtual_editor: VirtualEditor;
@@ -82,8 +94,19 @@ export abstract class JupyterLabWidgetAdapter {
       languageId: language,
       // paths handling needs testing on Windows and with other language servers
       rootUri: 'file:///' + this.root_path,
-      documentUri: 'file:///' + this.document_path,
-      documentText: this.get_document_content.bind(this)
+      documentUri: 'file:///' + virtual_document.uri,
+      documentText: () => {
+        // TODO VirtualEditor should have "update(force=false)" method with debouncer;
+        //  current getValue() should be moved to update(), while getValue should be
+        //  made private in the virtual editor; possibly the virtual editor should no
+        //  longer expose the full implementation of CodeMirror but rather hide it inside.
+        this.virtual_editor.getValue();
+        try {
+          return virtual_document.value;
+        } catch (e) {
+          console.log(e);
+        }
+      }
     }).connect(new WebSocket('ws://localhost:3000/' + language));
 
     // @ts-ignore
@@ -93,6 +116,10 @@ export abstract class JupyterLabWidgetAdapter {
     // @ts-ignore
     await until_ready(() => connection.isConnected, -1, 150);
     console.log('LSP:', this.document_path, 'connected.');
+
+    this.create_adapter(virtual_document, connection);
+
+    this.document_connected.emit({ document: virtual_document, connection: connection });
   }
 
   handle_jump(locations: lsProtocol.Location[], language: string) {
@@ -111,9 +138,13 @@ export abstract class JupyterLabWidgetAdapter {
     let uri: string = decodeURI(location.uri);
     let current_uri = connection.getDocumentUri();
 
-    let cm_position = PositionConverter.lsp_to_cm(location.range.start);
+    let cm_position = PositionConverter.lsp_to_cm(
+      location.range.start
+    ) as IVirtualPosition;
     let editor_index = this.virtual_editor.get_editor_index(cm_position);
-    let transformed_position = this.virtual_editor.transform(cm_position);
+    let transformed_position = this.virtual_editor.transform_virtual_to_source(
+      cm_position
+    );
     let transformed_ce_position = PositionConverter.cm_to_ce(
       transformed_position
     );
@@ -149,13 +180,17 @@ export abstract class JupyterLabWidgetAdapter {
     );
   }
 
-  create_adapter() {
+  create_adapter(
+    virtual_document: VirtualDocument,
+    connection: LspWsConnection
+  ) {
     this.adapter = new CodeMirrorAdapterExtension(
-      this.main_connection,
+      connection,
       { quickSuggestionsDelay: 50 },
       this.virtual_editor,
       this.create_tooltip.bind(this),
-      this.invoke_completer.bind(this)
+      this.invoke_completer.bind(this),
+      virtual_document
     );
     console.log('LSP: Adapter for', this.document_path, 'is ready.');
   }
@@ -188,7 +223,7 @@ export abstract class JupyterLabWidgetAdapter {
   protected create_tooltip(
     markup: lsProtocol.MarkupContent,
     cm_editor: CodeMirror.Editor,
-    position: CodeMirror.Position
+    position: IEditorPosition
   ): FreeTooltip {
     const bundle =
       markup.kind === 'plaintext'
@@ -199,9 +234,7 @@ export abstract class JupyterLabWidgetAdapter {
       bundle: bundle,
       editor: this.find_ce_editor(cm_editor),
       rendermime: this.rendermime_registry,
-      position: PositionConverter.cm_to_ce(
-        this.virtual_editor.transform(position)
-      ),
+      position: PositionConverter.cm_to_ce(position),
       moveToLineEnd: false
     });
     Widget.attach(tooltip, document.body);

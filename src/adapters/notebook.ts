@@ -12,6 +12,7 @@ import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IForeignCodeExtractorsRegistry } from '../extractors/types';
 import { RegExpForeignCodeExtractor } from '../extractors/regexp';
 import { language_specific_overrides } from '../magics/defaults';
+import { VirtualDocument } from '../virtual/document';
 
 // TODO: make the regex code extractors configurable
 
@@ -21,7 +22,15 @@ let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
     // R magic will always be in the same, single R-namespace
     new RegExpForeignCodeExtractor({
       language: 'R',
-      pattern: '%%R( [^]*)?\n([^]*)',
+      pattern: '^%%R( .*?)?\n([^]*)',
+      extract_to_foreign: '$2',
+      keep_in_host: true,
+      is_standalone: false
+    }),
+    // R line magic
+    new RegExpForeignCodeExtractor({
+      language: 'R',
+      pattern: '(^|\n)%R (.*)\n?',
       extract_to_foreign: '$2',
       keep_in_host: true,
       is_standalone: false
@@ -29,14 +38,14 @@ let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
     // most magics are standalone, i.e. consecutive code cells with the same magic create two different namespaces
     new RegExpForeignCodeExtractor({
       language: 'python',
-      pattern: '%%python( [^]*)?\n(.*)',
+      pattern: '^%%python( .*?)?\n(.*)',
       extract_to_foreign: '$2',
       keep_in_host: false,
       is_standalone: true
     }),
     new RegExpForeignCodeExtractor({
       language: 'python',
-      pattern: '%%timeit( [^]*)?\n(.*)',
+      pattern: '^%%timeit( .*?)?\n(.*)',
       extract_to_foreign: '$2',
       keep_in_host: false,
       is_standalone: true
@@ -101,11 +110,11 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       this.widget,
       this.language,
       language_specific_overrides,
-      foreign_code_extractors
+      foreign_code_extractors,
+      this.document_path
     );
 
     this.connect(this.virtual_editor.virtual_document);
-    this.create_adapter();
 
     // refresh server held state after every change
     // note this may be changed soon: https://github.com/jupyterlab/jupyterlab/issues/5382#issuecomment-515643504
@@ -119,14 +128,20 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     );
 
     // register completion connectors on cells
+    this.document_connected.connect(() => this.connect_completion() );
+  }
 
+  async connect(virtual_document: VirtualDocument): Promise<void> {
+    return super.connect(virtual_document);
+  }
+
+  connect_completion() {
     // see https://github.com/jupyterlab/jupyterlab/blob/c0e9eb94668832d1208ad3b00a9791ef181eca4c/packages/completer-extension/src/index.ts#L198-L213
     const cell = this.widget.content.activeCell;
     const connector = new LSPConnector({
       editor: cell.editor,
-      connection: this.main_connection,
-      coordinates_transform: (position: CodeMirror.Position) =>
-        this.virtual_editor.transform_from_notebook(cell, position),
+      connections: this.connections,
+      virtual_editor: this.virtual_editor,
       session: this.widget.session
     });
     const handler = this.completion_manager.register({
@@ -137,9 +152,8 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     this.widget.content.activeCellChanged.connect((notebook, cell) => {
       const connector = new LSPConnector({
         editor: cell.editor,
-        connection: this.main_connection,
-        coordinates_transform: (position: CodeMirror.Position) =>
-          this.virtual_editor.transform_from_notebook(cell, position),
+        connections: this.connections,
+        virtual_editor: this.virtual_editor,
         session: this.widget.session
       });
 

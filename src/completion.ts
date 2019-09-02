@@ -11,8 +11,15 @@ import { ReadonlyJSONObject } from '@phosphor/coreutils';
 import { completionItemKindNames } from './lsp';
 import { until_ready } from './utils';
 import { PositionConverter } from './converter';
-import CodeMirror = require('codemirror');
 import { IClientSession } from '@jupyterlab/apputils';
+import { VirtualDocument } from './virtual/document';
+import { VirtualEditor } from './virtual/editor';
+import { CodeMirrorEditor } from '@jupyterlab/codemirror';
+import {
+  IEditorPosition,
+  IRootPosition,
+  IVirtualPosition
+} from './positioning';
 
 /*
 Feedback: anchor - not clear from docs
@@ -28,12 +35,18 @@ export class LSPConnector extends DataConnector<
   CompletionHandler.IRequest
 > {
   private readonly _editor: CodeEditor.IEditor;
-  private readonly _connection: LspWsConnection;
-  private _completion_characters: Array<string>;
+  private readonly _connections: Map<VirtualDocument.id_path, LspWsConnection>;
+  // completion characters do not belong here, but to "onChanged"
+  // private _completion_characters: DefaultMap<
+  //  VirtualDocument.id_path,
+  //  Array<string>
+  // >;
   private _context_connector: ContextConnector;
   private _kernel_connector: KernelConnector;
   private _kernel_and_context_connector: CompletionConnector;
-  transform_coordinates: (position: CodeMirror.Position) => CodeMirror.Position;
+  protected options: LSPConnector.IOptions;
+
+  virtual_editor: VirtualEditor;
 
   /**
    * Create a new LSP connector for completion requests.
@@ -43,8 +56,8 @@ export class LSPConnector extends DataConnector<
   constructor(options: LSPConnector.IOptions) {
     super();
     this._editor = options.editor;
-    this._connection = options.connection;
-    this._completion_characters = this._connection.getLanguageCompletionCharacters();
+    this._connections = options.connections;
+    this.virtual_editor = options.virtual_editor;
     this._context_connector = new ContextConnector({ editor: options.editor });
     if (options.session) {
       let kernel_options = { editor: options.editor, session: options.session };
@@ -53,16 +66,23 @@ export class LSPConnector extends DataConnector<
         kernel_options
       );
     }
-    this.transform_coordinates =
-      options.coordinates_transform !== null
-        ? options.coordinates_transform
-        : position => position;
+    this.options = options;
+  }
+
+  protected get _kernel_language(): string {
+    return this.options.session.kernel.info.language_info.name;
   }
 
   get fallback_connector() {
     return this._kernel_and_context_connector
       ? this._kernel_and_context_connector
       : this._context_connector;
+  }
+
+  transform_from_editor_to_root(position: CodeEditor.IPosition): IRootPosition {
+    let cm_editor = (this._editor as CodeMirrorEditor).editor;
+    let cm_start = PositionConverter.ce_to_cm(position) as IEditorPosition;
+    return this.virtual_editor.transform_editor_to_root(cm_editor, cm_start);
   }
 
   /**
@@ -73,24 +93,60 @@ export class LSPConnector extends DataConnector<
   fetch(
     request: CompletionHandler.IRequest
   ): Promise<CompletionHandler.IReply> {
-    try {
-      if (this._completion_characters === undefined) {
-        this._completion_characters = this._connection.getLanguageCompletionCharacters();
-      }
+    let editor = this._editor;
 
-      if (this._kernel_connector) {
+    const cursor = editor.getCursorPosition();
+    const token = editor.getTokenForPosition(cursor);
+
+    const start = editor.getPositionAt(token.offset);
+    const end = editor.getPositionAt(token.offset + token.value.length);
+
+    const typed_character = token.value[cursor.column - start.column - 1];
+
+    let start_in_root = this.transform_from_editor_to_root(start);
+    let end_in_root = this.transform_from_editor_to_root(end);
+    let cursor_in_root = this.transform_from_editor_to_root(cursor);
+
+    let virtual_editor = this.virtual_editor;
+
+    // find document for position
+    let document = virtual_editor.document_as_root_position(start_in_root);
+
+    let virtual_start = virtual_editor.root_position_to_virtual_position(start_in_root);
+    let virtual_end = virtual_editor.root_position_to_virtual_position(end_in_root);
+    let virtual_cursor = virtual_editor.root_position_to_virtual_position(cursor_in_root);
+
+    try {
+      if (
+        this._kernel_connector &&
+        // TODO: this would be awesome if we could connect to rpy2 for R suggestions in Python,
+        //  but this is not the job of this extension; nevertheless its better to keep this in
+        //  mind to avoid introducing design decisions which would make this impossible
+        //  (for other extensions)
+        document.language === this._kernel_language
+      ) {
         return Promise.all([
           this._kernel_connector.fetch(request),
-          this.hint(this._editor, this._connection, this._completion_characters)
+          this.hint(
+            token,
+            typed_character,
+            virtual_start,
+            virtual_end,
+            virtual_cursor,
+            document
+          )
         ]).then(([kernel, lsp]) =>
           this.merge_replies(kernel, lsp, this._editor)
         );
       }
 
       return this.hint(
-        this._editor,
-        this._connection,
-        this._completion_characters
+        token,
+        typed_character,
+        virtual_start,
+        virtual_end,
+        virtual_cursor,
+        document
       ).catch(e => {
         console.log(e);
         return this.fallback_connector.fetch(request);
@@ -101,20 +157,14 @@ export class LSPConnector extends DataConnector<
   }
 
   async hint(
-    editor: CodeEditor.IEditor,
-    connection: LspWsConnection,
-    completion_characters: Array<string>
+    token: CodeEditor.IToken,
+    typed_character: string,
+    start: IVirtualPosition,
+    end: IVirtualPosition,
+    cursor: IVirtualPosition,
+    document: VirtualDocument
   ): Promise<CompletionHandler.IReply> {
-    // Find the token at the cursor
-    const cursor = editor.getCursorPosition();
-    const token = editor.getTokenForPosition(cursor);
-
-    const start = editor.getPositionAt(token.offset);
-    const end = editor.getPositionAt(token.offset + token.value.length);
-
-    // const signatureCharacters = connection.getLanguageSignatureCharacters();
-
-    const typedCharacter = token.value[cursor.column - start.column - 1];
+    let connection = this._connections.get(document.id_path);
 
     // without sendChange we (sometimes) get outdated suggestions
     connection.sendChange();
@@ -128,33 +178,17 @@ export class LSPConnector extends DataConnector<
     // to the matches...
     // Suggested in https://github.com/jupyterlab/jupyterlab/issues/7044, TODO PR
 
-    // if (signatureCharacters.indexOf(typedCharacter) !== -1) {
-    //  // @ts-ignore
-    //  request_completion = connection.getSignatureHelp.bind(this);
-    //  event = 'signature'
-    // } else {
-    // @ts-ignore
-    // request_completion = connection.getCompletion.bind(this);
     event = 'completion';
-    // }
-    // */
-
-    // if(completion_characters.indexOf(typedCharacter) === -1)
-    //  return
-
-    let transform = this.transform_coordinates;
     console.log(token);
 
     connection.getCompletion(
-      transform(PositionConverter.ce_to_cm(cursor)),
+      cursor,
       {
-        start: transform(PositionConverter.ce_to_cm(start)),
-        end: transform(PositionConverter.ce_to_cm(end)),
+        start,
+        end,
         text: token.value
       },
-      // TODO: use force invoke on completion characters
-      // completion_characters.find((c) => c === typedCharacter)
-      typedCharacter
+      typed_character
       // lsProtocol.CompletionTriggerKind.TriggerCharacter,
     );
     let result: any = { set: false };
@@ -188,7 +222,9 @@ export class LSPConnector extends DataConnector<
       // sortText: "amean"
       let text = match.insertText ? match.insertText : match.label;
 
-      if (text.startsWith(token.value)) { all_non_prefixed = false; }
+      if (text.startsWith(token.value)) {
+        all_non_prefixed = false;
+      }
 
       matches.push(text);
       types.push({
@@ -272,7 +308,7 @@ export class LSPConnector extends DataConnector<
         let text = remove_prefix(itemType.text);
         if (!memo_types.has(text)) {
           memo_types.set(text, itemType.type);
-          if (itemType.type != '<unknown>') {
+          if (itemType.type !== '<unknown>') {
             priority_matches.add(text);
           }
         }
@@ -316,13 +352,11 @@ export namespace LSPConnector {
      * The editor used by the LSP connector.
      */
     editor: CodeEditor.IEditor;
+    virtual_editor: VirtualEditor;
     /**
-     * The connection used by the LSP connector.
+     * The connections to be used by the LSP connector.
      */
-    connection: LspWsConnection;
-    coordinates_transform: (
-      position: CodeMirror.Position
-    ) => CodeMirror.Position;
+    connections: Map<VirtualDocument.id_path, LspWsConnection>;
 
     session?: IClientSession;
   }

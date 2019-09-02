@@ -11,8 +11,9 @@ export const language_specific_overrides: IOverridesRegistry = {
   python: {
     // if a match for expresion in the key is found against a line, the line is replaced with the value
     line_magics: [
-      // filter out IPython line magics and shell assignments
-      { pattern: '^[%!](.+)', replacement: '$1()' }
+      // filter out IPython line magics and shell assignments:
+      //  remove the content, keep magic/command name and new line at the end
+      { pattern: '^[%!](\\S+)(.*)(\n)?', replacement: '$1()$3' }
     ],
     // if a match for expresion in the key is found at the beginning of a cell, the entire cell is replaced with the value
     cell_magics: [

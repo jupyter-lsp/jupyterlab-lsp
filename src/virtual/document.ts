@@ -1,31 +1,72 @@
-import {
-  IForeignCodeExtractor,
-  IForeignCodeExtractorsRegistry
-} from '../extractors/types';
+import { IForeignCodeExtractor, IForeignCodeExtractorsRegistry } from '../extractors/types';
 import { CellMagicsMap, LineMagicsMap } from '../magics/maps';
 import { IOverridesRegistry } from '../magics/overrides';
 import { DefaultMap } from '../utils';
-import CodeMirror = require('codemirror');
 import { Signal } from '@phosphor/signaling';
-
-interface IEditorCoordinates {
-  editor: CodeMirror.Editor;
-  line_shift: number;
-}
-
-interface IVirtualLine {
-  editor_coordinates: IEditorCoordinates;
-  /**
-   * Should inspections for this virtual line be presented?
-   */
-  inspect: boolean;
-}
+import { CodeEditor } from '@jupyterlab/codeeditor';
+import { CodeMirror } from '../adapters/codemirror';
+import { IEditorPosition, ISourcePosition, IVirtualPosition } from '../positioning';
+import IRange = CodeEditor.IRange;
 
 type language = string;
+
+interface IVirtualLine {
+  /**
+   * Inspections for which document should be skipped for this virtual line?
+   */
+  skip_inspect: Array<VirtualDocument.id_path>;
+  /**
+   * Where does the virtual line belongs to in the source document?
+   */
+  source_line: number;
+  editor: CodeMirror.Editor;
+}
+
+interface IVirtualDocumentBlock {
+  /**
+   * Line corresponding to the block in the entire foreign document
+   */
+  virtual_line: number;
+  virtual_document: VirtualDocument;
+}
+
+interface ISourceLine {
+  virtual_line: number;
+  editor: CodeMirror.Editor;
+  // shift
+  editor_line: number;
+  editor_shift: CodeEditor.IPosition;
+  /**
+   * Everything which is not in the range of foreign documents belongs to the host.
+   */
+  foreign_documents_map: Map<IRange, IVirtualDocumentBlock>;
+}
 
 interface IForeignContext {
   foreign_document: VirtualDocument;
   parent_host: VirtualDocument;
+}
+
+function is_within_range(
+  position: CodeEditor.IPosition,
+  range: CodeEditor.IRange
+): boolean {
+  if (range.start.line === range.end.line) {
+    return (
+      position.column >= range.start.column &&
+      position.column <= range.end.column
+    );
+  }
+
+  return (
+    (position.line === range.start.line &&
+      position.column >= range.start.column &&
+      position.line < range.end.line) ||
+    (position.line > range.start.line &&
+      position.column <= range.end.column &&
+      position.line === range.end.line) ||
+    (position.line > range.start.line && position.line < range.end.line)
+  );
 }
 
 /**
@@ -47,12 +88,16 @@ interface IForeignContext {
  */
 export class VirtualDocument {
   public language: string;
-  public last_line: number;
+  public last_virtual_line: number;
   public foreign_document_closed: Signal<VirtualDocument, IForeignContext>;
   public foreign_document_opened: Signal<VirtualDocument, IForeignContext>;
   public readonly instance_id: number;
   public standalone: boolean;
+  /**
+   * Virtual lines keep all the lines present in the document AND extracted to the foreign document.
+   */
   public virtual_lines: Map<number, IVirtualLine>; // probably should go protected
+  public source_lines: Map<number, ISourceLine>; // probably should go protected
 
   protected foreign_extractors: IForeignCodeExtractor[];
   protected overrides_registry: IOverridesRegistry;
@@ -61,9 +106,11 @@ export class VirtualDocument {
 
   // TODO: merge into unused documents {standalone: Map, continuous: Map} ?
   protected unused_documents: Set<VirtualDocument>;
-  protected unused_standalone_documents: DefaultMap<language, Array<VirtualDocument>>;
+  protected unused_standalone_documents: DefaultMap<
+    language,
+    Array<VirtualDocument>
+  >;
 
-  private readonly parent: VirtualDocument;
   private _remaining_lifetime: number;
   private cell_magics_overrides: CellMagicsMap;
   private line_magics_overrides: LineMagicsMap;
@@ -72,6 +119,7 @@ export class VirtualDocument {
 
   // TODO: make this configurable, depending on the language used
   blank_lines_between_cells: number = 2;
+  last_source_line: number;
 
   /* Ideas
   signal: on foreign document added
@@ -79,10 +127,11 @@ export class VirtualDocument {
 
   constructor(
     language: string,
+    public path: string,
     overrides_registry: IOverridesRegistry,
     foreign_code_extractors: IForeignCodeExtractorsRegistry,
     standalone: boolean,
-    parent?: VirtualDocument
+    private readonly parent?: VirtualDocument
   ) {
     this.language = language;
     let overrides =
@@ -98,11 +147,10 @@ export class VirtualDocument {
       this.language in this.foreign_extractors_registry
         ? this.foreign_extractors_registry[this.language]
         : [];
-    this.parent = parent;
     this.virtual_lines = new Map();
+    this.source_lines = new Map();
     this.foreign_documents = new Map();
     this.overrides_registry = overrides_registry;
-    this.lines = [];
     this.standalone = standalone;
     this.instance_id = VirtualDocument.instances_count;
     VirtualDocument.instances_count += 1;
@@ -112,6 +160,8 @@ export class VirtualDocument {
     this._remaining_lifetime = 10;
     this.foreign_document_closed = new Signal(this);
     this.foreign_document_opened = new Signal(this);
+    this.unused_documents = new Set();
+    this.clear();
   }
 
   /**
@@ -150,15 +200,23 @@ export class VirtualDocument {
     }
     this.unused_documents = new Set(this.foreign_documents.values());
     this.virtual_lines.clear();
-    this.last_line = 0;
+    this.source_lines.clear();
+    this.last_virtual_line = 0;
+    this.last_source_line = 0;
     this.lines = [];
   }
 
-  private forward_closed_signal(host: VirtualDocument, context: IForeignContext) {
+  private forward_closed_signal(
+    host: VirtualDocument,
+    context: IForeignContext
+  ) {
     this.foreign_document_closed.emit(context);
   }
 
-  private forward_opened_signal(host: VirtualDocument, context: IForeignContext) {
+  private forward_opened_signal(
+    host: VirtualDocument,
+    context: IForeignContext
+  ) {
     this.foreign_document_opened.emit(context);
   }
 
@@ -170,9 +228,11 @@ export class VirtualDocument {
   ): VirtualDocument {
     let document = new VirtualDocument(
       language,
+      this.path,
       this.overrides_registry,
       this.foreign_extractors_registry,
-      standalone
+      standalone,
+      this
     );
     this.foreign_document_opened.emit({
       foreign_document: document,
@@ -187,76 +247,206 @@ export class VirtualDocument {
     return document;
   }
 
-  append_code_block(
+  document_at_source_position(position: ISourcePosition): VirtualDocument {
+    let source_line = this.source_lines.get(position.line);
+    let source_position_ce: CodeEditor.IPosition = {
+      line: source_line.editor_line,
+      column: position.ch
+    };
+
+    for (let [range, {virtual_document: document}] of source_line.foreign_documents_map) {
+      if (is_within_range(source_position_ce, range)) {
+        let source_position_cm = {
+          line: source_position_ce.line - range.start.line,
+          ch: source_position_ce.column - range.start.column
+        };
+
+        return document.document_at_source_position(
+          source_position_cm as ISourcePosition
+        );
+      }
+    }
+
+    return this;
+  }
+
+  is_within_foreign(source_position: ISourcePosition): boolean {
+    let source_line = this.source_lines.get(source_position.line);
+
+    let source_position_ce: CodeEditor.IPosition = {
+      line: source_line.editor_line,
+      column: source_position.ch
+    };
+    for (let [range] of source_line.foreign_documents_map) {
+      if (is_within_range(source_position_ce, range)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  virtual_position_at_document(
+    source_position: ISourcePosition
+  ): IVirtualPosition {
+    let source_line = this.source_lines.get(source_position.line);
+    let virtual_line = source_line.virtual_line;
+
+    // position inside the cell (block)
+    let source_position_ce: CodeEditor.IPosition = {
+      line: source_line.editor_line,
+      column: source_position.ch
+    };
+
+    for (let [
+      range,
+      { virtual_line, virtual_document: document }
+    ] of source_line.foreign_documents_map) {
+      if (is_within_range(source_position_ce, range)) {
+        // position inside the foreign document block
+        let source_position_cm = {
+          line: source_position_ce.line - range.start.line,
+          ch: source_position_ce.column - range.start.column
+        };
+        if (document.is_within_foreign(source_position_cm as ISourcePosition)) {
+          return this.virtual_position_at_document(
+            source_position_cm as ISourcePosition
+          );
+        } else {
+          // where in this block in the entire foreign document?
+          source_position_cm.line += virtual_line;
+          return source_position_cm as IVirtualPosition;
+        }
+      }
+    }
+
+    return {
+      ch: source_position.ch,
+      line: virtual_line
+    } as IVirtualPosition;
+  }
+
+  extract_foreign_code(
     cell_code: string,
-    cm_editor: CodeMirror.Editor
-  ): Map<number, VirtualDocument> {
-    let lines: Array<string>;
-    let should_inspect: Array<boolean>;
-    let line_document_map = new Map<number, VirtualDocument>();
+    cm_editor: CodeMirror.Editor,
+    editor_shift: CodeEditor.IPosition
+  ) {
+    let foreign_document_map = new Map<
+      CodeEditor.IRange,
+      IVirtualDocumentBlock
+    >();
 
-    //  TODO: create additional LSP servers for foreign languages introduced in cell magics
-
-    // first, check if there is any foreign code:
-    // let is_line_foreign = new Array<boolean>();
     for (let extractor of this.foreign_extractors) {
-      let result = extractor.extract_foreign_code(cell_code);
-      if (result.foreign_code === null) {
+      // first, check if there is any foreign code:
+
+      if (!extractor.has_foreign_code(cell_code)) {
         continue;
       }
 
-      let foreign_document: VirtualDocument;
-      // if not standalone, try to append to existing document
-      let foreign_exists = this.foreign_documents.has(extractor.language);
-      if (!extractor.standalone && foreign_exists) {
-        foreign_document = this.foreign_documents.get(extractor.language);
-      } else {
-        // if standalone, try to re-use existing connection to the server
-        let unused_standalone = this.unused_standalone_documents.get(
-          extractor.language
-        );
-        if (extractor.standalone && unused_standalone.length > 0) {
-          foreign_document = unused_standalone.pop();
-        } else {
-          // if (previous document does not exists) or (extractor produces standalone documents
-          // and no old standalone document could be reused): create a new document
-          foreign_document = this.open_foreign(
-            extractor.language,
-            extractor.standalone
+      let results = extractor.extract_foreign_code(cell_code);
+
+      let kept_cell_code = '';
+
+      for (let result of results) {
+        if (result.foreign_code !== null) {
+          let foreign_document: VirtualDocument;
+          // if not standalone, try to append to existing document
+          let foreign_exists = this.foreign_documents.has(extractor.language);
+          if (!extractor.standalone && foreign_exists) {
+            foreign_document = this.foreign_documents.get(extractor.language);
+            this.unused_documents.delete(foreign_document);
+          } else {
+            // if standalone, try to re-use existing connection to the server
+            let unused_standalone = this.unused_standalone_documents.get(
+              extractor.language
+            );
+            if (extractor.standalone && unused_standalone.length > 0) {
+              foreign_document = unused_standalone.pop();
+            } else {
+              // if (previous document does not exists) or (extractor produces standalone documents
+              // and no old standalone document could be reused): create a new document
+              foreign_document = this.open_foreign(
+                extractor.language,
+                extractor.standalone
+              );
+            }
+          }
+
+          foreign_document_map.set(result.range, {
+            virtual_line: foreign_document.last_virtual_line,
+            virtual_document: foreign_document
+          });
+          let foreign_shift = {
+            line: editor_shift.line + result.range.start.line,
+            column: editor_shift.column + result.range.start.column
+          };
+          foreign_document.append_code_block(
+            result.foreign_code,
+            cm_editor,
+            foreign_shift
           );
         }
+        if (result.host_code !== null) {
+          kept_cell_code += result.host_code;
+        }
       }
-
-      // TODO
-      // result.foreign_coordinates;
-      foreign_document.append_code_block(result.foreign_code, cm_editor);
-      cell_code = result.host_code;
-
       // not breaking - many extractors are allowed to process the code, one after each other
       // (think JS and CSS in HTML, or %R inside of %%timeit).
+
+      cell_code = kept_cell_code;
     }
+
+    return { cell_code_kept: cell_code, foreign_document_map };
+  }
+
+  append_code_block(
+    cell_code: string,
+    cm_editor: CodeMirror.Editor,
+    editor_shift: CodeEditor.IPosition = { line: 0, column: 0 }
+  ) {
+    let source_cell_lines = cell_code.split('\n');
+    let lines: Array<string>;
+    let skip_inspect: Array<Array<VirtualDocument.id_path>>;
+
+    let { cell_code_kept, foreign_document_map } = this.extract_foreign_code(
+      cell_code,
+      cm_editor,
+      editor_shift
+    );
+    cell_code = cell_code_kept;
 
     // cell magics are replaced if requested and matched
     let cell_override = this.cell_magics_overrides.override_for(cell_code);
     if (cell_override !== null) {
       lines = cell_override.split('\n');
-      should_inspect = lines.map(l => false);
+      skip_inspect = lines.map(l => [this.id_path]);
     } else {
       // otherwise, we replace line magics - if any
       let result = this.line_magics_overrides.replace_all(
         cell_code.split('\n')
       );
       lines = result.lines;
-      should_inspect = result.should_inspect;
+      skip_inspect = result.skip_inspect.map(skip =>
+        skip ? [this.id_path] : []
+      );
     }
 
     for (let i = 0; i < lines.length; i++) {
-      this.virtual_lines.set(this.last_line + i, {
-        editor_coordinates: {
-          editor: cm_editor,
-          line_shift: this.last_line
-        },
-        inspect: should_inspect[i]
+      this.virtual_lines.set(this.last_virtual_line + i, {
+        skip_inspect: skip_inspect[i],
+        editor: cm_editor,
+        // TODO this is incorrect, wont work if something was extracted
+        source_line: this.last_source_line + i
+      });
+    }
+    for (let i = 0; i < source_cell_lines.length; i++) {
+      this.source_lines.set(this.last_source_line + i, {
+        editor_line: i + editor_shift.line,
+        editor_shift: editor_shift,
+        // TODO: move those to a new abstraction layer (DocumentBlock class)
+        editor: cm_editor,
+        foreign_documents_map: foreign_document_map,
+        // TODO this is incorrect, wont work if something was extracted
+        virtual_line: this.last_virtual_line + i
       });
     }
 
@@ -264,9 +454,8 @@ export class VirtualDocument {
     // the final cell does not get the additional lines (thanks to the use of join, see below)
     this.lines.push(lines.join('\n') + '\n');
 
-    this.last_line += lines.length + this.blank_lines_between_cells;
-
-    return line_document_map;
+    this.last_virtual_line += lines.length + this.blank_lines_between_cells;
+    this.last_source_line += source_cell_lines.length;
   }
 
   get value() {
@@ -288,6 +477,7 @@ export class VirtualDocument {
   }
 
   close_foreign(document: VirtualDocument) {
+    console.log('Closing document', document);
     this.foreign_document_closed.emit({
       foreign_document: document,
       parent_host: this
@@ -319,6 +509,50 @@ export class VirtualDocument {
       return this.virtual_id;
     }
     return this.parent.id_path + '-' + this.virtual_id;
+  }
+
+  get uri(): string {
+    return this.path + '.' + this.id_path;
+  }
+
+  transform_source_to_editor(pos: ISourcePosition): IEditorPosition {
+    let editor_line = this.source_lines.get(pos.line).editor_line;
+    let editor_shift = this.source_lines.get(pos.line).editor_shift;
+    return {
+      ch: pos.ch + editor_shift.column,
+      line: editor_line
+      // TODO or:
+      //  line: pos.line + editor_shift.line - this.first_line_of_the_block(editor)
+    } as IEditorPosition;
+  }
+
+  transform_virtual_to_editor(
+    virtual_position: IVirtualPosition
+  ): IEditorPosition {
+    let source_position = this.transform_virtual_to_source(virtual_position);
+    return this.transform_source_to_editor(source_position);
+  }
+
+  transform_virtual_to_source(position: IVirtualPosition): ISourcePosition {
+    return {
+      ch: position.ch,
+      line: this.virtual_lines.get(position.line).source_line
+    } as ISourcePosition;
+  }
+
+  get root(): VirtualDocument {
+    if (typeof this.parent === 'undefined') {
+      return this;
+    }
+    return this.parent.root;
+  }
+
+  get_editor_at_virtual_line(pos: IVirtualPosition): CodeMirror.Editor {
+    return this.virtual_lines.get(pos.line).editor;
+  }
+
+  get_editor_at_source_line(pos: CodeMirror.Position): CodeMirror.Editor {
+    return this.source_lines.get(pos.line).editor;
   }
 }
 

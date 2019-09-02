@@ -4,53 +4,56 @@ import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { ShowHintOptions } from 'codemirror';
 import { IOverridesRegistry } from '../../magics/overrides';
 import { IForeignCodeExtractorsRegistry } from '../../extractors/types';
-import { VirtualDocument } from '../document';
 import { VirtualEditor } from '../editor';
 import CodeMirror = require('codemirror');
+import {
+  IEditorPosition,
+  IRootPosition, ISourcePosition,
+  IVirtualPosition
+} from '../../positioning';
 
 // @ts-ignore
 class DocDispatcher implements CodeMirror.Doc {
-  notebook_map: VirtualEditorForNotebook;
+  virtual_editor: VirtualEditorForNotebook;
 
-  constructor(notebook_map: VirtualEditorForNotebook) {
-    // TODO
-    this.notebook_map = notebook_map;
+  constructor(virtual_notebook: VirtualEditorForNotebook) {
+    this.virtual_editor = virtual_notebook;
   }
 
   markText(
-    from: CodeMirror.Position,
-    to: CodeMirror.Position,
+    from: IRootPosition,
+    to: IRootPosition,
     options?: CodeMirror.TextMarkerOptions
   ): CodeMirror.TextMarker {
     // TODO: edgecase: from and to in different cells
-    let editor = this.notebook_map.get_editor_at(from);
+    let editor = this.virtual_editor.virtual_document.get_editor_at_source_line(from);
+    let notebook_map = this.virtual_editor;
     return editor
       .getDoc()
-      .markText(this.transform(from), this.transform(to), options);
-  }
-
-  transform(position: CodeMirror.Position) {
-    return this.notebook_map.transform_from_document(position);
+      .markText(
+        notebook_map.transform_from_root_to_editor(from),
+        notebook_map.transform_from_root_to_editor(to),
+        options
+      );
   }
 
   getValue(seperator?: string): string {
-    return this.notebook_map.getValue();
+    return this.virtual_editor.getValue();
   }
 
   getCursor(start?: string): CodeMirror.Position {
-    let cell = this.notebook_map.notebook.activeCell;
+    let cell = this.virtual_editor.notebook.activeCell;
     let active_editor = cell.editor as CodeMirrorEditor;
     let cursor = active_editor.editor.getDoc().getCursor(start);
-    return this.notebook_map.transform_from_notebook(cell, cursor);
+    return this.virtual_editor.transform_from_notebook_to_root(cell, cursor);
   }
 }
 
 export class VirtualEditorForNotebook extends VirtualEditor {
   notebook: Notebook;
   notebook_panel: NotebookPanel;
-  notebook_line_to_virtual_document: Map<number, VirtualDocument>;
 
-  first_line_of_notebook_cell_to_virtual_line: Map<Cell, number>;
+  cell_to_corresponding_source_line: Map<Cell, number>;
   cm_editor_to_cell: Map<CodeMirror.Editor, Cell>;
   language: string;
 
@@ -58,12 +61,13 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     notebook_panel: NotebookPanel,
     language: string,
     overrides_registry: IOverridesRegistry,
-    foreign_code_extractors: IForeignCodeExtractorsRegistry
+    foreign_code_extractors: IForeignCodeExtractorsRegistry,
+    path: string
   ) {
-    super(language, overrides_registry, foreign_code_extractors);
+    super(language, path, overrides_registry, foreign_code_extractors);
     this.notebook_panel = notebook_panel;
     this.notebook = notebook_panel.content;
-    this.first_line_of_notebook_cell_to_virtual_line = new Map();
+    this.cell_to_corresponding_source_line = new Map();
     this.cm_editor_to_cell = new Map();
     this.overrides_registry = overrides_registry;
     this.code_extractors = foreign_code_extractors;
@@ -86,25 +90,49 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     };
     return new Proxy(this, handler);
   }
-  public get transform(): (
-    position: CodeMirror.Position
-  ) => CodeMirror.Position {
-    return position => this.transform_from_document(position);
+  public transform_virtual_to_source(
+    position: IVirtualPosition
+  ): ISourcePosition {
+    return this.virtual_document.transform_virtual_to_source(position);
   }
 
-  public get_editor_index(position: CodeMirror.Position): number {
+  transform_from_notebook_to_root(
+    cell: Cell,
+    position: CodeMirror.Position
+  ): IRootPosition {
+    // TODO: if cell is not known, refresh
+    let shift = this.cell_to_corresponding_source_line.get(cell);
+    if (shift === undefined) {
+      throw Error('Cell not found in cell_line_map');
+    }
+    return {
+      ...position,
+      line: position.line + shift
+    } as IRootPosition;
+  }
+
+  public transform_editor_to_root(
+    cm_editor: CodeMirror.Editor,
+    position: IEditorPosition
+  ): IRootPosition {
+    let cell = this.cm_editor_to_cell.get(cm_editor);
+    return this.transform_from_notebook_to_root(cell, position);
+  }
+
+  transform_from_root_to_editor(pos: IRootPosition): CodeMirror.Position {
+    // from notebook to editor space
+    return this.virtual_document.transform_source_to_editor(pos);
+  }
+
+  public get_editor_index(position: IVirtualPosition): number {
     let cell = this.get_cell_at(position);
     return this.notebook.widgets.findIndex(other_cell => {
       return cell === other_cell;
     });
   }
 
-  public get get_cell_id(): (position: CodeMirror.Position) => string {
-    return position => this.get_cell_at(position).id;
-  }
-
-  get_cm_editor(position: CodeMirror.Position) {
-    return this.get_editor_at(position);
+  get_cm_editor(position: IRootPosition) {
+    return this.get_editor_at_root_line(position);
   }
 
   showHint: (options: ShowHintOptions) => void;
@@ -145,25 +173,12 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     return undefined;
   }
 
-  addWidget(
-    pos: CodeMirror.Position,
-    node: HTMLElement,
-    scrollIntoView: boolean
-  ): void {}
-
-  blockComment(
-    from: Position,
-    to: Position,
-    // @ts-ignore
-    options?: CodeMirror.CommentOptions
-  ): void {}
-
   charCoords(
-    pos: CodeMirror.Position,
+    pos: IRootPosition,
     mode?: 'window' | 'page' | 'local'
   ): { left: number; right: number; top: number; bottom: number } {
     try {
-      let editor = this.get_editor_at(pos);
+      let editor = this.get_editor_at_root_line(pos);
       return editor.charCoords(pos, mode);
     } catch (e) {
       console.log(e);
@@ -171,12 +186,10 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     }
   }
 
-  clearGutter(gutterID: string): void {}
-
   coordsChar(
     object: { left: number; top: number },
     mode?: 'window' | 'page' | 'local'
-  ): CodeMirror.Position {
+  ): IRootPosition {
     for (let cell of this.notebook.widgets) {
       // TODO: use some more intelligent strategy to determine editors to test
       let cm_editor = cell.editor as CodeMirrorEditor;
@@ -187,23 +200,8 @@ export class VirtualEditorForNotebook extends VirtualEditor {
         continue;
       }
 
-      return this.transform_from_notebook(cell, pos);
+      return this.transform_from_notebook_to_root(cell, pos);
     }
-  }
-
-  transform_from_notebook(
-    cell: Cell,
-    position: CodeMirror.Position
-  ): CodeMirror.Position {
-    // TODO: if cell is not known, refresh
-    let shift = this.first_line_of_notebook_cell_to_virtual_line.get(cell);
-    if (shift === undefined) {
-      throw Error('Cell not found in cell_line_map');
-    }
-    return {
-      ...position,
-      line: position.line + shift
-    };
   }
 
   cursorCoords(
@@ -211,16 +209,16 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     mode?: 'window' | 'page' | 'local'
   ): { left: number; top: number; bottom: number };
   cursorCoords(
-    where?: CodeMirror.Position | null,
+    where?: IRootPosition | null,
     mode?: 'window' | 'page' | 'local'
   ): { left: number; top: number; bottom: number };
   cursorCoords(
-    where?: boolean | CodeMirror.Position | null,
+    where?: boolean | IRootPosition | null,
     mode?: 'window' | 'page' | 'local'
   ): { left: number; top: number; bottom: number } {
     if (typeof where !== 'boolean') {
-      let editor = this.get_editor_at(where);
-      return editor.cursorCoords(this.transform_from_document(where));
+      let editor = this.get_editor_at_root_line(where);
+      return editor.cursorCoords(this.transform_from_root_to_editor(where));
     }
     return { bottom: 0, left: 0, top: 0 };
   }
@@ -251,104 +249,43 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     }
   }
 
-  findPosH(
-    start: CodeMirror.Position,
-    amount: number,
-    unit: string,
-    visually: boolean
-  ): { line: number; ch: number; hitSide?: boolean } {
-    return { ch: 0, line: 0 };
-  }
-
-  findPosV(
-    start: CodeMirror.Position,
-    amount: number,
-    unit: string
-  ): { line: number; ch: number; hitSide?: boolean } {
-    return { ch: 0, line: 0 };
-  }
-
-  findWordAt(pos: CodeMirror.Position): CodeMirror.Range {
-    return undefined;
-  }
-
-  focus(): void {}
-
   getDoc(): CodeMirror.Doc {
     let dummy_doc = new DocDispatcher(this);
     // @ts-ignore
     return dummy_doc;
   }
 
-  getGutterElement(): HTMLElement {
-    return undefined;
+  get_editor_at_root_line(pos: IRootPosition): CodeMirror.Editor {
+    return this.virtual_document.root.get_editor_at_source_line(pos);
   }
 
-  getInputField(): HTMLTextAreaElement {
-    return undefined;
-  }
-
-  getLineTokens(line: number, precise?: boolean): CodeMirror.Token[] {
-    return [];
-  }
-
-  getModeAt(pos: CodeMirror.Position): any {
-    return this.get_editor_at(pos).getModeAt(this.transform_from_document(pos));
-  }
-
-  getOption(option: string): any {
-    return this.any_editor.getOption(option);
-  }
-
-  getScrollInfo(): CodeMirror.ScrollInfo {
-    return undefined;
-  }
-
-  getScrollerElement(): HTMLElement {
-    return undefined;
-  }
-
-  getStateAfter(line?: number): any {}
-
-  getTokenAt(pos: CodeMirror.Position, precise?: boolean): CodeMirror.Token {
+  getTokenAt(pos: IRootPosition, precise?: boolean): CodeMirror.Token {
     if (pos === undefined) {
       return;
     }
-    let editor = this.get_editor_at(pos);
-    return editor.getTokenAt(this.transform_from_document(pos));
+    let editor = this.get_editor_at_root_line(pos);
+    return editor.getTokenAt(this.transform_from_root_to_editor(pos));
   }
 
-  getTokenTypeAt(pos: CodeMirror.Position): string {
-    let editor = this.get_editor_at(pos);
-    return editor.getTokenTypeAt(this.transform_from_document(pos));
+  getTokenTypeAt(pos: IRootPosition): string {
+    let editor = this.virtual_document.get_editor_at_source_line(pos);
+    return editor.getTokenTypeAt(this.transform_from_root_to_editor(pos));
   }
 
   // TODO: make a mapper class, with mapping function only
-  get_editor_at(pos: CodeMirror.Position): CodeMirror.Editor {
-    return this.virtual_document.virtual_lines.get(pos.line).editor_coordinates
-      .editor;
-  }
 
-  get_cell_at(pos: CodeMirror.Position): Cell {
-    let cm_editor = this.virtual_document.virtual_lines.get(pos.line)
-      .editor_coordinates.editor;
+  get_cell_at(pos: IVirtualPosition): Cell {
+    let cm_editor = this.get_editor_at_virtual_line(pos);
     return this.cm_editor_to_cell.get(cm_editor);
   }
 
-  transform_from_document(pos: CodeMirror.Position): CodeMirror.Position {
-    // from virtual document space to notebook space
-    return {
-      ...pos,
-      line:
-        pos.line -
-        this.virtual_document.virtual_lines.get(pos.line).editor_coordinates
-          .line_shift
-    };
+  get_editor_at_virtual_line(pos: IVirtualPosition): CodeMirror.Editor {
+    return this.virtual_document.get_editor_at_virtual_line(pos);
   }
 
   getValue(seperator?: string): string {
     this.virtual_document.clear();
-    this.first_line_of_notebook_cell_to_virtual_line.clear();
+    this.cell_to_corresponding_source_line.clear();
     this.cm_editor_to_cell.clear();
 
     this.notebook.widgets.every(cell => {
@@ -359,9 +296,9 @@ export class VirtualEditorForNotebook extends VirtualEditor {
       if (cell.model.type === 'code') {
         let cell_code = cm_editor.getValue(seperator);
         // every code cell is placed into the cell-map
-        this.first_line_of_notebook_cell_to_virtual_line.set(
+        this.cell_to_corresponding_source_line.set(
           cell,
-          this.virtual_document.last_line
+          this.virtual_document.last_source_line
         );
 
         this.virtual_document.append_code_block(cell_code, cm_editor);
@@ -372,16 +309,8 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     return this.virtual_document.value;
   }
 
-  getViewport(): { from: number; to: number } {
-    return { from: 0, to: 0 };
-  }
-
   getWrapperElement(): HTMLElement {
     return this.notebook_panel.node;
-  }
-
-  hasFocus(): boolean {
-    return false;
   }
 
   heightAtLine(
@@ -392,45 +321,12 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     return 0;
   }
 
-  indentLine(line: number, dir?: string): void {}
-
   isReadOnly(): boolean {
     return false;
   }
 
   lineAtHeight(height: number, mode?: 'window' | 'page' | 'local'): number {
     return 0;
-  }
-
-  lineComment(
-    from: Position,
-    to: Position,
-    // @ts-ignore
-    options?: CodeMirror.CommentOptions
-  ): void {}
-
-  lineInfo(
-    line: any
-  ): {
-    line: any;
-    handle: any;
-    text: string;
-    gutterMarkers: any;
-    textClass: string;
-    bgClass: string;
-    wrapClass: string;
-    widgets: any;
-  } {
-    return {
-      bgClass: '',
-      gutterMarkers: undefined,
-      handle: undefined,
-      line: undefined,
-      text: '',
-      textClass: '',
-      widgets: undefined,
-      wrapClass: ''
-    };
   }
 
   off(eventName: string, handler: (instance: CodeMirror.Editor) => void): void;
@@ -722,6 +618,22 @@ export class VirtualEditorForNotebook extends VirtualEditor {
       }
     };
 
+    this.forEveryBlockEditor(cm_editor => {
+      // @ts-ignore
+      cm_editor.on(eventName, wrapped_handler);
+    });
+  }
+
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject) {
+    this.forEveryBlockEditor(cm_editor => {
+      cm_editor.getWrapperElement().addEventListener(type, listener);
+    });
+  }
+
+  forEveryBlockEditor(
+    callback: (cm_editor: CodeMirror.Editor) => any,
+    monitor_for_new_blocks = true
+  ) {
     const cells_with_handlers = new Set<Cell>();
 
     for (let cell of this.notebook.widgets) {
@@ -729,92 +641,16 @@ export class VirtualEditorForNotebook extends VirtualEditor {
       let cm_editor = (cell.editor as CodeMirrorEditor).editor;
       if (cell.model.type === 'code') {
         cells_with_handlers.add(cell);
-        // @ts-ignore
-        cm_editor.on(eventName, wrapped_handler);
+        callback(cm_editor);
       }
     }
-    this.notebook.activeCellChanged.connect((notebook, cell) => {
-      let cm_editor = (cell.editor as CodeMirrorEditor).editor;
-      if (!cells_with_handlers.has(cell) && cell.model.type === 'code') {
-        // @ts-ignore
-        cm_editor.on(eventName, wrapped_handler);
-      }
-    });
-  }
-
-  operation<T>(fn: () => T): T {
-    return undefined;
-  }
-
-  refresh(): void {}
-
-  removeKeyMap(map: string | CodeMirror.KeyMap): void {}
-
-  removeLineClass(
-    line: any,
-    where: string,
-    class_?: string
-  ): CodeMirror.LineHandle {
-    return undefined;
-  }
-
-  removeOverlay(mode: any): void {}
-
-  scrollIntoView(pos: CodeMirror.Position | null, margin?: number): void;
-  scrollIntoView(
-    pos: { left: number; top: number; right: number; bottom: number },
-    margin?: number
-  ): void;
-  scrollIntoView(pos: { line: number; ch: number }, margin?: number): void;
-  scrollIntoView(
-    pos: { from: CodeMirror.Position; to: CodeMirror.Position },
-    margin?: number
-  ): void;
-  scrollIntoView(
-    pos:
-      | CodeMirror.Position
-      | null
-      | { left: number; top: number; right: number; bottom: number }
-      | { line: number; ch: number }
-      | { from: CodeMirror.Position; to: CodeMirror.Position },
-    margin?: number
-  ): void {}
-
-  scrollTo(x?: number | null, y?: number | null): void {}
-
-  setGutterMarker(
-    line: any,
-    gutterID: string,
-    value: HTMLElement | null
-  ): CodeMirror.LineHandle {
-    return undefined;
-  }
-
-  setOption(option: string, value: any): void {}
-
-  setSize(width: any, height: any): void {}
-
-  setValue(content: string): void {}
-
-  startOperation(): void {}
-
-  swapDoc(doc: CodeMirror.Doc): CodeMirror.Doc {
-    return undefined;
-  }
-
-  // @ts-ignore
-  toggleComment(options?: CodeMirror.CommentOptions): void {}
-
-  toggleOverwrite(value?: boolean): void {}
-
-  triggerOnKeyDown(event: Event): void {}
-
-  uncomment(
-    from: Position,
-    to: Position,
-    // @ts-ignore
-    options?: CodeMirror.CommentOptions
-  ): boolean {
-    return false;
-  }
+    if(monitor_for_new_blocks) {
+      this.notebook.activeCellChanged.connect((notebook, cell) => {
+        let cm_editor = (cell.editor as CodeMirrorEditor).editor;
+        if (!cells_with_handlers.has(cell) && cell.model.type === 'code') {
+          callback(cm_editor);
+        }
+      });
+    }
+  };
 }
