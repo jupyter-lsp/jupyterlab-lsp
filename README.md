@@ -59,6 +59,12 @@ If a feature you need is not on this list (or the lists below) please feel free 
 - Gutter with linter results
 - Use the kernel session for autocompletion in FileEditor if available (PR welcome)
 
+
+#### Hints
+
+- just like in old notebooks, you can still use the built-in <kbd>Shift</kbd> + <kbd>Tab</kbd> to get a signature in JupyterLab.
+This extension behaves well with this feature.
+
 ## Under the hood
 
 This would not be possible if not the fantastic work of https://github.com/wylieconlon/lsp-editor-adapter.
