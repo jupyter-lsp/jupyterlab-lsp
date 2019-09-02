@@ -10,7 +10,7 @@ print("df created")
 print("plotted")
 `;
 
-describe('RegExpForeignCodeExtractor', () => {
+describe('VirtualDocument', () => {
   let r_line_extractor_removing = new RegExpForeignCodeExtractor({
     language: 'R',
     pattern: '(^|\n)%R (.*)\n?',
