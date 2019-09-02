@@ -54,20 +54,28 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
   ): void;
 
   // TODO .root is not really needed as we are in editor now...
+  // TODO remove this function
   get_virtual_document(
     position: IRootPosition
   ): { document: VirtualDocument; virtual_position: IVirtualPosition } {
+    return {
+      document: this.document_as_root_position(position),
+      virtual_position: this.root_position_to_virtual_position(position)
+    };
+  }
+
+  document_as_root_position(position: IRootPosition): VirtualDocument {
     let root_as_source = position as ISourcePosition;
-    let document = this.virtual_document.root.document_at_source_position(
+    return this.virtual_document.root.document_at_source_position(
       root_as_source
     );
+  }
 
-    return {
-      document: document,
-      virtual_position: this.virtual_document.root.virtual_position_at_document(
-        root_as_source
-      )
-    };
+  root_position_to_virtual_position(position: IRootPosition): IVirtualPosition {
+    let root_as_source = position as ISourcePosition;
+    return this.virtual_document.root.virtual_position_at_document(
+      root_as_source
+    );
   }
 
   get_editor_at_root_position(root_position: IRootPosition) {

@@ -38,6 +38,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
   invoke_completer: Function;
   private unique_editor_ids: DefaultMap<CodeMirror.Editor, number>;
+  private signature_character: IRootPosition;
 
   constructor(
     connection: ILspConnection,
@@ -62,6 +63,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     let wrapper = this.editor.getWrapperElement();
     this.editor.addEventListener(
       'mouseleave',
+      // TODO: remove_tooltip() but allow the mouse to leave if it enters the tooltip
+      //  (a bit tricky: normally we would just place the tooltip within, but it was designed to be attached to body)
       this.remove_range_highlight.bind(this)
     );
     wrapper.addEventListener(
@@ -176,7 +179,9 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     const markup = CodeMirrorAdapterExtension.get_markup_for_hover(response);
     let root_position = this.hover_character;
     let cm_editor = this.get_cm_editor(root_position);
-    let editor_position = this.editor.transform_root_position_to_editor_position(root_position);
+    let editor_position = this.editor.transform_root_position_to_editor_position(
+      root_position
+    );
 
     this._tooltip = this.create_tooltip(markup, cm_editor, editor_position);
   }
@@ -222,49 +227,56 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   public handleSignature(response: lsProtocol.SignatureHelp) {
     this.remove_tooltip();
 
-    // @ts-ignore
-    let token = this.token;
-    if (!token || !response || !response.signatures.length) {
+    if (!this.signature_character || !response || !response.signatures.length) {
       return;
     }
 
-    let virtual_position = token.start as IVirtualPosition;
-
-    let cm_editor = this.virtual_document.get_editor_at_virtual_line(virtual_position);
-    let language = this.get_language_at(this.virtual_document.transform_virtual_to_editor(virtual_position), cm_editor);
+    let root_position = this.signature_character;
+    let cm_editor = this.get_cm_editor(root_position);
+    let editor_position = this.editor.transform_root_position_to_editor_position(
+      root_position
+    );
+    let language = this.get_language_at(editor_position, cm_editor);
     let markup = this.get_markup_for_signature_help(response, language);
-    let editor_position = this.virtual_document.transform_virtual_to_editor(virtual_position);
 
     this._tooltip = this.create_tooltip(markup, cm_editor, editor_position);
   }
 
   public handleChange(cm: CodeMirror.Editor, change: CodeMirror.EditorChange) {
-    // based on https://github.com/wylieconlon/lsp-editor-adapter/blob/e80e44310f8c12f87f3da9be07772102610ce517/src/codemirror-adapter.ts#L65
-    // ISC licence (TODO: move this to the fork to separate out the ISC code)
     this.remove_tooltip();
 
-    const location = this.editor.getDoc().getCursor('end');
-    // TODO this does not work now, needs refactoring
+    const root_position = this.editor
+      .getDoc()
+      .getCursor('end') as IRootPosition;
+
     this.connection.sendChange();
 
+    if (!change.text.length || !change.text[0].length) {
+      // deletion - ignore
+      return;
+    }
+
+    let last_character: string;
+
+    if (change.origin === 'paste') {
+      last_character = change.text[0][change.text.length - 1];
+    } else {
+      last_character = change.text[0][0];
+    }
+
+    // TODO: cache it
     const completionCharacters = this.connection.getLanguageCompletionCharacters();
     const signatureCharacters = this.connection.getLanguageSignatureCharacters();
 
-    const code = this.editor.getValue();
-    const lines = code.split('\n');
-    const line = lines[location.line];
-    const typedCharacter = line[location.ch - 1];
-
-    if (completionCharacters.indexOf(typedCharacter) > -1) {
+    if (completionCharacters.indexOf(last_character) > -1) {
+      // TODO: pass info that we start from autocompletion (to avoid having . completion in comments etc)
       this.invoke_completer();
-    } else if (signatureCharacters.indexOf(typedCharacter) > -1) {
-      // @ts-ignore
-      this.token = this._getTokenEndingAtPosition(
-        code,
-        location,
-        signatureCharacters
+    } else if (signatureCharacters.indexOf(last_character) > -1) {
+      this.signature_character = root_position;
+      let virtual_position = this.editor.root_position_to_virtual_position(
+        root_position
       );
-      this.connection.getSignatureHelp(location);
+      this.connection.getSignatureHelp(virtual_position);
     }
   }
 
@@ -465,7 +477,9 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
     diagnostics_by_range.forEach(
       (diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
-        const start = PositionConverter.lsp_to_cm(range.start) as IVirtualPosition;
+        const start = PositionConverter.lsp_to_cm(
+          range.start
+        ) as IVirtualPosition;
         const end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
         if (start.line > this.virtual_document.last_virtual_line) {
           console.log(
