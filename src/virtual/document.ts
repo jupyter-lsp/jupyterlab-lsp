@@ -361,6 +361,7 @@ export class VirtualDocument {
             );
             if (extractor.standalone && unused_standalone.length > 0) {
               foreign_document = unused_standalone.pop();
+              this.unused_documents.delete(foreign_document);
             } else {
               // if (previous document does not exists) or (extractor produces standalone documents
               // and no old standalone document could be reused): create a new document
