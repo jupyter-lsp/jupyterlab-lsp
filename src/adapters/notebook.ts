@@ -35,20 +35,28 @@ let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       keep_in_host: true,
       is_standalone: false
     }),
-    // most magics are standalone, i.e. consecutive code cells with the same magic create two different namespaces
+    // script magics are standalone, i.e. consecutive code cells with the same magic create two different namespaces
     new RegExpForeignCodeExtractor({
       language: 'python',
-      pattern: '^%%python( .*?)?\n(.*)',
-      extract_to_foreign: '$2',
+      pattern: '^%%(python|python2|python3)( .*?)?\n([^]*)',
+      extract_to_foreign: '$3',
       keep_in_host: false,
       is_standalone: true
     }),
     new RegExpForeignCodeExtractor({
-      language: 'python',
-      pattern: '^%%timeit( .*?)?\n(.*)',
-      extract_to_foreign: '$2',
+      language: 'perl',
+      pattern: '^%%(perl)( .*?)?\n([^]*)',
+      extract_to_foreign: '$3',
       keep_in_host: false,
       is_standalone: true
+    }),
+    // js is not a script magic
+    new RegExpForeignCodeExtractor({
+      language: 'js',
+      pattern: '^%%(js|javascript)( .*?)?\n([^]*)',
+      extract_to_foreign: '$3',
+      keep_in_host: false,
+      is_standalone: false
     })
   ]
 };
