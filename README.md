@@ -1,6 +1,6 @@
 # Language Server Protocol integration for JupyterLab
 
-<!--[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) [![codebeat badge](TODO)](https://codebeat.co/projects/github-com-krassowski-jupyterlab-lsp-master) -->
+[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) [![codebeat badge](https://codebeat.co/badges/f55d0f28-8a84-4199-bc88-f2c306a9ce65)](https://codebeat.co/projects/github-com-krassowski-jupyterlab-lsp-master)
 <!--[![Binder](https://beta.mybinder.org/badge.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab/tree/examples/demo.ipynb)-->
 
 _This extension is in its early days, but you are welcome to check it out, leave feedback and/or a PR_
