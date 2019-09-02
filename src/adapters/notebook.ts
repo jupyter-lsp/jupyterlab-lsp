@@ -38,7 +38,7 @@ let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
     // script magics are standalone, i.e. consecutive code cells with the same magic create two different namespaces
     new RegExpForeignCodeExtractor({
       language: 'python',
-      pattern: '^%%(python|python2|python3)( .*?)?\n([^]*)',
+      pattern: '^%%(python|python2|python3|pypy)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
       keep_in_host: false,
       is_standalone: true
