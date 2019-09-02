@@ -98,14 +98,20 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   private _signatureCharacters: string[];
 
   get completionCharacters() {
-    if (!this._completionCharacters.length) {
+    if (
+      typeof this._completionCharacters === 'undefined' ||
+      !this._completionCharacters.length
+    ) {
       this._completionCharacters = this.connection.getLanguageCompletionCharacters();
     }
     return this._completionCharacters;
   }
 
   get signatureCharacters() {
-    if (!this._signatureCharacters.length) {
+    if (
+      typeof this._signatureCharacters === 'undefined' ||
+      !this._signatureCharacters.length
+    ) {
       this._signatureCharacters = this.connection.getLanguageSignatureCharacters();
     }
     return this._signatureCharacters;
