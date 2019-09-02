@@ -76,7 +76,6 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
     // show hover after pressing the modifier key
     wrapper.addEventListener('keydown', (event: KeyboardEvent) => {
-      //event.target
       if (
         (!hover_modifier || getModifierState(event, hover_modifier)) &&
         this.hover_character === this.last_hover_character
@@ -141,6 +140,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   protected remove_range_highlight() {
     // @ts-ignore
     this._removeHover(); // this removes underlines
+    this.last_hover_character = null;
   }
 
   protected remove_tooltip() {
@@ -157,6 +157,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     this.last_hover_response = null;
 
     if (
+      !this.hover_character ||
       !response ||
       !response.contents ||
       (Array.isArray(response.contents) && response.contents.length === 0)
@@ -346,6 +347,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     // happens because mousemove is attached to panel, not individual code cells,
     // and because some regions of the editor (between lines) have no characters
     if (typeof root_position === 'undefined') {
+      this.remove_range_highlight();
+      this.hover_character = null;
       return;
     }
 
@@ -361,6 +364,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       // @ts-ignore
       !this._isEventInsideVisible(event)
     ) {
+      this.remove_range_highlight();
+      this.hover_character = null;
       return;
     }
 
