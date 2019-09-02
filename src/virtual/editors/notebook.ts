@@ -283,7 +283,7 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     return this.virtual_document.get_editor_at_virtual_line(pos);
   }
 
-  getValue(seperator?: string): string {
+  update_value(): void {
     this.virtual_document.clear();
     this.cell_to_corresponding_source_line.clear();
     this.cm_editor_to_cell.clear();
@@ -294,7 +294,7 @@ export class VirtualEditorForNotebook extends VirtualEditor {
       this.cm_editor_to_cell.set(cm_editor, cell);
 
       if (cell.model.type === 'code') {
-        let cell_code = cm_editor.getValue(seperator);
+        let cell_code = cm_editor.getValue();
         // every code cell is placed into the cell-map
         this.cell_to_corresponding_source_line.set(
           cell,
@@ -305,7 +305,9 @@ export class VirtualEditorForNotebook extends VirtualEditor {
       }
       return true;
     });
+  }
 
+  get_value(): string {
     return this.virtual_document.value;
   }
 

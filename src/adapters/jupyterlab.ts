@@ -64,8 +64,6 @@ export abstract class JupyterLabWidgetAdapter {
     return PathExt.dirname(this.document_path);
   }
 
-  abstract get_document_content(): string;
-
   abstract find_ce_editor(cm_editor: CodeMirror.Editor): CodeEditor.IEditor;
 
   invoke_completer() {
@@ -100,7 +98,7 @@ export abstract class JupyterLabWidgetAdapter {
         //  current getValue() should be moved to update(), while getValue should be
         //  made private in the virtual editor; possibly the virtual editor should no
         //  longer expose the full implementation of CodeMirror but rather hide it inside.
-        this.virtual_editor.getValue();
+        this.virtual_editor.update_value();
         try {
           return virtual_document.value;
         } catch (e) {
@@ -119,7 +117,10 @@ export abstract class JupyterLabWidgetAdapter {
 
     this.create_adapter(virtual_document, connection);
 
-    this.document_connected.emit({ document: virtual_document, connection: connection });
+    this.document_connected.emit({
+      document: virtual_document,
+      connection: connection
+    });
   }
 
   handle_jump(locations: lsProtocol.Location[], language: string) {

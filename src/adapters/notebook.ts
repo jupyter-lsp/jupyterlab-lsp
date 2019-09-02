@@ -13,7 +13,6 @@ import { language_specific_overrides } from '../magics/defaults';
 import { VirtualDocument } from '../virtual/document';
 import { foreign_code_extractors } from '../extractors/defaults';
 
-
 export class NotebookAdapter extends JupyterLabWidgetAdapter {
   editor: Notebook;
   widget: NotebookPanel;
@@ -121,10 +120,6 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       handler.editor = cell.editor;
       handler.connector = connector;
     });
-  }
-
-  get_document_content() {
-    return this.virtual_editor.getValue();
   }
 
   refresh_lsp_notebook_image(slot: any) {

@@ -48,6 +48,10 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
 
   abstract get_cm_editor(position: IRootPosition): CodeMirror.Editor;
 
+  abstract update_value(): void;
+
+  abstract get_value(): string;
+
   abstract addEventListener(
     type: string,
     listener: EventListenerOrEventListenerObject

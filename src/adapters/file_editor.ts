@@ -26,10 +26,6 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     return this.jumper.language;
   }
 
-  get_document_content(): string {
-    return this.cm_editor.getValue();
-  }
-
   get ce_editor(): CodeMirrorEditor {
     return this.editor.editor as CodeMirrorEditor;
   }
