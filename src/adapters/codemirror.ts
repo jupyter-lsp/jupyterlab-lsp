@@ -94,6 +94,23 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     });
   }
 
+  private _completionCharacters: string[];
+  private _signatureCharacters: string[];
+
+  get completionCharacters() {
+    if (!this._completionCharacters.length) {
+      this._completionCharacters = this.connection.getLanguageCompletionCharacters();
+    }
+    return this._completionCharacters;
+  }
+
+  get signatureCharacters() {
+    if (!this._signatureCharacters.length) {
+      this._signatureCharacters = this.connection.getLanguageSignatureCharacters();
+    }
+    return this._signatureCharacters;
+  }
+
   protected hover_character: IRootPosition;
 
   public handleGoTo(locations: any) {
@@ -179,7 +196,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     const markup = CodeMirrorAdapterExtension.get_markup_for_hover(response);
     let root_position = this.hover_character;
     let cm_editor = this.get_cm_editor(root_position);
-    let editor_position = this.editor.transform_root_position_to_editor_position(
+    let editor_position = this.editor.root_position_to_editor_position(
       root_position
     );
 
@@ -233,7 +250,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
     let root_position = this.signature_character;
     let cm_editor = this.get_cm_editor(root_position);
-    let editor_position = this.editor.transform_root_position_to_editor_position(
+    let editor_position = this.editor.root_position_to_editor_position(
       root_position
     );
     let language = this.get_language_at(editor_position, cm_editor);
@@ -264,14 +281,10 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       last_character = change.text[0][0];
     }
 
-    // TODO: cache it
-    const completionCharacters = this.connection.getLanguageCompletionCharacters();
-    const signatureCharacters = this.connection.getLanguageSignatureCharacters();
-
-    if (completionCharacters.indexOf(last_character) > -1) {
+    if (this.completionCharacters.indexOf(last_character) > -1) {
       // TODO: pass info that we start from autocompletion (to avoid having . completion in comments etc)
       this.invoke_completer();
-    } else if (signatureCharacters.indexOf(last_character) > -1) {
+    } else if (this.signatureCharacters.indexOf(last_character) > -1) {
       this.signature_character = root_position;
       let virtual_position = this.editor.root_position_to_virtual_position(
         root_position
@@ -319,10 +332,10 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
         ch: token.end
       } as IRootPosition;
 
-      start_in_editor = this.editor.transform_root_position_to_editor_position(
+      start_in_editor = this.editor.root_position_to_editor_position(
         start_in_root
       );
-      end_in_editor = this.editor.transform_root_position_to_editor_position(
+      end_in_editor = this.editor.root_position_to_editor_position(
         end_in_root
       );
     }
@@ -366,9 +379,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
     let token = this.editor.getTokenAt(root_position);
 
-    let { document, virtual_position } = this.editor.get_virtual_document(
-      root_position
-    );
+    let document = this.editor.document_as_root_position(root_position);
+    let virtual_position = this.editor.root_position_to_virtual_position(root_position);
 
     if (
       this.is_token_empty(token) ||
@@ -492,7 +504,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
         let start_in_root = this.transform_virtual_position_to_root_position(
           start
         );
-        let { document } = this.editor.get_virtual_document(start_in_root);
+        let document = this.editor.document_as_root_position(start_in_root);
 
         // TODO why do I get signals from the other connection in the first place?
         if (this.virtual_document !== document) {

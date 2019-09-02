@@ -57,9 +57,6 @@ export class LSPConnector extends DataConnector<
     super();
     this._editor = options.editor;
     this._connections = options.connections;
-    // this._completion_characters = new DefaultMap(key =>
-    //  this._connections.get(key).getLanguageCompletionCharacters()
-    // );
     this.virtual_editor = options.virtual_editor;
     this._context_connector = new ContextConnector({ editor: options.editor });
     if (options.session) {
@@ -110,17 +107,14 @@ export class LSPConnector extends DataConnector<
     let end_in_root = this.transform_from_editor_to_root(end);
     let cursor_in_root = this.transform_from_editor_to_root(cursor);
 
+    let virtual_editor = this.virtual_editor;
+
     // find document for position
-    let {
-      document,
-      virtual_position: virtual_start
-    } = this.virtual_editor.get_virtual_document(start_in_root);
-    let {
-      virtual_position: virtual_end
-    } = this.virtual_editor.get_virtual_document(end_in_root);
-    let {
-      virtual_position: virtual_cursor
-    } = this.virtual_editor.get_virtual_document(cursor_in_root);
+    let document = virtual_editor.document_as_root_position(start_in_root);
+
+    let virtual_start = virtual_editor.root_position_to_virtual_position(start_in_root);
+    let virtual_end = virtual_editor.root_position_to_virtual_position(end_in_root);
+    let virtual_cursor = virtual_editor.root_position_to_virtual_position(cursor_in_root);
 
     try {
       if (
@@ -170,7 +164,6 @@ export class LSPConnector extends DataConnector<
     cursor: IVirtualPosition,
     document: VirtualDocument
   ): Promise<CompletionHandler.IReply> {
-    // let completion_characters = this._compleeion_characters.get('');
     let connection = this._connections.get(document.id_path);
 
     // without sendChange we (sometimes) get outdated suggestions
