@@ -50,10 +50,52 @@ let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       keep_in_host: false,
       is_standalone: true
     }),
+    new RegExpForeignCodeExtractor({
+      language: 'ruby',
+      pattern: '^%%(ruby)( .*?)?\n([^]*)',
+      extract_to_foreign: '$3',
+      keep_in_host: false,
+      is_standalone: true
+    }),
+    new RegExpForeignCodeExtractor({
+      language: 'sh',
+      pattern: '^%%(sh)( .*?)?\n([^]*)',
+      extract_to_foreign: '$3',
+      keep_in_host: false,
+      is_standalone: true
+    }),
+    new RegExpForeignCodeExtractor({
+      language: 'html',
+      pattern: '^%%(html --isolated)( .*?)?\n([^]*)',
+      extract_to_foreign: '$3',
+      keep_in_host: false,
+      is_standalone: true
+    }),
     // js is not a script magic
     new RegExpForeignCodeExtractor({
       language: 'js',
       pattern: '^%%(js|javascript)( .*?)?\n([^]*)',
+      extract_to_foreign: '$3',
+      keep_in_host: false,
+      is_standalone: false
+    }),
+    new RegExpForeignCodeExtractor({
+      language: 'html',
+      pattern: '^%%(html)( .*?)?\n([^]*)',
+      extract_to_foreign: '$3',
+      keep_in_host: false,
+      is_standalone: false
+    }),
+    new RegExpForeignCodeExtractor({
+      language: 'latex',
+      pattern: '^%%(latex)( .*?)?\n([^]*)',
+      extract_to_foreign: '$3',
+      keep_in_host: false,
+      is_standalone: false
+    }),
+    new RegExpForeignCodeExtractor({
+      language: 'markdown',
+      pattern: '^%%(markdown)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
       keep_in_host: false,
       is_standalone: false
