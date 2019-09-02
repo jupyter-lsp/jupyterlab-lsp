@@ -34,6 +34,14 @@ class VirtualEditorImplementation extends VirtualEditor {
     type: string,
     listener: EventListener | EventListenerObject
   ): void {}
+
+  get_value(): string {
+    return this.virtual_document.value;
+  }
+
+  update_value(): void {
+    return;
+  }
 }
 
 describe('VirtualEditor', () => {
