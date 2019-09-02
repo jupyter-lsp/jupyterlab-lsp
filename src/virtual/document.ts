@@ -540,40 +540,6 @@ export class VirtualDocument {
     } as ISourcePosition;
   }
 
-  /*
-  shift(pos: CodeMirror.Position): CodeMirror.Position {
-    let transformed = {
-      line: pos.line - this._shift.start.line,
-      ch: pos.ch - (pos.line === 0 ? this._shift.start.column : 0)
-    };
-    if (this.parent) {
-      return this.parent.shift(transformed);
-    }
-    return transformed;
-  }
-
-  unshift(
-    editor_position: IEditorPosition,
-    source_position: ISourcePosition
-  ): IEditorPosition {
-    // TODO: shift and unshift should be done in the offset space?
-    let source_position_ce = PositionConverter.cm_to_ce(source_position);
-    let shift: CodeEditor.IPosition = { line: 0, column: 0 };
-    let block_foreign_documents = this.source_lines.get(source_position.line).foreign_documents_map;
-    for (let range of block_foreign_documents.keys()) {
-      if (is_within_range(source_position_ce, range)) {
-        shift = range.start;
-        break;
-      }
-    }
-    return {
-      ...editor_position,
-      line: editor_position.line + shift.line,
-      ch: editor_position.ch + (editor_position.line === 0 ? shift.column : 0)
-    };
-  }
-   */
-
   get root(): VirtualDocument {
     if (typeof this.parent === 'undefined') {
       return this;

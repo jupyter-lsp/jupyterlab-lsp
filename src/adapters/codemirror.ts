@@ -277,13 +277,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     let end_in_editor: any;
 
     let cm_editor: any;
-    /* Already checked before
-    let { document } = this.editor.get_virtual_document(hover_character);
-
-    if (document !== this.virtual_document) {
-      console.log('Skipping highlight: should be handled be another virtual document');
-    }
-     */
+    // NOTE: foreign document ranges are checked before the request is sent,
+    // no need to to this again here.
 
     if (range) {
       start = PositionConverter.lsp_to_cm(range.start) as IVirtualPosition;

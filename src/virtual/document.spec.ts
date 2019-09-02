@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { RegExpForeignCodeExtractor } from '../extractors/regexp';
 import { VirtualDocument } from './document';
-import CodeMirror = require("codemirror");
-import { ISourcePosition, IVirtualPosition } from "../positioning";
+import CodeMirror = require('codemirror');
+import { ISourcePosition, IVirtualPosition } from '../positioning';
 
 let R_LINE_MAGICS = `%R df = data.frame()
 print("df created")
@@ -31,7 +31,10 @@ describe('RegExpForeignCodeExtractor', () => {
       let {
         cell_code_kept,
         foreign_document_map
-      } = document.extract_foreign_code(R_LINE_MAGICS, null, { line: 0, column: 0 });
+      } = document.extract_foreign_code(R_LINE_MAGICS, null, {
+        line: 0,
+        column: 0
+      });
 
       expect(cell_code_kept).to.equal(
         'print("df created")\nprint("plotted")\n'
