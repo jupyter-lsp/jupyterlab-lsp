@@ -39,7 +39,7 @@ class VirtualEditorImplementation extends VirtualEditor {
     return this.virtual_document.value;
   }
 
-  update_value(): void {
+  update_documents(): void {
     return;
   }
 }
@@ -59,7 +59,7 @@ describe('VirtualEditor', () => {
     {},
     { python: [r_line_extractor] }
   );
-  describe('#get_virtual_document()', () => {
+  describe('#document_at_root_position()', () => {
     it('returns correct document', () => {
       let cm_editor_for_cell_1 = {} as CodeMirror.Editor;
       let cm_editor_for_cell_2 = {} as CodeMirror.Editor;
@@ -74,7 +74,7 @@ describe('VirtualEditor', () => {
 
       // The first (Python) line in the first block
       let root_position = { line: 0, ch: 0 } as IRootPosition;
-      let document = editor.document_as_root_position(root_position);
+      let document = editor.document_at_root_position(root_position);
       let virtual_position = editor.root_position_to_virtual_position(
         root_position
       );
@@ -83,7 +83,7 @@ describe('VirtualEditor', () => {
 
       // The second (Python | R) line in the first block - Python fragment
       root_position = { line: 1, ch: 0 } as IRootPosition;
-      document = editor.document_as_root_position(root_position);
+      document = editor.document_at_root_position(root_position);
       virtual_position = editor.root_position_to_virtual_position(
         root_position
       );
@@ -92,7 +92,7 @@ describe('VirtualEditor', () => {
 
       // The second (Python | R) line in the first block - R fragment
       root_position = { line: 1, ch: 3 } as IRootPosition;
-      document = editor.document_as_root_position(root_position);
+      document = editor.document_at_root_position(root_position);
       virtual_position = editor.root_position_to_virtual_position(
         root_position
       );
@@ -101,7 +101,7 @@ describe('VirtualEditor', () => {
 
       // The first (Python) line in the second block
       root_position = { line: 2, ch: 0 } as IRootPosition;
-      document = editor.document_as_root_position(root_position);
+      document = editor.document_at_root_position(root_position);
       virtual_position = editor.root_position_to_virtual_position(
         root_position
       );
@@ -110,7 +110,7 @@ describe('VirtualEditor', () => {
 
       // The second (Python | R) line in the second block - Python fragment
       root_position = { line: 3, ch: 0 } as IRootPosition;
-      document = editor.document_as_root_position(root_position);
+      document = editor.document_at_root_position(root_position);
       virtual_position = editor.root_position_to_virtual_position(
         root_position
       );
@@ -119,7 +119,7 @@ describe('VirtualEditor', () => {
 
       // The second (Python | R) line in the second block - R fragment
       root_position = { line: 3, ch: 3 } as IRootPosition;
-      document = editor.document_as_root_position(root_position);
+      document = editor.document_at_root_position(root_position);
       virtual_position = editor.root_position_to_virtual_position(
         root_position
       );

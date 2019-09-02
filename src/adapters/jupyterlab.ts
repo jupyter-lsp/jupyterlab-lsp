@@ -98,7 +98,7 @@ export abstract class JupyterLabWidgetAdapter {
         //  current getValue() should be moved to update(), while getValue should be
         //  made private in the virtual editor; possibly the virtual editor should no
         //  longer expose the full implementation of CodeMirror but rather hide it inside.
-        this.virtual_editor.update_value();
+        this.virtual_editor.update_documents();
         try {
           return virtual_document.value;
         } catch (e) {

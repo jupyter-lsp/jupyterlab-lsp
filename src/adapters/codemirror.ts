@@ -88,9 +88,12 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       }
     });
 
-    wrapper.addEventListener('keyup', () => {
-      // TODO: the updates frequency and triggers will require a review and a clean up
-      this.connection.sendChange();
+    this.editor.off('change', listeners.changeListener);
+    // due to an unknown reason the default listener (as defined in the base class) is not invoked on file editors
+    // the workaround - setting it at doc instead - works, thus the original one is first disabled (above) and a new
+    // one is added (below); this however can have devastating effect on the editor synchronization - be careful
+    CodeMirror.on(this.editor.getDoc(), 'change', (doc, change) => {
+      this.handleChange(this.editor, change);
     });
   }
 
@@ -268,34 +271,47 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   public handleChange(cm: CodeMirror.Editor, change: CodeMirror.EditorChange) {
     this.remove_tooltip();
 
-    const root_position = this.editor
-      .getDoc()
-      .getCursor('end') as IRootPosition;
+    try {
+      const root_position = this.editor
+        .getDoc()
+        .getCursor('end') as IRootPosition;
 
-    this.connection.sendChange();
+      this.connection.sendChange();
 
-    if (!change.text.length || !change.text[0].length) {
-      // deletion - ignore
-      return;
-    }
+      let document = this.editor.document_at_root_position(root_position);
 
-    let last_character: string;
+      if (this.virtual_document !== document) {
+        return true;
+      }
 
-    if (change.origin === 'paste') {
-      last_character = change.text[0][change.text.length - 1];
-    } else {
-      last_character = change.text[0][0];
-    }
+      if (!change || !change.text.length || !change.text[0].length) {
+        // deletion - ignore
+        return true;
+      }
 
-    if (this.completionCharacters.indexOf(last_character) > -1) {
-      // TODO: pass info that we start from autocompletion (to avoid having . completion in comments etc)
-      this.invoke_completer();
-    } else if (this.signatureCharacters.indexOf(last_character) > -1) {
-      this.signature_character = root_position;
-      let virtual_position = this.editor.root_position_to_virtual_position(
-        root_position
-      );
-      this.connection.getSignatureHelp(virtual_position);
+      let last_character: string;
+
+      if (change.origin === 'paste') {
+        last_character = change.text[0][change.text.length - 1];
+      } else {
+        last_character = change.text[0][0];
+      }
+
+      if (this.completionCharacters.indexOf(last_character) > -1) {
+        // TODO: pass info that we start from autocompletion (to avoid having . completion in comments etc)
+        //  it seems that it has to be done with a flag on a global object :(
+        this.invoke_completer();
+      } else if (this.signatureCharacters.indexOf(last_character) > -1) {
+        this.signature_character = root_position;
+        let virtual_position = this.editor.root_position_to_virtual_position(
+          root_position
+        );
+        this.connection.getSignatureHelp(virtual_position);
+      }
+      return true;
+    } catch (e) {
+      console.log('handleChange failure - silent as to prevent editor going out of sync');
+      console.error(e);
     }
   }
 
@@ -385,7 +401,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
     let token = this.editor.getTokenAt(root_position);
 
-    let document = this.editor.document_as_root_position(root_position);
+    let document = this.editor.document_at_root_position(root_position);
     let virtual_position = this.editor.root_position_to_virtual_position(root_position);
 
     if (
@@ -510,9 +526,11 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
         let start_in_root = this.transform_virtual_position_to_root_position(
           start
         );
-        let document = this.editor.document_as_root_position(start_in_root);
+        let document = this.editor.document_at_root_position(start_in_root);
 
         // TODO why do I get signals from the other connection in the first place?
+        //  A: because each virtual document adds listeners AND if the extracted content
+        //  is kept in the host document, it remains...
         if (this.virtual_document !== document) {
           console.log(
             `Ignoring inspections from ${response.uri}`,

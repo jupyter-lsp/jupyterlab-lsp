@@ -47,17 +47,13 @@ export class VirtualFileEditor extends VirtualEditor {
     return this.cm_editor;
   }
 
-  // TODO: force re-definition of this method (in base class, so that it is never proxied)
-  update_value(): void {
+  update_documents(): void {
+    // it is sufficient to update the root document, all nested documents will follow (be re-generated)
     this.virtual_document.clear();
     this.virtual_document.append_code_block(
       this.cm_editor.getValue(),
       this.cm_editor
     );
-  }
-
-  get_value(): string {
-    return this.virtual_document.value;
   }
 
   addEventListener(type: string, listener: EventListenerOrEventListenerObject) {

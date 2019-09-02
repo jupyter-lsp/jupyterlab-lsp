@@ -110,7 +110,7 @@ export class LSPConnector extends DataConnector<
     let virtual_editor = this.virtual_editor;
 
     // find document for position
-    let document = virtual_editor.document_as_root_position(start_in_root);
+    let document = virtual_editor.document_at_root_position(start_in_root);
 
     let virtual_start = virtual_editor.root_position_to_virtual_position(start_in_root);
     let virtual_end = virtual_editor.root_position_to_virtual_position(end_in_root);

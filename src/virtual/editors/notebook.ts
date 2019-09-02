@@ -8,7 +8,8 @@ import { VirtualEditor } from '../editor';
 import CodeMirror = require('codemirror');
 import {
   IEditorPosition,
-  IRootPosition, ISourcePosition,
+  IRootPosition,
+  ISourcePosition,
   IVirtualPosition
 } from '../../positioning';
 
@@ -283,7 +284,7 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     return this.virtual_document.get_editor_at_virtual_line(pos);
   }
 
-  update_value(): void {
+  update_documents(): void {
     this.virtual_document.clear();
     this.cell_to_corresponding_source_line.clear();
     this.cm_editor_to_cell.clear();
@@ -307,10 +308,6 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     });
   }
 
-  get_value(): string {
-    return this.virtual_document.value;
-  }
-
   getWrapperElement(): HTMLElement {
     return this.notebook_panel.node;
   }
@@ -331,278 +328,25 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     return 0;
   }
 
-  off(eventName: string, handler: (instance: CodeMirror.Editor) => void): void;
-  off(
-    eventName: 'change',
-    handler: (
-      instance: CodeMirror.Editor,
-      change: CodeMirror.EditorChangeLinkedList
-    ) => void
-  ): void;
-  off(
-    eventName: 'changes',
-    handler: (
-      instance: CodeMirror.Editor,
-      change: CodeMirror.EditorChangeLinkedList[]
-    ) => void
-  ): void;
-  off(
-    eventName: 'beforeChange',
-    handler: (
-      instance: CodeMirror.Editor,
-      change: CodeMirror.EditorChangeCancellable
-    ) => void
-  ): void;
-  off(
-    eventName: 'cursorActivity',
-    handler: (instance: CodeMirror.Editor) => void
-  ): void;
-  off(
-    eventName: 'beforeSelectionChange',
-    handler: (
-      instance: CodeMirror.Editor,
-      selection: { head: CodeMirror.Position; anchor: CodeMirror.Position }
-    ) => void
-  ): void;
-  off(
-    eventName: 'viewportChange',
-    handler: (instance: CodeMirror.Editor, from: number, to: number) => void
-  ): void;
-  off(
-    eventName: 'gutterClick',
-    handler: (
-      instance: CodeMirror.Editor,
-      line: number,
-      gutter: string,
-      clickEvent: Event
-    ) => void
-  ): void;
-  off(eventName: 'focus', handler: (instance: CodeMirror.Editor) => void): void;
-  off(eventName: 'blur', handler: (instance: CodeMirror.Editor) => void): void;
-  off(
-    eventName: 'scroll',
-    handler: (instance: CodeMirror.Editor) => void
-  ): void;
-  off(
-    eventName: 'update',
-    handler: (instance: CodeMirror.Editor) => void
-  ): void;
-  off(
-    eventName: 'renderLine',
-    handler: (
-      instance: CodeMirror.Editor,
-      line: CodeMirror.LineHandle,
-      element: HTMLElement
-    ) => void
-  ): void;
-  off(
-    eventName:
-      | 'mousedown'
-      | 'dblclick'
-      | 'touchstart'
-      | 'contextmenu'
-      | 'keydown'
-      | 'keypress'
-      | 'keyup'
-      | 'cut'
-      | 'copy'
-      | 'paste'
-      | 'dragstart'
-      | 'dragenter'
-      | 'dragover'
-      | 'dragleave'
-      | 'drop',
-    handler: (instance: CodeMirror.Editor, event: Event) => void
-  ): void;
   off(
     eventName: string,
-    handler: (doc: CodeMirror.Doc, event: any) => void
-  ): void;
-  off(
-    eventName:
-      | string
-      | 'change'
-      | 'changes'
-      | 'beforeChange'
-      | 'cursorActivity'
-      | 'beforeSelectionChange'
-      | 'viewportChange'
-      | 'gutterClick'
-      | 'focus'
-      | 'blur'
-      | 'scroll'
-      | 'update'
-      | 'renderLine'
-      | CodeMirror.DOMEvent,
-    handler:
-      | ((instance: CodeMirror.Editor) => void)
-      | ((
-          instance: CodeMirror.Editor,
-          change: CodeMirror.EditorChangeLinkedList
-        ) => void)
-      | ((
-          instance: CodeMirror.Editor,
-          change: CodeMirror.EditorChangeLinkedList[]
-        ) => void)
-      | ((
-          instance: CodeMirror.Editor,
-          change: CodeMirror.EditorChangeCancellable
-        ) => void)
-      | ((
-          instance: CodeMirror.Editor,
-          selection: { head: CodeMirror.Position; anchor: CodeMirror.Position }
-        ) => void)
-      | ((instance: CodeMirror.Editor, from: number, to: number) => void)
-      | ((
-          instance: CodeMirror.Editor,
-          line: number,
-          gutter: string,
-          clickEvent: Event
-        ) => void)
-      | ((
-          instance: CodeMirror.Editor,
-          line: CodeMirror.LineHandle,
-          element: HTMLElement
-        ) => void)
-      | ((instance: CodeMirror.Editor, event: Event) => void)
-      | ((doc: CodeMirror.Doc, event: any) => void)
-  ): void {}
+    handler: (doc_or_instance: any, ...args: any[]) => void,
+    ...args: any[]
+  ): void {
+    let wrapped_handler = this._event_wrappers.get(handler);
 
-  on(eventName: string, handler: (instance: CodeMirror.Editor) => void): void;
-  on(
-    eventName: 'change',
-    handler: (
-      instance: CodeMirror.Editor,
-      change: CodeMirror.EditorChangeLinkedList
-    ) => void
-  ): void;
-  on(
-    eventName: 'changes',
-    handler: (
-      instance: CodeMirror.Editor,
-      change: CodeMirror.EditorChangeLinkedList[]
-    ) => void
-  ): void;
-  on(
-    eventName: 'beforeChange',
-    handler: (
-      instance: CodeMirror.Editor,
-      change: CodeMirror.EditorChangeCancellable
-    ) => void
-  ): void;
-  on(
-    eventName: 'cursorActivity',
-    handler: (instance: CodeMirror.Editor) => void
-  ): void;
-  on(
-    eventName: 'beforeSelectionChange',
-    handler: (
-      instance: CodeMirror.Editor,
-      selection: { head: CodeMirror.Position; anchor: CodeMirror.Position }
-    ) => void
-  ): void;
-  on(
-    eventName: 'viewportChange',
-    handler: (instance: CodeMirror.Editor, from: number, to: number) => void
-  ): void;
-  on(
-    eventName: 'gutterClick',
-    handler: (
-      instance: CodeMirror.Editor,
-      line: number,
-      gutter: string,
-      clickEvent: Event
-    ) => void
-  ): void;
-  on(eventName: 'focus', handler: (instance: CodeMirror.Editor) => void): void;
-  on(eventName: 'blur', handler: (instance: CodeMirror.Editor) => void): void;
-  on(eventName: 'scroll', handler: (instance: CodeMirror.Editor) => void): void;
-  on(eventName: 'update', handler: (instance: CodeMirror.Editor) => void): void;
-  on(
-    eventName: 'renderLine',
-    handler: (
-      instance: CodeMirror.Editor,
-      line: CodeMirror.LineHandle,
-      element: HTMLElement
-    ) => void
-  ): void;
-  on(
-    eventName:
-      | 'mousedown'
-      | 'dblclick'
-      | 'touchstart'
-      | 'contextmenu'
-      | 'keydown'
-      | 'keypress'
-      | 'keyup'
-      | 'cut'
-      | 'copy'
-      | 'paste'
-      | 'dragstart'
-      | 'dragenter'
-      | 'dragover'
-      | 'dragleave'
-      | 'drop',
-    handler: (instance: CodeMirror.Editor, event: Event) => void
-  ): void;
-  on(
-    eventName: 'overwriteToggle',
-    handler: (instance: CodeMirror.Editor, overwrite: boolean) => void
-  ): void;
+    this.forEveryBlockEditor(cm_editor => {
+      // @ts-ignore
+      cm_editor.off(eventName, wrapped_handler);
+    });
+  }
+
+  private _event_wrappers = new Map<Function, Function>();
+
   on(
     eventName: string,
-    handler: (doc: CodeMirror.Doc, event: any) => void
-  ): void;
-  on(
-    eventName:
-      | string
-      | 'change'
-      | 'changes'
-      | 'beforeChange'
-      | 'cursorActivity'
-      | 'beforeSelectionChange'
-      | 'viewportChange'
-      | 'gutterClick'
-      | 'focus'
-      | 'blur'
-      | 'scroll'
-      | 'update'
-      | 'renderLine'
-      | CodeMirror.DOMEvent
-      | 'overwriteToggle',
-    handler:
-      | ((instance: CodeMirror.Editor) => void)
-      | ((
-          instance: CodeMirror.Editor,
-          change: CodeMirror.EditorChangeLinkedList
-        ) => void)
-      | ((
-          instance: CodeMirror.Editor,
-          change: CodeMirror.EditorChangeLinkedList[]
-        ) => void)
-      | ((
-          instance: CodeMirror.Editor,
-          change: CodeMirror.EditorChangeCancellable
-        ) => void)
-      | ((
-          instance: CodeMirror.Editor,
-          selection: { head: CodeMirror.Position; anchor: CodeMirror.Position }
-        ) => void)
-      | ((instance: CodeMirror.Editor, from: number, to: number) => void)
-      | ((
-          instance: CodeMirror.Editor,
-          line: number,
-          gutter: string,
-          clickEvent: Event
-        ) => void)
-      | ((
-          instance: CodeMirror.Editor,
-          line: CodeMirror.LineHandle,
-          element: HTMLElement
-        ) => void)
-      | ((instance: CodeMirror.Editor, event: Event) => void)
-      | ((instance: CodeMirror.Editor, overwrite: boolean) => void)
-      | ((doc: CodeMirror.Doc, event: any) => void)
+    handler: (doc_or_instance: any, ...args: any[]) => void,
+    ...args: any[]
   ): void {
     let wrapped_handler = (instance_or_doc: any, a: any, b: any, c: any) => {
       let editor = instance_or_doc as CodeMirror.Editor;
@@ -619,6 +363,7 @@ export class VirtualEditorForNotebook extends VirtualEditor {
         return handler(this.getDoc(), a, b, c);
       }
     };
+    this._event_wrappers.set(handler, wrapped_handler);
 
     this.forEveryBlockEditor(cm_editor => {
       // @ts-ignore
@@ -639,14 +384,13 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     const cells_with_handlers = new Set<Cell>();
 
     for (let cell of this.notebook.widgets) {
-      // TODO: use some more intelligent strategy to determine editors to test
       let cm_editor = (cell.editor as CodeMirrorEditor).editor;
       if (cell.model.type === 'code') {
         cells_with_handlers.add(cell);
         callback(cm_editor);
       }
     }
-    if(monitor_for_new_blocks) {
+    if (monitor_for_new_blocks) {
       this.notebook.activeCellChanged.connect((notebook, cell) => {
         let cm_editor = (cell.editor as CodeMirrorEditor).editor;
         if (!cells_with_handlers.has(cell) && cell.model.type === 'code') {
@@ -654,5 +398,5 @@ export class VirtualEditorForNotebook extends VirtualEditor {
         }
       });
     }
-  };
+  }
 }

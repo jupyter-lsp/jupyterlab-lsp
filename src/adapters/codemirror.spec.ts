@@ -31,7 +31,6 @@ describe('CodeMirrorAdapterExtension', () => {
   });
 
   describe('Works with VirtualFileEditor', () => {
-
     let adapter: CodeMirrorAdapterExtension;
 
     beforeEach(() => {
@@ -41,7 +40,7 @@ describe('CodeMirrorAdapterExtension', () => {
         documentUri: '/x.py',
         rootUri: '/',
         documentText: () => {
-          virtual_editor.update_value();
+          virtual_editor.update_documents();
           return virtual_editor.virtual_document.value;
         }
       });
@@ -62,7 +61,7 @@ describe('CodeMirrorAdapterExtension', () => {
 
     it('renders inspections', () => {
       ce_editor.model.value.text = ' foo \n bar \n baz ';
-      virtual_editor.update_value();
+      virtual_editor.update_documents();
 
       let markers: TextMarker[];
 
