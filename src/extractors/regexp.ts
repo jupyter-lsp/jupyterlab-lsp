@@ -75,16 +75,17 @@ export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
         }
       }
 
+      // TODO: this could be slightly optimized (start at start) by using the match[n],
+      //  where n is the group to be used; while this reduces the flexibility of extract_to_foreign,
+      //  it might be better to enforce such strict requirement
+      let start = match.index + matched_string.indexOf(foreign_code_fragment);
+
       extracts.push({
         host_code: host_code_fragment,
         foreign_code: foreign_code_fragment,
         range: {
-          // TODO: this could be slightly optimized (start at start)
-          start: position_at_offset(
-            match.index + matched_string.indexOf(foreign_code_fragment),
-            lines
-          ),
-          end: position_at_offset(end, lines)
+          start: position_at_offset(start, lines),
+          end: position_at_offset(start + foreign_code_fragment.length, lines)
         }
       });
 

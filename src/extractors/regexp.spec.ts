@@ -203,6 +203,8 @@ describe('RegExpForeignCodeExtractor', () => {
 
       expect(first_magic.foreign_code).to.equal('df = data.frame()');
       expect(first_magic.host_code).to.equal('%R df = data.frame()\n');
+      expect(first_magic.range.end.line).to.equal(0);
+      expect(first_magic.range.end.column).to.equal(20);
 
       let second_magic = results[1];
 

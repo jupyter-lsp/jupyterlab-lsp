@@ -47,6 +47,12 @@ interface IForeignContext {
   parent_host: VirtualDocument;
 }
 
+/**
+ * Check if given position is within range.
+ * Both start and end are inclusive.
+ * @param position
+ * @param range
+ */
 export function is_within_range(
   position: CodeEditor.IPosition,
   range: CodeEditor.IRange
