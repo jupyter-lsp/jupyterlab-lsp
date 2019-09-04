@@ -167,7 +167,8 @@ export class LSPConnector extends DataConnector<
     let connection = this._connections.get(document.id_path);
 
     // without sendChange we (sometimes) get outdated suggestions
-    connection.sendChange();
+    // TODO - remove?
+    //connection.sendChange();
 
     // let request_completion: Function;
     let event: string;
@@ -201,6 +202,7 @@ export class LSPConnector extends DataConnector<
     // There is an issue:
     // https://github.com/Gozala/events/issues/63
 
+    // TODO: rewrite (now that I already inherit from connection
     // TODO leaky leak ('MaxListenersExceededWarning'), IMO it only happens when the callback fails...
     connection.once(event, (args: any) => {
       result.value = args;

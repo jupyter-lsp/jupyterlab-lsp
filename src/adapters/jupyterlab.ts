@@ -1,4 +1,4 @@
-import { IPosition, LspWsConnection } from 'lsp-editor-adapter';
+import { IPosition } from 'lsp-editor-adapter';
 import { PathExt } from '@jupyterlab/coreutils';
 import { CodeMirror, CodeMirrorAdapterExtension } from './codemirror';
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -15,10 +15,11 @@ import { VirtualEditor } from '../virtual/editor';
 import { VirtualDocument} from '../virtual/document';
 import { Signal } from '@phosphor/signaling';
 import { IEditorPosition, IVirtualPosition } from '../positioning';
+import { LSPConnection } from '../connection';
 
 interface IDocumentConnectedData {
   document: VirtualDocument;
-  connection: LspWsConnection;
+  connection: LSPConnection;
 }
 
 /**
@@ -29,12 +30,13 @@ interface IDocumentConnectedData {
  */
 export abstract class JupyterLabWidgetAdapter {
   app: JupyterFrontEnd;
-  connections: Map<VirtualDocument.id_path, LspWsConnection>;
+  connections: Map<VirtualDocument.id_path, LSPConnection>;
+  documents: Map<VirtualDocument.id_path, VirtualDocument>;
   jumper: CodeJumper;
-  adapter: CodeMirrorAdapterExtension;
-  rendermime_registry: IRenderMimeRegistry;
+  protected adapters: Map<VirtualDocument.id_path, CodeMirrorAdapterExtension>;
+  protected rendermime_registry: IRenderMimeRegistry;
   widget: IDocumentWidget;
-  private invoke_command: string;
+  private readonly invoke_command: string;
   protected document_connected: Signal<
     JupyterLabWidgetAdapter,
     IDocumentConnectedData
@@ -42,6 +44,7 @@ export abstract class JupyterLabWidgetAdapter {
 
   protected constructor(
     app: JupyterFrontEnd,
+    widget: IDocumentWidget,
     rendermime_registry: IRenderMimeRegistry,
     invoke: string
   ) {
@@ -49,7 +52,10 @@ export abstract class JupyterLabWidgetAdapter {
     this.rendermime_registry = rendermime_registry;
     this.invoke_command = invoke;
     this.connections = new Map();
+    this.documents = new Map();
     this.document_connected = new Signal(this);
+    this.adapters = new Map();
+    this.widget = widget;
   }
 
   abstract virtual_editor: VirtualEditor;
@@ -70,7 +76,7 @@ export abstract class JupyterLabWidgetAdapter {
     return this.app.commands.execute(this.invoke_command);
   }
 
-  get main_connection(): LspWsConnection {
+  get main_connection(): LSPConnection {
     return this.connections.get(this.virtual_editor.virtual_document.id_path);
   }
 
@@ -78,52 +84,102 @@ export abstract class JupyterLabWidgetAdapter {
     virtual_document.foreign_document_opened.connect((host, context) => {
       this.connect(context.foreign_document);
     });
-    virtual_document.foreign_document_closed.connect((host, context) => {
-      let connection = this.connections.get(context.foreign_document.id_path);
-      connection.close();
-    });
+    virtual_document.foreign_document_closed.connect(
+      (host, { foreign_document }) => {
+        this.connections.get(foreign_document.id_path).close();
+        this.connections.delete(foreign_document.id_path);
+        this.documents.delete(foreign_document.id_path);
+      }
+    );
 
     let language = virtual_document.language;
     console.log(
       `LSP: will connect using root path: ${this.root_path} and language: ${language}`
     );
-    let connection = new LspWsConnection({
+    let connection = new LSPConnection({
       serverUri: 'ws://localhost/' + language,
       languageId: language,
       // paths handling needs testing on Windows and with other language servers
       rootUri: 'file:///' + this.root_path,
       documentUri: 'file:///' + virtual_document.uri,
       documentText: () => {
-        // TODO VirtualEditor should have "update(force=false)" method with debouncer;
-        //  current getValue() should be moved to update(), while getValue should be
-        //  made private in the virtual editor; possibly the virtual editor should no
-        //  longer expose the full implementation of CodeMirror but rather hide it inside.
-        this.virtual_editor.update_documents();
-        try {
-          return virtual_document.value;
-        } catch (e) {
-          console.log(e);
+        // NOTE: Update is async now and this is not really used, as an alternative method
+        // which is compatible with async is used.
+        // This should be only used in the initialization step.
+        // @ts-ignore
+        if (this.main_connection.isConnected) {
+          console.warn('documentText is deprecated for use in JupyterLab LSP');
         }
+        return virtual_document.value;
       }
     }).connect(new WebSocket('ws://localhost:3000/' + language));
 
     // @ts-ignore
     connection.on('goTo', locations => this.handle_jump(locations, language));
     this.connections.set(virtual_document.id_path, connection);
+    this.documents.set(virtual_document.id_path, virtual_document);
 
+    // TODO use Pool instead?
     // @ts-ignore
     await until_ready(() => connection.isConnected, -1, 150);
     console.log('LSP:', this.document_path, 'connected.');
 
-    this.create_adapter(virtual_document, connection);
+    let adapter = this.create_adapter(virtual_document, connection);
+    this.adapters.set(virtual_document.id_path, adapter);
 
     this.document_connected.emit({
       document: virtual_document,
       connection: connection
     });
+
+    virtual_document.changed.connect(() => {
+      // TODO only send the difference, using connection.sendSelectiveChange()
+      connection.sendFullTextChange(virtual_document.value);
+      console.log(
+        'virtual document',
+        virtual_document.id_path,
+        'has changed sending for'
+      );
+      // guarantee that the virtual editor won't perform an update of the virtual documents while
+      // the changes are recorded...
+      // TODO this is not ideal - why it solves the problem of some errors,
+      //  it introduces an unnecessary delay. a better way could be to invalidate some of the updates when a new one comes in.
+      //  but maybe not every one (then the outdated state could be kept for too long fo a user who writes very quickly)
+      //  also we would not want to invalidate the updates for the purpose of autocompletion (the trigger characters)
+      this.virtual_editor
+        .with_update_lock(async () => {
+          await adapter.updateAfterChange();
+        })
+        .then();
+    });
+
+    await this.virtual_editor.update_documents().then(() => {
+      console.log(
+        'LSP: virtual document(s) for',
+        this.document_path,
+        'have been initialized'
+      );
+    });
+  }
+
+  /**
+   * Connect the change signal in order to update all virtual documents after a change.
+   *
+   * Update to the state of a notebook may be done without a notice on the CodeMirror level,
+   * e.g. when a cell is deleted. Therefore a JupyterLab-specific signals are watched instead.
+   *
+   * While by not using the change event of CodeMirror editors we loose an easy way to send selective,
+   * (range) updates this can be still implemented by comparison of before/after states of the
+   * virtual documents, which is even more resilient and -obviously - editor-independent.
+   */
+  connect_contentChanged_signal() {
+    this.widget.context.model.contentChanged.connect(
+      this.update_documents.bind(this)
+    );
   }
 
   handle_jump(locations: lsProtocol.Location[], language: string) {
+    // TODO: not language anymore
     let connection = this.connections.get(language);
 
     // TODO: implement selector for multiple locations
@@ -183,9 +239,9 @@ export abstract class JupyterLabWidgetAdapter {
 
   create_adapter(
     virtual_document: VirtualDocument,
-    connection: LspWsConnection
-  ) {
-    this.adapter = new CodeMirrorAdapterExtension(
+    connection: LSPConnection
+  ): CodeMirrorAdapterExtension {
+    let adapter = new CodeMirrorAdapterExtension(
       connection,
       { quickSuggestionsDelay: 50 },
       this.virtual_editor,
@@ -194,6 +250,17 @@ export abstract class JupyterLabWidgetAdapter {
       virtual_document
     );
     console.log('LSP: Adapter for', this.document_path, 'is ready.');
+    return adapter;
+  }
+
+  update_documents(slot: any) {
+    // update the virtual documents (sending the updates to LSP is out of scope here)
+    this.virtual_editor.update_documents().then(() => {
+      for (let adapter of this.adapters.values()) {
+        // force clean old changes cached in the adapters
+        adapter.invalidateLastChange();
+      }
+    });
   }
 
   get_doc_position_from_context_menu(): IPosition {

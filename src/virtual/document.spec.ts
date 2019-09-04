@@ -1,14 +1,49 @@
 import { expect } from 'chai';
 import { RegExpForeignCodeExtractor } from '../extractors/regexp';
-import { VirtualDocument } from './document';
+import { is_within_range, VirtualDocument } from './document';
 import CodeMirror = require('codemirror');
 import { ISourcePosition, IVirtualPosition } from '../positioning';
+import { CodeEditor } from '@jupyterlab/codeeditor';
 
 let R_LINE_MAGICS = `%R df = data.frame()
 print("df created")
 %R ggplot(df)
 print("plotted")
 `;
+
+describe('is_within_range', () => {
+  let line_range: CodeEditor.IRange = {
+    start: { line: 1, column: 0 },
+    end: { line: 1, column: 10 }
+  };
+  let long_range: CodeEditor.IRange = {
+    start: { line: 0, column: 3 },
+    end: { line: 1, column: 0 }
+  };
+  it('recognizes positions within range in a single-line case', () => {
+    expect(is_within_range({ line: 1, column: 0 }, line_range)).to.equal(true);
+    expect(is_within_range({ line: 1, column: 5 }, line_range)).to.equal(true);
+    expect(is_within_range({ line: 1, column: 10 }, line_range)).to.equal(true);
+  });
+
+  it('recognizes positions outside of range in a single-line case', () => {
+    expect(is_within_range({ line: 0, column: 0 }, line_range)).to.equal(false);
+    expect(is_within_range({ line: 2, column: 0 }, line_range)).to.equal(false);
+  });
+
+  it('recognizes positions within range in multi-line case', () => {
+    expect(is_within_range({ line: 0, column: 3 }, long_range)).to.equal(true);
+    expect(is_within_range({ line: 0, column: 5 }, long_range)).to.equal(true);
+    expect(is_within_range({ line: 1, column: 0 }, long_range)).to.equal(true);
+  });
+
+  it('recognizes positions outside of range in multi-line case', () => {
+    expect(is_within_range({ line: 0, column: 0 }, long_range)).to.equal(false);
+    expect(is_within_range({ line: 0, column: 1 }, long_range)).to.equal(false);
+    expect(is_within_range({ line: 0, column: 2 }, long_range)).to.equal(false);
+    expect(is_within_range({ line: 1, column: 1 }, long_range)).to.equal(false);
+  });
+});
 
 describe('VirtualDocument', () => {
   let r_line_extractor_removing = new RegExpForeignCodeExtractor({

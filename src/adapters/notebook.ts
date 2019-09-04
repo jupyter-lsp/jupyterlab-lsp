@@ -27,8 +27,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     completion_manager: ICompletionManager,
     rendermime_registry: IRenderMimeRegistry
   ) {
-    super(app, rendermime_registry, 'completer:invoke-notebook');
-    this.widget = editor_widget;
+    super(app, editor_widget, rendermime_registry, 'completer:invoke-notebook');
     this.editor = editor_widget.content;
     this.completion_manager = completion_manager;
     this.jumper = jumper;
@@ -74,21 +73,12 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       this.document_path
     );
 
-    this.connect(this.virtual_editor.virtual_document);
-
-    // refresh server held state after every change
-    // note this may be changed soon: https://github.com/jupyterlab/jupyterlab/issues/5382#issuecomment-515643504
-    this.widget.model.contentChanged.connect(
-      this.refresh_lsp_notebook_image.bind(this)
-    );
-
-    // and refresh it after the cell was activated, just to make sure that the first experience is ok
-    this.widget.content.activeCellChanged.connect(
-      this.refresh_lsp_notebook_image.bind(this)
-    );
-
     // register completion connectors on cells
-    this.document_connected.connect(() => this.connect_completion() );
+    this.document_connected.connect(() => this.connect_completion());
+
+    this.connect(this.virtual_editor.virtual_document).then();
+
+    this.connect_contentChanged_signal();
   }
 
   async connect(virtual_document: VirtualDocument): Promise<void> {
@@ -120,10 +110,5 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       handler.editor = cell.editor;
       handler.connector = connector;
     });
-  }
-
-  refresh_lsp_notebook_image(slot: any) {
-    // TODO this is fired too often currently, debounce!
-    this.main_connection.sendChange();
   }
 }

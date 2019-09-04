@@ -1,12 +1,8 @@
 export import CodeMirror = require('codemirror');
-import {
-  CodeMirrorAdapter,
-  ILspConnection,
-  ITextEditorOptions
-} from 'lsp-editor-adapter';
+import { CodeMirrorAdapter, ITextEditorOptions } from 'lsp-editor-adapter';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { FreeTooltip } from '../free_tooltip';
-import { DefaultMap, getModifierState } from '../utils';
+import { DefaultMap, getModifierState, until_ready } from '../utils';
 import { PositionConverter } from '../converter';
 import { diagnosticSeverityNames } from '../lsp';
 import { VirtualEditor } from '../virtual/editor';
@@ -17,6 +13,7 @@ import {
   IRootPosition,
   IVirtualPosition
 } from '../positioning';
+import { LSPConnection } from '../connection';
 
 export type KeyModifier = 'Alt' | 'Control' | 'Shift' | 'Meta' | 'AltGraph';
 // TODO: settings
@@ -39,9 +36,11 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   invoke_completer: Function;
   private unique_editor_ids: DefaultMap<CodeMirror.Editor, number>;
   private signature_character: IRootPosition;
+  public connection: LSPConnection;
+  private last_change: CodeMirror.EditorChange;
 
   constructor(
-    connection: ILspConnection,
+    connection: LSPConnection,
     options: ITextEditorOptions,
     editor: VirtualEditor,
     create_tooltip: (
@@ -91,7 +90,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     this.editor.off('change', listeners.changeListener);
     // due to an unknown reason the default listener (as defined in the base class) is not invoked on file editors
     // the workaround - setting it at doc instead - works, thus the original one is first disabled (above) and a new
-    // one is added (below); this however can have devastating effect on the editor synchronization - be careful
+    // one is added (below); this however can have devastating effect on the editor synchronization - be careful!
     CodeMirror.on(this.editor.getDoc(), 'change', (doc, change) => {
       this.handleChange(this.editor, change);
     });
@@ -268,15 +267,20 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     this._tooltip = this.create_tooltip(markup, cm_editor, editor_position);
   }
 
-  public handleChange(cm: CodeMirror.Editor, change: CodeMirror.EditorChange) {
+  public async updateAfterChange() {
     this.remove_tooltip();
+    await until_ready(() => this.last_change != null, 20, 25).catch(() => {
+      this.invalidateLastChange();
+      throw Error(
+        'No change obtained from CodeMirror editor within the expected time of 0.5s'
+      );
+    });
+    let change: CodeMirror.EditorChange = this.last_change;
 
     try {
       const root_position = this.editor
         .getDoc()
         .getCursor('end') as IRootPosition;
-
-      this.connection.sendChange();
 
       let document = this.editor.document_at_root_position(root_position);
 
@@ -310,9 +314,20 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       }
       return true;
     } catch (e) {
-      console.log('handleChange failure - silent as to prevent editor going out of sync');
+      console.log(
+        'handleChange failure - silent as to prevent editor going out of sync'
+      );
       console.error(e);
     }
+    this.invalidateLastChange();
+  }
+
+  public invalidateLastChange() {
+    this.last_change = null;
+  }
+
+  public handleChange(cm: CodeMirror.Editor, change: CodeMirror.EditorChange) {
+    this.last_change = change;
   }
 
   protected highlight_range(range: lsProtocol.Range, class_name: string) {
@@ -357,9 +372,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       start_in_editor = this.editor.root_position_to_editor_position(
         start_in_root
       );
-      end_in_editor = this.editor.root_position_to_editor_position(
-        end_in_root
-      );
+      end_in_editor = this.editor.root_position_to_editor_position(end_in_root);
     }
 
     // @ts-ignore
@@ -402,7 +415,9 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     let token = this.editor.getTokenAt(root_position);
 
     let document = this.editor.document_at_root_position(root_position);
-    let virtual_position = this.editor.root_position_to_virtual_position(root_position);
+    let virtual_position = this.editor.root_position_to_virtual_position(
+      root_position
+    );
 
     if (
       this.is_token_empty(token) ||
@@ -492,139 +507,142 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
   public handleDiagnostic(response: lsProtocol.PublishDiagnosticsParams) {
     /* TODO: gutters */
+    try {
+      // Note: no deep equal for Sets or Maps in JS
+      const markers_to_retain: Set<string> = new Set<string>();
 
-    // Note: no deep equal for Sets or Maps in JS
-    const markers_to_retain: Set<string> = new Set<string>();
+      // add new markers, keep track of the added ones
 
-    // add new markers, keep track of the added ones
+      // TODO: test for diagnostic messages not being over-writen
+      //  test case: from statistics import mean, bisect_left
+      //  and do not use either; expected: title has "mean imported but unused; bisect_left imported and unused'
+      // TODO: test case for severity class always being set, even if diagnostic has no severity
 
-    // from virtual to notebook
+      let diagnostics_by_range = this.collapse_overlapping_diagnostics(
+        response.diagnostics
+      );
 
-    // TODO: test for diagnostic messages not being over-writen
-    //  test case: from statistics import mean, bisect_left
-    //  and do not use either; expected: title has "mean imported but unused; bisect_left imported and unused'
-    // TODO: test case for severity class always being set, even if diagnostic has no severity
-
-    let diagnostics_by_range = this.collapse_overlapping_diagnostics(
-      response.diagnostics
-    );
-
-    diagnostics_by_range.forEach(
-      (diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
-        const start = PositionConverter.lsp_to_cm(
-          range.start
-        ) as IVirtualPosition;
-        const end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
-        if (start.line > this.virtual_document.last_virtual_line) {
-          console.log(
-            'Malformed diagnostic was skipped (out of lines) ',
-            diagnostics
-          );
-          return;
-        }
-        // assuming that we got a response for this document
-        let start_in_root = this.transform_virtual_position_to_root_position(
-          start
-        );
-        let document = this.editor.document_at_root_position(start_in_root);
-
-        // TODO why do I get signals from the other connection in the first place?
-        //  A: because each virtual document adds listeners AND if the extracted content
-        //  is kept in the host document, it remains...
-        if (this.virtual_document !== document) {
-          console.log(
-            `Ignoring inspections from ${response.uri}`,
-            ` (this region is covered by a another virtual document: ${document.uri})`,
-            ` inspections: `,
-            diagnostics
-          );
-          return;
-        }
-
-        if (
-          document.virtual_lines
-            .get(start.line)
-            .skip_inspect.indexOf(document.id_path) !== -1
-        ) {
-          console.log(
-            'Ignoring inspections silenced for this document:',
-            diagnostics
-          );
-          return;
-        }
-
-        let highest_severity_code = diagnostics
-          .map(diagnostic => diagnostic.severity || default_severity)
-          .sort()[0];
-
-        const severity = diagnosticSeverityNames[highest_severity_code];
-
-        let cm_editor = document.get_editor_at_virtual_line(start);
-
-        let start_in_editor = document.transform_virtual_to_editor(start);
-        let end_in_editor = document.transform_virtual_to_editor(end);
-        // what a pity there is no hash in the standard library...
-        // we could use this: https://stackoverflow.com/a/7616484 though it may not be worth it:
-        //   the stringified diagnostic objects are only about 100-200 JS characters anyway,
-        //   depending on the message length; this could be reduced using some structure-aware
-        //   stringifier; such a stringifier could also prevent the possibility of having a false
-        //   negative due to a different ordering of keys
-        // obviously, the hash would prevent recovery of info from the key.
-        let diagnostic_hash = JSON.stringify({
-          // diagnostics without ranges
-          diagnostics: diagnostics.map(diagnostic => [
-            diagnostic.severity,
-            diagnostic.message,
-            diagnostic.code,
-            diagnostic.source,
-            diagnostic.relatedInformation
-          ]),
-          // the apparent marker position will change in the notebook with every line change for each marker
-          // after the (inserted/removed) line - but such markers should not be invalidated,
-          // i.e. the invalidation should be performed in the cell space, not in the notebook coordinate space,
-          // thus we transform the coordinates and keep the cell id in the hash
-          range: {
-            start: start_in_editor,
-            end: end_in_editor
-          },
-          editor: this.unique_editor_ids.get(cm_editor)
-        });
-        markers_to_retain.add(diagnostic_hash);
-
-        if (!this.marked_diagnostics.has(diagnostic_hash)) {
-          let options: CodeMirror.TextMarkerOptions = {
-            title: diagnostics
-              .map(d => d.message + (d.source ? ' (' + d.source + ')' : ''))
-              .join('\n'),
-            className: 'cm-lsp-diagnostic cm-lsp-diagnostic-' + severity
-          };
-          let marker;
-          try {
-            marker = cm_editor
-              .getDoc()
-              .markText(start_in_editor, end_in_editor, options);
-          } catch (e) {
-            console.warn(
-              'Marking inspection (diagnostic text) failed, see following logs (2):'
+      diagnostics_by_range.forEach(
+        (diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
+          const start = PositionConverter.lsp_to_cm(
+            range.start
+          ) as IVirtualPosition;
+          const end = PositionConverter.lsp_to_cm(
+            range.end
+          ) as IVirtualPosition;
+          if (start.line > this.virtual_document.last_virtual_line) {
+            console.log(
+              'Malformed diagnostic was skipped (out of lines) ',
+              diagnostics
             );
-            console.log(diagnostics);
-            console.log(e);
             return;
           }
-          this.marked_diagnostics.set(diagnostic_hash, marker);
-        }
-      }
-    );
+          // assuming that we got a response for this document
+          let start_in_root = this.transform_virtual_position_to_root_position(
+            start
+          );
+          let document = this.editor.document_at_root_position(start_in_root);
 
-    // remove the markers which were not included in the new message
-    this.marked_diagnostics.forEach(
-      (marker: CodeMirror.TextMarker, diagnostic_hash: string) => {
-        if (!markers_to_retain.has(diagnostic_hash)) {
-          this.marked_diagnostics.delete(diagnostic_hash);
-          marker.clear();
+          // TODO why do I get signals from the other connection in the first place?
+          //  A: because each virtual document adds listeners AND if the extracted content
+          //  is kept in the host document, it remains...
+          if (this.virtual_document !== document) {
+            console.log(
+              `Ignoring inspections from ${response.uri}`,
+              ` (this region is covered by a another virtual document: ${document.uri})`,
+              ` inspections: `,
+              diagnostics
+            );
+            return;
+          }
+
+          if (
+            document.virtual_lines
+              .get(start.line)
+              .skip_inspect.indexOf(document.id_path) !== -1
+          ) {
+            console.log(
+              'Ignoring inspections silenced for this document:',
+              diagnostics
+            );
+            return;
+          }
+
+          let highest_severity_code = diagnostics
+            .map(diagnostic => diagnostic.severity || default_severity)
+            .sort()[0];
+
+          const severity = diagnosticSeverityNames[highest_severity_code];
+
+          let cm_editor = document.get_editor_at_virtual_line(start);
+
+          let start_in_editor = document.transform_virtual_to_editor(start);
+          let end_in_editor = document.transform_virtual_to_editor(end);
+          // what a pity there is no hash in the standard library...
+          // we could use this: https://stackoverflow.com/a/7616484 though it may not be worth it:
+          //   the stringified diagnostic objects are only about 100-200 JS characters anyway,
+          //   depending on the message length; this could be reduced using some structure-aware
+          //   stringifier; such a stringifier could also prevent the possibility of having a false
+          //   negative due to a different ordering of keys
+          // obviously, the hash would prevent recovery of info from the key.
+          let diagnostic_hash = JSON.stringify({
+            // diagnostics without ranges
+            diagnostics: diagnostics.map(diagnostic => [
+              diagnostic.severity,
+              diagnostic.message,
+              diagnostic.code,
+              diagnostic.source,
+              diagnostic.relatedInformation
+            ]),
+            // the apparent marker position will change in the notebook with every line change for each marker
+            // after the (inserted/removed) line - but such markers should not be invalidated,
+            // i.e. the invalidation should be performed in the cell space, not in the notebook coordinate space,
+            // thus we transform the coordinates and keep the cell id in the hash
+            range: {
+              start: start_in_editor,
+              end: end_in_editor
+            },
+            editor: this.unique_editor_ids.get(cm_editor)
+          });
+          markers_to_retain.add(diagnostic_hash);
+
+          if (!this.marked_diagnostics.has(diagnostic_hash)) {
+            let options: CodeMirror.TextMarkerOptions = {
+              title: diagnostics
+                .map(d => d.message + (d.source ? ' (' + d.source + ')' : ''))
+                .join('\n'),
+              className: 'cm-lsp-diagnostic cm-lsp-diagnostic-' + severity
+            };
+            let marker;
+            try {
+              marker = cm_editor
+                .getDoc()
+                .markText(start_in_editor, end_in_editor, options);
+            } catch (e) {
+              console.warn(
+                'Marking inspection (diagnostic text) failed, see following logs (2):'
+              );
+              console.log(diagnostics);
+              console.log(e);
+              return;
+            }
+            this.marked_diagnostics.set(diagnostic_hash, marker);
+          }
         }
-      }
-    );
+      );
+
+      // remove the markers which were not included in the new message
+      this.marked_diagnostics.forEach(
+        (marker: CodeMirror.TextMarker, diagnostic_hash: string) => {
+          if (!markers_to_retain.has(diagnostic_hash)) {
+            this.marked_diagnostics.delete(diagnostic_hash);
+            marker.clear();
+          }
+        }
+      );
+    } catch (e) {
+      console.warn(e);
+    }
   }
 
   private transform_virtual_position_to_root_position(

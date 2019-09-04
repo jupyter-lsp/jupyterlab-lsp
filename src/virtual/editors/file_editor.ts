@@ -47,7 +47,7 @@ export class VirtualFileEditor extends VirtualEditor {
     return this.cm_editor;
   }
 
-  update_documents(): void {
+  protected perform_documents_update(): void {
     // it is sufficient to update the root document, all nested documents will follow (be re-generated)
     this.virtual_document.clear();
     this.virtual_document.append_code_block(

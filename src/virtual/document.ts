@@ -47,12 +47,13 @@ interface IForeignContext {
   parent_host: VirtualDocument;
 }
 
-function is_within_range(
+export function is_within_range(
   position: CodeEditor.IPosition,
   range: CodeEditor.IRange
 ): boolean {
   if (range.start.line === range.end.line) {
     return (
+      position.line === range.start.line &&
       position.column >= range.start.column &&
       position.column <= range.end.column
     );
@@ -120,10 +121,8 @@ export class VirtualDocument {
   // TODO: make this configurable, depending on the language used
   blank_lines_between_cells: number = 2;
   last_source_line: number;
-
-  /* Ideas
-  signal: on foreign document added
-   */
+  private previous_value: string;
+  public changed: Signal<VirtualDocument, VirtualDocument>;
 
   constructor(
     language: string,
@@ -160,6 +159,7 @@ export class VirtualDocument {
     this._remaining_lifetime = 10;
     this.foreign_document_closed = new Signal(this);
     this.foreign_document_opened = new Signal(this);
+    this.changed = new Signal(this);
     this.unused_documents = new Set();
     this.clear();
   }
@@ -254,7 +254,10 @@ export class VirtualDocument {
       column: position.ch
     };
 
-    for (let [range, {virtual_document: document}] of source_line.foreign_documents_map) {
+    for (let [
+      range,
+      { virtual_document: document }
+    ] of source_line.foreign_documents_map) {
       if (is_within_range(source_position_ce, range)) {
         let source_position_cm = {
           line: source_position_ce.line - range.start.line,
@@ -461,10 +464,6 @@ export class VirtualDocument {
 
   get value() {
     let lines_padding = '\n'.repeat(this.blank_lines_between_cells);
-    // TODO: require the editor to do this
-    // once all the foreign documents were refreshed, the unused documents (and their connections)
-    // should be terminated if their lifetime expired
-    this.close_expired_documents();
     return this.lines.join(lines_padding);
   }
 
@@ -478,7 +477,7 @@ export class VirtualDocument {
   }
 
   close_foreign(document: VirtualDocument) {
-    console.log('Closing document', document);
+    console.log('LSP: closing document', document);
     this.foreign_document_closed.emit({
       foreign_document: document,
       parent_host: this
@@ -554,6 +553,19 @@ export class VirtualDocument {
 
   get_editor_at_source_line(pos: CodeMirror.Position): CodeMirror.Editor {
     return this.source_lines.get(pos.line).editor;
+  }
+
+  /**
+   * Recursively emits changed signal from the document or any descendant foreign document.
+   */
+  maybe_emit_changed() {
+    if (this.value !== this.previous_value) {
+      this.changed.emit(this);
+    }
+    this.previous_value = this.value;
+    for (let document of this.foreign_documents.values()) {
+      document.maybe_emit_changed();
+    }
   }
 }
 

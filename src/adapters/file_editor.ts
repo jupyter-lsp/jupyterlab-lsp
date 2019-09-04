@@ -3,7 +3,6 @@ import { FileEditor } from '@jupyterlab/fileeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditorJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/fileeditor';
 import { CodeMirror } from './codemirror';
-import { LspWsConnection } from 'lsp-editor-adapter';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
@@ -11,11 +10,12 @@ import { ICompletionManager } from '@jupyterlab/completer';
 import { LSPConnector } from '../completion';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { VirtualFileEditor } from '../virtual/editors/file_editor';
+import { LSPConnection } from '../connection';
 
 export class FileEditorAdapter extends JupyterLabWidgetAdapter {
   editor: FileEditor;
   jumper: FileEditorJumper;
-  main_connection: LspWsConnection;
+  main_connection: LSPConnection;
   virtual_editor: VirtualFileEditor;
 
   get document_path() {
@@ -45,9 +45,8 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     completion_manager: ICompletionManager,
     rendermime_registry: IRenderMimeRegistry
   ) {
-    super(app, rendermime_registry, 'completer:invoke-file');
+    super(app, editor_widget, rendermime_registry, 'completer:invoke-file');
     this.jumper = jumper;
-    this.widget = editor_widget;
     this.editor = editor_widget.content;
 
     this.virtual_editor = new VirtualFileEditor(
@@ -57,6 +56,7 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     );
 
     this.connect(this.virtual_editor.virtual_document).then();
+    this.connect_contentChanged_signal();
 
     const connector = new LSPConnector({
       editor: this.editor.editor,

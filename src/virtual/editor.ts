@@ -8,6 +8,8 @@ import {
   ISourcePosition,
   IVirtualPosition
 } from '../positioning';
+import { until_ready } from '../utils';
+import { Signal } from '@phosphor/signaling';
 
 /**
  * VirtualEditor extends the CodeMirror.Editor interface; its subclasses may either
@@ -16,9 +18,15 @@ import {
  * virtual documents representing code in complex entities such as notebooks.
  */
 export abstract class VirtualEditor implements CodeMirror.Editor {
+  // TODO: getValue could be made private in the virtual editor and the virtual editor
+  //  could stop exposing the full implementation of CodeMirror but rather hide it inside.
   virtual_document: VirtualDocument;
   overrides_registry: IOverridesRegistry;
   code_extractors: IForeignCodeExtractorsRegistry;
+  /**
+   * Signal emitted by the editor that triggered the update, providing the root document of the updated documents.
+   */
+  private documents_updated: Signal<VirtualEditor, VirtualDocument>;
 
   public constructor(
     language: string,
@@ -33,6 +41,20 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
       foreign_code_extractors,
       false
     );
+    this.documents_updated = new Signal<VirtualEditor, VirtualDocument>(this);
+    this.documents_updated.connect(this.on_updated.bind(this));
+  }
+
+  /**
+   * Once all the foreign documents were refreshed, the unused documents (and their connections)
+   * should be terminated if their lifetime has expired.
+   */
+  on_updated(editor: VirtualEditor, root_document: VirtualDocument) {
+    try {
+      root_document.close_expired_documents();
+    } catch (e) {
+      console.warn('LSP: Failed to close expired documents');
+    }
   }
 
   abstract get_editor_index(position: IVirtualPosition): number;
@@ -48,7 +70,64 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
 
   abstract get_cm_editor(position: IRootPosition): CodeMirror.Editor;
 
-  abstract update_documents(): void;
+  /**
+   * Virtual documents update guard.
+   */
+  private is_update_in_progress: boolean = false;
+
+  private can_update() {
+    return !this.is_update_in_progress && !this.update_lock;
+  }
+
+  private update_lock: boolean = false;
+
+  /**
+   * Execute provided callback within an update-locked context, which guarantees that:
+   *  - the previous updates must have finished before the callback call, and
+   *  - no update will happen when executing the callback
+   * @param fn - the callback to execute in update lock
+   */
+  public async with_update_lock(fn: Function) {
+    await until_ready(() => this.can_update(), 10, 10).then(() => {
+      try {
+        this.update_lock = true;
+        fn();
+      } finally {
+        this.update_lock = false;
+      }
+    });
+  }
+
+  /**
+   * Update all the virtual documents, emit documents updated with root document if succeeded,
+   * and resolve a void promise. The promise does not contain the text value of the root document,
+   * as to avoid an easy trap of ignoring the changes in the virtual documents.
+   */
+  public async update_documents(): Promise<void> {
+    return new Promise<void>(async (resolve, reject) => {
+      // defer the update by up to 50 ms (10 retrials * 5 ms break),
+      // awaiting for the previous update to complete.
+      await until_ready(() => this.can_update(), 10, 5).then(() => {
+        try {
+          this.is_update_in_progress = true;
+          this.perform_documents_update();
+          this.documents_updated.emit(this.virtual_document);
+          this.virtual_document.maybe_emit_changed();
+          resolve();
+        } catch (e) {
+          console.warn('Documents update failed:', e);
+          reject(e);
+        } finally {
+          this.is_update_in_progress = false;
+        }
+      });
+    });
+  }
+
+  /**
+   * Actual implementation of the update action.
+   */
+  protected abstract perform_documents_update(): void;
 
   abstract addEventListener(
     type: string,

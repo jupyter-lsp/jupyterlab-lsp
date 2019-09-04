@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { CodeMirrorAdapterExtension } from './codemirror';
-import { LspWsConnection } from 'lsp-editor-adapter';
 import { VirtualFileEditor } from '../virtual/editors/file_editor';
 import {
   CodeMirrorEditor,
@@ -8,6 +7,7 @@ import {
 } from '@jupyterlab/codemirror';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { TextMarker } from 'codemirror';
+import { LSPConnection } from '../connection';
 
 describe('CodeMirrorAdapterExtension', () => {
   const factoryService = new CodeMirrorEditorFactory();
@@ -34,7 +34,7 @@ describe('CodeMirrorAdapterExtension', () => {
     let adapter: CodeMirrorAdapterExtension;
 
     beforeEach(() => {
-      let connection = new LspWsConnection({
+      let connection = new LSPConnection({
         languageId: 'python',
         serverUri: '',
         documentUri: '/x.py',
@@ -59,9 +59,9 @@ describe('CodeMirrorAdapterExtension', () => {
       );
     });
 
-    it('renders inspections', () => {
+    it('renders inspections', async () => {
       ce_editor.model.value.text = ' foo \n bar \n baz ';
-      virtual_editor.update_documents();
+      await virtual_editor.update_documents();
 
       let markers: TextMarker[];
 
@@ -83,6 +83,10 @@ describe('CodeMirrorAdapterExtension', () => {
 
       let marks = ce_editor.editor.getDoc().getAllMarks();
       expect(marks.length).to.equal(1);
+    });
+
+    it('updates on change', () => {
+
     });
   });
 });

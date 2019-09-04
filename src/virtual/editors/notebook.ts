@@ -284,7 +284,7 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     return this.virtual_document.get_editor_at_virtual_line(pos);
   }
 
-  update_documents(): void {
+  protected perform_documents_update(): void {
     this.virtual_document.clear();
     this.cell_to_corresponding_source_line.clear();
     this.cm_editor_to_cell.clear();
