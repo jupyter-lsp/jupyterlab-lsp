@@ -22,7 +22,7 @@ import { LSPConnection } from '../connection';
 import { LSPConnector } from '../completion';
 import { CompletionTriggerKind } from '../lsp';
 
-interface IDocumentConnectedData {
+interface IDocumentConnectionData {
   document: VirtualDocument;
   connection: LSPConnection;
 }
@@ -51,9 +51,10 @@ export abstract class JupyterLabWidgetAdapter {
   private readonly invoke_command: string;
   protected document_connected: Signal<
     JupyterLabWidgetAdapter,
-    IDocumentConnectedData
+    IDocumentConnectionData
   >;
   protected abstract current_completion_connector: LSPConnector;
+  private ignored_languages: Set<string>;
 
   protected constructor(
     app: JupyterFrontEnd,
@@ -68,6 +69,7 @@ export abstract class JupyterLabWidgetAdapter {
     this.documents = new Map();
     this.document_connected = new Signal(this);
     this.adapters = new Map();
+    this.ignored_languages = new Set();
     this.widget = widget;
   }
 
@@ -95,9 +97,94 @@ export abstract class JupyterLabWidgetAdapter {
     return this.connections.get(this.virtual_editor.virtual_document.id_path);
   }
 
-  async connect(virtual_document: VirtualDocument) {
+  private async retry_to_connect(
+    virtual_document: VirtualDocument,
+    reconnect_delay: number,
+    retrials_left = -1
+  ): Promise<IDocumentConnectionData> {
+    if (this.ignored_languages.has(virtual_document.language)) {
+      throw Error(
+        'Cancelling further attempts to connect ' +
+          virtual_document.id_path +
+          ' and other documents for this language (no support from the server)'
+      );
+    }
+
+    let data: IDocumentConnectionData | null;
+
+    let connect = () => {
+      this.connect_socket_then_lsp(virtual_document)
+        .then(d => {
+          data = d;
+        })
+        .catch(e => {
+          console.log(e);
+          data = null;
+        });
+    };
+    connect();
+
+    await until_ready(
+      () => {
+        if (data === null) {
+          connect();
+        }
+        return typeof data !== 'undefined' && data !== null;
+      },
+      retrials_left,
+      reconnect_delay * 1000,
+      // gradually increase the time delay, up to 5 sec
+      interval => {
+        interval = interval < 5 * 1000 ? interval + 500 : interval;
+        console.log(
+          'LSP: will attempt to re-connect in ' + interval / 1000 + ' seconds'
+        );
+        return interval;
+      }
+    );
+
+    return new Promise<IDocumentConnectionData>(resolve => {
+      resolve(data);
+    });
+  }
+
+  protected async on_lsp_connected(data: IDocumentConnectionData) {
+    let { connection, document: virtual_document } = data;
+
+    connection.on('close', closed_manually => {
+      if (!closed_manually) {
+        console.warn('LSP: Connection unexpectedly closed or lost');
+        this.disconnect_adapter(virtual_document);
+        this.retry_to_connect(virtual_document, 0.5)
+          .then(data => {
+            this.on_lsp_connected(data);
+          })
+          .catch(console.warn);
+      }
+    });
+
+    await this.connect_adapter(data.document, data.connection);
+    this.document_connected.emit(data);
+
+    await this.virtual_editor.update_documents().then(() => {
+      // refresh the document on the LSP server
+      this.document_changed(virtual_document);
+      console.log(
+        'LSP: virtual document(s) for',
+        this.document_path,
+        'have been initialized'
+      );
+    });
+
+  }
+
+  protected async connect_document(virtual_document: VirtualDocument) {
     virtual_document.foreign_document_opened.connect((host, context) => {
-      this.connect(context.foreign_document);
+      console.log(
+        'LSP: Connecting foreign document: ',
+        context.foreign_document.id_path
+      );
+      this.connect_document(context.foreign_document);
     });
     virtual_document.foreign_document_closed.connect(
       (host, { foreign_document }) => {
@@ -106,11 +193,75 @@ export abstract class JupyterLabWidgetAdapter {
         this.documents.delete(foreign_document.id_path);
       }
     );
+    virtual_document.changed.connect(this.document_changed.bind(this));
+    this.documents.set(virtual_document.id_path, virtual_document);
 
+    await this.connect_socket_then_lsp(virtual_document)
+      .then(this.on_lsp_connected.bind(this))
+      .catch(e => {
+        console.warn(e);
+        this.retry_to_connect(virtual_document, 1)
+          .then(this.on_lsp_connected.bind(this))
+          .catch(console.warn);
+      });
+  }
+
+  document_changed(virtual_document: VirtualDocument) {
+    // TODO only send the difference, using connection.sendSelectiveChange()
+    let connection = this.connections.get(virtual_document.id_path);
+    let adapter = this.adapters.get(virtual_document.id_path);
+
+    if (typeof connection === 'undefined' || typeof adapter === 'undefined') {
+      console.log(
+        'LSP: Skipping document update signal - connection or adapter not ready yet'
+      );
+      return;
+    }
+
+    console.log(
+      'LSP: virtual document',
+      virtual_document.id_path,
+      'has changed sending update'
+    );
+    connection.sendFullTextChange(virtual_document.value);
+    // guarantee that the virtual editor won't perform an update of the virtual documents while
+    // the changes are recorded...
+    // TODO this is not ideal - why it solves the problem of some errors,
+    //  it introduces an unnecessary delay. a better way could be to invalidate some of the updates when a new one comes in.
+    //  but maybe not every one (then the outdated state could be kept for too long fo a user who writes very quickly)
+    //  also we would not want to invalidate the updates for the purpose of autocompletion (the trigger characters)
+    this.virtual_editor
+      .with_update_lock(async () => {
+        await adapter.updateAfterChange();
+      })
+      .then();
+  }
+
+  private async connect_adapter(
+    virtual_document: VirtualDocument,
+    connection: LSPConnection
+  ) {
+    let adapter = this.create_adapter(virtual_document, connection);
+    this.adapters.set(virtual_document.id_path, adapter);
+  }
+
+  private disconnect_adapter(virtual_document: VirtualDocument) {
+    let adapter = this.adapters.get(virtual_document.id_path);
+    this.adapters.delete(virtual_document.id_path);
+    if (typeof adapter !== 'undefined') {
+      adapter.remove();
+    }
+  }
+
+  private async connect_socket_then_lsp(
+    virtual_document: VirtualDocument
+  ): Promise<IDocumentConnectionData> {
     let language = virtual_document.language;
     console.log(
       `LSP: will connect using root path: ${this.root_path} and language: ${language}`
     );
+    let socket = new WebSocket('ws://localhost:3000/' + language);
+
     let connection = new LSPConnection({
       serverUri: 'ws://localhost/' + language,
       languageId: language,
@@ -127,56 +278,53 @@ export abstract class JupyterLabWidgetAdapter {
         }
         return virtual_document.value;
       }
-    }).connect(new WebSocket('ws://localhost:3000/' + language));
+    }).connect(socket);
 
-    // @ts-ignore
     connection.on('goTo', locations =>
       this.handle_jump(locations, virtual_document.id_path)
     );
+    connection.on('error', e => {
+      let error: Error = e.length && e.length >= 1 ? e[0] : new Error();
+      // TODO: those code may be specific to my proxy client, need to investigate
+      if (error.message.indexOf('code = 1005') !== -1) {
+        console.warn('LSP: Connection failed for ' + virtual_document.id_path);
+        console.log('LSP: disconnecting ' + virtual_document.id_path);
+        this.disconnect_adapter(virtual_document);
+        this.ignored_languages.add(virtual_document.language);
+      } else if (error.message.indexOf('code = 1006') !== -1) {
+        console.warn(
+          'LSP: Connection closed by the server ' + virtual_document.id_path
+        );
+      } else {
+        console.error(
+          'LSP: Connection error of ' + virtual_document.id_path + ':',
+          e
+        );
+      }
+    });
+
     this.connections.set(virtual_document.id_path, connection);
-    this.documents.set(virtual_document.id_path, virtual_document);
 
-    // TODO use Pool instead?
-    // @ts-ignore
-    await until_ready(() => connection.isConnected, -1, 150);
-    console.log('LSP:', this.document_path, 'connected.');
-
-    let adapter = this.create_adapter(virtual_document, connection);
-    this.adapters.set(virtual_document.id_path, adapter);
-
-    this.document_connected.emit({
-      document: virtual_document,
-      connection: connection
+    await until_ready(
+      () => {
+        // @ts-ignore
+        return connection.isConnected;
+      },
+      50,
+      50
+    ).catch(() => {
+      throw Error('LSP: Connect timed out for ' + virtual_document.id_path);
     });
-
-    virtual_document.changed.connect(() => {
-      // TODO only send the difference, using connection.sendSelectiveChange()
-      connection.sendFullTextChange(virtual_document.value);
-      console.log(
-        'virtual document',
-        virtual_document.id_path,
-        'has changed sending for'
-      );
-      // guarantee that the virtual editor won't perform an update of the virtual documents while
-      // the changes are recorded...
-      // TODO this is not ideal - why it solves the problem of some errors,
-      //  it introduces an unnecessary delay. a better way could be to invalidate some of the updates when a new one comes in.
-      //  but maybe not every one (then the outdated state could be kept for too long fo a user who writes very quickly)
-      //  also we would not want to invalidate the updates for the purpose of autocompletion (the trigger characters)
-      this.virtual_editor
-        .with_update_lock(async () => {
-          await adapter.updateAfterChange();
-        })
-        .then();
-    });
-
-    await this.virtual_editor.update_documents().then(() => {
-      console.log(
-        'LSP: virtual document(s) for',
-        this.document_path,
-        'have been initialized'
-      );
-    });
+    console.log(
+      'LSP:',
+      this.document_path,
+      virtual_document.id_path,
+      'connected.'
+    );
+    return {
+      connection,
+      document: virtual_document
+    };
   }
 
   /**

@@ -11,19 +11,17 @@ export function until_ready(
   is_ready: any,
   max_retrials: number = 35,
   interval = 50,
-  verbose = false
+  interval_modifier = (i: number) => i
 ) {
   return new Promise(async (resolve, reject) => {
     let i = 0;
     while (is_ready() !== true) {
       i += 1;
-      if (max_retrials != -1 && i > max_retrials) {
+      if (max_retrials !== -1 && i > max_retrials) {
         reject('Too many retrials');
         break;
       }
-      if (verbose) {
-        console.log('waiting');
-      }
+      interval = interval_modifier(interval);
       await sleep(interval);
     }
     resolve(is_ready);

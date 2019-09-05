@@ -10,6 +10,7 @@ import {
   LspWsConnection
 } from 'lsp-editor-adapter';
 import { CompletionTriggerKind } from './lsp';
+import { until_ready } from './utils';
 
 interface ILSPOptions extends ILspOptions {}
 
@@ -26,6 +27,39 @@ export class LSPConnection extends LspWsConnection {
 
   public sendFullTextChange(text: string): void {
     this._sendChange([{ text }]);
+  }
+
+  public connect(socket: WebSocket): this {
+    super.connect(socket);
+
+    until_ready(() => {
+      // @ts-ignore
+      return this.isConnected;
+    }, -1)
+      .then(() => {
+        // @ts-ignore
+        let connection = this.connection;
+        connection.onClose(() => {
+          // @ts-ignore
+          this.isConnected = false;
+          this.emit('close', this.closing_manually);
+        });
+      })
+      .catch(() => {
+        console.error('Could not connect onClose signal');
+      });
+    return this;
+  }
+
+  private closing_manually = false;
+
+  public close() {
+    try {
+      this.closing_manually = true;
+      super.close();
+    } catch (e) {
+      this.closing_manually = false;
+    }
   }
 
   private _sendChange(
