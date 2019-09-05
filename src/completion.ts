@@ -6,10 +6,9 @@ import {
   CompletionConnector
 } from '@jupyterlab/completer';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { LspWsConnection } from 'lsp-editor-adapter';
 import { ReadonlyJSONObject } from '@phosphor/coreutils';
 import { completionItemKindNames, CompletionTriggerKind } from './lsp';
-import { until_ready } from './utils';
+import * as lsProtocol from 'vscode-languageserver-protocol';
 import { PositionConverter } from './converter';
 import { IClientSession } from '@jupyterlab/apputils';
 import { VirtualDocument } from './virtual/document';
@@ -20,6 +19,7 @@ import {
   IRootPosition,
   IVirtualPosition
 } from './positioning';
+import { LSPConnection } from './connection';
 
 /*
 Feedback: anchor - not clear from docs
@@ -35,7 +35,7 @@ export class LSPConnector extends DataConnector<
   CompletionHandler.IRequest
 > {
   private readonly _editor: CodeEditor.IEditor;
-  private readonly _connections: Map<VirtualDocument.id_path, LspWsConnection>;
+  private readonly _connections: Map<VirtualDocument.id_path, LSPConnection>;
   private _context_connector: ContextConnector;
   private _kernel_connector: KernelConnector;
   private _kernel_and_context_connector: CompletionConnector;
@@ -96,7 +96,7 @@ export class LSPConnector extends DataConnector<
     const cursor = editor.getCursorPosition();
     const token = editor.getTokenForPosition(cursor);
 
-    if (this.suppress_auto_invoke_in.indexOf(token.type)) {
+    if (this.suppress_auto_invoke_in.indexOf(token.type) !== -1) {
       console.log('Suppressing completer auto-invoke in', token.type);
       return;
     }
@@ -115,9 +115,15 @@ export class LSPConnector extends DataConnector<
     // find document for position
     let document = virtual_editor.document_at_root_position(start_in_root);
 
-    let virtual_start = virtual_editor.root_position_to_virtual_position(start_in_root);
-    let virtual_end = virtual_editor.root_position_to_virtual_position(end_in_root);
-    let virtual_cursor = virtual_editor.root_position_to_virtual_position(cursor_in_root);
+    let virtual_start = virtual_editor.root_position_to_virtual_position(
+      start_in_root
+    );
+    let virtual_end = virtual_editor.root_position_to_virtual_position(
+      end_in_root
+    );
+    let virtual_cursor = virtual_editor.root_position_to_virtual_position(
+      cursor_in_root
+    );
 
     try {
       if (
@@ -169,50 +175,34 @@ export class LSPConnector extends DataConnector<
   ): Promise<CompletionHandler.IReply> {
     let connection = this._connections.get(document.id_path);
 
-    let event: string;
-
     // nope - do not do this; we need to get the signature (yes)
     // but only in order to bump the priority of the parameters!
     // unfortunately there is no abstraction of scores exposed
     // to the matches...
     // Suggested in https://github.com/jupyterlab/jupyterlab/issues/7044, TODO PR
 
-    event = 'completion';
     console.log(token);
 
-    connection.getCompletion(
-      cursor,
-      {
-        start,
-        end,
-        text: token.value
-      },
-      typed_character,
-      this.trigger_kind
-    );
-    let result: any = { set: false };
-
-    // in Node v11.13.0, once() was added which would enable using native promises, see:
-    // https://nodejs.org/api/events.html#events_events_once_emitter_name
-    // but it has not been implemented in 'events':
-    // https://nodejs.org/api/events.html
-    // yet (as for today they match Node.js v10.1)
-    // There is an issue:
-    // https://github.com/Gozala/events/issues/63
-
-    // TODO: rewrite (now that I already inherit from connection
-    // TODO leaky leak ('MaxListenersExceededWarning'), IMO it only happens when the callback fails...
-    connection.once(event, (args: any) => {
-      result.value = args;
-      result.set = true;
-      return args;
-    });
-    await until_ready(() => result.set);
+    let completion_items: lsProtocol.CompletionItem[] = [];
+    await connection
+      .getCompletion(
+        cursor,
+        {
+          start,
+          end,
+          text: token.value
+        },
+        typed_character,
+        this.trigger_kind
+      )
+      .then(items => {
+        completion_items = items;
+      });
 
     let matches: Array<string> = [];
     const types: Array<IItemType> = [];
     let all_non_prefixed = true;
-    for (let match of result.value) {
+    for (let match of completion_items) {
       // there are more interesting things to be extracted and passed to the metadata:
       // detail: "__main__"
       // documentation: "mean(data)↵↵Return the sample arithmetic mean of data.↵↵>>> mean([1, 2, 3, 4, 4])↵2.8↵↵>>> from fractions import Fraction as F↵>>> mean([F(3, 7), F(1, 21), F(5, 3), F(1, 3)])↵Fraction(13, 21)↵↵>>> from decimal import Decimal as D↵>>> mean([D("0.5"), D("0.75"), D("0.625"), D("0.375")])↵Decimal('0.5625')↵↵If ``data`` is empty, StatisticsError will be raised."
@@ -366,7 +356,7 @@ export namespace LSPConnector {
     /**
      * The connections to be used by the LSP connector.
      */
-    connections: Map<VirtualDocument.id_path, LspWsConnection>;
+    connections: Map<VirtualDocument.id_path, LSPConnection>;
 
     session?: IClientSession;
   }
