@@ -269,10 +269,10 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
   public async updateAfterChange() {
     this.remove_tooltip();
-    await until_ready(() => this.last_change != null, 20, 25).catch(() => {
+    await until_ready(() => this.last_change != null, 30, 22).catch(() => {
       this.invalidateLastChange();
       throw Error(
-        'No change obtained from CodeMirror editor within the expected time of 0.5s'
+        'No change obtained from CodeMirror editor within the expected time of 0.66s'
       );
     });
     let change: CodeMirror.EditorChange = this.last_change;
@@ -301,6 +301,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
         last_character = change.text[0][0];
       }
 
+      // TODO: maybe the completer could be kicked off in the handleChange() method directly; signature help still
+      //  requires an up-to-date virtual document on the LSP side, so we need to wait for sync.
       if (this.completionCharacters.indexOf(last_character) > -1) {
         // TODO: pass info that we start from autocompletion (to avoid having . completion in comments etc)
         //  it seems that it has to be done with a flag on a global object :(
@@ -545,7 +547,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
 
           // TODO why do I get signals from the other connection in the first place?
           //  A: because each virtual document adds listeners AND if the extracted content
-          //  is kept in the host document, it remains...
+          //  is kept in the host document, it remains in the same editor.
           if (this.virtual_document !== document) {
             console.log(
               `Ignoring inspections from ${response.uri}`,
