@@ -4,7 +4,7 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 import { FreeTooltip } from '../free_tooltip';
 import { DefaultMap, getModifierState, until_ready } from '../utils';
 import { PositionConverter } from '../converter';
-import { diagnosticSeverityNames } from '../lsp';
+import { CompletionTriggerKind, diagnosticSeverityNames } from '../lsp';
 import { VirtualEditor } from '../virtual/editor';
 import { VirtualDocument } from '../virtual/document';
 import {
@@ -21,39 +21,32 @@ const hover_modifier: KeyModifier = 'Control';
 const default_severity = 2;
 
 export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
+  public connection: LSPConnection;
+  public editor: VirtualEditor;
+
   private marked_diagnostics: Map<string, CodeMirror.TextMarker> = new Map();
-  protected create_tooltip: (
-    markup: lsProtocol.MarkupContent,
-    cm_editor: CodeMirror.Editor,
-    position: IEditorPosition
-  ) => FreeTooltip;
   private _tooltip: FreeTooltip;
   private show_next_tooltip: boolean;
   private last_hover_response: lsProtocol.Hover;
   private last_hover_character: CodeMirror.Position;
-  editor: VirtualEditor;
 
-  invoke_completer: Function;
   private unique_editor_ids: DefaultMap<CodeMirror.Editor, number>;
   private signature_character: IRootPosition;
-  public connection: LSPConnection;
   private last_change: CodeMirror.EditorChange;
 
   constructor(
     connection: LSPConnection,
     options: ITextEditorOptions,
     editor: VirtualEditor,
-    create_tooltip: (
+    protected create_tooltip: (
       markup: lsProtocol.MarkupContent,
       cm_editor: CodeMirror.Editor,
       position: IEditorPosition
     ) => FreeTooltip,
-    invoke_completer: Function,
+    protected invoke_completer: (kind: CompletionTriggerKind) => void,
     private virtual_document: VirtualDocument
   ) {
     super(connection, options, editor);
-    this.create_tooltip = create_tooltip;
-    this.invoke_completer = invoke_completer;
     this.unique_editor_ids = new DefaultMap(() => this.unique_editor_ids.size);
 
     // @ts-ignore
@@ -306,7 +299,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       if (this.completionCharacters.indexOf(last_character) > -1) {
         // TODO: pass info that we start from autocompletion (to avoid having . completion in comments etc)
         //  it seems that it has to be done with a flag on a global object :(
-        this.invoke_completer();
+        this.invoke_completer(CompletionTriggerKind.TriggerCharacter);
       } else if (this.signatureCharacters.indexOf(last_character) > -1) {
         this.signature_character = root_position;
         let virtual_position = this.editor.root_position_to_virtual_position(

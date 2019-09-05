@@ -49,6 +49,14 @@ export function inverse_namespace(namespace: object): Record<number, string> {
  *
  * Why not simply import from lsProtocol?
  * Because this triggers some strange webpack issue as an additional package would need to be included.
+ * Interestingly, the same thing happens when using CompletionTriggerKind.Invoked from lsProtocol.
  */
 export const diagnosticSeverityNames = inverse_namespace(DiagnosticSeverity);
 export const completionItemKindNames = inverse_namespace(CompletionItemKind);
+
+export namespace CompletionTriggerKind {
+  export const Invoked = 1;
+  export const TriggerCharacter = 2;
+  export const TriggerForIncompleteCompletions = 3;
+}
+export type CompletionTriggerKind = 1 | 2 | 3;

@@ -8,7 +8,7 @@ import {
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { LspWsConnection } from 'lsp-editor-adapter';
 import { ReadonlyJSONObject } from '@phosphor/coreutils';
-import { completionItemKindNames } from './lsp';
+import { completionItemKindNames, CompletionTriggerKind } from './lsp';
 import { until_ready } from './utils';
 import { PositionConverter } from './converter';
 import { IClientSession } from '@jupyterlab/apputils';
@@ -36,17 +36,15 @@ export class LSPConnector extends DataConnector<
 > {
   private readonly _editor: CodeEditor.IEditor;
   private readonly _connections: Map<VirtualDocument.id_path, LspWsConnection>;
-  // completion characters do not belong here, but to "onChanged"
-  // private _completion_characters: DefaultMap<
-  //  VirtualDocument.id_path,
-  //  Array<string>
-  // >;
   private _context_connector: ContextConnector;
   private _kernel_connector: KernelConnector;
   private _kernel_and_context_connector: CompletionConnector;
   protected options: LSPConnector.IOptions;
 
   virtual_editor: VirtualEditor;
+  private trigger_kind: CompletionTriggerKind;
+  // TODO expose this in user settings
+  private suppress_auto_invoke_in = ['comment'];
 
   /**
    * Create a new LSP connector for completion requests.
@@ -97,6 +95,11 @@ export class LSPConnector extends DataConnector<
 
     const cursor = editor.getCursorPosition();
     const token = editor.getTokenForPosition(cursor);
+
+    if (this.suppress_auto_invoke_in.indexOf(token.type)) {
+      console.log('Suppressing completer auto-invoke in', token.type);
+      return;
+    }
 
     const start = editor.getPositionAt(token.offset);
     const end = editor.getPositionAt(token.offset + token.value.length);
@@ -166,11 +169,6 @@ export class LSPConnector extends DataConnector<
   ): Promise<CompletionHandler.IReply> {
     let connection = this._connections.get(document.id_path);
 
-    // without sendChange we (sometimes) get outdated suggestions
-    // TODO - remove?
-    //connection.sendChange();
-
-    // let request_completion: Function;
     let event: string;
 
     // nope - do not do this; we need to get the signature (yes)
@@ -189,8 +187,8 @@ export class LSPConnector extends DataConnector<
         end,
         text: token.value
       },
-      typed_character
-      // lsProtocol.CompletionTriggerKind.TriggerCharacter,
+      typed_character,
+      this.trigger_kind
     );
     let result: any = { set: false };
 
@@ -339,6 +337,16 @@ export class LSPConnector extends DataConnector<
         _jupyter_types_experimental: merged_types
       }
     };
+  }
+
+  with_trigger_kind(kind: CompletionTriggerKind, fn: Function) {
+    try {
+      this.trigger_kind = kind;
+      return fn();
+    } finally {
+      // Return to the default state
+      this.trigger_kind = CompletionTriggerKind.Invoked;
+    }
   }
 }
 

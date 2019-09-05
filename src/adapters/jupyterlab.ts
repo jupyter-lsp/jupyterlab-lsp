@@ -16,6 +16,8 @@ import { VirtualDocument} from '../virtual/document';
 import { Signal } from '@phosphor/signaling';
 import { IEditorPosition, IVirtualPosition } from '../positioning';
 import { LSPConnection } from '../connection';
+import { LSPConnector } from '../completion';
+import { CompletionTriggerKind } from '../lsp';
 
 interface IDocumentConnectedData {
   document: VirtualDocument;
@@ -41,6 +43,7 @@ export abstract class JupyterLabWidgetAdapter {
     JupyterLabWidgetAdapter,
     IDocumentConnectedData
   >;
+  protected abstract current_completion_connector: LSPConnector;
 
   protected constructor(
     app: JupyterFrontEnd,
@@ -72,8 +75,10 @@ export abstract class JupyterLabWidgetAdapter {
 
   abstract find_ce_editor(cm_editor: CodeMirror.Editor): CodeEditor.IEditor;
 
-  invoke_completer() {
-    return this.app.commands.execute(this.invoke_command);
+  invoke_completer(kind: CompletionTriggerKind) {
+    this.current_completion_connector.with_trigger_kind(kind, () => {
+      return this.app.commands.execute(this.invoke_command);
+    });
   }
 
   get main_connection(): LSPConnection {

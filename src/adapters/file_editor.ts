@@ -17,6 +17,7 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
   jumper: FileEditorJumper;
   main_connection: LSPConnection;
   virtual_editor: VirtualFileEditor;
+  protected current_completion_connector: LSPConnector;
 
   get document_path() {
     return this.widget.context.path;
@@ -58,13 +59,13 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     this.connect(this.virtual_editor.virtual_document).then();
     this.connect_contentChanged_signal();
 
-    const connector = new LSPConnector({
+    this.current_completion_connector = new LSPConnector({
       editor: this.editor.editor,
       connections: this.connections,
       virtual_editor: this.virtual_editor
     });
     completion_manager.register({
-      connector,
+      connector: this.current_completion_connector,
       editor: this.editor.editor,
       parent: editor_widget
     });

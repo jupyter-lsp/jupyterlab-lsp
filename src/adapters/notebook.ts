@@ -20,6 +20,8 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
   completion_manager: ICompletionManager;
   jumper: NotebookJumper;
 
+  protected current_completion_connector: LSPConnector;
+
   constructor(
     editor_widget: NotebookPanel,
     jumper: NotebookJumper,
@@ -88,19 +90,20 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
   connect_completion() {
     // see https://github.com/jupyterlab/jupyterlab/blob/c0e9eb94668832d1208ad3b00a9791ef181eca4c/packages/completer-extension/src/index.ts#L198-L213
     const cell = this.widget.content.activeCell;
-    const connector = new LSPConnector({
+    this.current_completion_connector = new LSPConnector({
       editor: cell.editor,
       connections: this.connections,
       virtual_editor: this.virtual_editor,
       session: this.widget.session
     });
     const handler = this.completion_manager.register({
-      connector,
+      connector: this.current_completion_connector,
       editor: cell.editor,
       parent: this.widget
     });
     this.widget.content.activeCellChanged.connect((notebook, cell) => {
-      const connector = new LSPConnector({
+      // TODO should those be cached? or the old ones disposed?
+      this.current_completion_connector = new LSPConnector({
         editor: cell.editor,
         connections: this.connections,
         virtual_editor: this.virtual_editor,
@@ -108,7 +111,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       });
 
       handler.editor = cell.editor;
-      handler.connector = connector;
+      handler.connector = this.current_completion_connector;
     });
   }
 }
