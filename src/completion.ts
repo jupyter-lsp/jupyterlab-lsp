@@ -44,7 +44,7 @@ export class LSPConnector extends DataConnector<
   virtual_editor: VirtualEditor;
   private trigger_kind: CompletionTriggerKind;
   // TODO expose this in user settings
-  private suppress_auto_invoke_in = ['comment'];
+  private suppress_auto_invoke_in = ['comment', 'string'];
 
   /**
    * Create a new LSP connector for completion requests.
