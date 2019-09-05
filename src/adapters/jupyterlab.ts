@@ -1,4 +1,3 @@
-import { IPosition } from 'lsp-editor-adapter';
 import { PathExt } from '@jupyterlab/coreutils';
 import { CodeMirror, CodeMirrorAdapterExtension } from './codemirror';
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -12,9 +11,13 @@ import { Widget } from '@phosphor/widgets';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { until_ready } from '../utils';
 import { VirtualEditor } from '../virtual/editor';
-import { VirtualDocument} from '../virtual/document';
+import { VirtualDocument } from '../virtual/document';
 import { Signal } from '@phosphor/signaling';
-import { IEditorPosition, IVirtualPosition } from '../positioning';
+import {
+  IEditorPosition,
+  IRootPosition,
+  IVirtualPosition
+} from '../positioning';
 import { LSPConnection } from '../connection';
 import { LSPConnector } from '../completion';
 import { CompletionTriggerKind } from '../lsp';
@@ -22,6 +25,13 @@ import { CompletionTriggerKind } from '../lsp';
 interface IDocumentConnectedData {
   document: VirtualDocument;
   connection: LSPConnection;
+}
+
+interface IContext {
+  document: VirtualDocument;
+  connection: LSPConnection;
+  virtual_position: IVirtualPosition;
+  root_position: IRootPosition;
 }
 
 /**
@@ -120,7 +130,9 @@ export abstract class JupyterLabWidgetAdapter {
     }).connect(new WebSocket('ws://localhost:3000/' + language));
 
     // @ts-ignore
-    connection.on('goTo', locations => this.handle_jump(locations, language));
+    connection.on('goTo', locations =>
+      this.handle_jump(locations, virtual_document.id_path)
+    );
     this.connections.set(virtual_document.id_path, connection);
     this.documents.set(virtual_document.id_path, virtual_document);
 
@@ -183,9 +195,8 @@ export abstract class JupyterLabWidgetAdapter {
     );
   }
 
-  handle_jump(locations: lsProtocol.Location[], language: string) {
-    // TODO: not language anymore
-    let connection = this.connections.get(language);
+  handle_jump(locations: lsProtocol.Location[], id_path: string) {
+    let connection = this.connections.get(id_path);
 
     // TODO: implement selector for multiple locations
     //  (like when there are multiple definitions or usages)
@@ -200,46 +211,58 @@ export abstract class JupyterLabWidgetAdapter {
     let uri: string = decodeURI(location.uri);
     let current_uri = connection.getDocumentUri();
 
-    let cm_position = PositionConverter.lsp_to_cm(
+    let virtual_position = PositionConverter.lsp_to_cm(
       location.range.start
     ) as IVirtualPosition;
-    let editor_index = this.virtual_editor.get_editor_index(cm_position);
-    let transformed_position = this.virtual_editor.transform_virtual_to_source(
-      cm_position
-    );
-    let transformed_ce_position = PositionConverter.cm_to_ce(
-      transformed_position
-    );
-
-    console.log(
-      `Jumping to ${transformed_position} in ${editor_index} editor of ${uri}`
-    );
 
     if (uri === current_uri) {
+      let editor_index = this.virtual_editor.get_editor_index(virtual_position);
+      // if in current file, transform from the position within virtual document to the editor position:
+      let editor_position = this.virtual_editor.transform_virtual_to_editor(
+        virtual_position
+      );
+      let editor_position_ce = PositionConverter.cm_to_ce(editor_position);
+      console.log(`Jumping to ${editor_index}th editor of ${uri}`);
+      console.log('Jump target within editor:', editor_position_ce);
       this.jumper.jump({
         token: {
-          offset: this.jumper.getOffset(transformed_ce_position, editor_index),
+          offset: this.jumper.getOffset(editor_position_ce, editor_index),
           value: ''
         },
         index: editor_index
       });
-      return;
-    }
+    } else {
+      // otherwise there is no virtual document and we expect the returned position to be source position:
+      let source_position_ce = PositionConverter.cm_to_ce(virtual_position);
+      console.log(`Jumping to external file: ${uri}`);
+      console.log('Jump target (source location):', source_position_ce);
 
-    if (uri.startsWith('file://')) {
-      uri = uri.slice(7);
-    }
+      if (uri.startsWith('file://')) {
+        uri = uri.slice(7);
+      }
 
-    this.jumper.global_jump(
-      {
-        // TODO: there are many files which are not symlinks
-        uri: '.lsp_symlink/' + uri,
-        editor_index: editor_index,
-        line: transformed_ce_position.line,
-        column: transformed_ce_position.column
-      },
-      true
-    );
+      let jump_data = {
+        editor_index: 0,
+        line: source_position_ce.line,
+        column: source_position_ce.column
+      };
+
+      // assume that we got a relative path to a file within the project
+      // TODO use is_relative() or something? It would need to be not only compatible
+      //  with different OSes but also with JupyterHub and other platforms.
+      this.jumper.document_manager.services.contents
+        .get(uri, { content: false })
+        .then(() => {
+          this.jumper.global_jump({ uri, ...jump_data }, false);
+        })
+        .catch(() => {
+          // fallback to an absolute location using a symlink (will only work if manually created)
+          this.jumper.global_jump(
+            { uri: '.lsp_symlink/' + uri, ...jump_data },
+            true
+          );
+        });
+    }
   }
 
   create_adapter(
@@ -268,7 +291,7 @@ export abstract class JupyterLabWidgetAdapter {
     });
   }
 
-  get_doc_position_from_context_menu(): IPosition {
+  get_position_from_context_menu(): IRootPosition {
     // get the first node as it gives the most accurate approximation
     let leaf_node = this.app.contextMenuHitTest(() => true);
 
@@ -290,7 +313,17 @@ export abstract class JupyterLabWidgetAdapter {
         top: top
       },
       'window'
+    ) as IRootPosition;
+  }
+
+  get_context_from_context_menu(): IContext {
+    let root_position = this.get_position_from_context_menu();
+    let document = this.virtual_editor.document_at_root_position(root_position);
+    let connection = this.connections.get(document.id_path);
+    let virtual_position = this.virtual_editor.root_position_to_virtual_position(
+      root_position
     );
+    return { document, connection, virtual_position, root_position };
   }
 
   protected create_tooltip(

@@ -59,9 +59,9 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
 
   abstract get_editor_index(position: IVirtualPosition): number;
 
-  abstract transform_virtual_to_source(
-    position: CodeMirror.Position
-  ): CodeMirror.Position;
+  transform_virtual_to_editor(position: IVirtualPosition): IEditorPosition {
+    return this.virtual_document.transform_virtual_to_editor(position);
+  }
 
   abstract transform_editor_to_root(
     cm_editor: CodeMirror.Editor,

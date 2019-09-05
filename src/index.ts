@@ -17,12 +17,13 @@ import 'codemirror/addon/hint/show-hint';
 import '../style/index.css';
 
 import 'lsp-editor-adapter/lib/codemirror-lsp.css';
-import { IPosition, LspWsConnection } from 'lsp-editor-adapter';
 import { ICompletionManager } from '@jupyterlab/completer';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { NotebookAdapter } from './adapters/notebook';
 import { FileEditorAdapter } from './adapters/file_editor';
 import { JupyterLabWidgetAdapter } from './adapters/jupyterlab';
+import { LSPConnection } from './connection';
+import { IVirtualPosition } from './positioning';
 
 const file_editor_adapters: Map<string, FileEditorAdapter> = new Map();
 const notebook_adapters: Map<string, NotebookAdapter> = new Map();
@@ -30,36 +31,36 @@ const notebook_adapters: Map<string, NotebookAdapter> = new Map();
 const lsp_commands = [
   {
     id: 'lsp_get_definition',
-    execute: (connection: LspWsConnection, position: IPosition) =>
+    execute: (connection: LSPConnection, position: IVirtualPosition) =>
       connection.getDefinition(position),
-    isEnabled: (connection: LspWsConnection) =>
+    isEnabled: (connection: LSPConnection) =>
       connection.isDefinitionSupported(),
     label: 'Jump to definition'
   },
   {
     id: 'lsp_get_type_definition',
-    execute: (connection: LspWsConnection, position: IPosition) =>
+    execute: (connection: LSPConnection, position: IVirtualPosition) =>
       connection.getTypeDefinition(position),
-    isEnabled: (connection: LspWsConnection) =>
+    isEnabled: (connection: LSPConnection) =>
       connection.isTypeDefinitionSupported(),
     label: 'Highlight type definition'
   },
   {
     id: 'lsp_get_references',
-    execute: (connection: LspWsConnection, position: IPosition) =>
+    execute: (connection: LSPConnection, position: IVirtualPosition) =>
       connection.getReferences(position),
-    isEnabled: (connection: LspWsConnection) =>
+    isEnabled: (connection: LSPConnection) =>
       connection.isReferencesSupported(),
     label: 'Highlight references'
   }
 ];
 
 function is_context_menu_over_token(adapter: JupyterLabWidgetAdapter) {
-  let docPosition = adapter.get_doc_position_from_context_menu();
-  if (!docPosition) {
+  let position = adapter.get_position_from_context_menu();
+  if (!position) {
     return false;
   }
-  let token = adapter.virtual_editor.getTokenAt(docPosition);
+  let token = adapter.virtual_editor.getTokenAt(position);
   return token.string !== '';
 }
 
@@ -122,15 +123,16 @@ const plugin: JupyterFrontEndPlugin<void> = {
         execute: () => {
           let fileEditor = fileEditorTracker.currentWidget.content;
           let adapter = file_editor_adapters.get(fileEditor.id);
-          let docPosition = adapter.get_doc_position_from_context_menu();
-          cmd.execute(adapter.main_connection, docPosition);
+          let context = adapter.get_context_from_context_menu();
+          cmd.execute(context.connection, context.virtual_position);
         },
         isEnabled: is_context_menu_over_file_editor_token,
         isVisible: () => {
           let fileEditor = fileEditorTracker.currentWidget.content;
           let adapter = file_editor_adapters.get(fileEditor.id);
+          let context = adapter.get_context_from_context_menu();
           return (
-            adapter && adapter.main_connection && cmd.isEnabled(adapter.main_connection)
+            adapter && context.connection && cmd.isEnabled(context.connection)
           );
         },
         label: cmd.label
@@ -180,15 +182,16 @@ const plugin: JupyterFrontEndPlugin<void> = {
         execute: () => {
           let notebook = notebookTracker.currentWidget;
           let adapter = notebook_adapters.get(notebook.id);
-          let docPosition = adapter.get_doc_position_from_context_menu();
-          cmd.execute(adapter.main_connection, docPosition);
+          let context = adapter.get_context_from_context_menu();
+          cmd.execute(context.connection, context.virtual_position);
         },
         isEnabled: is_context_menu_over_notebook_token,
         isVisible: () => {
           let notebook = notebookTracker.currentWidget;
           let adapter = notebook_adapters.get(notebook.id);
+          let context = adapter.get_context_from_context_menu();
           return (
-            adapter && adapter.main_connection && cmd.isEnabled(adapter.main_connection)
+            adapter && context.connection && cmd.isEnabled(context.connection)
           );
         },
         label: cmd.label
