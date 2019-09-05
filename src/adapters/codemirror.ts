@@ -297,8 +297,6 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       // TODO: maybe the completer could be kicked off in the handleChange() method directly; signature help still
       //  requires an up-to-date virtual document on the LSP side, so we need to wait for sync.
       if (this.completionCharacters.indexOf(last_character) > -1) {
-        // TODO: pass info that we start from autocompletion (to avoid having . completion in comments etc)
-        //  it seems that it has to be done with a flag on a global object :(
         this.invoke_completer(CompletionTriggerKind.TriggerCharacter);
       } else if (this.signatureCharacters.indexOf(last_character) > -1) {
         this.signature_character = root_position;
