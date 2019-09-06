@@ -40,11 +40,13 @@ Examples below are for Python, but it works as well for R:
 
   when a kernel is available the suggestions from the kernel (such as keys of a dict and columns of a DataFrame autocompletion) are merged with the suggestions from LSP (currently only in notebook).
 
+New in 0.5.0 (currently RC - please help testing if you can):
+- multiple LSP connections per notebook, e.g. SQL or R (using rpy2) embedded in Python notebook [(example)](https://github.com/krassowski/jupyterlab-lsp/blob/master/examples/Magics_and_rpy2.ipynb).
+
 ### Coming soon:
 
-- multiple LSP connections per notebook, e.g. SQL or R (using rpy2) embedded in Python notebook.
 - autocompleter with documentation and sorting based on LSP suggestions
-- unit tests
+- more unit tests
 - system of settings, including options:
   - to enable aggressive autocompletion (like in hinterland)
   - to change the verbosity of signature hints (whether to show documentation, number of lines to be shown)
@@ -135,6 +137,14 @@ To update already installed extension:
 
 ```bash
 jupyter labextension update @krassowski/jupyterlab-lsp
+```
+
+#### Getting the latest alpha/beta/RC version
+
+Use install command (update does not seem to work) appending `@version` to the extension name, like this: 
+
+```bash
+jupyter labextension install @krassowski/jupyterlab-lsp@0.5.0-rc.0
 ```
 
 ## Development

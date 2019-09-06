@@ -115,9 +115,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   protected hover_character: IRootPosition;
 
   public handleGoTo(locations: any) {
-    this.remove_tooltip();
-
     // do NOT handle GoTo actions here
+    this.remove_tooltip();
   }
 
   public handleCompletion(completions: lsProtocol.CompletionItem[]) {
@@ -218,21 +217,8 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   ): lsProtocol.MarkupContent {
     let signatures = new Array<string>();
 
-    response.signatures.forEach((item: lsProtocol.SignatureInformation) => {
-      let markdown = '```' + language + '\n' + item.label + '\n```';
-      if (item.documentation) {
-        markdown += '\n';
-        // TODO: make use of the MarkupContent object instead
-        for (let line of item.documentation.toString().split('\n')) {
-          if (line.trim() === item.label.trim()) {
-            continue;
-          }
-          if (line.startsWith('>>>')) {
-            line = '```' + language + '\n' + line.substr(3) + '\n```';
-          }
-          markdown += line + '\n';
-        }
-      }
+    response.signatures.forEach(item => {
+      let markdown = this.markdown_from_signature(item, language);
       signatures.push(markdown);
     });
 
@@ -240,6 +226,49 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       kind: 'markdown',
       value: signatures.join('\n\n')
     };
+  }
+
+  /**
+   * A temporary workaround for the LSP servers returning plain text (e.g. docstrings)
+   * (providing not-the-best UX) instead of markdown and me being unable to force
+   * them to return markdown instead.
+   */
+  private markdown_from_signature(
+    item: lsProtocol.SignatureInformation,
+    language: string
+  ): string {
+    let markdown = '```' + language + '\n' + item.label + '\n```';
+    if (item.documentation) {
+      markdown += '\n';
+
+      let in_text_block = false;
+      // TODO: make use of the MarkupContent object instead
+      for (let line of item.documentation.toString().split('\n')) {
+        if (line.trim() === item.label.trim()) {
+          continue;
+        }
+
+        if (line.startsWith('>>>')) {
+          if (in_text_block) {
+            markdown += '```\n\n';
+            in_text_block = false;
+          }
+          line = '```' + language + '\n' + line.substr(3) + '\n```';
+        } else {
+          // start new text block
+          if (!in_text_block) {
+            markdown += '```\n';
+            in_text_block = true;
+          }
+        }
+        markdown += line + '\n';
+      }
+      // close off the text block - if any
+      if (in_text_block) {
+        markdown += '```';
+      }
+    }
+    return markdown;
   }
 
   public handleSignature(response: lsProtocol.SignatureHelp) {
@@ -297,8 +326,6 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       // TODO: maybe the completer could be kicked off in the handleChange() method directly; signature help still
       //  requires an up-to-date virtual document on the LSP side, so we need to wait for sync.
       if (this.completionCharacters.indexOf(last_character) > -1) {
-        // TODO: pass info that we start from autocompletion (to avoid having . completion in comments etc)
-        //  it seems that it has to be done with a flag on a global object :(
         this.invoke_completer(CompletionTriggerKind.TriggerCharacter);
       } else if (this.signatureCharacters.indexOf(last_character) > -1) {
         this.signature_character = root_position;

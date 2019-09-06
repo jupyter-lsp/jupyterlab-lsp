@@ -24,12 +24,6 @@ class VirtualEditorImplementation extends VirtualEditor {
     return undefined;
   }
 
-  transform_virtual_to_source(
-    position: CodeMirror.Position
-  ): CodeMirror.Position {
-    return undefined;
-  }
-
   addEventListener(
     type: string,
     listener: EventListener | EventListenerObject

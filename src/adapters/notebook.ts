@@ -10,7 +10,6 @@ import { until_ready } from '../utils';
 import { LSPConnector } from '../completion';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { language_specific_overrides } from '../magics/defaults';
-import { VirtualDocument } from '../virtual/document';
 import { foreign_code_extractors } from '../extractors/defaults';
 
 export class NotebookAdapter extends JupyterLabWidgetAdapter {
@@ -74,17 +73,12 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       foreign_code_extractors,
       this.document_path
     );
+    this.connect_contentChanged_signal();
 
     // register completion connectors on cells
     this.document_connected.connect(() => this.connect_completion());
 
-    this.connect(this.virtual_editor.virtual_document).then();
-
-    this.connect_contentChanged_signal();
-  }
-
-  async connect(virtual_document: VirtualDocument): Promise<void> {
-    return super.connect(virtual_document);
+    await this.connect_document(this.virtual_editor.virtual_document);
   }
 
   connect_completion() {

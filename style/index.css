@@ -21,15 +21,16 @@
 }
 
 .cm-lsp-diagnostic-Information {
-  text-decoration-style: dotted;
-  text-decoration-color: yellow;
+  text-decoration-style: dashed;
+  text-decoration-color: yellowgreen;
 }
 
 .cm-lsp-diagnostic-Hint {
-  text-decoration-style: dotted;
-  text-decoration-color: blue;
+  text-decoration-style: dashed;
+  text-decoration-color: green;
 }
 
 .cm-lp-hover-available {
   text-decoration: underline;
+  text-decoration-color: blue;
 }

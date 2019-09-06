@@ -1,6 +1,6 @@
 import { VirtualEditor } from '../editor';
 import { CodeMirror } from '../../adapters/codemirror';
-import { IEditorPosition, IRootPosition } from '../../positioning';
+import { IEditorPosition, IRootPosition, IVirtualPosition } from '../../positioning';
 
 export class VirtualFileEditor extends VirtualEditor {
   protected cm_editor: CodeMirror.Editor;
@@ -27,11 +27,10 @@ export class VirtualFileEditor extends VirtualEditor {
     return new Proxy(this, handler);
   }
 
-  public transform_virtual_to_source(
-    position: CodeMirror.Position
-  ): CodeMirror.Position {
-    return position;
+  transform_virtual_to_editor(position: IVirtualPosition): IEditorPosition {
+    return (position as unknown) as IEditorPosition;
   }
+
   public transform_editor_to_root(
     cm_editor: CodeMirror.Editor,
     position: IEditorPosition
