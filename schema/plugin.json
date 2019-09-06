@@ -1,0 +1,5 @@
+{
+  "title": "Language Server Protocol",
+  "description": "Language Server Protocol settings.",
+  "type": "object"
+}

@@ -85,8 +85,6 @@ describe('CodeMirrorAdapterExtension', () => {
       expect(marks.length).to.equal(1);
     });
 
-    it('updates on change', () => {
-
-    });
+    it('updates on change', () => {});
   });
 });

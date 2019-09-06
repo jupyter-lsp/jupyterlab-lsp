@@ -130,7 +130,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
           let fileEditor = fileEditorTracker.currentWidget.content;
           let adapter = file_editor_adapters.get(fileEditor.id);
           return (
-            adapter && adapter.main_connection && cmd.isEnabled(adapter.main_connection)
+            adapter &&
+            adapter.main_connection &&
+            cmd.isEnabled(adapter.main_connection)
           );
         },
         label: cmd.label
@@ -188,7 +190,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
           let notebook = notebookTracker.currentWidget;
           let adapter = notebook_adapters.get(notebook.id);
           return (
-            adapter && adapter.main_connection && cmd.isEnabled(adapter.main_connection)
+            adapter &&
+            adapter.main_connection &&
+            cmd.isEnabled(adapter.main_connection)
           );
         },
         label: cmd.label

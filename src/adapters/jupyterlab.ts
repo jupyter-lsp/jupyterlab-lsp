@@ -1,5 +1,5 @@
 import { IPosition } from 'lsp-editor-adapter';
-import { PathExt } from '@jupyterlab/coreutils';
+import { PathExt, PageConfig } from '@jupyterlab/coreutils';
 import { CodeMirror, CodeMirrorAdapterExtension } from './codemirror';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
@@ -12,7 +12,7 @@ import { Widget } from '@phosphor/widgets';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { until_ready } from '../utils';
 import { VirtualEditor } from '../virtual/editor';
-import { VirtualDocument} from '../virtual/document';
+import { VirtualDocument } from '../virtual/document';
 import { Signal } from '@phosphor/signaling';
 import { IEditorPosition, IVirtualPosition } from '../positioning';
 import { LSPConnection } from '../connection';
@@ -101,8 +101,13 @@ export abstract class JupyterLabWidgetAdapter {
     console.log(
       `LSP: will connect using root path: ${this.root_path} and language: ${language}`
     );
+
+    // capture just the s?://*
+    const wsBase = PageConfig.getBaseUrl().replace(/^http/, '');
+    const wsUrl = `ws${wsBase}lsp/${language}`;
+
     let connection = new LSPConnection({
-      serverUri: 'ws://localhost/' + language,
+      serverUri: 'ws://jupyter-lsp/' + language,
       languageId: language,
       // paths handling needs testing on Windows and with other language servers
       rootUri: 'file:///' + this.root_path,
@@ -117,7 +122,7 @@ export abstract class JupyterLabWidgetAdapter {
         }
         return virtual_document.value;
       }
-    }).connect(new WebSocket('ws://localhost:3000/' + language));
+    }).connect(new WebSocket(wsUrl));
 
     // @ts-ignore
     connection.on('goTo', locations => this.handle_jump(locations, language));
