@@ -33,6 +33,12 @@ export namespace CompletionItemKind {
   export const TypeParameter = 25;
 }
 
+export namespace DocumentHighlightKind {
+  export const Text = 1;
+  export const Read = 2;
+  export const Write = 3;
+}
+
 export function inverse_namespace(namespace: object): Record<number, string> {
   const records: Record<number, string> = {};
   for (let key of Object.keys(namespace)) {
@@ -53,6 +59,9 @@ export function inverse_namespace(namespace: object): Record<number, string> {
  */
 export const diagnosticSeverityNames = inverse_namespace(DiagnosticSeverity);
 export const completionItemKindNames = inverse_namespace(CompletionItemKind);
+export const documentHighlightKindNames = inverse_namespace(
+  DocumentHighlightKind
+);
 
 export namespace CompletionTriggerKind {
   export const Invoked = 1;

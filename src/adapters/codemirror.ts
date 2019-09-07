@@ -4,7 +4,11 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 import { FreeTooltip } from '../free_tooltip';
 import { DefaultMap, getModifierState, until_ready } from '../utils';
 import { PositionConverter } from '../converter';
-import { CompletionTriggerKind, diagnosticSeverityNames } from '../lsp';
+import {
+  CompletionTriggerKind,
+  diagnosticSeverityNames,
+  documentHighlightKindNames
+} from '../lsp';
 import { VirtualEditor } from '../virtual/editor';
 import { VirtualDocument } from '../virtual/document';
 import {
@@ -20,10 +24,17 @@ export type KeyModifier = 'Alt' | 'Control' | 'Shift' | 'Meta' | 'AltGraph';
 const hover_modifier: KeyModifier = 'Control';
 const default_severity = 2;
 
+interface IEditorRange {
+  start: IEditorPosition;
+  end: IEditorPosition;
+  editor: CodeMirror.Editor;
+}
+
 export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   public connection: LSPConnection;
   public editor: VirtualEditor;
 
+  protected highlight_markers: CodeMirror.TextMarker[] = [];
   private marked_diagnostics: Map<string, CodeMirror.TextMarker> = new Map();
   private _tooltip: FreeTooltip;
   private show_next_tooltip: boolean;
@@ -79,6 +90,9 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
         this.handleHover(this.last_hover_response);
       }
     });
+
+    this.editor.off('cursorActivity', listeners.cursorActivity);
+    this.editor.on('cursorActivity', this.onCursorActivity.bind(this));
 
     this.editor.off('change', listeners.changeListener);
     // due to an unknown reason the default listener (as defined in the base class) is not invoked on file editors
@@ -185,7 +199,11 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
       return;
     }
 
-    this.highlight_range(response.range, 'cm-lp-hover-available');
+    // @ts-ignore
+    this.hoverMarker = this.highlight_range(
+      this.editor_range_for_hover(response.range),
+      'cm-lsp-hover-available'
+    );
 
     if (!this.show_next_tooltip) {
       this.last_hover_response = response;
@@ -352,55 +370,103 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     this.last_change = change;
   }
 
-  protected highlight_range(range: lsProtocol.Range, class_name: string) {
-    let hover_character = this.hover_character;
+  public handleHighlight(items: lsProtocol.DocumentHighlight[]) {
+    for (let marker of this.highlight_markers) {
+      marker.clear();
+    }
+    this.highlight_markers = [];
 
-    let start: IVirtualPosition;
-    let end: IVirtualPosition;
+    if (!items) {
+      return;
+    }
 
-    let start_in_editor: any;
-    let end_in_editor: any;
+    for (let item of items) {
+      let range = this.range_to_editor_range(item.range);
+      let kind_class = item.kind
+        ? 'cm-lsp-highlight-' + documentHighlightKindNames[item.kind]
+        : '';
+      let marker = this.highlight_range(
+        range,
+        'cm-lsp-highlight ' + kind_class
+      );
+      this.highlight_markers.push(marker);
+    }
+  }
 
-    let cm_editor: any;
+  protected onCursorActivity() {
+    let root_position = this.editor
+      .getDoc()
+      .getCursor('start') as IRootPosition;
+    let document = this.editor.document_at_root_position(root_position);
+    if (document !== this.virtual_document) {
+      return;
+    }
+    let virtual_position = this.editor.root_position_to_virtual_position(
+      root_position
+    );
+    this.connection.getDocumentHighlights(virtual_position);
+  }
+
+  protected range_to_editor_range(
+    range: lsProtocol.Range,
+    cm_editor?: CodeMirror.Editor
+  ): IEditorRange {
+    let start = PositionConverter.lsp_to_cm(range.start) as IVirtualPosition;
+    let end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
+
+    if (typeof cm_editor === 'undefined') {
+      let start_in_root = this.transform_virtual_position_to_root_position(
+        start
+      );
+      cm_editor = this.editor.get_editor_at_root_position(start_in_root);
+    }
+
+    return {
+      start: this.virtual_document.transform_virtual_to_editor(start),
+      end: this.virtual_document.transform_virtual_to_editor(end),
+      editor: cm_editor
+    };
+  }
+
+  protected editor_range_for_hover(range: lsProtocol.Range): IEditorRange {
+    let character = this.hover_character;
     // NOTE: foreign document ranges are checked before the request is sent,
     // no need to to this again here.
 
     if (range) {
-      start = PositionConverter.lsp_to_cm(range.start) as IVirtualPosition;
-      end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
-
-      start_in_editor = this.virtual_document.transform_virtual_to_editor(
-        start
-      );
-      end_in_editor = this.virtual_document.transform_virtual_to_editor(end);
-
-      cm_editor = this.editor.get_editor_at_root_position(hover_character);
+      let cm_editor = this.editor.get_editor_at_root_position(character);
+      return this.range_to_editor_range(range, cm_editor);
     } else {
       // construct range manually using the token information
-      cm_editor = this.virtual_document.root.get_editor_at_source_line(
-        hover_character
+      let cm_editor = this.virtual_document.root.get_editor_at_source_line(
+        character
       );
-      let token = this.editor.getTokenAt(hover_character);
+      let token = this.editor.getTokenAt(character);
 
       let start_in_root = {
-        line: hover_character.line,
+        line: character.line,
         ch: token.start
       } as IRootPosition;
       let end_in_root = {
-        line: hover_character.line,
+        line: character.line,
         ch: token.end
       } as IRootPosition;
 
-      start_in_editor = this.editor.root_position_to_editor_position(
-        start_in_root
-      );
-      end_in_editor = this.editor.root_position_to_editor_position(end_in_root);
+      return {
+        start: this.editor.root_position_to_editor_position(start_in_root),
+        end: this.editor.root_position_to_editor_position(end_in_root),
+        editor: cm_editor
+      };
     }
+  }
 
-    // @ts-ignore
-    this.hoverMarker = cm_editor
+  protected highlight_range(
+    range: IEditorRange,
+    class_name: string
+  ): CodeMirror.TextMarker {
+    return range.editor
       .getDoc()
-      .markText(start_in_editor, end_in_editor, { className: class_name });
+      .markText(range.start, range.end, { className: class_name });
   }
 
   protected position_from_mouse(ev: MouseEvent): IRootPosition {
@@ -418,7 +484,6 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     // TODO  || token.type.length === 0? (sometimes the underline is shown on meaningless tokens)
   }
 
-  // @ts-ignore
   public _handleMouseOver(event: MouseEvent) {
     // currently the events are coming from notebook panel; ideally these would be connected to individual cells,
     // (only cells with code) instead, but this is more complex to implement right. In any case filtering
@@ -481,7 +546,7 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
   protected collapse_overlapping_diagnostics(
     diagnostics: lsProtocol.Diagnostic[]
   ): Map<lsProtocol.Range, lsProtocol.Diagnostic[]> {
-    // because Range is not a primitive types, the equality of the objects having
+    // because Range is not a primitive type, the equality of the objects having
     // the same parameters won't be compared (thus considered equal) in Map.
 
     // instead, a intermediate step of mapping through a stringified representation of Range is needed:
