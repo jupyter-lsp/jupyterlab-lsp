@@ -11,6 +11,9 @@ import {
 import { until_ready } from '../utils';
 import { Signal } from '@phosphor/signaling';
 
+type CodeMirrorHandler = (instance: any, ...args: any[]) => void;
+type WrappedHandler = (instance: CodeMirror.Editor, ...args: any[]) => void;
+
 /**
  * VirtualEditor extends the CodeMirror.Editor interface; its subclasses may either
  * fast-forward any requests to an existing instance of the CodeMirror.Editor
@@ -157,6 +160,44 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
     root_position: IRootPosition
   ): IEditorPosition {
     return this.virtual_document.root.transform_source_to_editor(root_position);
+  }
+
+  abstract forEveryBlockEditor(
+    callback: (cm_editor: CodeMirror.Editor) => void
+  ): void;
+
+  private _event_wrappers = new Map<CodeMirrorHandler, WrappedHandler>();
+
+  /**
+   * Proxy the event handler binding to the CodeMirror editors,
+   * allowing for multiple actual editors per a virtual editor.
+   *
+   * Only handlers accepting CodeMirror.Editor are supported for simplicity.
+   */
+  on(eventName: string, handler: CodeMirrorHandler, ...args: any[]): void {
+    let wrapped_handler = (instance: CodeMirror.Editor, ...args: any[]) => {
+      try {
+        return handler(this, ...args);
+      } catch (error) {
+        console.warn(
+          'Wrapped handler (which should accept a CodeMirror Editor instance) failed',
+          { error, instance, args, this: this }
+        );
+      }
+    };
+    this._event_wrappers.set(handler, wrapped_handler);
+
+    this.forEveryBlockEditor(cm_editor => {
+      cm_editor.on(eventName, wrapped_handler);
+    });
+  }
+
+  off(eventName: string, handler: CodeMirrorHandler, ...args: any[]): void {
+    let wrapped_handler = this._event_wrappers.get(handler);
+
+    this.forEveryBlockEditor(cm_editor => {
+      cm_editor.off(eventName, wrapped_handler);
+    });
   }
 }
 

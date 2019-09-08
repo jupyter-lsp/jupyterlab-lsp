@@ -322,49 +322,6 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     return 0;
   }
 
-  off(
-    eventName: string,
-    handler: (doc_or_instance: any, ...args: any[]) => void,
-    ...args: any[]
-  ): void {
-    let wrapped_handler = this._event_wrappers.get(handler);
-
-    this.forEveryBlockEditor(cm_editor => {
-      // @ts-ignore
-      cm_editor.off(eventName, wrapped_handler);
-    });
-  }
-
-  private _event_wrappers = new Map<Function, Function>();
-
-  on(
-    eventName: string,
-    handler: (doc_or_instance: any, ...args: any[]) => void,
-    ...args: any[]
-  ): void {
-    let wrapped_handler = (instance_or_doc: any, a: any, b: any, c: any) => {
-      let editor = instance_or_doc as CodeMirror.Editor;
-      try {
-        editor.getDoc();
-        // @ts-ignore
-        return handler(this, a, b, c);
-      } catch (e) {
-        // TODO verify that the error was due to getDoc not existing on editor
-        console.log(e);
-        // also this is not currently in use
-        console.log('Dispatching wrapped doc handler with', this);
-        // @ts-ignore
-        return handler(this.getDoc(), a, b, c);
-      }
-    };
-    this._event_wrappers.set(handler, wrapped_handler);
-
-    this.forEveryBlockEditor(cm_editor => {
-      // @ts-ignore
-      cm_editor.on(eventName, wrapped_handler);
-    });
-  }
-
   addEventListener(type: string, listener: EventListenerOrEventListenerObject) {
     this.forEveryBlockEditor(cm_editor => {
       cm_editor.getWrapperElement().addEventListener(type, listener);

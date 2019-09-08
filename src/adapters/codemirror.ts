@@ -397,7 +397,16 @@ export class CodeMirrorAdapterExtension extends CodeMirrorAdapter {
     let root_position = this.editor
       .getDoc()
       .getCursor('start') as IRootPosition;
-    let document = this.editor.document_at_root_position(root_position);
+    let document: VirtualDocument;
+    try {
+      document = this.editor.document_at_root_position(root_position);
+    } catch (e) {
+      console.warn(
+        'Could not obtain virtual document from position',
+        root_position
+      );
+      return;
+    }
     if (document !== this.virtual_document) {
       return;
     }

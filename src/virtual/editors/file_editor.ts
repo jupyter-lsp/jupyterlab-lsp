@@ -17,7 +17,7 @@ export class VirtualFileEditor extends VirtualEditor {
         prop: keyof CodeMirror.Editor,
         receiver: any
       ) {
-        if (prop in cm_editor) {
+        if (prop in cm_editor && !(prop in target)) {
           return cm_editor[prop];
         } else {
           return Reflect.get(target, prop, receiver);
@@ -57,5 +57,9 @@ export class VirtualFileEditor extends VirtualEditor {
 
   addEventListener(type: string, listener: EventListenerOrEventListenerObject) {
     this.cm_editor.getWrapperElement().addEventListener(type, listener);
+  }
+
+  forEveryBlockEditor(callback: (cm_editor: CodeMirror.Editor) => void): void {
+    callback(this.cm_editor);
   }
 }
