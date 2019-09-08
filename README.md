@@ -23,7 +23,7 @@ Examples below are for Python, but it works as well for R:
 
   ![jump](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/jump_to_definition.png)
 
-- highlight usages: just place your cursor on a variable, function etc and all the usages will be highlighted (works only in the file editor or within a single cell)
+- highlight usages: just place your cursor on a variable, function etc and all the usages will be highlighted
 
 - auto invocation of completer on certain characters, for example '.' (dot) in Python
 
@@ -39,8 +39,10 @@ Examples below are for Python, but it works as well for R:
 
   when a kernel is available the suggestions from the kernel (such as keys of a dict and columns of a DataFrame autocompletion) are merged with the suggestions from LSP (currently only in notebook).
 
-New in 0.5.0 (currently RC - please help testing if you can):
-- multiple LSP connections per notebook, e.g. SQL or R (using rpy2) embedded in Python notebook [(example)](https://github.com/krassowski/jupyterlab-lsp/blob/master/examples/Magics_and_rpy2.ipynb).
+New in 0.5.0:
+- multiple LSP connections per notebook, e.g. SQL or R (using rpy2) embedded in Python notebook [(example)](https://github.com/krassowski/jupyterlab-lsp/blob/master/examples/Magics_and_rpy2.ipynb),
+- symbol highlight under cursor now works in both file editors and notebooks,
+- and many other improvements, see the [release notes](https://github.com/krassowski/jupyterlab-lsp/releases/tag/v0.5.0).
 
 ### Coming soon:
 
@@ -50,17 +52,16 @@ New in 0.5.0 (currently RC - please help testing if you can):
   - to enable aggressive autocompletion (like in hinterland)
   - to change the verbosity of signature hints (whether to show documentation, number of lines to be shown)
  
-If a feature you need is not on this list (or the lists below) please feel free to suggest it by opening an issue.
-
 ### Planned:
 
-- "rename" action (PR welcome)
+- "rename" action (PR welcome, but please mind issue #23)
 
 ### Low priority:
 
 - Gutter with linter results
 - Use the kernel session for autocompletion in FileEditor if available (PR welcome)
 
+If a feature you need is not on the lists above, please feel free to suggest it by opening a new [issue](https://github.com/krassowski/jupyterlab-lsp/issues).
 
 #### Hints
 
@@ -69,7 +70,7 @@ This extension behaves well with this feature.
 
 ## Under the hood
 
-This would not be possible if not the fantastic work of https://github.com/wylieconlon/lsp-editor-adapter.
+This would not be possible if not the fantastic work at [wylieconlon/lsp-editor-adapter](https://github.com/wylieconlon/lsp-editor-adapter).
 
 ## Prerequisites
 
@@ -131,7 +132,7 @@ ln -s /usr usr
 
 If your user does not have sufficient permissions to traverse the entire path, you will not be able to open the file.
 
-### Updatng the extension
+### Updating the extension
 
 To update already installed extension:
 
