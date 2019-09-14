@@ -1,26 +1,22 @@
 """ A `jupyter-server-proxy`-ready configuration frontend for `jsonrpc-ws-proxy`
 """
-import tempfile
 import json
+import os
 import pathlib
 import shutil
-import sys
 import subprocess
-import os
+import sys
+import tempfile
 
-from traitlets import Dict, Int, List, Unicode, default, Bool
-
-from jupyter_core.application import JupyterApp, base_flags, base_aliases
+from jupyter_core.application import JupyterApp, base_aliases, base_flags
 from jupyterlab.commands import get_app_dir
+from traitlets import Bool, Dict, Int, List, Unicode, default
 
 from ._version import __version__
 
 JWP = "jsonrpc-ws-proxy"
 
-aliases = dict(
-    port="LanguageServerApp.port",
-    **base_aliases
-)
+aliases = dict(port="LanguageServerApp.port", **base_aliases)
 
 flags = dict(**base_flags)
 
@@ -28,34 +24,33 @@ flags = dict(**base_flags)
 class LanguageServerApp(JupyterApp):
     """ An bridge to jsonrpc-ws-proxy
     """
+
     # version = __version__
 
     aliases = aliases
     flags = flags
 
-    language_servers = Dict({},
-        help="a dictionary of lists of command arguments keyed by language names"
+    language_servers = Dict(
+        {}, help="a dictionary of lists of command arguments keyed by language names"
     ).tag(config=True)
 
-    port = Int(
-        help="the (dynamically) assigned port to pass to jsonrpc-ws-proxy"
+    port = Int(help="the (dynamically) assigned port to pass to jsonrpc-ws-proxy").tag(
+        config=True
+    )
+
+    jsonrpc_ws_proxy = Unicode(help="path to jsonrpc-ws-proxy/dist/server.js").tag(
+        config=True
+    )
+
+    node = Unicode(help="path to nodejs executable").tag(config=True)
+
+    autodetect = Bool(
+        True, help="try to find known language servers in sys.prefix (and elsewhere)"
     ).tag(config=True)
 
-    jsonrpc_ws_proxy = Unicode(
-        help="path to jsonrpc-ws-proxy/dist/server.js"
-    ).tag(config=True)
-
-    node = Unicode(
-        help="path to nodejs executable"
-    ).tag(config=True)
-
-    autodetect = Bool(True,
-        help="try to find known language servers in sys.prefix (and elsewhere)"
-    ).tag(config=True)
-
-    extra_node_roots = List([],
-        help="additional places to look for node_modules"
-    ).tag(config=True)
+    extra_node_roots = List([], help="additional places to look for node_modules").tag(
+        config=True
+    )
 
     cmd = List().tag(config=True)
 
@@ -71,21 +66,24 @@ class LanguageServerApp(JupyterApp):
             config_file = pathlib.Path(td) / "langservers.yml"
 
             if self.autodetect:
-                language_servers = self._autodetect_language_servers();
+                language_servers = self._autodetect_language_servers()
             else:
                 language_servers = {}
 
             language_servers.update(self.language_servers)
 
-            config_json = json.dumps({
-                "langservers": language_servers
-            }, indent=2, sort_keys=True)
+            config_json = json.dumps(
+                {"langservers": language_servers}, indent=2, sort_keys=True
+            )
             config_file.write_text(config_json)
 
             self.log.debug(config_json)
 
             args = self.cmd + [
-                "--port", str(self.port), "--languageServers", str(config_file)
+                "--port",
+                str(self.port),
+                "--languageServers",
+                str(config_file),
             ]
 
             return subprocess.check_call(args, cwd=td)
@@ -141,10 +139,7 @@ class LanguageServerApp(JupyterApp):
     def _default_jsonrpc_ws_proxy(self):
         """ try to find
         """
-        return (
-            shutil.which(JWP)
-            or self._find_node_module(JWP, "dist", "server.js")
-        )
+        return shutil.which(JWP) or self._find_node_module(JWP, "dist", "server.js")
 
     @default("cmd")
     def _default_cmd(self):
@@ -154,7 +149,7 @@ class LanguageServerApp(JupyterApp):
         for candidate_root in self.extra_node_roots + [
             pathlib.Path(get_app_dir()) / "staging",
             sys.prefix,
-            os.getcwd()
+            os.getcwd(),
         ]:
             candidate = pathlib.Path(candidate_root, "node_modules", *path_frag)
             if candidate.exists():
