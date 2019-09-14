@@ -32,10 +32,9 @@
   "scripts": {
     "build": "tsc",
     "clean": "rimraf lib",
-    "prepare": "npm run clean && npm run build",
     "watch": "tsc -w",
-    "lint": "npm run prettier && npm run tslint",
-    "lint:check": "npm run prettier:check && npm run tslint:check",
+    "lint": "jlpm prettier && jlpm tslint",
+    "lint:check": "jlpm prettier:check && jlpm tslint:check",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
     "prettier:check": "prettier --list-different '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
     "tslint": "tslint --fix -c tslint.json --project tsconfig.json '**/*{.ts,.tsx}'",
@@ -73,6 +72,7 @@
     "@types/codemirror": "^0.0.74",
     "@types/jest": "^23.3.11",
     "chai": "^4.2.0",
+    "javascript-typescript-langserver": "^2.11.3",
     "jest": "^24.7.1",
     "prettier": "^1.18.2",
     "rimraf": "^2.6.1",
@@ -80,7 +80,10 @@
     "tslint": "^5.19.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "~3.4.5"
+    "typescript": "~3.4.5",
+    "vscode-html-languageservice": "^3.0.3",
+    "vscode-json-languageserver": "^1.2.1",
+    "yaml-language-server": "^0.5.7"
   },
   "jupyterlab": {
     "extension": true,
