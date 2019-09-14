@@ -25,7 +25,7 @@ class LanguageServerApp(JupyterApp):
     """ An bridge to jsonrpc-ws-proxy
     """
 
-    # version = __version__
+    version = __version__
 
     aliases = aliases
     flags = flags
@@ -129,7 +129,7 @@ class LanguageServerApp(JupyterApp):
         if not yls:
             return
 
-        servers["yaml"] = servers["application/yaml"] = [self.node, yls]
+        servers["yaml"] = servers["application/yaml"] = [self.node, yls, "--stdio"]
 
     @default("node")
     def _default_node(self):

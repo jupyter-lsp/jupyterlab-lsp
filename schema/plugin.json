@@ -1,0 +1,6 @@
+{
+  "title": "Language Server",
+  "description": "Jupyter Language Server Protocol settings.",
+  "type": "object",
+  "properties": {}
+}
