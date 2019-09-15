@@ -1,13 +1,16 @@
 {
   "name": "@krassowski/jupyterlab-lsp",
-  "version": "0.5.0-rc.0",
+  "version": "0.5.0",
   "description": "Language Server Protocol integration for JupyterLab",
   "keywords": [
     "jupyter",
     "jupyterlab",
     "jupyterlab-extension",
     "lsp",
-    "language-server-protocol"
+    "language-server-protocol",
+    "intellisense",
+    "code-intelligence",
+    "linting"
   ],
   "homepage": "https://github.com/krassowski/jupyterlab-lsp",
   "bugs": {

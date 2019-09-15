@@ -30,7 +30,17 @@
   text-decoration-color: green;
 }
 
-.cm-lp-hover-available {
+.cm-lsp-hover-available {
   text-decoration: underline;
   text-decoration-color: blue;
+}
+
+.cm-lsp-highlight {
+  background-color: #ddddee;
+}
+
+/* fuzzy matches (not exact symbol matches) */
+.cm-lsp-highlight-Text {
+  background-color: #ddeeee;
+  box-shadow: 0 0 3px 3px #ddeeee;
 }

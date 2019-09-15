@@ -9,6 +9,8 @@ import {
 import CodeMirror = require('codemirror');
 
 class VirtualEditorImplementation extends VirtualEditor {
+  private cm_editor: CodeMirror.Editor;
+
   get_cm_editor(position: IRootPosition): CodeMirror.Editor {
     return undefined;
   }
@@ -30,6 +32,10 @@ class VirtualEditorImplementation extends VirtualEditor {
   ): void {}
 
   protected perform_documents_update(): void {}
+
+  forEveryBlockEditor(callback: (cm_editor: CodeMirror.Editor) => void): void {
+    callback(this.cm_editor);
+  }
 }
 
 describe('VirtualEditor', () => {
