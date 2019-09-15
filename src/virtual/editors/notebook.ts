@@ -26,7 +26,9 @@ class DocDispatcher implements CodeMirror.Doc {
     options?: CodeMirror.TextMarkerOptions
   ): CodeMirror.TextMarker {
     // TODO: edgecase: from and to in different cells
-    let editor = this.virtual_editor.virtual_document.get_editor_at_source_line(from);
+    let editor = this.virtual_editor.virtual_document.get_editor_at_source_line(
+      from
+    );
     let notebook_map = this.virtual_editor;
     return editor
       .getDoc()

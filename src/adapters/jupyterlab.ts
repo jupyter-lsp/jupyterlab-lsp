@@ -1,4 +1,4 @@
-import { PathExt } from '@jupyterlab/coreutils';
+import { PathExt, PageConfig } from '@jupyterlab/coreutils';
 import { CodeMirror, CodeMirrorAdapterExtension } from './codemirror';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
@@ -260,10 +260,14 @@ export abstract class JupyterLabWidgetAdapter {
     console.log(
       `LSP: will connect using root path: ${this.root_path} and language: ${language}`
     );
-    let socket = new WebSocket('ws://localhost:3000/' + language);
+
+    // capture just the s?://*
+    const wsBase = PageConfig.getBaseUrl().replace(/^http/, '');
+    const wsUrl = `ws${wsBase}lsp/${language}`;
+    let socket = new WebSocket(wsUrl);
 
     let connection = new LSPConnection({
-      serverUri: 'ws://localhost/' + language,
+      serverUri: 'ws://jupyter-lsp/' + language,
       languageId: language,
       // paths handling needs testing on Windows and with other language servers
       rootUri: 'file:///' + this.root_path,

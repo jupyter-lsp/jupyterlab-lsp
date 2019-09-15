@@ -1,6 +1,7 @@
 # Language Server Protocol integration for JupyterLab
 
 [![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) [![codebeat badge](https://codebeat.co/badges/f55d0f28-8a84-4199-bc88-f2c306a9ce65)](https://codebeat.co/projects/github-com-krassowski-jupyterlab-lsp-master)
+
 <!--[![Binder](https://beta.mybinder.org/badge.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab/tree/examples/demo.ipynb)-->
 
 _This extension is in its early days, but you are welcome to check it out, leave feedback and/or a PR_
@@ -51,7 +52,7 @@ New in 0.5.0:
 - system of settings, including options:
   - to enable aggressive autocompletion (like in hinterland)
   - to change the verbosity of signature hints (whether to show documentation, number of lines to be shown)
- 
+
 ### Planned:
 
 - "rename" action (PR welcome, but please mind issue #23)
@@ -66,7 +67,7 @@ If a feature you need is not on the lists above, please feel free to suggest it 
 #### Hints
 
 - just like in old notebooks, you can still use the built-in <kbd>Shift</kbd> + <kbd>Tab</kbd> to get a signature in JupyterLab.
-This extension behaves well with this feature.
+  This extension behaves well with this feature.
 
 ## Under the hood
 

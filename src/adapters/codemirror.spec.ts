@@ -84,5 +84,7 @@ describe('CodeMirrorAdapterExtension', () => {
       let marks = ce_editor.editor.getDoc().getAllMarks();
       expect(marks.length).to.equal(1);
     });
+
+    it('updates on change', () => {});
   });
 });

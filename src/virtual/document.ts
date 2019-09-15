@@ -1,11 +1,18 @@
-import { IForeignCodeExtractor, IForeignCodeExtractorsRegistry } from '../extractors/types';
+import {
+  IForeignCodeExtractor,
+  IForeignCodeExtractorsRegistry
+} from '../extractors/types';
 import { CellMagicsMap, LineMagicsMap } from '../magics/maps';
 import { IOverridesRegistry } from '../magics/overrides';
 import { DefaultMap } from '../utils';
 import { Signal } from '@phosphor/signaling';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { CodeMirror } from '../adapters/codemirror';
-import { IEditorPosition, ISourcePosition, IVirtualPosition } from '../positioning';
+import {
+  IEditorPosition,
+  ISourcePosition,
+  IVirtualPosition
+} from '../positioning';
 import IRange = CodeEditor.IRange;
 
 type language = string;
