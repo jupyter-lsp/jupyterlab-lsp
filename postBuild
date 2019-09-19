@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
+set -eux
+python -m pip install -e . --ignore-installed --no-deps -vv
 jlpm bootstrap
 jupyter labextension install . @krassowski/jupyterlab_go_to_definition
