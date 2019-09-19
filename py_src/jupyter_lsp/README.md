@@ -4,16 +4,17 @@ A [Language Server][language-server] proxy for Jupyter, powered by [jupyter-serv
 [jsonrpc-ws-proxy][] and [nodejs][].
 
 ## batteries expected
+
 Use your package manager of choice to install a [language server][lsp-implementations]
 of choice. The following implementations are known to work with [jupyter-lsp][]
 
 > Don't see an implementation for the language server you want? Consider
-  [contributing](./CONTRIBUTING.md#connectors)
+> [contributing](./CONTRIBUTING.md#connectors)
 
-|        | `pip install ...` | `npm install (-g)` <br/>`yarn/jlpm add (-g)` |
-|--------|-------------------|:--------------------------------------------:|
-| python | `pyls`            |                                              |
-| javascript<br/>typescript  | `pyls`            |                                              |
+|                           | `pip install ...` | `npm install (-g)` <br/>`yarn/jlpm add (-g)` |
+| ------------------------- | ----------------- | :------------------------------------------: |
+| python                    | `pyls`            |                                              |
+| javascript<br/>typescript | `pyls`            |                                              |
 
 [language-server]: https://microsoft.github.io/language-server-protocol/specification
 [jupyter-server-proxy]: https://github.com/jupyterhub/jupyter-server-proxy
@@ -23,6 +24,7 @@ of choice. The following implementations are known to work with [jupyter-lsp][]
 [jupyter-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
 
 > possible future namespace...
-  ```
-  [jupyter-lsp]: https://github.com/jupyter/lsp
-  ```
+
+```
+[jupyter-lsp]: https://github.com/jupyter/lsp
+```

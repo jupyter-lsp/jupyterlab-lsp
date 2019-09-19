@@ -135,12 +135,14 @@ export class VirtualEditorForNotebook extends VirtualEditor {
   showHint: (options: ShowHintOptions) => void;
   state: any;
 
-  addKeyMap(map: string | CodeMirror.KeyMap, bottom?: boolean): void {}
+  addKeyMap(map: string | CodeMirror.KeyMap, bottom?: boolean): void {
+    return;
+  }
 
   addLineClass(
     line: any,
     where: string,
-    _class_: string
+    _class: string
   ): CodeMirror.LineHandle {
     return undefined;
   }

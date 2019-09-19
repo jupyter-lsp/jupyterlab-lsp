@@ -22,3 +22,6 @@ docs/api
 **/package.json
 .eggs
 envs
+.mypy_cache
+**/.ipynb_checkpoints
+**/*.egg-info

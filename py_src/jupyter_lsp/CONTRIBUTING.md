@@ -1,10 +1,13 @@
 # Contribute to jupyter-lsp
+
 `jupyter-lsp` is open source software, and all contributions that adhere to the
 good sense, good taste, and the [Jupyter Code of Conduct][code-of-conduct] are
 welcome, and will be reviewed, time-permitting, by the contributors.
 
 ## How to Help
+
 You can contribute to `jupyter-lsp` by:
+
 - creating [connectors](#Connectors)
   - you can publish them yourself (it might be a single file)...
   - or advocate for adding your connector to the [github repository][jupyter-lsp]
@@ -17,22 +20,25 @@ You can contribute to `jupyter-lsp` by:
 - reviewing pull requests
 
 ## Roadmap
+
 - release on `pip` and `conda`
 
 ## Future Roadmap Items
+
 - websocket uri multiplexing
   - allow a single language server process to provide multiple JSON-RPC WebSocket
     endpoints
     - this could be an upstream contribution to [jsonrpc-ws-proxy][] or part of
 - remove the hard requirement on [nodejs][] and [jsonrpc-ws-proxy][]
   - though many...
-    - language servers and  
+    - language servers and
     - frontend extensions
-    ... will _still_ require a `nodejs`-backed, `npm`-delivered server or build
-    chain, other approaches _should_ be possible
+      ... will _still_ require a `nodejs`-backed, `npm`-delivered server or build
+      chain, other approaches _should_ be possible
   - this would likely be an asynchronous, Python 3.6+ implementation
 
 ## Connectors
+
 It is convenient to collect common patterns for connecting to installed language
 servers as pip-installable packages that Just Work.
 
@@ -40,6 +46,7 @@ If an advanced user installs, locates, and configures, their own language
 server it will always win an auto-configured one.
 
 ### Writing a connector
+
 > See the connectors in this directory for implementations.
 
 A connector is a python function that accepts as single argument, the
@@ -52,10 +59,12 @@ A connector is a python function that accepts as single argument, the
 ```
 
 The connector should check to ensure that the command _could_ be run:
-  - its runtime (e.g. `nodejs`, `ruby`, `julia`) is installed
-  - the language server itself is installed
+
+- its runtime (e.g. `nodejs`, `ruby`, `julia`) is installed
+- the language server itself is installed
 
 #### Common Concerns
+
 - some language servers need to have their connection mode specified
   - the `stdio` interface is the only one supported
     - PRs welcome to support other modes!
@@ -76,6 +85,7 @@ Consider the following (absolutely minimal) directory structure:
 > TODO: cookiecutter
 
 Define your connector:
+
 ```
 # jupyter_lsp_my_cool_language_server.py
 from shutil import which
@@ -93,6 +103,7 @@ def connect_my_cool_language_server(app):
 ```
 
 Tell `pip` how to package your connector:
+
 ```
 # setup.py
 from setuptools import setup
@@ -109,13 +120,17 @@ setup(
 ```
 
 ## Testing
+
 > TBD
+>
 > - pytest
 > - hypothesis
 > - conda/docker
 
 ## Documentation
+
 > TBD
+>
 > - sphinx
 > - one of the sphinx/ipynb connectors
 > - cookiecutter
