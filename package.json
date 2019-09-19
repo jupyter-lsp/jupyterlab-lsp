@@ -30,6 +30,7 @@
     "url": "https://github.com/krassowski/jupyterlab-lsp.git"
   },
   "scripts": {
+    "bootstrap": "jlpm && jlpm clean && jlpm lint && jlpm build",
     "build": "tsc",
     "clean": "rimraf lib",
     "watch": "tsc -w",
