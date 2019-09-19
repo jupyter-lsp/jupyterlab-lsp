@@ -1,6 +1,6 @@
 # Contribute to jupyter-lsp
 
-`jupyter-lsp` is open source software, and all contributions that adhere to the
+`jupyter-lsp` is open source software, and all contributions that adhere to
 good sense, good taste, and the [Jupyter Code of Conduct][code-of-conduct] are
 welcome, and will be reviewed, time-permitting, by the contributors.
 
