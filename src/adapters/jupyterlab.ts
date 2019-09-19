@@ -162,7 +162,9 @@ export abstract class JupyterLabWidgetAdapter {
         this.disconnect_adapter(virtual_document);
         this.retry_to_connect(virtual_document, 0.5)
           .then(data => {
-            this.on_lsp_connected(data);
+            this.on_lsp_connected(data)
+              .then()
+              .catch(console.warn);
           })
           .catch(console.warn);
       }
@@ -188,7 +190,9 @@ export abstract class JupyterLabWidgetAdapter {
         'LSP: Connecting foreign document: ',
         context.foreign_document.id_path
       );
-      this.connect_document(context.foreign_document);
+      this.connect_document(context.foreign_document)
+        .then()
+        .catch(console.warn);
     });
     virtual_document.foreign_document_closed.connect(
       (_host, { foreign_document }) => {
@@ -238,7 +242,8 @@ export abstract class JupyterLabWidgetAdapter {
       .with_update_lock(async () => {
         await adapter.updateAfterChange();
       })
-      .then();
+      .then()
+      .catch(console.warn);
   }
 
   private async connect_adapter(
@@ -439,12 +444,15 @@ export abstract class JupyterLabWidgetAdapter {
 
   update_documents(_slot: any) {
     // update the virtual documents (sending the updates to LSP is out of scope here)
-    this.virtual_editor.update_documents().then(() => {
-      for (let adapter of this.adapters.values()) {
-        // force clean old changes cached in the adapters
-        adapter.invalidateLastChange();
-      }
-    });
+    this.virtual_editor
+      .update_documents()
+      .then(() => {
+        for (let adapter of this.adapters.values()) {
+          // force clean old changes cached in the adapters
+          adapter.invalidateLastChange();
+        }
+      })
+      .catch(console.warn);
   }
 
   get_position_from_context_menu(): IRootPosition {

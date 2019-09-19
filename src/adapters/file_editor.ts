@@ -58,18 +58,20 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     this.connect_contentChanged_signal();
 
     console.log('LSP: file ready for connection:', this.path);
-    this.connect_document(this.virtual_editor.virtual_document).then(() => {
-      this.current_completion_connector = new LSPConnector({
-        editor: this.editor.editor,
-        connections: this.connections,
-        virtual_editor: this.virtual_editor
-      });
-      completion_manager.register({
-        connector: this.current_completion_connector,
-        editor: this.editor.editor,
-        parent: editor_widget
-      });
-    });
+    this.connect_document(this.virtual_editor.virtual_document)
+      .then(() => {
+        this.current_completion_connector = new LSPConnector({
+          editor: this.editor.editor,
+          connections: this.connections,
+          virtual_editor: this.virtual_editor
+        });
+        completion_manager.register({
+          connector: this.current_completion_connector,
+          editor: this.editor.editor,
+          parent: editor_widget
+        });
+      })
+      .catch(console.warn);
   }
 
   get path() {

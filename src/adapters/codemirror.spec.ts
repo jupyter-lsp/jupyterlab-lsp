@@ -40,7 +40,10 @@ describe('CodeMirrorAdapterExtension', () => {
         documentUri: '/x.py',
         rootUri: '/',
         documentText: () => {
-          virtual_editor.update_documents();
+          virtual_editor
+            .update_documents()
+            .then()
+            .catch(console.error);
           return virtual_editor.virtual_document.value;
         }
       });
@@ -85,6 +88,8 @@ describe('CodeMirrorAdapterExtension', () => {
       expect(marks.length).to.equal(1);
     });
 
-    it('updates on change', () => {});
+    it('updates on change', () => {
+      console.log('TBD');
+    });
   });
 });
