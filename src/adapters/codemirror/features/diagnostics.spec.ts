@@ -1,26 +1,27 @@
 import { expect } from 'chai';
-import { CodeMirrorAdapterExtension } from './codemirror';
-import { VirtualFileEditor } from '../virtual/editors/file_editor';
+import { VirtualFileEditor } from '../../../virtual/editors/file_editor';
 import {
   CodeMirrorEditor,
   CodeMirrorEditorFactory
 } from '@jupyterlab/codemirror';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { TextMarker } from 'codemirror';
-import { LSPConnection } from '../connection';
+import { LSPConnection } from '../../../connection';
+import { FreeTooltip } from '../../jupyterlab/components/free_tooltip';
+import { Diagnostics } from './diagnostics';
 
+// TODO remove duplicate initialization (see cm_adapter.spec.ts)
 describe('CodeMirrorAdapterExtension', () => {
   const factoryService = new CodeMirrorEditorFactory();
 
   let host: HTMLElement;
-  let model: CodeEditor.IModel;
   let ce_editor: CodeMirrorEditor;
   let virtual_editor: VirtualFileEditor;
 
   beforeEach(() => {
     host = document.createElement('div');
     document.body.appendChild(host);
-    model = new CodeEditor.Model();
+    let model = new CodeEditor.Model();
 
     ce_editor = factoryService.newDocumentEditor({ host, model });
     virtual_editor = new VirtualFileEditor('python', 'x.py', ce_editor.editor);
@@ -31,7 +32,7 @@ describe('CodeMirrorAdapterExtension', () => {
   });
 
   describe('Works with VirtualFileEditor', () => {
-    let adapter: CodeMirrorAdapterExtension;
+    let diagnostics_feature: Diagnostics;
 
     beforeEach(() => {
       let connection = new LSPConnection({
@@ -45,17 +46,19 @@ describe('CodeMirrorAdapterExtension', () => {
         }
       });
 
-      adapter = new CodeMirrorAdapterExtension(
-        connection,
-        {},
+      let dummy_components_manager = {
+        invoke_completer: () => {},
+        create_tooltip: () => {
+          return {} as FreeTooltip;
+        },
+        remove_tooltip: () => {}
+      };
+
+      diagnostics_feature = new Diagnostics(
         virtual_editor,
-        (markup, cm_editor, position) => {
-          return null;
-        },
-        () => {
-          return;
-        },
-        virtual_editor.virtual_document
+        virtual_editor.virtual_document,
+        connection,
+        dummy_components_manager
       );
     });
 
@@ -68,7 +71,7 @@ describe('CodeMirrorAdapterExtension', () => {
       markers = ce_editor.editor.getDoc().getAllMarks();
       expect(markers.length).to.equal(0);
 
-      adapter.handleDiagnostic({
+      diagnostics_feature.handleDiagnostic({
         uri: '',
         diagnostics: [
           {
@@ -84,7 +87,5 @@ describe('CodeMirrorAdapterExtension', () => {
       let marks = ce_editor.editor.getDoc().getAllMarks();
       expect(marks.length).to.equal(1);
     });
-
-    it('updates on change', () => {});
   });
 });

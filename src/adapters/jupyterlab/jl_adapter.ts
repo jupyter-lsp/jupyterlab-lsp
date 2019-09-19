@@ -1,26 +1,43 @@
 import { PathExt, PageConfig } from '@jupyterlab/coreutils';
-import { CodeMirror, CodeMirrorAdapterExtension } from './codemirror';
+import {
+  CodeMirror,
+  CodeMirrorAdapter
+} from '../codemirror/cm_adapter';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
-import { PositionConverter } from '../converter';
+import { PositionConverter } from '../../converter';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import * as lsProtocol from 'vscode-languageserver-protocol';
-import { FreeTooltip } from '../free_tooltip';
+import { FreeTooltip } from './components/free_tooltip';
 import { Widget } from '@phosphor/widgets';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
-import { until_ready } from '../utils';
-import { VirtualEditor } from '../virtual/editor';
-import { VirtualDocument } from '../virtual/document';
+import { until_ready } from '../../utils';
+import { VirtualEditor } from '../../virtual/editor';
+import { VirtualDocument } from '../../virtual/document';
 import { Signal } from '@phosphor/signaling';
 import {
   IEditorPosition,
   IRootPosition,
   IVirtualPosition
-} from '../positioning';
-import { LSPConnection } from '../connection';
-import { LSPConnector } from '../completion';
-import { CompletionTriggerKind } from '../lsp';
+} from '../../positioning';
+import { LSPConnection } from '../../connection';
+import { LSPConnector } from './components/completion';
+import { CompletionTriggerKind } from '../../lsp';
+import { Completion } from '../codemirror/features/completion';
+import { Diagnostics } from '../codemirror/features/diagnostics';
+import { Highlights } from '../codemirror/features/highlights';
+import { Hover } from '../codemirror/features/hover';
+import { Signature } from '../codemirror/features/signature';
+import { CodeMirrorLSPFeature, ILSPFeature } from '../codemirror/feature';
+
+export const features: Array<typeof CodeMirrorLSPFeature> = [
+  Completion,
+  Diagnostics,
+  Highlights,
+  Hover,
+  Signature
+];
 
 interface IDocumentConnectionData {
   document: VirtualDocument;
@@ -34,18 +51,29 @@ interface IContext {
   root_position: IRootPosition;
 }
 
+export interface IJupyterLabComponentsManager {
+  invoke_completer: (kind: CompletionTriggerKind) => void;
+  create_tooltip: (
+    markup: lsProtocol.MarkupContent,
+    cm_editor: CodeMirror.Editor,
+    position: IEditorPosition
+  ) => FreeTooltip;
+  remove_tooltip: () => void;
+}
+
 /**
  * Foreign code: low level adapter is not aware of the presence of foreign languages;
  * it operates on the virtual document and must not attempt to infer the language dependencies
  * as this would make the logic of inspections caching impossible to maintain, thus the WidgetAdapter
  * has to handle that, keeping multiple connections and multiple virtual documents.
  */
-export abstract class JupyterLabWidgetAdapter {
+export abstract class JupyterLabWidgetAdapter
+  implements IJupyterLabComponentsManager {
   app: JupyterFrontEnd;
   connections: Map<VirtualDocument.id_path, LSPConnection>;
   documents: Map<VirtualDocument.id_path, VirtualDocument>;
   jumper: CodeJumper;
-  protected adapters: Map<VirtualDocument.id_path, CodeMirrorAdapterExtension>;
+  protected adapters: Map<VirtualDocument.id_path, CodeMirrorAdapter>;
   protected rendermime_registry: IRenderMimeRegistry;
   widget: IDocumentWidget;
   private readonly invoke_command: string;
@@ -55,6 +83,7 @@ export abstract class JupyterLabWidgetAdapter {
   >;
   protected abstract current_completion_connector: LSPConnector;
   private ignored_languages: Set<string>;
+  private _tooltip: FreeTooltip;
 
   protected constructor(
     app: JupyterFrontEnd,
@@ -175,7 +204,6 @@ export abstract class JupyterLabWidgetAdapter {
         'have been initialized'
       );
     });
-
   }
 
   protected async connect_document(virtual_document: VirtualDocument) {
@@ -420,14 +448,25 @@ export abstract class JupyterLabWidgetAdapter {
   create_adapter(
     virtual_document: VirtualDocument,
     connection: LSPConnection
-  ): CodeMirrorAdapterExtension {
-    let adapter = new CodeMirrorAdapterExtension(
+  ): CodeMirrorAdapter {
+
+    let adapter_features = new Array<ILSPFeature>();
+    for (let feature_type of features) {
+      let feature = new feature_type(
+        this.virtual_editor,
+        virtual_document,
+        connection,
+        this
+      );
+      adapter_features.push(feature);
+    }
+
+    let adapter = new CodeMirrorAdapter(
       connection,
-      { quickSuggestionsDelay: 50 },
       this.virtual_editor,
-      this.create_tooltip.bind(this),
-      this.invoke_completer.bind(this),
-      virtual_document
+      virtual_document,
+      this,
+      adapter_features
     );
     console.log('LSP: Adapter for', this.document_path, 'is ready.');
     return adapter;
@@ -478,11 +517,12 @@ export abstract class JupyterLabWidgetAdapter {
     return { document, connection, virtual_position, root_position };
   }
 
-  protected create_tooltip(
+  public create_tooltip(
     markup: lsProtocol.MarkupContent,
     cm_editor: CodeMirror.Editor,
     position: IEditorPosition
   ): FreeTooltip {
+    this.remove_tooltip();
     const bundle =
       markup.kind === 'plaintext'
         ? { 'text/plain': markup.value }
@@ -496,6 +536,13 @@ export abstract class JupyterLabWidgetAdapter {
       moveToLineEnd: false
     });
     Widget.attach(tooltip, document.body);
+    this._tooltip = tooltip;
     return tooltip;
+  }
+
+  remove_tooltip() {
+    if (this._tooltip !== undefined) {
+      this._tooltip.dispose();
+    }
   }
 }

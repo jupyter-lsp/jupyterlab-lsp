@@ -1,7 +1,7 @@
 import { VirtualDocument } from './document';
 import { IOverridesRegistry } from '../magics/overrides';
 import { IForeignCodeExtractorsRegistry } from '../extractors/types';
-import { CodeMirror } from '../adapters/codemirror';
+import { CodeMirror } from '../adapters/codemirror/cm_adapter';
 import {
   IEditorPosition,
   IRootPosition,
@@ -11,7 +11,7 @@ import {
 import { until_ready } from '../utils';
 import { Signal } from '@phosphor/signaling';
 
-type CodeMirrorHandler = (instance: any, ...args: any[]) => void;
+export type CodeMirrorHandler = (instance: any, ...args: any[]) => void;
 type WrappedHandler = (instance: CodeMirror.Editor, ...args: any[]) => void;
 
 /**
@@ -156,7 +156,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
     return this.virtual_document.root.get_editor_at_source_line(root_position);
   }
 
-  root_position_to_editor_position(
+  root_position_to_editor(
     root_position: IRootPosition
   ): IEditorPosition {
     return this.virtual_document.root.transform_source_to_editor(root_position);

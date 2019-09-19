@@ -1,16 +1,16 @@
-import { JupyterLabWidgetAdapter } from './jupyterlab';
+import { JupyterLabWidgetAdapter } from './jl_adapter';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
-import { CodeMirror } from './codemirror';
-import { VirtualEditorForNotebook } from '../virtual/editors/notebook';
+import { CodeMirror } from '../codemirror/cm_adapter';
+import { VirtualEditorForNotebook } from '../../virtual/editors/notebook';
 import { ICompletionManager } from '@jupyterlab/completer';
 import { NotebookJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { until_ready } from '../utils';
-import { LSPConnector } from '../completion';
+import { until_ready } from '../../utils';
+import { LSPConnector } from './components/completion';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { language_specific_overrides } from '../magics/defaults';
-import { foreign_code_extractors } from '../extractors/defaults';
+import { language_specific_overrides } from '../../magics/defaults';
+import { foreign_code_extractors } from '../../extractors/defaults';
 
 export class NotebookAdapter extends JupyterLabWidgetAdapter {
   editor: Notebook;

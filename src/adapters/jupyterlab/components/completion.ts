@@ -7,19 +7,19 @@ import {
 } from '@jupyterlab/completer';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { ReadonlyJSONObject } from '@phosphor/coreutils';
-import { completionItemKindNames, CompletionTriggerKind } from './lsp';
+import { completionItemKindNames, CompletionTriggerKind } from '../../../lsp';
 import * as lsProtocol from 'vscode-languageserver-protocol';
-import { PositionConverter } from './converter';
+import { PositionConverter } from '../../../converter';
 import { IClientSession } from '@jupyterlab/apputils';
-import { VirtualDocument } from './virtual/document';
-import { VirtualEditor } from './virtual/editor';
+import { VirtualDocument } from '../../../virtual/document';
+import { VirtualEditor } from '../../../virtual/editor';
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import {
   IEditorPosition,
   IRootPosition,
   IVirtualPosition
-} from './positioning';
-import { LSPConnection } from './connection';
+} from '../../../positioning';
+import { LSPConnection } from '../../../connection';
 
 /*
 Feedback: anchor - not clear from docs
