@@ -1,18 +1,21 @@
+import { Signal } from '@phosphor/signaling';
+import { Widget } from '@phosphor/widgets';
 import { PathExt, PageConfig } from '@jupyterlab/coreutils';
-import { CodeMirror, CodeMirrorAdapterExtension } from './codemirror';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
-import { PositionConverter } from '../converter';
+
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import * as lsProtocol from 'vscode-languageserver-protocol';
-import { FreeTooltip } from '../free_tooltip';
-import { Widget } from '@phosphor/widgets';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
+
+import * as lsProtocol from 'vscode-languageserver-protocol';
+
+import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
+
+import { FreeTooltip } from '../free_tooltip';
 import { until_ready } from '../utils';
 import { VirtualEditor } from '../virtual/editor';
 import { VirtualDocument } from '../virtual/document';
-import { Signal } from '@phosphor/signaling';
+import { PositionConverter } from '../converter';
 import {
   IEditorPosition,
   IRootPosition,
@@ -21,6 +24,8 @@ import {
 import { LSPConnection } from '../connection';
 import { LSPConnector } from '../completion';
 import { CompletionTriggerKind } from '../lsp';
+
+import { CodeMirror, CodeMirrorAdapterExtension } from './codemirror';
 
 interface IDocumentConnectionData {
   document: VirtualDocument;
@@ -175,11 +180,10 @@ export abstract class JupyterLabWidgetAdapter {
         'have been initialized'
       );
     });
-
   }
 
   protected async connect_document(virtual_document: VirtualDocument) {
-    virtual_document.foreign_document_opened.connect((host, context) => {
+    virtual_document.foreign_document_opened.connect((_host, context) => {
       console.log(
         'LSP: Connecting foreign document: ',
         context.foreign_document.id_path
@@ -187,7 +191,7 @@ export abstract class JupyterLabWidgetAdapter {
       this.connect_document(context.foreign_document);
     });
     virtual_document.foreign_document_closed.connect(
-      (host, { foreign_document }) => {
+      (_host, { foreign_document }) => {
         this.connections.get(foreign_document.id_path).close();
         this.connections.delete(foreign_document.id_path);
         this.documents.delete(foreign_document.id_path);
@@ -261,7 +265,7 @@ export abstract class JupyterLabWidgetAdapter {
       `LSP: will connect using root path: ${this.root_path} and language: ${language}`
     );
 
-    // capture just the s?://*
+    // capture just the `s?://*`
     const wsBase = PageConfig.getBaseUrl().replace(/^http/, '');
     const wsUrl = `ws${wsBase}lsp/${language}`;
     let socket = new WebSocket(wsUrl);
@@ -433,7 +437,7 @@ export abstract class JupyterLabWidgetAdapter {
     return adapter;
   }
 
-  update_documents(slot: any) {
+  update_documents(_slot: any) {
     // update the virtual documents (sending the updates to LSP is out of scope here)
     this.virtual_editor.update_documents().then(() => {
       for (let adapter of this.adapters.values()) {
