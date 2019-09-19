@@ -1,5 +1,6 @@
 import shutil
-from jupyter_lsp import LanguageServerApp, ConnectorCommands
+
+from jupyter_lsp import ConnectorCommands, LanguageServerApp
 
 
 def connect_pyls(app: LanguageServerApp) -> ConnectorCommands:

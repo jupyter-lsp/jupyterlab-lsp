@@ -287,6 +287,10 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     this.cell_to_corresponding_source_line.clear();
     this.cm_editor_to_cell.clear();
 
+    if (this.notebook.isDisposed) {
+      return;
+    }
+
     this.notebook.widgets.every(cell => {
       let codemirror_editor = cell.editor as CodeMirrorEditor;
       let cm_editor = codemirror_editor.editor;

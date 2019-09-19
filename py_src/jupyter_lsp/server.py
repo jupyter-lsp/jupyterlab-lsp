@@ -7,16 +7,19 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import pkg_resources
 from typing import Dict, List, Text
 
-from traitlets import Bool, Dict, Int, List, Unicode, default
-
+import pkg_resources
 from jupyter_core.application import JupyterApp, base_aliases, base_flags
 from jupyterlab.commands import get_app_dir
+from traitlets import Bool
+from traitlets import Dict as Dict_
+from traitlets import Int
+from traitlets import List as List_
+from traitlets import Unicode, default
 
 from ._version import __version__
-from .constants import JWP, EP_CONNECTOR_V0
+from .constants import EP_CONNECTOR_V0, JWP
 
 aliases = dict(port="LanguageServerApp.port", **base_aliases)
 
@@ -34,10 +37,11 @@ class LanguageServerApp(JupyterApp):
     aliases = aliases
     flags = flags
 
-    language_servers = Dict(
+    language_servers = Dict_(
         {}, help="a dictionary of lists of command arguments keyed by language names"
-    ).tag(config=True)  # type: ConnectorCommands
-
+    ).tag(
+        config=True
+    )  # type: ConnectorCommands
 
     port = Int(help="the (dynamically) assigned port to pass to jsonrpc-ws-proxy").tag(
         config=True
@@ -47,17 +51,21 @@ class LanguageServerApp(JupyterApp):
         config=True
     )
 
-    node = Unicode(help="path to nodejs executable").tag(config=True)
+    nodejs = Unicode(help="path to nodejs executable").tag(config=True)
 
     autodetect = Bool(
         True, help="try to find known language servers in sys.prefix (and elsewhere)"
     ).tag(config=True)
 
-    extra_node_roots = List([], help="additional places to look for node_modules").tag(
+    node_roots = List_([], help="absolute paths in which to seek node_modules").tag(
         config=True
     )
 
-    cmd = List().tag(config=True)
+    extra_node_roots = List_(
+        [], help="additional absolute paths to seek node_modules first"
+    ).tag(config=True)
+
+    cmd = List_().tag(config=True)
 
     @default("nodejs")
     def _default_nodejs(self):
@@ -67,11 +75,21 @@ class LanguageServerApp(JupyterApp):
     def _default_jsonrpc_ws_proxy(self):
         """ try to find
         """
-        return shutil.which(JWP) or self._find_node_module(JWP, "dist", "server.js")
+        return shutil.which(JWP) or self.find_node_module(JWP, "dist", "server.js")
 
     @default("cmd")
     def _default_cmd(self):
         return [self.nodejs, self.jsonrpc_ws_proxy]
+
+    @default("node_roots")
+    def _default_node_roots(self):
+        return self.extra_node_roots + [
+            os.getcwd(),
+            pathlib.Path(get_app_dir()) / "staging",
+            pathlib.Path(sys.prefix) / "lib",
+            # TODO: "well-known" windows paths
+            sys.prefix,
+        ]
 
     def start(self):
         """ Start the Notebook server app, after initialization
@@ -92,7 +110,7 @@ class LanguageServerApp(JupyterApp):
             )
             config_file.write_text(config_json)
 
-            self.log.debug(config_json)
+            self.log.error(__import__("pprint").pformat(config_json))
 
             args = self.cmd + [
                 "--port",
@@ -118,12 +136,7 @@ class LanguageServerApp(JupyterApp):
         language_servers.update(language_servers_from_config)
 
         # coalesce the servers, allowing a user to opt-out by specifying `[]`
-        return {
-            language: cmd
-            for language, cmd in language_servers.items()
-            if commands
-        }
-
+        return {language: cmd for language, cmd in language_servers.items() if cmd}
 
     def _autodetect_language_servers(self):
         servers = {}
@@ -132,30 +145,30 @@ class LanguageServerApp(JupyterApp):
             try:
                 connector = ep.load()
             except Exception as err:
-                self.log.warn("Failed to load language server connector `{}`: \n{}".format(
-                    ep.name,
-                    err
-                ))
+                self.log.warn(
+                    "Failed to load language server connector `{}`: \n{}".format(
+                        ep.name, err
+                    )
+                )
                 continue
 
             try:
                 for language, cmd in connector(self).items():
-                    servers["language"] = cmd
+                    servers[language] = cmd
             except Exception as err:
-                self.log.warning("Failed to fetch commands from language server conector `{}`:\n{}".format(
-                    ep.name,
-                    err
-                ))
+                self.log.warning(
+                    "Failed to fetch commands from language server conector `{}`:\n{}".format(
+                        ep.name, err
+                    )
+                )
                 continue
 
         return servers
 
-    def _find_node_module(self, *path_frag):
-        for candidate_root in self.extra_node_roots + [
-            pathlib.Path(get_app_dir()) / "staging",
-            sys.prefix,
-            os.getcwd(),
-        ]:
+    def find_node_module(self, *path_frag):
+        """ look through the node_module roots to find the given node module
+        """
+        for candidate_root in self.node_roots:
             candidate = pathlib.Path(candidate_root, "node_modules", *path_frag)
             if candidate.exists():
                 return str(candidate)

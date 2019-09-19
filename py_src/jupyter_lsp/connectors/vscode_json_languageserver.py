@@ -1,4 +1,4 @@
-from jupyter_lsp import LanguageServerApp, ConnectorCommands
+from jupyter_lsp import ConnectorCommands, LanguageServerApp
 
 
 def connect_vscode_json_languageserver(app: LanguageServerApp) -> ConnectorCommands:
@@ -8,10 +8,7 @@ def connect_vscode_json_languageserver(app: LanguageServerApp) -> ConnectorComma
     vscjls = app.find_node_module(pkg, "bin", pkg)
 
     if vscjls:
-        cmd = [app.nodejs, yls, "--stdio"]
-        return {
-            "yaml": cmd,
-            "application/yaml": cmd
-        }
+        cmd = [app.nodejs, vscjls, "--stdio"]
+        return {"json": cmd, "application/json": cmd}
 
     return {}

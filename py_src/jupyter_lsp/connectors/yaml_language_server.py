@@ -1,4 +1,4 @@
-from jupyter_lsp import LanguageServerApp, ConnectorCommands
+from jupyter_lsp import ConnectorCommands, LanguageServerApp
 
 
 def connect_yaml_language_server(app: LanguageServerApp) -> ConnectorCommands:
@@ -9,9 +9,6 @@ def connect_yaml_language_server(app: LanguageServerApp) -> ConnectorCommands:
 
     if yls:
         cmd = [app.nodejs, yls, "--stdio"]
-        return {
-            "yaml": cmd,
-            "application/yaml": cmd
-        }
+        return {"yaml": cmd, "application/yaml": cmd}
 
     return {}
