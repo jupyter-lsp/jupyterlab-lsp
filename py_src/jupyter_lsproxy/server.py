@@ -7,18 +7,22 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import pkg_resources
+from typing import Dict, List, Text
+
+from traitlets import Bool, Dict, Int, List, Unicode, default
 
 from jupyter_core.application import JupyterApp, base_aliases, base_flags
 from jupyterlab.commands import get_app_dir
-from traitlets import Bool, Dict, Int, List, Unicode, default
 
 from ._version import __version__
-
-JWP = "jsonrpc-ws-proxy"
+from .constants import JWP, EP_CONNECTOR_V0
 
 aliases = dict(port="LanguageServerApp.port", **base_aliases)
 
 flags = dict(**base_flags)
+
+ConnectorCommands = Dict[Text, List[Text]]
 
 
 class LanguageServerApp(JupyterApp):
@@ -32,7 +36,8 @@ class LanguageServerApp(JupyterApp):
 
     language_servers = Dict(
         {}, help="a dictionary of lists of command arguments keyed by language names"
-    ).tag(config=True)
+    ).tag(config=True)  # type: ConnectorCommands
+
 
     port = Int(help="the (dynamically) assigned port to pass to jsonrpc-ws-proxy").tag(
         config=True
@@ -54,6 +59,20 @@ class LanguageServerApp(JupyterApp):
 
     cmd = List().tag(config=True)
 
+    @default("nodejs")
+    def _default_nodejs(self):
+        return shutil.which("node") or shutil.which("nodejs")
+
+    @default("jsonrpc_ws_proxy")
+    def _default_jsonrpc_ws_proxy(self):
+        """ try to find
+        """
+        return shutil.which(JWP) or self._find_node_module(JWP, "dist", "server.js")
+
+    @default("cmd")
+    def _default_cmd(self):
+        return [self.nodejs, self.jsonrpc_ws_proxy]
+
     def start(self):
         """ Start the Notebook server app, after initialization
 
@@ -62,16 +81,12 @@ class LanguageServerApp(JupyterApp):
 
         super().start()
 
+        language_servers = self.init_language_servers()
+
         with tempfile.TemporaryDirectory() as td:
             config_file = pathlib.Path(td) / "langservers.yml"
 
-            if self.autodetect:
-                language_servers = self._autodetect_language_servers()
-            else:
-                language_servers = {}
-
-            language_servers.update(self.language_servers)
-
+            # JSON _is_ YAML, so we don't need a dependency just to dump YAML
             config_json = json.dumps(
                 {"langservers": language_servers}, indent=2, sort_keys=True
             )
@@ -88,62 +103,52 @@ class LanguageServerApp(JupyterApp):
 
             return subprocess.check_call(args, cwd=td)
 
+    def init_language_servers(self):
+        """ determine the final language server configuration.
+        """
+        language_servers = {}  # type: ConnectorCommands
+
+        # copy the language servers before anybody monkeys with them
+        language_servers_from_config = dict(self.language_servers)
+
+        if self.autodetect:
+            language_servers.update(self._autodetect_language_servers())
+
+        # restore config
+        language_servers.update(language_servers_from_config)
+
+        # coalesce the servers, allowing a user to opt-out by specifying `[]`
+        return {
+            language: cmd
+            for language, cmd in language_servers.items()
+            if commands
+        }
+
+
     def _autodetect_language_servers(self):
         servers = {}
 
-        self.find_python(servers)
-        self.find_js(servers)
-        self.find_json(servers)
-        self.find_yaml(servers)
+        for ep in pkg_resources.iter_entry_points(EP_CONNECTOR_V0):
+            try:
+                connector = ep.load()
+            except Exception as err:
+                self.log.warn("Failed to load language server connector `{}`: \n{}".format(
+                    ep.name,
+                    err
+                ))
+                continue
+
+            try:
+                for language, cmd in connector(self).items():
+                    servers["language"] = cmd
+            except Exception as err:
+                self.log.warning("Failed to fetch commands from language server conector `{}`:\n{}".format(
+                    ep.name,
+                    err
+                ))
+                continue
 
         return servers
-
-    def find_js(self, servers):
-        jstsls = self._find_node_module(
-            "javascript-typescript-langserver", "lib", "language-server.js"
-        )
-
-        if not jstsls:
-            return
-
-        servers["application/typescript"] = servers["javascript"] = [self.node, jstsls]
-
-    def find_json(self, servers):
-        vscjls = self._find_node_module(
-            "vscode-json-languageserver", "bin", "vscode-json-languageserver"
-        )
-
-        if not vscjls:
-            return
-
-        servers["json"] = servers["application/json"] = [self.node, vscjls]
-
-    def find_python(self, servers):
-        if shutil.which("pyls"):
-            servers["python"] = ["pyls"]
-
-    def find_yaml(self, servers):
-        yls = self._find_node_module(
-            "yaml-language-server", "bin", "yaml-language-server"
-        )
-        if not yls:
-            return
-
-        servers["yaml"] = servers["application/yaml"] = [self.node, yls, "--stdio"]
-
-    @default("node")
-    def _default_node(self):
-        return shutil.which("node") or shutil.which("nodejs")
-
-    @default("jsonrpc_ws_proxy")
-    def _default_jsonrpc_ws_proxy(self):
-        """ try to find
-        """
-        return shutil.which(JWP) or self._find_node_module(JWP, "dist", "server.js")
-
-    @default("cmd")
-    def _default_cmd(self):
-        return [self.node, self.jsonrpc_ws_proxy]
 
     def _find_node_module(self, *path_frag):
         for candidate_root in self.extra_node_roots + [

@@ -1,1 +1,3 @@
-jupyterlab==1.0.0
+# nodejs
+jupyterlab>=1.1,<1.2
+jupyter-server-proxy
