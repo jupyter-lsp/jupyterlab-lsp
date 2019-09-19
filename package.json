@@ -36,8 +36,8 @@
     "watch": "tsc -w",
     "lint": "jlpm prettier && jlpm tslint",
     "lint:check": "jlpm prettier:check && jlpm tslint:check",
-    "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
-    "prettier:check": "prettier --list-different '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
+    "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
+    "prettier:check": "prettier --list-different '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
     "tslint": "tslint --fix -c tslint.json --project tsconfig.json '**/*{.ts,.tsx}'",
     "tslint:check": "tslint -c tslint.json --project tsconfig.json '**/*{.ts,.tsx}'",
     "test": "npx jest"

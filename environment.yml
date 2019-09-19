@@ -15,6 +15,6 @@ dependencies:
   - python >=3.7,<3.8.0a0
   - python-language-server
   - pip:
-    - pyls-black
-    - pyls-isort
-    - pyls-mypy
+      - pyls-black
+      - pyls-isort
+      - pyls-mypy
