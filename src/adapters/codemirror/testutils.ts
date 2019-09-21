@@ -8,6 +8,7 @@ import { LSPConnection } from '../../connection';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { VirtualFileEditor } from '../../virtual/editors/file_editor';
 import { FreeTooltip } from '../jupyterlab/components/free_tooltip';
+import { IJupyterLabComponentsManager } from "../jupyterlab/jl_adapter";
 
 interface IFeatureTestEnvironment {
   host: HTMLElement;
@@ -82,13 +83,14 @@ export class FeatureTestEnvironment implements IFeatureTestEnvironment {
     });
   }
 
-  public create_dummy_components() {
+  public create_dummy_components(): IJupyterLabComponentsManager {
     return {
       invoke_completer: () => {},
       create_tooltip: () => {
         return {} as FreeTooltip;
       },
-      remove_tooltip: () => {}
+      remove_tooltip: () => {},
+      jumper: null
     };
   }
 
