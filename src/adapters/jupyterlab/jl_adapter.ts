@@ -1,8 +1,5 @@
 import { PathExt, PageConfig } from '@jupyterlab/coreutils';
-import {
-  CodeMirror,
-  CodeMirrorAdapter
-} from '../codemirror/cm_adapter';
+import { CodeMirror, CodeMirrorAdapter } from '../codemirror/cm_adapter';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
 import { PositionConverter } from '../../converter';
@@ -30,13 +27,15 @@ import { Highlights } from '../codemirror/features/highlights';
 import { Hover } from '../codemirror/features/hover';
 import { Signature } from '../codemirror/features/signature';
 import { CodeMirrorLSPFeature, ILSPFeature } from '../codemirror/feature';
+import { JumpToDefinition } from '../codemirror/features/jump_to';
 
-export const features: Array<typeof CodeMirrorLSPFeature> = [
+export const lsp_features: Array<typeof CodeMirrorLSPFeature> = [
   Completion,
   Diagnostics,
   Highlights,
   Hover,
-  Signature
+  Signature,
+  JumpToDefinition
 ];
 
 interface IDocumentConnectionData {
@@ -44,7 +43,7 @@ interface IDocumentConnectionData {
   connection: LSPConnection;
 }
 
-interface IContext {
+export interface ICommandContext {
   document: VirtualDocument;
   connection: LSPConnection;
   virtual_position: IVirtualPosition;
@@ -449,9 +448,8 @@ export abstract class JupyterLabWidgetAdapter
     virtual_document: VirtualDocument,
     connection: LSPConnection
   ): CodeMirrorAdapter {
-
     let adapter_features = new Array<ILSPFeature>();
-    for (let feature_type of features) {
+    for (let feature_type of lsp_features) {
       let feature = new feature_type(
         this.virtual_editor,
         virtual_document,
@@ -506,7 +504,7 @@ export abstract class JupyterLabWidgetAdapter
     ) as IRootPosition;
   }
 
-  get_context_from_context_menu(): IContext {
+  get_context_from_context_menu(): ICommandContext {
     let root_position = this.get_position_from_context_menu();
     let document = this.virtual_editor.document_at_root_position(root_position);
     let connection = this.connections.get(document.id_path);

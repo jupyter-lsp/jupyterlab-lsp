@@ -1,12 +1,29 @@
-import { CodeMirror} from '../cm_adapter';
+import { CodeMirror } from '../cm_adapter';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { documentHighlightKindNames } from '../../../lsp';
 import { VirtualDocument } from '../../../virtual/document';
 import { IRootPosition } from '../../../positioning';
-import { CodeMirrorLSPFeature } from '../feature';
+import { CodeMirrorLSPFeature, IFeatureCommand } from '../feature';
 
 export class Highlights extends CodeMirrorLSPFeature {
   protected highlight_markers: CodeMirror.TextMarker[] = [];
+
+  static commands: Array<IFeatureCommand> = [
+    {
+      id: 'highlight_references',
+      execute: ({ connection, virtual_position }) =>
+        connection.getReferences(virtual_position),
+      is_enabled: ({ connection }) => connection.isReferencesSupported(),
+      label: 'Highlight references'
+    },
+    {
+      id: 'lsp_get_type_definition',
+      execute: ({ connection, virtual_position }) =>
+        connection.getTypeDefinition(virtual_position),
+      is_enabled: ({ connection }) => connection.isTypeDefinitionSupported(),
+      label: 'Highlight type definition'
+    }
+  ];
 
   register(): void {
     this.connection_handlers.set('highlight', this.handleHighlight.bind(this));

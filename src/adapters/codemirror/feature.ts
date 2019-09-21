@@ -1,5 +1,3 @@
-import { ContextMenu } from '@phosphor/widgets';
-import { CommandRegistry } from '@phosphor/commands';
 import { VirtualDocument } from '../../virtual/document';
 import { CodeMirrorHandler, VirtualEditor } from '../../virtual/editor';
 import { LSPConnection } from '../../connection';
@@ -8,11 +6,43 @@ import {
   IRootPosition,
   IVirtualPosition
 } from '../../positioning';
-import { IJupyterLabComponentsManager } from '../jupyterlab/jl_adapter';
+import {
+  ICommandContext,
+  IJupyterLabComponentsManager
+} from '../jupyterlab/jl_adapter';
 import { Listener } from 'events';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { PositionConverter } from '../../converter';
 import { CodeMirror } from './cm_adapter';
+
+export enum CommandEntryPoints {
+  CellContextMenu,
+  FileEditorContextMenu
+}
+
+export interface IFeatureCommand {
+  /**
+   * The command id; it will be prepended with 'lsp' prefix.
+   * To support multiple attachment points, multiple actual commands will be created,
+   * identified by an attachment-point-specific suffix.
+   */
+  id: string;
+  execute: (context: ICommandContext) => void;
+  is_enabled: (context: ICommandContext) => boolean;
+  label: string;
+  /**
+   * Default infinity (unassigned) if absolute, otherwise 0 (for relative ranks)
+   */
+  rank?: number;
+  /**
+   * Does the rank represent relative position in the LSP commands group?
+   */
+  is_rank_relative?: boolean;
+  /**
+   * By default the command will be attached to the cell and file editor context menus.
+   */
+  attach_to?: Set<CommandEntryPoints>;
+}
 
 export interface ILSPFeature {
   is_registered: boolean;
@@ -29,15 +59,6 @@ export interface ILSPFeature {
    * Will allow the user to disable specific functions
    */
   isEnabled(): boolean;
-
-  /** Return JupyterLab commands to be registered;
-   * intended for single-use in index.ts (during extension registration)
-   */
-  commands: Map<string, CommandRegistry.ICommandOptions>;
-  /** Return the context menu commands to be added during extension registration.
-   * The commands would be grouped by target context menu (like Cell or FileEditor).
-   */
-  contextMenuCommands: Map<string, ContextMenu.IItemOptions>;
   /**
    * Remove event handlers on destruction
    */
@@ -83,13 +104,18 @@ export class CodeMirrorLSPFeature implements ILSPFeature {
   }
 
   isEnabled() {
-    // TODO
+    // TODO - use settings
     return true;
   }
 
-  // TODO: implement in sub-classes (move out of index.ts)
-  readonly commands = new Map<string, CommandRegistry.ICommandOptions>();
-  readonly contextMenuCommands = new Map<string, ContextMenu.IItemOptions>();
+  /** Return JupyterLab commands to be registered;
+   * intended for single-use in index.ts (during extension registration)
+   */
+  static readonly commands = new Array<IFeatureCommand>();
+
+  /* Just a safeguard to enforce static commands in sub-classses */
+  // @ts-ignore
+  private commands: any;
 
   remove(): void {
     // unregister editor handlers

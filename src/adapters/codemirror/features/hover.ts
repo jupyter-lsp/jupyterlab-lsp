@@ -1,5 +1,3 @@
-import { ContextMenu } from '@phosphor/widgets';
-import { CommandRegistry } from '@phosphor/commands';
 import { getModifierState } from '../../../utils';
 import { IRootPosition, is_equal } from '../../../positioning';
 import * as lsProtocol from 'vscode-languageserver-protocol';
@@ -15,9 +13,6 @@ export class Hover extends CodeMirrorLSPFeature {
   private show_next_tooltip: boolean;
   private last_hover_character: CodeMirror.Position;
   protected hover_marker: CodeMirror.TextMarker;
-
-  commands: Map<string, CommandRegistry.ICommandOptions>;
-  contextMenuCommands: Map<string, ContextMenu.IItemOptions>;
 
   register(): void {
     let wrapper = this.virtual_editor.getWrapperElement();
