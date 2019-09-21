@@ -55,8 +55,7 @@ describe('CodeMirrorAdapter', () => {
           return {} as FreeTooltip;
         },
         remove_tooltip: () => {}
-      }
-
+      };
     });
 
     it('updates on change', async () => {
@@ -81,8 +80,7 @@ describe('CodeMirrorAdapter', () => {
         dummy_components_manager
       );
 
-      new CodeMirrorAdapter(
-        connection,
+      let adapter = new CodeMirrorAdapter(
         virtual_editor,
         virtual_editor.virtual_document,
         dummy_components_manager,
@@ -90,12 +88,14 @@ describe('CodeMirrorAdapter', () => {
       );
       ce_editor.model.value.text = 'f';
       await virtual_editor.update_documents();
+      expect(feature.received_update).to.equal(false);
+
       ce_editor.model.value.text = 'fo';
       await virtual_editor.update_documents();
+      await adapter.updateAfterChange();
 
       expect(feature.received_update).to.equal(true);
-      expect(feature.last_change.text).to.equal('o');
-      expect(feature.last_change_position.ch).to.equal(2);
+      expect(feature.last_change.text[0]).to.equal('fo');
     });
   });
 });

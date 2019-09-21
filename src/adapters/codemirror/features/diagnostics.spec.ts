@@ -60,6 +60,7 @@ describe('CodeMirrorAdapterExtension', () => {
         connection,
         dummy_components_manager
       );
+      diagnostics_feature.register();
     });
 
     it('renders inspections', async () => {

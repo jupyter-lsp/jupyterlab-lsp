@@ -317,7 +317,7 @@ export abstract class JupyterLabWidgetAdapter
     );
     connection.on('error', e => {
       let error: Error = e.length && e.length >= 1 ? e[0] : new Error();
-      // TODO: those code may be specific to my proxy client, need to investigate
+      // TODO: those codes may be specific to my proxy client, need to investigate
       if (error.message.indexOf('code = 1005') !== -1) {
         console.warn('LSP: Connection failed for ' + virtual_document.id_path);
         console.log('LSP: disconnecting ' + virtual_document.id_path);
@@ -462,7 +462,6 @@ export abstract class JupyterLabWidgetAdapter
     }
 
     let adapter = new CodeMirrorAdapter(
-      connection,
       this.virtual_editor,
       virtual_document,
       this,

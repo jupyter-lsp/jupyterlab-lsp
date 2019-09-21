@@ -3,23 +3,19 @@ import { until_ready } from '../../utils';
 import { VirtualEditor } from '../../virtual/editor';
 import { VirtualDocument } from '../../virtual/document';
 import { IRootPosition } from '../../positioning';
-import { LSPConnection } from '../../connection';
 import { ILSPFeature } from './feature';
 import { IJupyterLabComponentsManager } from '../jupyterlab/jl_adapter';
 
 export class CodeMirrorAdapter {
-  public connection: LSPConnection;
-  public editor: VirtualEditor;
   protected features: Array<ILSPFeature>;
 
   private last_change: CodeMirror.EditorChange;
   private doc_change_handler: Function;
 
   constructor(
-    connection: LSPConnection,
-    editor: VirtualEditor,
-    private virtual_document: VirtualDocument,
-    private jupyterlab_components: IJupyterLabComponentsManager,
+    protected editor: VirtualEditor,
+    protected virtual_document: VirtualDocument,
+    protected jupyterlab_components: IJupyterLabComponentsManager,
     features = new Array<ILSPFeature>()
   ) {
     // due to an unknown reason the default listener (as defined in the base class) is not invoked on file editors
@@ -28,7 +24,7 @@ export class CodeMirrorAdapter {
     this.doc_change_handler = this.saveChange.bind(this);
     CodeMirror.on(this.editor.getDoc(), 'change', this.doc_change_handler);
 
-    this.features = features;
+    this.features = [];
 
     for (let feature of features) {
       feature.register();
@@ -70,9 +66,7 @@ export class CodeMirrorAdapter {
       }
       return true;
     } catch (e) {
-      console.log(
-        'updateAfterChange failure - silent as to prevent editor going out of sync'
-      );
+      console.log('updateAfterChange failure');
       console.error(e);
     }
     this.invalidateLastChange();
