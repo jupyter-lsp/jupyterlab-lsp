@@ -19,50 +19,20 @@ import '../style/index.css';
 import 'lsp-editor-adapter/lib/codemirror-lsp.css';
 import { ICompletionManager } from '@jupyterlab/completer';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { NotebookAdapter } from './adapters/notebook';
-import { FileEditorAdapter } from './adapters/file_editor';
-import { JupyterLabWidgetAdapter } from './adapters/jupyterlab';
-import { LSPConnection } from './connection';
-import { IVirtualPosition } from './positioning';
+import { NotebookAdapter } from './adapters/jupyterlab/notebook';
+import { FileEditorAdapter } from './adapters/jupyterlab/file_editor';
+import { lsp_features } from './adapters/jupyterlab/jl_adapter';
+import { IFeatureCommand } from './adapters/codemirror/feature';
+import {
+  file_editor_adapters,
+  FileEditorCommandManager,
+  notebook_adapters,
+  NotebookCommandManager
+} from './command_manager';
 
-const file_editor_adapters: Map<string, FileEditorAdapter> = new Map();
-const notebook_adapters: Map<string, NotebookAdapter> = new Map();
-
-const lsp_commands = [
-  {
-    id: 'lsp_get_definition',
-    execute: (connection: LSPConnection, position: IVirtualPosition) =>
-      connection.getDefinition(position),
-    isEnabled: (connection: LSPConnection) =>
-      connection.isDefinitionSupported(),
-    label: 'Jump to definition'
-  },
-  {
-    id: 'lsp_get_type_definition',
-    execute: (connection: LSPConnection, position: IVirtualPosition) =>
-      connection.getTypeDefinition(position),
-    isEnabled: (connection: LSPConnection) =>
-      connection.isTypeDefinitionSupported(),
-    label: 'Highlight type definition'
-  },
-  {
-    id: 'lsp_get_references',
-    execute: (connection: LSPConnection, position: IVirtualPosition) =>
-      connection.getReferences(position),
-    isEnabled: (connection: LSPConnection) =>
-      connection.isReferencesSupported(),
-    label: 'Highlight references'
-  }
-];
-
-function is_context_menu_over_token(adapter: JupyterLabWidgetAdapter) {
-  let position = adapter.get_position_from_context_menu();
-  if (!position) {
-    return false;
-  }
-  let token = adapter.virtual_editor.getTokenAt(position);
-  return token.string !== '';
-}
+const lsp_commands: Array<IFeatureCommand> = [].concat(
+  lsp_features.map(feature => feature)
+);
 
 /**
  * The plugin registration information.
@@ -112,37 +82,13 @@ const plugin: JupyterFrontEndPlugin<void> = {
       }
     });
 
-    let is_context_menu_over_file_editor_token = () => {
-      let fileEditor = fileEditorTracker.currentWidget.content;
-      let adapter = file_editor_adapters.get(fileEditor.id);
-      return is_context_menu_over_token(adapter);
-    };
-
-    for (let cmd of lsp_commands) {
-      app.commands.addCommand(cmd.id, {
-        execute: () => {
-          let fileEditor = fileEditorTracker.currentWidget.content;
-          let adapter = file_editor_adapters.get(fileEditor.id);
-          let context = adapter.get_context_from_context_menu();
-          cmd.execute(context.connection, context.virtual_position);
-        },
-        isEnabled: is_context_menu_over_file_editor_token,
-        isVisible: () => {
-          let fileEditor = fileEditorTracker.currentWidget.content;
-          let adapter = file_editor_adapters.get(fileEditor.id);
-          let context = adapter.get_context_from_context_menu();
-          return (
-            adapter && context.connection && cmd.isEnabled(context.connection)
-          );
-        },
-        label: cmd.label
-      });
-
-      app.contextMenu.addItem({
-        selector: '.jp-FileEditor',
-        command: cmd.id
-      });
-    }
+    let command_manager = new FileEditorCommandManager(
+      app,
+      fileEditorTracker,
+      '.jp-FileEditor',
+      'file_editor'
+    );
+    command_manager.add(lsp_commands);
 
     notebookTracker.widgetAdded.connect((sender, widget) => {
       // NOTE: assuming that the default cells content factory produces CodeMirror editors(!)
@@ -158,11 +104,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
 
     // TODO de-duplicate commands creation, use some kind of an interface or factory
-    let is_context_menu_over_notebook_token = () => {
-      let notebook = notebookTracker.currentWidget;
-      let adapter = notebook_adapters.get(notebook.id);
-      return is_context_menu_over_token(adapter);
-    };
 
     // position context menu entries after 10th but before 11th default entry
     // this lets it be before "Clear outputs" which is the last entry of the
@@ -173,35 +114,18 @@ const plugin: JupyterFrontEndPlugin<void> = {
     app.contextMenu.addItem({
       type: 'separator',
       selector: '.jp-Notebook .jp-CodeCell',
-      rank: 10 + 1 / (lsp_commands.length + 2)
+      rank: 10 + Number.EPSILON
     });
-    let i = 1;
-    for (let cmd of lsp_commands) {
-      i += 1;
-      app.commands.addCommand(cmd.id + '_notebook', {
-        execute: () => {
-          let notebook = notebookTracker.currentWidget;
-          let adapter = notebook_adapters.get(notebook.id);
-          let context = adapter.get_context_from_context_menu();
-          cmd.execute(context.connection, context.virtual_position);
-        },
-        isEnabled: is_context_menu_over_notebook_token,
-        isVisible: () => {
-          let notebook = notebookTracker.currentWidget;
-          let adapter = notebook_adapters.get(notebook.id);
-          let context = adapter.get_context_from_context_menu();
-          return (
-            adapter && context.connection && cmd.isEnabled(context.connection)
-          );
-        },
-        label: cmd.label
-      });
-      app.contextMenu.addItem({
-        selector: '.jp-Notebook .jp-CodeCell',
-        command: cmd.id + '_notebook',
-        rank: 10 + i / (lsp_commands.length + 2)
-      });
-    }
+
+    let notebook_command_manager = new NotebookCommandManager(
+      app,
+      notebookTracker,
+      '.jp-Notebook .jp-CodeCell',
+      'notebook',
+      10,
+      lsp_commands.length + 2
+    );
+    notebook_command_manager.add(lsp_commands);
 
     function updateOptions(settings: ISettingRegistry.ISettings): void {
       // let options = settings.composite;
@@ -224,84 +148,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
       .catch((reason: Error) => {
         console.error(reason.message);
       });
-
-    /*
-    // Add an application command
-    const cmdIds = {
-      // in future add more commands
-      jumpNotebook: 'lsp:notebook-jump',
-      jumpFileEditor: 'lsp:file-editor-jump'
-    };
-
-    // Add the command to the palette.
-    palette.addItem({
-      command: cmdIds.jumpNotebook,
-      category: 'Notebook Cell Operations'
-    });
-    palette.addItem({
-      command: cmdIds.jumpFileEditor,
-      category: 'Text Editor'
-    });
-
-    function isEnabled(tracker: any) {
-      return (): boolean =>
-        tracker.currentWidget !== null &&
-        tracker.currentWidget === app.shell.currentWidget;
-    }
-
-    app.commands.addCommand(cmdIds.jumpNotebook, {
-      label: 'Jump to definition',
-      execute: () => {
-        let notebook_widget = notebookTracker.currentWidget;
-        let notebook = notebook_widget.content;
-
-        let jumper = new NotebookJumper(notebook_widget, documentManager);
-        let cell = notebook_widget.content.activeCell;
-        let editor = cell.editor;
-
-        let position = editor.getCursorPosition();
-        let token = editor.getTokenForPosition(position);
-
-        jumper.jump_to_definition(
-          { token, origin: null },
-          notebook.activeCellIndex
-        );
-      },
-      isEnabled: isEnabled(notebookTracker)
-    });
-
-    app.commands.addCommand(cmdIds.jumpFileEditor, {
-      label: 'Jump to definition',
-      execute: () => {
-        let fileEditorWidget = fileEditorTracker.currentWidget;
-        let fileEditor = fileEditorWidget.content;
-
-        let jumper = new FileEditorJumper(fileEditorWidget, documentManager);
-        let editor = fileEditor.editor;
-
-        let position = editor.getCursorPosition();
-        let token = editor.getTokenForPosition(position);
-
-        jumper.jump_to_definition({ token, origin: null });
-      },
-      isEnabled: isEnabled(fileEditorTracker)
-    });
-
-    const bindings = [
-      {
-        selector: '.jp-Notebook.jp-mod-editMode',
-        keys: ['Ctrl Alt B'],
-        command: cmdIds.jumpNotebook
-      },
-      {
-        selector: '.jp-FileEditor',
-        keys: ['Ctrl Alt B'],
-        command: cmdIds.jumpFileEditor
-      }
-    ];
-
-    bindings.map(binding => app.commands.addKeyBinding(binding));
-    */
   },
   autoStart: true
 };

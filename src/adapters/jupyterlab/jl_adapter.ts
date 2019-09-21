@@ -1,37 +1,64 @@
 import { PathExt, PageConfig } from '@jupyterlab/coreutils';
-import { CodeMirror, CodeMirrorAdapterExtension } from './codemirror';
+import { CodeMirror, CodeMirrorAdapter } from '../codemirror/cm_adapter';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
-import { PositionConverter } from '../converter';
+import { PositionConverter } from '../../converter';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import * as lsProtocol from 'vscode-languageserver-protocol';
-import { FreeTooltip } from '../free_tooltip';
+import { FreeTooltip } from './components/free_tooltip';
 import { Widget } from '@phosphor/widgets';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
-import { until_ready } from '../utils';
-import { VirtualEditor } from '../virtual/editor';
-import { VirtualDocument } from '../virtual/document';
+import { until_ready } from '../../utils';
+import { VirtualEditor } from '../../virtual/editor';
+import { VirtualDocument } from '../../virtual/document';
 import { Signal } from '@phosphor/signaling';
 import {
   IEditorPosition,
   IRootPosition,
   IVirtualPosition
-} from '../positioning';
-import { LSPConnection } from '../connection';
-import { LSPConnector } from '../completion';
-import { CompletionTriggerKind } from '../lsp';
+} from '../../positioning';
+import { LSPConnection } from '../../connection';
+import { LSPConnector } from './components/completion';
+import { CompletionTriggerKind } from '../../lsp';
+import { Completion } from '../codemirror/features/completion';
+import { Diagnostics } from '../codemirror/features/diagnostics';
+import { Highlights } from '../codemirror/features/highlights';
+import { Hover } from '../codemirror/features/hover';
+import { Signature } from '../codemirror/features/signature';
+import { CodeMirrorLSPFeature, ILSPFeature } from '../codemirror/feature';
+import { JumpToDefinition } from '../codemirror/features/jump_to';
+
+export const lsp_features: Array<typeof CodeMirrorLSPFeature> = [
+  Completion,
+  Diagnostics,
+  Highlights,
+  Hover,
+  Signature,
+  JumpToDefinition
+];
 
 interface IDocumentConnectionData {
   document: VirtualDocument;
   connection: LSPConnection;
 }
 
-interface IContext {
+export interface ICommandContext {
   document: VirtualDocument;
   connection: LSPConnection;
   virtual_position: IVirtualPosition;
   root_position: IRootPosition;
+}
+
+export interface IJupyterLabComponentsManager {
+  invoke_completer: (kind: CompletionTriggerKind) => void;
+  create_tooltip: (
+    markup: lsProtocol.MarkupContent,
+    cm_editor: CodeMirror.Editor,
+    position: IEditorPosition
+  ) => FreeTooltip;
+  remove_tooltip: () => void;
+  jumper: CodeJumper;
 }
 
 /**
@@ -40,12 +67,13 @@ interface IContext {
  * as this would make the logic of inspections caching impossible to maintain, thus the WidgetAdapter
  * has to handle that, keeping multiple connections and multiple virtual documents.
  */
-export abstract class JupyterLabWidgetAdapter {
+export abstract class JupyterLabWidgetAdapter
+  implements IJupyterLabComponentsManager {
   app: JupyterFrontEnd;
   connections: Map<VirtualDocument.id_path, LSPConnection>;
   documents: Map<VirtualDocument.id_path, VirtualDocument>;
   jumper: CodeJumper;
-  protected adapters: Map<VirtualDocument.id_path, CodeMirrorAdapterExtension>;
+  protected adapters: Map<VirtualDocument.id_path, CodeMirrorAdapter>;
   protected rendermime_registry: IRenderMimeRegistry;
   widget: IDocumentWidget;
   private readonly invoke_command: string;
@@ -55,6 +83,7 @@ export abstract class JupyterLabWidgetAdapter {
   >;
   protected abstract current_completion_connector: LSPConnector;
   private ignored_languages: Set<string>;
+  private _tooltip: FreeTooltip;
 
   protected constructor(
     app: JupyterFrontEnd,
@@ -175,7 +204,6 @@ export abstract class JupyterLabWidgetAdapter {
         'have been initialized'
       );
     });
-
   }
 
   protected async connect_document(virtual_document: VirtualDocument) {
@@ -284,12 +312,9 @@ export abstract class JupyterLabWidgetAdapter {
       }
     }).connect(socket);
 
-    connection.on('goTo', locations =>
-      this.handle_jump(locations, virtual_document.id_path)
-    );
     connection.on('error', e => {
       let error: Error = e.length && e.length >= 1 ? e[0] : new Error();
-      // TODO: those code may be specific to my proxy client, need to investigate
+      // TODO: those codes may be specific to my proxy client, need to investigate
       if (error.message.indexOf('code = 1005') !== -1) {
         console.warn('LSP: Connection failed for ' + virtual_document.id_path);
         console.log('LSP: disconnecting ' + virtual_document.id_path);
@@ -347,87 +372,26 @@ export abstract class JupyterLabWidgetAdapter {
     );
   }
 
-  handle_jump(locations: lsProtocol.Location[], id_path: string) {
-    let connection = this.connections.get(id_path);
-
-    // TODO: implement selector for multiple locations
-    //  (like when there are multiple definitions or usages)
-    if (locations.length === 0) {
-      console.log('No jump targets found');
-      return;
-    }
-    console.log('Will jump to the first of suggested locations:', locations);
-
-    let location = locations[0];
-
-    let uri: string = decodeURI(location.uri);
-    let current_uri = connection.getDocumentUri();
-
-    let virtual_position = PositionConverter.lsp_to_cm(
-      location.range.start
-    ) as IVirtualPosition;
-
-    if (uri === current_uri) {
-      let editor_index = this.virtual_editor.get_editor_index(virtual_position);
-      // if in current file, transform from the position within virtual document to the editor position:
-      let editor_position = this.virtual_editor.transform_virtual_to_editor(
-        virtual_position
-      );
-      let editor_position_ce = PositionConverter.cm_to_ce(editor_position);
-      console.log(`Jumping to ${editor_index}th editor of ${uri}`);
-      console.log('Jump target within editor:', editor_position_ce);
-      this.jumper.jump({
-        token: {
-          offset: this.jumper.getOffset(editor_position_ce, editor_index),
-          value: ''
-        },
-        index: editor_index
-      });
-    } else {
-      // otherwise there is no virtual document and we expect the returned position to be source position:
-      let source_position_ce = PositionConverter.cm_to_ce(virtual_position);
-      console.log(`Jumping to external file: ${uri}`);
-      console.log('Jump target (source location):', source_position_ce);
-
-      if (uri.startsWith('file://')) {
-        uri = uri.slice(7);
-      }
-
-      let jump_data = {
-        editor_index: 0,
-        line: source_position_ce.line,
-        column: source_position_ce.column
-      };
-
-      // assume that we got a relative path to a file within the project
-      // TODO use is_relative() or something? It would need to be not only compatible
-      //  with different OSes but also with JupyterHub and other platforms.
-      this.jumper.document_manager.services.contents
-        .get(uri, { content: false })
-        .then(() => {
-          this.jumper.global_jump({ uri, ...jump_data }, false);
-        })
-        .catch(() => {
-          // fallback to an absolute location using a symlink (will only work if manually created)
-          this.jumper.global_jump(
-            { uri: '.lsp_symlink/' + uri, ...jump_data },
-            true
-          );
-        });
-    }
-  }
-
   create_adapter(
     virtual_document: VirtualDocument,
     connection: LSPConnection
-  ): CodeMirrorAdapterExtension {
-    let adapter = new CodeMirrorAdapterExtension(
-      connection,
-      { quickSuggestionsDelay: 50 },
+  ): CodeMirrorAdapter {
+    let adapter_features = new Array<ILSPFeature>();
+    for (let feature_type of lsp_features) {
+      let feature = new feature_type(
+        this.virtual_editor,
+        virtual_document,
+        connection,
+        this
+      );
+      adapter_features.push(feature);
+    }
+
+    let adapter = new CodeMirrorAdapter(
       this.virtual_editor,
-      this.create_tooltip.bind(this),
-      this.invoke_completer.bind(this),
-      virtual_document
+      virtual_document,
+      this,
+      adapter_features
     );
     console.log('LSP: Adapter for', this.document_path, 'is ready.');
     return adapter;
@@ -468,7 +432,7 @@ export abstract class JupyterLabWidgetAdapter {
     ) as IRootPosition;
   }
 
-  get_context_from_context_menu(): IContext {
+  get_context_from_context_menu(): ICommandContext {
     let root_position = this.get_position_from_context_menu();
     let document = this.virtual_editor.document_at_root_position(root_position);
     let connection = this.connections.get(document.id_path);
@@ -478,11 +442,12 @@ export abstract class JupyterLabWidgetAdapter {
     return { document, connection, virtual_position, root_position };
   }
 
-  protected create_tooltip(
+  public create_tooltip(
     markup: lsProtocol.MarkupContent,
     cm_editor: CodeMirror.Editor,
     position: IEditorPosition
   ): FreeTooltip {
+    this.remove_tooltip();
     const bundle =
       markup.kind === 'plaintext'
         ? { 'text/plain': markup.value }
@@ -496,6 +461,13 @@ export abstract class JupyterLabWidgetAdapter {
       moveToLineEnd: false
     });
     Widget.attach(tooltip, document.body);
+    this._tooltip = tooltip;
     return tooltip;
+  }
+
+  remove_tooltip() {
+    if (this._tooltip !== undefined) {
+      this._tooltip.dispose();
+    }
   }
 }

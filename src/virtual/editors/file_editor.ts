@@ -1,5 +1,5 @@
 import { VirtualEditor } from '../editor';
-import { CodeMirror } from '../../adapters/codemirror';
+import { CodeMirror } from '../../adapters/codemirror/cm_adapter';
 import { IEditorPosition, IRootPosition, IVirtualPosition } from '../../positioning';
 
 export class VirtualFileEditor extends VirtualEditor {

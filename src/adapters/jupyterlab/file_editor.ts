@@ -1,16 +1,16 @@
-import { JupyterLabWidgetAdapter } from './jupyterlab';
+import { JupyterLabWidgetAdapter } from './jl_adapter';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditorJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/fileeditor';
-import { CodeMirror } from './codemirror';
+import { CodeMirror } from '../codemirror/cm_adapter';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { ICompletionManager } from '@jupyterlab/completer';
-import { LSPConnector } from '../completion';
+import { LSPConnector } from './components/completion';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { VirtualFileEditor } from '../virtual/editors/file_editor';
-import { LSPConnection } from '../connection';
+import { VirtualFileEditor } from '../../virtual/editors/file_editor';
+import { LSPConnection } from '../../connection';
 
 export class FileEditorAdapter extends JupyterLabWidgetAdapter {
   editor: FileEditor;

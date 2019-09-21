@@ -7,7 +7,7 @@ import { IOverridesRegistry } from '../magics/overrides';
 import { DefaultMap } from '../utils';
 import { Signal } from '@phosphor/signaling';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { CodeMirror } from '../adapters/codemirror';
+import { CodeMirror } from '../adapters/codemirror/cm_adapter';
 import {
   IEditorPosition,
   ISourcePosition,
