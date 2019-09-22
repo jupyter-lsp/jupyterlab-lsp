@@ -1,7 +1,7 @@
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { IWidgetTracker } from '@jupyterlab/apputils';
 import { JupyterLabWidgetAdapter } from './adapters/jupyterlab/jl_adapter';
-import { IFeatureCommand } from './adapters/codemirror/feature';
+import { CommandEntryPoint, IFeatureCommand } from './adapters/codemirror/feature';
 import { IEditorTracker } from '@jupyterlab/fileeditor';
 import { FileEditorAdapter } from './adapters/jupyterlab/file_editor';
 import { NotebookAdapter } from './adapters/jupyterlab/notebook';
@@ -32,23 +32,47 @@ abstract class LSPCommandManager {
     protected rank_group_size?: number
   ) {}
 
+  abstract entry_point: CommandEntryPoint;
   abstract get current_adapter(): JupyterLabWidgetAdapter;
+  abstract attach_command(command: IFeatureCommand): void;
+  abstract execute(command: IFeatureCommand): void;
+  abstract is_enabled(command: IFeatureCommand): boolean;
+  abstract is_visible(command: IFeatureCommand): boolean;
 
   add(commands: Array<IFeatureCommand>) {
     for (let cmd of commands) {
       this.app.commands.addCommand(this.create_id(cmd), {
         execute: () => this.execute(cmd),
-        isEnabled: this.is_context_menu_over_token,
+        isEnabled: () => this.is_enabled(cmd),
         isVisible: () => this.is_visible(cmd),
         label: cmd.label
       });
 
-      this.app.contextMenu.addItem({
-        selector: this.selector,
-        command: cmd.id,
-        rank: this.get_rank(cmd)
-      });
+      if (this.should_attach(cmd)) {
+        this.attach_command(cmd);
+      }
     }
+  }
+
+  protected should_attach(command: IFeatureCommand) {
+    if (typeof command.attach_to === 'undefined') {
+      return true;
+    }
+    return command.attach_to.has(this.entry_point);
+  }
+
+  protected create_id(command: IFeatureCommand): string {
+    return 'lsp:' + command.id + '-' + this.suffix;
+  }
+}
+
+abstract class ContextMenuCommandManager extends LSPCommandManager {
+  attach_command(command: IFeatureCommand): void {
+    this.app.contextMenu.addItem({
+      selector: this.selector,
+      command: command.id,
+      rank: this.get_rank(command)
+    });
   }
 
   execute(command: IFeatureCommand): void {
@@ -56,19 +80,15 @@ abstract class LSPCommandManager {
     command.execute(context);
   }
 
+  is_enabled() {
+    return is_context_menu_over_token(this.current_adapter);
+  }
+
   is_visible(command: IFeatureCommand): boolean {
     let context = this.current_adapter.get_context_from_context_menu();
     return (
       this.current_adapter && context.connection && command.is_enabled(context)
     );
-  }
-
-  is_context_menu_over_token() {
-    return is_context_menu_over_token(this.current_adapter);
-  }
-
-  protected create_id(command: IFeatureCommand): string {
-    return 'lsp_' + command.id + '_' + this.suffix;
   }
 
   protected get_rank(command: IFeatureCommand): number {
@@ -81,8 +101,9 @@ abstract class LSPCommandManager {
   }
 }
 
-export class NotebookCommandManager extends LSPCommandManager {
+export class NotebookCommandManager extends ContextMenuCommandManager {
   protected tracker: INotebookTracker;
+  entry_point: CommandEntryPoint.CellContextMenu;
 
   get current_adapter() {
     let notebook = this.tracker.currentWidget;
@@ -90,8 +111,9 @@ export class NotebookCommandManager extends LSPCommandManager {
   }
 }
 
-export class FileEditorCommandManager extends LSPCommandManager {
+export class FileEditorCommandManager extends ContextMenuCommandManager {
   protected tracker: IEditorTracker;
+  entry_point: CommandEntryPoint.FileEditorContextMenu;
 
   get current_adapter() {
     let fileEditor = this.tracker.currentWidget.content;

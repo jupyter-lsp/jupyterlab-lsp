@@ -13,9 +13,9 @@ import { Listener } from 'events';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { PositionConverter } from '../../converter';
 import { CodeMirror } from './cm_adapter';
-import { ICommandContext } from "../../command_manager";
+import { ICommandContext } from '../../command_manager';
 
-export enum CommandEntryPoints {
+export enum CommandEntryPoint {
   CellContextMenu,
   FileEditorContextMenu
 }
@@ -41,7 +41,7 @@ export interface IFeatureCommand {
   /**
    * By default the command will be attached to the cell and file editor context menus.
    */
-  attach_to?: Set<CommandEntryPoints>;
+  attach_to?: Set<CommandEntryPoint>;
 }
 
 export interface ILSPFeature {

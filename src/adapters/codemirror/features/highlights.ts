@@ -10,14 +10,14 @@ export class Highlights extends CodeMirrorLSPFeature {
 
   static commands: Array<IFeatureCommand> = [
     {
-      id: 'highlight_references',
+      id: 'highlight-references',
       execute: ({ connection, virtual_position }) =>
         connection.getReferences(virtual_position),
       is_enabled: ({ connection }) => connection.isReferencesSupported(),
       label: 'Highlight references'
     },
     {
-      id: 'lsp_get_type_definition',
+      id: 'highlight-type-definition',
       execute: ({ connection, virtual_position }) =>
         connection.getTypeDefinition(virtual_position),
       is_enabled: ({ connection }) => connection.isTypeDefinitionSupported(),
