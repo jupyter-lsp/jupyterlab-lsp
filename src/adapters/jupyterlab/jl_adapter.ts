@@ -245,7 +245,7 @@ export abstract class JupyterLabWidgetAdapter
     // guarantee that the virtual editor won't perform an update of the virtual documents while
     // the changes are recorded...
     // TODO this is not ideal - why it solves the problem of some errors,
-    //  it introduces an unnecessary delay. a better way could be to invalidate some of the updates when a new one comes in.
+    //  it introduces an unnecessary delay. A better way could be to invalidate some of the updates when a new one comes in.
     //  but maybe not every one (then the outdated state could be kept for too long fo a user who writes very quickly)
     //  also we would not want to invalidate the updates for the purpose of autocompletion (the trigger characters)
     this.virtual_editor
@@ -389,12 +389,7 @@ export abstract class JupyterLabWidgetAdapter
 
   update_documents(slot: any) {
     // update the virtual documents (sending the updates to LSP is out of scope here)
-    this.virtual_editor.update_documents().then(() => {
-      for (let adapter of this.adapters.values()) {
-        // force clean old changes cached in the adapters
-        adapter.invalidateLastChange();
-      }
-    });
+    this.virtual_editor.update_documents().then();
   }
 
   get_position_from_context_menu(): IRootPosition {

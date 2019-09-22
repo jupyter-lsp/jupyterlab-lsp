@@ -1,6 +1,6 @@
 export import CodeMirror = require('codemirror');
 import { until_ready } from '../../utils';
-import { VirtualEditor } from '../../virtual/editor';
+import { CodeMirrorHandler, VirtualEditor } from '../../virtual/editor';
 import { VirtualDocument } from '../../virtual/document';
 import { IRootPosition } from '../../positioning';
 import { ILSPFeature } from './feature';
@@ -10,7 +10,7 @@ export class CodeMirrorAdapter {
   protected features: Array<ILSPFeature>;
 
   private last_change: CodeMirror.EditorChange;
-  private doc_change_handler: Function;
+  private doc_change_handler: CodeMirrorHandler;
 
   constructor(
     protected editor: VirtualEditor,
@@ -18,11 +18,8 @@ export class CodeMirrorAdapter {
     protected jupyterlab_components: IJupyterLabComponentsManager,
     features = new Array<ILSPFeature>()
   ) {
-    // due to an unknown reason the default listener (as defined in the base class) is not invoked on file editors
-    // the workaround - setting it at doc instead - works, thus the original one is first disabled (above) and a new
-    // one is added (below); this however can have devastating effect on the editor synchronization - be careful!
     this.doc_change_handler = this.saveChange.bind(this);
-    CodeMirror.on(this.editor.getDoc(), 'change', this.doc_change_handler);
+    this.editor.on('change', this.doc_change_handler);
 
     this.features = [];
 
@@ -84,6 +81,6 @@ export class CodeMirrorAdapter {
     for (let feature of this.features) {
       feature.remove();
     }
-    CodeMirror.off(this.editor.getDoc(), 'change', this.doc_change_handler);
+    this.editor.off('change', this.doc_change_handler);
   }
 }
