@@ -28,6 +28,7 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
 
     // TODO: implement selector for multiple locations
     //  (like when there are multiple definitions or usages)
+    //  could use the showHints() or completion frontend as a reference
     if (locations.length === 0) {
       console.log('No jump targets found');
       return;

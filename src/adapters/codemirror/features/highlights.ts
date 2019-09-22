@@ -31,6 +31,7 @@ export class Highlights extends CodeMirrorLSPFeature {
       'cursorActivity',
       this.onCursorActivity.bind(this)
     );
+    super.register();
   }
 
   remove(): void {
