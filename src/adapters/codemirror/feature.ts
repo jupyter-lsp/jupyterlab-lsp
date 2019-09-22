@@ -113,7 +113,7 @@ export class CodeMirrorLSPFeature implements ILSPFeature {
    */
   static readonly commands = new Array<IFeatureCommand>();
 
-  /* Just a safeguard to enforce static commands in sub-classses */
+  /* Just a safeguard to enforce static commands in sub-classes */
   // @ts-ignore
   private commands: any;
 

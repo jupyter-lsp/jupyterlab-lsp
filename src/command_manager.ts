@@ -79,7 +79,7 @@ abstract class ContextMenuCommandManager extends LSPCommandManager {
   attach_command(command: IFeatureCommand): void {
     this.app.contextMenu.addItem({
       selector: this.selector,
-      command: command.id,
+      command: this.create_id(command),
       rank: this.get_rank(command)
     });
   }
