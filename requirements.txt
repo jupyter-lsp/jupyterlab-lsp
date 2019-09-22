@@ -1,1 +1,2 @@
-jupyterlab==1.0.0
+jupyterlab==1.1
+jupyter-server-proxy
