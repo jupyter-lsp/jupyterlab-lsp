@@ -85,7 +85,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     let command_manager = new FileEditorCommandManager(
       app,
       fileEditorTracker,
-      '.jp-FileEditor',
       'file_editor'
     );
     command_manager.add(lsp_commands);
@@ -111,20 +110,14 @@ const plugin: JupyterFrontEndPlugin<void> = {
     // ('Clear all outputs') thus should stay as the last one.
     // see https://github.com/blink1073/jupyterlab/blob/3592afd328116a588e3307b4cdd9bcabc7fe92bb/packages/notebook-extension/src/index.ts#L802
     // TODO: PR bumping rank of clear all outputs instead?
-    app.contextMenu.addItem({
-      type: 'separator',
-      selector: '.jp-Notebook .jp-CodeCell',
-      rank: 10 + Number.EPSILON
-    });
-
     let notebook_command_manager = new NotebookCommandManager(
       app,
       notebookTracker,
-      '.jp-Notebook .jp-CodeCell',
       'notebook',
       10,
       lsp_commands.length + 2
     );
+    notebook_command_manager.add_context_separator(Number.EPSILON);
     notebook_command_manager.add(lsp_commands);
 
     function updateOptions(settings: ISettingRegistry.ISettings): void {

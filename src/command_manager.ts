@@ -23,13 +23,10 @@ function is_context_menu_over_token(adapter: JupyterLabWidgetAdapter) {
 }
 
 abstract class LSPCommandManager {
-  constructor(
+  protected constructor(
     protected app: JupyterFrontEnd,
     protected tracker: IWidgetTracker,
-    protected selector: string,
-    protected suffix: string,
-    protected rank_group?: number,
-    protected rank_group_size?: number
+    protected suffix: string
   ) {}
 
   abstract entry_point: CommandEntryPoint;
@@ -67,11 +64,31 @@ abstract class LSPCommandManager {
 }
 
 abstract class ContextMenuCommandManager extends LSPCommandManager {
+  abstract selector: string;
+
+  constructor(
+    protected app: JupyterFrontEnd,
+    protected tracker: IWidgetTracker,
+    protected suffix: string,
+    protected rank_group?: number,
+    protected rank_group_size?: number
+  ) {
+    super(app, tracker, suffix);
+  }
+
   attach_command(command: IFeatureCommand): void {
     this.app.contextMenu.addItem({
       selector: this.selector,
       command: command.id,
       rank: this.get_rank(command)
+    });
+  }
+
+  add_context_separator(position_in_group: number) {
+    this.app.contextMenu.addItem({
+      type: 'separator',
+      selector: this.selector,
+      rank: this.rank_group + position_in_group
     });
   }
 
@@ -103,7 +120,8 @@ abstract class ContextMenuCommandManager extends LSPCommandManager {
 
 export class NotebookCommandManager extends ContextMenuCommandManager {
   protected tracker: INotebookTracker;
-  entry_point: CommandEntryPoint.CellContextMenu;
+  selector = '.jp-Notebook .jp-CodeCell';
+  entry_point = CommandEntryPoint.CellContextMenu;
 
   get current_adapter() {
     let notebook = this.tracker.currentWidget;
@@ -113,7 +131,8 @@ export class NotebookCommandManager extends ContextMenuCommandManager {
 
 export class FileEditorCommandManager extends ContextMenuCommandManager {
   protected tracker: IEditorTracker;
-  entry_point: CommandEntryPoint.FileEditorContextMenu;
+  selector = '.jp-FileEditor';
+  entry_point = CommandEntryPoint.FileEditorContextMenu;
 
   get current_adapter() {
     let fileEditor = this.tracker.currentWidget.content;
