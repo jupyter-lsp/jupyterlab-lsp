@@ -156,9 +156,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
     return this.virtual_document.root.get_editor_at_source_line(root_position);
   }
 
-  root_position_to_editor(
-    root_position: IRootPosition
-  ): IEditorPosition {
+  root_position_to_editor(root_position: IRootPosition): IEditorPosition {
     return this.virtual_document.root.transform_source_to_editor(root_position);
   }
 

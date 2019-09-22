@@ -1,4 +1,4 @@
-import { CodeMirror} from '../cm_adapter';
+import { CodeMirror } from '../cm_adapter';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { PositionConverter } from '../../../converter';
 import { IVirtualPosition } from '../../../positioning';
