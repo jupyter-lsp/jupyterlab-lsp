@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { CodeMirrorAdapter} from './cm_adapter';
+import { CodeMirrorAdapter } from './cm_adapter';
 import { LSPConnection } from '../../connection';
 import { IJupyterLabComponentsManager } from '../jupyterlab/jl_adapter';
 import { IRootPosition } from '../../positioning';

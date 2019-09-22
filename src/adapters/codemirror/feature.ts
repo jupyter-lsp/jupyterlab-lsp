@@ -6,9 +6,7 @@ import {
   IRootPosition,
   IVirtualPosition
 } from '../../positioning';
-import {
-  IJupyterLabComponentsManager
-} from '../jupyterlab/jl_adapter';
+import { IJupyterLabComponentsManager } from '../jupyterlab/jl_adapter';
 import { Listener } from 'events';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { PositionConverter } from '../../converter';
@@ -35,7 +33,7 @@ export interface IFeatureCommand {
    */
   rank?: number;
   /**
-   * Does the rank represent relative position in the LSP commands group?
+   * Does the rank represent relative position in the LSP commands group? (default: true)
    */
   is_rank_relative?: boolean;
   /**

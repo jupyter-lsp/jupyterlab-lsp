@@ -63,13 +63,13 @@ abstract class LSPCommandManager {
   }
 }
 
-abstract class ContextMenuCommandManager extends LSPCommandManager {
+export abstract class ContextMenuCommandManager extends LSPCommandManager {
   abstract selector: string;
 
   constructor(
-    protected app: JupyterFrontEnd,
-    protected tracker: IWidgetTracker,
-    protected suffix: string,
+    app: JupyterFrontEnd,
+    tracker: IWidgetTracker,
+    suffix: string,
     protected rank_group?: number,
     protected rank_group_size?: number
   ) {
@@ -109,9 +109,17 @@ abstract class ContextMenuCommandManager extends LSPCommandManager {
   }
 
   protected get_rank(command: IFeatureCommand): number {
-    if (command.is_rank_relative && this.rank_group && this.rank_group_size) {
+    let is_relative =
+      typeof command.is_rank_relative === 'undefined'
+        ? true
+        : command.is_rank_relative;
+    if (
+      is_relative &&
+      typeof this.rank_group !== 'undefined' &&
+      this.rank_group_size
+    ) {
       let relative = typeof command.rank !== 'undefined' ? command.rank : 0;
-      return this.rank_group + Number.EPSILON + relative / this.rank_group_size;
+      return this.rank_group + relative / this.rank_group_size;
     } else {
       return typeof command.rank !== 'undefined' ? command.rank : Infinity;
     }

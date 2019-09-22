@@ -112,10 +112,13 @@ const plugin: JupyterFrontEndPlugin<void> = {
       app,
       notebookTracker,
       'notebook',
-      10,
+      // adding a very small number (epsilon) places the group just after 10th entry
+      10 + Number.EPSILON,
+      // the group size is increased by one to account for separator,
+      // and by another one to prevent exceeding 11th rank by epsilon.
       lsp_commands.length + 2
     );
-    notebook_command_manager.add_context_separator(Number.EPSILON);
+    notebook_command_manager.add_context_separator(0);
     notebook_command_manager.add(lsp_commands);
 
     function updateOptions(settings: ISettingRegistry.ISettings): void {
