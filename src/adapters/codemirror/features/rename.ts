@@ -21,7 +21,7 @@ export class Rename extends CodeMirrorLSPFeature {
   }
 
   protected handleRename(edit: lsProtocol.WorkspaceEdit) {
-    // TODO: apply the edit as a change in the
-    console.log(edit)
+    // TODO: apply the edit as a change in the CodeMirror editor (and then trigger document update?)
+    console.log(edit);
   }
 }
