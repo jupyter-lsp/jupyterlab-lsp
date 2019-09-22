@@ -36,6 +36,7 @@ export class Hover extends CodeMirrorLSPFeature {
         this.handleHover(this.last_hover_response);
       }
     });
+    super.register();
   }
 
   protected static get_markup_for_hover(

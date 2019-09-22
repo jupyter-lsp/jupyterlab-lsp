@@ -16,6 +16,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
       this.handleDiagnostic.bind(this)
     );
     this.unique_editor_ids = new DefaultMap(() => this.unique_editor_ids.size);
+    super.register();
   }
 
   private unique_editor_ids: DefaultMap<CodeMirror.Editor, number>;

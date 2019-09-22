@@ -1,7 +1,7 @@
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { IRootPosition } from '../../../positioning';
 import CodeMirror = require('codemirror');
-import { CodeMirrorLSPFeature } from "../feature";
+import { CodeMirrorLSPFeature } from '../feature';
 
 export class Signature extends CodeMirrorLSPFeature {
   protected signature_character: IRootPosition;
@@ -9,6 +9,7 @@ export class Signature extends CodeMirrorLSPFeature {
 
   register(): void {
     this.connection_handlers.set('signature', this.handleSignature.bind(this));
+    super.register();
   }
 
   protected get_markup_for_signature_help(

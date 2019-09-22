@@ -15,6 +15,11 @@ describe('CodeMirrorAdapterExtension', () => {
     beforeEach(() => (feature = env.init_feature(Diagnostics)));
     afterEach(() => env.dispose_feature(feature));
 
+    it('calls parent register()', () => {
+      feature.register();
+      expect(feature.is_registered).to.equal(true);
+    });
+
     it('renders inspections', async () => {
       env.ce_editor.model.value.text = ' foo \n bar \n baz ';
       await env.virtual_editor.update_documents();
