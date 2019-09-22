@@ -102,8 +102,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
       notebook_adapters.set(widget.id, adapter);
     });
 
-    // TODO de-duplicate commands creation, use some kind of an interface or factory
-
     // position context menu entries after 10th but before 11th default entry
     // this lets it be before "Clear outputs" which is the last entry of the
     // CodeCell contextmenu and plays nicely with the first notebook entry
