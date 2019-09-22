@@ -1,8 +1,13 @@
 import { getModifierState } from '../../../utils';
-import { IRootPosition, is_equal } from '../../../positioning';
+import {
+  IRootPosition,
+  is_equal,
+  IVirtualPosition
+} from '../../../positioning';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { CodeMirror } from '../cm_adapter';
 import { CodeMirrorLSPFeature, IEditorRange } from '../feature';
+import { Debouncer } from '@jupyterlab/coreutils';
 
 export type KeyModifier = 'Alt' | 'Control' | 'Shift' | 'Meta' | 'AltGraph';
 const hover_modifier: KeyModifier = 'Control';
@@ -13,21 +18,20 @@ export class Hover extends CodeMirrorLSPFeature {
   private show_next_tooltip: boolean;
   private last_hover_character: CodeMirror.Position;
   protected hover_marker: CodeMirror.TextMarker;
+  private virtual_position: IVirtualPosition;
+
+  private debounced_get_hover: Debouncer;
 
   register(): void {
-    let wrapper = this.virtual_editor.getWrapperElement();
-    this.virtual_editor.addEventListener(
+    this.wrapper_handlers.set('mousemove', this.handleMouseOver.bind(this));
+    this.wrapper_handlers.set(
       'mouseleave',
       // TODO: remove_tooltip() but allow the mouse to leave if it enters the tooltip
       //  (a bit tricky: normally we would just place the tooltip within, but it was designed to be attached to body)
       this.remove_range_highlight.bind(this)
     );
-    wrapper.addEventListener(
-      'mouseleave',
-      this.remove_range_highlight.bind(this)
-    );
     // show hover after pressing the modifier key
-    wrapper.addEventListener('keydown', (event: KeyboardEvent) => {
+    this.wrapper_handlers.set('keydown', (event: KeyboardEvent) => {
       if (
         (!hover_modifier || getModifierState(event, hover_modifier)) &&
         this.hover_character === this.last_hover_character
@@ -36,6 +40,11 @@ export class Hover extends CodeMirrorLSPFeature {
         this.handleHover(this.last_hover_response);
       }
     });
+    this.connection_handlers.set('hover', this.handleHover.bind(this));
+    // TODO: make the debounce rate configurable
+    this.debounced_get_hover = new Debouncer(() => {
+      this.connection.getHoverTooltip(this.virtual_position);
+    }, 50);
     super.register();
   }
 
@@ -105,12 +114,21 @@ export class Hover extends CodeMirrorLSPFeature {
       root_position
     );
 
-    this.jupyterlab_components.create_tooltip(markup, cm_editor, editor_position);
+    this.jupyterlab_components.create_tooltip(
+      markup,
+      cm_editor,
+      editor_position
+    );
   }
 
   protected is_token_empty(token: CodeMirror.Token) {
     return token.string.length === 0;
     // TODO  || token.type.length === 0? (sometimes the underline is shown on meaningless tokens)
+  }
+
+  protected is_event_inside_visible(event: MouseEvent) {
+    let target = event.target as HTMLElement;
+    return target.closest('.CodeMirror-sizer') !== null;
   }
 
   public _handleMouseOver(event: MouseEvent) {
@@ -138,8 +156,7 @@ export class Hover extends CodeMirrorLSPFeature {
     if (
       this.is_token_empty(token) ||
       document !== this.virtual_document ||
-      // @ts-ignore
-      !this._isEventInsideVisible(event)
+      !this.is_event_inside_visible(event)
     ) {
       // this.remove_range_highlight();
       this.hover_character = null;
@@ -148,8 +165,8 @@ export class Hover extends CodeMirrorLSPFeature {
 
     if (!is_equal(root_position, this.hover_character)) {
       this.hover_character = root_position;
-      // @ts-ignore
-      this.debouncedGetHover(virtual_position);
+      this.virtual_position = virtual_position;
+      void this.debounced_get_hover.invoke();
     }
   }
 
@@ -221,5 +238,7 @@ export class Hover extends CodeMirrorLSPFeature {
 
   remove(): void {
     this.remove_range_highlight();
+    this.debounced_get_hover.dispose();
+    super.remove();
   }
 }

@@ -74,9 +74,11 @@ export interface IEditorRange {
 }
 
 export class CodeMirrorLSPFeature implements ILSPFeature {
+  public is_registered: boolean;
   protected readonly editor_handlers: Map<string, CodeMirrorHandler>;
   protected readonly connection_handlers: Map<string, Listener>;
-  public is_registered: boolean;
+  protected readonly wrapper_handlers: Map<string, Listener>;
+  protected wrapper: HTMLElement;
 
   constructor(
     public virtual_editor: VirtualEditor,
@@ -86,6 +88,7 @@ export class CodeMirrorLSPFeature implements ILSPFeature {
   ) {
     this.editor_handlers = new Map();
     this.connection_handlers = new Map();
+    this.wrapper_handlers = new Map();
     this.is_registered = false;
   }
 
@@ -97,6 +100,11 @@ export class CodeMirrorLSPFeature implements ILSPFeature {
     // register connection handlers
     for (let [event_name, handler] of this.connection_handlers) {
       this.connection.on(event_name, handler);
+    }
+    // register editor wrapper handlers
+    this.wrapper = this.virtual_editor.getWrapperElement();
+    for (let [event_name, handler] of this.wrapper_handlers) {
+      this.wrapper.addEventListener(event_name, handler);
     }
     this.is_registered = true;
   }
@@ -123,6 +131,10 @@ export class CodeMirrorLSPFeature implements ILSPFeature {
     // unregister connection handlers
     for (let [event_name, handler] of this.connection_handlers) {
       this.connection.off(event_name, handler);
+    }
+    // unregister editor wrapper handlers
+    for (let [event_name, handler] of this.wrapper_handlers) {
+      this.wrapper.removeEventListener(event_name, handler);
     }
   }
 
