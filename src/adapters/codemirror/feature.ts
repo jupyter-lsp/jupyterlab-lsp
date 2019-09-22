@@ -7,13 +7,13 @@ import {
   IVirtualPosition
 } from '../../positioning';
 import {
-  ICommandContext,
   IJupyterLabComponentsManager
 } from '../jupyterlab/jl_adapter';
 import { Listener } from 'events';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { PositionConverter } from '../../converter';
 import { CodeMirror } from './cm_adapter';
+import { ICommandContext } from "../../command_manager";
 
 export enum CommandEntryPoints {
   CellContextMenu,

@@ -1,4 +1,4 @@
-import { PathExt, PageConfig } from '@jupyterlab/coreutils';
+import { PageConfig, PathExt } from '@jupyterlab/coreutils';
 import { CodeMirror, CodeMirrorAdapter } from '../codemirror/cm_adapter';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
@@ -13,11 +13,7 @@ import { until_ready } from '../../utils';
 import { VirtualEditor } from '../../virtual/editor';
 import { VirtualDocument } from '../../virtual/document';
 import { Signal } from '@phosphor/signaling';
-import {
-  IEditorPosition,
-  IRootPosition,
-  IVirtualPosition
-} from '../../positioning';
+import { IEditorPosition, IRootPosition } from '../../positioning';
 import { LSPConnection } from '../../connection';
 import { LSPConnector } from './components/completion';
 import { CompletionTriggerKind } from '../../lsp';
@@ -28,6 +24,7 @@ import { Hover } from '../codemirror/features/hover';
 import { Signature } from '../codemirror/features/signature';
 import { CodeMirrorLSPFeature, ILSPFeature } from '../codemirror/feature';
 import { JumpToDefinition } from '../codemirror/features/jump_to';
+import { ICommandContext } from '../../command_manager';
 
 export const lsp_features: Array<typeof CodeMirrorLSPFeature> = [
   Completion,
@@ -41,13 +38,6 @@ export const lsp_features: Array<typeof CodeMirrorLSPFeature> = [
 interface IDocumentConnectionData {
   document: VirtualDocument;
   connection: LSPConnection;
-}
-
-export interface ICommandContext {
-  document: VirtualDocument;
-  connection: LSPConnection;
-  virtual_position: IVirtualPosition;
-  root_position: IRootPosition;
 }
 
 export interface IJupyterLabComponentsManager {

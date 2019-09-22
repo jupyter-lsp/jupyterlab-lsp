@@ -6,6 +6,9 @@ import { IEditorTracker } from '@jupyterlab/fileeditor';
 import { FileEditorAdapter } from './adapters/jupyterlab/file_editor';
 import { NotebookAdapter } from './adapters/jupyterlab/notebook';
 import { INotebookTracker } from '@jupyterlab/notebook';
+import { VirtualDocument } from './virtual/document';
+import { LSPConnection } from './connection';
+import { IRootPosition, IVirtualPosition } from './positioning';
 
 export const file_editor_adapters: Map<string, FileEditorAdapter> = new Map();
 export const notebook_adapters: Map<string, NotebookAdapter> = new Map();
@@ -94,4 +97,11 @@ export class FileEditorCommandManager extends LSPCommandManager {
     let fileEditor = this.tracker.currentWidget.content;
     return file_editor_adapters.get(fileEditor.id);
   }
+}
+
+export interface ICommandContext {
+  document: VirtualDocument;
+  connection: LSPConnection;
+  virtual_position: IVirtualPosition;
+  root_position: IRootPosition;
 }

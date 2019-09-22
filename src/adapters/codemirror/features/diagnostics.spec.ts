@@ -13,7 +13,7 @@ describe('CodeMirrorAdapterExtension', () => {
     let feature: Diagnostics;
 
     beforeEach(() => (feature = env.init_feature(Diagnostics)));
-    afterEach(() => (env.dispose_feature(feature)));
+    afterEach(() => env.dispose_feature(feature));
 
     it('renders inspections', async () => {
       env.ce_editor.model.value.text = ' foo \n bar \n baz ';

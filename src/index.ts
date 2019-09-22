@@ -31,7 +31,7 @@ import {
 } from './command_manager';
 
 const lsp_commands: Array<IFeatureCommand> = [].concat(
-  lsp_features.map(feature => feature)
+  ...lsp_features.map(feature => feature.commands)
 );
 
 /**
