@@ -26,6 +26,7 @@ import { CodeMirrorLSPFeature, ILSPFeature } from '../codemirror/feature';
 import { JumpToDefinition } from '../codemirror/features/jump_to';
 import { ICommandContext } from '../../command_manager';
 import { JSONObject } from '@phosphor/coreutils';
+import { Rename } from '../codemirror/features/rename';
 
 export const lsp_features: Array<typeof CodeMirrorLSPFeature> = [
   Completion,
@@ -33,7 +34,8 @@ export const lsp_features: Array<typeof CodeMirrorLSPFeature> = [
   Highlights,
   Hover,
   Signature,
-  JumpToDefinition
+  JumpToDefinition,
+  Rename
 ];
 
 interface IDocumentConnectionData {
