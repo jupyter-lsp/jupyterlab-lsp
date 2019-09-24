@@ -107,7 +107,9 @@ export class Diagnostics extends CodeMirrorLSPFeature {
           let start_in_root = this.transform_virtual_position_to_root_position(
             start
           );
-          let document = this.virtual_editor.document_at_root_position(start_in_root);
+          let document = this.virtual_editor.document_at_root_position(
+            start_in_root
+          );
 
           // TODO why do I get signals from the other connection in the first place?
           //  A: because each virtual document adds listeners AND if the extracted content

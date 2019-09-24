@@ -1,7 +1,10 @@
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { IWidgetTracker } from '@jupyterlab/apputils';
 import { JupyterLabWidgetAdapter } from './adapters/jupyterlab/jl_adapter';
-import { CommandEntryPoint, IFeatureCommand } from './adapters/codemirror/feature';
+import {
+  CommandEntryPoint,
+  IFeatureCommand
+} from './adapters/codemirror/feature';
 import { IEditorTracker } from '@jupyterlab/fileeditor';
 import { FileEditorAdapter } from './adapters/jupyterlab/file_editor';
 import { NotebookAdapter } from './adapters/jupyterlab/notebook';
@@ -136,7 +139,6 @@ export class NotebookCommandManager extends ContextMenuCommandManager {
     return notebook_adapters.get(notebook.id);
   }
 }
-
 
 export class FileEditorCommandManager extends ContextMenuCommandManager {
   protected tracker: IEditorTracker;

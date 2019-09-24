@@ -71,7 +71,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
           '~',
           user_settings.substring(0, user_settings.indexOf('/', 6))
         );
-        console.log('Guessing the server root using user settings path', server_root);
+        console.log(
+          'Guessing the server root using user settings path',
+          server_root
+        );
       } else {
         console.warn(
           'Unable to solve the absolute path: some LSP servers may not work correctly'
