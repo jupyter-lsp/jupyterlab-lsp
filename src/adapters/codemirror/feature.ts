@@ -141,7 +141,9 @@ export class CodeMirrorLSPFeature implements ILSPFeature {
   afterChange(
     change: CodeMirror.EditorChange,
     root_position: IRootPosition
-  ): void {}
+  ): void {
+    // nothing here, yet
+  }
 
   protected range_to_editor_range(
     range: lsProtocol.Range,
