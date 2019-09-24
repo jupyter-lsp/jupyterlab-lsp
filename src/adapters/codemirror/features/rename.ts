@@ -18,6 +18,7 @@ export class Rename extends CodeMirrorLSPFeature {
 
   register(): void {
     this.connection_handlers.set('renamed', this.handleRename.bind(this));
+    super.register();
   }
 
   protected handleRename(edit: lsProtocol.WorkspaceEdit) {
