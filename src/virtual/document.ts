@@ -574,7 +574,12 @@ export class VirtualDocument {
   }
 
   get_editor_at_virtual_line(pos: IVirtualPosition): CodeMirror.Editor {
-    return this.virtual_lines.get(pos.line).editor;
+    let line = pos.line;
+    // tolerate overshot by one (the hanging blank line at the end)
+    if (!this.virtual_lines.has(line)) {
+      line -= 1;
+    }
+    return this.virtual_lines.get(line).editor;
   }
 
   get_editor_at_source_line(pos: CodeMirror.Position): CodeMirror.Editor {
