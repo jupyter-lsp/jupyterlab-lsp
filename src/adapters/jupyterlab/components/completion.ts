@@ -196,7 +196,7 @@ export class LSPConnector extends DataConnector<
         this.trigger_kind
       )
       .then(items => {
-        completion_items = items;
+        completion_items = items || [];
       });
 
     let matches: Array<string> = [];

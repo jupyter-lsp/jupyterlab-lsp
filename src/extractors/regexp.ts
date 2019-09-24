@@ -28,6 +28,7 @@ export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
   test_expression: RegExp;
   expression: RegExp;
   standalone: boolean;
+  file_extension: string;
 
   constructor(options: RegExpForeignCodeExtractor.IOptions) {
     this.language = options.language;
@@ -36,6 +37,7 @@ export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
     this.test_expression = new RegExp(options.pattern, 'g');
     this.expression = new RegExp(options.pattern);
     this.standalone = this.options.is_standalone;
+    this.file_extension = this.options.file_extension;
   }
 
   has_foreign_code(code: string): boolean {
@@ -140,5 +142,6 @@ namespace RegExpForeignCodeExtractor {
      * or is it standalone snippet which requires separate connection?
      */
     is_standalone: boolean;
+    file_extension: string;
   }
 }

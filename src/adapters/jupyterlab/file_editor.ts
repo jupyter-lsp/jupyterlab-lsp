@@ -23,8 +23,13 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     return this.widget.context.path;
   }
 
-  get language() {
-    return this.jumper.language;
+  get mime_type() {
+    return this.editor.model.mimeType;
+  }
+
+  get language_file_extension(): string {
+    let parts = this.document_path.split('.');
+    return parts[parts.length - 1];
   }
 
   get ce_editor(): CodeMirrorEditor {
@@ -52,6 +57,7 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
 
     this.virtual_editor = new VirtualFileEditor(
       this.language,
+      this.language_file_extension,
       this.document_path,
       this.cm_editor
     );
@@ -69,6 +75,10 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
         editor: this.editor.editor,
         parent: editor_widget
       });
+    });
+
+    this.editor.model.mimeTypeChanged.connect((session, mimeChanged) => {
+      // TODO: trigger didClose and didOpen, as per syncing specification
     });
   }
 

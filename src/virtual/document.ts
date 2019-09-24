@@ -143,6 +143,8 @@ export class VirtualDocument {
     overrides_registry: IOverridesRegistry,
     foreign_code_extractors: IForeignCodeExtractorsRegistry,
     standalone: boolean,
+    protected file_extension: string,
+    // TODO: add extension, make virtual extractors specify extensions as well, append extension in the path_id
     private readonly parent?: VirtualDocument
   ) {
     this.language = language;
@@ -237,7 +239,8 @@ export class VirtualDocument {
   //   we should consider refactoring later on.
   private open_foreign(
     language: language,
-    standalone: boolean
+    standalone: boolean,
+    file_extension: string
   ): VirtualDocument {
     let document = new VirtualDocument(
       language,
@@ -245,6 +248,7 @@ export class VirtualDocument {
       this.overrides_registry,
       this.foreign_extractors_registry,
       standalone,
+      file_extension,
       this
     );
     this.foreign_document_opened.emit({
@@ -383,7 +387,8 @@ export class VirtualDocument {
               // and no old standalone document could be reused): create a new document
               foreign_document = this.open_foreign(
                 extractor.language,
-                extractor.standalone
+                extractor.standalone,
+                extractor.file_extension
               );
             }
           }
@@ -525,7 +530,7 @@ export class VirtualDocument {
   }
 
   get uri(): string {
-    return this.path + '.' + this.id_path;
+    return this.path + '.' + this.id_path + '.' + this.file_extension;
   }
 
   transform_source_to_editor(pos: ISourcePosition): IEditorPosition {

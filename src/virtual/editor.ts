@@ -33,6 +33,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
 
   public constructor(
     language: string,
+    file_extension: string,
     path: string,
     overrides_registry: IOverridesRegistry,
     foreign_code_extractors: IForeignCodeExtractorsRegistry
@@ -42,7 +43,8 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
       path,
       overrides_registry,
       foreign_code_extractors,
-      false
+      false,
+      file_extension
     );
     this.documents_updated = new Signal<VirtualEditor, VirtualDocument>(this);
     this.documents_updated.connect(this.on_updated.bind(this));
@@ -132,6 +134,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
    */
   protected abstract perform_documents_update(): void;
 
+  // TODO: remove?
   abstract addEventListener(
     type: string,
     listener: EventListenerOrEventListenerObject

@@ -49,10 +49,16 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     return this.widget.context.path;
   }
 
-  get language(): string {
+  get mime_type(): string {
     let language_metadata = this.widget.model.metadata.get('language_info');
     // @ts-ignore
-    return language_metadata.name;
+    return language_metadata.mimetype;
+  }
+
+  get language_file_extension(): string {
+    let language_metadata = this.widget.model.metadata.get('language_info');
+    // @ts-ignore
+    return language_metadata.file_extension.replace('.', '');
   }
 
   find_ce_editor(cm_editor: CodeMirror.Editor): CodeEditor.IEditor {
@@ -70,6 +76,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     this.virtual_editor = new VirtualEditorForNotebook(
       this.widget,
       this.language,
+      this.language_file_extension,
       language_specific_overrides,
       foreign_code_extractors,
       this.document_path

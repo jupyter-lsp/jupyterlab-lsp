@@ -62,11 +62,18 @@ export class VirtualEditorForNotebook extends VirtualEditor {
   constructor(
     notebook_panel: NotebookPanel,
     language: string,
+    file_extension: string,
     overrides_registry: IOverridesRegistry,
     foreign_code_extractors: IForeignCodeExtractorsRegistry,
     path: string
   ) {
-    super(language, path, overrides_registry, foreign_code_extractors);
+    super(
+      language,
+      file_extension,
+      path,
+      overrides_registry,
+      foreign_code_extractors
+    );
     this.notebook_panel = notebook_panel;
     this.notebook = notebook_panel.content;
     this.cell_to_corresponding_source_line = new Map();

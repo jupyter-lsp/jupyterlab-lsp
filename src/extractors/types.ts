@@ -52,6 +52,10 @@ export interface IForeignCodeExtractor {
    * Test if there is any foreign code in provided code snippet.
    */
   has_foreign_code(code: string): boolean;
+  /**
+   * Extension of the virtual document (some servers check extensions of files), e.g. 'py' or 'R'.
+   */
+  file_extension: string;
 }
 
 export interface IForeignCodeExtractorsRegistry {

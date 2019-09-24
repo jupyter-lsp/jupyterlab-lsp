@@ -13,14 +13,16 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       pattern: '^%%R( .*?)?\n([^]*)',
       extract_to_foreign: '$2',
       keep_in_host: true,
-      is_standalone: false
+      is_standalone: false,
+      file_extension: 'R'
     }),
     new RegExpForeignCodeExtractor({
       language: 'R',
       pattern: '(^|\n)%R (.*)\n?',
       extract_to_foreign: '$2',
       keep_in_host: true,
-      is_standalone: false
+      is_standalone: false,
+      file_extension: 'R'
     }),
     //
     // Standalone IPython magics
@@ -31,35 +33,40 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       pattern: '^%%(python|python2|python3|pypy)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
       keep_in_host: false,
-      is_standalone: true
+      is_standalone: true,
+      file_extension: 'py'
     }),
     new RegExpForeignCodeExtractor({
       language: 'perl',
       pattern: '^%%(perl)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
       keep_in_host: false,
-      is_standalone: true
+      is_standalone: true,
+      file_extension: 'pl'
     }),
     new RegExpForeignCodeExtractor({
       language: 'ruby',
       pattern: '^%%(ruby)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
       keep_in_host: false,
-      is_standalone: true
+      is_standalone: true,
+      file_extension: 'rb'
     }),
     new RegExpForeignCodeExtractor({
       language: 'sh',
       pattern: '^%%(sh)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
       keep_in_host: false,
-      is_standalone: true
+      is_standalone: true,
+      file_extension: 'sh'
     }),
     new RegExpForeignCodeExtractor({
       language: 'html',
       pattern: '^%%(html --isolated)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
       keep_in_host: false,
-      is_standalone: true
+      is_standalone: true,
+      file_extension: 'html'
     }),
     //
     // IPython magics producing continuous documents (non-standalone):
@@ -69,28 +76,32 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       pattern: '^%%(js|javascript)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
       keep_in_host: false,
-      is_standalone: false
+      is_standalone: false,
+      file_extension: 'js'
     }),
     new RegExpForeignCodeExtractor({
       language: 'html',
       pattern: '^%%(html)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
       keep_in_host: false,
-      is_standalone: false
+      is_standalone: false,
+      file_extension: 'html'
     }),
     new RegExpForeignCodeExtractor({
       language: 'latex',
       pattern: '^%%(latex)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
       keep_in_host: false,
-      is_standalone: false
+      is_standalone: false,
+      file_extension: 'latex'
     }),
     new RegExpForeignCodeExtractor({
       language: 'markdown',
       pattern: '^%%(markdown)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
       keep_in_host: false,
-      is_standalone: false
+      is_standalone: false,
+      file_extension: 'md'
     })
   ]
 };

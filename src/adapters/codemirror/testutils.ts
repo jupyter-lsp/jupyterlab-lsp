@@ -8,7 +8,7 @@ import { LSPConnection } from '../../connection';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { VirtualFileEditor } from '../../virtual/editors/file_editor';
 import { FreeTooltip } from '../jupyterlab/components/free_tooltip';
-import { IJupyterLabComponentsManager } from "../jupyterlab/jl_adapter";
+import { IJupyterLabComponentsManager } from '../jupyterlab/jl_adapter';
 
 interface IFeatureTestEnvironment {
   host: HTMLElement;
@@ -24,7 +24,11 @@ export class FeatureTestEnvironment implements IFeatureTestEnvironment {
   virtual_editor: VirtualEditor;
   private connections: Map<CodeMirrorLSPFeature, LSPConnection>;
 
-  constructor(protected language = 'python', protected path = 'dummy.py') {
+  constructor(
+    protected language = 'python',
+    protected path = 'dummy.py',
+    protected file_extension = 'py'
+  ) {
     const factoryService = new CodeMirrorEditorFactory();
     this.connections = new Map();
 
@@ -38,6 +42,7 @@ export class FeatureTestEnvironment implements IFeatureTestEnvironment {
     });
     this.virtual_editor = new VirtualFileEditor(
       language,
+      file_extension,
       path,
       this.ce_editor.editor
     );

@@ -25,6 +25,7 @@ import { Signature } from '../codemirror/features/signature';
 import { CodeMirrorLSPFeature, ILSPFeature } from '../codemirror/feature';
 import { JumpToDefinition } from '../codemirror/features/jump_to';
 import { ICommandContext } from '../../command_manager';
+import { JSONObject } from '@phosphor/coreutils';
 
 export const lsp_features: Array<typeof CodeMirrorLSPFeature> = [
   Completion,
@@ -50,6 +51,14 @@ export interface IJupyterLabComponentsManager {
   remove_tooltip: () => void;
   jumper: CodeJumper;
 }
+
+/**
+ * The values should follow the https://microsoft.github.io/language-server-protocol/specification guidelines
+ */
+const mime_type_language_map: JSONObject = {
+  'text/x-rsrc': 'r',
+  'text/x-r-source': 'r'
+};
 
 /**
  * Foreign code: low level adapter is not aware of the presence of foreign languages;
@@ -95,8 +104,28 @@ export abstract class JupyterLabWidgetAdapter
   abstract virtual_editor: VirtualEditor;
   abstract get document_path(): string;
 
-  // TODO use mime types instead? Mime types would be set instead of language in servers.yml.
-  abstract get language(): string;
+  abstract get mime_type(): string;
+
+  get language(): string {
+    // the values should follow https://microsoft.github.io/language-server-protocol/specification guidelines
+    if (mime_type_language_map.hasOwnProperty(this.mime_type)) {
+      return mime_type_language_map[this.mime_type] as string;
+    } else {
+      let without_parameters = this.mime_type.split(';')[0];
+      let [type, subtype] = without_parameters.split('/');
+      if (type === 'application' || type === 'text') {
+        if (subtype.startsWith('x-')) {
+          return subtype.substr(2);
+        } else {
+          return subtype;
+        }
+      } else {
+        return this.mime_type;
+      }
+    }
+  }
+
+  abstract get language_file_extension(): string;
 
   get root_path() {
     // TODO: serverRoot may need to be included for Hub or Windows, requires testing.
