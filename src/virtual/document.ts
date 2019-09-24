@@ -529,6 +529,9 @@ export class VirtualDocument {
   }
 
   get uri(): string {
+    if (!this.parent) {
+      return this.path;
+    }
     return this.path + '.' + this.id_path + '.' + this.file_extension;
   }
 

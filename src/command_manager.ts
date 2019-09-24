@@ -137,6 +137,7 @@ export class NotebookCommandManager extends ContextMenuCommandManager {
   }
 }
 
+
 export class FileEditorCommandManager extends ContextMenuCommandManager {
   protected tracker: IEditorTracker;
   selector = '.jp-FileEditor';

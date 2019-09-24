@@ -68,13 +68,10 @@ const mime_type_language_map: JSONObject = {
  */
 export abstract class JupyterLabWidgetAdapter
   implements IJupyterLabComponentsManager {
-  app: JupyterFrontEnd;
   connections: Map<VirtualDocument.id_path, LSPConnection>;
   documents: Map<VirtualDocument.id_path, VirtualDocument>;
   jumper: CodeJumper;
   protected adapters: Map<VirtualDocument.id_path, CodeMirrorAdapter>;
-  protected rendermime_registry: IRenderMimeRegistry;
-  widget: IDocumentWidget;
   private readonly invoke_command: string;
   protected document_connected: Signal<
     JupyterLabWidgetAdapter,
@@ -85,25 +82,22 @@ export abstract class JupyterLabWidgetAdapter
   private _tooltip: FreeTooltip;
 
   protected constructor(
-    app: JupyterFrontEnd,
-    widget: IDocumentWidget,
-    rendermime_registry: IRenderMimeRegistry,
-    invoke: string
+    protected app: JupyterFrontEnd,
+    protected widget: IDocumentWidget,
+    protected rendermime_registry: IRenderMimeRegistry,
+    invoke: string,
+    private server_root: string
   ) {
-    this.app = app;
-    this.rendermime_registry = rendermime_registry;
     this.invoke_command = invoke;
     this.connections = new Map();
     this.documents = new Map();
     this.document_connected = new Signal(this);
     this.adapters = new Map();
     this.ignored_languages = new Set();
-    this.widget = widget;
   }
 
   abstract virtual_editor: VirtualEditor;
   abstract get document_path(): string;
-
   abstract get mime_type(): string;
 
   get language(): string {
@@ -317,8 +311,10 @@ export abstract class JupyterLabWidgetAdapter
       serverUri: 'ws://jupyter-lsp/' + language,
       languageId: language,
       // paths handling needs testing on Windows and with other language servers
-      rootUri: 'file:///' + this.root_path,
-      documentUri: 'file:///' + virtual_document.uri,
+      rootUri: 'file://' + PathExt.join(this.server_root, this.root_path),
+      documentUri:
+        'file://' +
+        PathExt.join(this.server_root, this.root_path, virtual_document.uri),
       documentText: () => {
         // NOTE: Update is async now and this is not really used, as an alternative method
         // which is compatible with async is used.

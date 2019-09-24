@@ -29,6 +29,7 @@ import {
   notebook_adapters,
   NotebookCommandManager
 } from './command_manager';
+import IPaths = JupyterFrontEnd.IPaths;
 
 const lsp_commands: Array<IFeatureCommand> = [].concat(
   ...lsp_features.map(feature => feature.commands)
@@ -46,7 +47,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
     ICommandPalette,
     IDocumentManager,
     ICompletionManager,
-    IRenderMimeRegistry
+    IRenderMimeRegistry,
+    IPaths
   ],
   activate: (
     app: JupyterFrontEnd,
@@ -56,8 +58,27 @@ const plugin: JupyterFrontEndPlugin<void> = {
     palette: ICommandPalette,
     documentManager: IDocumentManager,
     completion_manager: ICompletionManager,
-    rendermime_registry: IRenderMimeRegistry
+    rendermime_registry: IRenderMimeRegistry,
+    paths: IPaths
   ) => {
+    // temporary workaround for getting the absolute path
+    let server_root = paths.directories.serverRoot;
+    if (server_root.startsWith('~')) {
+      // try to guess the home location:
+      let user_settings = paths.directories.userSettings;
+      if (user_settings.startsWith('/home/')) {
+        server_root = server_root.replace(
+          '~',
+          user_settings.substring(0, user_settings.indexOf('/', 6))
+        );
+        console.log('Guessing the server root using user settings path', server_root);
+      } else {
+        console.warn(
+          'Unable to solve the absolute path: some LSP servers may not work correctly'
+        );
+      }
+    }
+
     fileEditorTracker.widgetUpdated.connect((sender, widget) => {
       console.log(sender);
       console.log(widget);
@@ -76,7 +97,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
           jumper,
           app,
           completion_manager,
-          rendermime_registry
+          rendermime_registry,
+          server_root
         );
         file_editor_adapters.set(fileEditor.id, adapter);
       }
@@ -97,7 +119,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
         jumper,
         app,
         completion_manager,
-        rendermime_registry
+        rendermime_registry,
+        server_root
       );
       notebook_adapters.set(widget.id, adapter);
     });

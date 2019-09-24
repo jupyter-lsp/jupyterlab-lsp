@@ -27,9 +27,16 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     jumper: NotebookJumper,
     app: JupyterFrontEnd,
     completion_manager: ICompletionManager,
-    rendermime_registry: IRenderMimeRegistry
+    rendermime_registry: IRenderMimeRegistry,
+    server_root: string
   ) {
-    super(app, editor_widget, rendermime_registry, 'completer:invoke-notebook');
+    super(
+      app,
+      editor_widget,
+      rendermime_registry,
+      'completer:invoke-notebook',
+      server_root
+    );
     this.editor = editor_widget.content;
     this.completion_manager = completion_manager;
     this.jumper = jumper;
