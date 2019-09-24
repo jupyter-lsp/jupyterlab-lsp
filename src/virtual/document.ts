@@ -144,7 +144,6 @@ export class VirtualDocument {
     foreign_code_extractors: IForeignCodeExtractorsRegistry,
     standalone: boolean,
     protected file_extension: string,
-    // TODO: add extension, make virtual extractors specify extensions as well, append extension in the path_id
     private readonly parent?: VirtualDocument
   ) {
     this.language = language;
