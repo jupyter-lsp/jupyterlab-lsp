@@ -6,10 +6,13 @@ export class Rename extends CodeMirrorLSPFeature {
   static commands: Array<IFeatureCommand> = [
     {
       id: 'rename-symbol',
-      execute: ({ connection, virtual_position }) => {
-        InputDialog.getText({ title: 'Rename to' }).then(value => {
-          connection.rename(virtual_position, value.value);
-        });
+      execute: ({ connection, virtual_position, document }) => {
+        let old_value = document.getTokenAt(virtual_position).string;
+        InputDialog.getText({ title: 'Rename to', text: old_value }).then(
+          value => {
+            connection.rename(virtual_position, value.value);
+          }
+        );
       },
       is_enabled: ({ connection }) => connection.isRenameSupported(),
       label: 'Rename symbol'
