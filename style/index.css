@@ -36,7 +36,7 @@
 }
 
 .cm-lsp-highlight {
-  background-color: #ddddee;
+  background-color: var(--jp-layout-color2);
 }
 
 /* fuzzy matches (not exact symbol matches) */

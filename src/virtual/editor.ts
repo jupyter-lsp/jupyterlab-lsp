@@ -1,7 +1,7 @@
 import { VirtualDocument } from './document';
 import { IOverridesRegistry } from '../magics/overrides';
 import { IForeignCodeExtractorsRegistry } from '../extractors/types';
-import { CodeMirror } from '../adapters/codemirror';
+import { CodeMirror } from '../adapters/codemirror/cm_adapter';
 import {
   IEditorPosition,
   IRootPosition,
@@ -11,7 +11,7 @@ import {
 import { until_ready } from '../utils';
 import { Signal } from '@phosphor/signaling';
 
-type CodeMirrorHandler = (instance: any, ...args: any[]) => void;
+export type CodeMirrorHandler = (instance: any, ...args: any[]) => void;
 type WrappedHandler = (instance: CodeMirror.Editor, ...args: any[]) => void;
 
 /**
@@ -33,6 +33,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
 
   public constructor(
     language: string,
+    file_extension: string,
     path: string,
     overrides_registry: IOverridesRegistry,
     foreign_code_extractors: IForeignCodeExtractorsRegistry
@@ -42,7 +43,8 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
       path,
       overrides_registry,
       foreign_code_extractors,
-      false
+      false,
+      file_extension
     );
     this.documents_updated = new Signal<VirtualEditor, VirtualDocument>(this);
     this.documents_updated.connect(this.on_updated.bind(this));
@@ -132,6 +134,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
    */
   protected abstract perform_documents_update(): void;
 
+  // TODO: remove?
   abstract addEventListener(
     type: string,
     listener: EventListenerOrEventListenerObject
@@ -156,9 +159,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
     return this.virtual_document.root.get_editor_at_source_line(root_position);
   }
 
-  root_position_to_editor_position(
-    root_position: IRootPosition
-  ): IEditorPosition {
+  root_position_to_editor(root_position: IRootPosition): IEditorPosition {
     return this.virtual_document.root.transform_source_to_editor(root_position);
   }
 

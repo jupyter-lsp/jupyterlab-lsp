@@ -51,14 +51,16 @@ describe('VirtualDocument', () => {
     pattern: '(^|\n)%R (.*)\n?',
     extract_to_foreign: '$2',
     keep_in_host: false,
-    is_standalone: false
+    is_standalone: false,
+    file_extension: 'R'
   });
   let document = new VirtualDocument(
     'python',
     'test.ipynb',
     {},
     { python: [r_line_extractor_removing] },
-    false
+    false,
+    'py'
   );
 
   describe('#extract_foreign_code', () => {

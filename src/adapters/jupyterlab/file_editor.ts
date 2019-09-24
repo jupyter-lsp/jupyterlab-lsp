@@ -1,16 +1,16 @@
-import { JupyterLabWidgetAdapter } from './jupyterlab';
+import { JupyterLabWidgetAdapter } from './jl_adapter';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditorJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/fileeditor';
-import { CodeMirror } from './codemirror';
+import { CodeMirror } from '../codemirror/cm_adapter';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { ICompletionManager } from '@jupyterlab/completer';
-import { LSPConnector } from '../completion';
+import { LSPConnector } from './components/completion';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { VirtualFileEditor } from '../virtual/editors/file_editor';
-import { LSPConnection } from '../connection';
+import { VirtualFileEditor } from '../../virtual/editors/file_editor';
+import { LSPConnection } from '../../connection';
 
 export class FileEditorAdapter extends JupyterLabWidgetAdapter {
   editor: FileEditor;
@@ -23,8 +23,13 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     return this.widget.context.path;
   }
 
-  get language() {
-    return this.jumper.language;
+  get mime_type() {
+    return this.editor.model.mimeType;
+  }
+
+  get language_file_extension(): string {
+    let parts = this.document_path.split('.');
+    return parts[parts.length - 1];
   }
 
   get ce_editor(): CodeMirrorEditor {
@@ -44,14 +49,22 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     jumper: FileEditorJumper,
     app: JupyterFrontEnd,
     completion_manager: ICompletionManager,
-    rendermime_registry: IRenderMimeRegistry
+    rendermime_registry: IRenderMimeRegistry,
+    server_root: string
   ) {
-    super(app, editor_widget, rendermime_registry, 'completer:invoke-file');
+    super(
+      app,
+      editor_widget,
+      rendermime_registry,
+      'completer:invoke-file',
+      server_root
+    );
     this.jumper = jumper;
     this.editor = editor_widget.content;
 
     this.virtual_editor = new VirtualFileEditor(
       this.language,
+      this.language_file_extension,
       this.document_path,
       this.cm_editor
     );
@@ -72,6 +85,10 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
         });
       })
       .catch(console.warn);
+
+    this.editor.model.mimeTypeChanged.connect((session, mimeChanged) => {
+      // TODO: trigger didClose and didOpen, as per syncing specification
+    });
   }
 
   get path() {

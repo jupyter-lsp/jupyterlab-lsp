@@ -1,5 +1,5 @@
 import { VirtualEditor } from '../editor';
-import { CodeMirror } from '../../adapters/codemirror';
+import { CodeMirror } from '../../adapters/codemirror/cm_adapter';
 import {
   IEditorPosition,
   IRootPosition,
@@ -9,11 +9,16 @@ import {
 export class VirtualFileEditor extends VirtualEditor {
   protected cm_editor: CodeMirror.Editor;
 
-  constructor(language: string, path: string, cm_editor: CodeMirror.Editor) {
+  constructor(
+    language: string,
+    file_extension: string,
+    path: string,
+    cm_editor: CodeMirror.Editor
+  ) {
     // TODO: for now the magics and extractors are not used in FileEditor,
     //  although it would make sense to pass extractors (e.g. for CSS in HTML,
     //  or SQL in Python files) in the future.
-    super(language, path, {}, {});
+    super(language, file_extension, path, {}, {});
     this.cm_editor = cm_editor;
     let handler = {
       get: function(

@@ -1,43 +1,65 @@
-import { Signal } from '@phosphor/signaling';
-import { Widget } from '@phosphor/widgets';
-import { PathExt, PageConfig } from '@jupyterlab/coreutils';
+import { PageConfig, PathExt } from '@jupyterlab/coreutils';
+import { CodeMirror, CodeMirrorAdapter } from '../codemirror/cm_adapter';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-
+import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
+import { PositionConverter } from '../../converter';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 
 import * as lsProtocol from 'vscode-languageserver-protocol';
+import { FreeTooltip } from './components/free_tooltip';
+import { Widget } from '@phosphor/widgets';
+import { until_ready } from '../../utils';
+import { VirtualEditor } from '../../virtual/editor';
+import { VirtualDocument } from '../../virtual/document';
+import { Signal } from '@phosphor/signaling';
+import { IEditorPosition, IRootPosition } from '../../positioning';
+import { LSPConnection } from '../../connection';
+import { LSPConnector } from './components/completion';
+import { CompletionTriggerKind } from '../../lsp';
+import { Completion } from '../codemirror/features/completion';
+import { Diagnostics } from '../codemirror/features/diagnostics';
+import { Highlights } from '../codemirror/features/highlights';
+import { Hover } from '../codemirror/features/hover';
+import { Signature } from '../codemirror/features/signature';
+import { CodeMirrorLSPFeature, ILSPFeature } from '../codemirror/feature';
+import { JumpToDefinition } from '../codemirror/features/jump_to';
+import { ICommandContext } from '../../command_manager';
+import { JSONObject } from '@phosphor/coreutils';
 
-import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
-
-import { FreeTooltip } from '../free_tooltip';
-import { until_ready } from '../utils';
-import { VirtualEditor } from '../virtual/editor';
-import { VirtualDocument } from '../virtual/document';
-import { PositionConverter } from '../converter';
-import {
-  IEditorPosition,
-  IRootPosition,
-  IVirtualPosition
-} from '../positioning';
-import { LSPConnection } from '../connection';
-import { LSPConnector } from '../completion';
-import { CompletionTriggerKind } from '../lsp';
-
-import { CodeMirror, CodeMirrorAdapterExtension } from './codemirror';
+export const lsp_features: Array<typeof CodeMirrorLSPFeature> = [
+  Completion,
+  Diagnostics,
+  Highlights,
+  Hover,
+  Signature,
+  JumpToDefinition
+];
 
 interface IDocumentConnectionData {
   document: VirtualDocument;
   connection: LSPConnection;
 }
 
-interface IContext {
-  document: VirtualDocument;
-  connection: LSPConnection;
-  virtual_position: IVirtualPosition;
-  root_position: IRootPosition;
+export interface IJupyterLabComponentsManager {
+  invoke_completer: (kind: CompletionTriggerKind) => void;
+  create_tooltip: (
+    markup: lsProtocol.MarkupContent,
+    cm_editor: CodeMirror.Editor,
+    position: IEditorPosition
+  ) => FreeTooltip;
+  remove_tooltip: () => void;
+  jumper: CodeJumper;
 }
+
+/**
+ * The values should follow the https://microsoft.github.io/language-server-protocol/specification guidelines
+ */
+const mime_type_language_map: JSONObject = {
+  'text/x-rsrc': 'r',
+  'text/x-r-source': 'r'
+};
 
 /**
  * Foreign code: low level adapter is not aware of the presence of foreign languages;
@@ -45,14 +67,12 @@ interface IContext {
  * as this would make the logic of inspections caching impossible to maintain, thus the WidgetAdapter
  * has to handle that, keeping multiple connections and multiple virtual documents.
  */
-export abstract class JupyterLabWidgetAdapter {
-  app: JupyterFrontEnd;
+export abstract class JupyterLabWidgetAdapter
+  implements IJupyterLabComponentsManager {
   connections: Map<VirtualDocument.id_path, LSPConnection>;
   documents: Map<VirtualDocument.id_path, VirtualDocument>;
   jumper: CodeJumper;
-  protected adapters: Map<VirtualDocument.id_path, CodeMirrorAdapterExtension>;
-  protected rendermime_registry: IRenderMimeRegistry;
-  widget: IDocumentWidget;
+  protected adapters: Map<VirtualDocument.id_path, CodeMirrorAdapter>;
   private readonly invoke_command: string;
   protected document_connected: Signal<
     JupyterLabWidgetAdapter,
@@ -60,29 +80,47 @@ export abstract class JupyterLabWidgetAdapter {
   >;
   protected abstract current_completion_connector: LSPConnector;
   private ignored_languages: Set<string>;
+  private _tooltip: FreeTooltip;
 
   protected constructor(
-    app: JupyterFrontEnd,
-    widget: IDocumentWidget,
-    rendermime_registry: IRenderMimeRegistry,
-    invoke: string
+    protected app: JupyterFrontEnd,
+    protected widget: IDocumentWidget,
+    protected rendermime_registry: IRenderMimeRegistry,
+    invoke: string,
+    private server_root: string
   ) {
-    this.app = app;
-    this.rendermime_registry = rendermime_registry;
     this.invoke_command = invoke;
     this.connections = new Map();
     this.documents = new Map();
     this.document_connected = new Signal(this);
     this.adapters = new Map();
     this.ignored_languages = new Set();
-    this.widget = widget;
   }
 
   abstract virtual_editor: VirtualEditor;
   abstract get document_path(): string;
+  abstract get mime_type(): string;
 
-  // TODO use mime types instead? Mime types would be set instead of language in servers.yml.
-  abstract get language(): string;
+  get language(): string {
+    // the values should follow https://microsoft.github.io/language-server-protocol/specification guidelines
+    if (mime_type_language_map.hasOwnProperty(this.mime_type)) {
+      return mime_type_language_map[this.mime_type] as string;
+    } else {
+      let without_parameters = this.mime_type.split(';')[0];
+      let [type, subtype] = without_parameters.split('/');
+      if (type === 'application' || type === 'text') {
+        if (subtype.startsWith('x-')) {
+          return subtype.substr(2);
+        } else {
+          return subtype;
+        }
+      } else {
+        return this.mime_type;
+      }
+    }
+  }
+
+  abstract get language_file_extension(): string;
 
   get root_path() {
     // TODO: serverRoot may need to be included for Hub or Windows, requires testing.
@@ -235,7 +273,7 @@ export abstract class JupyterLabWidgetAdapter {
     // guarantee that the virtual editor won't perform an update of the virtual documents while
     // the changes are recorded...
     // TODO this is not ideal - why it solves the problem of some errors,
-    //  it introduces an unnecessary delay. a better way could be to invalidate some of the updates when a new one comes in.
+    //  it introduces an unnecessary delay. A better way could be to invalidate some of the updates when a new one comes in.
     //  but maybe not every one (then the outdated state could be kept for too long fo a user who writes very quickly)
     //  also we would not want to invalidate the updates for the purpose of autocompletion (the trigger characters)
     this.virtual_editor
@@ -279,8 +317,10 @@ export abstract class JupyterLabWidgetAdapter {
       serverUri: 'ws://jupyter-lsp/' + language,
       languageId: language,
       // paths handling needs testing on Windows and with other language servers
-      rootUri: 'file:///' + this.root_path,
-      documentUri: 'file:///' + virtual_document.uri,
+      rootUri: 'file://' + PathExt.join(this.server_root, this.root_path),
+      documentUri:
+        'file://' +
+        PathExt.join(this.server_root, this.root_path, virtual_document.uri),
       documentText: () => {
         // NOTE: Update is async now and this is not really used, as an alternative method
         // which is compatible with async is used.
@@ -293,12 +333,9 @@ export abstract class JupyterLabWidgetAdapter {
       }
     }).connect(socket);
 
-    connection.on('goTo', locations =>
-      this.handle_jump(locations, virtual_document.id_path)
-    );
     connection.on('error', e => {
       let error: Error = e.length && e.length >= 1 ? e[0] : new Error();
-      // TODO: those code may be specific to my proxy client, need to investigate
+      // TODO: those codes may be specific to my proxy client, need to investigate
       if (error.message.indexOf('code = 1005') !== -1) {
         console.warn('LSP: Connection failed for ' + virtual_document.id_path);
         console.log('LSP: disconnecting ' + virtual_document.id_path);
@@ -356,87 +393,26 @@ export abstract class JupyterLabWidgetAdapter {
     );
   }
 
-  handle_jump(locations: lsProtocol.Location[], id_path: string) {
-    let connection = this.connections.get(id_path);
-
-    // TODO: implement selector for multiple locations
-    //  (like when there are multiple definitions or usages)
-    if (locations.length === 0) {
-      console.log('No jump targets found');
-      return;
-    }
-    console.log('Will jump to the first of suggested locations:', locations);
-
-    let location = locations[0];
-
-    let uri: string = decodeURI(location.uri);
-    let current_uri = connection.getDocumentUri();
-
-    let virtual_position = PositionConverter.lsp_to_cm(
-      location.range.start
-    ) as IVirtualPosition;
-
-    if (uri === current_uri) {
-      let editor_index = this.virtual_editor.get_editor_index(virtual_position);
-      // if in current file, transform from the position within virtual document to the editor position:
-      let editor_position = this.virtual_editor.transform_virtual_to_editor(
-        virtual_position
-      );
-      let editor_position_ce = PositionConverter.cm_to_ce(editor_position);
-      console.log(`Jumping to ${editor_index}th editor of ${uri}`);
-      console.log('Jump target within editor:', editor_position_ce);
-      this.jumper.jump({
-        token: {
-          offset: this.jumper.getOffset(editor_position_ce, editor_index),
-          value: ''
-        },
-        index: editor_index
-      });
-    } else {
-      // otherwise there is no virtual document and we expect the returned position to be source position:
-      let source_position_ce = PositionConverter.cm_to_ce(virtual_position);
-      console.log(`Jumping to external file: ${uri}`);
-      console.log('Jump target (source location):', source_position_ce);
-
-      if (uri.startsWith('file://')) {
-        uri = uri.slice(7);
-      }
-
-      let jump_data = {
-        editor_index: 0,
-        line: source_position_ce.line,
-        column: source_position_ce.column
-      };
-
-      // assume that we got a relative path to a file within the project
-      // TODO use is_relative() or something? It would need to be not only compatible
-      //  with different OSes but also with JupyterHub and other platforms.
-      this.jumper.document_manager.services.contents
-        .get(uri, { content: false })
-        .then(() => {
-          this.jumper.global_jump({ uri, ...jump_data }, false);
-        })
-        .catch(() => {
-          // fallback to an absolute location using a symlink (will only work if manually created)
-          this.jumper.global_jump(
-            { uri: '.lsp_symlink/' + uri, ...jump_data },
-            true
-          );
-        });
-    }
-  }
-
   create_adapter(
     virtual_document: VirtualDocument,
     connection: LSPConnection
-  ): CodeMirrorAdapterExtension {
-    let adapter = new CodeMirrorAdapterExtension(
-      connection,
-      { quickSuggestionsDelay: 50 },
+  ): CodeMirrorAdapter {
+    let adapter_features = new Array<ILSPFeature>();
+    for (let feature_type of lsp_features) {
+      let feature = new feature_type(
+        this.virtual_editor,
+        virtual_document,
+        connection,
+        this
+      );
+      adapter_features.push(feature);
+    }
+
+    let adapter = new CodeMirrorAdapter(
       this.virtual_editor,
-      this.create_tooltip.bind(this),
-      this.invoke_completer.bind(this),
-      virtual_document
+      virtual_document,
+      this,
+      adapter_features
     );
     console.log('LSP: Adapter for', this.document_path, 'is ready.');
     return adapter;
@@ -446,12 +422,7 @@ export abstract class JupyterLabWidgetAdapter {
     // update the virtual documents (sending the updates to LSP is out of scope here)
     this.virtual_editor
       .update_documents()
-      .then(() => {
-        for (let adapter of this.adapters.values()) {
-          // force clean old changes cached in the adapters
-          adapter.invalidateLastChange();
-        }
-      })
+      .then()
       .catch(console.warn);
   }
 
@@ -480,7 +451,7 @@ export abstract class JupyterLabWidgetAdapter {
     ) as IRootPosition;
   }
 
-  get_context_from_context_menu(): IContext {
+  get_context_from_context_menu(): ICommandContext {
     let root_position = this.get_position_from_context_menu();
     let document = this.virtual_editor.document_at_root_position(root_position);
     let connection = this.connections.get(document.id_path);
@@ -490,11 +461,12 @@ export abstract class JupyterLabWidgetAdapter {
     return { document, connection, virtual_position, root_position };
   }
 
-  protected create_tooltip(
+  public create_tooltip(
     markup: lsProtocol.MarkupContent,
     cm_editor: CodeMirror.Editor,
     position: IEditorPosition
   ): FreeTooltip {
+    this.remove_tooltip();
     const bundle =
       markup.kind === 'plaintext'
         ? { 'text/plain': markup.value }
@@ -508,6 +480,13 @@ export abstract class JupyterLabWidgetAdapter {
       moveToLineEnd: false
     });
     Widget.attach(tooltip, document.body);
+    this._tooltip = tooltip;
     return tooltip;
+  }
+
+  remove_tooltip() {
+    if (this._tooltip !== undefined) {
+      this._tooltip.dispose();
+    }
   }
 }

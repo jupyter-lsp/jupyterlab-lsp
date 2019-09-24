@@ -44,11 +44,13 @@ describe('VirtualEditor', () => {
     pattern: '(^|\n)%R (.*)\n?',
     extract_to_foreign: '$2',
     keep_in_host: true,
-    is_standalone: false
+    is_standalone: false,
+    file_extension: 'R'
   });
 
   let editor = new VirtualEditorImplementation(
     'python',
+    'py',
     'test.ipynb',
     {},
     { python: [r_line_extractor] }
