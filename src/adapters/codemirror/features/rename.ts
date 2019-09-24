@@ -4,6 +4,17 @@ import { InputDialog } from '@jupyterlab/apputils';
 import { PositionConverter } from '../../../converter';
 import { IVirtualPosition } from '../../../positioning';
 
+function toDocumentChanges(changes: {[uri: string]: lsProtocol.TextEdit[]}): lsProtocol.TextDocumentEdit[] {
+  let documentChanges = [];
+  for (let uri of Object.keys(changes)) {
+    documentChanges.push({
+      textDocument: { uri },
+      edits: changes[uri]
+    } as lsProtocol.TextDocumentEdit);
+  }
+  return documentChanges;
+}
+
 export class Rename extends CodeMirrorLSPFeature {
   static commands: Array<IFeatureCommand> = [
     {
@@ -27,14 +38,20 @@ export class Rename extends CodeMirrorLSPFeature {
   }
 
   protected handleRename(workspaceEdit: lsProtocol.WorkspaceEdit) {
-    // TODO: apply the edit as a change in the CodeMirror editor (and then trigger document update?)
     console.log(workspaceEdit);
     let current_uri = this.connection.getDocumentUri();
-    for (let change of workspaceEdit.documentChanges) {
-      change = change as lsProtocol.TextDocumentEdit;
-      if (change.textDocument.uri !== current_uri) {
+    // Specs: documentChanges are preferred over changes
+    let changes = workspaceEdit.documentChanges
+      ? workspaceEdit.documentChanges.map(
+          change => change as lsProtocol.TextDocumentEdit
+        )
+      : toDocumentChanges(workspaceEdit.changes);
+    for (let change of changes) {
+      let uri = change.textDocument.uri;
+      if (uri !== current_uri) {
         console.warn('Workspace-wide rename not implemented yet');
       } else {
+        // TODO: show "Renamed X to Y in {change.edits.length} places" in statusbar;
         for (let edit of change.edits) {
           let start = PositionConverter.lsp_to_cm(edit.range.start);
           let end = PositionConverter.lsp_to_cm(edit.range.end);
