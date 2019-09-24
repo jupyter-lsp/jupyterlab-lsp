@@ -13,6 +13,6 @@ def connect_javascript_typescript_langserver(
 
     if jstsls:
         cmd = [app.nodejs, jstsls]
-        return {"application/typescript": cmd, "javascript": cmd}
+        return {"typescript": cmd, "javascript": cmd}
 
     return {}

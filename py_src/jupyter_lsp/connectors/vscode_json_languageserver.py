@@ -9,6 +9,6 @@ def connect_vscode_json_languageserver(app: LanguageServerApp) -> ConnectorComma
 
     if vscjls:
         cmd = [app.nodejs, vscjls, "--stdio"]
-        return {"json": cmd, "application/json": cmd}
+        return {"json": cmd}
 
     return {}
