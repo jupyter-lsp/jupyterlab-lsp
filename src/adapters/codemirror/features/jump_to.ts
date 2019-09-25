@@ -2,6 +2,7 @@ import { CodeMirrorLSPFeature, IFeatureCommand } from '../feature';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { PositionConverter } from '../../../converter';
 import { IVirtualPosition } from '../../../positioning';
+import { InputDialog } from '@jupyterlab/apputils';
 
 export class JumpToDefinition extends CodeMirrorLSPFeature {
   static commands: Array<IFeatureCommand> = [
@@ -23,22 +24,9 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
     return this.jupyterlab_components.jumper;
   }
 
-  handle_jump(locations: lsProtocol.Location[]) {
-    let connection = this.connection;
-
-    // TODO: implement selector for multiple locations
-    //  (like when there are multiple definitions or usages)
-    //  could use the showHints() or completion frontend as a reference
-    if (locations.length === 0) {
-      console.log('No jump targets found');
-      return;
-    }
-    console.log('Will jump to the first of suggested locations:', locations);
-
-    let location = locations[0];
-
+  do_jump(location: lsProtocol.Location) {
     let uri: string = decodeURI(location.uri);
-    let current_uri = connection.getDocumentUri();
+    let current_uri = this.connection.getDocumentUri();
 
     let virtual_position = PositionConverter.lsp_to_cm(
       location.range.start
@@ -91,6 +79,33 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
             true
           );
         });
+    }
+  }
+
+  handle_jump(locations: lsProtocol.Location[]) {
+    if (locations.length === 0) {
+      console.log('No jump targets found');
+      return;
+    }
+    if (locations.length > 1) {
+      let location_by_id = new Map<string, lsProtocol.Location>();
+      let getItemOptions = {
+        title: 'Choose the jump target',
+        okLabel: 'Jump',
+        items: locations.map(location => {
+          // TODO: extract the line, the line above and below, and show it;
+          //  also, strip the server from the location.
+          let id = location.uri + ', line: ' + location.range.start.line;
+          location_by_id.set(id, location);
+          return id;
+        })
+      };
+      // TODO: use showHints() or completion-like widget instead?
+      InputDialog.getItem(getItemOptions).then(choice => {
+        this.do_jump(location_by_id.get(choice.value));
+      });
+    } else {
+      this.do_jump(locations[0]);
     }
   }
 }
