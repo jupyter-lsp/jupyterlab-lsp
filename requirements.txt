@@ -1,2 +1,2 @@
-jupyterlab==1.1
-jupyter-server-proxy
+jupyterlab>=1.1,<1.2
+jupyter-server-proxy>=1.1.0,<1.2
