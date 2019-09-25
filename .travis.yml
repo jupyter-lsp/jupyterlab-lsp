@@ -2,8 +2,12 @@ language: node_js
 node_js:
   - '11'
 before_install:
-  - npm i -g npm@6.4.1
+  - pip install --user -r requirements.txt
+  - pip freeze
 install:
-  - npm install
+  - pip install --user -e .
+  - jlpm
+before_script:
+  - jlpm lint:check
 script:
-  - npm test
+  - jlpm test
