@@ -311,9 +311,9 @@ export abstract class JupyterLabWidgetAdapter
       serverUri: 'ws://jupyter-lsp/' + language,
       languageId: language,
       // paths handling needs testing on Windows and with other language servers
-      rootUri: 'file://' + PathExt.join(this.server_root, this.root_path),
+      rootUri: 'file:///' + PathExt.join(this.server_root, this.root_path),
       documentUri:
-        'file://' +
+        'file:///' +
         PathExt.join(this.server_root, this.root_path, virtual_document.uri),
       documentText: () => {
         // NOTE: Update is async now and this is not really used, as an alternative method
