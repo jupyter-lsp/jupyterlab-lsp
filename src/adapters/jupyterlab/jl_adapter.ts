@@ -312,15 +312,17 @@ export abstract class JupyterLabWidgetAdapter
     const wsBase = PageConfig.getBaseUrl().replace(/^http/, '');
     const wsUrl = `ws${wsBase}lsp/${language}`;
     let socket = new WebSocket(wsUrl);
+    let prefix = 'file://' + (this.server_root[0] === '/' ? '/' : '');
+    const root = PathExt.join(this.server_root);
+    const rootUri = prefix + root;
+    const documentUri = prefix + PathExt.join(root, virtual_document.uri);
 
     let connection = new LSPConnection({
       serverUri: 'ws://jupyter-lsp/' + language,
       languageId: language,
       // paths handling needs testing on Windows and with other language servers
-      rootUri: 'file://' + PathExt.join(this.server_root, this.root_path),
-      documentUri:
-        'file://' +
-        PathExt.join(this.server_root, this.root_path, virtual_document.uri),
+      rootUri,
+      documentUri,
       documentText: () => {
         // NOTE: Update is async now and this is not really used, as an alternative method
         // which is compatible with async is used.
