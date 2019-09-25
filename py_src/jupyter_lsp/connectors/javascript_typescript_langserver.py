@@ -8,7 +8,7 @@ def connect_javascript_typescript_langserver(
         and typescript (if available)
     """
     jstsls = app.find_node_module(
-        "javascript-typescript-langserver", "lib", "language-server.js"
+        "javascript-typescript-langserver", "lib", "language-server-stdio.js"
     )
 
     if jstsls:
