@@ -4,7 +4,9 @@ import { InputDialog } from '@jupyterlab/apputils';
 import { PositionConverter } from '../../../converter';
 import { IVirtualPosition } from '../../../positioning';
 
-function toDocumentChanges(changes: {[uri: string]: lsProtocol.TextEdit[]}): lsProtocol.TextDocumentEdit[] {
+function toDocumentChanges(changes: {
+  [uri: string]: lsProtocol.TextEdit[];
+}): lsProtocol.TextDocumentEdit[] {
   let documentChanges = [];
   for (let uri of Object.keys(changes)) {
     documentChanges.push({
