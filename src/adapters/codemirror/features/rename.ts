@@ -1,5 +1,9 @@
 import * as lsProtocol from 'vscode-languageserver-protocol';
-import { CodeMirrorLSPFeature, IFeatureCommand } from '../feature';
+import {
+  CodeMirrorLSPFeature,
+  CommandEntryPoint,
+  IFeatureCommand
+} from '../feature';
 import { InputDialog } from '@jupyterlab/apputils';
 import { PositionConverter } from '../../../converter';
 import { IVirtualPosition } from '../../../positioning';
@@ -30,7 +34,11 @@ export class Rename extends CodeMirrorLSPFeature {
         );
       },
       is_enabled: ({ connection }) => connection.isRenameSupported(),
-      label: 'Rename symbol'
+      label: 'Rename symbol',
+      attach_to: new Set<CommandEntryPoint>([
+        // notebooks are not supported yet
+        CommandEntryPoint.FileEditorContextMenu
+      ])
     }
   ];
 
