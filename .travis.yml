@@ -1,11 +1,12 @@
 language: node_js
+dist: xenial
 node_js:
   - '11'
 before_install:
-  - pip install --user -r requirements.txt
-  - pip freeze
+  - pip3 install --user -r requirements.txt
+  - pip3 freeze
 install:
-  - pip install --user -e .
+  - pip3 install --user -e .
   - jlpm
 before_script:
   - jlpm lint:check
