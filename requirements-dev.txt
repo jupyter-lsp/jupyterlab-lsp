@@ -1,0 +1,10 @@
+-r requirements.txt
+hypothesis
+pyls-black
+pyls-isort
+pyls-mypy
+pytest
+pytest-cov
+python-language-server
+pytest-runner
+flake8

@@ -23,5 +23,6 @@ docs/api
 .eggs
 envs
 .mypy_cache
+.pytest_cache
 **/.ipynb_checkpoints
 **/*.egg-info

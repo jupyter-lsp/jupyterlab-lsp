@@ -10,14 +10,18 @@ import tempfile
 from typing import Dict, List, Text
 
 import pkg_resources
-from jupyter_core.application import JupyterApp, base_aliases, base_flags
-from jupyterlab.commands import get_app_dir
-from traitlets import Bool
-from traitlets import Dict as Dict_
-from traitlets import Int
-from traitlets import List as List_
-from traitlets import Unicode, default
 
+# notebook stuff
+from jupyter_core.application import JupyterApp, base_aliases, base_flags
+
+# lab stuff
+from jupyterlab.commands import get_app_dir
+from notebook.transutils import _
+
+# traitlets stuff
+from traitlets import Bool, Dict as Dict_, Int, List as List_, Unicode, default
+
+# our stuff
 from ._version import __version__
 from .constants import EP_CONNECTOR_V0, JWP
 
@@ -38,31 +42,31 @@ class LanguageServerApp(JupyterApp):
     flags = flags
 
     language_servers = Dict_(
-        {}, help="a dictionary of lists of command arguments keyed by language names"
+        {}, help=_("a dictionary of lists of command arguments keyed by language names")
     ).tag(
         config=True
     )  # type: ConnectorCommands
 
-    port = Int(help="the (dynamically) assigned port to pass to jsonrpc-ws-proxy").tag(
-        config=True
-    )
-
-    jsonrpc_ws_proxy = Unicode(help="path to jsonrpc-ws-proxy/dist/server.js").tag(
-        config=True
-    )
-
-    nodejs = Unicode(help="path to nodejs executable").tag(config=True)
-
-    autodetect = Bool(
-        True, help="try to find known language servers in sys.prefix (and elsewhere)"
+    port = Int(
+        help=_("the (dynamically) assigned port to pass to jsonrpc-ws-proxy")
     ).tag(config=True)
 
-    node_roots = List_([], help="absolute paths in which to seek node_modules").tag(
+    jsonrpc_ws_proxy = Unicode(help=_("path to jsonrpc-ws-proxy/dist/server.js")).tag(
+        config=True
+    )
+
+    nodejs = Unicode(help=_("path to nodejs executable")).tag(config=True)
+
+    autodetect = Bool(
+        True, help=_("try to find known language servers in sys.prefix (and elsewhere)")
+    ).tag(config=True)
+
+    node_roots = List_([], help=_("absolute paths in which to seek node_modules")).tag(
         config=True
     )
 
     extra_node_roots = List_(
-        [], help="additional absolute paths to seek node_modules first"
+        [], help=_("additional absolute paths to seek node_modules first")
     ).tag(config=True)
 
     cmd = List_().tag(config=True)
@@ -91,6 +95,13 @@ class LanguageServerApp(JupyterApp):
             sys.prefix,
         ]
 
+    def initialize(self, argv=None):
+        """ Before starting, perform all necessary configuration
+        """
+        super().initialize(argv)
+        self.init_language_servers()
+        return self
+
     def start(self):
         """ Start the Notebook server app, after initialization
 
@@ -99,14 +110,12 @@ class LanguageServerApp(JupyterApp):
 
         super().start()
 
-        language_servers = self.init_language_servers()
-
         with tempfile.TemporaryDirectory() as td:
             config_file = pathlib.Path(td) / "langservers.yml"
 
             # JSON _is_ YAML, so we don't need a dependency just to dump YAML
             config_json = json.dumps(
-                {"langservers": language_servers}, indent=2, sort_keys=True
+                {"langservers": self.language_servers}, indent=2, sort_keys=True
             )
             config_file.write_text(config_json)
 
@@ -136,7 +145,9 @@ class LanguageServerApp(JupyterApp):
         language_servers.update(language_servers_from_config)
 
         # coalesce the servers, allowing a user to opt-out by specifying `[]`
-        return {language: cmd for language, cmd in language_servers.items() if cmd}
+        self.language_servers = {
+            language: cmd for language, cmd in language_servers.items() if cmd
+        }
 
     def _autodetect_language_servers(self):
         servers = {}
@@ -146,7 +157,7 @@ class LanguageServerApp(JupyterApp):
                 connector = ep.load()
             except Exception as err:
                 self.log.warn(
-                    "Failed to load language server connector `{}`: \n{}".format(
+                    _("Failed to load language server connector `{}`: \n{}").format(
                         ep.name, err
                     )
                 )
@@ -157,9 +168,10 @@ class LanguageServerApp(JupyterApp):
                     servers[language] = cmd
             except Exception as err:
                 self.log.warning(
-                    "Failed to fetch commands from language server conector `{}`:\n{}".format(
-                        ep.name, err
-                    )
+                    _(
+                        "Failed to fetch commands from language server connector `{}`:"
+                        "\n{}"
+                    ).format(ep.name, err)
                 )
                 continue
 
