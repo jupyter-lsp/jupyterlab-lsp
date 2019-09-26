@@ -10,18 +10,11 @@ import tempfile
 from typing import Dict, List, Text
 
 import pkg_resources
-
-# notebook stuff
 from jupyter_core.application import JupyterApp, base_aliases, base_flags
-
-# lab stuff
 from jupyterlab.commands import get_app_dir
 from notebook.transutils import _
-
-# traitlets stuff
 from traitlets import Bool, Dict as Dict_, Int, List as List_, Unicode, default
 
-# our stuff
 from ._version import __version__
 from .constants import EP_CONNECTOR_V0, JWP
 
