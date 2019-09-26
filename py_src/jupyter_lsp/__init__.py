@@ -1,3 +1,4 @@
-from ._version import __version__  # noqa
-from .config import server_process_config  # noqa
-from .server import ConnectorCommands, LanguageServerApp  # noqa
+# flake8: noqa
+from ._version import __version__
+from .config import server_process_config
+from .server import ConnectorCommands, LanguageServerApp
