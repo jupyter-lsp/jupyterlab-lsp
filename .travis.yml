@@ -3,6 +3,7 @@ language: python
 cache:
   directories:
     - .yarn-packages
+    - $HOME/.cache/yarn
     - $HOME/.cache/pip
 
 matrix:
