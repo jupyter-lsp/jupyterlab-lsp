@@ -22,7 +22,7 @@ install:
   - jlpm
 
 script:
-  - python3 -m setup.py test
+  - python3 setup.py test
   - jlpm test
 
 addons:
