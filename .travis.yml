@@ -1,10 +1,22 @@
 language: python
 
-python:
-  - '3.6'
+matrix:
+  include:
+    - python: '3.5'
+    - python: '3.6'
+    - python: '3.7'
+    - python: '3.5'
+      os: osx
+    - python: '3.6'
+      os: osx
+    - python: '3.7'
+      os: osx
+    - python: '3.7'
+      env:
+        JS_TEST: 1
 
 before_install:
-  - pip install -r requirements.txt
+  - pip install -r requirements-dev.txt
   - pip freeze
 
 install:
@@ -15,11 +27,10 @@ before_script:
   - jlpm lint:check
 
 script:
-  - jlpm test
+  - '[[ -z "$JS_TEST" ]] && jlpm test'
+  - '[[ -z "$JS_TEST" ]] || python setup.py test'
 
 addons:
   apt:
-    sources:
-      - sourceline: ppa:deadsnakes/ppa
     packages:
       - nodejs
