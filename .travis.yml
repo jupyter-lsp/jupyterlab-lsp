@@ -12,8 +12,8 @@ matrix:
         JS_TEST: 1
 
 before_install:
-  - pip install -r requirements-dev.txt
-  - pip freeze
+  - python3 -m pip install -r requirements-dev.txt
+  - python3 -m pip freeze
 
 install:
   - pip install . --no-deps
@@ -24,7 +24,7 @@ before_script:
 
 script:
   - '[[ -z "$JS_TEST" ]] || jlpm test'
-  - '[[ -z "$JS_TEST" ]] && python setup.py test'
+  - '[[ -z "$JS_TEST" ]] && python3 -m setup.py test'
 
 addons:
   apt:
