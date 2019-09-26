@@ -23,8 +23,8 @@ before_script:
   - jlpm lint:check
 
 script:
-  - '[[ -z "$JS_TEST" ]] && jlpm test'
-  - '[[ -z "$JS_TEST" ]] || python setup.py test'
+  - '[[ -z "$JS_TEST" ]] || jlpm test'
+  - '[[ -z "$JS_TEST" ]] && python setup.py test'
 
 addons:
   apt:
