@@ -40,7 +40,8 @@
     "prettier:check": "prettier --list-different '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
     "tslint": "tslint --fix -c tslint.json --project tsconfig.json '**/*{.ts,.tsx}'",
     "tslint:check": "tslint -c tslint.json --project tsconfig.json '**/*{.ts,.tsx}'",
-    "test": "npx jest"
+    "test": "jlpm lint:check && jlpm test:jest",
+    "test:jest": "jlpm jest"
   },
   "dependencies": {
     "@krassowski/jupyterlab_go_to_definition": "^0.7.1",

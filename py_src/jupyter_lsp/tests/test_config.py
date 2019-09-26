@@ -2,7 +2,7 @@ from typing import Any, List, Text
 
 from pytest import fixture, mark
 
-from jupyter_lsp import ConnectorCommands, LanguageServerApp
+from .. import ConnectorCommands, LanguageServerApp
 
 
 def arg_language_servers(language_servers: ConnectorCommands) -> List[Text]:

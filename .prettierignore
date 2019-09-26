@@ -26,3 +26,4 @@ envs
 .pytest_cache
 **/.ipynb_checkpoints
 **/*.egg-info
+.yarn-packags
