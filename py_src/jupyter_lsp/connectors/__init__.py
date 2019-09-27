@@ -3,5 +3,7 @@
 # flake8: noqa
 from .javascript_typescript_langserver import connect_javascript_typescript_langserver
 from .pyls import connect_pyls
-from .vscode_json_languageserver import connect_vscode_json_languageserver
+from .vscode_css_languageservice import connect_vscode_css_languageservice
+from .vscode_html_languageservice import connect_vscode_html_languageservice
+from .vscode_json_languageservice import connect_vscode_json_languageservice
 from .yaml_language_server import connect_yaml_language_server
