@@ -1,4 +1,4 @@
-import { PageConfig, PathExt } from '@jupyterlab/coreutils';
+import { PathExt } from '@jupyterlab/coreutils';
 import { CodeMirror, CodeMirrorAdapter } from '../codemirror/cm_adapter';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
@@ -9,7 +9,6 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 import { FreeTooltip } from './components/free_tooltip';
 import { Widget } from '@phosphor/widgets';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
-import { until_ready } from '../../utils';
 import { VirtualEditor } from '../../virtual/editor';
 import { VirtualDocument } from '../../virtual/document';
 import { Signal } from '@phosphor/signaling';
@@ -26,6 +25,10 @@ import { CodeMirrorLSPFeature, ILSPFeature } from '../codemirror/feature';
 import { JumpToDefinition } from '../codemirror/features/jump_to';
 import { ICommandContext } from '../../command_manager';
 import { JSONObject } from '@phosphor/coreutils';
+import {
+  DocumentConnectionManager,
+  IDocumentConnectionData
+} from '../../connection_manager';
 
 export const lsp_features: Array<typeof CodeMirrorLSPFeature> = [
   Completion,
@@ -35,11 +38,6 @@ export const lsp_features: Array<typeof CodeMirrorLSPFeature> = [
   Signature,
   JumpToDefinition
 ];
-
-interface IDocumentConnectionData {
-  document: VirtualDocument;
-  connection: LSPConnection;
-}
 
 export interface IJupyterLabComponentsManager {
   invoke_completer: (kind: CompletionTriggerKind) => void;
@@ -68,8 +66,6 @@ const mime_type_language_map: JSONObject = {
  */
 export abstract class JupyterLabWidgetAdapter
   implements IJupyterLabComponentsManager {
-  connections: Map<VirtualDocument.id_path, LSPConnection>;
-  documents: Map<VirtualDocument.id_path, VirtualDocument>;
   jumper: CodeJumper;
   protected adapters: Map<VirtualDocument.id_path, CodeMirrorAdapter>;
   private readonly invoke_command: string;
@@ -78,8 +74,8 @@ export abstract class JupyterLabWidgetAdapter
     IDocumentConnectionData
   >;
   protected abstract current_completion_connector: LSPConnector;
-  private ignored_languages: Set<string>;
   private _tooltip: FreeTooltip;
+  protected connection_manager: DocumentConnectionManager;
 
   protected constructor(
     protected app: JupyterFrontEnd,
@@ -89,11 +85,15 @@ export abstract class JupyterLabWidgetAdapter
     private server_root: string
   ) {
     this.invoke_command = invoke;
-    this.connections = new Map();
-    this.documents = new Map();
     this.document_connected = new Signal(this);
     this.adapters = new Map();
-    this.ignored_languages = new Set();
+    this.connection_manager = new DocumentConnectionManager();
+    this.connection_manager.closed.connect((manger, { virtual_document }) => {
+      this.disconnect_adapter(virtual_document);
+    });
+    this.connection_manager.connected.connect((manager, data) => {
+      this.on_connected(data).catch(console.warn);
+    });
   }
 
   abstract virtual_editor: VirtualEditor;
@@ -136,76 +136,15 @@ export abstract class JupyterLabWidgetAdapter
   }
 
   get main_connection(): LSPConnection {
-    return this.connections.get(this.virtual_editor.virtual_document.id_path);
-  }
-
-  private async retry_to_connect(
-    virtual_document: VirtualDocument,
-    reconnect_delay: number,
-    retrials_left = -1
-  ): Promise<IDocumentConnectionData> {
-    if (this.ignored_languages.has(virtual_document.language)) {
-      throw Error(
-        'Cancelling further attempts to connect ' +
-          virtual_document.id_path +
-          ' and other documents for this language (no support from the server)'
-      );
-    }
-
-    let data: IDocumentConnectionData | null;
-
-    let connect = () => {
-      this.connect_socket_then_lsp(virtual_document)
-        .then(d => {
-          data = d;
-        })
-        .catch(e => {
-          console.log(e);
-          data = null;
-        });
-    };
-    connect();
-
-    await until_ready(
-      () => {
-        if (data === null) {
-          connect();
-        }
-        return typeof data !== 'undefined' && data !== null;
-      },
-      retrials_left,
-      reconnect_delay * 1000,
-      // gradually increase the time delay, up to 5 sec
-      interval => {
-        interval = interval < 5 * 1000 ? interval + 500 : interval;
-        console.log(
-          'LSP: will attempt to re-connect in ' + interval / 1000 + ' seconds'
-        );
-        return interval;
-      }
+    return this.connection_manager.connections.get(
+      this.virtual_editor.virtual_document.id_path
     );
-
-    return new Promise<IDocumentConnectionData>(resolve => {
-      resolve(data);
-    });
   }
 
-  protected async on_lsp_connected(data: IDocumentConnectionData) {
-    let { connection, document: virtual_document } = data;
+  protected async on_connected(data: IDocumentConnectionData) {
+    let { virtual_document } = data;
 
-    connection.on('close', closed_manually => {
-      if (!closed_manually) {
-        console.warn('LSP: Connection unexpectedly closed or lost');
-        this.disconnect_adapter(virtual_document);
-        this.retry_to_connect(virtual_document, 0.5)
-          .then(data => {
-            this.on_lsp_connected(data);
-          })
-          .catch(console.warn);
-      }
-    });
-
-    await this.connect_adapter(data.document, data.connection);
+    await this.connect_adapter(data.virtual_document, data.connection);
     this.document_connected.emit(data);
 
     await this.virtual_editor.update_documents().then(() => {
@@ -220,36 +159,16 @@ export abstract class JupyterLabWidgetAdapter
   }
 
   protected async connect_document(virtual_document: VirtualDocument) {
-    virtual_document.foreign_document_opened.connect((host, context) => {
-      console.log(
-        'LSP: Connecting foreign document: ',
-        context.foreign_document.id_path
-      );
-      this.connect_document(context.foreign_document);
-    });
-    virtual_document.foreign_document_closed.connect(
-      (host, { foreign_document }) => {
-        this.connections.get(foreign_document.id_path).close();
-        this.connections.delete(foreign_document.id_path);
-        this.documents.delete(foreign_document.id_path);
-      }
-    );
+    this.connection_manager.connect_document_signals(virtual_document);
     virtual_document.changed.connect(this.document_changed.bind(this));
-    this.documents.set(virtual_document.id_path, virtual_document);
-
-    await this.connect_socket_then_lsp(virtual_document)
-      .then(this.on_lsp_connected.bind(this))
-      .catch(e => {
-        console.warn(e);
-        this.retry_to_connect(virtual_document, 1)
-          .then(this.on_lsp_connected.bind(this))
-          .catch(console.warn);
-      });
+    await this.connect(virtual_document).catch(console.warn);
   }
 
   document_changed(virtual_document: VirtualDocument) {
     // TODO only send the difference, using connection.sendSelectiveChange()
-    let connection = this.connections.get(virtual_document.id_path);
+    let connection = this.connection_manager.connections.get(
+      virtual_document.id_path
+    );
     let adapter = this.adapters.get(virtual_document.id_path);
 
     if (typeof connection === 'undefined' || typeof adapter === 'undefined') {
@@ -294,80 +213,29 @@ export abstract class JupyterLabWidgetAdapter
     }
   }
 
-  private async connect_socket_then_lsp(
-    virtual_document: VirtualDocument
-  ): Promise<IDocumentConnectionData> {
+  private async connect(virtual_document: VirtualDocument) {
     let language = virtual_document.language;
     console.log(
       `LSP: will connect using root path: ${this.root_path} and language: ${language}`
     );
 
-    // capture just the s?://*
-    const wsBase = PageConfig.getBaseUrl().replace(/^http/, '');
-    const wsUrl = `ws${wsBase}lsp/${language}`;
-    let socket = new WebSocket(wsUrl);
+    let options = {
+      virtual_document,
+      language,
+      root_path: this.root_path,
+      server_root: this.server_root,
+      document_path: this.document_path
+    };
 
-    let connection = new LSPConnection({
-      serverUri: 'ws://jupyter-lsp/' + language,
-      languageId: language,
-      // paths handling needs testing on Windows and with other language servers
-      rootUri: 'file:///' + PathExt.join(this.server_root, this.root_path),
-      documentUri:
-        'file:///' +
-        PathExt.join(this.server_root, this.root_path, virtual_document.uri),
-      documentText: () => {
-        // NOTE: Update is async now and this is not really used, as an alternative method
-        // which is compatible with async is used.
-        // This should be only used in the initialization step.
-        // @ts-ignore
-        if (this.main_connection.isConnected) {
-          console.warn('documentText is deprecated for use in JupyterLab LSP');
-        }
-        return virtual_document.value;
-      }
-    }).connect(socket);
-
-    connection.on('error', e => {
-      let error: Error = e.length && e.length >= 1 ? e[0] : new Error();
-      // TODO: those codes may be specific to my proxy client, need to investigate
-      if (error.message.indexOf('code = 1005') !== -1) {
-        console.warn('LSP: Connection failed for ' + virtual_document.id_path);
-        console.log('LSP: disconnecting ' + virtual_document.id_path);
-        this.disconnect_adapter(virtual_document);
-        this.ignored_languages.add(virtual_document.language);
-      } else if (error.message.indexOf('code = 1006') !== -1) {
-        console.warn(
-          'LSP: Connection closed by the server ' + virtual_document.id_path
-        );
-      } else {
-        console.error(
-          'LSP: Connection error of ' + virtual_document.id_path + ':',
-          e
-        );
-      }
+    let connection = this.connection_manager.connect(options).catch(() => {
+      this.connection_manager
+        .retry_to_connect(options, 0.5)
+        .catch(console.warn);
     });
 
-    this.connections.set(virtual_document.id_path, connection);
-
-    await until_ready(
-      () => {
-        // @ts-ignore
-        return connection.isConnected;
-      },
-      50,
-      50
-    ).catch(() => {
-      throw Error('LSP: Connect timed out for ' + virtual_document.id_path);
-    });
-    console.log(
-      'LSP:',
-      this.document_path,
-      virtual_document.id_path,
-      'connected.'
-    );
     return {
       connection,
-      document: virtual_document
+      virtual_document
     };
   }
 
@@ -445,7 +313,7 @@ export abstract class JupyterLabWidgetAdapter
   get_context_from_context_menu(): ICommandContext {
     let root_position = this.get_position_from_context_menu();
     let document = this.virtual_editor.document_at_root_position(root_position);
-    let connection = this.connections.get(document.id_path);
+    let connection = this.connection_manager.connections.get(document.id_path);
     let virtual_position = this.virtual_editor.root_position_to_virtual_position(
       root_position
     );
