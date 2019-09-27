@@ -66,21 +66,34 @@ class LanguageServerApp(JupyterApp):
 
     @default("nodejs")
     def _default_nodejs(self):
-        return shutil.which("node") or shutil.which("nodejs")
+        return (
+            shutil.which("node") or shutil.which("nodejs") or shutil.which("nodejs.exe")
+        )
 
     @default("jsonrpc_ws_proxy")
     def _default_jsonrpc_ws_proxy(self):
-        """ try to find
+        """ try to find jsonrpc-ws-proxy
+
+        the `which` is an imaginary case where it has been compiled, somehow
         """
         return shutil.which(JWP) or self.find_node_module(JWP, "dist", "server.js")
 
     @default("cmd")
     def _default_cmd(self):
+        """ command arguments to launch jsonrpc-ws-proxy
+        """
         return [self.nodejs, self.jsonrpc_ws_proxy]
 
     @default("node_roots")
     def _default_node_roots(self):
-        return self.extra_node_roots + [
+        """ get the "usual suspects" for where node_modules may be found
+
+        - where this was launch (usually the same as NotebookApp.notebook_dir)
+        - the JupyterLab staging folder
+        - wherever conda puts it
+        - wherever some other conventions put it
+        """
+        return [
             os.getcwd(),
             pathlib.Path(get_app_dir()) / "staging",
             pathlib.Path(sys.prefix) / "lib",
@@ -173,7 +186,7 @@ class LanguageServerApp(JupyterApp):
     def find_node_module(self, *path_frag):
         """ look through the node_module roots to find the given node module
         """
-        for candidate_root in self.node_roots:
+        for candidate_root in self.extra_node_roots + self.node_roots:
             candidate = pathlib.Path(candidate_root, "node_modules", *path_frag)
             if candidate.exists():
                 return str(candidate)
