@@ -1,30 +1,6 @@
-from typing import Any, List, Text
-
-from pytest import fixture, mark
-
-from .. import ConnectorCommands, LanguageServerApp
-
-
-def arg_language_servers(language_servers: ConnectorCommands) -> List[Text]:
-    args = ["--LanguageServerApp.language_servers={}".format(language_servers)]
-    return args
-
-
-@fixture
-def server() -> LanguageServerApp:
-    return LanguageServerApp()
-
-
-@fixture
-def debug_server(server: LanguageServerApp) -> LanguageServerApp:
-    server.initialize(["--debug"])
-    return server
-
-
-@mark.parametrize("pyls", [None, []])
-def test_config_cli(server: LanguageServerApp, pyls: Any) -> None:
+def test_config_cli(server, arg_language_servers, falsy_pyls) -> None:
     """ Ensure falsey values clobber autodetection
     """
     assert not server.language_servers
-    server.initialize(arg_language_servers({"python": pyls}))
+    server.initialize(arg_language_servers({"python": falsy_pyls}))
     assert "python" not in server.language_servers
