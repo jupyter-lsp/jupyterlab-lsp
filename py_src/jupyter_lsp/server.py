@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from typing import Dict, List, Text
+from typing import Callable, Dict, List, Text
 
 import pkg_resources
 from jupyter_core.application import JupyterApp, base_aliases, base_flags
@@ -106,6 +106,8 @@ class LanguageServerApp(JupyterApp):
         """
         super().initialize(argv)
         self.init_language_servers()
+
+        self.log.error(self.language_servers)
         return self
 
     def start(self):
@@ -160,7 +162,7 @@ class LanguageServerApp(JupyterApp):
 
         for ep in pkg_resources.iter_entry_points(EP_CONNECTOR_V0):
             try:
-                connector = ep.load()
+                connector: Connector = ep.load()
             except Exception as err:
                 self.log.warn(
                     _("Failed to load language server connector `{}`: \n{}").format(
@@ -191,6 +193,8 @@ class LanguageServerApp(JupyterApp):
             if candidate.exists():
                 return str(candidate)
 
+
+Connector = Callable[[LanguageServerApp], ConnectorCommands]
 
 main = launch_new_instance = LanguageServerApp.launch_instance
 

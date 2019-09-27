@@ -84,10 +84,10 @@
     "tslint-react": "^4.0.0",
     "tslint": "^5.15.0",
     "typescript": "~3.4.5",
-    "vscode-html-languageservice": "^3.0.3",
-    "vscode-json-languageservice": "^3.3.4",
+    "vscode-html-languageserver-bin": "^1.4.0",
+    "vscode-json-languageserver-bin": "^1.0.1",
     "yaml-language-server": "^0.5.7",
-    "vscode-css-languageservice": "^4.0.2"
+    "vscode-css-languageserver-bin": "^1.4.0"
   },
   "peerDependencies": {
     "@jupyterlab/application": "~1.1.3",
