@@ -1,19 +1,7 @@
-from jupyter_lsp import ConnectorCommands, LanguageServerManager
+from .utils import NodeModuleSpec
 
 
-def connect_javascript_typescript_langserver(
-    mgr: LanguageServerManager
-) -> ConnectorCommands:
-    """ connect jupyter-lsproxy to javascript-typescript-langserver for javascript
-        and typescript (if available)
-    """
-    jstsls = mgr.find_node_module(
-        "javascript-typescript-langserver", "lib", "language-server-stdio.js"
-    )
-
-    if jstsls:
-        return [
-            {"languages": ["typescript", "javascript"], "args": [mgr.nodejs, jstsls]}
-        ]
-
-    return []
+class JavascriptTypescriptLanguageServer(NodeModuleSpec):
+    node_module = key = "javascript-typescript-langserver"
+    script = ["lib", "language-server-stdio.js"]
+    languages = ["typescript", "javascript"]

@@ -1,3 +1,6 @@
-def test_detect(server):
-    server.initialize(["--LanguageServerApp.autodetect=False"])
-    assert not server.language_servers
+def test_detect(manager):
+    """ should not enable anything by default
+    """
+    manager.autodetect = False
+    manager.initialize()
+    assert not manager.language_servers

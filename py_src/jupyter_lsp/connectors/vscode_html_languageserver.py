@@ -1,13 +1,8 @@
-from jupyter_lsp import ConnectorCommands, LanguageServerManager
+from .utils import NodeModuleSpec
 
 
-def connect_vscode_html_languageserver(mgr: LanguageServerManager) -> ConnectorCommands:
-    """ connect to vscode-html-languageserver
-    """
-    pkg = "vscode-html-languageserver-bin"
-    vschls = mgr.find_node_module(pkg, "htmlServerMain.js")
-
-    if vschls:
-        return [{"languages": ["html"], "args": [mgr.nodejs, vschls, "--stdio"]}]
-
-    return []
+class VSCodeHTMLLanguageServer(NodeModuleSpec):
+    node_module = key = "vscode-html-languageserver-bin"
+    script = ["htmlServerMain.js"]
+    args = ["--stdio"]
+    languages = ["html"]

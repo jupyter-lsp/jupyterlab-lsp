@@ -10,6 +10,7 @@ def load_jupyter_server_extension(nbapp):
     """
     nbapp.add_traits(language_server_manager=traitlets.Instance(LanguageServerManager))
     nbapp.language_server_manager = LanguageServerManager(parent=nbapp)
+    nbapp.language_server_manager.initialize()
     nbapp.web_app.add_handlers(
         ".*",
         [
