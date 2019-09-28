@@ -9,5 +9,5 @@ from .types import (
 )
 
 
-def _jupyter_server_extension_paths():
+def _jupyter_server_extension_paths():  # pragma: no cover
     return [{"module": "jupyter_lsp.serverextension"}]

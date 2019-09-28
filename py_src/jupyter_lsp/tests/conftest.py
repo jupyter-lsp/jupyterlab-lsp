@@ -7,14 +7,26 @@ from pytest import fixture
 from .. import LanguageServerManager
 from ..handlers import LanguageServerWebSocketHandler
 
+KNOWN_LANGUAGES = [
+    "css",
+    "html",
+    "javascript",
+    "json",
+    "less",
+    "python",
+    "scss",
+    "typescript",
+    "yaml",
+]
+
 
 @fixture
 def manager() -> LanguageServerManager:
     return LanguageServerManager()
 
 
-@fixture(params=[None, []])
-def falsy_pyls(request):
+@fixture(params=KNOWN_LANGUAGES)
+def language(request):
     return request.param
 
 

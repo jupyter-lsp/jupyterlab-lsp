@@ -13,7 +13,9 @@ class SpecBase:
     args = []  # type: List[Text]
 
     @classmethod
-    def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
+    def __call__(
+        self, mgr: LanguageServerManagerAPI
+    ) -> KeyedLanguageServerSpecs:  # pragma: no cover
         return {}
 
 
@@ -30,7 +32,7 @@ class ShellSpec(SpecBase):
             if cmd:
                 break
 
-        if not cmd:
+        if not cmd:  # pragma: no cover
             return {}
 
         return {self.key: {"argv": [cmd, *self.args], "languages": self.languages}}
@@ -47,7 +49,7 @@ class NodeModuleSpec(SpecBase):
     def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
         node_module = mgr.find_node_module(self.node_module, *self.script)
 
-        if not node_module:
+        if not node_module:  # pragma: no cover
             return {}
 
         return {

@@ -95,7 +95,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         for ep in pkg_resources.iter_entry_points(EP_CONNECTOR_V0):
             try:
                 connector = ep.load()  # type: SpecMaker
-            except Exception as err:
+            except Exception as err:  # pragma: no cover
                 self.log.warn(
                     _("Failed to load language server connector `{}`: \n{}").format(
                         ep.name, err
@@ -106,7 +106,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
             try:
                 for key, spec in connector(self).items():
                     yield key, spec
-            except Exception as err:
+            except Exception as err:  # pragma: no cover
                 self.log.warning(
                     _(
                         "Failed to fetch commands from language server connector `{}`:"
