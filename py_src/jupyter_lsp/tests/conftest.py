@@ -3,7 +3,7 @@ from typing import List, Text
 
 from pytest import fixture
 
-from .. import ConnectorCommands, LanguageServerApp
+from .. import ConnectorCommands, LanguageServerManager
 
 
 @fixture

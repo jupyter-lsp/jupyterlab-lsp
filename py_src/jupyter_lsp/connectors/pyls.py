@@ -1,12 +1,12 @@
 import shutil
 
-from jupyter_lsp import ConnectorCommands, LanguageServerApp
+from jupyter_lsp import ConnectorCommands, LanguageServerManager
 
 
-def connect_pyls(app: LanguageServerApp) -> ConnectorCommands:
+def connect_pyls(mgr: LanguageServerManager) -> ConnectorCommands:
     """ connect jupyter-lsproxy to pyls for python, if available
     """
     if shutil.which("pyls"):
-        return {"python": ["pyls"]}
+        return [{"languages": ["python"], "args": ["pyls"]}]
 
-    return {}
+    return []

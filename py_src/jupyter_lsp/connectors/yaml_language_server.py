@@ -1,14 +1,13 @@
-from jupyter_lsp import ConnectorCommands, LanguageServerApp
+from jupyter_lsp import ConnectorCommands, LanguageServerManager
 
 
-def connect_yaml_language_server(app: LanguageServerApp) -> ConnectorCommands:
+def connect_yaml_language_server(mgr: LanguageServerManager) -> ConnectorCommands:
     """ connect jupyter-lsproxy to yaml-language-server for yaml, if available
     """
     pkg = "yaml-language-server"
-    yls = app.find_node_module(pkg, "bin", pkg)
+    yls = mgr.find_node_module(pkg, "bin", pkg)
 
     if yls:
-        cmd = [app.nodejs, yls, "--stdio"]
-        return {"yaml": cmd}
+        return [{"languages": "yaml", "args": [mgr.nodejs, yls, "--stdio"]}]
 
     return {}
