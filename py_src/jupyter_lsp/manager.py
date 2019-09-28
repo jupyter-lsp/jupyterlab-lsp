@@ -42,6 +42,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
     def initialize(self, *args, **kwargs):
         self.init_language_servers()
+        self.init_sessions()
 
     def init_language_servers(self) -> None:
         """ determine the final language server configuration.
@@ -64,6 +65,16 @@ class LanguageServerManager(LanguageServerManagerAPI):
             if spec.get("argv") and spec.get("languages")
         }
 
+    def init_sessions(self):
+        """ create, but do not initialize all sessions
+        """
+        sessions = {}
+        for spec in self.language_servers.values():
+            sessions[tuple(sorted(spec["languages"]))] = LanguageServerSession(
+                spec["argv"]
+            )
+        self.sessions = sessions
+
     def subscribe(self, language, handler):
         session = None
         for langs, candidate_session in self.sessions.items():
@@ -71,15 +82,10 @@ class LanguageServerManager(LanguageServerManagerAPI):
                 session = candidate_session
                 break
 
-        if session is None:
-            for key, spec in self.language_servers.items():
-                if language in spec["languages"]:
-                    session = LanguageServerSession(spec["argv"])
-                    self.sessions[tuple(sorted(spec["languages"]))] = session
-                    break
-
         if session:
             session.handlers += [handler]
+            if not session.process:
+                self.initialize()
 
         return session
 

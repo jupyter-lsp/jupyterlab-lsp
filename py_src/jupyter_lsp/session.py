@@ -15,7 +15,10 @@ from traitlets.config import LoggingConfigurable
 
 
 class LanguageServerSession(LoggingConfigurable):
-    args = List(
+    """ Manage a session for a connection to a language server
+    """
+
+    argv = List(
         trait=Unicode,
         default_value=[],
         help="the command line arguments to start the language server",
@@ -29,11 +32,13 @@ class LanguageServerSession(LoggingConfigurable):
     handlers = List(
         trait=Instance(WebSocketHandler),
         default_value=[],
-        help="the current listening handlers",
+        help="the currently subscribed websockets",
     )
 
-    def __init__(self, args, **kwargs):
-        super().__init__(args=args, **kwargs)
+    def __init__(self, argv, **kwargs):
+        super().__init__(args=argv, **kwargs)
+
+    def initialize(self):
         self.init_queues()
         self.init_process()
         self.init_writer()
@@ -45,8 +50,8 @@ class LanguageServerSession(LoggingConfigurable):
         self.to_lsp.put_nowait(message)
 
     def init_process(self):
-        self.log.debug(f"Staring process {self.args}")
-        self.process = Subprocess(self.args, stdin=PIPE, stdout=PIPE)
+        self.log.info(f"Starting process {self.argv}")
+        self.process = Subprocess(self.argv, stdin=PIPE, stdout=PIPE)
 
     def init_queues(self):
         self.from_lsp = Queue()
