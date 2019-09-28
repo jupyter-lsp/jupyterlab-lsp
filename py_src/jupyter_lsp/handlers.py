@@ -21,3 +21,4 @@ class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, IPythonHa
 
     def on_close(self):
         self.session.handlers.remove(self)
+        self.session = None

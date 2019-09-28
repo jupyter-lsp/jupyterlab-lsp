@@ -1,3 +1,5 @@
+import json
+import pathlib
 from typing import Text
 
 from pytest import fixture
@@ -21,6 +23,24 @@ def handler(manager):
     handler = MockWebsocketHandler()
     handler.initialize(manager)
     return handler
+
+
+@fixture
+def jsonrpc_init_msg():
+    return json.dumps(
+        {
+            "id": 0,
+            "jsonrpc": "2.0",
+            "method": "initialize",
+            "params": {
+                "capabilities": {},
+                "initializationOptions": None,
+                "processId": None,
+                "rootUri": pathlib.Path(__file__).parent.as_uri(),
+                "workspaceFolders": None,
+            },
+        }
+    )
 
 
 # mocks
