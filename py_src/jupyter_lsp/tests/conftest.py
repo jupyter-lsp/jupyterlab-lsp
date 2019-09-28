@@ -2,6 +2,7 @@ import json
 import pathlib
 from typing import Text
 
+from notebook.notebookapp import NotebookApp
 from pytest import fixture
 
 from .. import LanguageServerManager
@@ -55,6 +56,11 @@ def jsonrpc_init_msg():
     )
 
 
+@fixture
+def app():
+    return MockNotebookApp()
+
+
 # mocks
 class MockWebsocketHandler(LanguageServerWebSocketHandler):
     _messages_wrote = None
@@ -68,3 +74,7 @@ class MockWebsocketHandler(LanguageServerWebSocketHandler):
 
     def write_message(self, message: Text) -> None:
         self._messages_wrote += [message]
+
+
+class MockNotebookApp(NotebookApp):
+    pass
