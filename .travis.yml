@@ -17,14 +17,17 @@ matrix:
 before_install:
   - python3 -m pip install -r requirements-dev.txt
   - python3 -m pip freeze
+  - python3 setup.py bdist sdist wheel
 
 install:
-  - pip install . --no-deps
+  - python3 -m pip install dist/jupyter_lsp*.whl --no-deps
   - jlpm
 
 script:
-  - python3 setup.py test
   - jlpm test
+  - python3 -m jupyter serverextension list
+  - python3 -m jupyter serverextension list | grep jupyter_lsp
+  - python3 -m pytest
 
 addons:
   apt:

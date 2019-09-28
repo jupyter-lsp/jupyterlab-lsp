@@ -1,5 +1,7 @@
 def test_serverextension(app):
-    app.initialize()
+    app.initialize(
+        ["--NotebookApp.nbserver_extensions={'jupyter_lsp.serverextension': True}"]
+    )
     assert app.language_server_manager
     found_lsp = False
     for r in app.web_app.default_router.rules:
