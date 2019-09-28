@@ -17,7 +17,8 @@ matrix:
 before_install:
   - python3 -m pip install -r requirements-dev.txt
   - python3 -m pip freeze
-  - python3 setup.py bdist sdist wheel
+  - python3 setup.py sdist
+  - python3 setup.py bdist_wheel
 
 install:
   - python3 -m pip install dist/jupyter_lsp*.whl --no-deps
