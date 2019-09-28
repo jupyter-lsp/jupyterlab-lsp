@@ -13,7 +13,7 @@ class SpecBase:
     args = []  # type: List[Text]
 
     @classmethod
-    def __call__(cls, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
+    def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
         return {}
 
 
@@ -24,20 +24,19 @@ class ShellSpec(SpecBase):
 
     cmd = ""
 
-    @classmethod
-    def __call__(cls, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
+    def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
         for ext in ["", ".cmd", ".bat", ".exe"]:
-            cmd = shutil.which(cls.cmd + ext)
+            cmd = shutil.which(self.cmd + ext)
             if cmd:
                 break
 
         if not cmd:
             return {}
 
-        return {cls.key: {"argv": [cmd, *cls.args], "languages": cls.languages}}
+        return {self.key: {"argv": [cmd, *self.args], "languages": self.languages}}
 
 
-class NodeModuleSpec:
+class NodeModuleSpec(SpecBase):
     """ Helper for a nodejs-based language server spec in one of several
         node_modules
     """
@@ -45,16 +44,15 @@ class NodeModuleSpec:
     node_module = ""
     script = []  # type: List[Text]
 
-    @classmethod
-    def __call__(cls, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
-        node_module = mgr.find_node_module(cls.node_module, *cls.script)
+    def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
+        node_module = mgr.find_node_module(self.node_module, *self.script)
 
         if not node_module:
             return {}
 
         return {
-            cls.key: {
-                "argv": [mgr.nodejs, node_module, *cls.args],
-                "languages": cls.languages,
+            self.key: {
+                "argv": [mgr.nodejs, node_module, *self.args],
+                "languages": self.languages,
             }
         }

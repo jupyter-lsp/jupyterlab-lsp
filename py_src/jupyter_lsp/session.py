@@ -23,12 +23,16 @@ class LanguageServerSession(LoggingConfigurable):
         default_value=[],
         help="the command line arguments to start the language server",
     )
-    process = Instance(Subprocess, help="the language server subprocess")
-    writer = Instance(Writer, help="the JSON-RPC writer")
-    reader = Instance(Reader, help="the JSON-RPC reader")
-    thread = Instance(Thread, help="the reader thread")
-    from_lsp = Instance(Queue, help="a queue for messages from the server")
-    to_lsp = Instance(Queue, help="a queue for message to the server")
+    process = Instance(
+        Subprocess, help="the language server subprocess", allow_none=True
+    )
+    writer = Instance(Writer, help="the JSON-RPC writer", allow_none=True)
+    reader = Instance(Reader, help="the JSON-RPC reader", allow_none=True)
+    thread = Instance(Thread, help="the reader thread", allow_none=True)
+    from_lsp = Instance(
+        Queue, help="a queue for messages from the server", allow_none=True
+    )
+    to_lsp = Instance(Queue, help="a queue for message to the server", allow_none=True)
     handlers = List(
         trait=Instance(WebSocketHandler),
         default_value=[],
@@ -36,7 +40,7 @@ class LanguageServerSession(LoggingConfigurable):
     )
 
     def __init__(self, argv, **kwargs):
-        super().__init__(args=argv, **kwargs)
+        super().__init__(argv=argv, **kwargs)
 
     def initialize(self):
         self.init_queues()

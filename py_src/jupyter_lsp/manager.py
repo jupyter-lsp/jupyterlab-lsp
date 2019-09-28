@@ -76,6 +76,8 @@ class LanguageServerManager(LanguageServerManagerAPI):
         self.sessions = sessions
 
     def subscribe(self, language, handler):
+        """ subscribe a handler to session, or sta
+        """
         session = None
         for langs, candidate_session in self.sessions.items():
             if language in langs:
@@ -85,7 +87,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         if session:
             session.handlers += [handler]
             if not session.process:
-                self.initialize()
+                session.initialize()
 
         return session
 

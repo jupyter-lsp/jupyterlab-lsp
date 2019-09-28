@@ -1,4 +1,4 @@
-from jupyter_lsp.connectors.utils import ShellSpec
+from jupyter_lsp.specs.utils import ShellSpec
 
 
 class PythonLanguageServer(ShellSpec):

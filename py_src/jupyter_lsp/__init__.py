@@ -1,7 +1,7 @@
 # flake8: noqa: F401
 from ._version import __version__
-from .connectors.utils import NodeModuleSpec, ShellSpec
 from .manager import LanguageServerManager
+from .specs.utils import NodeModuleSpec, ShellSpec
 from .types import (
     KeyedLanguageServerSpecs,
     LanguageServerManagerAPI,

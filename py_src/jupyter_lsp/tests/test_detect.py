@@ -4,6 +4,7 @@ def test_no_detect(manager):
     manager.autodetect = False
     manager.initialize()
     assert not manager.language_servers
+    assert not manager.sessions
 
 
 def test_detect(manager):

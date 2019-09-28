@@ -7,11 +7,13 @@ class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, IPythonHa
     """
 
     session = None
+    language = None
 
     def initialize(self, manager):
         self.manager = manager
 
     def open(self, language):
+        self.language = language
         self.session = self.manager.subscribe(language, self)
 
     def on_message(self, message):
