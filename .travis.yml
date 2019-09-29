@@ -21,14 +21,19 @@ before_install:
   - python3 setup.py bdist_wheel
 
 install:
-  - python3 -m pip install dist/jupyter_lsp*.whl --no-deps
+  - python3 -m pip install dist/jupyter_lsp*.whl --no-deps -vv
   - jlpm
 
 script:
   - jlpm test
   - python3 -m jupyter serverextension list
   - python3 -m jupyter serverextension list | grep jupyter_lsp
-  - python3 -m setup.py test
+  - python3 -m pytest
+      --pyargs jupyter_lsp
+      --cov jupyter_lsp
+      --cov-report term-missing:skip-covered
+      -p no:warnings
+      --cov-fail-under=100
 
 addons:
   apt:

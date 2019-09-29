@@ -54,7 +54,7 @@ class LanguageServerSession(LoggingConfigurable):
         self.to_lsp.put_nowait(message)
 
     def init_process(self):
-        self.log.info(f"Starting process {self.argv}")
+        self.log.info("Starting process {}".format(" ".join(self.argv)))
         self.process = Subprocess(self.argv, stdin=PIPE, stdout=PIPE)
 
     def init_queues(self):
@@ -67,7 +67,7 @@ class LanguageServerSession(LoggingConfigurable):
     def init_reader(self):
         def consume():
             IOLoop()
-            self.log.debug(f"Thread starting")
+            self.log.debug("Thread started")
 
             self.reader = Reader(self.process.stdout)
 
@@ -76,6 +76,7 @@ class LanguageServerSession(LoggingConfigurable):
 
             self.reader.listen(broadcast)
 
+        self.log.debug("Thread starting")
         self.thread = Thread(target=consume)
         self.thread.daemon = True
         self.thread.start()
@@ -88,5 +89,9 @@ class LanguageServerSession(LoggingConfigurable):
 
     async def _write_to_lsp(self):
         async for msg in self.to_lsp:
-            self.writer.write(json_decode(msg))
-            self.to_lsp.task_done()
+            try:
+                self.writer.write(json_decode(msg))
+            except BrokenPipeError:  # pragma: no cover
+                self.log.debug("Can't write to {}".format(self.argv[0]))
+            finally:
+                self.to_lsp.task_done()
