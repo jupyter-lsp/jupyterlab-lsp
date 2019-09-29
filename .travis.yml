@@ -28,7 +28,7 @@ script:
   - jlpm test
   - python3 -m jupyter serverextension list
   - python3 -m jupyter serverextension list | grep jupyter_lsp
-  - python3 -m pytest
+  - python3 -m setup.py test
 
 addons:
   apt:
