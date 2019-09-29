@@ -8,6 +8,7 @@ cache:
 
 matrix:
   include:
+    - python: '3.5'
     - python: '3.6'
     - python: '3.7'
     - os: osx
@@ -29,11 +30,11 @@ script:
   - python3 -m jupyter serverextension list
   - python3 -m jupyter serverextension list | grep jupyter_lsp
   - python3 -m pytest
-      --pyargs jupyter_lsp
-      --cov jupyter_lsp
-      --cov-report term-missing:skip-covered
-      -p no:warnings
-      --cov-fail-under=100
+    --pyargs jupyter_lsp
+    --cov jupyter_lsp
+    --cov-report term-missing:skip-covered
+    -p no:warnings
+    --cov-fail-under=100
 
 addons:
   apt:
