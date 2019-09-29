@@ -21,6 +21,8 @@ KNOWN_LANGUAGES = [
     "yaml",
 ]
 
+KNOWN_UNKNOWN_LANGUAGES = ["markdown"]
+
 
 @fixture
 def manager() -> LanguageServerManager:
@@ -28,7 +30,12 @@ def manager() -> LanguageServerManager:
 
 
 @fixture(params=KNOWN_LANGUAGES)
-def language(request):
+def known_language(request):
+    return request.param
+
+
+@fixture(params=KNOWN_UNKNOWN_LANGUAGES)
+def known_unknown_language(request):
     return request.param
 
 
