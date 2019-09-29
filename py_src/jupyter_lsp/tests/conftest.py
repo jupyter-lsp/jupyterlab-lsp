@@ -6,8 +6,8 @@ from notebook.notebookapp import NotebookApp
 from pytest import fixture
 
 # local imports
-from .. import LanguageServerManager
-from ..handlers import LanguageServerWebSocketHandler
+from jupyter_lsp import LanguageServerManager
+from jupyter_lsp.handlers import LanguageServerWebSocketHandler
 
 KNOWN_LANGUAGES = [
     "css",
