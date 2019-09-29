@@ -1,12 +1,7 @@
--r requirements.txt
-flake8
+# extended development-time dependencies for jupyter_lsp for qa
+-r requirements-test.txt
 hypothesis
 pyls-black
 pyls-isort
 pyls-mypy
-pytest
-pytest-asyncio
 pytest-cov
-pytest-flake8
-pytest-runner
-python-language-server

@@ -9,14 +9,22 @@ cache:
 matrix:
   include:
     - python: '3.5'
+      env:
+        PYTEST_ARGS: ''
     - python: '3.6'
+      env:
+        PYTEST_ARGS: --cov-fail-under=100
     - python: '3.7'
+      env:
+        PYTEST_ARGS: --cov-fail-under=100
     - os: osx
       osx_image: xcode11
       language: shell
+      env:
+        PYTEST_ARGS: --cov-fail-under=100
 
 before_install:
-  - python3 -m pip install -r requirements-dev.txt
+  - python3 -m pip install -r requirements-test.txt
   - python3 -m pip freeze
   - python3 setup.py sdist
   - python3 setup.py bdist_wheel
@@ -29,12 +37,14 @@ script:
   - jlpm test
   - python3 -m jupyter serverextension list
   - python3 -m jupyter serverextension list | grep jupyter_lsp
+  # don't use setup.py test to ensure testing as-packaged
   - python3 -m pytest
     --pyargs jupyter_lsp
     --cov jupyter_lsp
     --cov-report term-missing:skip-covered
     -p no:warnings
-    --cov-fail-under=100
+    --flake8
+    ${PYTEST_ARGS}
 
 addons:
   apt:
