@@ -17,6 +17,9 @@ matrix:
     - python: '3.7'
       env:
         PYTEST_ARGS: --cov-fail-under=100
+    - python: '3.8-dev'
+      env:
+        PYTEST_ARGS: --cov-fail-under=100
     - os: osx
       osx_image: xcode11
       language: shell
