@@ -7,7 +7,8 @@ from .types import (
     LanguageServerManagerAPI,
     LanguageServerSpec,
 )
+from .serverextension import load_jupyter_server_extension
 
 
 def _jupyter_server_extension_paths():  # pragma: no cover
-    return [{"module": "jupyter_lsp.serverextension"}]
+    return [{"module": "jupyter_lsp"}]
