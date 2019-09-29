@@ -5,7 +5,7 @@ from ..types import KeyedLanguageServerSpecs, LanguageServerManagerAPI
 
 
 class SpecBase:
-    """ Base for a connector that returns a spec for starting a language server
+    """ Base for a spec finder that returns a spec for starting a language server
     """
 
     key = ""

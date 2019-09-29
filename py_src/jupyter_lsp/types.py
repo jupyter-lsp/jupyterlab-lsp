@@ -15,7 +15,7 @@ KeyedLanguageServerSpecs = Dict[Text, LanguageServerSpec]
 
 
 class LanguageServerManagerAPI(LoggingConfigurable):
-    """ Public API that can be used for python-based connectors
+    """ Public API that can be used for python-based spec finders
     """
 
     nodejs = Unicode(help=_("path to nodejs executable")).tag(config=True)

@@ -1,2 +1,2 @@
 JWP = "jsonrpc-ws-proxy"
-EP_CONNECTOR_V0 = "jupyter_lsp_connector_v0"
+EP_SPEC_V0 = "jupyter_lsp_spec_v0"

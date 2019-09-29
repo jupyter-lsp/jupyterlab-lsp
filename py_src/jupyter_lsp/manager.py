@@ -6,7 +6,7 @@ import pkg_resources
 from notebook.transutils import _
 from traitlets import Bool, Dict as Dict_, Instance
 
-from .constants import EP_CONNECTOR_V0
+from .constants import EP_SPEC_V0
 from .session import LanguageServerSession
 from .types import KeyedLanguageServerSpecs, LanguageServerManagerAPI, SpecMaker
 
@@ -92,25 +92,25 @@ class LanguageServerManager(LanguageServerManagerAPI):
         return session
 
     def _autodetect_language_servers(self):
-        for ep in pkg_resources.iter_entry_points(EP_CONNECTOR_V0):
+        for ep in pkg_resources.iter_entry_points(EP_SPEC_V0):
             try:
-                connector = ep.load()  # type: SpecMaker
+                spec_finder = ep.load()  # type: SpecMaker
             except Exception as err:  # pragma: no cover
                 self.log.warn(
-                    _("Failed to load language server connector `{}`: \n{}").format(
+                    _("Failed to load language server spec finder `{}`: \n{}").format(
                         ep.name, err
                     )
                 )
                 continue
 
             try:
-                for key, spec in connector(self).items():
+                for key, spec in spec_finder(self).items():
                     yield key, spec
             except Exception as err:  # pragma: no cover
                 self.log.warning(
                     _(
-                        "Failed to fetch commands from language server connector `{}`:"
-                        "\n{}"
+                        "Failed to fetch commands from language server spec finder"
+                        "`{}`:\n{}"
                     ).format(ep.name, err)
                 )
                 continue

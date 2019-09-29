@@ -101,7 +101,7 @@ def cool(app):
     }
 ```
 
-Tell `pip` how to package your connector:
+Tell `pip` how to package your spec:
 
 ```
 # setup.py
@@ -110,7 +110,7 @@ setup(
     name="jupyter-lsp-my-cool-language-server",
     py_modules=[""],
     entry_points={
-        "jupyter_lsp_connector_v0": [
+        "jupyter_lsp_spec_v0": [
             "cool-language-server":
               'jupyter_lsp_my_cool_language_server:cool'
         ]
