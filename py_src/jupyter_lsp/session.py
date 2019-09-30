@@ -1,5 +1,7 @@
 """ A session for managing a language server process
 """
+import asyncio
+import atexit
 from subprocess import PIPE
 from threading import Thread
 
@@ -46,16 +48,32 @@ class LanguageServerSession(LoggingConfigurable):
         help="the currently subscribed websockets",
     )
 
+    _tasks = None
+
+    def __init__(self, *args, **kwargs):
+        """ set up the required traitlets and exit behavior for a session
+        """
+        super().__init__(*args, **kwargs)
+        atexit.register(self.stop)
+
     def initialize(self):
+        """ (re)initialize a language server session
+        """
         self.stop()
         self.init_queues()
         self.init_process()
         self.init_writer()
         self.init_reader()
-        IOLoop.current().spawn_callback(self._read_from_lsp)
-        IOLoop.current().spawn_callback(self._write_to_lsp)
+
+        loop = asyncio.get_event_loop()
+        self._tasks = [
+            loop.create_task(coro())
+            for coro in [self._read_from_lsp, self._write_to_lsp]
+        ]
 
     def stop(self):
+        """ clean up all of the state of the session
+        """
         if self.process:
             self.process.proc.terminate()
             self.process = None
@@ -66,17 +84,26 @@ class LanguageServerSession(LoggingConfigurable):
             self.writer.close()
             self.writer = None
 
+        if self._tasks:
+            [task.cancel() for task in self._tasks]
+
     @observe("handlers")
     def _on_handlers(self, change: Bunch):
+        """ re-initialize if someone starts listening, or stop if nobody is
+        """
         if change["new"] and not self.process:
             self.initialize()
         elif not change["new"] and self.process:
             self.stop()
 
     def write(self, message):
+        """ wrapper around the write queue to keep it mostly internal
+        """
         self.to_lsp.put_nowait(message)
 
     def init_process(self):
+        """ start the language server subprocess
+        """
         self.log.info(
             "[{}] Starting language server `{}`".format(
                 ", ".join(self.languages), " ".join(self.argv)
@@ -85,13 +112,20 @@ class LanguageServerSession(LoggingConfigurable):
         self.process = Subprocess(self.argv, stdin=PIPE, stdout=PIPE)
 
     def init_queues(self):
+        """ create the queues
+        """
         self.from_lsp = Queue()
         self.to_lsp = Queue()
 
     def init_writer(self):
+        """ create the stdin writer (to the language server)
+        """
         self.writer = Writer(self.process.stdin)
 
     def init_reader(self):
+        """ create the stdout reader (from the language server)
+        """
+
         def consume():
             IOLoop()
             self.log.debug("[{}] Thread started".format(", ".join(self.languages)))
@@ -109,12 +143,18 @@ class LanguageServerSession(LoggingConfigurable):
         self.thread.start()
 
     async def _read_from_lsp(self):
+        """ loop for reading messages from the queue of messages from the language
+            server
+        """
         async for msg in self.from_lsp:
             for handler in self.handlers:
                 handler.write_message(msg)
             self.from_lsp.task_done()
 
     async def _write_to_lsp(self):
+        """ loop for reading messages from the queue of messages to the language
+            server
+        """
         async for msg in self.to_lsp:
             try:
                 self.writer.write(json_decode(msg))
