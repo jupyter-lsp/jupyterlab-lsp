@@ -30,7 +30,7 @@ describe('CodeMirrorAdapterExtension', () => {
       expect(markers.length).to.equal(0);
 
       feature.handleDiagnostic({
-        uri: '',
+        uri: 'file://foo/dummy.py',
         diagnostics: [
           {
             range: {
