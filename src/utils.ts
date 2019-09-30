@@ -97,8 +97,9 @@ export function server_root_uri() {
         user_settings.substring(0, user_settings.indexOf('/', 6))
       )
     );
+  } else {
+    return 'file://' + server_root;
   }
-  return null;
 }
 
 export function uri_to_contents_path(child: string, parent?: string) {
