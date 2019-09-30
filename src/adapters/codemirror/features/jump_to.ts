@@ -2,6 +2,7 @@ import { CodeMirrorLSPFeature, IFeatureCommand } from '../feature';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { PositionConverter } from '../../../converter';
 import { IVirtualPosition } from '../../../positioning';
+import { uri_to_contents_path } from '../../../utils';
 
 export class JumpToDefinition extends CodeMirrorLSPFeature {
   static commands: Array<IFeatureCommand> = [
@@ -23,7 +24,7 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
     return this.jupyterlab_components.jumper;
   }
 
-  handle_jump(locations: lsProtocol.Location[]) {
+  async handle_jump(locations: lsProtocol.Location[]) {
     let connection = this.connection;
 
     // TODO: implement selector for multiple locations
@@ -66,7 +67,12 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
       console.log(`Jumping to external file: ${uri}`);
       console.log('Jump target (source location):', source_position_ce);
 
-      if (uri.startsWith('file://')) {
+      // can it be resolved vs our guessed server root?
+      const contents_path = uri_to_contents_path(uri);
+
+      if (contents_path) {
+        uri = contents_path;
+      } else if (uri.startsWith('file://')) {
         uri = uri.slice(7);
       }
 
@@ -79,18 +85,21 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
       // assume that we got a relative path to a file within the project
       // TODO use is_relative() or something? It would need to be not only compatible
       //  with different OSes but also with JupyterHub and other platforms.
-      this.jumper.document_manager.services.contents
-        .get(uri, { content: false })
-        .then(() => {
-          this.jumper.global_jump({ uri, ...jump_data }, false);
-        })
-        .catch(() => {
-          // fallback to an absolute location using a symlink (will only work if manually created)
-          this.jumper.global_jump(
-            { uri: '.lsp_symlink/' + uri, ...jump_data },
-            true
-          );
+
+      try {
+        await this.jumper.document_manager.services.contents.get(uri, {
+          content: false
         });
+        this.jumper.global_jump({ uri, ...jump_data }, false);
+        return;
+      } catch (err) {
+        console.warn(err);
+      }
+
+      this.jumper.global_jump(
+        { uri: '.lsp_symlink/' + uri, ...jump_data },
+        true
+      );
     }
   }
 }

@@ -1,3 +1,5 @@
+import { PageConfig } from '@jupyterlab/coreutils';
+
 export async function sleep(timeout: number) {
   return new Promise(resolve => {
     setTimeout(() => {
@@ -82,4 +84,30 @@ export class DefaultMap<K, V> extends Map<K, V> {
       return v;
     }
   }
+}
+
+export function server_root_uri() {
+  const server_root = PageConfig.getOption('serverRoot');
+  const user_settings = PageConfig.getOption('userSettingsDir');
+  if (server_root.startsWith('~') && user_settings.startsWith('/home/')) {
+    return (
+      'file://' +
+      server_root.replace(
+        '~',
+        user_settings.substring(0, user_settings.indexOf('/', 6))
+      )
+    );
+  }
+  return null;
+}
+
+export function uri_to_contents_path(child: string, parent?: string) {
+  parent = parent || server_root_uri();
+  if (parent == null) {
+    return null;
+  }
+  if (child.startsWith(parent)) {
+    return child.replace(parent, '');
+  }
+  return null;
 }
