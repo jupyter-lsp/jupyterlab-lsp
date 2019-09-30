@@ -1,5 +1,7 @@
 """ default specs
 """
+from .dockerfile_language_server_nodejs import DockerfileLanguageServerNodeJS
+
 # flake8: noqa: F401
 from .javascript_typescript_langserver import JavascriptTypescriptLanguageServer
 from .pyls import PythonLanguageServer
@@ -16,3 +18,4 @@ html = VSCodeHTMLLanguageServer()
 json = VSCodeJSONLanguageServer()
 yaml = YAMLLanguageServer()
 md = UnifiedLanguageServer()
+dockerfile = DockerfileLanguageServerNodeJS()

@@ -11,16 +11,17 @@ from jupyter_lsp.handlers import LanguageServerWebSocketHandler
 
 KNOWN_LANGUAGES = [
     "css",
+    "dockerfile",
     "html",
+    "ipythongfm",
     "javascript",
     "json",
     "less",
+    "markdown",
     "python",
     "scss",
     "typescript",
     "yaml",
-    "markdown",
-    "ipythongfm",
 ]
 
 KNOWN_UNKNOWN_LANGUAGES = ["cobol"]

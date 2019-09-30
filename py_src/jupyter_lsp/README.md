@@ -14,10 +14,11 @@ Don't see an implementation for the language server you want? You can
 | language<br>`/lsp/...`    | `pip install ...`        | `npm install (-g) ...` <br/>`yarn/jlpm add (-g) ...` |
 | ------------------------- | ------------------------ | :--------------------------------------------------: |
 | css<br/>less<br/>css      |                          |           `vscode-css-languageserver-bin`            |
+| docker                    |                          |         `dockerfile-language-server-nodejs`          |
 | html                      |                          |           `vscode-html-languageserver-bin`           |
 | javascript<br/>typescript |                          |          `javascript-typescript-langserver`          |
 | json                      |                          |           `vscode-json-languageserver-bin`           |
-| markdown                  |                          |             `unified-language-server`                |
+| markdown                  |                          |              `unified-language-server`               |
 | python                    | `python-language-server` |                                                      |
 | yaml                      |                          |                `yaml-language-server`                |
 

@@ -72,6 +72,7 @@
     "@types/jest": "^23.3.11",
     "chai": "^4.2.0",
     "codemirror": "~5.47.0",
+    "dockerfile-language-server-nodejs": "^0.0.21",
     "javascript-typescript-langserver": "^2.11.3",
     "jest": "^24.7.1",
     "jsonrpc-ws-proxy": "0.0.5",
