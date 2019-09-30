@@ -75,21 +75,30 @@ class LanguageServerManager(LanguageServerManagerAPI):
             )
         self.sessions = sessions
 
-    def subscribe(self, language, handler):
+    def subscribe(self, handler):
         """ subscribe a handler to session, or sta
         """
-        session = None
-        for langs, candidate_session in self.sessions.items():
-            if language in langs:
-                session = candidate_session
-                break
+        sessions = []
+        for languages, candidate_session in self.sessions.items():
+            if handler.language in languages:
+                sessions.append(candidate_session)
 
-        if session:
-            session.handlers += [handler]
-            if not session.process:
-                session.initialize()
+        if sessions:
+            for session in sessions:
+                session.handlers = set([handler]) | session.handlers
 
-        return session
+    def on_message(self, message, handler):
+        for session in self.sessions_for_handler(handler):
+            session.write(message)
+
+    def unsubscribe(self, handler):
+        for session in self.sessions_for_handler(handler):
+            session.handlers = [h for h in session.handlers if h != handler]
+
+    def sessions_for_handler(self, handler):
+        for session in self.sessions.values():
+            if handler in session.handlers:
+                yield session
 
     def _autodetect_language_servers(self):
         for ep in pkg_resources.iter_entry_points(EP_SPEC_V0):

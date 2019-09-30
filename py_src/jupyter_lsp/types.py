@@ -1,3 +1,5 @@
+""" API used by spec finders and manager
+"""
 import os
 import pathlib
 import shutil

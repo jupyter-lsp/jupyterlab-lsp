@@ -10,7 +10,8 @@ async def test_start_known(known_language, handler, jsonrpc_init_msg):
     manager = handler.manager
     manager.initialize()
     handler.open(known_language)
-    session = handler.session
+    sessions = list(manager.sessions_for_handler(handler))
+    session = sessions[0]
     assert session.process is not None
 
     handler.on_message(jsonrpc_init_msg)
@@ -30,8 +31,9 @@ async def test_start_known(known_language, handler, jsonrpc_init_msg):
 
     handler.on_close()
 
-    assert handler.session is None
+    assert not list(manager.sessions_for_handler(handler))
     assert not session.handlers
+    assert not session.process
 
 
 @pytest.mark.asyncio
@@ -41,10 +43,10 @@ async def test_start(known_unknown_language, handler, jsonrpc_init_msg):
     manager = handler.manager
     manager.initialize()
     handler.open(known_unknown_language)
-    assert handler.session is None
+    assert not list(manager.sessions_for_handler(handler))
 
     handler.on_message(jsonrpc_init_msg)
 
     handler.on_close()
 
-    assert handler.session is None
+    assert not list(manager.sessions_for_handler(handler))

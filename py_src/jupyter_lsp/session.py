@@ -1,3 +1,5 @@
+""" A session for managing a language server process
+"""
 from subprocess import PIPE
 from threading import Thread
 
@@ -10,7 +12,7 @@ from tornado.ioloop import IOLoop
 from tornado.process import Subprocess
 from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
-from traitlets import Instance, List, Unicode
+from traitlets import Bunch, Instance, List, Set, Unicode, observe
 from traitlets.config import LoggingConfigurable
 
 
@@ -38,19 +40,38 @@ class LanguageServerSession(LoggingConfigurable):
         Queue, help="a queue for messages from the server", allow_none=True
     )
     to_lsp = Instance(Queue, help="a queue for message to the server", allow_none=True)
-    handlers = List(
+    handlers = Set(
         trait=Instance(WebSocketHandler),
         default_value=[],
         help="the currently subscribed websockets",
     )
 
     def initialize(self):
+        self.stop()
         self.init_queues()
         self.init_process()
         self.init_writer()
         self.init_reader()
         IOLoop.current().spawn_callback(self._read_from_lsp)
         IOLoop.current().spawn_callback(self._write_to_lsp)
+
+    def stop(self):
+        if self.process:
+            self.process.proc.terminate()
+            self.process = None
+        if self.reader:
+            self.reader.close()
+            self.reader = None
+        if self.writer:
+            self.writer.close()
+            self.writer = None
+
+    @observe("handlers")
+    def _on_handlers(self, change: Bunch):
+        if change["new"] and not self.process:
+            self.initialize()
+        elif not change["new"] and self.process:
+            self.stop()
 
     def write(self, message):
         self.to_lsp.put_nowait(message)

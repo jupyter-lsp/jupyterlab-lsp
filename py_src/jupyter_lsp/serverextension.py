@@ -1,3 +1,6 @@
+""" add language server support to the running jupyter notebook application
+"""
+
 import traitlets
 from notebook.utils import url_path_join as ujoin
 
