@@ -1,6 +1,6 @@
 """ A configurable frontend for `python-jsonrpc-server`
 """
-from typing import Dict, Text, Tuple
+import typing
 
 import pkg_resources
 from notebook.transutils import _
@@ -33,7 +33,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         trait=Instance(LanguageServerSession),
         default_value={},
         help="sessions keyed by languages served",
-    )  # type: Dict[Tuple[Text], LanguageServerSession]
+    )  # type: typing.Dict[typing.Tuple[typing.Text], LanguageServerSession]
 
     def __init__(self, **kwargs):
         """ Before starting, perform all necessary configuration
