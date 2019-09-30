@@ -71,7 +71,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         sessions = {}
         for spec in self.language_servers.values():
             sessions[tuple(sorted(spec["languages"]))] = LanguageServerSession(
-                spec["argv"]
+                argv=spec["argv"], languages=spec["languages"]
             )
         self.sessions = sessions
 

@@ -19,9 +19,11 @@ KNOWN_LANGUAGES = [
     "scss",
     "typescript",
     "yaml",
+    "markdown",
+    "ipythongfm",
 ]
 
-KNOWN_UNKNOWN_LANGUAGES = ["markdown"]
+KNOWN_UNKNOWN_LANGUAGES = ["cobol"]
 
 
 @fixture

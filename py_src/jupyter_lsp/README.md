@@ -17,6 +17,7 @@ Don't see an implementation for the language server you want? You can
 | html                      |                          |           `vscode-html-languageserver-bin`           |
 | javascript<br/>typescript |                          |          `javascript-typescript-langserver`          |
 | json                      |                          |           `vscode-json-languageserver-bin`           |
+| markdown                  |                          |             `unified-language-server`                |
 | python                    | `python-language-server` |                                                      |
 | yaml                      |                          |                `yaml-language-server`                |
 

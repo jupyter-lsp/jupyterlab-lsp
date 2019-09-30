@@ -23,6 +23,11 @@ class LanguageServerSession(LoggingConfigurable):
         default_value=[],
         help="the command line arguments to start the language server",
     )
+    languages = List(
+        trait=Unicode,
+        default_value=[],
+        help="the languages this session can provide language server features",
+    )
     process = Instance(
         Subprocess, help="the language server subprocess", allow_none=True
     )
@@ -39,9 +44,6 @@ class LanguageServerSession(LoggingConfigurable):
         help="the currently subscribed websockets",
     )
 
-    def __init__(self, argv, **kwargs):
-        super().__init__(argv=argv, **kwargs)
-
     def initialize(self):
         self.init_queues()
         self.init_process()
@@ -54,7 +56,11 @@ class LanguageServerSession(LoggingConfigurable):
         self.to_lsp.put_nowait(message)
 
     def init_process(self):
-        self.log.info("Starting process {}".format(" ".join(self.argv)))
+        self.log.info(
+            "[{}] Starting language server `{}`".format(
+                ", ".join(self.languages), " ".join(self.argv)
+            )
+        )
         self.process = Subprocess(self.argv, stdin=PIPE, stdout=PIPE)
 
     def init_queues(self):
@@ -67,7 +73,7 @@ class LanguageServerSession(LoggingConfigurable):
     def init_reader(self):
         def consume():
             IOLoop()
-            self.log.debug("Thread started")
+            self.log.debug("[{}] Thread started".format(", ".join(self.languages)))
 
             self.reader = Reader(self.process.stdout)
 
@@ -76,7 +82,7 @@ class LanguageServerSession(LoggingConfigurable):
 
             self.reader.listen(broadcast)
 
-        self.log.debug("Thread starting")
+        self.log.debug("[{}] Thread starting".format(", ".join(self.languages)))
         self.thread = Thread(target=consume)
         self.thread.daemon = True
         self.thread.start()
@@ -92,6 +98,10 @@ class LanguageServerSession(LoggingConfigurable):
             try:
                 self.writer.write(json_decode(msg))
             except BrokenPipeError:  # pragma: no cover
-                self.log.debug("Can't write to {}".format(self.argv[0]))
+                self.log.debug(
+                    "[{}] Can't write to language server".format(
+                        ", ".join(self.languages)
+                    )
+                )
             finally:
                 self.to_lsp.task_done()
