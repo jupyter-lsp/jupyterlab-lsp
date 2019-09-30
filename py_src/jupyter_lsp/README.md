@@ -13,6 +13,7 @@ Don't see an implementation for the language server you want? You can
 
 | language<br>`/lsp/...`    | `pip install ...`        | `npm install (-g) ...` <br/>`yarn/jlpm add (-g) ...` |
 | ------------------------- | ------------------------ | :--------------------------------------------------: |
+| bash                      |                          |                `bash-language-server`                |
 | css<br/>less<br/>css      |                          |           `vscode-css-languageserver-bin`            |
 | docker                    |                          |         `dockerfile-language-server-nodejs`          |
 | html                      |                          |           `vscode-html-languageserver-bin`           |

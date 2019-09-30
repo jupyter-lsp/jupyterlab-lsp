@@ -10,6 +10,7 @@ from jupyter_lsp import LanguageServerManager
 from jupyter_lsp.handlers import LanguageServerWebSocketHandler
 
 KNOWN_LANGUAGES = [
+    "bash",
     "css",
     "dockerfile",
     "html",
