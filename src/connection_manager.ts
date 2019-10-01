@@ -192,6 +192,8 @@ export class DocumentConnectionManager {
       }
     });
 
+    this.connected.emit({ connection, virtual_document });
+
     return connection;
   }
 }

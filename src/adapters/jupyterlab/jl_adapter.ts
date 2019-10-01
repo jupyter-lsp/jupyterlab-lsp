@@ -174,10 +174,12 @@ export abstract class JupyterLabWidgetAdapter
     );
     let adapter = this.adapters.get(virtual_document.id_path);
 
-    if (typeof connection === 'undefined' || typeof adapter === 'undefined') {
-      console.log(
-        'LSP: Skipping document update signal - connection or adapter not ready yet'
-      );
+    if (typeof connection === 'undefined') {
+      console.log('LSP: Skipping document update signal: connection not ready');
+      return;
+    }
+    if (typeof adapter === 'undefined') {
+      console.log('LSP: Skipping document update signal: adapter not ready');
       return;
     }
 
