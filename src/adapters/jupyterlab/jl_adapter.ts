@@ -5,10 +5,11 @@ import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/
 import { PositionConverter } from '../../converter';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { IDocumentWidget } from '@jupyterlab/docregistry';
+
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { FreeTooltip } from './components/free_tooltip';
 import { Widget } from '@phosphor/widgets';
-import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { until_ready } from '../../utils';
 import { VirtualEditor } from '../../virtual/editor';
 import { VirtualDocument } from '../../virtual/document';
@@ -199,7 +200,9 @@ export abstract class JupyterLabWidgetAdapter
         this.disconnect_adapter(virtual_document);
         this.retry_to_connect(virtual_document, 0.5)
           .then(data => {
-            this.on_lsp_connected(data);
+            this.on_lsp_connected(data)
+              .then()
+              .catch(console.warn);
           })
           .catch(console.warn);
       }
@@ -220,15 +223,17 @@ export abstract class JupyterLabWidgetAdapter
   }
 
   protected async connect_document(virtual_document: VirtualDocument) {
-    virtual_document.foreign_document_opened.connect((host, context) => {
+    virtual_document.foreign_document_opened.connect((_host, context) => {
       console.log(
         'LSP: Connecting foreign document: ',
         context.foreign_document.id_path
       );
-      this.connect_document(context.foreign_document);
+      this.connect_document(context.foreign_document)
+        .then()
+        .catch(console.warn);
     });
     virtual_document.foreign_document_closed.connect(
-      (host, { foreign_document }) => {
+      (_host, { foreign_document }) => {
         this.connections.get(foreign_document.id_path).close();
         this.connections.delete(foreign_document.id_path);
         this.documents.delete(foreign_document.id_path);
@@ -275,7 +280,8 @@ export abstract class JupyterLabWidgetAdapter
       .with_update_lock(async () => {
         await adapter.updateAfterChange();
       })
-      .then();
+      .then()
+      .catch(console.warn);
   }
 
   private async connect_adapter(
@@ -302,7 +308,7 @@ export abstract class JupyterLabWidgetAdapter
       `LSP: will connect using root path: ${this.root_path} and language: ${language}`
     );
 
-    // capture just the s?://*
+    // capture just the `s?://*`
     const wsBase = PageConfig.getBaseUrl().replace(/^http/, '');
     const wsUrl = `ws${wsBase}lsp/${language}`;
     let socket = new WebSocket(wsUrl);
@@ -311,10 +317,9 @@ export abstract class JupyterLabWidgetAdapter
       serverUri: 'ws://jupyter-lsp/' + language,
       languageId: language,
       // paths handling needs testing on Windows and with other language servers
-      rootUri: 'file:///' + PathExt.join(this.server_root, this.root_path),
+      rootUri: 'file:///' + PathExt.join(this.server_root),
       documentUri:
-        'file:///' +
-        PathExt.join(this.server_root, this.root_path, virtual_document.uri),
+        'file:///' + PathExt.join(this.server_root, virtual_document.uri),
       documentText: () => {
         // NOTE: Update is async now and this is not really used, as an alternative method
         // which is compatible with async is used.
@@ -412,9 +417,12 @@ export abstract class JupyterLabWidgetAdapter
     return adapter;
   }
 
-  update_documents(slot: any) {
+  update_documents(_slot: any) {
     // update the virtual documents (sending the updates to LSP is out of scope here)
-    this.virtual_editor.update_documents().then();
+    this.virtual_editor
+      .update_documents()
+      .then()
+      .catch(console.warn);
   }
 
   get_position_from_context_menu(): IRootPosition {

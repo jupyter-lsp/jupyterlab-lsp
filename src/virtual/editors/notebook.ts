@@ -142,12 +142,14 @@ export class VirtualEditorForNotebook extends VirtualEditor {
   showHint: (options: ShowHintOptions) => void;
   state: any;
 
-  addKeyMap(map: string | CodeMirror.KeyMap, bottom?: boolean): void {}
+  addKeyMap(map: string | CodeMirror.KeyMap, bottom?: boolean): void {
+    return;
+  }
 
   addLineClass(
     line: any,
     where: string,
-    _class_: string
+    _class: string
   ): CodeMirror.LineHandle {
     return undefined;
   }
@@ -291,6 +293,10 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     this.virtual_document.clear();
     this.cell_to_corresponding_source_line.clear();
     this.cm_editor_to_cell.clear();
+
+    if (this.notebook.isDisposed) {
+      return;
+    }
 
     this.notebook.widgets.every(cell => {
       let codemirror_editor = cell.editor as CodeMirrorEditor;

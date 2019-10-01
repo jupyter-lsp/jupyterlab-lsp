@@ -87,7 +87,11 @@ export class Signature extends CodeMirrorLSPFeature {
     let language = this.get_language_at(editor_position, cm_editor);
     let markup = this.get_markup_for_signature_help(response, language);
 
-    this.jupyterlab_components.create_tooltip(markup, cm_editor, editor_position);
+    this.jupyterlab_components.create_tooltip(
+      markup,
+      cm_editor,
+      editor_position
+    );
   }
 
   get signatureCharacters() {

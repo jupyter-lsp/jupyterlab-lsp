@@ -6,12 +6,13 @@ channels:
 
 dependencies:
   - black
+  - flake8 >=3.5
   - isort
-  - jupyter-server-proxy
   - jupyterlab >=1.1,<1.2
   - mypy
   - nodejs
   - pip
+  - pylint
   - python >=3.7,<3.8.0a0
   - python-language-server
   - pip:

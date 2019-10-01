@@ -7,7 +7,10 @@ import {
   IVirtualPosition
 } from '../../positioning';
 import { IJupyterLabComponentsManager } from '../jupyterlab/jl_adapter';
-import { Listener } from 'events';
+
+/// <reference path="../../../node_modules/@types/events/index.d.ts"/>
+// this appears to break when @types/node is around
+// import { Listener } from 'events';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { PositionConverter } from '../../converter';
 import { CodeMirror } from './cm_adapter';
@@ -76,8 +79,8 @@ export interface IEditorRange {
 export class CodeMirrorLSPFeature implements ILSPFeature {
   public is_registered: boolean;
   protected readonly editor_handlers: Map<string, CodeMirrorHandler>;
-  protected readonly connection_handlers: Map<string, Listener>;
-  protected readonly wrapper_handlers: Map<string, Listener>;
+  protected readonly connection_handlers: Map<string, any>;
+  protected readonly wrapper_handlers: Map<string, any>;
   protected wrapper: HTMLElement;
 
   constructor(
@@ -141,7 +144,9 @@ export class CodeMirrorLSPFeature implements ILSPFeature {
   afterChange(
     change: CodeMirror.EditorChange,
     root_position: IRootPosition
-  ): void {}
+  ): void {
+    // nothing here, yet
+  }
 
   protected range_to_editor_range(
     range: lsProtocol.Range,

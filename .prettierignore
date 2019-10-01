@@ -2,6 +2,7 @@ node_modules
 **/node_modules
 **/lib
 **/build
+**/dist
 **/static
 jupyterlab/schemas
 jupyterlab/themes
@@ -22,3 +23,8 @@ docs/api
 **/package.json
 .eggs
 envs
+.mypy_cache
+.pytest_cache
+**/.ipynb_checkpoints
+**/*.egg-info
+.yarn-packages

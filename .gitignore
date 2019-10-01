@@ -105,3 +105,4 @@ venv.bak/
 .mypy_cache/
 
 node_modules
+.yarn-packages
