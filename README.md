@@ -44,6 +44,11 @@ New in 0.5.0:
 - symbol highlight under cursor now works in both file editors and notebooks,
 - and many other improvements, see the [release notes](https://github.com/krassowski/jupyterlab-lsp/releases/tag/v0.5.0).
 
+Coming in 0.6.0:
+- automated LSP servers start and traitlets-based configuration
+- "rename" action in file editor
+- improved code navigation when there are multiple jump targets
+
 ### Coming soon:
 
 - autocompleter with documentation and sorting based on LSP suggestions
@@ -54,7 +59,7 @@ New in 0.5.0:
 
 ### Planned:
 
-- "rename" action (PR welcome, but please mind issue #23)
+- "rename" action in notebooks
 
 ### Low priority:
 
