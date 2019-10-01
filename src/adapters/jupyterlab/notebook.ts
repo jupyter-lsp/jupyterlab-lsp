@@ -95,7 +95,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     // register completion connectors on cells
     this.document_connected.connect(() => this.connect_completion());
 
-    this.connect_document(this.virtual_editor.virtual_document);
+    void this.connect_document(this.virtual_editor.virtual_document);
   }
 
   private set_completion_connector(cell: Cell) {
