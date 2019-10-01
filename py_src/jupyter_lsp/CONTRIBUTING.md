@@ -84,7 +84,7 @@ Consider the following (absolutely minimal) directory structure:
 
 Define your spec:
 
-```
+```python
 # jupyter_lsp_my_cool_language_server.py
 from shutil import which
 
@@ -105,7 +105,7 @@ def cool(app):
 
 Tell `pip` how to package your spec:
 
-```
+```python
 # setup.py
 import setuptools
 setuptools.setup(
@@ -128,7 +128,7 @@ python -m pip install -e .
 
 Build it!
 
-```
+```bash
 python setup.py sdist bdist_wheel
 ```
 
