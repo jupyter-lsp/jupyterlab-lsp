@@ -5,6 +5,7 @@ cache:
     - .yarn-packages
     - $HOME/.cache/yarn
     - $HOME/.cache/pip
+    - $HOME/lib/R/site-library
 
 matrix:
   include:
@@ -17,6 +18,7 @@ matrix:
       language: shell
 
 before_install:
+  - Rscript -e 'install.packages("languageserver")'
   - python3 -m pip install -r requirements-test.txt
   - python3 -m pip freeze
   - python3 setup.py sdist
@@ -43,3 +45,4 @@ addons:
   apt:
     packages:
       - nodejs
+      - r-base
