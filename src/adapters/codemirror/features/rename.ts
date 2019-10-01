@@ -16,9 +16,11 @@ export class Rename extends CodeMirrorLSPFeature {
           title: 'Rename to',
           text: old_value,
           okLabel: 'Rename'
-        }).then(value => {
-          connection.rename(virtual_position, value.value);
-        });
+        })
+          .then(value => {
+            connection.rename(virtual_position, value.value);
+          })
+          .catch(console.warn);
       },
       is_enabled: ({ connection }) => connection.isRenameSupported(),
       label: 'Rename symbol',

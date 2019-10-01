@@ -30,8 +30,11 @@ export class LSPConnection extends LspWsConnection {
   }
 
   public isRenameSupported() {
-    // @ts-ignore
-    return !!(this.serverCapabilities && this.serverCapabilities.renameProvider);
+    // prettier-ignore
+    return !!(
+      // @ts-ignore
+      this.serverCapabilities && this.serverCapabilities.renameProvider
+    );
   }
 
   public rename(location: IPosition, newName: string) {
