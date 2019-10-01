@@ -40,7 +40,9 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     this.editor = editor_widget.content;
     this.completion_manager = completion_manager;
     this.jumper = jumper;
-    this.init_once_ready().catch(console.warn);
+    this.init_once_ready()
+      .then()
+      .catch(console.warn);
   }
 
   is_ready() {

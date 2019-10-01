@@ -79,6 +79,7 @@ export class DocumentConnectionManager {
 
   connect_socket(options: ISocketConnectionOptions): LSPConnection {
     let { virtual_document, language, server_root, root_path } = options;
+    console.log(root_path);
 
     // capture just the s?://*
     const wsBase = PageConfig.getBaseUrl().replace(/^http/, '');
@@ -89,9 +90,10 @@ export class DocumentConnectionManager {
       serverUri: 'ws://jupyter-lsp/' + language,
       languageId: language,
       // paths handling needs testing on Windows and with other language servers
-      rootUri: 'file:///' + PathExt.join(server_root, root_path),
-      documentUri:
-        'file:///' + PathExt.join(server_root, root_path, virtual_document.uri),
+      // TODO: compare against: rootUri: 'file:///' + PathExt.join(server_root, root_path),
+      rootUri: 'file:///' + PathExt.join(server_root),
+      // TODO: compare against: 'file:///' + PathExt.join(server_root, root_path, virtual_document.uri),
+      documentUri: 'file:///' + PathExt.join(server_root, virtual_document.uri),
       documentText: () => {
         // NOTE: Update is async now and this is not really used, as an alternative method
         // which is compatible with async is used.

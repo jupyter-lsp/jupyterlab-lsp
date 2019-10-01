@@ -1,9 +1,45 @@
-language: node_js
-node_js:
-  - '11'
+language: python
+
+cache:
+  directories:
+    - .yarn-packages
+    - $HOME/.cache/yarn
+    - $HOME/.cache/pip
+
+matrix:
+  include:
+    - python: '3.5'
+    - python: '3.6'
+    - python: '3.7'
+    - python: '3.8-dev'
+    - os: osx
+      osx_image: xcode11
+      language: shell
+
 before_install:
-  - npm i -g npm@6.4.1
+  - python3 -m pip install -r requirements-test.txt
+  - python3 -m pip freeze
+  - python3 setup.py sdist
+  - python3 setup.py bdist_wheel
+
 install:
-  - npm install
+  - python3 -m pip install dist/jupyter_lsp*.whl --no-deps -vv
+  - jlpm
+
 script:
-  - npm test
+  - jlpm test
+  - python3 -m jupyter serverextension list
+  - python3 -m jupyter serverextension list | grep jupyter_lsp
+  # don't use setup.py test to ensure testing as-packaged
+  - python3 -m pytest
+    --pyargs jupyter_lsp
+    --cov jupyter_lsp
+    --cov-report term-missing:skip-covered
+    -p no:warnings
+    --flake8
+    --cov-fail-under=100
+
+addons:
+  apt:
+    packages:
+      - nodejs

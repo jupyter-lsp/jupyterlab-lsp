@@ -7,7 +7,10 @@ import {
   IVirtualPosition
 } from '../../positioning';
 import { IJupyterLabComponentsManager } from '../jupyterlab/jl_adapter';
-import { Listener } from 'events';
+
+/// <reference path="../../../node_modules/@types/events/index.d.ts"/>
+// this appears to break when @types/node is around
+// import { Listener } from 'events';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { PositionConverter } from '../../converter';
 import { CodeMirror } from './cm_adapter';
@@ -16,6 +19,19 @@ import { ICommandContext } from '../../command_manager';
 export enum CommandEntryPoint {
   CellContextMenu,
   FileEditorContextMenu
+}
+
+function toDocumentChanges(changes: {
+  [uri: string]: lsProtocol.TextEdit[];
+}): lsProtocol.TextDocumentEdit[] {
+  let documentChanges = [];
+  for (let uri of Object.keys(changes)) {
+    documentChanges.push({
+      textDocument: { uri },
+      edits: changes[uri]
+    } as lsProtocol.TextDocumentEdit);
+  }
+  return documentChanges;
 }
 
 export interface IFeatureCommand {
@@ -76,8 +92,8 @@ export interface IEditorRange {
 export class CodeMirrorLSPFeature implements ILSPFeature {
   public is_registered: boolean;
   protected readonly editor_handlers: Map<string, CodeMirrorHandler>;
-  protected readonly connection_handlers: Map<string, Listener>;
-  protected readonly wrapper_handlers: Map<string, Listener>;
+  protected readonly connection_handlers: Map<string, any>;
+  protected readonly wrapper_handlers: Map<string, any>;
   protected wrapper: HTMLElement;
 
   constructor(
@@ -141,7 +157,9 @@ export class CodeMirrorLSPFeature implements ILSPFeature {
   afterChange(
     change: CodeMirror.EditorChange,
     root_position: IRootPosition
-  ): void {}
+  ): void {
+    // nothing here, yet
+  }
 
   protected range_to_editor_range(
     range: lsProtocol.Range,
@@ -215,5 +233,41 @@ export class CodeMirrorLSPFeature implements ILSPFeature {
     return range.editor
       .getDoc()
       .markText(range.start, range.end, { className: class_name });
+  }
+
+  protected apply_edit(workspaceEdit: lsProtocol.WorkspaceEdit) {
+    console.log(workspaceEdit);
+    let current_uri = this.connection.getDocumentUri();
+    // Specs: documentChanges are preferred over changes
+    let changes = workspaceEdit.documentChanges
+      ? workspaceEdit.documentChanges.map(
+          change => change as lsProtocol.TextDocumentEdit
+        )
+      : toDocumentChanges(workspaceEdit.changes);
+    for (let change of changes) {
+      let uri = change.textDocument.uri;
+      if (uri !== current_uri) {
+        console.warn('Workspace-wide edits not implemented yet');
+      } else {
+        // TODO: show "Renamed X to Y in {change.edits.length} places" in statusbar;
+        for (let edit of change.edits) {
+          let start = PositionConverter.lsp_to_cm(edit.range.start);
+          let end = PositionConverter.lsp_to_cm(edit.range.end);
+
+          let start_editor = this.virtual_document.get_editor_at_virtual_line(
+            start as IVirtualPosition
+          );
+          let end_editor = this.virtual_document.get_editor_at_virtual_line(
+            end as IVirtualPosition
+          );
+          if (start_editor !== end_editor) {
+            console.log('Edits not implemented for notebooks yet');
+          } else {
+            let doc = start_editor.getDoc();
+            doc.replaceRange(edit.newText, start, end);
+          }
+        }
+      }
+    }
   }
 }

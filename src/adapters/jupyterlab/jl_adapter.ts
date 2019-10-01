@@ -5,10 +5,11 @@ import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/
 import { PositionConverter } from '../../converter';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { IDocumentWidget } from '@jupyterlab/docregistry';
+
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { FreeTooltip } from './components/free_tooltip';
 import { Widget } from '@phosphor/widgets';
-import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { VirtualEditor } from '../../virtual/editor';
 import { VirtualDocument } from '../../virtual/document';
 import { Signal } from '@phosphor/signaling';
@@ -29,6 +30,7 @@ import {
   DocumentConnectionManager,
   IDocumentConnectionData
 } from '../../connection_manager';
+import { Rename } from '../codemirror/features/rename';
 
 export const lsp_features: Array<typeof CodeMirrorLSPFeature> = [
   Completion,
@@ -36,7 +38,8 @@ export const lsp_features: Array<typeof CodeMirrorLSPFeature> = [
   Highlights,
   Hover,
   Signature,
-  JumpToDefinition
+  JumpToDefinition,
+  Rename
 ];
 
 export interface IJupyterLabComponentsManager {
@@ -194,7 +197,8 @@ export abstract class JupyterLabWidgetAdapter
       .with_update_lock(async () => {
         await adapter.updateAfterChange();
       })
-      .then();
+      .then()
+      .catch(console.warn);
   }
 
   private async connect_adapter(
@@ -280,9 +284,12 @@ export abstract class JupyterLabWidgetAdapter
     return adapter;
   }
 
-  update_documents(slot: any) {
+  update_documents(_slot: any) {
     // update the virtual documents (sending the updates to LSP is out of scope here)
-    this.virtual_editor.update_documents().then();
+    this.virtual_editor
+      .update_documents()
+      .then()
+      .catch(console.warn);
   }
 
   get_position_from_context_menu(): IRootPosition {

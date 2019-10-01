@@ -39,6 +39,7 @@ Examples below are for Python, but it works as well for R:
   when a kernel is available the suggestions from the kernel (such as keys of a dict and columns of a DataFrame autocompletion) are merged with the suggestions from LSP (currently only in notebook).
 
 New in 0.5.0:
+
 - multiple LSP connections per notebook, e.g. SQL or R (using rpy2) embedded in Python notebook [(example)](https://github.com/krassowski/jupyterlab-lsp/blob/master/examples/Magics_and_rpy2.ipynb),
 - symbol highlight under cursor now works in both file editors and notebooks,
 - and many other improvements, see the [release notes](https://github.com/krassowski/jupyterlab-lsp/releases/tag/v0.5.0).
@@ -141,7 +142,7 @@ jupyter labextension update @krassowski/jupyterlab-lsp
 
 #### Getting the latest alpha/beta/RC version
 
-Use install command (update does not seem to work) appending `@version` to the extension name, like this: 
+Use install command (update does not seem to work) appending `@version` to the extension name, like this:
 
 ```bash
 jupyter labextension install @krassowski/jupyterlab-lsp@0.5.0-rc.0

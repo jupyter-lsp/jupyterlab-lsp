@@ -23,7 +23,9 @@ describe('ContextMenuCommandManager', () => {
 
   let base_command = {
     id: 'cmd',
-    execute: () => {},
+    execute: () => {
+      // nothing here het
+    },
     is_enabled: () => {
       return true;
     },

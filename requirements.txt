@@ -1,2 +1,4 @@
-jupyterlab==1.1
-jupyter-server-proxy
+# what is needed to run jupyter_lsp (but no servers)
+jupyterlab>=1.1,<1.2
+python-jsonrpc-server>=0.2.0,<0.3.0
+setuptools

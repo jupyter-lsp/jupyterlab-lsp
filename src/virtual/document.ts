@@ -484,6 +484,12 @@ export class VirtualDocument {
     return this.lines.join(lines_padding);
   }
 
+  getTokenAt(position: IVirtualPosition): CodeMirror.Token {
+    let cm_editor = this.get_editor_at_virtual_line(position);
+    let editor_position = this.transform_virtual_to_editor(position);
+    return cm_editor.getTokenAt(editor_position);
+  }
+
   close_expired_documents() {
     for (let document of this.unused_documents.values()) {
       document.remaining_lifetime -= 1;
@@ -568,7 +574,12 @@ export class VirtualDocument {
   }
 
   get_editor_at_virtual_line(pos: IVirtualPosition): CodeMirror.Editor {
-    return this.virtual_lines.get(pos.line).editor;
+    let line = pos.line;
+    // tolerate overshot by one (the hanging blank line at the end)
+    if (!this.virtual_lines.has(line)) {
+      line -= 1;
+    }
+    return this.virtual_lines.get(line).editor;
   }
 
   get_editor_at_source_line(pos: CodeMirror.Position): CodeMirror.Editor {

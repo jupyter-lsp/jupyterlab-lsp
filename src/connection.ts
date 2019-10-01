@@ -29,6 +29,35 @@ export class LSPConnection extends LspWsConnection {
     this._sendChange([{ text }]);
   }
 
+  public isRenameSupported() {
+    // @ts-ignore
+    return !!(this.serverCapabilities && this.serverCapabilities.renameProvider);
+  }
+
+  public rename(location: IPosition, newName: string) {
+    // @ts-ignore
+    if (!this.isConnected || !this.isRenameSupported()) {
+      return;
+    }
+
+    // @ts-ignore
+    this.connection
+      .sendRequest('textDocument/rename', {
+        textDocument: {
+          // @ts-ignore
+          uri: this.documentInfo.documentUri
+        },
+        position: {
+          line: location.line,
+          character: location.ch
+        },
+        newName: newName
+      } as lsProtocol.RenameParams)
+      .then((result: lsProtocol.WorkspaceEdit | null) => {
+        this.emit('renamed', result);
+      });
+  }
+
   public connect(socket: WebSocket): this {
     super.connect(socket);
 
