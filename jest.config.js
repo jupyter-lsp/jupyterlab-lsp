@@ -1,5 +1,5 @@
 const func = require('@jupyterlab/testutils/lib/jest-config');
-const upstream = func('jupyterlab_go_to_definition', __dirname);
+const upstream = func('jupyterlab-lsp', __dirname);
 
 const reuseFromUpstream = [
   'moduleNameMapper',
