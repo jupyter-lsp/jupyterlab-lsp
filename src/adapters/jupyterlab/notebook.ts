@@ -95,7 +95,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     // register completion connectors on cells
     this.document_connected.connect(() => this.connect_completion());
 
-    await this.connect_document(this.virtual_editor.virtual_document);
+    void this.connect_document(this.virtual_editor.virtual_document);
   }
 
   private set_completion_connector(cell: Cell) {
@@ -104,7 +104,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     }
     this.current_completion_connector = new LSPConnector({
       editor: cell.editor,
-      connections: this.connections,
+      connections: this.connection_manager.connections,
       virtual_editor: this.virtual_editor,
       session: this.widget.session
     });

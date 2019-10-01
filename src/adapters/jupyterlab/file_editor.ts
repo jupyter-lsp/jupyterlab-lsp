@@ -75,7 +75,7 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
       .then(() => {
         this.current_completion_connector = new LSPConnector({
           editor: this.editor.editor,
-          connections: this.connections,
+          connections: this.connection_manager.connections,
           virtual_editor: this.virtual_editor
         });
         completion_manager.register({
