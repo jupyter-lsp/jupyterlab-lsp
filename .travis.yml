@@ -18,7 +18,7 @@ matrix:
       language: shell
 
 before_install:
-  - Rscript -e 'install.packages("languageserver")'
+  - Rscript -e "install.packages('languageserver', lib='$HOME/lib/R/site-library')"
   - python3 -m pip install -r requirements-test.txt
   - python3 -m pip freeze
   - python3 setup.py sdist
