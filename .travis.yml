@@ -45,7 +45,3 @@ addons:
   apt:
     packages:
       - nodejs
-      - r-base
-  homebrew:
-    packages:
-      - r
