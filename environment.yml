@@ -15,6 +15,7 @@ dependencies:
   - pylint
   - python >=3.7,<3.8.0a0
   - python-language-server
+  - r-base
   - pip:
       - pyls-black
       - pyls-isort
