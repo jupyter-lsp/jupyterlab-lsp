@@ -20,6 +20,7 @@ dependencies:
   - libcurl
   - r-base
   - r-remotes
+  - r-curl
   - pip:
       - pyls-black
       - pyls-isort
