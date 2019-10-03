@@ -46,7 +46,7 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     editor_widget: IDocumentWidget<FileEditor>,
     jumper: FileEditorJumper,
     app: JupyterFrontEnd,
-    completion_manager: ICompletionManager,
+    protected completion_manager: ICompletionManager,
     rendermime_registry: IRenderMimeRegistry,
     server_root: string
   ) {
@@ -69,23 +69,25 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     this.connect_contentChanged_signal();
 
     console.log('LSP: file ready for connection:', this.path);
-    this.connect_document(this.virtual_editor.virtual_document)
-      .then(() => {
-        this.current_completion_connector = new LSPConnector({
-          editor: this.editor.editor,
-          connections: this.connection_manager.connections,
-          virtual_editor: this.virtual_editor
-        });
-        completion_manager.register({
-          connector: this.current_completion_connector,
-          editor: this.editor.editor,
-          parent: editor_widget
-        });
-      })
-      .catch(console.warn);
+    this.connect_document(this.virtual_editor.virtual_document).catch(
+      console.warn
+    );
 
     this.editor.model.mimeTypeChanged.connect((session, mimeChanged) => {
       // TODO: trigger didClose and didOpen, as per syncing specification
+    });
+  }
+
+  connect_completion() {
+    this.current_completion_connector = new LSPConnector({
+      editor: this.editor.editor,
+      connections: this.connection_manager.connections,
+      virtual_editor: this.virtual_editor
+    });
+    this.completion_manager.register({
+      connector: this.current_completion_connector,
+      editor: this.editor.editor,
+      parent: this.widget
     });
   }
 

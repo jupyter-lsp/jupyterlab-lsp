@@ -79,9 +79,6 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     await until_ready(this.is_ready.bind(this), -1);
     console.log('LSP:', this.document_path, 'ready for connection');
 
-    // TODO
-    // this.widget.context.pathChanged
-
     this.virtual_editor = new VirtualEditorForNotebook(
       this.widget,
       this.language,
@@ -92,10 +89,9 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     );
     this.connect_contentChanged_signal();
 
-    // register completion connectors on cells
-    this.document_connected.connect(() => this.connect_completion());
-
-    void this.connect_document(this.virtual_editor.virtual_document);
+    this.connect_document(this.virtual_editor.virtual_document).catch(
+      console.warn
+    );
   }
 
   private set_completion_connector(cell: Cell) {

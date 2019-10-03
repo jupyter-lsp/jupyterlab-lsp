@@ -77,7 +77,7 @@ export class DocumentConnectionManager {
     this.documents.set(virtual_document.id_path, virtual_document);
   }
 
-  connect_socket(options: ISocketConnectionOptions): LSPConnection {
+  private connect_socket(options: ISocketConnectionOptions): LSPConnection {
     let { virtual_document, language, server_root, root_path } = options;
     console.log(root_path);
 
@@ -107,6 +107,8 @@ export class DocumentConnectionManager {
     }).connect(socket);
 
     connection.on('error', e => {
+      console.warn(e);
+      // TODO invalid now
       let error: Error = e.length && e.length >= 1 ? e[0] : new Error();
       // TODO: those codes may be specific to my proxy client, need to investigate
       if (error.message.indexOf('code = 1005') !== -1) {
@@ -195,5 +197,12 @@ export class DocumentConnectionManager {
     this.connected.emit({ connection, virtual_document });
 
     return connection;
+  }
+
+  public close_all() {
+    for (let connection of this.connections.values()) {
+      connection.close();
+    }
+    this.connections.clear();
   }
 }
