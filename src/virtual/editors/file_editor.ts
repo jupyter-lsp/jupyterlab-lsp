@@ -10,9 +10,9 @@ export class VirtualFileEditor extends VirtualEditor {
   protected cm_editor: CodeMirror.Editor;
 
   constructor(
-    language: string,
-    file_extension: string,
-    path: string,
+    language: () => string,
+    file_extension: () => string,
+    path: () => string,
     cm_editor: CodeMirror.Editor
   ) {
     // TODO: for now the magics and extractors are not used in FileEditor,

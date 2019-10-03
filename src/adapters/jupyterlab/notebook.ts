@@ -81,11 +81,11 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
 
     this.virtual_editor = new VirtualEditorForNotebook(
       this.widget,
-      this.language,
-      this.language_file_extension,
+      () => this.language,
+      () => this.language_file_extension,
       language_specific_overrides,
       foreign_code_extractors,
-      this.document_path
+      () => this.document_path
     );
     this.connect_contentChanged_signal();
 

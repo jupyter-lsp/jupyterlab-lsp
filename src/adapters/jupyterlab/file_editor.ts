@@ -61,9 +61,9 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     this.editor = editor_widget.content;
 
     this.virtual_editor = new VirtualFileEditor(
-      this.language,
-      this.language_file_extension,
-      this.document_path,
+      () => this.language,
+      () => this.language_file_extension,
+      () => this.document_path,
       this.cm_editor
     );
     this.connect_contentChanged_signal();

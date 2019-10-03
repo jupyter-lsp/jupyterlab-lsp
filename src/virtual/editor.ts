@@ -24,7 +24,6 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
   // TODO: getValue could be made private in the virtual editor and the virtual editor
   //  could stop exposing the full implementation of CodeMirror but rather hide it inside.
   virtual_document: VirtualDocument;
-  overrides_registry: IOverridesRegistry;
   code_extractors: IForeignCodeExtractorsRegistry;
   /**
    * Signal emitted by the editor that triggered the update, providing the root document of the updated documents.
@@ -32,22 +31,26 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
   private documents_updated: Signal<VirtualEditor, VirtualDocument>;
 
   public constructor(
-    language: string,
-    file_extension: string,
-    path: string,
-    overrides_registry: IOverridesRegistry,
-    foreign_code_extractors: IForeignCodeExtractorsRegistry
+    protected language: () => string,
+    protected file_extension: () => string,
+    protected path: () => string,
+    protected overrides_registry: IOverridesRegistry,
+    protected foreign_code_extractors: IForeignCodeExtractorsRegistry
   ) {
-    this.virtual_document = new VirtualDocument(
-      language,
-      path,
-      overrides_registry,
-      foreign_code_extractors,
-      false,
-      file_extension
-    );
+    this.create_virtual_document();
     this.documents_updated = new Signal<VirtualEditor, VirtualDocument>(this);
     this.documents_updated.connect(this.on_updated.bind(this));
+  }
+
+  create_virtual_document() {
+    this.virtual_document = new VirtualDocument(
+      this.language(),
+      this.path(),
+      this.overrides_registry,
+      this.foreign_code_extractors,
+      false,
+      this.file_extension()
+    );
   }
 
   /**

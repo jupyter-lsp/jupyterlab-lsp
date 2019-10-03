@@ -57,15 +57,14 @@ export class VirtualEditorForNotebook extends VirtualEditor {
 
   cell_to_corresponding_source_line: Map<Cell, number>;
   cm_editor_to_cell: Map<CodeMirror.Editor, Cell>;
-  language: string;
 
   constructor(
     notebook_panel: NotebookPanel,
-    language: string,
-    file_extension: string,
+    language: () => string,
+    file_extension: () => string,
     overrides_registry: IOverridesRegistry,
     foreign_code_extractors: IForeignCodeExtractorsRegistry,
-    path: string
+    path: () => string
   ) {
     super(
       language,

@@ -140,7 +140,9 @@ export abstract class JupyterLabWidgetAdapter
   private reconnect_with_new_path() {
     // disconnect all existing connections
     this.connection_manager.close_all();
-    // reconnect using current path
+    // recreate virtual document using current path and language
+    this.virtual_editor.create_virtual_document();
+    // reconnect
     this.connect_document(this.virtual_editor.virtual_document).catch(
       console.warn
     );
