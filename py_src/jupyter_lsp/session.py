@@ -18,6 +18,32 @@ from traitlets import Bunch, Instance, List, Set, Unicode, observe
 from traitlets.config import LoggingConfigurable
 
 
+class WriterWithoutEncoding(Writer):
+    def write(self, message):
+        import json
+        from pyls_jsonrpc.streams import log
+
+        # Copyright 2018 Palantir Technologies, Inc.
+        with self._wfile_lock:
+            if self._wfile.closed:
+                return
+            try:
+                body = json.dumps(message, **self._json_dumps_args)
+
+                # Ensure we get the byte length, not the character length
+                content_length = len(body) if isinstance(body, bytes) else len(body.encode('utf-8'))
+
+                response = (
+                    "Content-Length: {}\r\n\r\n"
+                    "{}".format(content_length, body)
+                )
+
+                self._wfile.write(response.encode('utf-8'))
+                self._wfile.flush()
+            except Exception:  # pylint: disable=broad-except
+                log.exception("Failed to write message to output file %s", message)
+
+
 class LanguageServerSession(LoggingConfigurable):
     """ Manage a session for a connection to a language server
     """
@@ -158,10 +184,11 @@ class LanguageServerSession(LoggingConfigurable):
         async for msg in self.to_lsp:
             try:
                 self.writer.write(json_decode(msg))
-            except BrokenPipeError:  # pragma: no cover
+            except BrokenPipeError as e:  # pragma: no cover
                 self.log.debug(
-                    "[{}] Can't write to language server".format(
-                        ", ".join(self.languages)
+                    "[{}] Can't write to language server: {}".format(
+                        ", ".join(self.languages),
+                        e
                     )
                 )
             finally:
