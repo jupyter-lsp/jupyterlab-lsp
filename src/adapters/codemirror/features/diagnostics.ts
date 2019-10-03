@@ -72,10 +72,6 @@ export class Diagnostics extends CodeMirrorLSPFeature {
   }
 
   public handleDiagnostic(response: lsProtocol.PublishDiagnosticsParams) {
-    /* TODO: this seems insufficient. perhaps there is a way to  */
-    if (!response.uri.endsWith(this.virtual_document.uri)) {
-      return;
-    }
     /* TODO: gutters */
     try {
       // Note: no deep equal for Sets or Maps in JS
