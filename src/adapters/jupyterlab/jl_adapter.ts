@@ -58,7 +58,9 @@ export interface IJupyterLabComponentsManager {
  */
 const mime_type_language_map: JSONObject = {
   'text/x-rsrc': 'r',
-  'text/x-r-source': 'r'
+  'text/x-r-source': 'r',
+  // currently there are no LSP servers for IPython we are aware of
+  'text/x-ipython': 'python'
 };
 
 /**
@@ -142,6 +144,11 @@ export abstract class JupyterLabWidgetAdapter
   // equivalent to triggering didClose and didOpen, as per syncing specification,
   // but also reloads the connection
   protected reload_connection() {
+    // ignore premature calls (before the editor was initialized)
+    if (typeof this.virtual_editor === 'undefined') {
+      return;
+    }
+
     // disconnect all existing connections
     this.connection_manager.close_all();
     // recreate virtual document using current path and language

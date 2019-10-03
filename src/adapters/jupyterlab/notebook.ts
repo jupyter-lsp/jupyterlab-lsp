@@ -6,12 +6,14 @@ import { ICompletionManager } from '@jupyterlab/completer';
 import { NotebookJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { until_ready } from '../../utils';
+import { sleep, until_ready } from '../../utils';
 import { LSPConnector } from './components/completion';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { language_specific_overrides } from '../../magics/defaults';
 import { foreign_code_extractors } from '../../extractors/defaults';
 import { Cell } from '@jupyterlab/cells';
+import { nbformat } from '@jupyterlab/coreutils';
+import ILanguageInfoMetadata = nbformat.ILanguageInfoMetadata;
 
 export class NotebookAdapter extends JupyterLabWidgetAdapter {
   editor: Notebook;
@@ -44,9 +46,13 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       .then()
       .catch(console.warn);
 
-    this.widget.context.session.kernelChanged.connect(
-      this.reload_connection.bind(this)
-    );
+    this.widget.context.session.kernelChanged.connect(async () => {
+      // TODO: find a way around this - the kernel values seem to jump to the newValue,
+      //  then null and only then to the newValue again
+      await sleep(1500);
+      await until_ready(this.is_ready.bind(this), -1);
+      this.reload_connection();
+    });
   }
 
   is_ready() {
@@ -54,7 +60,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       this.widget.context.isReady &&
       this.widget.content.isVisible &&
       this.widget.content.widgets.length > 0 &&
-      this.language !== ''
+      this.widget.context.session.kernel !== null
     );
   }
 
@@ -62,16 +68,29 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     return this.widget.context.path;
   }
 
+  protected language_info(): ILanguageInfoMetadata {
+    try {
+      return this.widget.context.session.kernel.info.language_info;
+    } catch (e) {
+      console.warn('Could not get kernel metadata');
+      return null;
+    }
+  }
+
   get mime_type(): string {
-    // note there is also: this.widget.content.codeMimetype
-    let language_metadata = this.widget.model.metadata.get('language_info');
-    // @ts-ignore
+    let language_metadata = this.language_info();
+    if (!language_metadata) {
+      // fallback to the code cell mime type if no kernel in use
+      return this.widget.content.codeMimetype;
+    }
     return language_metadata.mimetype;
   }
 
   get language_file_extension(): string {
-    let language_metadata = this.widget.model.metadata.get('language_info');
-    // @ts-ignore
+    let language_metadata = this.language_info();
+    if (!language_metadata) {
+      return null;
+    }
     return language_metadata.file_extension.replace('.', '');
   }
 
