@@ -75,7 +75,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
     /* TODO: gutters */
     try {
       // Note: no deep equal for Sets or Maps in JS
-      const markers_to_retain: Set<string> = new Set<string>();
+      const markers_to_retain: Set<string> = new Set();
 
       // add new markers, keep track of the added ones
 
@@ -200,16 +200,26 @@ export class Diagnostics extends CodeMirrorLSPFeature {
       );
 
       // remove the markers which were not included in the new message
-      this.marked_diagnostics.forEach(
-        (marker: CodeMirror.TextMarker, diagnostic_hash: string) => {
-          if (!markers_to_retain.has(diagnostic_hash)) {
-            this.marked_diagnostics.delete(diagnostic_hash);
-            marker.clear();
-          }
-        }
-      );
+      this.remove_unused_diagnostic_markers(markers_to_retain);
     } catch (e) {
       console.warn(e);
     }
+  }
+
+  protected remove_unused_diagnostic_markers(to_retain: Set<string>) {
+    this.marked_diagnostics.forEach(
+      (marker: CodeMirror.TextMarker, diagnostic_hash: string) => {
+        if (!to_retain.has(diagnostic_hash)) {
+          this.marked_diagnostics.delete(diagnostic_hash);
+          marker.clear();
+        }
+      }
+    );
+  }
+
+  remove(): void {
+    // remove all markers
+    this.remove_unused_diagnostic_markers(new Set());
+    super.remove();
   }
 }
