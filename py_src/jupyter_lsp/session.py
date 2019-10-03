@@ -31,7 +31,11 @@ class WriterWithoutEncoding(Writer):
                 body = json.dumps(message, **self._json_dumps_args)
 
                 # Ensure we get the byte length, not the character length
-                content_length = len(body) if isinstance(body, bytes) else len(body.encode('utf-8'))
+                content_length = (
+                    len(body)
+                    if isinstance(body, bytes) else
+                    len(body.encode('utf-8'))
+                )
 
                 response = (
                     "Content-Length: {}\r\n\r\n"
