@@ -87,9 +87,7 @@ export abstract class JupyterLabWidgetAdapter
     invoke: string,
     private server_root: string
   ) {
-    this.widget.context.pathChanged.connect(
-      this.reconnect_with_new_path.bind(this)
-    );
+    this.widget.context.pathChanged.connect(this.reload_connection.bind(this));
     this.invoke_command = invoke;
     this.document_connected = new Signal(this);
     this.adapters = new Map();
@@ -141,7 +139,9 @@ export abstract class JupyterLabWidgetAdapter
     return PathExt.dirname(this.document_path);
   }
 
-  private reconnect_with_new_path() {
+  // equivalent to triggering didClose and didOpen, as per syncing specification,
+  // but also reloads the connection
+  protected reload_connection() {
     // disconnect all existing connections
     this.connection_manager.close_all();
     // recreate virtual document using current path and language

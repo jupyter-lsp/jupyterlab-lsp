@@ -73,9 +73,9 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
       console.warn
     );
 
-    this.editor.model.mimeTypeChanged.connect((session, mimeChanged) => {
-      // TODO: trigger didClose and didOpen, as per syncing specification
-    });
+    this.editor.model.mimeTypeChanged.connect(
+      this.reload_connection.bind(this)
+    );
   }
 
   connect_completion() {

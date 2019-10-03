@@ -43,6 +43,10 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     this.init_once_ready()
       .then()
       .catch(console.warn);
+
+    this.widget.context.session.kernelChanged.connect(
+      this.reload_connection.bind(this)
+    );
   }
 
   is_ready() {
@@ -59,6 +63,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
   }
 
   get mime_type(): string {
+    // note there is also: this.widget.content.codeMimetype
     let language_metadata = this.widget.model.metadata.get('language_info');
     // @ts-ignore
     return language_metadata.mimetype;
