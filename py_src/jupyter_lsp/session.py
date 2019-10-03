@@ -19,7 +19,7 @@ from traitlets.config import LoggingConfigurable
 
 
 class WriterWithoutEncoding(Writer):
-    def write(self, message):
+    def write(self, message):  # pragma: no cover
         import json
         from pyls_jsonrpc.streams import log
 
