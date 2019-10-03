@@ -3,7 +3,6 @@ name: jupyterlab-lsp
 channels:
   - conda-forge
   - defaults
-  - r
 
 dependencies:
   - black
@@ -21,6 +20,7 @@ dependencies:
   - r-base
   - r-remotes
   - r-curl
+  - r-irkernel
   - pip:
       - pyls-black
       - pyls-isort
