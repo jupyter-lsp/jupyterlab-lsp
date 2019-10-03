@@ -21,6 +21,7 @@ dependencies:
   - r-base
   - r-remotes
   - r-curl
+  - r-languageserver
   - pip:
       - pyls-black
       - pyls-isort

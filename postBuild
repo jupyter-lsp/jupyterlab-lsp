@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -eux
 python -m pip install -e . --ignore-installed --no-deps -vv
-bash install_r_server.sh
 jupyter serverextension enable --sys-prefix --py jupyter_lsp
 jlpm bootstrap
 jupyter labextension install \
