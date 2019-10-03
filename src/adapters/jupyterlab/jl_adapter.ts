@@ -95,6 +95,10 @@ export abstract class JupyterLabWidgetAdapter
     this.adapters = new Map();
     this.connection_manager = new DocumentConnectionManager();
     this.connection_manager.closed.connect((manger, { virtual_document }) => {
+      console.log(
+        'LSP: connection closed, disconnecting adapter',
+        virtual_document.id_path
+      );
       this.disconnect_adapter(virtual_document);
     });
     this.connection_manager.connected.connect((manager, data) => {

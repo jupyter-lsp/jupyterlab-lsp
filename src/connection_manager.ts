@@ -200,8 +200,11 @@ export class DocumentConnectionManager {
   }
 
   public close_all() {
-    for (let connection of this.connections.values()) {
+    for (let [id_path, connection] of this.connections.entries()) {
+      let virtual_document = this.documents.get(id_path);
       connection.close();
+      // TODO: close() should trigger the closed event, but it does not seem to work, hence manual trigger below:
+      this.closed.emit({ connection, virtual_document });
     }
     this.connections.clear();
   }
