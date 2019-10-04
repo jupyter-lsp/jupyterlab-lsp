@@ -1,7 +1,11 @@
 import shutil
+from pathlib import Path
 from typing import List, Text
 
 from ..types import KeyedLanguageServerSpecs, LanguageServerManagerAPI
+
+# helper scripts for known tricky language servers
+HELPERS = Path(__file__).parent / "helpers"
 
 
 class SpecBase:

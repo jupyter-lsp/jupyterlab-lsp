@@ -59,8 +59,8 @@ A spec is a python function that accepts a single argument, the
 
 The spec should only be advertised if the command _could actually_ be run:
 
-- its runtime (e.g. `julia`, `nodejs`, `ruby`, `python`, `r`) is installed
-- the language server itself is installed (e.g. `python-language-sever`)
+- its runtime (e.g. `julia`, `nodejs`, `python`, `r`, `ruby`) is installed
+- the language server itself is installed (e.g. `python-language-server`)
 
 #### Common Concerns
 
@@ -70,6 +70,9 @@ The spec should only be advertised if the command _could actually_ be run:
 - because of its VSCode heritage, many language servers use `nodejs`
   - `LanguageServerManager.nodejs` will provide the location of our best
     guess at where a user's `nodejs` might be found
+- some language servers are hard to start purely from the command line
+  - use a helper script to encapsulate some complexity.
+    - See the [r spec](./specs/r_languageserver.py) for an example
 
 #### Example: making a pip-installable `cool-language-server` spec
 
