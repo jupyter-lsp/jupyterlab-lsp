@@ -6,6 +6,7 @@ Parts of this code are derived from:
 > > MIT License   https://github.com/palantir/python-jsonrpc-server/blob/0.2.0/LICENSE
 > > Copyright 2018 Palantir Technologies, Inc.
 """
+# pylint: disable=broad-except
 
 import json
 
@@ -25,9 +26,9 @@ class Writer(JsonRpcStreamWriter):
         TODO: propose upstream change (with tests)
     """
 
-    def write(self, message):  # pragma: no cover
+    def write(self, message):
         with self._wfile_lock:
-            if self._wfile.closed:
+            if self._wfile.closed:  # pragma: no cover
                 return
             try:
                 body = json.dumps(message, **self._json_dumps_args)
@@ -43,5 +44,5 @@ class Writer(JsonRpcStreamWriter):
 
                 self._wfile.write(response.encode("utf-8"))
                 self._wfile.flush()
-            except Exception:  # pylint: disable=broad-except
+            except Exception:  # pragma: no cover
                 log.exception("Failed to write message to output file %s", message)
