@@ -10,12 +10,10 @@ import { ICompletionManager } from '@jupyterlab/completer';
 import { LSPConnector } from './components/completion';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { VirtualFileEditor } from '../../virtual/editors/file_editor';
-import { LSPConnection } from '../../connection';
 
 export class FileEditorAdapter extends JupyterLabWidgetAdapter {
   editor: FileEditor;
   jumper: FileEditorJumper;
-  main_connection: LSPConnection;
   virtual_editor: VirtualFileEditor;
   protected current_completion_connector: LSPConnector;
 

@@ -138,12 +138,6 @@ export abstract class JupyterLabWidgetAdapter
     });
   }
 
-  get main_connection(): LSPConnection {
-    return this.connection_manager.connections.get(
-      this.virtual_editor.virtual_document.id_path
-    );
-  }
-
   protected async on_connected(data: IDocumentConnectionData) {
     let { virtual_document } = data;
 
