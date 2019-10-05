@@ -24,6 +24,7 @@ dependencies:
       - pyls-isort
       - pyls-mypy
   # for R language server and kernel
-  - rpy2
-  - r-languageserver
+  - r
   - r-irkernel
+  - r-languageserver
+  - rpy2

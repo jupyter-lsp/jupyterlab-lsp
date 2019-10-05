@@ -15,9 +15,10 @@ dependencies:
   - flake8 >=3.5
   - python-language-server
   # for R language server and kernel
-  - rpy2
-  - r-languageserver
+  - r
   - r-irkernel
+  - r-languageserver
+  - rpy2
   # test tools
   - pytest-asyncio
   - pytest-azurepipelines
