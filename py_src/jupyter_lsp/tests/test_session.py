@@ -17,7 +17,7 @@ async def test_start_known(known_language, handler, jsonrpc_init_msg):
 
     handler.on_message(jsonrpc_init_msg)
 
-    max_attempts = attempts_remaining = 20
+    max_attempts = attempts_remaining = 40
     interval = 0.5
 
     while attempts_remaining:
