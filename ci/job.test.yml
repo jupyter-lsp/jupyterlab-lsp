@@ -37,7 +37,7 @@ jobs:
                   - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
                     displayName: conda %PATH%
 
-              - script: conda install -n based -c conda-forge conda python-libarchive-c
+              - script: conda install -n base -c conda-forge conda python-libarchive-c
                 displayName: update conda
 
               - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}"
