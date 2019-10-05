@@ -49,9 +49,9 @@ describe('VirtualEditor', () => {
   });
 
   let editor = new VirtualEditorImplementation(
-    'python',
-    'py',
-    'test.ipynb',
+    () => 'python',
+    () => 'py',
+    () => 'test.ipynb',
     {},
     { python: [r_line_extractor] }
   );

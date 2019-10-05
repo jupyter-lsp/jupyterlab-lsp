@@ -25,9 +25,9 @@ export class FeatureTestEnvironment implements IFeatureTestEnvironment {
   private connections: Map<CodeMirrorLSPFeature, LSPConnection>;
 
   constructor(
-    protected language = 'python',
-    protected path = 'dummy.py',
-    protected file_extension = 'py'
+    protected language = () => 'python',
+    protected path = () => 'dummy.py',
+    protected file_extension = () => 'py'
   ) {
     const factoryService = new CodeMirrorEditorFactory();
     this.connections = new Map();
@@ -77,7 +77,7 @@ export class FeatureTestEnvironment implements IFeatureTestEnvironment {
 
   public create_dummy_connection() {
     return new LSPConnection({
-      languageId: this.language,
+      languageId: this.language(),
       serverUri: '',
       documentUri: '/' + this.path,
       rootUri: '/',

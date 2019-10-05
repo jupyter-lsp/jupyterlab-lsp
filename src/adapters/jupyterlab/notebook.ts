@@ -12,6 +12,8 @@ import { CodeEditor } from '@jupyterlab/codeeditor';
 import { language_specific_overrides } from '../../magics/defaults';
 import { foreign_code_extractors } from '../../extractors/defaults';
 import { Cell } from '@jupyterlab/cells';
+import { nbformat } from '@jupyterlab/coreutils';
+import ILanguageInfoMetadata = nbformat.ILanguageInfoMetadata;
 
 export class NotebookAdapter extends JupyterLabWidgetAdapter {
   editor: Notebook;
@@ -43,6 +45,24 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     this.init_once_ready()
       .then()
       .catch(console.warn);
+
+    this.widget.context.session.kernelChanged.connect((_session, change) => {
+      change.newValue.ready
+        .then(async spec => {
+          console.log(
+            'LSP: Changed to ' +
+              change.newValue.info.language_info.name +
+              ' kernel, reconnecting'
+          );
+          await until_ready(this.is_ready.bind(this), -1);
+          this.reload_connection();
+        })
+        .catch(e => {
+          console.warn(e);
+          // try to reconnect anyway
+          this.reload_connection();
+        });
+    });
   }
 
   is_ready() {
@@ -50,7 +70,7 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       this.widget.context.isReady &&
       this.widget.content.isVisible &&
       this.widget.content.widgets.length > 0 &&
-      this.language !== ''
+      this.widget.context.session.kernel !== null
     );
   }
 
@@ -58,15 +78,29 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     return this.widget.context.path;
   }
 
+  protected language_info(): ILanguageInfoMetadata {
+    try {
+      return this.widget.context.session.kernel.info.language_info;
+    } catch (e) {
+      console.warn('Could not get kernel metadata');
+      return null;
+    }
+  }
+
   get mime_type(): string {
-    let language_metadata = this.widget.model.metadata.get('language_info');
-    // @ts-ignore
+    let language_metadata = this.language_info();
+    if (!language_metadata) {
+      // fallback to the code cell mime type if no kernel in use
+      return this.widget.content.codeMimetype;
+    }
     return language_metadata.mimetype;
   }
 
   get language_file_extension(): string {
-    let language_metadata = this.widget.model.metadata.get('language_info');
-    // @ts-ignore
+    let language_metadata = this.language_info();
+    if (!language_metadata) {
+      return null;
+    }
     return language_metadata.file_extension.replace('.', '');
   }
 
@@ -79,23 +113,19 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     await until_ready(this.is_ready.bind(this), -1);
     console.log('LSP:', this.document_path, 'ready for connection');
 
-    // TODO
-    // this.widget.context.pathChanged
-
     this.virtual_editor = new VirtualEditorForNotebook(
       this.widget,
-      this.language,
-      this.language_file_extension,
+      () => this.language,
+      () => this.language_file_extension,
       language_specific_overrides,
       foreign_code_extractors,
-      this.document_path
+      () => this.document_path
     );
     this.connect_contentChanged_signal();
 
-    // register completion connectors on cells
-    this.document_connected.connect(() => this.connect_completion());
-
-    void this.connect_document(this.virtual_editor.virtual_document);
+    this.connect_document(this.virtual_editor.virtual_document).catch(
+      console.warn
+    );
   }
 
   private set_completion_connector(cell: Cell) {

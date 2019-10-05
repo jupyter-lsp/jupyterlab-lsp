@@ -58,7 +58,9 @@ export interface IJupyterLabComponentsManager {
  */
 const mime_type_language_map: JSONObject = {
   'text/x-rsrc': 'r',
-  'text/x-r-source': 'r'
+  'text/x-r-source': 'r',
+  // currently there are no LSP servers for IPython we are aware of
+  'text/x-ipython': 'python'
 };
 
 /**
@@ -87,21 +89,30 @@ export abstract class JupyterLabWidgetAdapter
     invoke: string,
     private server_root: string
   ) {
+    this.widget.context.pathChanged.connect(this.reload_connection.bind(this));
     this.invoke_command = invoke;
     this.document_connected = new Signal(this);
     this.adapters = new Map();
     this.connection_manager = new DocumentConnectionManager();
     this.connection_manager.closed.connect((manger, { virtual_document }) => {
+      console.log(
+        'LSP: connection closed, disconnecting adapter',
+        virtual_document.id_path
+      );
       this.disconnect_adapter(virtual_document);
     });
     this.connection_manager.connected.connect((manager, data) => {
       this.on_connected(data).catch(console.warn);
     });
+
+    // register completion connectors
+    this.document_connected.connect(() => this.connect_completion());
   }
 
   abstract virtual_editor: VirtualEditor;
   abstract get document_path(): string;
   abstract get mime_type(): string;
+  protected abstract connect_completion(): void;
 
   get language(): string {
     // the values should follow https://microsoft.github.io/language-server-protocol/specification guidelines
@@ -128,6 +139,24 @@ export abstract class JupyterLabWidgetAdapter
     // TODO: serverRoot may need to be included for Hub or Windows, requires testing.
     // let root = PageConfig.getOption('serverRoot');
     return PathExt.dirname(this.document_path);
+  }
+
+  // equivalent to triggering didClose and didOpen, as per syncing specification,
+  // but also reloads the connection
+  protected reload_connection() {
+    // ignore premature calls (before the editor was initialized)
+    if (typeof this.virtual_editor === 'undefined') {
+      return;
+    }
+
+    // disconnect all existing connections
+    this.connection_manager.close_all();
+    // recreate virtual document using current path and language
+    this.virtual_editor.create_virtual_document();
+    // reconnect
+    this.connect_document(this.virtual_editor.virtual_document).catch(
+      console.warn
+    );
   }
 
   abstract find_ce_editor(cm_editor: CodeMirror.Editor): CodeEditor.IEditor;
