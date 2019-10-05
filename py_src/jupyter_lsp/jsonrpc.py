@@ -31,12 +31,12 @@ class Reader(JsonRpcStreamReader):
                 break
 
             # to check for windows line endings
-            if request_str == "\r\n":
+            if request_str == "\r\n":  # pragma: no cover
                 break
 
             try:
                 message_consumer(json.loads(request_str.decode("utf-8")))
-            except ValueError:
+            except ValueError:  # pragma: no cover
                 log.exception("Failed to parse JSON message %s", request_str)
                 continue
 
