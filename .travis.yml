@@ -5,7 +5,6 @@ cache:
     - .yarn-packages
     - $HOME/.cache/yarn
     - $HOME/.cache/pip
-    - $HOME/lib/R/site-library
 
 matrix:
   include:
