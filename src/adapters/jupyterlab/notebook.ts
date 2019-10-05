@@ -6,7 +6,7 @@ import { ICompletionManager } from '@jupyterlab/completer';
 import { NotebookJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { sleep, until_ready } from '../../utils';
+import { until_ready } from '../../utils';
 import { LSPConnector } from './components/completion';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { language_specific_overrides } from '../../magics/defaults';
@@ -46,12 +46,22 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       .then()
       .catch(console.warn);
 
-    this.widget.context.session.kernelChanged.connect(async () => {
-      // TODO: find a way around this - the kernel values seem to jump to the newValue,
-      //  then null and only then to the newValue again
-      await sleep(1500);
-      await until_ready(this.is_ready.bind(this), -1);
-      this.reload_connection();
+    this.widget.context.session.kernelChanged.connect((_session, change) => {
+      change.newValue.ready
+        .then(async spec => {
+          console.log(
+            'LSP: Changed to ' +
+              change.newValue.info.language_info.name +
+              ' kernel, reconnecting'
+          );
+          await until_ready(this.is_ready.bind(this), -1);
+          this.reload_connection();
+        })
+        .catch(e => {
+          console.warn(e);
+          // try to reconnect anyway
+          this.reload_connection();
+        });
     });
   }
 
