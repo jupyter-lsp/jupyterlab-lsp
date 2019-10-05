@@ -3,6 +3,7 @@
 Parts of this code are derived from:
 
 > https://github.com/palantir/python-jsonrpc-server/blob/0.2.0/pyls_jsonrpc/streams.py#L83   # noqa
+> https://github.com/palantir/python-jsonrpc-server/blob/45ed1931e4b2e5100cc61b3992c16d6f68af2e80/pyls_jsonrpc/streams.py  # noqa
 > > MIT License   https://github.com/palantir/python-jsonrpc-server/blob/0.2.0/LICENSE
 > > Copyright 2018 Palantir Technologies, Inc.
 """
@@ -17,7 +18,26 @@ class Reader(JsonRpcStreamReader):
     """ Custom subclass of reader. Doesn't do much yet.
     """
 
-    pass
+    def listen(self, message_consumer):
+        """Blocking call to listen for messages on the rfile.
+        Args:
+            message_consumer (fn): function that is passed each message as it is read off the socket.
+        """
+        while not self._rfile.closed:
+            request_str = self._read_message()
+
+            if request_str is None:
+                break
+
+            # to check for windows line endings
+            if request_str == '\r\n':
+                break
+
+            try:
+                message_consumer(json.loads(request_str.decode('utf-8')))
+            except ValueError:
+                log.exception("Failed to parse JSON message %s", request_str)
+                continue
 
 
 class Writer(JsonRpcStreamWriter):
