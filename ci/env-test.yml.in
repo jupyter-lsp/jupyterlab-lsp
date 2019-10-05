@@ -1,6 +1,7 @@
 name: jupyterlab-lsp
 
 channels:
+  - r
   - conda-forge
   - defaults
 
