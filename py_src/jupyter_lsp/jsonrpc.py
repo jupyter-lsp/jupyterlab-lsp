@@ -21,7 +21,8 @@ class Reader(JsonRpcStreamReader):
     def listen(self, message_consumer):
         """Blocking call to listen for messages on the rfile.
         Args:
-            message_consumer (fn): function that is passed each message as it is read off the socket.
+            message_consumer (fn): function that is passed each message as it is
+            read off the socket.
         """
         while not self._rfile.closed:
             request_str = self._read_message()
@@ -30,11 +31,11 @@ class Reader(JsonRpcStreamReader):
                 break
 
             # to check for windows line endings
-            if request_str == '\r\n':
+            if request_str == "\r\n":
                 break
 
             try:
-                message_consumer(json.loads(request_str.decode('utf-8')))
+                message_consumer(json.loads(request_str.decode("utf-8")))
             except ValueError:
                 log.exception("Failed to parse JSON message %s", request_str)
                 continue
