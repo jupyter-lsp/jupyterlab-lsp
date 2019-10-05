@@ -1,0 +1,83 @@
+parameters:
+  platforms:
+    - name: Linux
+      vmImage: ubuntu-16.04
+      activate: source activate
+    - name: MacOSX
+      vmImage: macos-10.13
+      activate: source activate
+    - name: Windows
+      vmImage: vs2017-win2016
+      activate: call activate
+  pythons:
+    - name: ThreeSix
+      spec: '>=3.6,<3.7.0a0'
+    - name: ThreeSeven
+      spec: '>=3.7,<3.8.0a0'
+
+jobs:
+  - ${{ each platform in parameters.platforms }}:
+      - ${{ each python in parameters.pythons}}:
+          - job: ${{ platform.name }}${{ python.name }}
+            pool:
+              vmImage: ${{ platform.vmImage }}
+            steps:
+              - ${{ if eq(platform.name, 'Linux') }}:
+                  - bash: echo "##vso[task.prependpath]$CONDA/bin"
+                    displayName: conda $PATH
+
+              - ${{ if eq(platform.name, 'MacOSX') }}:
+                  - bash: echo "##vso[task.prependpath]$CONDA/bin"
+                    displayName: conda $PATH
+
+                  - bash: sudo chown -R $USER $CONDA
+                    displayName: own conda
+
+              - ${{ if eq(platform.name, 'Windows') }}:
+                  - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+                    displayName: conda %PATH%
+
+              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}"
+                displayName: update environment with python version
+
+              - script: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
+                displayName: update conda environment with test dependencies
+
+              - script: conda info && conda list -n jupyterlab-lsp
+                displayName: list conda packages and info
+
+              - task: CacheBeta@0
+                inputs:
+                  key: yarn | $(Agent.OS) | yarn.lock
+                  path: $(YARN_CACHE_FOLDER)
+                displayName: restore cached yarn packages
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm
+                displayName: install npm dependencies
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm build
+                displayName: build typescript
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && python setup.py sdist bdist_wheel
+                displayName: build python distributions
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && cd dist && npm pack ..
+                displayName: build npm bundle
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && cd dist && python -m pip install jupyter_lsp-$(JLSP_VERSION)-py3-none-any.whl --no-deps
+                displayName: install python wheel
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm tslint:check && jlpm test:jest
+                displayName: run frontend unit tests
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter serverextension list
+                displayName: list server extensions
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && python -m pytest --pyargs jupyter_lsp --cov jupyter_lsp --cov-report term-missing:skip-covered -p no:warnings --flake8 --cov-fail-under=100 -vv
+                displayName: run python tests
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && cd dist && jupyter labextension install krassowski-jupyterlab-lsp-$(JLSP_VERSION).tgz @krassowski/jupyterlab_go_to_definition
+                displayName: build lab
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter labextension list
+                displayName: list labextensions

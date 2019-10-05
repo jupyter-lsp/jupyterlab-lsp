@@ -1,0 +1,25 @@
+name: jupyterlab-lsp
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  # runtime dependencies
+  - python {}
+  - jupyterlab >=1.1,<1.2
+  # build dependencies
+  - nodejs
+  # for python language server (and development)
+  - flake8 >=3.5
+  - python-language-server
+  # for R language server and kernel
+  - rpy2
+  - r-languageserver
+  - r-irkernel
+  # test tools
+  - pytest-asyncio
+  - pytest-cov
+  - pytest-flake8
+  - pytest-runner
+  - pytest-azurepipelines

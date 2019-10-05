@@ -1,5 +1,6 @@
 import json
 import pathlib
+import shutil
 from typing import Text
 
 from notebook.notebookapp import NotebookApp
@@ -9,6 +10,7 @@ from pytest import fixture
 from jupyter_lsp import LanguageServerManager
 from jupyter_lsp.handlers import LanguageServerWebSocketHandler
 
+# these should always be available in a test environment ()
 KNOWN_LANGUAGES = [
     "bash",
     "css",
@@ -20,12 +22,16 @@ KNOWN_LANGUAGES = [
     "less",
     "markdown",
     "python",
-    # TODO: test r once we can get the environment built in CI
-    # "r",
     "scss",
     "typescript",
     "yaml",
 ]
+
+CMD_BASED_LANGUAGES = {"Rscript": ["r"]}
+
+KNOWN_LANGUAGES += sum(
+    [langs for cmd, langs in CMD_BASED_LANGUAGES.items() if shutil.which(cmd)], []
+)
 
 KNOWN_UNKNOWN_LANGUAGES = ["cobol"]
 

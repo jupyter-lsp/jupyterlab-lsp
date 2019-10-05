@@ -37,7 +37,7 @@ async def test_start_known(known_language, handler, jsonrpc_init_msg):
 
 
 @pytest.mark.asyncio
-async def test_start(known_unknown_language, handler, jsonrpc_init_msg):
+async def test_start_unknown(known_unknown_language, handler, jsonrpc_init_msg):
     """ will a process not start for an unknown if a handler starts listening?
     """
     manager = handler.manager
