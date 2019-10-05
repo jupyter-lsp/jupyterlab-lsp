@@ -1,10 +1,8 @@
-from pathlib import Path
-
-from .utils import ShellSpec
+from .utils import HELPERS, ShellSpec
 
 
 class RLanguageServer(ShellSpec):
     key = "r-languageserver"
     cmd = "Rscript"
-    args = ["--slave", (Path(__file__).parent / "languageserver.R").as_posix()]
+    args = ["--slave", (HELPERS / "languageserver.R").as_posix()]
     languages = ["r"]

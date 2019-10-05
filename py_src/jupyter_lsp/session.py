@@ -5,10 +5,6 @@ import atexit
 from subprocess import PIPE
 from threading import Thread
 
-from pyls_jsonrpc.streams import (
-    JsonRpcStreamReader as Reader,
-    JsonRpcStreamWriter as Writer,
-)
 from tornado.escape import json_decode
 from tornado.ioloop import IOLoop
 from tornado.process import Subprocess
@@ -17,35 +13,7 @@ from tornado.websocket import WebSocketHandler
 from traitlets import Bunch, Instance, List, Set, Unicode, observe
 from traitlets.config import LoggingConfigurable
 
-
-class WriterWithoutEncoding(Writer):
-    def write(self, message):  # pragma: no cover
-        import json
-        from pyls_jsonrpc.streams import log
-
-        # Copyright 2018 Palantir Technologies, Inc.
-        with self._wfile_lock:
-            if self._wfile.closed:
-                return
-            try:
-                body = json.dumps(message, **self._json_dumps_args)
-
-                # Ensure we get the byte length, not the character length
-                content_length = (
-                    len(body)
-                    if isinstance(body, bytes) else
-                    len(body.encode('utf-8'))
-                )
-
-                response = (
-                    "Content-Length: {}\r\n\r\n"
-                    "{}".format(content_length, body)
-                )
-
-                self._wfile.write(response.encode('utf-8'))
-                self._wfile.flush()
-            except Exception:  # pylint: disable=broad-except
-                log.exception("Failed to write message to output file %s", message)
+from .jsonrpc import Reader, Writer
 
 
 class LanguageServerSession(LoggingConfigurable):
@@ -189,10 +157,9 @@ class LanguageServerSession(LoggingConfigurable):
             try:
                 self.writer.write(json_decode(msg))
             except BrokenPipeError as e:  # pragma: no cover
-                self.log.debug(
+                self.log.warning(
                     "[{}] Can't write to language server: {}".format(
-                        ", ".join(self.languages),
-                        e
+                        ", ".join(self.languages), e
                     )
                 )
             finally:
