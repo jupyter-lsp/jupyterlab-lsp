@@ -5,10 +5,6 @@ import atexit
 from subprocess import PIPE
 from threading import Thread
 
-from pyls_jsonrpc.streams import (
-    JsonRpcStreamReader as Reader,
-    JsonRpcStreamWriter as Writer,
-)
 from tornado.escape import json_decode
 from tornado.ioloop import IOLoop
 from tornado.process import Subprocess
@@ -16,6 +12,8 @@ from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
 from traitlets import Bunch, Instance, List, Set, Unicode, observe
 from traitlets.config import LoggingConfigurable
+
+from .jsonrpc import Reader, Writer
 
 
 class LanguageServerSession(LoggingConfigurable):
@@ -158,10 +156,10 @@ class LanguageServerSession(LoggingConfigurable):
         async for msg in self.to_lsp:
             try:
                 self.writer.write(json_decode(msg))
-            except BrokenPipeError:  # pragma: no cover
-                self.log.debug(
-                    "[{}] Can't write to language server".format(
-                        ", ".join(self.languages)
+            except BrokenPipeError as e:  # pragma: no cover
+                self.log.warning(
+                    "[{}] Can't write to language server: {}".format(
+                        ", ".join(self.languages), e
                     )
                 )
             finally:

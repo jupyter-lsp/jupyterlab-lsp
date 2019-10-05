@@ -20,6 +20,8 @@ KNOWN_LANGUAGES = [
     "less",
     "markdown",
     "python",
+    # TODO: test r once we can get the environment built in CI
+    # "r",
     "scss",
     "typescript",
     "yaml",

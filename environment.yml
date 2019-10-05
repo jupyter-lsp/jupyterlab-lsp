@@ -5,17 +5,24 @@ channels:
   - defaults
 
 dependencies:
+  # runtime dependencies
+  - python >=3.7,<3.8.0a0
+  - jupyterlab >=1.1,<1.2
+  # build dependencies
+  - nodejs
+  # for python language server (and development)
   - black
   - flake8 >=3.5
   - isort
-  - jupyterlab >=1.1,<1.2
   - mypy
-  - nodejs
   - pip
   - pylint
-  - python >=3.7,<3.8.0a0
   - python-language-server
-  - pip:
+  - pip: # not-yet-appearing-in-conda-forge
       - pyls-black
       - pyls-isort
       - pyls-mypy
+  # for R language server and kernel
+  - rpy2
+  - r-languageserver
+  - r-irkernel
