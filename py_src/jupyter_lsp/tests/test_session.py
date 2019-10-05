@@ -3,6 +3,7 @@ import asyncio
 import pytest
 
 
+@pytest.mark.timeout(60)
 @pytest.mark.asyncio
 async def test_start_known(known_language, handler, jsonrpc_init_msg):
     """ will a process start for a known language if a handler starts listening?
@@ -36,6 +37,7 @@ async def test_start_known(known_language, handler, jsonrpc_init_msg):
     assert not session.process
 
 
+@pytest.mark.timeout(60)
 @pytest.mark.asyncio
 async def test_start_unknown(known_unknown_language, handler, jsonrpc_init_msg):
     """ will a process not start for an unknown if a handler starts listening?

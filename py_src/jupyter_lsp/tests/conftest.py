@@ -41,12 +41,12 @@ def manager() -> LanguageServerManager:
     return LanguageServerManager()
 
 
-@fixture(params=KNOWN_LANGUAGES)
+@fixture(params=sorted(KNOWN_LANGUAGES))
 def known_language(request):
     return request.param
 
 
-@fixture(params=KNOWN_UNKNOWN_LANGUAGES)
+@fixture(params=sorted(KNOWN_UNKNOWN_LANGUAGES))
 def known_unknown_language(request):
     return request.param
 

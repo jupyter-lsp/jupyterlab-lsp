@@ -19,7 +19,8 @@ dependencies:
   - r-irkernel
   # test tools
   - pytest-asyncio
+  - pytest-azurepipelines
   - pytest-cov
   - pytest-flake8
   - pytest-runner
-  - pytest-azurepipelines
+  - pytest-timeout
