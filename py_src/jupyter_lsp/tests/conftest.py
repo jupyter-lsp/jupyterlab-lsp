@@ -93,6 +93,7 @@ class MockWebsocketHandler(LanguageServerWebSocketHandler):
         self._messages_wrote = []
 
     def write_message(self, message: Text) -> None:
+        self.log.warning("write_message %s", message)
         self._messages_wrote += [message]
 
 
