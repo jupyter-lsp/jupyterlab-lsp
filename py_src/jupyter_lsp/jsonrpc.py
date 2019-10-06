@@ -26,6 +26,7 @@ class Reader(JsonRpcStreamReader):
         """
         while not self._rfile.closed:
             request_str = self._read_message()
+            log.warning("read request %s", request_str)
 
             if request_str is None:
                 break
@@ -39,6 +40,33 @@ class Reader(JsonRpcStreamReader):
             except ValueError:  # pragma: no cover
                 log.exception("Failed to parse JSON message %s", request_str)
                 continue
+
+    def _read_message(self):
+        """Reads the contents of a message.
+        Returns:
+            body of message if parsable else None
+        """
+        i = 0
+        line = self._rfile.readline()
+        log.warning("read line %s %s", i, line)
+
+        if not line:
+            return None
+
+        content_length = self._content_length(line)
+        log.warning("read content length %s", content_length)
+
+        # Blindly consume all header lines
+        while line and line.strip():
+            i += 1
+            log.warning("read line %s %s", i, line)
+            line = self._rfile.readline()
+
+        if not line:
+            return None
+
+        # Grab the body
+        return self._rfile.read(content_length)
 
 
 class Writer(JsonRpcStreamWriter):
