@@ -131,6 +131,7 @@ class LanguageServerSession(LoggingConfigurable):
             self.reader = Reader(self.process.stdout)
 
             def broadcast(msg):
+                self.log.warning("[{}] msg: {}".format(", ".join(self.languages), msg))
                 self.from_lsp.put_nowait(msg)
 
             self.reader.listen(broadcast)
@@ -145,6 +146,7 @@ class LanguageServerSession(LoggingConfigurable):
             server
         """
         async for msg in self.from_lsp:
+            self.log.warning("[{}] from_lsp: {} for {}".format(", ".join(self.languages), msg, self.handlers))
             for handler in self.handlers:
                 handler.write_message(msg)
             self.from_lsp.task_done()
