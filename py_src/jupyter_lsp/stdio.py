@@ -51,7 +51,7 @@ class Reader(StdIOBase):
         self.next_wait = min(self.next_wait * 2, self.max_wait)
         try:
             await asyncio.sleep(self.next_wait)
-        except Exception:
+        except Exception:  # pragma: no cover
             pass
 
     def wake(self):
