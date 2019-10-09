@@ -46,7 +46,7 @@ class Reader(StdIOBase):
     async def sleep(self):
         """ Simple exponential backoff for sleeping
         """
-        if self.stream.closed:
+        if self.stream.closed:  # pragma: no cover
             return
         self.next_wait = min(self.next_wait * 2, self.max_wait)
         try:
@@ -76,7 +76,7 @@ class Reader(StdIOBase):
                     self.wake()
 
                 await self.queue.put(message)
-            except Exception:
+            except Exception:  # pragma: no cover
                 self.log.exception("[R] failed to read %s", message)
                 await self.sleep()
 
