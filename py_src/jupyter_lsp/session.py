@@ -73,8 +73,10 @@ class LanguageServerSession(LoggingConfigurable):
             self.process.terminate()
             self.process = None
         if self.reader:
+            self.reader.close()
             self.reader = None
         if self.writer:
+            self.writer.close()
             self.writer = None
 
         if self._tasks:

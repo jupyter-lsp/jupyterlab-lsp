@@ -28,6 +28,9 @@ class StdIOBase(LoggingConfigurable):
     stream = Instance(io.BufferedIOBase, help="the stream to read/write")
     queue = Instance(Queue, help="queue to get/put")
 
+    def close(self):
+        self.stream.close()
+
 
 class Reader(StdIOBase):
     """ Language Server stdio Reader
@@ -43,6 +46,8 @@ class Reader(StdIOBase):
     async def sleep(self):
         """ Simple exponential backoff for sleeping
         """
+        if self.stream.closed:
+            return
         self.next_wait = min(self.next_wait * 2, self.max_wait)
         await asyncio.sleep(self.next_wait)
 
@@ -118,7 +123,7 @@ class Writer(StdIOBase):
                 response = "Content-Length: {}\r\n\r\n{}".format(len(body), message)
                 self.stream.write(response.encode("utf-8"))
                 self.stream.flush()
-            except Exception:
+            except Exception:  # pragma: no cover
                 self.log.exception("[W] Couldn't write message: %s", response)
             finally:
                 self.queue.task_done()
