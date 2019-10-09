@@ -5,6 +5,7 @@ from typing import Text
 
 from notebook.notebookapp import NotebookApp
 from pytest import fixture
+from tornado.queues import Queue
 
 # local imports
 from jupyter_lsp import LanguageServerManager
@@ -90,11 +91,11 @@ class MockWebsocketHandler(LanguageServerWebSocketHandler):
 
     def initialize(self, manager):
         super().initialize(manager)
-        self._messages_wrote = []
+        self._messages_wrote = Queue()
 
     def write_message(self, message: Text) -> None:
         self.log.warning("write_message %s", message)
-        self._messages_wrote += [message]
+        self._messages_wrote.put_nowait(message)
 
 
 class MockNotebookApp(NotebookApp):

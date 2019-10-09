@@ -2,18 +2,13 @@
 """
 import asyncio
 import atexit
-from subprocess import PIPE
-from threading import Thread
+import subprocess
 
-from tornado.escape import json_decode
-from tornado.ioloop import IOLoop
-from tornado.process import Subprocess
-from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
 from traitlets import Bunch, Instance, List, Set, Unicode, observe
 from traitlets.config import LoggingConfigurable
 
-from .jsonrpc import Reader, Writer
+from . import stdio
 
 
 class LanguageServerSession(LoggingConfigurable):
@@ -31,15 +26,16 @@ class LanguageServerSession(LoggingConfigurable):
         help="the languages this session can provide language server features",
     )
     process = Instance(
-        Subprocess, help="the language server subprocess", allow_none=True
+        subprocess.Popen, help="the language server subprocess", allow_none=True
     )
-    writer = Instance(Writer, help="the JSON-RPC writer", allow_none=True)
-    reader = Instance(Reader, help="the JSON-RPC reader", allow_none=True)
-    thread = Instance(Thread, help="the reader thread", allow_none=True)
+    writer = Instance(stdio.Writer, help="the JSON-RPC writer", allow_none=True)
+    reader = Instance(stdio.Reader, help="the JSON-RPC reader", allow_none=True)
     from_lsp = Instance(
-        Queue, help="a queue for messages from the server", allow_none=True
+        asyncio.Queue, help="a queue for string messages from the server", allow_none=True
     )
-    to_lsp = Instance(Queue, help="a queue for message to the server", allow_none=True)
+    to_lsp = Instance(
+        asyncio.Queue, help="a queue for string message to the server", allow_none=True
+    )
     handlers = Set(
         trait=Instance(WebSocketHandler),
         default_value=[],
@@ -66,20 +62,18 @@ class LanguageServerSession(LoggingConfigurable):
         loop = asyncio.get_event_loop()
         self._tasks = [
             loop.create_task(coro())
-            for coro in [self._read_from_lsp, self._write_to_lsp]
+            for coro in [self._read_lsp, self._write_lsp, self._broadcast_from_lsp]
         ]
 
     def stop(self):
         """ clean up all of the state of the session
         """
         if self.process:
-            self.process.proc.terminate()
+            self.process.terminate()
             self.process = None
         if self.reader:
-            self.reader.close()
             self.reader = None
         if self.writer:
-            self.writer.close()
             self.writer = None
 
         if self._tasks:
@@ -102,40 +96,37 @@ class LanguageServerSession(LoggingConfigurable):
     def init_process(self):
         """ start the language server subprocess
         """
-        self.process = Subprocess(self.argv, stdin=PIPE, stdout=PIPE)
+        self.process = subprocess.Popen(
+            self.argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE
+        )
 
     def init_queues(self):
         """ create the queues
         """
-        self.from_lsp = Queue()
-        self.to_lsp = Queue()
-
-    def init_writer(self):
-        """ create the stdin writer (to the language server)
-        """
-        self.writer = Writer(self.process.stdin)
+        self.from_lsp = asyncio.Queue()
+        self.to_lsp = asyncio.Queue()
 
     def init_reader(self):
         """ create the stdout reader (from the language server)
         """
+        self.reader = stdio.Reader(
+            stream=self.process.stdout, queue=self.from_lsp, parent=self
+        )
 
-        def consume():
-            IOLoop()
-            self.log.info("[{}] Thread started".format(", ".join(self.languages)))
+    def init_writer(self):
+        """ create the stdin writer (to the language server)
+        """
+        self.writer = stdio.Writer(
+            stream=self.process.stdin, queue=self.to_lsp, parent=self
+        )
 
-            self.reader = Reader(self.process.stdout)
+    async def _read_lsp(self):
+        await self.reader.read()
 
-            def broadcast(msg):
-                self.from_lsp.put_nowait(msg)
+    async def _write_lsp(self):
+        await self.writer.write()
 
-            self.reader.listen(broadcast)
-            self.log.info("[{}] Thread completed".format(", ".join(self.languages)))
-
-        self.thread = Thread(target=consume)
-        self.thread.daemon = True
-        self.thread.start()
-
-    async def _read_from_lsp(self):
+    async def _broadcast_from_lsp(self):
         """ loop for reading messages from the queue of messages from the language
             server
         """
@@ -143,19 +134,3 @@ class LanguageServerSession(LoggingConfigurable):
             for handler in self.handlers:
                 handler.write_message(msg)
             self.from_lsp.task_done()
-
-    async def _write_to_lsp(self):
-        """ loop for reading messages from the queue of messages to the language
-            server
-        """
-        async for msg in self.to_lsp:
-            try:
-                self.writer.write(json_decode(msg))
-            except BrokenPipeError as e:  # pragma: no cover
-                self.log.warning(
-                    "[{}] Can't write to language server: {}".format(
-                        ", ".join(self.languages), e
-                    )
-                )
-            finally:
-                self.to_lsp.task_done()
