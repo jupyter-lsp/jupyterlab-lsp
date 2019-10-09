@@ -10,8 +10,11 @@ Parts of this code are derived from:
 # pylint: disable=broad-except
 
 import json
+import time
 
 from pyls_jsonrpc.streams import JsonRpcStreamReader, JsonRpcStreamWriter, log
+
+from .non_blocking import make_non_blocking
 
 
 class Reader(JsonRpcStreamReader):
@@ -24,16 +27,17 @@ class Reader(JsonRpcStreamReader):
             message_consumer (fn): function that is passed each message as it is
             read off the socket.
         """
+
+        make_non_blocking(self._rfile)
+
         while not self._rfile.closed:
             request_str = self._read_message()
-            log.warning("read request %s", request_str)
 
             if request_str is None:
-                break
+                time.sleep(0.1)
+                continue
 
-            # to check for windows line endings
-            if request_str == "\r\n":  # pragma: no cover
-                break
+            log.warning("read request %s", request_str)
 
             try:
                 message_consumer(json.loads(request_str.decode("utf-8")))
@@ -46,27 +50,20 @@ class Reader(JsonRpcStreamReader):
         Returns:
             body of message if parsable else None
         """
-        i = 0
         line = self._rfile.readline()
-        log.warning("read line %s %s", i, line)
 
         if not line:
             return None
 
         content_length = self._content_length(line)
-        log.warning("read content length %s", content_length)
 
         # Blindly consume all header lines
         while line and line.strip():
-            i += 1
-            log.warning("read line %s %s", i, line)
             line = self._rfile.readline()
 
-        if not line:
-            return None
-
-        # Grab the body
-        return self._rfile.read(content_length)
+        if line:
+            # Grab the body
+            return self._rfile.read(content_length)
 
 
 class Writer(JsonRpcStreamWriter):
