@@ -37,13 +37,11 @@ class Reader(JsonRpcStreamReader):
             request_str = self._read_message()
 
             if request_str is None:
-                wait = min(wait + min_wait, max_wait)
+                wait = min(wait * 2, max_wait)
                 time.sleep(wait)
                 continue
 
             wait = min_wait
-
-            log.warning("read request %s", request_str)
 
             try:
                 message_consumer(json.loads(request_str.decode("utf-8")))

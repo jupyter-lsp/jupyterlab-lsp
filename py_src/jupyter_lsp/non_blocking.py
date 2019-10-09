@@ -1,7 +1,9 @@
 """
 Derived from
 
-https://github.com/rudolfwalter/pygdbmi/blob/523581bca12661503df02d74f64b2053945928ce/pygdbmi/gdbcontroller.py
+> https://github.com/rudolfwalter/pygdbmi/blob/0.7.4.2/pygdbmi/gdbcontroller.py
+> MIT License  https://github.com/rudolfwalter/pygdbmi/blob/master/LICENSE
+> Copyright (c) 2016 Chad Smith <grassfedcode <at> gmail.com>
 """
 import os
 

@@ -102,11 +102,6 @@ class LanguageServerSession(LoggingConfigurable):
     def init_process(self):
         """ start the language server subprocess
         """
-        self.log.info(
-            "[{}] Starting language server `{}`".format(
-                ", ".join(self.languages), " ".join(self.argv)
-            )
-        )
         self.process = Subprocess(self.argv, stdin=PIPE, stdout=PIPE)
 
     def init_queues(self):
@@ -126,17 +121,16 @@ class LanguageServerSession(LoggingConfigurable):
 
         def consume():
             IOLoop()
-            self.log.debug("[{}] Thread started".format(", ".join(self.languages)))
+            self.log.info("[{}] Thread started".format(", ".join(self.languages)))
 
             self.reader = Reader(self.process.stdout)
 
             def broadcast(msg):
-                self.log.warning("[{}] msg: {}".format(", ".join(self.languages), msg))
                 self.from_lsp.put_nowait(msg)
 
             self.reader.listen(broadcast)
+            self.log.info("[{}] Thread completed".format(", ".join(self.languages)))
 
-        self.log.debug("[{}] Thread starting".format(", ".join(self.languages)))
         self.thread = Thread(target=consume)
         self.thread.daemon = True
         self.thread.start()
@@ -146,11 +140,6 @@ class LanguageServerSession(LoggingConfigurable):
             server
         """
         async for msg in self.from_lsp:
-            self.log.warning(
-                "[{}] from_lsp: {} for {}".format(
-                    ", ".join(self.languages), msg, self.handlers
-                )
-            )
             for handler in self.handlers:
                 handler.write_message(msg)
             self.from_lsp.task_done()
