@@ -49,7 +49,10 @@ class Reader(StdIOBase):
         if self.stream.closed:
             return
         self.next_wait = min(self.next_wait * 2, self.max_wait)
-        await asyncio.sleep(self.next_wait)
+        try:
+            await asyncio.sleep(self.next_wait)
+        except Exception:
+            pass
 
     def wake(self):
         """ Reset the wait time
