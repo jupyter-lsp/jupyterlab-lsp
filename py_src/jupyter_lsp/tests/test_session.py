@@ -25,6 +25,7 @@ async def test_start_known(known_language, handler, jsonrpc_init_msg):
     assert not list(manager.sessions_for_handler(handler))
     assert not session.handlers
     assert not session.process
+    await asyncio.sleep(2)
 
 
 @pytest.mark.asyncio
