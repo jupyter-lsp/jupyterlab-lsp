@@ -4,6 +4,7 @@ import asyncio
 import atexit
 import subprocess
 
+from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
 from traitlets import Bunch, Instance, List, Set, Unicode, observe
 from traitlets.config import LoggingConfigurable
@@ -31,10 +32,10 @@ class LanguageServerSession(LoggingConfigurable):
     writer = Instance(stdio.Writer, help="the JSON-RPC writer", allow_none=True)
     reader = Instance(stdio.Reader, help="the JSON-RPC reader", allow_none=True)
     from_lsp = Instance(
-        asyncio.Queue, help="a queue for string messages from the server", allow_none=True
+        Queue, help="a queue for string messages from the server", allow_none=True
     )
     to_lsp = Instance(
-        asyncio.Queue, help="a queue for string message to the server", allow_none=True
+        Queue, help="a queue for string message to the server", allow_none=True
     )
     handlers = Set(
         trait=Instance(WebSocketHandler),
@@ -103,8 +104,8 @@ class LanguageServerSession(LoggingConfigurable):
     def init_queues(self):
         """ create the queues
         """
-        self.from_lsp = asyncio.Queue()
-        self.to_lsp = asyncio.Queue()
+        self.from_lsp = Queue()
+        self.to_lsp = Queue()
 
     def init_reader(self):
         """ create the stdout reader (from the language server)

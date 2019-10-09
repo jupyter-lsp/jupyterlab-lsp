@@ -14,6 +14,7 @@ import io
 from typing import Optional
 
 from tornado.httputil import HTTPHeaders
+from tornado.queues import Queue
 from traitlets import Float, Instance
 from traitlets.config import LoggingConfigurable
 
@@ -25,7 +26,7 @@ class StdIOBase(LoggingConfigurable):
     """
 
     stream = Instance(io.BufferedIOBase, help="the stream to read/write")
-    queue = Instance(asyncio.Queue, help="queue to get/put")
+    queue = Instance(Queue, help="queue to get/put")
 
 
 class Reader(StdIOBase):
@@ -81,8 +82,6 @@ class Reader(StdIOBase):
         if not line:
             return
 
-        self.log.error("[R] done %s %s", line, list(headers.items()))
-
         headers.parse_line(line)
 
         while line and line.strip():
@@ -91,10 +90,8 @@ class Reader(StdIOBase):
                 headers.parse_line(line)
 
         content_length = int(headers.get("content-length", "0"))
-        self.log.error("[R] content %s", content_length)
 
         if content_length:
-            self.log.error("[R] reading")
             message = self.stream.read(content_length).decode("utf-8")
             return message
 
