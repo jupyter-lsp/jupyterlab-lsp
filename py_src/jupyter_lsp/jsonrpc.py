@@ -30,12 +30,18 @@ class Reader(JsonRpcStreamReader):
 
         make_non_blocking(self._rfile)
 
+        max_wait = 2
+        min_wait = wait = 0.01
+
         while not self._rfile.closed:
             request_str = self._read_message()
 
             if request_str is None:
-                time.sleep(0.1)
+                wait = min(wait + min_wait, max_wait)
+                time.sleep(wait)
                 continue
+
+            wait = min_wait
 
             log.warning("read request %s", request_str)
 
@@ -50,7 +56,7 @@ class Reader(JsonRpcStreamReader):
         Returns:
             body of message if parsable else None
         """
-        line = self._rfile.readline()
+        line = self._readline()
 
         if not line:
             return None
@@ -59,11 +65,17 @@ class Reader(JsonRpcStreamReader):
 
         # Blindly consume all header lines
         while line and line.strip():
-            line = self._rfile.readline()
+            line = self._readline()
 
         if line:
             # Grab the body
             return self._rfile.read(content_length)
+
+    def _readline(self):
+        try:
+            return self._rfile.readline()
+        except OSError:  # pragma: no cover
+            return None
 
 
 class Writer(JsonRpcStreamWriter):
