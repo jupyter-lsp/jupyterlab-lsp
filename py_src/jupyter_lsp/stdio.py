@@ -11,7 +11,7 @@ Parts of this code are derived from:
 
 import asyncio
 import io
-from typing import Optional
+from typing import Text
 
 from tornado.httputil import HTTPHeaders
 from tornado.queues import Queue
@@ -69,7 +69,7 @@ class Reader(StdIOBase):
             try:
                 message = self.read_one()
 
-                if message is None:
+                if not message:
                     await self.sleep()
                     continue
                 else:
@@ -77,39 +77,36 @@ class Reader(StdIOBase):
 
                 await self.queue.put(message)
             except Exception:  # pragma: no cover
-                self.log.exception("[R] failed to read %s", message)
+                self.log.exception("[Reader] Couldn't enqueue message: %s", message)
                 await self.sleep()
 
-    def read_one(self) -> Optional[bytes]:
+    def read_one(self) -> Text:
         """ Read a single message
         """
+        message = ""
         headers = HTTPHeaders()
 
-        line = self._readline().decode("utf-8").strip()
+        line = self._readline()
 
-        if not line:
-            return
-
-        headers.parse_line(line)
-
-        while line and line.strip():
-            line = self._readline().decode("utf-8").strip()
-            if line:
+        if line:
+            while line and line.strip():
                 headers.parse_line(line)
+                line = self._readline()
 
-        content_length = int(headers.get("content-length", "0"))
+            content_length = int(headers.get("content-length", "0"))
 
-        if content_length:
-            message = self.stream.read(content_length).decode("utf-8")
-            return message
+            if content_length:
+                message = self.stream.read(content_length).decode("utf-8").strip()
 
-    def _readline(self) -> bytes:
+        return message
+
+    def _readline(self) -> Text:
         """ Read a line (or immediately return None)
         """
         try:
-            return self.stream.readline()
+            return self.stream.readline().decode("utf-8").strip()
         except OSError:  # pragma: no cover
-            return b""
+            return ""
 
 
 class Writer(StdIOBase):
@@ -127,6 +124,6 @@ class Writer(StdIOBase):
                 self.stream.write(response.encode("utf-8"))
                 self.stream.flush()
             except Exception:  # pragma: no cover
-                self.log.exception("[W] Couldn't write message: %s", response)
+                self.log.exception("[Writer] Couldn't write message: %s", response)
             finally:
                 self.queue.task_done()
