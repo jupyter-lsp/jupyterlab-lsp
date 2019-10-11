@@ -127,7 +127,7 @@ where `path_to_jupyterlab_staging` is the location of JupyterLab staging directo
 - if you use local installation, it might be in `~/.local/lib/python3.6/site-packages/jupyterlab/staging/` (where instead of python3.6 you should use your Python3 version having JupyterLab installed)
 
 5. (Optional) to enable opening files outside of the root directory (the place where you start JupyterLab),
-   create `.lsp_symlink` and symlink your `home`, `usr`, or any other location which include the files that you wish to make possible to open in there:
+   create `.lsp_symlink` and symlink your `home`, `usr`, or any other location which includes the files that you wish to make possible to open in there:
 
 ```bash
 mkdir .lsp_symlink
@@ -136,7 +136,7 @@ ln -s /home home
 ln -s /usr usr
 ```
 
-If your user does not have sufficient permissions to traverse the entire path, you will not be able to open the file.
+If your user does not have sufficient permissions to traverse the entire path, you will not be able to open the file. A more detailed guide on symlinking (written for a related jupyterlab-go-to-definition extension) is available [here](https://github.com/krassowski/jupyterlab-go-to-definition/blob/master/README.md#which-directories-to-symlink).
 
 ### Updating the extension
 
