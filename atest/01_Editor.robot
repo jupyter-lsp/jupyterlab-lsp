@@ -90,6 +90,8 @@ Editor Should Jump To Definition
     [Arguments]    ${symbol}
     Set Tags    feature:jump-to-definition
     ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
+    Mouse Over    ${sel}
+    Run Keyword If    "${OS}" == "Windows"    Sleep    10s
     Click Element    ${sel}
     Open Context Menu    ${sel}
     ${cursor} =    Measure Cursor Position
