@@ -131,7 +131,7 @@ export abstract class ContextMenuCommandManager extends LSPCommandManager {
 
 export class NotebookCommandManager extends ContextMenuCommandManager {
   protected tracker: INotebookTracker;
-  selector = '.jp-Notebook .jp-CodeCell';
+  selector = '.jp-Notebook .jp-CodeCell .jp-Editor';
   entry_point = CommandEntryPoint.CellContextMenu;
 
   get current_adapter() {
