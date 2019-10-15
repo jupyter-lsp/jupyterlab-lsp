@@ -8,40 +8,52 @@ Parts of this code are derived from:
 > > Copyright 2018 Palantir Technologies, Inc.
 """
 # pylint: disable=broad-except
-
 import asyncio
 import io
+import os
 from typing import Text
 
 from tornado.httputil import HTTPHeaders
 from tornado.queues import Queue
-from traitlets import Float, Instance
+from traitlets import Float, Instance, default
 from traitlets.config import LoggingConfigurable
 
 from .non_blocking import make_non_blocking
 
 
-class StdIOBase(LoggingConfigurable):
+class LspStdIoBase(LoggingConfigurable):
     """ Non-blocking, queued base for communicating with stdio Language Servers
     """
 
     stream = Instance(io.BufferedIOBase, help="the stream to read/write")
     queue = Instance(Queue, help="queue to get/put")
 
+    def __repr__(self):  # pragma: no cover
+        return "<{}(parent={})>".format(self.__class__.__name__, self.parent)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.log.debug("%s initialized", self)
+
     def close(self):
         self.stream.close()
+        self.log.debug("%s closed", self)
 
 
-class Reader(StdIOBase):
+class LspStdIoReader(LspStdIoBase):
     """ Language Server stdio Reader
 
         Because non-blocking (but still synchronous) IO is used, rudimentary
         exponential backoff is used.
     """
 
-    max_wait = Float(2.0, help="maximum time to wait on idle stream").tag(config=True)
+    max_wait = Float(help="maximum time to wait on idle stream").tag(config=True)
     min_wait = Float(0.05, help="minimum time to wait on idle stream").tag(config=True)
     next_wait = Float(0.05, help="next time to wait on idle stream").tag(config=True)
+
+    @default("max_wait")
+    def _default_max_wait(self):
+        return 2.0 if os.name == "nt" else self.min_wait
 
     async def sleep(self):
         """ Simple exponential backoff for sleeping
@@ -67,7 +79,7 @@ class Reader(StdIOBase):
         while not self.stream.closed:
             message = None
             try:
-                message = self.read_one()
+                message = await self.read_one()
 
                 if not message:
                     await self.sleep()
@@ -77,10 +89,10 @@ class Reader(StdIOBase):
 
                 await self.queue.put(message)
             except Exception:  # pragma: no cover
-                self.log.exception("[Reader] Couldn't enqueue message: %s", message)
+                self.log.exception("%s couldn't enqueue message: %s", self, message)
                 await self.sleep()
 
-    def read_one(self) -> Text:
+    async def read_one(self) -> Text:
         """ Read a single message
         """
         message = ""
@@ -96,7 +108,21 @@ class Reader(StdIOBase):
             content_length = int(headers.get("content-length", "0"))
 
             if content_length:
-                message = self.stream.read(content_length).decode("utf-8").strip()
+                raw = None
+                retries = 5
+                while raw is None and retries:
+                    raw = self.stream.read(content_length)
+                    if raw is None:  # pragma: no cover
+                        self.log.warning(
+                            "%s failed to read message of length %s",
+                            content_length,
+                            self,
+                        )
+                        await self.sleep()
+                        retries -= 1
+                    else:
+                        message = raw.decode("utf-8").strip()
+                        break
 
         return message
 
@@ -109,7 +135,7 @@ class Reader(StdIOBase):
             return ""
 
 
-class Writer(StdIOBase):
+class LspStdIoWriter(LspStdIoBase):
     """ Language Server stdio Writer
     """
 
@@ -124,6 +150,6 @@ class Writer(StdIOBase):
                 self.stream.write(response.encode("utf-8"))
                 self.stream.flush()
             except Exception:  # pragma: no cover
-                self.log.exception("[Writer] Couldn't write message: %s", response)
+                self.log.exception("s couldn't write message: %s", self, response)
             finally:
                 self.queue.task_done()

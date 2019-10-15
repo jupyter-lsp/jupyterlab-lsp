@@ -106,3 +106,7 @@ venv.bak/
 
 node_modules
 .yarn-packages
+
+atest/output/
+junit.xml
+coverage/

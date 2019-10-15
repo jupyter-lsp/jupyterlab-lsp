@@ -22,23 +22,9 @@ jobs:
             pool:
               vmImage: ${{ platform.vmImage }}
             steps:
-              - ${{ if eq(platform.name, 'Linux') }}:
-                  - bash: echo "##vso[task.prependpath]$CONDA/bin"
-                    displayName: conda $PATH
-
-              - ${{ if eq(platform.name, 'MacOSX') }}:
-                  - bash: echo "##vso[task.prependpath]$CONDA/bin"
-                    displayName: conda $PATH
-
-                  - bash: sudo chown -R $USER $CONDA
-                    displayName: own conda
-
-              - ${{ if eq(platform.name, 'Windows') }}:
-                  - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
-                    displayName: conda %PATH%
-
-              - script: conda install -yn base -c conda-forge conda python-libarchive-c
-                displayName: update conda
+              - template: steps.conda.yml
+                parameters:
+                  name: ${{ platform.name }}
 
               - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}"
                 displayName: update environment with python version
@@ -49,11 +35,11 @@ jobs:
               - script: conda info && conda list -n jupyterlab-lsp
                 displayName: list conda packages and info
 
-              - task: CacheBeta@0
-                inputs:
-                  key: yarn | $(Agent.OS) | yarn.lock
-                  path: $(YARN_CACHE_FOLDER)
-                displayName: restore cached yarn packages
+              # - task: CacheBeta@0
+              #   inputs:
+              #     key: yarn | $(Agent.OS) | yarn.lock
+              #     path: $(YARN_CACHE_FOLDER)
+              #   displayName: restore cached yarn packages
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm
                 displayName: install npm dependencies
@@ -73,14 +59,45 @@ jobs:
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm tslint:check && jlpm test:jest
                 displayName: run frontend unit tests
 
+              - task: PublishTestResults@2
+                displayName: publish frontend test results
+                inputs:
+                  testResultsFiles: junit.xml
+                  testRunTitle: 'Jest ${{ platform.name }}${{ python.name }}'
+                  mergeTestResults: true
+                condition: always()
+
+              - task: PublishCodeCoverageResults@1
+                inputs:
+                  codeCoverageTool: Cobertura
+                  summaryFileLocation: 'coverage/cobertura-coverage.xml'
+
               - script: ${{ platform.activate }} jupyterlab-lsp && jupyter serverextension list
                 displayName: list server extensions
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && python -m pytest --pyargs jupyter_lsp --cov jupyter_lsp --cov-report term-missing:skip-covered -p no:warnings --flake8 --cov-fail-under=100 -vv
+              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/utest.py --test-run-title="Pytest ${{ platform.name }}${{ python.name }}"
                 displayName: run python tests
 
               - script: ${{ platform.activate }} jupyterlab-lsp && cd dist && jupyter labextension install krassowski-jupyterlab-lsp-$(JLSP_VERSION).tgz @krassowski/jupyterlab_go_to_definition
-                displayName: build lab
+                displayName: install labextensions
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jupyter labextension list
                 displayName: list labextensions
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/atest.py
+                displayName: run browser tests
+
+              - task: PublishTestResults@2
+                displayName: publish browser test results
+                inputs:
+                  testResultsFiles: atest/output/*.xunit.xml
+                  testRunTitle: 'Robot ${{ platform.name }}${{ python.name }}'
+                  mergeTestResults: true
+                condition: always()
+
+              - task: PublishPipelineArtifact@0
+                displayName: publish browser test output
+                inputs:
+                  targetPath: atest/output
+                  artifactName: Robot ${{ platform.name }}${{ python.name }} $(Build.BuildId)
+                condition: always()

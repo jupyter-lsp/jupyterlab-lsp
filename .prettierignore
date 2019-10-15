@@ -28,3 +28,5 @@ envs
 **/.ipynb_checkpoints
 **/*.egg-info
 .yarn-packages
+atest
+coverage

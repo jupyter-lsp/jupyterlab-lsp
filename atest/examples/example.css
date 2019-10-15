@@ -1,0 +1,8 @@
+:root {
+    --some-var: 1px;
+}
+.hello {
+    border: var(--some-var);
+}
+
+.world {}

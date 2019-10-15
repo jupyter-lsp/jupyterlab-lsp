@@ -22,17 +22,18 @@ Don't see an implementation for the language server you want? You can
 > Please consider [contributing your language server spec](./CONTRIBUTING.md#spec)
 > to `jupyter-lsp`!
 
-| language<br>`/lsp/...`    | `pip install ...`        | `npm install (-g) ...` <br/>`yarn/jlpm add (-g) ...` |
-| ------------------------- | ------------------------ | :--------------------------------------------------: |
-| bash                      |                          |                `bash-language-server`                |
-| css<br/>less<br/>css      |                          |           `vscode-css-languageserver-bin`            |
-| docker                    |                          |         `dockerfile-language-server-nodejs`          |
-| html                      |                          |           `vscode-html-languageserver-bin`           |
-| javascript<br/>typescript |                          |          `javascript-typescript-langserver`          |
-| json                      |                          |           `vscode-json-languageserver-bin`           |
-| markdown                  |                          |              `unified-language-server`               |
-| python                    | `python-language-server` |                                                      |
-| yaml                      |                          |                `yaml-language-server`                |
+| language                  | `npm install (-g)` <br/>`yarn/jlpm add (-g)` |      `pip install`       | `conda install -c conda-forge` | `Rscript -e 'install.packages()'` |
+| ------------------------- | :------------------------------------------: | :----------------------: | :----------------------------: | :-------------------------------: |
+| bash                      |            `bash-language-server`            |                          |                                |                                   |
+| css<br/>less<br/>css      |       `vscode-css-languageserver-bin`        |                          |                                |                                   |
+| docker                    |     `dockerfile-language-server-nodejs`      |                          |                                |                                   |
+| html                      |       `vscode-html-languageserver-bin`       |                          |                                |                                   |
+| javascript<br/>typescript |      `javascript-typescript-langserver`      |                          |                                |                                   |
+| json                      |       `vscode-json-languageserver-bin`       |                          |                                |                                   |
+| markdown                  |          `unified-language-server`           |                          |                                |                                   |
+| python                    |                                              | `python-language-server` |    `python-language-server`    |                                   |
+| r                         |                                              |                          |       `r-languageserver`       |         `languageserver`          |
+| yaml                      |            `yaml-language-server`            |                          |                                |                                   |
 
 [language-server]: https://microsoft.github.io/language-server-protocol/specification
 [jupyter-server-proxy]: https://github.com/jupyterhub/jupyter-server-proxy

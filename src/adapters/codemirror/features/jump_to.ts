@@ -24,8 +24,14 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
     return this.jupyterlab_components.jumper;
   }
 
-  async handle_jump(locations: lsProtocol.Location[]) {
+  async handle_jump(
+    location_or_locations: lsProtocol.Location | lsProtocol.Location[]
+  ) {
     let connection = this.connection;
+    // some language servers appear to return a single object
+    const locations = Array.isArray(location_or_locations)
+      ? location_or_locations
+      : [location_or_locations];
 
     // TODO: implement selector for multiple locations
     //  (like when there are multiple definitions or usages)
