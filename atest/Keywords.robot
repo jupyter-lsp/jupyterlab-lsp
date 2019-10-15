@@ -67,6 +67,7 @@ Lab Command
     Press Keys  id:main  ${ACCEL}+SHIFT+c
     ${cmd input} =  Set Variable  css:.p-CommandPalette-input
     Wait Until Page Contains Element  ${cmd input}
+    Click Element  ${cmd input}
     Input Text  ${cmd input}   ${cmd}
     ${cmd item} =  Set Variable   css:.p-CommandPalette-item.p-mod-active
     Wait Until Page Contains Element    ${cmd item}
