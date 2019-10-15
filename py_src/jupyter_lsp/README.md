@@ -1,7 +1,7 @@
 # jupyter-lsp
 
 > a Multi-[Language Server][language-server] WebSocket proxy for your Jupyter
-> `notebook` or `lab` server. For Python 3.5+, powered by [python-jsonrpc-server][].
+> `notebook` or `lab` server. For Python 3.5+.
 
 See the parent of this repository, [jupyterlab-lsp](../../README.md) for the
 reference client implementation for [JupyterLab][]
@@ -36,7 +36,6 @@ Don't see an implementation for the language server you want? You can
 
 [language-server]: https://microsoft.github.io/language-server-protocol/specification
 [jupyter-server-proxy]: https://github.com/jupyterhub/jupyter-server-proxy
-[python-jsonrpc-server]: https://github.com/palantir/python-jsonrpc-server
 [lsp-implementations]: https://microsoft.github.io/language-server-protocol/implementors/servers
 [jupyter-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
 [jupyterlab]: https://github.com/jupyterlab/jupyterlab

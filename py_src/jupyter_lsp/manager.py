@@ -1,4 +1,4 @@
-""" A configurable frontend for `python-jsonrpc-server`
+""" A configurable frontend for stdio-based Language Servers
 """
 import typing
 
