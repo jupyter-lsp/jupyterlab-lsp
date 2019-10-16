@@ -6,7 +6,7 @@ const reuseFromUpstream = [
   'moduleNameMapper',
   'reporters',
   'setupFiles',
-  'setupFilesAfterEnv',
+  'setupFilesAfterEnv'
 ];
 
 let local = {
