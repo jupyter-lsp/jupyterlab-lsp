@@ -2,7 +2,7 @@ import { CodeMirrorLSPFeature, IFeatureCommand } from '../feature';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { PositionConverter } from '../../../converter';
 import { IVirtualPosition } from '../../../positioning';
-import { uri_to_contents_path } from '../../../utils';
+import { uri_to_contents_path, uris_equal } from '../../../utils';
 
 export class JumpToDefinition extends CodeMirrorLSPFeature {
   static commands: Array<IFeatureCommand> = [
@@ -51,7 +51,7 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
       location.range.start
     ) as IVirtualPosition;
 
-    if (uri === current_uri) {
+    if (uris_equal(uri, current_uri)) {
       let editor_index = this.virtual_editor.get_editor_index(virtual_position);
       // if in current file, transform from the position within virtual document to the editor position:
       let editor_position = this.virtual_editor.transform_virtual_to_editor(
