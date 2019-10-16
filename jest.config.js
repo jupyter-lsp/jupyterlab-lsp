@@ -2,10 +2,11 @@ const func = require('@jupyterlab/testutils/lib/jest-config');
 const upstream = func('jupyterlab-lsp', __dirname);
 
 const reuseFromUpstream = [
+  'moduleFileExtensions',
   'moduleNameMapper',
-  'setupFilesAfterEnv',
+  'reporters',
   'setupFiles',
-  'moduleFileExtensions'
+  'setupFilesAfterEnv',
 ];
 
 let local = {
