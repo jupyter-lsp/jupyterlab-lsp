@@ -111,7 +111,10 @@ class LspStdIoReader(LspStdIoBase):
                 raw = None
                 retries = 5
                 while raw is None and retries:
-                    raw = self.stream.read(content_length)
+                    try:
+                        raw = self.stream.read(content_length)
+                    except OSError:  # pragma: no cover
+                        raw = None
                     if raw is None:  # pragma: no cover
                         self.log.warning(
                             "%s failed to read message of length %s",
