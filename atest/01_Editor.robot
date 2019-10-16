@@ -92,8 +92,8 @@ Editor Should Jump To Definition
     ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
     Mouse Over    ${sel}
     Run Keyword If    "${OS}" == "Windows"    Sleep    10s
-    Click Element    ${sel}
-    Open Context Menu    ${sel}
+    Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
+    Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
     ${cursor} =    Measure Cursor Position
     Capture Page Screenshot    jump-to-definition-0.png
     Mouse Over    ${MENU JUMP}
