@@ -17,7 +17,7 @@ matrix:
       language: shell
 
 before_install:
-  - python3 -m pip install -r requirements-test.txt
+  - python3 -m pip install -r requirements-utest.txt
   - python3 -m pip freeze
   - python3 setup.py sdist
   - python3 setup.py bdist_wheel
@@ -30,14 +30,7 @@ script:
   - jlpm test
   - python3 -m jupyter serverextension list
   - python3 -m jupyter serverextension list | grep jupyter_lsp
-  # don't use setup.py test to ensure testing as-packaged
-  - python3 -m pytest
-    --pyargs jupyter_lsp
-    --cov jupyter_lsp
-    --cov-report term-missing:skip-covered
-    -p no:warnings
-    --flake8
-    --cov-fail-under=100
+  - python3 scripts/utest.py
 
 addons:
   apt:

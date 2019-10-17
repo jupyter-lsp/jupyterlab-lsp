@@ -1,0 +1,6 @@
+name: jupyterlab-lsp
+
+dependencies:
+  - robotframework-seleniumlibrary
+  - firefox
+  - geckodriver

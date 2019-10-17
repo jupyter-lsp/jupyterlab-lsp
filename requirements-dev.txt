@@ -1,6 +1,5 @@
-# extended development-time dependencies for jupyter_lsp for qa
--r requirements-test.txt
-hypothesis
+# development dependencies for jupyter_lsp for qa
+-r requirements-utest.txt
 pyls-black
 pyls-isort
 pyls-mypy
