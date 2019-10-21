@@ -101,7 +101,14 @@ class LanguageServerManager(LanguageServerManagerAPI):
                 yield session
 
     def _autodetect_language_servers(self):
-        for ep in pkg_resources.iter_entry_points(EP_SPEC_V0):
+        entry_points = []
+
+        try:
+            entry_points = list(pkg_resources.iter_entry_points(EP_SPEC_V0))
+        except Exception:  # pragma: no cover
+            self.log.exception("Failed to load entry_points")
+
+        for ep in entry_points:
             try:
                 spec_finder = ep.load()  # type: SpecMaker
             except Exception as err:  # pragma: no cover

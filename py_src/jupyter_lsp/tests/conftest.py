@@ -20,10 +20,12 @@ KNOWN_LANGUAGES = [
     "ipythongfm",
     "javascript",
     "json",
+    "jsx",
     "less",
     "markdown",
     "python",
     "scss",
+    "typescript-jsx",
     "typescript",
     "yaml",
 ]

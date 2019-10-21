@@ -1,5 +1,7 @@
 import { PageConfig } from '@jupyterlab/coreutils';
 
+const RE_WIN_PATH = /^file:\/\/\/[a-z]:\//i;
+
 export async function sleep(timeout: number) {
   return new Promise(resolve => {
     setTimeout(() => {
@@ -100,6 +102,34 @@ export function server_root_uri() {
   } else {
     return 'file://' + server_root;
   }
+}
+
+/**
+ * compare two URIs, discounting:
+ * - drive capitalization
+ * TODO: probably use vscode-uri
+ */
+export function uris_equal(a: string, b: string) {
+  const win_paths = is_win_path(a) && is_win_path(b);
+  if (win_paths) {
+    return normalize_win_path(a) === normalize_win_path(b);
+  } else {
+    return a === b;
+  }
+}
+
+/**
+ * grossly detect whether a URI represents a file on a windows drive
+ */
+export function is_win_path(uri: string) {
+  return uri.match(RE_WIN_PATH);
+}
+
+/**
+ * lowercase the drive component of a URI
+ */
+export function normalize_win_path(uri: string) {
+  return uri.replace(RE_WIN_PATH, it => it.toLowerCase());
 }
 
 export function uri_to_contents_path(child: string, parent?: string) {

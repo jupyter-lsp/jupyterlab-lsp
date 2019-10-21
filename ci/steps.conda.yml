@@ -1,0 +1,22 @@
+parameters:
+  name: Linux
+  packages: ''
+
+steps:
+  - ${{ if eq(parameters.name, 'Linux') }}:
+      - bash: echo "##vso[task.prependpath]$CONDA/bin"
+        displayName: conda $PATH
+
+  - ${{ if eq(parameters.name, 'MacOSX') }}:
+      - bash: echo "##vso[task.prependpath]$CONDA/bin"
+        displayName: conda $PATH
+
+      - bash: sudo chown -R $USER $CONDA
+        displayName: own conda
+
+  - ${{ if eq(parameters.name, 'Windows') }}:
+      - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+        displayName: conda %PATH%
+
+  - script: conda install -yn base -c conda-forge conda python-libarchive-c ${{ parameters.packages}}
+    displayName: update conda

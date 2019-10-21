@@ -24,3 +24,7 @@ dependencies:
   - pytest-cov
   - pytest-flake8
   - pytest-runner
+  # browser testing
+  - robotframework-seleniumlibrary
+  - firefox
+  - geckodriver

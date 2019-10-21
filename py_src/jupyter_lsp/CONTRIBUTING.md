@@ -29,8 +29,8 @@ You can contribute to `jupyter-lsp` by:
 
 ## Future Roadmap Items
 
-- add hook system to allow serverextensions to modify, inspect and react to
-  LSP messages
+- add hook system to allow serverextensions/kernels to modify, inspect and
+  react to LSP messages
 
 ## Specs
 
@@ -125,7 +125,7 @@ setuptools.setup(
 
 Test it!
 
-```
+```bash
 python -m pip install -e .
 ```
 
@@ -140,9 +140,11 @@ python setup.py sdist bdist_wheel
 ### Set up the environment
 
 ```bash
-pip install -r requirements-dev.txt  # in a virtualenv
+conda env update -n jupyterlab-lsp   # create a conda env
+source activate jupyterlab-lsp       # activate it
 # or...
-conda env update                     # in a conda env
+pip install -r requirements-dev.txt  # in a virtualenv, probably
+                                     # ... and install nodejs, somehow
 ```
 
 ## Testing `jupyter-lsp`
@@ -150,7 +152,25 @@ conda env update                     # in a conda env
 ### Unit & Code Style Tests
 
 ```bash
-python setup.py test
+python scripts/utest.py
+```
+
+### Browser-based Acceptance Tests
+
+Prepare the enviroment:
+
+```bash
+conda env update -n jupyterlab-lsp --file environment-atest.yml
+# or
+pip install -r requirements-atest.txt  # ... and install geckodriver, somehow
+```
+
+> Also ensure you've `jupyter labextension install .`ed in the root of the repo
+
+Run the tests:
+
+```bash
+python scripts/atest.py
 ```
 
 ### Formatting
@@ -159,7 +179,7 @@ Minimal code style is enforced with `flake8` during unit testing. If installed,
 `pytest-black` and `pytest-isort` can help find potential problems, and lead to
 cleaner commits, but are not enforced during CI.
 
-You can clean up your code using the projects style guide in:
+You can clean up your code using the project's style guide with:
 
 ```bash
 isort -y -rc py_src
@@ -169,7 +189,6 @@ black py_src
 > TBD
 >
 > - hypothesis
-> - conda/docker
 > - mypy
 
 ## Documentation

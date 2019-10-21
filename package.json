@@ -41,7 +41,7 @@
     "tslint": "tslint --fix -c tslint.json --project tsconfig.json '**/*{.ts,.tsx}'",
     "tslint:check": "tslint -c tslint.json --project tsconfig.json '**/*{.ts,.tsx}'",
     "test": "jlpm lint:check && jlpm test:jest",
-    "test:jest": "jlpm jest"
+    "test:jest": "jlpm jest --coverage --coverageReporters=cobertura --coverageReporters=html --coverageReporters=text-summary"
   },
   "dependencies": {
     "@krassowski/jupyterlab_go_to_definition": "^0.7.1",
@@ -76,21 +76,22 @@
     "events": "^3.0.0",
     "javascript-typescript-langserver": "^2.11.3",
     "jest": "^24.7.1",
+    "jest-junit": "^8.0.0",
     "jsonrpc-ws-proxy": "0.0.5",
     "prettier": "^1.18.2",
     "react": "~16.8.4",
     "rimraf": "^2.6.1",
     "ts-jest": "^24.0.2",
+    "tslint": "^5.15.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.0.1",
     "tslint-react": "^4.0.0",
-    "tslint": "^5.15.0",
     "typescript": "~3.4.5",
     "unified-language-server": "^0.3.0",
     "vscode-css-languageserver-bin": "^1.4.0",
     "vscode-html-languageserver-bin": "^1.4.0",
     "vscode-json-languageserver-bin": "^1.0.1",
-    "yaml-language-server": "^0.5.7"
+    "yaml-language-server": "^0.4.0"
   },
   "peerDependencies": {
     "@jupyterlab/application": "~1.1.3",

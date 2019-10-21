@@ -1,0 +1,3 @@
+# acceptance test dependencies for jupyter_lsp
+-r requirements.txt
+robotframework-seleniumlibrary

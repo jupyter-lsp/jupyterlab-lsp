@@ -15,3 +15,4 @@ variables:
 
 jobs:
   - template: ci/job.test.yml
+  - template: ci/job.combine.yml

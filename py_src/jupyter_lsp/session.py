@@ -29,8 +29,8 @@ class LanguageServerSession(LoggingConfigurable):
     process = Instance(
         subprocess.Popen, help="the language server subprocess", allow_none=True
     )
-    writer = Instance(stdio.Writer, help="the JSON-RPC writer", allow_none=True)
-    reader = Instance(stdio.Reader, help="the JSON-RPC reader", allow_none=True)
+    writer = Instance(stdio.LspStdIoWriter, help="the JSON-RPC writer", allow_none=True)
+    reader = Instance(stdio.LspStdIoReader, help="the JSON-RPC reader", allow_none=True)
     from_lsp = Instance(
         Queue, help="a queue for string messages from the server", allow_none=True
     )
@@ -50,6 +50,11 @@ class LanguageServerSession(LoggingConfigurable):
         """
         super().__init__(*args, **kwargs)
         atexit.register(self.stop)
+
+    def __repr__(self):  # pragma: no cover
+        return "<LanguageServerSession(languages={}, argv={})>".format(
+            self.languages, self.argv
+        )
 
     def initialize(self):
         """ (re)initialize a language server session
@@ -112,14 +117,14 @@ class LanguageServerSession(LoggingConfigurable):
     def init_reader(self):
         """ create the stdout reader (from the language server)
         """
-        self.reader = stdio.Reader(
+        self.reader = stdio.LspStdIoReader(
             stream=self.process.stdout, queue=self.from_lsp, parent=self
         )
 
     def init_writer(self):
         """ create the stdin writer (to the language server)
         """
-        self.writer = stdio.Writer(
+        self.writer = stdio.LspStdIoWriter(
             stream=self.process.stdin, queue=self.to_lsp, parent=self
         )
 
