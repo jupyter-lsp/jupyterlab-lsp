@@ -4,7 +4,6 @@ from pathlib import Path
 
 import setuptools
 
-
 setuptools.setup(
     version=re.findall(
         r"""__version__ = "([^"]+)"$""",
