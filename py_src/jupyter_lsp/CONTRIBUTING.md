@@ -147,6 +147,14 @@ pip install -r requirements-dev.txt  # in a virtualenv, probably
                                      # ... and install nodejs, somehow
 ```
 
+Install a developement version from master in your virtual environment:
+
+```
+python -m pip install -e .
+jupyter labextension install .
+```
+
+
 ## Testing `jupyter-lsp`
 
 ### Unit & Code Style Tests
@@ -165,6 +173,7 @@ conda env update -n jupyterlab-lsp --file environment-atest.yml
 pip install -r requirements-atest.txt  # ... and install geckodriver, somehow
 ```
 
+> Ubuntu users can install geckodriver with `apt install firefox-geckodriver`.
 > Also ensure you've `jupyter labextension install .`ed in the root of the repo
 
 Run the tests:
@@ -172,6 +181,18 @@ Run the tests:
 ```bash
 python scripts/atest.py
 ```
+
+
+#### Troubleshooting
+
+If you see a following error message:
+
+```
+Parent suite setup failed:
+TypeError: expected str, bytes or os.PathLike object, not NoneType
+```
+
+it may indicate that you have no firefox, or no geckodriver installed (or discoverable in the search path).
 
 ### Formatting
 
