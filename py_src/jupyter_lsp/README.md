@@ -26,7 +26,7 @@ Don't see an implementation for the language server you want? You can
 | language                  | `npm install (-g)`, or <br/>`yarn/jlpm add (-g)` |
 | ------------------------- | :------------------------------------------: |
 | bash                      |            `bash-language-server`            |
-| css<br/>less<br/>css      |       `vscode-css-languageserver-bin`        |
+| css<br/>less<br/>sass     |       `vscode-css-languageserver-bin`        |
 | docker                    |     `dockerfile-language-server-nodejs`      |
 | html                      |       `vscode-html-languageserver-bin`       |
 | javascript<br/>typescript |      `javascript-typescript-langserver`      |
