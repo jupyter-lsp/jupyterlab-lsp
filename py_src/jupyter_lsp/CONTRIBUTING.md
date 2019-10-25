@@ -154,7 +154,6 @@ python -m pip install -e .
 jupyter labextension install .
 ```
 
-
 ## Testing `jupyter-lsp`
 
 ### Unit & Code Style Tests
@@ -181,7 +180,6 @@ Run the tests:
 ```bash
 python scripts/atest.py
 ```
-
 
 #### Troubleshooting
 
