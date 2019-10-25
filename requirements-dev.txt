@@ -4,3 +4,4 @@ pyls-black
 pyls-isort
 pyls-mypy
 pytest-cov
+pypandadoc
