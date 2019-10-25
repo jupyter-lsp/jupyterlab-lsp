@@ -24,15 +24,15 @@ Don't see an implementation for the language server you want? You can
 > to `jupyter-lsp`!
 
 | language                  | `npm install (-g)`, or <br/>`yarn/jlpm add (-g)` |
-| ------------------------- | :------------------------------------------: |
-| bash                      |            `bash-language-server`            |
-| css<br/>less<br/>sass     |       `vscode-css-languageserver-bin`        |
-| docker                    |     `dockerfile-language-server-nodejs`      |
-| html                      |       `vscode-html-languageserver-bin`       |
-| javascript<br/>typescript |      `javascript-typescript-langserver`      |
-| json                      |       `vscode-json-languageserver-bin`       |
-| markdown                  |          `unified-language-server`           |
-| yaml                      |            `yaml-language-server`            |
+| ------------------------- | :----------------------------------------------: |
+| bash                      |              `bash-language-server`              |
+| css<br/>less<br/>sass     |         `vscode-css-languageserver-bin`          |
+| docker                    |       `dockerfile-language-server-nodejs`        |
+| html                      |         `vscode-html-languageserver-bin`         |
+| javascript<br/>typescript |        `javascript-typescript-langserver`        |
+| json                      |         `vscode-json-languageserver-bin`         |
+| markdown                  |            `unified-language-server`             |
+| yaml                      |              `yaml-language-server`              |
 
 | language | `conda install -c conda-forge` |         language-specific package manager         |
 | -------- | :----------------------------: | :-----------------------------------------------: |
