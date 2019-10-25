@@ -14,7 +14,7 @@ them if they _are_ installed and we know about them.
 > You can disable this behavior by configuring [`autodetect`](#autodetect)
 
 Use a package manager to install a [language server][lsp-implementations]
-(also [this list][langserver]) from the table below: these implementations are
+(also [this list][langserver]) from the tables below: these implementations are
 tested to work with `jupyter-lsp`.
 
 Don't see an implementation for the language server you want? You can
@@ -23,18 +23,21 @@ Don't see an implementation for the language server you want? You can
 > Please consider [contributing your language server spec](./CONTRIBUTING.md#spec)
 > to `jupyter-lsp`!
 
-| language                  | `npm install (-g)` <br/>`yarn/jlpm add (-g)` |      `pip install`       | `conda install -c conda-forge` | `Rscript -e 'install.packages()'` |
-| ------------------------- | :------------------------------------------: | :----------------------: | :----------------------------: | :-------------------------------: |
-| bash                      |            `bash-language-server`            |                          |                                |                                   |
-| css<br/>less<br/>css      |       `vscode-css-languageserver-bin`        |                          |                                |                                   |
-| docker                    |     `dockerfile-language-server-nodejs`      |                          |                                |                                   |
-| html                      |       `vscode-html-languageserver-bin`       |                          |                                |                                   |
-| javascript<br/>typescript |      `javascript-typescript-langserver`      |                          |                                |                                   |
-| json                      |       `vscode-json-languageserver-bin`       |                          |                                |                                   |
-| markdown                  |          `unified-language-server`           |                          |                                |                                   |
-| python                    |                                              | `python-language-server` |    `python-language-server`    |                                   |
-| r                         |                                              |                          |       `r-languageserver`       |         `languageserver`          |
-| yaml                      |            `yaml-language-server`            |                          |                                |                                   |
+| language                  | `npm install (-g)`, or <br/>`yarn/jlpm add (-g)` |
+| ------------------------- | :------------------------------------------: |
+| bash                      |            `bash-language-server`            |
+| css<br/>less<br/>css      |       `vscode-css-languageserver-bin`        |
+| docker                    |     `dockerfile-language-server-nodejs`      |
+| html                      |       `vscode-html-languageserver-bin`       |
+| javascript<br/>typescript |      `javascript-typescript-langserver`      |
+| json                      |       `vscode-json-languageserver-bin`       |
+| markdown                  |          `unified-language-server`           |
+| yaml                      |            `yaml-language-server`            |
+
+| language | `conda install -c conda-forge` |         language-specific package manager         |
+| -------- | :----------------------------: | :-----------------------------------------------: |
+| python   |    `python-language-server`    |       `pip install python-language-server`        |
+| r        |       `r-languageserver`       | `Rscript -e 'install.packages("languageserver")'` |
 
 [language-server]: https://microsoft.github.io/language-server-protocol/specification
 [langserver]: https://langserver.org
