@@ -194,7 +194,7 @@ python scripts/atest.py
   in the search path).
 
 - If a test suite for a specific language fails it may indicate that you have no
-  appropriate server language for installed (see packages table in [README.md](./README.md))
+  appropriate server language installed (see packages table in [README.md](./README.md))
 
 ### Formatting
 
