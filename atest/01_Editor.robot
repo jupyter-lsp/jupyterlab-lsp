@@ -91,7 +91,8 @@ Editor Should Jump To Definition
     Set Tags    feature:jump-to-definition
     ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
     Mouse Over    ${sel}
-    Run Keyword If    "${OS}" == "Windows"    Sleep    10s
+    Sleep    10s
+    Mouse Over    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
     ${cursor} =    Measure Cursor Position
