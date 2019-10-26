@@ -4,7 +4,7 @@
 > `notebook` or `lab` server. For Python 3.5+.
 
 See the parent of this repository, [jupyterlab-lsp](../../README.md) for the
-reference client implementation for [JupyterLab][]
+reference client implementation for [JupyterLab][].
 
 ## batteries expected
 

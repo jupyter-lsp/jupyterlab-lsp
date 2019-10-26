@@ -165,13 +165,22 @@ conda env update -n jupyterlab-lsp --file environment-atest.yml
 pip install -r requirements-atest.txt  # ... and install geckodriver, somehow
 ```
 
-> Also ensure you've `jupyter labextension install .`ed in the root of the repo
+> To use with `jupyterlab-lsp` in JupyterLab, ensure you've
+>
+> ```
+> jlpm
+> jlpm build
+> jupyter labextension install .
+> ```
+
+````
+> in the root of this repo. See the [README](../../README.md#development) for more
 
 Run the tests:
 
 ```bash
 python scripts/atest.py
-```
+````
 
 ### Formatting
 
