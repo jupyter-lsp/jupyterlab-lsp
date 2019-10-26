@@ -47,7 +47,7 @@ Tear Down Everything
 
 Wait For Splash
     Wait Until Page Contains Element   ${SPLASH}   timeout=180s
-    Wait Until Page Does Not Contain Element   ${SPLASH}
+    Wait Until Page Does Not Contain Element   ${SPLASH}   timeout=180s
     Execute Javascript    window.onbeforeunload \= function (){}
 
 Open JupyterLab
