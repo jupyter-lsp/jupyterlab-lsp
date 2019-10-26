@@ -1,6 +1,6 @@
 {
   "title": "Language Server",
-  "description": "Language Server Protocol settings.",
+  "description": "Language Server Protocol settings",
   "type": "object",
   "properties": {},
   "jupyter.lab.shortcuts": [
