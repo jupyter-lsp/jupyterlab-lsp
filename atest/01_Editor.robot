@@ -74,6 +74,7 @@ Editor Shows Features for Language
     [Teardown]    Remove File    ${OUTPUT DIR}${/}home${/}${file}
 
 Open ${file} in Editor
+    Run Keyword And Ignore Error    Click Element    .p-TabBar-tab[data-id="filebrowser"]:not(.p-mod-current)
     Open Context Menu    css:.jp-DirListing-item[title="${file}"]
     Mouse Over    ${MENU OPEN WITH}
     Wait Until Page Contains Element    ${MENU EDITOR}
