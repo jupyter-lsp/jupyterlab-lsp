@@ -156,23 +156,37 @@ jupyter labextension install @krassowski/jupyterlab-lsp@0.5.0-rc.0
 
 ## Development
 
-For a development install (requires npm version 4 or later), do the following in the repository directory:
+For a development install (requires `nodejs` 8 or later and `jupyterlab` 1.1),
+run the following in the repository directory:
 
 ```bash
-npm install
-npm run build
-jupyter labextension link .
+jlpm
+jlpm build
+jupyter labextension install .
 ```
 
 To rebuild the package and the JupyterLab app:
 
 ```bash
-npm run build
+jlpm build
 jupyter lab build
 ```
 
-To run tests suite:
+To watch the files and build continuously:
 
 ```bash
-npm test
+jlpm watch           # leave this running...
+jupyter lab --watch  # ...in another terminal
+```
+
+To check and fix code style:
+
+```bash
+jlpm lint
+```
+
+To run test the suite:
+
+```bash
+jlpm test
 ```
