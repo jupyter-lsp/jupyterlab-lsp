@@ -74,12 +74,17 @@ Editor Shows Features for Language
     [Teardown]    Remove File    ${OUTPUT DIR}${/}home${/}${file}
 
 Open ${file} in Editor
-    Run Keyword And Ignore Error    Click Element    css:.p-TabBar-tab[data-id="filebrowser"]:not(.p-mod-current)
+    Ensure File Browser is Open
     Open Context Menu    css:.jp-DirListing-item[title="${file}"]
     Mouse Over    ${MENU OPEN WITH}
     Wait Until Page Contains Element    ${MENU EDITOR}
     Mouse Over    ${MENU EDITOR}
     Click Element    ${MENU EDITOR}
+
+Ensure File Browser is Open
+    ${sel} =    Set Variable    css:.p-TabBar-tab[data-id="filebrowser"]:not(.p-mod-current)
+    ${els} =    Get WebElements    ${sel}
+    Run Keyword If    ${els.__len__()}    Click Element    ${sel}
 
 Editor Should Show Diagnostics
     [Arguments]    ${diagnostic}
