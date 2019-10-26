@@ -190,7 +190,7 @@ python scripts/atest.py
   TypeError: expected str, bytes or os.PathLike object, not NoneType
   ```
 
-  it may indicate that you have no `firefox`, or `geckodriver` installed (or discoverable 
+  it may indicate that you have no `firefox`, or `geckodriver` installed (or discoverable
   in the search path).
 
 - If a test suite for a specific language fails it may indicate that you have no
