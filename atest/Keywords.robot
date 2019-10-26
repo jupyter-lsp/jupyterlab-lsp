@@ -48,6 +48,7 @@ Tear Down Everything
 Wait For Splash
     Wait Until Page Contains Element   ${SPLASH}   timeout=180s
     Wait Until Page Does Not Contain Element   ${SPLASH}
+    Execute Javascript    window.onbeforeunload \= function (){}
 
 Open JupyterLab
     Set Environment Variable    MOZ_HEADLESS    ${HEADLESS}
@@ -57,13 +58,13 @@ Open JupyterLab
     Go To  ${URL}lab?token=${TOKEN}
     Set Window Size  1024  768
     Wait For Splash
-    Execute Javascript    window.onbeforeunload \= function (){}
 
 Close JupyterLab
     Close All Browsers
 
 Reset Application State
     Lab Command   Reset Application State
+    Reload Page
     Wait For Splash
 
 Lab Command
