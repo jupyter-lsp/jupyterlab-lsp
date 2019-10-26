@@ -63,9 +63,10 @@ Close JupyterLab
     Close All Browsers
 
 Reset Application State
+    Lab Command   Close All Tabs
     Lab Command   Reset Application State
-    Reload Page
     Wait For Splash
+    Lab Command   Close All Tabs
 
 Lab Command
     [Arguments]  ${cmd}
