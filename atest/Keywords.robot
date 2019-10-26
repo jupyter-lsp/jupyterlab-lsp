@@ -4,13 +4,14 @@ Library   SeleniumLibrary
 Library   OperatingSystem
 Library   Process
 Library   String
-Library   Ports
+Library   ./Ports.py
 
 
 *** Keywords ***
 Setup Server and Browser
     ${port} =  Get Unused Port
     Set Global Variable    ${PORT}    ${port}
+    Set Global Variable    ${URL}  http://localhost:${PORT}${BASE}
     ${accel} =  Evaluate    "COMMAND" if "${OS}" == "Darwin" else "CTRL"
     Set Global Variable  ${ACCEL}  ${accel}
     ${token} =   Generate Random String

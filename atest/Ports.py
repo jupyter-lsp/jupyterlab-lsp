@@ -1,10 +1,10 @@
-""" get a randome port
+""" get a random port
 """
 import socket
 
 
-def get_unused_port(self):
-    """ Get an unused port by trying to listin to any random port, then stop.
+def get_unused_port():
+    """ Get an unused port by trying to listen to any random port.
 
         Probably could introduce race conditions if inside a tight loop.
     """
