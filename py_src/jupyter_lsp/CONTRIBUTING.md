@@ -147,9 +147,9 @@ pip install -r requirements-dev.txt  # in a virtualenv, probably
                                      # ... and install nodejs, somehow
 ```
 
-Install a development version from master in your virtual environment:
+Install a development version from `master` in your virtual environment:
 
-```
+```bash
 python -m pip install -e .
 jupyter labextension install .
 ```
@@ -190,9 +190,10 @@ python scripts/atest.py
   TypeError: expected str, bytes or os.PathLike object, not NoneType
   ```
 
-  it may indicate that you have no firefox, or no geckodriver installed (or discoverable in the search path).
+  it may indicate that you have no `firefox`, or `geckodriver` installed (or discoverable 
+  in the search path).
 
-* If a test suite for a specific language fails it may indicate that you have no
+- If a test suite for a specific language fails it may indicate that you have no
   appropriate server language for installed (see packages table in [README.md](./README.md))
 
 ### Formatting
