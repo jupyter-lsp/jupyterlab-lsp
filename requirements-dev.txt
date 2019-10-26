@@ -1,4 +1,4 @@
-# development dependencies for jupyter_lsp for qa
+# development dependencies for jupyter_lsp for qa, with lab
 -r requirements-utest.txt
 pyls-black
 pyls-isort

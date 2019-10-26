@@ -1,0 +1,3 @@
+# the version of jupyterlab
+-r requirements.txt
+jupyterlab >=1.1,<1.2

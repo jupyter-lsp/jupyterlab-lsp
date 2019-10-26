@@ -1,5 +1,5 @@
 # test time dependencies for jupyter_lsp, including one language server
--r requirements.txt
+-r requirements-lab.txt
 flake8 >=3.5
 pytest-asyncio
 pytest-cov

@@ -157,6 +157,15 @@ python scripts/utest.py
 
 ### Browser-based Acceptance Tests
 
+The browser tests will launch JupyterLab on a random port and exercise the
+Language Server features with [Robot Framework][] and [SeleniumLibrary][].
+
+[robot framework]: https://github.com/robotframework/robotframework
+[seleniumlibrary]: https://github.com/robotframework/seleniumlibrary
+
+First, ensure you've prepared JupyterLab for `jupyterlab-lsp`
+[development](../../README.md#development).
+
 Prepare the enviroment:
 
 ```bash
@@ -165,12 +174,19 @@ conda env update -n jupyterlab-lsp --file environment-atest.yml
 pip install -r requirements-atest.txt  # ... and install geckodriver, somehow
 ```
 
-> Also ensure you've `jupyter labextension install .`ed in the root of the repo
-
 Run the tests:
 
 ```bash
 python scripts/atest.py
+```
+
+The Robot Framework reports and screenshots will be in `atest/output`, with
+`<operating system>_<python version>.log.html` being the most interesting
+artifacts, e.g.
+
+```
+- linux_37.log.html
+- linux_37.report.html
 ```
 
 ### Formatting

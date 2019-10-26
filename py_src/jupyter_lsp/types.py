@@ -1,12 +1,10 @@
 """ API used by spec finders and manager
 """
-import os
 import pathlib
 import shutil
 import sys
 from typing import Callable, Dict, List, Text
 
-from jupyterlab.commands import get_app_dir
 from notebook.transutils import _
 from traitlets import List as List_, Unicode, default
 from traitlets.config import LoggingConfigurable
@@ -58,20 +56,32 @@ class LanguageServerManagerAPI(LoggingConfigurable):
 
     @default("node_roots")
     def _default_node_roots(self):
-        """ get the "usual suspects" for where node_modules may be found
+        """ get the "usual suspects" for where `node_modules` may be found
 
         - where this was launch (usually the same as NotebookApp.notebook_dir)
-        - the JupyterLab staging folder
+        - the JupyterLab staging folder (if available)
         - wherever conda puts it
         - wherever some other conventions put it
         """
-        return [
-            os.getcwd(),
-            pathlib.Path(get_app_dir()) / "staging",
-            pathlib.Path(sys.prefix) / "lib",
-            # TODO: "well-known" windows paths
-            sys.prefix,
-        ]
+
+        # check where the server was started first
+        roots = [pathlib.Path.cwd()]
+
+        # try jupyterlab staging next
+        try:
+            from jupyterlab import commands
+
+            roots += [pathlib.Path(commands.get_app_dir()) / "staging"]
+        except ImportError:  # pragma: no cover
+            pass
+
+        # conda puts stuff in $PREFIX/lib on POSIX systems
+        roots += [pathlib.Path(sys.prefix) / "lib"]
+
+        # ... but right in %PREFIX% on nt
+        roots += [pathlib.Path(sys.prefix)]
+
+        return roots
 
 
 # Gotta be down here so it can by typed... really should have a IL
