@@ -1,6 +1,8 @@
 *** Variables ***
-${PORT}  18888
 ${SPLASH}  id:jupyterlab-splash
+
+# to help catch hard-coded paths
 ${BASE}   /@est/
-${URL}  http://localhost:${PORT}${BASE}
+
+# override with `python scripts/atest.py --variable HEADLESS:0`
 ${HEADLESS}  1
