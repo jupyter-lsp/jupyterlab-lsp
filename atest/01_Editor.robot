@@ -11,6 +11,7 @@ ${CM CURSORS}     css:.CodeMirror-cursors:not([style='visibility: hidden'])
 
 *** Test Cases ***
 Bash
+    [Documentation]  TODO: figure out why the first server is extra flaky 
     Wait Until Keyword Succeeds    3x    10s    Editor Shows Features for Language    Bash    example.sh    Diagnostics=Failed to parse expression
     ...    Jump to Definition=fib
 
