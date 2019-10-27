@@ -14,6 +14,8 @@ parameters:
       spec: '>=3.6,<3.7.0a0'
     - name: ThreeSeven
       spec: '>=3.7,<3.8.0a0'
+  env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
+  lab_build: jupyter labextension install krassowski-jupyterlab-lsp-$(JLSP_VERSION).tgz @krassowski/jupyterlab_go_to_definition
 
 jobs:
   - ${{ each platform in parameters.platforms }}:
@@ -29,19 +31,19 @@ jobs:
               - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}"
                 displayName: update environment with python version
 
-              - script: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
+              - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
                 displayName: update conda environment with test dependencies
 
               - script: conda info && conda list -n jupyterlab-lsp
                 displayName: list conda packages and info
 
-              # - task: CacheBeta@0
-              #   inputs:
-              #     key: yarn | $(Agent.OS) | yarn.lock
-              #     path: $(YARN_CACHE_FOLDER)
-              #   displayName: restore cached yarn packages
+              - task: CacheBeta@0
+                inputs:
+                  key: yarn | $(Agent.OS) | yarn.lock
+                  path: $(YARN_CACHE_FOLDER)
+                displayName: restore cached yarn packages
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm
+              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm || jlpm || jlpm
                 displayName: install npm dependencies
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm build
@@ -78,7 +80,7 @@ jobs:
               - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/utest.py --test-run-title="Pytest ${{ platform.name }}${{ python.name }}"
                 displayName: run python tests
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && cd dist && jupyter labextension install krassowski-jupyterlab-lsp-$(JS_JLLSP_VERSION).tgz @krassowski/jupyterlab_go_to_definition
+              - script: ${{ platform.activate }} jupyterlab-lsp && cd dist && ${{ parameters.lab_build }} || ${{ parameters.lab_build }} || ${{ parameters.lab_build }}
                 displayName: install labextensions
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jupyter labextension list
