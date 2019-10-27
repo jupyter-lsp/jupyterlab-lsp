@@ -114,6 +114,16 @@
   },
   "jupyterlab": {
     "extension": true,
+    "discovery": {
+      "server": {
+        "base": {
+          "name": "jupyter-lsp"
+        },
+        "managers": [
+          "pip"
+        ]
+      }
+    },
     "schemaDir": "schema"
   }
 }
