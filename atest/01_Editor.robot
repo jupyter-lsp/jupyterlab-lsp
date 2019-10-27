@@ -71,7 +71,12 @@ Editor Shows Features for Language
         Run Keyword If    "${f}" == "Diagnostics"    Editor Should Show Diagnostics    ${features["${f}"]}
         ...    ELSE IF    "${f}" == "Jump to Definition"    Editor Should Jump To Definition    ${features["${f}"]}
     END
-    [Teardown]    Remove File    ${OUTPUT DIR}${/}home${/}${file}
+    [Teardown]    Clean Up After Working With File    ${file}
+
+Clean Up After Working With File
+    [Arguments]    ${file}
+    Remove File    ${OUTPUT DIR}${/}home${/}${file}
+    Lab Command    Close All Tabs
 
 Open ${file} in Editor
     Ensure File Browser is Open
