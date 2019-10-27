@@ -2,7 +2,7 @@
 
 Releases may require building both the python package and nodejs packages.
 
-## Updating Versions
+## Updating Version Strings
 
 The version for PyPI must be updated in two places:
 
