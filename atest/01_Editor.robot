@@ -11,7 +11,8 @@ ${CM CURSORS}     css:.CodeMirror-cursors:not([style='visibility: hidden'])
 
 *** Test Cases ***
 Bash
-    Editor Shows Features for Language    Bash    example.sh    Diagnostics=Failed to parse expression    Jump to Definition=fib
+    Wait Until Keyword Succeeds    3x    10s    Shows Features for Language    Bash    example.sh    Diagnostics=Failed to parse expression
+    ...    Jump to Definition=fib
 
 CSS
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable-2')][contains(text(), '--some-var')])[last()]
