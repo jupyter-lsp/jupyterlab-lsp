@@ -2,6 +2,7 @@
   "title": "Language Server",
   "description": "Language Server Protocol settings.",
   "type": "object",
+  "properties": {},
   "jupyter.lab.shortcuts": [
     {
       "command": "lsp:jump-to-definition-notebook",
