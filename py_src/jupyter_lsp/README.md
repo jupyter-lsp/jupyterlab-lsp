@@ -1,7 +1,7 @@
 # jupyter-lsp
 
-> a Multi-[Language Server][language-server] WebSocket proxy for your Jupyter
-> `notebook` or `lab` server. For Python 3.5+.
+Multi-[Language Server][language-server] WebSocket proxy for your Jupyter
+`notebook` or `lab` server. For Python 3.5+.
 
 See the parent of this repository, [jupyterlab-lsp](../../README.md) for the
 reference client implementation for [JupyterLab][].
@@ -9,9 +9,8 @@ reference client implementation for [JupyterLab][].
 ## Installing language servers
 
 `jupyter-lsp` does not come with any Language Servers! However, we will try to use
-them if they _are_ installed and we know about them.
-
-> You can disable this behavior by configuring [`autodetect`](#autodetect)
+them if they _are_ installed and we know about them (you can disable this behavior
+by configuring [`autodetect`](#autodetect)).
 
 Use a package manager to install a [language server][lsp-implementations]
 (also [this list][langserver]) from the tables below: these implementations are
