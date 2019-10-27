@@ -17,15 +17,15 @@ Use a package manager to install a [language server][lsp-implementations]
 tested to work with `jupyter-lsp`.
 
 | language                  | `npm install (-g)`, or `yarn/jlpm add (-g)` |
-| ------------------------- | :----------------------------------------------: |
-| bash                      |              `bash-language-server`              |
-| css<br/>less<br/>sass     |         `vscode-css-languageserver-bin`          |
-| docker                    |       `dockerfile-language-server-nodejs`        |
-| html                      |         `vscode-html-languageserver-bin`         |
-| javascript<br/>typescript |        `javascript-typescript-langserver`        |
-| json                      |         `vscode-json-languageserver-bin`         |
-| markdown                  |            `unified-language-server`             |
-| yaml                      |              `yaml-language-server`              |
+| ------------------------- | :-----------------------------------------: |
+| bash                      |           `bash-language-server`            |
+| css<br/>less<br/>sass     |       `vscode-css-languageserver-bin`       |
+| docker                    |     `dockerfile-language-server-nodejs`     |
+| html                      |      `vscode-html-languageserver-bin`       |
+| javascript<br/>typescript |     `javascript-typescript-langserver`      |
+| json                      |      `vscode-json-languageserver-bin`       |
+| markdown                  |          `unified-language-server`          |
+| yaml                      |           `yaml-language-server`            |
 
 | language | `conda install -c conda-forge` |         language-specific package manager         |
 | -------- | :----------------------------: | :-----------------------------------------------: |
@@ -38,7 +38,6 @@ tested to work with `jupyter-lsp`.
 [lsp-implementations]: https://microsoft.github.io/language-server-protocol/implementors/servers
 [jupyter-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
 [jupyterlab]: https://github.com/jupyterlab/jupyterlab
-
 
 Don't see an implementation for the language server you need? You can
 [bring your own language server](#adding-custom-language-servers).

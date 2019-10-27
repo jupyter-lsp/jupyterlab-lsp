@@ -1,6 +1,6 @@
 # Language Server Protocol integration for JupyterLab
 
-[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) [![Build Status](https://dev.azure.com/krassowskimichal/jupyterlab-lsp/_apis/build/status/jupyterlab-lsp?branchName=master)](https://dev.azure.com/krassowskimichal/jupyterlab-lsp/_build/latest?definitionId=1&branchName=master) [![codebeat badge](https://codebeat.co/badges/f55d0f28-8a84-4199-bc88-f2c306a9ce65)](https://codebeat.co/projects/github-com-krassowski-jupyterlab-lsp-master)  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb) 
+[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) [![Build Status](https://dev.azure.com/krassowskimichal/jupyterlab-lsp/_apis/build/status/jupyterlab-lsp?branchName=master)](https://dev.azure.com/krassowskimichal/jupyterlab-lsp/_build/latest?definitionId=1&branchName=master) [![codebeat badge](https://codebeat.co/badges/f55d0f28-8a84-4199-bc88-f2c306a9ce65)](https://codebeat.co/projects/github-com-krassowski-jupyterlab-lsp-master) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
 
 _This extension is in its early days, but you are welcome to check it out, leave feedback and/or a PR_
 
@@ -51,9 +51,9 @@ New in 0.6.0:
 - system of settings, including options:
   - to enable aggressive autocompletion (like in hinterland)
   - to change the verbosity of signature hints (whether to show documentation, number of lines to be shown)
- - "rename" action in notebooks
- - gutter with linter results (low priority)
- - use the kernel session for autocompletion in FileEditor if available (PR welcome)
+- "rename" action in notebooks
+- gutter with linter results (low priority)
+- use the kernel session for autocompletion in FileEditor if available (PR welcome)
 
 If a feature you need is not on the lists above, please feel free to suggest it by opening a new [issue](https://github.com/krassowski/jupyterlab-lsp/issues).
 
