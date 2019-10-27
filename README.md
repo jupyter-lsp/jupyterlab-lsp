@@ -84,65 +84,50 @@ This would not be possible if not the fantastic work at [wylieconlon/lsp-editor-
 
 ## Installation
 
-1. install the extension:
+For 0.6 version:
 
-```bash
-jupyter labextension install @krassowski/jupyterlab-lsp
-```
+1. install and enable the server extension:
 
-2. install servers for languages of your choice. Below are examples for Python (with [pyls](https://github.com/palantir/python-language-server)) and R (with [languageserver](https://github.com/REditorSupport/languageserver)):
+   ```bash
+   pip install jupyter-lsp
+   jupyter serverextension enable --sys-prefix --py jupyter_lsp
+   ```
 
-```bash
-pip install python-language-server[all]
-```
+2. install the frontend extension:
 
-```bash
-R -e 'install.packages("languageserver")'
-```
+   ```bash
+   jupyter labextension install @krassowski/jupyterlab-lsp
+   ```
 
-For the full list of language servers see the [Microsoft's list](https://microsoft.github.io/language-server-protocol/implementors/servers/); it may also be good to visit the repository of each server as many provide some additional configuration options.
+3. install LSP servers for languages of your choice; for example, for Python ([pyls](https://github.com/palantir/python-language-server)) and R ([languageserver](https://github.com/REditorSupport/languageserver)) servers, use:
 
-3. create `servers.yml` file:
+   ```bash
+   pip install python-language-server[all]
+   R -e 'install.packages("languageserver")'
+   ```
 
-```yaml
-langservers:
-  python:
-    - pyls
-  R:
-    - R
-    - --slave
-    - -e
-    - languageserver::run()
-```
+   Please see our full list of [supported language servers](./py_src/jupyter_lsp/README.md#installing-language-servers) which includes installation hints for the common package managers (npm/pip/conda).
+   In general, any LSP server from the [Microsoft's list](https://microsoft.github.io/language-server-protocol/implementors/servers/) should work after [some additional configuration](./py_src/jupyter_lsp/CONTRIBUTING.md#specs).
 
-4. Each time before starting JupyterLab, run:
+   Note: it may be worth visiting the repository of each server you install as many provide additional configuration options.
 
-```bash
-node path_to_jupyterlab_staging/node_modules/jsonrpc-ws-proxy/dist/server.js --port 3000 --languageServers servers.yml
-```
+4. (Optional) to enable opening files outside of the root directory (the place where you start JupyterLab),
+   create `.lsp_symlink` and symlink your `home`, or any other location which includes the files that you wish to make possible to open in there:
 
-where `path_to_jupyterlab_staging` is the location of JupyterLab staging directory. Here are example locations on Ubuntu:
+   ```bash
+   mkdir .lsp_symlink
+   cd .lsp_symlink
+   ln -s /home home
+   ```
 
-- if you use pyenv it should be in `~/.pyenv/versions/YOUR_VERSION_OR_VENV/share/jupyter/lab/staging/`
-- if you use local installation, it might be in `~/.local/lib/python3.6/site-packages/jupyterlab/staging/` (where instead of python3.6 you should use your Python3 version having JupyterLab installed)
-
-5. (Optional) to enable opening files outside of the root directory (the place where you start JupyterLab),
-   create `.lsp_symlink` and symlink your `home`, `usr`, or any other location which includes the files that you wish to make possible to open in there:
-
-```bash
-mkdir .lsp_symlink
-cd .lsp_symlink
-ln -s /home home
-ln -s /usr usr
-```
-
-If your user does not have sufficient permissions to traverse the entire path, you will not be able to open the file. A more detailed guide on symlinking (written for a related jupyterlab-go-to-definition extension) is available [here](https://github.com/krassowski/jupyterlab-go-to-definition/blob/master/README.md#which-directories-to-symlink).
+   If your user does not have sufficient permissions to traverse the entire path, you will not be able to open the file. A more detailed guide on symlinking (written for a related jupyterlab-go-to-definition extension) is available [here](https://github.com/krassowski/jupyterlab-go-to-definition/blob/master/README.md#which-directories-to-symlink).
 
 ### Updating the extension
 
 To update already installed extension:
 
 ```bash
+pip install -U jupyter-lsp
 jupyter labextension update @krassowski/jupyterlab-lsp
 ```
 
