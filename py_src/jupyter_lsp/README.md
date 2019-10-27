@@ -6,9 +6,9 @@
 See the parent of this repository, [jupyterlab-lsp](../../README.md) for the
 reference client implementation for [JupyterLab][].
 
-## batteries expected
+## Installing language servers
 
-`jupyter-lsp` doesn't come with any Language Servers! However, we will try to use
+`jupyter-lsp` does not come with any Language Servers! However, we will try to use
 them if they _are_ installed and we know about them.
 
 > You can disable this behavior by configuring [`autodetect`](#autodetect)
@@ -17,13 +17,7 @@ Use a package manager to install a [language server][lsp-implementations]
 (also [this list][langserver]) from the tables below: these implementations are
 tested to work with `jupyter-lsp`.
 
-Don't see an implementation for the language server you want? You can
-[bring your own language server](#bring-your-own-language-server).
-
-> Please consider [contributing your language server spec](./CONTRIBUTING.md#spec)
-> to `jupyter-lsp`!
-
-| language                  | `npm install (-g)`, or <br/>`yarn/jlpm add (-g)` |
+| language                  | `npm install (-g)`, or `yarn/jlpm add (-g)` |
 | ------------------------- | :----------------------------------------------: |
 | bash                      |              `bash-language-server`              |
 | css<br/>less<br/>sass     |         `vscode-css-languageserver-bin`          |
@@ -46,9 +40,14 @@ Don't see an implementation for the language server you want? You can
 [jupyter-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
 [jupyterlab]: https://github.com/jupyterlab/jupyterlab
 
-> possible future namespace...
 
-## bring your own language server
+Don't see an implementation for the language server you need? You can
+[bring your own language server](#adding-custom-language-servers).
+
+> Please consider [contributing your language server spec](./CONTRIBUTING.md#spec)
+> to `jupyter-lsp`!
+
+## Adding custom language servers
 
 ### Jupyter config via `traitlets`
 
@@ -109,7 +108,7 @@ c.LanguageServerManager.language_servers = {
 can be automatically detected as providing a language server spec. These are a
 little more involved: see [CONTRIBUTING](./CONTRIBUTING.md).
 
-# Other Configuration Options
+# Configuration Options
 
 Like `language_servers`, these can be configured via `jupyter_notebook_config.json`
 (or .py) or via command line arguments to `jupyter notebook` or `jupyter lab`.
