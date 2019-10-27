@@ -38,34 +38,22 @@ Examples below are for Python, but it works as well for R:
 
   when a kernel is available the suggestions from the kernel (such as keys of a dict and columns of a DataFrame autocompletion) are merged with the suggestions from LSP (currently only in notebook).
 
-New in 0.5.0:
-
-- multiple LSP connections per notebook, e.g. SQL or R (using rpy2) embedded in Python notebook [(example)](https://github.com/krassowski/jupyterlab-lsp/blob/master/examples/Magics_and_rpy2.ipynb),
-- symbol highlight under cursor now works in both file editors and notebooks,
-- and many other improvements, see the [release notes](https://github.com/krassowski/jupyterlab-lsp/releases/tag/v0.5.0).
-
-Coming in 0.6.0:
+New in 0.6.0:
 
 - automated LSP servers start and traitlets-based configuration
 - "rename" action in file editor
 - improved code navigation when there are multiple jump targets
+- and many other improvements, see the [release notes](https://github.com/krassowski/jupyterlab-lsp/releases/tag/v0.6.0).
 
 ### Coming soon:
 
 - autocompleter with documentation and sorting based on LSP suggestions
-- more unit tests
 - system of settings, including options:
   - to enable aggressive autocompletion (like in hinterland)
   - to change the verbosity of signature hints (whether to show documentation, number of lines to be shown)
-
-### Planned:
-
-- "rename" action in notebooks
-
-### Low priority:
-
-- Gutter with linter results
-- Use the kernel session for autocompletion in FileEditor if available (PR welcome)
+ - "rename" action in notebooks
+ - gutter with linter results (low priority)
+ - use the kernel session for autocompletion in FileEditor if available (PR welcome)
 
 If a feature you need is not on the lists above, please feel free to suggest it by opening a new [issue](https://github.com/krassowski/jupyterlab-lsp/issues).
 
@@ -73,10 +61,6 @@ If a feature you need is not on the lists above, please feel free to suggest it 
 
 - just like in old notebooks, you can still use the built-in <kbd>Shift</kbd> + <kbd>Tab</kbd> to get a signature in JupyterLab.
   This extension behaves well with this feature.
-
-## Under the hood
-
-This would not be possible if not the fantastic work at [wylieconlon/lsp-editor-adapter](https://github.com/wylieconlon/lsp-editor-adapter).
 
 ## Prerequisites
 
@@ -175,3 +159,7 @@ To run test the suite:
 ```bash
 jlpm test
 ```
+
+## Acknowledgements
+
+This would not be possible if not the fantastic work at [wylieconlon/lsp-editor-adapter](https://github.com/wylieconlon/lsp-editor-adapter).
