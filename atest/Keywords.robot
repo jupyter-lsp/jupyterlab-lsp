@@ -47,35 +47,49 @@ Tear Down Everything
 
 Wait For Splash
     Wait Until Page Contains Element   ${SPLASH}   timeout=180s
-    Wait Until Page Does Not Contain Element   ${SPLASH}
+    Wait Until Page Does Not Contain Element   ${SPLASH}   timeout=180s
+    Execute Javascript    window.onbeforeunload \= function (){}
 
 Open JupyterLab
     Set Environment Variable    MOZ_HEADLESS    ${HEADLESS}
     ${firefox} =  Which  firefox
     ${geckodriver} =  Which  geckodriver
-    Create WebDriver    Firefox    executable_path=${geckodriver}    firefox_binary=${firefox}
+    Create WebDriver    Firefox    executable_path=${geckodriver}    firefox_binary=${firefox}  service_log_path=${OUTPUT DIR}${/}geckodriver.log
     Go To  ${URL}lab?token=${TOKEN}
     Set Window Size  1024  768
     Wait For Splash
-    Execute Javascript    window.onbeforeunload \= function (){}
 
 Close JupyterLab
     Close All Browsers
 
 Reset Application State
+    Lab Command   Close All Tabs
+    Ensure All Kernels Are Shut Down
     Lab Command   Reset Application State
     Wait For Splash
+    Lab Command   Close All Tabs
+
+Ensure All Kernels Are Shut Down
+    Enter Command Name   Shut Down All Kernels
+    ${els} =  Get WebElements   ${CMD PALETTE ITEM ACTIVE}
+    Run Keyword If   ${els.__len__()}   Click Element    ${CMD PALETTE ITEM ACTIVE}
+    Run Keyword If   ${els.__len__()}   Click Element  css:.jp-mod-accept.jp-mod-warn
+
+Open Command Palette
+    Press Keys  id:main  ${ACCEL}+SHIFT+c
+    Wait Until Page Contains Element  ${CMD PALETTE INPUT}
+    Click Element  ${CMD PALETTE INPUT}
+
+Enter Command Name
+    [Arguments]  ${cmd}
+    Open Command Palette
+    Input Text  ${CMD PALETTE INPUT}   ${cmd}
 
 Lab Command
     [Arguments]  ${cmd}
-    Press Keys  id:main  ${ACCEL}+SHIFT+c
-    ${cmd input} =  Set Variable  css:.p-CommandPalette-input
-    Wait Until Page Contains Element  ${cmd input}
-    Click Element  ${cmd input}
-    Input Text  ${cmd input}   ${cmd}
-    ${cmd item} =  Set Variable   css:.p-CommandPalette-item.p-mod-active
-    Wait Until Page Contains Element    ${cmd item}
-    Click Element  ${cmd item}
+    Enter Command Name  ${cmd}
+    Wait Until Page Contains Element    ${CMD PALETTE ITEM ACTIVE}
+    Click Element  ${CMD PALETTE ITEM ACTIVE}
 
 Which
     [Arguments]  ${cmd}

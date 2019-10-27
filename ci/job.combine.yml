@@ -6,6 +6,7 @@ parameters:
   pythons:
     - ThreeSix
     - ThreeSeven
+  install_robot: conda install -yc conda-forge robotframework
 
 jobs:
   - job: Combine
@@ -21,7 +22,7 @@ jobs:
         parameters:
           packages: robotframework
 
-      - script: conda install -yc conda-forge robotframework
+      - script: ${{ parameters.install_robot }} || ${{ parameters.install_robot }} || ${{ parameters.install_robot }}
         displayName: get robotframework
 
       - ${{ each platform in parameters.platforms }}:
