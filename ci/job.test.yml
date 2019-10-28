@@ -64,7 +64,7 @@ jobs:
               - task: PublishTestResults@2
                 displayName: publish frontend test results
                 inputs:
-                  testResultsFiles: junit.xml
+                  testResultsFiles: packages/**/junit.xml
                   testRunTitle: 'Jest ${{ platform.name }}${{ python.name }}'
                   mergeTestResults: true
                 condition: always()
@@ -72,7 +72,7 @@ jobs:
               - task: PublishCodeCoverageResults@1
                 inputs:
                   codeCoverageTool: Cobertura
-                  summaryFileLocation: 'coverage/cobertura-coverage.xml'
+                  summaryFileLocation: 'packages/**/coverage/cobertura-coverage.xml'
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jupyter serverextension list
                 displayName: list server extensions
