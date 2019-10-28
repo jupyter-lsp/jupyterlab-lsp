@@ -81,7 +81,7 @@ export abstract class JupyterLabWidgetAdapter
   >;
   protected abstract current_completion_connector: LSPConnector;
   private _tooltip: FreeTooltip;
-  protected connection_manager: DocumentConnectionManager;
+  public connection_manager: DocumentConnectionManager;
 
   protected constructor(
     protected app: JupyterFrontEnd,
@@ -189,6 +189,10 @@ export abstract class JupyterLabWidgetAdapter
     this.connection_manager.connect_document_signals(virtual_document);
     virtual_document.changed.connect(this.document_changed.bind(this));
     await this.connect(virtual_document).catch(console.warn);
+
+    virtual_document.foreign_document_opened.connect((host, context) => {
+      this.connect(context.foreign_document).catch(console.warn);
+    });
   }
 
   document_changed(virtual_document: VirtualDocument) {
