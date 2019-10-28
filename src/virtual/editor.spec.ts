@@ -6,7 +6,7 @@ import {
   IRootPosition,
   IVirtualPosition
 } from '../positioning';
-import CodeMirror = require('codemirror');
+import * as CodeMirror from 'codemirror';
 
 class VirtualEditorImplementation extends VirtualEditor {
   private cm_editor: CodeMirror.Editor;
@@ -29,9 +29,13 @@ class VirtualEditorImplementation extends VirtualEditor {
   addEventListener(
     type: string,
     listener: EventListener | EventListenerObject
-  ): void {}
+  ): void {
+    // nothing yet
+  }
 
-  protected perform_documents_update(): void {}
+  protected perform_documents_update(): void {
+    // nothing yet
+  }
 
   forEveryBlockEditor(callback: (cm_editor: CodeMirror.Editor) => void): void {
     callback(this.cm_editor);

@@ -90,11 +90,15 @@ export class FeatureTestEnvironment implements IFeatureTestEnvironment {
 
   public create_dummy_components(): IJupyterLabComponentsManager {
     return {
-      invoke_completer: () => {},
+      invoke_completer: () => {
+        // nothing yet
+      },
       create_tooltip: () => {
         return {} as FreeTooltip;
       },
-      remove_tooltip: () => {},
+      remove_tooltip: () => {
+        // nothing yet
+      },
       jumper: null
     };
   }

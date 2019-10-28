@@ -5,7 +5,7 @@ import { ShowHintOptions } from 'codemirror';
 import { IOverridesRegistry } from '../../magics/overrides';
 import { IForeignCodeExtractorsRegistry } from '../../extractors/types';
 import { VirtualEditor } from '../editor';
-import CodeMirror = require('codemirror');
+import * as CodeMirror from 'codemirror';
 import {
   IEditorPosition,
   IRootPosition,

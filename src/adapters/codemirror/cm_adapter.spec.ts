@@ -3,7 +3,7 @@ import { CodeMirrorAdapter } from './cm_adapter';
 import { LSPConnection } from '../../connection';
 import { IJupyterLabComponentsManager } from '../jupyterlab/jl_adapter';
 import { IRootPosition } from '../../positioning';
-import CodeMirror = require('codemirror');
+import * as CodeMirror from 'codemirror';
 import { CodeMirrorLSPFeature } from './feature';
 import { FeatureTestEnvironment } from './testutils';
 

@@ -1,5 +1,5 @@
 import { CompletionTriggerKind } from '../../../lsp';
-import CodeMirror = require('codemirror');
+import * as CodeMirror from 'codemirror';
 import { CodeMirrorLSPFeature } from '../feature';
 
 export class Completion extends CodeMirrorLSPFeature {

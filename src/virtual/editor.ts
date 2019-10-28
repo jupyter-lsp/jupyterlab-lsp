@@ -1,7 +1,7 @@
 import { VirtualDocument } from './document';
 import { IOverridesRegistry } from '../magics/overrides';
 import { IForeignCodeExtractorsRegistry } from '../extractors/types';
-import { CodeMirror } from '../adapters/codemirror/cm_adapter';
+import * as CodeMirror from 'codemirror';
 import {
   IEditorPosition,
   IRootPosition,

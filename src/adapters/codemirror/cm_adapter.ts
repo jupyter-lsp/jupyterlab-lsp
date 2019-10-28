@@ -1,4 +1,4 @@
-export import CodeMirror = require('codemirror');
+import * as CodeMirror from 'codemirror';
 import { until_ready } from '../../utils';
 import { CodeMirrorHandler, VirtualEditor } from '../../virtual/editor';
 import { VirtualDocument } from '../../virtual/document';
