@@ -46,6 +46,9 @@ jobs:
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm || jlpm || jlpm
                 displayName: install npm dependencies
 
+              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm lint:check
+                displayName: lint frontend
+
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm build
                 displayName: build typescript
 
@@ -58,7 +61,7 @@ jobs:
               - script: ${{ platform.activate }} jupyterlab-lsp && cd dist && python -m pip install jupyter_lsp-$(PY_JLSP_VERSION)-py3-none-any.whl --no-deps
                 displayName: install python wheel
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm tslint:check && jlpm test:jest
+              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm test
                 displayName: run frontend unit tests
 
               - task: PublishTestResults@2
