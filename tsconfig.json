@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "declaration": true,
+    "jsx": "react",
     "lib": ["es2015", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
