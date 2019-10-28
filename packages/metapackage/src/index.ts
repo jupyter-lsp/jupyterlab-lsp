@@ -1,0 +1,1 @@
+import '@krassowski/jupyterlab-lsp';

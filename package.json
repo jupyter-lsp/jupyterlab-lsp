@@ -14,10 +14,11 @@
     "lerna": "^3.13.2",
     "precise-commits": "^1.0.2",
     "prettier": "^1.18.2",
-    "tslint": "^5.15.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.0.1",
     "tslint-react": "^4.0.0",
+    "tslint": "^5.15.0",
+    "typescript": "~3.5.1",
     "unified-language-server": "^0.3.0",
     "vscode-css-languageserver-bin": "^1.4.0",
     "vscode-html-languageserver-bin": "^1.4.0",
@@ -32,14 +33,16 @@
   },
   "private": true,
   "scripts": {
-    "bootstrap": "jlpm && jlpm clean && jlpm lint && jlpm build",
+    "bootstrap": "jlpm && lerna bootstrap && jlpm lint && jlpm clean && jlpm build",
     "build": "cd packages/metapackage && jlpm build",
+    "clean": "lerna run clean",
     "lint": "jlpm prettier && jlpm tslint",
     "lint:check": "jlpm prettier:check && jlpm tslint:check",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
     "prettier:check": "prettier --list-different '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
-    "tslint": "tslint --fix -c tslint.json --project tsconfigbase.json '**/*{.ts,.tsx}'",
-    "tslint:check": "tslint -c tslint.json --project tsconfigbase.json '**/*{.ts,.tsx}'"
+    "test": "lerna run test",
+    "tslint": "tslint --fix -c tslint.json --project tsconfigbase.json 'packages/**/*{.ts,.tsx}'",
+    "tslint:check": "tslint -c tslint.json --project tsconfigbase.json 'packages/**/*{.ts,.tsx}'"
   },
   "workspaces": {
     "packages": [
