@@ -31,9 +31,11 @@
   },
   "scripts": {
     "build": "tsc -b",
+    "bundle": "npm pack .",
     "clean": "rimraf lib",
-    "watch": "tsc -b -w",
-    "test": "jlpm jest --coverage --coverageReporters=cobertura --coverageReporters=html --coverageReporters=text-summary"
+    "lab:link": "jupyter labextension link . --no-build",
+    "test": "jlpm jest --coverage --coverageReporters=cobertura --coverageReporters=html --coverageReporters=text-summary",
+    "watch": "tsc -b -w"
   },
   "dependencies": {
     "@krassowski/jupyterlab_go_to_definition": "^0.7.1",

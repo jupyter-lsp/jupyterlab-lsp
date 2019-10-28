@@ -35,11 +35,13 @@
   "scripts": {
     "bootstrap": "jlpm && lerna bootstrap && jlpm lint && jlpm clean && jlpm build",
     "build": "cd packages/metapackage && jlpm build",
+    "bundle": "lerna run bundle",
     "clean": "lerna run clean",
-    "lint": "jlpm prettier && jlpm tslint",
+    "lab:link": "lerna run lab:link",
     "lint:check": "jlpm prettier:check && jlpm tslint:check",
-    "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
+    "lint": "jlpm prettier && jlpm tslint",
     "prettier:check": "prettier --list-different '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
+    "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
     "test": "lerna run test",
     "tslint": "tslint --fix -c tslint.json --project tsconfigbase.json 'packages/**/*{.ts,.tsx}'",
     "tslint:check": "tslint -c tslint.json --project tsconfigbase.json 'packages/**/*{.ts,.tsx}'"
