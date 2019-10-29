@@ -1,5 +1,5 @@
 import { VirtualEditor } from '../editor';
-import { CodeMirror } from '../../adapters/codemirror/cm_adapter';
+import * as CodeMirror from 'codemirror';
 import {
   IEditorPosition,
   IRootPosition,

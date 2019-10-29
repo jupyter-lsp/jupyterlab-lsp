@@ -1,4 +1,4 @@
-export import CodeMirror = require('codemirror');
+import * as CodeMirror from 'codemirror';
 
 /**
  * is_* attributes are there only to enforce strict interface type checking

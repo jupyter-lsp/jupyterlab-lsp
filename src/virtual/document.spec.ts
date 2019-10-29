@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { RegExpForeignCodeExtractor } from '../extractors/regexp';
 import { is_within_range, VirtualDocument } from './document';
-import CodeMirror = require('codemirror');
+import * as CodeMirror from 'codemirror';
 import { ISourcePosition, IVirtualPosition } from '../positioning';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 

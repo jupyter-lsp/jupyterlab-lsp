@@ -1,5 +1,6 @@
 import { PathExt } from '@jupyterlab/coreutils';
-import { CodeMirror, CodeMirrorAdapter } from '../codemirror/cm_adapter';
+import * as CodeMirror from 'codemirror';
+import { CodeMirrorAdapter } from '../codemirror/cm_adapter';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/jumper';
 import { PositionConverter } from '../../converter';

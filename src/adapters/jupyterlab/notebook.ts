@@ -1,6 +1,6 @@
 import { JupyterLabWidgetAdapter } from './jl_adapter';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
-import { CodeMirror } from '../codemirror/cm_adapter';
+import * as CodeMirror from 'codemirror';
 import { VirtualEditorForNotebook } from '../../virtual/editors/notebook';
 import { ICompletionManager } from '@jupyterlab/completer';
 import { NotebookJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/notebook';

@@ -5,7 +5,7 @@ import {
   IVirtualPosition
 } from '../../../positioning';
 import * as lsProtocol from 'vscode-languageserver-protocol';
-import { CodeMirror } from '../cm_adapter';
+import * as CodeMirror from 'codemirror';
 import { CodeMirrorLSPFeature, IEditorRange } from '../feature';
 import { Debouncer } from '@jupyterlab/coreutils';
 

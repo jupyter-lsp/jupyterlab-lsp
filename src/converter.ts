@@ -1,6 +1,6 @@
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import CodeMirror = require('codemirror');
+import * as CodeMirror from 'codemirror';
 
 export class PositionConverter {
   static lsp_to_cm(position: lsProtocol.Position): CodeMirror.Position {
