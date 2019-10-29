@@ -17,18 +17,20 @@ except ImportError:
     import ruamel_yaml as yaml
 
 ROOT = pathlib.Path.cwd()
-_VERSION_PY = ROOT / "py_src" / "jupyter_lsp" / "_version.py"
 
-PY_VERSION = re.findall(r'= "(.*)"$', (_VERSION_PY).read_text())[0]
+# docs
+MAIN_README = ROOT / "README.md"
 
+# dependencies
 ENV = yaml.safe_load((ROOT / "environment.yml").read_text())
-
 LAB_SPEC = [
     d.split(" ", 1)[1]
     for d in ENV["dependencies"]
     if isinstance(d, str) and d.startswith("jupyterlab ")
 ][0]
 
+# TS stuff
+NPM_NS = "@krassowski"
 PACKAGES = {
     package["name"]: [path.parent, package]
     for path, package in [
@@ -36,12 +38,19 @@ PACKAGES = {
         for path in ROOT.glob("packages/*/package.json")
     ]
 }
+MAIN_NAME = "{}/jupyterlab-lsp".format(NPM_NS)
+META_NAME = "{}/jupyterlab-lsp-metapackage".format(NPM_NS)
 
+MAIN_EXT_VERSION = PACKAGES[MAIN_NAME][1]["version"]
+
+# py stuff
+_VERSION_PY = ROOT / "py_src" / "jupyter_lsp" / "_version.py"
+PY_VERSION = re.findall(r'= "(.*)"$', (_VERSION_PY).read_text())[0]
+
+# CI stuff
 PIPE_FILE = ROOT / "azure-pipelines.yml"
 PIPELINES = yaml.safe_load(PIPE_FILE.read_text())
 PIPE_VARS = PIPELINES["variables"]
-
-META_NAME = "@krassowski/jupyterlab-lsp-metapackage"
 
 
 @pytest.fixture(scope="module")
@@ -57,10 +66,7 @@ def the_meta_package():
 
 @pytest.mark.parametrize(
     "name,version",
-    [
-        ["PY_JLSP_VERSION", PY_VERSION],
-        ["JS_JLLSP_VERSION", PACKAGES["@krassowski/jupyterlab-lsp"][1]["version"]],
-    ],
+    [["PY_JLSP_VERSION", PY_VERSION], ["JS_JLLSP_VERSION", MAIN_EXT_VERSION]],
 )
 def test_ci_variables(name, version):
     assert PIPE_VARS[name] == version
@@ -95,13 +101,24 @@ def test_ts_package_integrity(name, info, the_meta_package):
             jsonschema.validators.Draft7Validator(schema_instance)
 
 
+def test_ts_readme():
+    version = PACKAGES[MAIN_NAME][1]["version"]
+    assert (
+        "{}@{}".format(MAIN_NAME, version) in MAIN_README.read_text()
+    ), "README.md is out of sync vs {}".format(version)
+
+
 @pytest.mark.parametrize(
-    "path", [ROOT / "requirements-lab.txt", ROOT / "ci" / "env-test.yml.in"]
+    "path",
+    map(
+        str,
+        [ROOT / "requirements-lab.txt", ROOT / "ci" / "env-test.yml.in", MAIN_README],
+    ),
 )
 def test_jlab_versions(path):
     assert (
-        "jupyterlab {}".format(LAB_SPEC) in path.read_text()
-    ), "{} lab version is out-of-sync".format(path)
+        "jupyterlab {}".format(LAB_SPEC) in pathlib.Path(path).read_text().lower()
+    ), "{} lab version is out-of-sync vs {}".format(path, LAB_SPEC)
 
 
 if __name__ == "__main__":
