@@ -24,6 +24,7 @@ dependencies:
   - pytest-cov
   - pytest-flake8
   - pytest-runner
+  - ruamel_yaml
   # browser testing
   - robotframework-seleniumlibrary
   - firefox
