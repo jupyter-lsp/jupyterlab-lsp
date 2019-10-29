@@ -37,6 +37,9 @@ jobs:
               - script: conda info && conda list -n jupyterlab-lsp
                 displayName: list conda packages and info
 
+              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/integrity.py
+                displayName: check integrity of package versions
+
               - task: CacheBeta@0
                 inputs:
                   key: yarn | $(Agent.OS) | yarn.lock
@@ -45,9 +48,6 @@ jobs:
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm || jlpm || jlpm
                 displayName: install npm dependencies
-
-              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm lint:check
-                displayName: lint frontend
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm build
                 displayName: build typescript

@@ -1,0 +1,35 @@
+parameters:
+  platforms:
+    - name: Linux
+      vmImage: ubuntu-16.04
+      activate: source activate
+  pythons:
+    - name: ThreeSeven
+      spec: '>=3.7,<3.8.0a0'
+  env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
+
+jobs:
+  - ${{ each platform in parameters.platforms }}:
+      - ${{ each python in parameters.pythons}}:
+          - job: ${{ platform.name }}${{ python.name }}
+            pool:
+              vmImage: ${{ platform.vmImage }}
+            steps:
+              - template: steps.conda.yml
+                parameters:
+                  name: ${{ platform.name }}
+
+              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}"
+                displayName: update environment with python version
+
+              - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
+                displayName: update conda environment with test dependencies
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/integrity.py
+                displayName: check integrity of package versions
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm || jlpm || jlpm
+                displayName: install npm dependencies
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm lint:check
+                displayName: lint frontend
