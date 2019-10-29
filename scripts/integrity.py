@@ -50,14 +50,14 @@ def the_meta_package():
         ["JS_JLLSP_VERSION", PACKAGES["@krassowski/jupyterlab-lsp"][1]["version"]],
     ],
 )
-def test_azure_python_version(name, version):
+def test_ci_variables(name, version):
     assert PIPE_VARS[name] == version
 
 
 @pytest.mark.parametrize(
     "name,info", [p for p in PACKAGES.items() if p[0] != META_NAME]
 )
-def test_metapackage_versions(name, info, the_meta_package):
+def test_ts_package_integrity(name, info, the_meta_package):
     m_path, m_pkg, m_tsconfig, m_index = the_meta_package
     path, pkg = info
 
