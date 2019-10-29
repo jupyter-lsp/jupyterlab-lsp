@@ -2,7 +2,7 @@
 
     these should be quick to run (not invoke any other process)
 """
-import json, pathlib, ruamel_yaml, re, pytest, sys, tempfile
+import json, pathlib, ruamel_yaml, re, pytest, sys, tempfile, jsonschema
 
 ROOT = pathlib.Path.cwd()
 _VERSION_PY = ROOT / "py_src" / "jupyter_lsp" / "_version.py"
@@ -66,6 +66,13 @@ def test_metapackage_versions(name, info, the_meta_package):
         for ref in m_tsconfig["references"]
         if ref["path"] == "../{}".format(path.name)
     ], "{} missing from metapackage/tsconfig.json".format(name)
+
+    schemas = list(path.glob("schema/*.json"))
+
+    if schemas:
+        for schema in schemas:
+            schema_instance = json.loads(schema.read_text())
+            jsonschema.validators.Draft7Validator(schema_instance)
 
 
 if __name__ == "__main__":
