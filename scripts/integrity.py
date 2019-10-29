@@ -21,6 +21,14 @@ _VERSION_PY = ROOT / "py_src" / "jupyter_lsp" / "_version.py"
 
 PY_VERSION = re.findall(r'= "(.*)"$', (_VERSION_PY).read_text())[0]
 
+ENV = yaml.safe_load((ROOT / "environment.yml").read_text())
+
+LAB_SPEC = [
+    d.split(" ", 1)[1]
+    for d in ENV["dependencies"]
+    if isinstance(d, str) and d.startswith("jupyterlab ")
+][0]
+
 PACKAGES = {
     package["name"]: [path.parent, package]
     for path, package in [
@@ -85,6 +93,15 @@ def test_ts_package_integrity(name, info, the_meta_package):
         for schema in schemas:
             schema_instance = json.loads(schema.read_text())
             jsonschema.validators.Draft7Validator(schema_instance)
+
+
+@pytest.mark.parametrize(
+    "path", [ROOT / "requirements-lab.txt", ROOT / "ci" / "env-test.yml.in"]
+)
+def test_jlab_versions(path):
+    assert (
+        "jupyterlab {}".format(LAB_SPEC) in path.read_text()
+    ), "{} lab version is out-of-sync".format(path)
 
 
 if __name__ == "__main__":
