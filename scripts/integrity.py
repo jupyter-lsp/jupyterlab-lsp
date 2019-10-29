@@ -10,7 +10,10 @@ import tempfile
 
 import jsonschema
 import pytest
-import ruamel_yaml
+try:
+    import ruamel.yaml as yaml
+except ImportError:
+    import ruamel_yaml as yaml
 
 ROOT = pathlib.Path.cwd()
 _VERSION_PY = ROOT / "py_src" / "jupyter_lsp" / "_version.py"
@@ -26,7 +29,7 @@ PACKAGES = {
 }
 
 PIPE_FILE = ROOT / "azure-pipelines.yml"
-PIPELINES = ruamel_yaml.safe_load(PIPE_FILE.read_text())
+PIPELINES = yaml.safe_load(PIPE_FILE.read_text())
 PIPE_VARS = PIPELINES["variables"]
 
 META_NAME = "@krassowski/jupyterlab-lsp-metapackage"
