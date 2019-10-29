@@ -10,6 +10,7 @@ import tempfile
 
 import jsonschema
 import pytest
+
 try:
     import ruamel.yaml as yaml
 except ImportError:
