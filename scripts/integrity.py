@@ -2,7 +2,15 @@
 
     these should be quick to run (not invoke any other process)
 """
-import json, pathlib, ruamel_yaml, re, pytest, sys, tempfile, jsonschema
+import json
+import pathlib
+import re
+import sys
+import tempfile
+
+import jsonschema
+import pytest
+import ruamel_yaml
 
 ROOT = pathlib.Path.cwd()
 _VERSION_PY = ROOT / "py_src" / "jupyter_lsp" / "_version.py"
