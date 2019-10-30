@@ -1,5 +1,6 @@
 """ API used by spec finders and manager
 """
+import enum
 import pathlib
 import shutil
 import sys
@@ -12,6 +13,17 @@ from traitlets.config import LoggingConfigurable
 # TODO: TypedDict?
 LanguageServerSpec = Dict[Text, List[Text]]
 KeyedLanguageServerSpecs = Dict[Text, LanguageServerSpec]
+
+
+class SessionStatus(enum.Enum):
+    """ States in which a language server session can be
+    """
+
+    NOT_STARTED = "not_started"
+    STARTING = "starting"
+    STARTED = "started"
+    STOPPING = "stopping"
+    STOPPED = "stopped"
 
 
 class LanguageServerManagerAPI(LoggingConfigurable):
