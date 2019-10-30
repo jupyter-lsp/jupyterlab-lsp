@@ -5983,15 +5983,16 @@ lru-cache@^5.1.1:
   dependencies:
     yallist "^3.0.2"
 
-lsp-ws-connection@~0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/lsp-ws-connection/-/lsp-ws-connection-0.1.0.tgz#a5587d47f7f804f5c3c3a84e743b2b227849d447"
-  integrity sha512-0vQcRxBHnDDJ7dx/8Gaijo3IYt+d0he5zyreFZtW2JV9KmqBUuNVtPbA85Iz3Nfj7QxrL0nnswZ/gttLStjD5Q==
+lsp-ws-connection@~0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/lsp-ws-connection/-/lsp-ws-connection-0.1.1.tgz#5e259a5079aa91f9bb55453d03df14f3e526fa6b"
+  integrity sha512-JLGsBbJc5NlNkvo8hyjVqOG2jZrCtXnz65d1pPPnp6mRl++J3pa0M0e2/jOGeDx+emDNk31/pUlLDOSHhphE4w==
   dependencies:
     vscode-jsonrpc "^4.0.0"
     vscode-languageclient "^5.2.1"
     vscode-languageserver-protocol "^3.14.1"
     vscode-languageserver-types "^3.14.0"
+    vscode-ws-jsonrpc "0.1.1"
 
 macos-release@^2.2.0:
   version "2.3.0"
@@ -9680,6 +9681,11 @@ vscode-jsonrpc@^4.0.0:
   resolved "https://registry.yarnpkg.com/vscode-jsonrpc/-/vscode-jsonrpc-4.0.0.tgz#a7bf74ef3254d0a0c272fab15c82128e378b3be9"
   integrity sha512-perEnXQdQOJMTDFNv+UF3h1Y0z4iSiaN9jIlb0OqIYgosPCZGYh/MCUlkFtV2668PL69lRDO32hmvL2yiidUYg==
 
+vscode-jsonrpc@^4.1.0-next:
+  version "4.1.0-next.3"
+  resolved "https://registry.yarnpkg.com/vscode-jsonrpc/-/vscode-jsonrpc-4.1.0-next.3.tgz#05fe742959a2726020d4d0bfbc3d3c97873c7fde"
+  integrity sha512-Z6oxBiMks2+UADV1QHXVooSakjyhI+eHTnXzDyVvVMmegvSfkXk2w6mPEdSkaNHFBdtWW7n20H1yw2nA3A17mg==
+
 vscode-languageclient@^5.2.1:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/vscode-languageclient/-/vscode-languageclient-5.2.1.tgz#7cfc83a294c409f58cfa2b910a8cfeaad0397193"
@@ -9780,6 +9786,13 @@ vscode-uri@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-2.1.0.tgz#475a4269e63edbc13914b40c84bc1416e3398156"
   integrity sha512-3voe44nOhb6OdKlpZShVsmVvY2vFQHMe6REP3Ky9RVJuPyM/XidsjH6HncCIDdSmbcF5YQHrTC/Q+Q2loJGkOw==
+
+vscode-ws-jsonrpc@0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/vscode-ws-jsonrpc/-/vscode-ws-jsonrpc-0.1.1.tgz#163ff05662635b4fd161ed132e112cec4d83f126"
+  integrity sha512-1O/FUORbb8dZAvh9AFF6HViLJ0Ja0RbF+sFRnUsoqkuKIRsXDDiiJpwYwT6fmglCLefE5afGPw9NoHvDVN/5yw==
+  dependencies:
+    vscode-jsonrpc "^4.1.0-next"
 
 w3c-hr-time@^1.0.1:
   version "1.0.1"
