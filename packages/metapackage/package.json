@@ -1,0 +1,40 @@
+{
+  "name": "@krassowski/jupyterlab-lsp-metapackage",
+  "version": "0.6.0",
+  "description": "JupyterLab LSP - Meta Package.  All of the packages used by JupyterLab LSP",
+  "homepage": "https://github.com/krassowski/jupyterlab-lsp",
+  "bugs": {
+    "url": "https://github.com/krassowski/jupyterlab-lsp/issues"
+  },
+  "license": "BSD-3-Clause",
+  "author": "Michał Krassowski",
+  "files": [
+    "lib/*.d.ts",
+    "lib/*.js.map",
+    "lib/*.js"
+  ],
+  "sideEffects": false,
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "directories": {
+    "lib": "lib/"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rimraf lib",
+    "prepublishOnly": "npm run build",
+    "watch": "tsc -b --watch"
+  },
+  "dependencies": {
+    "@krassowski/jupyterlab-lsp": "^0.6.0"
+  },
+  "devDependencies": {
+    "fs-extra": "^8.0.1",
+    "rimraf": "~2.6.2",
+    "typedoc": "^0.14.2",
+    "typescript": "~3.5.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

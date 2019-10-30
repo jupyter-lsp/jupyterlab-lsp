@@ -107,6 +107,7 @@ venv.bak/
 node_modules
 .yarn-packages
 *.tsbuildinfo
+*.tgz
 
 atest/output/
 junit.xml

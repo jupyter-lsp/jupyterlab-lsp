@@ -64,7 +64,7 @@ If a feature you need is not on the lists above, please feel free to suggest it 
 
 ## Prerequisites
 
-- JupyterLab
+- JupyterLab >=1.1,<1.2
 
 ## Installation
 
@@ -120,7 +120,7 @@ jupyter labextension update @krassowski/jupyterlab-lsp
 Use install command (update does not seem to work) appending `@version` to the extension name, like this:
 
 ```bash
-jupyter labextension install @krassowski/jupyterlab-lsp@0.5.0-rc.0
+jupyter labextension install @krassowski/jupyterlab-lsp@0.6.0
 ```
 
 ## Development
@@ -131,10 +131,10 @@ run the following in the repository directory:
 ```bash
 jlpm
 jlpm build
-jupyter labextension install .
+jlpm lab:link
 ```
 
-To rebuild the package and the JupyterLab app:
+To rebuild the packages and the JupyterLab app:
 
 ```bash
 jlpm build
@@ -144,7 +144,7 @@ jupyter lab build
 To watch the files and build continuously:
 
 ```bash
-jlpm watch           # leave this running...
+jlpm build --watch   # leave this running...
 jupyter lab --watch  # ...in another terminal
 ```
 

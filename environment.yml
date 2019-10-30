@@ -18,6 +18,7 @@ dependencies:
   - pip
   - pylint
   - python-language-server
+  - ruamel_yaml
   - pip: # not-yet-appearing-in-conda-forge
       - pyls-black
       - pyls-isort

@@ -1,3 +1,5 @@
+""" Run acceptance tests with robot framework
+"""
 import os
 import platform
 import shutil
