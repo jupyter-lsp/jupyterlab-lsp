@@ -10,7 +10,7 @@ from .manager import LanguageServerManager
 
 
 class BaseHandler(IPythonHandler):
-    manager: LanguageServerManager = None
+    manager = None  # type: LanguageServerManager
 
     def initialize(self, manager: LanguageServerManager):
         self.manager = manager
@@ -20,7 +20,7 @@ class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, BaseHandl
     """ Setup tornado websocket to route to language server sessions
     """
 
-    language: Optional[Text] = None
+    language = None  # type: Optional[Text]
 
     def open(self, language):
         self.language = language
