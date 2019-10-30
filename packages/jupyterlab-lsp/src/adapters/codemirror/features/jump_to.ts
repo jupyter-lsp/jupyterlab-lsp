@@ -25,7 +25,7 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
     return this.jupyterlab_components.jumper;
   }
 
-  do_jump(location: lsProtocol.Location) {
+  async do_jump(location: lsProtocol.Location) {
     let uri: string = decodeURI(location.uri);
     let current_uri = this.connection.getDocumentUri();
 
@@ -91,7 +91,7 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
     }
   }
 
-  handle_jump(locations: lsProtocol.Location[]) {
+  async handle_jump(locations: lsProtocol.Location[]) {
     if (locations.length === 0) {
       console.log('No jump targets found');
       return;
@@ -110,11 +110,13 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
         })
       };
       // TODO: use showHints() or completion-like widget instead?
-      InputDialog.getItem(getItemOptions).then(choice => {
-        this.do_jump(location_by_id.get(choice.value));
-      });
+      InputDialog.getItem(getItemOptions)
+        .then(choice => {
+          this.do_jump(location_by_id.get(choice.value)).catch(console.warn);
+        })
+        .catch(console.warn);
     } else {
-      this.do_jump(locations[0]);
+      this.do_jump(locations[0]).catch(console.warn);
     }
   }
 }
