@@ -41,12 +41,20 @@ class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, BaseHandl
 
 
 class LanguageServersHandler(BaseHandler):
+    """ Reports the status of all current servers
+
+        Response should conform to schema in schema/servers.schema.json
+    """
+
     def get(self):
+        """ finish with the JSON representations of the sessions
+        """
         self.finish(
             {
+                "version": 0,
                 "sessions": sorted(
                     [session.to_json() for session in self.manager.sessions.values()],
                     key=lambda session: session["languages"],
-                )
+                ),
             }
         )

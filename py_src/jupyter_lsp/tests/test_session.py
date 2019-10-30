@@ -9,7 +9,8 @@ def assert_status_set(handler, expected_statuses, language=None):
     handler.get()
     payload = handler._payload
 
-    SERVERS_SCHEMA.validate(payload)
+    errors = list(SERVERS_SCHEMA.iter_errors(payload))
+    assert not errors
 
     statuses = {
         s["status"]
@@ -60,11 +61,17 @@ async def test_start_unknown(known_unknown_language, handlers, jsonrpc_init_msg)
     handler, ws_handler = handlers
     manager = handler.manager
     manager.initialize()
+
+    assert_status_set(handler, {"not_started"})
+
     ws_handler.open(known_unknown_language)
     assert not list(manager.sessions_for_handler(ws_handler))
 
-    ws_handler.on_message(jsonrpc_init_msg)
+    assert_status_set(handler, {"not_started"})
 
+    ws_handler.on_message(jsonrpc_init_msg)
+    assert_status_set(handler, {"not_started"})
     ws_handler.on_close()
 
     assert not list(manager.sessions_for_handler(ws_handler))
+    assert_status_set(handler, {"not_started"})
