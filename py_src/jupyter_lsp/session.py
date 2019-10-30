@@ -3,13 +3,15 @@
 import asyncio
 import atexit
 import subprocess
+from datetime import datetime, timezone
 
 from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
-from traitlets import Bunch, Instance, List, Set, Unicode, observe
+from traitlets import Bunch, Instance, List, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
 
 from . import stdio
+from .types import SessionStatus
 
 
 class LanguageServerSession(LoggingConfigurable):
@@ -42,6 +44,9 @@ class LanguageServerSession(LoggingConfigurable):
         default_value=[],
         help="the currently subscribed websockets",
     )
+    status = UseEnum(SessionStatus, default_value=SessionStatus.NOT_STARTED)
+    last_handler_message_at = Instance(datetime, allow_none=True)
+    last_server_message_at = Instance(datetime, allow_none=True)
 
     _tasks = None
 
@@ -56,10 +61,24 @@ class LanguageServerSession(LoggingConfigurable):
             self.languages, self.argv
         )
 
+    def to_json(self):
+        return dict(
+            languages=self.languages,
+            handler_count=len(self.handlers),
+            status=self.status.value,
+            last_server_message_at=self.last_server_message_at.isoformat()
+            if self.last_server_message_at
+            else None,
+            last_handler_message_at=self.last_handler_message_at.isoformat()
+            if self.last_handler_message_at
+            else None,
+        )
+
     def initialize(self):
         """ (re)initialize a language server session
         """
         self.stop()
+        self.status = SessionStatus.STARTING
         self.init_queues()
         self.init_process()
         self.init_writer()
@@ -71,9 +90,14 @@ class LanguageServerSession(LoggingConfigurable):
             for coro in [self._read_lsp, self._write_lsp, self._broadcast_from_lsp]
         ]
 
+        self.status = SessionStatus.STARTED
+
     def stop(self):
         """ clean up all of the state of the session
         """
+
+        self.status = SessionStatus.STOPPING
+
         if self.process:
             self.process.terminate()
             self.process = None
@@ -87,6 +111,8 @@ class LanguageServerSession(LoggingConfigurable):
         if self._tasks:
             [task.cancel() for task in self._tasks]
 
+        self.status = SessionStatus.STOPPED
+
     @observe("handlers")
     def _on_handlers(self, change: Bunch):
         """ re-initialize if someone starts listening, or stop if nobody is
@@ -99,7 +125,11 @@ class LanguageServerSession(LoggingConfigurable):
     def write(self, message):
         """ wrapper around the write queue to keep it mostly internal
         """
+        self.last_handler_message_at = self.now()
         self.to_lsp.put_nowait(message)
+
+    def now(self):
+        return datetime.now(timezone.utc)
 
     def init_process(self):
         """ start the language server subprocess
@@ -139,6 +169,7 @@ class LanguageServerSession(LoggingConfigurable):
             server
         """
         async for msg in self.from_lsp:
+            self.last_server_message_at = self.now()
             for handler in self.handlers:
                 handler.write_message(msg)
             self.from_lsp.task_done()

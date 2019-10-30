@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/servers-response",
+  "definitions": {
+    "servers-response": {
+      "type": "object",
+      "properties": {
+        "sessions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/session" }
+        }
+      },
+      "required": ["sessions"]
+    },
+    "nullable-date-time": {
+      "oneOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
+    },
+    "session": {
+      "additionalProperties": false,
+      "required": [
+        "languages",
+        "handler_count",
+        "status",
+        "last_server_message_at",
+        "last_handler_message_at"
+      ],
+      "properties": {
+        "languages": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "handler_count": { "type": "integer", "minValue": 0 },
+        "status": {
+          "type": "string",
+          "enum": ["not_started", "starting", "started", "stopping", "stopped"]
+        },
+        "last_server_message_at": {
+          "$ref": "#/definitions/nullable-date-time"
+        },
+        "last_handler_message_at": {
+          "$ref": "#/definitions/nullable-date-time"
+        }
+      }
+    }
+  }
+}

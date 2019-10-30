@@ -1,19 +1,26 @@
 """ tornado handler for managing and communicating with language servers
 """
+from typing import Optional, Text
+
 from notebook.base.handlers import IPythonHandler
 from notebook.base.zmqhandlers import WebSocketHandler, WebSocketMixin
 from tornado.ioloop import IOLoop
 
+from .manager import LanguageServerManager
 
-class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, IPythonHandler):
+
+class BaseHandler(IPythonHandler):
+    manager: LanguageServerManager = None
+
+    def initialize(self, manager: LanguageServerManager):
+        self.manager = manager
+
+
+class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, BaseHandler):
     """ Setup tornado websocket to route to language server sessions
     """
 
-    language = None
-    manager = None
-
-    def initialize(self, manager):
-        self.manager = manager
+    language: Optional[Text] = None
 
     def open(self, language):
         self.language = language
@@ -31,3 +38,15 @@ class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, IPythonHa
     def on_close(self):
         self.manager.unsubscribe(self)
         self.log.debug("[{0: >16}] Closed a handler".format(self.language))
+
+
+class LanguageServersHandler(BaseHandler):
+    def get(self):
+        self.finish(
+            {
+                "sessions": sorted(
+                    [session.to_json() for session in self.manager.sessions.values()],
+                    key=lambda session: session["languages"],
+                )
+            }
+        )

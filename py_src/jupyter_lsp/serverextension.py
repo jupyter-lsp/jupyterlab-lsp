@@ -5,7 +5,7 @@ import json
 import traitlets
 from notebook.utils import url_path_join as ujoin
 
-from .handlers import LanguageServerWebSocketHandler
+from .handlers import LanguageServersHandler, LanguageServerWebSocketHandler
 from .manager import LanguageServerManager
 
 
@@ -20,13 +20,16 @@ def load_jupyter_server_extension(nbapp):
             json.dumps(manager.language_servers, indent=2, sort_keys=True)
         )
     )
+
+    lsp_url = ujoin(nbapp.base_url, "lsp")
+    re_langs = "(?P<language>.*)"
+
+    opts = {"manager": nbapp.language_server_manager}
+
     nbapp.web_app.add_handlers(
         ".*",
         [
-            (
-                ujoin(nbapp.base_url, "lsp", "(?P<language>.*)"),
-                LanguageServerWebSocketHandler,
-                {"manager": nbapp.language_server_manager},
-            )
+            (lsp_url, LanguageServersHandler, opts),
+            (ujoin(lsp_url, re_langs), LanguageServerWebSocketHandler, opts),
         ],
     )
