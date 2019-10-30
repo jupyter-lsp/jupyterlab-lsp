@@ -1,0 +1,30 @@
+name: jupyterlab-lsp
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  # runtime dependencies
+  - python >=3.7,<3.8.0a0
+  - jupyterlab >=1.1,<1.2
+  # build dependencies
+  - nodejs
+  # for python language server (and development)
+  - black
+  - flake8 >=3.5
+  - isort
+  - mypy
+  - pip
+  - pylint
+  - python-language-server
+  - ruamel_yaml
+  - pip: # not-yet-appearing-in-conda-forge
+      - pyls-black
+      - pyls-isort
+      - pyls-mypy
+  # for R language server and kernel
+  - r
+  - r-irkernel
+  - r-languageserver
+  - rpy2

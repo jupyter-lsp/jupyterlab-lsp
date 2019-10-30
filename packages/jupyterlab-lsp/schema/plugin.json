@@ -1,0 +1,18 @@
+{
+  "title": "Language Server",
+  "description": "Language Server Protocol settings.",
+  "type": "object",
+  "properties": {},
+  "jupyter.lab.shortcuts": [
+    {
+      "command": "lsp:jump-to-definition-notebook",
+      "keys": ["Accel B"],
+      "selector": ".jp-Notebook .jp-CodeCell"
+    },
+    {
+      "command": "lsp:jump-to-definition-file_editor",
+      "keys": ["Accel B"],
+      "selector": ".jp-FileEditor"
+    }
+  ]
+}

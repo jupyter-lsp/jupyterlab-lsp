@@ -1,2 +1,3 @@
-jupyterlab==1.1
-jupyter-server-proxy
+# what is needed to run jupyter_lsp (but no servers or lab)
+notebook
+setuptools

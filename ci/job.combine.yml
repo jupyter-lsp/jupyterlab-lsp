@@ -1,0 +1,46 @@
+parameters:
+  platforms:
+    - Linux
+    - MacOSX
+    - Windows
+  pythons:
+    - ThreeSix
+    - ThreeSeven
+  install_robot: conda install -yc conda-forge robotframework
+
+jobs:
+  - job: Combine
+    dependsOn:
+      - ${{ each platform in parameters.platforms }}:
+          - ${{ each python in parameters.pythons }}:
+              - ${{ platform }}${{ python }}
+    condition: always()
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+      - template: steps.conda.yml
+        parameters:
+          packages: robotframework
+
+      - script: ${{ parameters.install_robot }} || ${{ parameters.install_robot }} || ${{ parameters.install_robot }}
+        displayName: get robotframework
+
+      - ${{ each platform in parameters.platforms }}:
+          - ${{ each python in parameters.pythons }}:
+              - task: DownloadPipelineArtifact@0
+                condition: always()
+                inputs:
+                  artifactName: Robot ${{ platform }}${{ python }} $(Build.BuildId)
+                  targetPath: atest/output
+                displayName: restore ${{ platform }}${{ python }} output
+
+      - script: python scripts/combine.py
+        condition: always()
+        displayName: combine outputs
+
+      - task: PublishPipelineArtifact@1
+        condition: always()
+        displayName: publish all output
+        inputs:
+          targetPath: atest/output
+          artifactName: All Robot Output $(Build.BuildId)
