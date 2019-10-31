@@ -1,3 +1,6 @@
+""" Combine multiple runs of robot into a single report and log
+"""
+
 import sys
 from pathlib import Path
 

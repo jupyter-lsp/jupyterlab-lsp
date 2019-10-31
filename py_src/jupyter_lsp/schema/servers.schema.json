@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/servers-response",
+  "title": "jupyter_lsp server status response",
+  "description": "describes the current state of (potentially) running language servers",
+  "definitions": {
+    "servers-response": {
+      "type": "object",
+      "properties": {
+        "sessions": {
+          "type": "array",
+          "description": "a list of servers that are, could be, or were running",
+          "items": { "$ref": "#/definitions/session" }
+        },
+        "version": {
+          "type": "integer",
+          "description": "the version of the schema",
+          "enum": [0]
+        }
+      },
+      "required": ["sessions", "version"]
+    },
+    "nullable-date-time": {
+      "description": "a date/time that might not have been recorded",
+      "oneOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
+    },
+    "session": {
+      "title": "Language Server Session",
+      "description": "a language server session",
+      "additionalProperties": false,
+      "required": [
+        "languages",
+        "handler_count",
+        "status",
+        "last_server_message_at",
+        "last_handler_message_at"
+      ],
+      "properties": {
+        "languages": {
+          "description": "languages supported by this Language Server",
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "handler_count": {
+          "title": "handler count",
+          "description": "the count of currently-connected WebSocket handlers",
+          "type": "integer",
+          "minValue": 0
+        },
+        "status": {
+          "description": "a string describing the current state of the server",
+          "type": "string",
+          "enum": ["not_started", "starting", "started", "stopping", "stopped"]
+        },
+        "last_server_message_at": {
+          "description": "date-time of last seen message from the language server",
+          "$ref": "#/definitions/nullable-date-time"
+        },
+        "last_handler_message_at": {
+          "description": "date-time of last seen message from a WebSocket handler",
+          "$ref": "#/definitions/nullable-date-time"
+        }
+      }
+    }
+  }
+}

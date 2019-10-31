@@ -15,7 +15,7 @@ parameters:
     - name: ThreeSeven
       spec: '>=3.7,<3.8.0a0'
   env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
-  lab_build: jupyter labextension install krassowski-jupyterlab-lsp-$(JS_JLLSP_VERSION).tgz @krassowski/jupyterlab_go_to_definition
+  lab_ext: jupyter labextension install --no-build $(THIRD_PARTY_LABEXTENSIONS) $(FIRST_PARTY_LABEXTENSIONS)
 
 jobs:
   - ${{ each platform in parameters.platforms }}:
@@ -52,19 +52,19 @@ jobs:
               - script: ${{ platform.activate }} jupyterlab-lsp && python setup.py sdist bdist_wheel
                 displayName: build python distributions
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && cd dist && npm pack ..
-                displayName: build npm bundle
+              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm lerna run bundle
+                displayName: build npm bundles
 
               - script: ${{ platform.activate }} jupyterlab-lsp && cd dist && python -m pip install jupyter_lsp-$(PY_JLSP_VERSION)-py3-none-any.whl --no-deps
                 displayName: install python wheel
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm tslint:check && jlpm test:jest
+              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm test
                 displayName: run frontend unit tests
 
               - task: PublishTestResults@2
                 displayName: publish frontend test results
                 inputs:
-                  testResultsFiles: junit.xml
+                  testResultsFiles: packages/**/junit.xml
                   testRunTitle: 'Jest ${{ platform.name }}${{ python.name }}'
                   mergeTestResults: true
                 condition: always()
@@ -72,7 +72,7 @@ jobs:
               - task: PublishCodeCoverageResults@1
                 inputs:
                   codeCoverageTool: Cobertura
-                  summaryFileLocation: 'coverage/cobertura-coverage.xml'
+                  summaryFileLocation: 'packages/**/coverage/cobertura-coverage.xml'
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jupyter serverextension list
                 displayName: list server extensions
@@ -80,8 +80,11 @@ jobs:
               - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/utest.py --test-run-title="Pytest ${{ platform.name }}${{ python.name }}"
                 displayName: run python tests
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && cd dist && ${{ parameters.lab_build }} || ${{ parameters.lab_build }} || ${{ parameters.lab_build }}
+              - script: ${{ platform.activate }} jupyterlab-lsp && ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }}
                 displayName: install labextensions
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter lab build || jupyter lab build --debug || jupyter lab build --debug
+                displayName: build lab
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jupyter labextension list
                 displayName: list labextensions

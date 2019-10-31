@@ -9,7 +9,8 @@ from tornado.queues import Queue
 
 # local imports
 from jupyter_lsp import LanguageServerManager
-from jupyter_lsp.handlers import LanguageServerWebSocketHandler
+from jupyter_lsp.handlers import LanguageServersHandler, LanguageServerWebSocketHandler
+from jupyter_lsp.schema import servers_schema
 
 # these should always be available in a test environment ()
 KNOWN_LANGUAGES = [
@@ -38,6 +39,8 @@ KNOWN_LANGUAGES += sum(
 
 KNOWN_UNKNOWN_LANGUAGES = ["cobol"]
 
+SERVERS_SCHEMA = servers_schema()
+
 
 @fixture
 def manager() -> LanguageServerManager:
@@ -55,10 +58,12 @@ def known_unknown_language(request):
 
 
 @fixture
-def handler(manager):
-    handler = MockWebsocketHandler()
+def handlers(manager):
+    ws_handler = MockWebsocketHandler()
+    ws_handler.initialize(manager)
+    handler = MockHandler()
     handler.initialize(manager)
-    return handler
+    return handler, ws_handler
 
 
 @fixture
@@ -98,6 +103,16 @@ class MockWebsocketHandler(LanguageServerWebSocketHandler):
     def write_message(self, message: Text) -> None:
         self.log.warning("write_message %s", message)
         self._messages_wrote.put_nowait(message)
+
+
+class MockHandler(LanguageServersHandler):
+    _payload = None
+
+    def __init__(self):
+        pass
+
+    def finish(self, payload):
+        self._payload = payload
 
 
 class MockNotebookApp(NotebookApp):

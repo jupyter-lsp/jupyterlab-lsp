@@ -11,9 +11,17 @@ pr:
 variables:
   PYTHONUNBUFFERED: 1
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
+
   PY_JLSP_VERSION: 0.6.0b0
-  JS_JLLSP_VERSION: 0.5.0
+  JS_JLLSP_VERSION: 0.6.0
+
+  FIRST_PARTY_LABEXTENSIONS: >-
+    packages/jupyterlab-lsp/krassowski-jupyterlab-lsp-$(JS_JLLSP_VERSION).tgz
+
+  THIRD_PARTY_LABEXTENSIONS: >-
+    @krassowski/jupyterlab_go_to_definition
 
 jobs:
+  - template: ci/job.lint.yml
   - template: ci/job.test.yml
   - template: ci/job.combine.yml
