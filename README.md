@@ -42,11 +42,15 @@ New in 0.6.0:
 
 - automated LSP servers start and traitlets-based configuration
 - "rename" action in file editor
-- improved code navigation when there are multiple jump targets
 - and many other improvements, see the [release notes](https://github.com/krassowski/jupyterlab-lsp/releases/tag/v0.6.0).
+
+New in 0.6.1:
+- removed unused dependencies
+- added an indicator to the statusbar
 
 ### Coming soon:
 
+- improved code navigation when there are multiple jump targets
 - autocompleter with documentation and sorting based on LSP suggestions
 - system of settings, including options:
   - to enable aggressive autocompletion (like in hinterland)
@@ -120,7 +124,7 @@ jupyter labextension update @krassowski/jupyterlab-lsp
 Use install command (update does not seem to work) appending `@version` to the extension name, like this:
 
 ```bash
-jupyter labextension install @krassowski/jupyterlab-lsp@0.6.0
+jupyter labextension install @krassowski/jupyterlab-lsp@0.6.1
 ```
 
 ## Development
