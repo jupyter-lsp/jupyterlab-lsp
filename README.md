@@ -45,6 +45,7 @@ New in 0.6.0:
 - and many other improvements, see the [release notes](https://github.com/krassowski/jupyterlab-lsp/releases/tag/v0.6.0).
 
 New in 0.6.1:
+
 - removed unused dependencies
 - added an indicator to the statusbar
 
