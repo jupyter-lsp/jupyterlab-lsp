@@ -1,13 +1,13 @@
 # CHANGELOG
 
-## `@krassowski/jupyter-lsp 0.6.1`
+## `@krassowski/jupyterlab-lsp 0.6.1`
 
 - features
   - adds an indicator to the statusbar
 - dependencies
   - removes unused npm dependencies
 
-## `@krassowski/jupyter-lsp 0.6.0`
+## `@krassowski/jupyterlab-lsp 0.6.0`
 
 - features
   - allows "rename" action in file editor
@@ -19,7 +19,7 @@
 - dependencies
   - requires `jupyter-lsp`
 
-## `jupyter-lsp 0.6.0`
+## `jupyter-lsp 0.6.0b0`
 
 - features
   - starts language servers on demand

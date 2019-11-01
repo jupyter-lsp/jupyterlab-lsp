@@ -12,13 +12,15 @@ python scripts/integrity.py
 
 > TODO: create a `release.py` script
 
-The PyPI version must be updated in at least two places:
+The PyPI version must be updated in the following places:
 
 - `py_src/jupyter_lsp/_version.py` (canonical)
 - `azure-pipelines.yml`
+- `CHANGELOG.md`
 
-The npm version must be updated in at least three places
+The npm version must be updated in the following places
 
 - `packages/jupyterlab-lsp/package.json` (canonical)
 - `azure-pipelines.yml`
 - `packages/metapackage/package.json`
+- `CHANGELOG.md`

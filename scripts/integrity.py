@@ -20,6 +20,7 @@ ROOT = pathlib.Path.cwd()
 
 # docs
 MAIN_README = ROOT / "README.md"
+CHANGELOG = ROOT / "CHANGELOG.md"
 
 # dependencies
 ENV = yaml.safe_load((ROOT / "environment.yml").read_text())
@@ -44,6 +45,7 @@ META_NAME = "{}/jupyterlab-lsp-metapackage".format(NPM_NS)
 MAIN_EXT_VERSION = PACKAGES[MAIN_NAME][1]["version"]
 
 # py stuff
+PY_NAME = "jupyter-lsp"
 _VERSION_PY = ROOT / "py_src" / "jupyter_lsp" / "_version.py"
 PY_VERSION = re.findall(r'= "(.*)"$', (_VERSION_PY).read_text())[0]
 
@@ -120,3 +122,10 @@ if __name__ == "__main__":
         ini.write_text("")
 
         sys.exit(pytest.main(["-c", str(ini), "-vv", __file__]))
+
+
+@pytest.mark.parametrize(
+    "pkg,version", [[PY_NAME, PY_VERSION], [MAIN_NAME, MAIN_EXT_VERSION]]
+)
+def test_changelog_versions(pkg, version):
+    assert "## `{} {}`".format(pkg, version) in CHANGELOG.read_text()
