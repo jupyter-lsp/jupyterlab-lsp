@@ -71,7 +71,7 @@ For the current stable version:
 1. install the server extension:
 
    ```bash
-   pip install jupyter-lsp
+   pip install --pre jupyter-lsp
    ```
 
 2. install the frontend extension:
