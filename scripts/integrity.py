@@ -101,13 +101,6 @@ def test_ts_package_integrity(name, info, the_meta_package):
             jsonschema.validators.Draft7Validator(schema_instance)
 
 
-def test_ts_readme():
-    version = PACKAGES[MAIN_NAME][1]["version"]
-    assert (
-        "{}@{}".format(MAIN_NAME, version) in MAIN_README.read_text()
-    ), "README.md is out of sync vs {}".format(version)
-
-
 @pytest.mark.parametrize(
     "path",
     map(
