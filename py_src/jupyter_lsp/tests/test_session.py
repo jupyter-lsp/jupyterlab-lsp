@@ -15,7 +15,7 @@ def assert_status_set(handler, expected_statuses, language=None):
     statuses = {
         s["status"]
         for s in payload["sessions"]
-        if language is None or language in s["languages"]
+        if language is None or language in s["spec"]["languages"]
     }
     assert statuses == expected_statuses
 

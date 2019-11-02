@@ -7,10 +7,12 @@ from datetime import datetime, timezone
 
 from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
-from traitlets import Bunch, Instance, List, Set, Unicode, UseEnum, observe
+from traitlets import Bunch, Instance, Set, UseEnum, observe
 from traitlets.config import LoggingConfigurable
 
 from . import stdio
+from .schema import language_server_spec
+from .trait_types import Schema
 from .types import SessionStatus
 
 
@@ -18,16 +20,8 @@ class LanguageServerSession(LoggingConfigurable):
     """ Manage a session for a connection to a language server
     """
 
-    argv = List(
-        trait=Unicode,
-        default_value=[],
-        help="the command line arguments to start the language server",
-    )
-    languages = List(
-        trait=Unicode,
-        default_value=[],
-        help="the languages this session can provide language server features",
-    )
+    spec = Schema(language_server_spec())
+
     process = Instance(
         subprocess.Popen, help="the language server subprocess", allow_none=True
     )
@@ -50,6 +44,8 @@ class LanguageServerSession(LoggingConfigurable):
 
     _tasks = None
 
+    _skip_serialize = ["argv", "debug_argv"]
+
     def __init__(self, *args, **kwargs):
         """ set up the required traitlets and exit behavior for a session
         """
@@ -57,13 +53,12 @@ class LanguageServerSession(LoggingConfigurable):
         atexit.register(self.stop)
 
     def __repr__(self):  # pragma: no cover
-        return "<LanguageServerSession(languages={}, argv={})>".format(
-            self.languages, self.argv
+        return "<LanguageServerSession(languages={languages}, argv={argv})>".format(
+            **self.spec
         )
 
     def to_json(self):
         return dict(
-            languages=self.languages,
             handler_count=len(self.handlers),
             status=self.status.value,
             last_server_message_at=self.last_server_message_at.isoformat()
@@ -72,6 +67,7 @@ class LanguageServerSession(LoggingConfigurable):
             last_handler_message_at=self.last_handler_message_at.isoformat()
             if self.last_handler_message_at
             else None,
+            spec=self.spec,
         )
 
     def initialize(self):
@@ -135,7 +131,7 @@ class LanguageServerSession(LoggingConfigurable):
         """ start the language server subprocess
         """
         self.process = subprocess.Popen(
-            self.argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE
+            self.spec["argv"], stdin=subprocess.PIPE, stdout=subprocess.PIPE
         )
 
     def init_queues(self):
