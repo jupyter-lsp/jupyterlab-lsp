@@ -15,6 +15,9 @@ from .schema import language_server_spec
 from .trait_types import Schema
 from .types import SessionStatus
 
+# these are not desirable to publish to the frontend
+SKIP_JSON_SPEC = ["argv", "debug_argv"]
+
 
 class LanguageServerSession(LoggingConfigurable):
     """ Manage a session for a connection to a language server
@@ -22,6 +25,7 @@ class LanguageServerSession(LoggingConfigurable):
 
     spec = Schema(language_server_spec())
 
+    # run-time specifics
     process = Instance(
         subprocess.Popen, help="the language server subprocess", allow_none=True
     )
@@ -67,7 +71,7 @@ class LanguageServerSession(LoggingConfigurable):
             last_handler_message_at=self.last_handler_message_at.isoformat()
             if self.last_handler_message_at
             else None,
-            spec=self.spec,
+            spec={k: v for k, v in self.spec.items() if k not in SKIP_JSON_SPEC},
         )
 
     def initialize(self):

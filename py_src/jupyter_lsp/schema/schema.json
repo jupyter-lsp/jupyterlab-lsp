@@ -49,7 +49,34 @@
       "type": "object"
     },
     "language-server-spec": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/partial-language-server-spec"
+        },
+        {
+          "required": [
+            "argv",
+            "languages"
+          ]
+        }
+      ],
       "description": "a description of a language server that could be started",
+      "title": "Language Server Spec"
+    },
+    "nullable-date-time": {
+      "description": "a date/time that might not have been recorded",
+      "oneOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "partial-language-server-spec": {
+      "description": "all properties that might be required to start and/or describe a Language Server",
       "properties": {
         "argv": {
           "$ref": "#/definitions/shell-args",
@@ -106,20 +133,7 @@
           "type": "object"
         }
       },
-      "required": ["argv", "languages"],
-      "title": "Language Server Spec"
-    },
-    "nullable-date-time": {
-      "description": "a date/time that might not have been recorded",
-      "oneOf": [
-        {
-          "format": "date-time",
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "title": "Server Spec Properties"
     },
     "servers-response": {
       "properties": {
@@ -132,20 +146,22 @@
         },
         "version": {
           "description": "the version of the schema",
-          "enum": [1],
+          "enum": [
+            1
+          ],
           "type": "integer"
         }
       },
-      "required": ["sessions", "version"],
+      "required": [
+        "sessions",
+        "version"
+      ],
       "type": "object"
     },
     "session": {
       "additionalProperties": false,
       "description": "a language server session",
       "properties": {
-        "spec": {
-          "$ref": "#/definitions/language-server-spec"
-        },
         "handler_count": {
           "description": "the count of currently-connected WebSocket handlers",
           "minValue": 0,
@@ -160,9 +176,18 @@
           "$ref": "#/definitions/nullable-date-time",
           "description": "date-time of last seen message from the language server"
         },
+        "spec": {
+          "$ref": "#/definitions/partial-language-server-spec"
+        },
         "status": {
           "description": "a string describing the current state of the server",
-          "enum": ["not_started", "starting", "started", "stopping", "stopped"],
+          "enum": [
+            "not_started",
+            "starting",
+            "started",
+            "stopping",
+            "stopped"
+          ],
           "type": "string"
         }
       },
