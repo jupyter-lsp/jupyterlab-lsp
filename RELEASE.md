@@ -11,7 +11,7 @@ python scripts/integrity.py
 ```
 
 > TODO: create a `release.py` script
-  [#88](https://github.com/krassowski/jupyterlab-lsp/issues/88)
+> [#88](https://github.com/krassowski/jupyterlab-lsp/issues/88)
 
 The PyPI version must be updated in the following places:
 
