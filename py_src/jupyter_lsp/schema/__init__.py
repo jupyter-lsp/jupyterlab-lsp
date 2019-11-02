@@ -6,6 +6,7 @@ import jsonschema
 HERE = pathlib.Path(__file__).parent
 SCHEMA_FILE = HERE / "schema.json"
 SCHEMA = json.loads(SCHEMA_FILE.read_text())
+SPEC_VERSION = SCHEMA["definitions"]["current-version"]["enum"][0]
 
 
 def servers_response() -> jsonschema.validators.Draft7Validator:

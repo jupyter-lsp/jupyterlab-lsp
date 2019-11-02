@@ -54,10 +54,7 @@
           "$ref": "#/definitions/partial-language-server-spec"
         },
         {
-          "required": [
-            "argv",
-            "languages"
-          ]
+          "required": ["argv", "languages", "version"]
         }
       ],
       "description": "a description of a language server that could be started",
@@ -75,9 +72,18 @@
         }
       ]
     },
+    "current-version": {
+      "title": "Spec Schema Version",
+      "description": "which version of the spec this implements",
+      "type": "number",
+      "enum": [1]
+    },
     "partial-language-server-spec": {
       "description": "all properties that might be required to start and/or describe a Language Server",
       "properties": {
+        "version": {
+          "$ref": "#/definitions/current-version"
+        },
         "argv": {
           "$ref": "#/definitions/shell-args",
           "description": "the arguments to start the language server normally",
@@ -145,17 +151,10 @@
           "type": "array"
         },
         "version": {
-          "description": "the version of the schema",
-          "enum": [
-            1
-          ],
-          "type": "integer"
+          "$ref": "#/definitions/current-version"
         }
       },
-      "required": [
-        "sessions",
-        "version"
-      ],
+      "required": ["sessions", "version"],
       "type": "object"
     },
     "session": {
@@ -181,13 +180,7 @@
         },
         "status": {
           "description": "a string describing the current state of the server",
-          "enum": [
-            "not_started",
-            "starting",
-            "started",
-            "stopping",
-            "stopped"
-          ],
+          "enum": ["not_started", "starting", "started", "stopping", "stopped"],
           "type": "string"
         }
       },
