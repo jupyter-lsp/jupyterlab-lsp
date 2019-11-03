@@ -8,21 +8,20 @@ Use a package manager to install a [language server][lsp-implementations]
 (also [this list][langserver]) from the tables below: these implementations are
 tested to work with `jupyter-lsp`.
 
-| language                  | `npm install (-g)`, or `yarn/jlpm add (-g)` |
-| ------------------------- | :-----------------------------------------: |
-| bash                      |           `bash-language-server`            |
-| css<br/>less<br/>sass     |       `vscode-css-languageserver-bin`       |
-| docker                    |     `dockerfile-language-server-nodejs`     |
-| html                      |      `vscode-html-languageserver-bin`       |
-| javascript<br/>typescript |     `javascript-typescript-langserver`      |
-| json                      |      `vscode-json-languageserver-bin`       |
-| markdown                  |          `unified-language-server`          |
-| yaml                      |           `yaml-language-server`            |
+| language                  | `jupyter labextension link`<br/>`npm install (-g)`<br/>`yarn/jlpm add (-g)` |
+| ------------------------- | :-------------------------------------------------------------------------: |
+| bash                      |                          [bash-language-server][]                           |
+| css<br/>less<br/>sass     |                      [vscode-css-languageserver-bin][]                      |
+| docker                    |                    [dockerfile-language-server-nodejs][]                    |
+| html                      |                     [vscode-html-languageserver-bin][]                      |
+| javascript<br/>typescript |                    [javascript-typescript-langserver][]                     |
+| json                      |                     [vscode-json-languageserver-bin][]                      |
+| yaml                      |                          [yaml-language-server][]                           |
 
 | language | `conda install -c conda-forge` |         language-specific package manager         |
 | -------- | :----------------------------: | :-----------------------------------------------: |
-| python   |    `python-language-server`    |       `pip install python-language-server`        |
-| r        |       `r-languageserver`       | `Rscript -e 'install.packages("languageserver")'` |
+| python   |   [python-language-server][]   |       `pip install python-language-server`        |
+| r        |      [r-languageserver][]      | `Rscript -e 'install.packages("languageserver")'` |
 
 [language-server]: https://microsoft.github.io/language-server-protocol/specification
 [langserver]: https://langserver.org
@@ -30,6 +29,15 @@ tested to work with `jupyter-lsp`.
 [lsp-implementations]: https://microsoft.github.io/language-server-protocol/implementors/servers
 [jupyter-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
 [jupyterlab]: https://github.com/jupyterlab/jupyterlab
+[bash-language-server]: https://github.com/mads-hartmann/https://github.com/mads-hartmann
+[vscode-css-languageserver-bin]: https://github.com/vscode-langservers/vscode-css-languageserver-bin
+[vscode-html-languageserver-bin]: https://github.com/vscode-langservers/vscode-html-languageserver-bin
+[dockerfile-language-server-nodejs]: https://github.com/rcjsuen/dockerfile-language-server-nodejs
+[javascript-typescript-langserver]: https://github.com/sourcegraph/javascript-typescript-langserver
+[python-language-server]: https://github.com/palantir/python-language-server
+[vscode-json-languageserver-bin]: https://github.com/vscode-langservers/vscode-json-languageserver-bin
+[yaml-language-server]: https://github.com/redhat-developer/yaml-language-server
+[r-languageserver]: https://github.com/REditorSupport/languageserver
 
 Don't see an implementation for the language server you need? You can
 [bring your own language server](#adding-custom-language-servers).
@@ -52,7 +60,11 @@ jupyter --paths
 ```
 
 They will be merged from bottom to top, and the directory where you launch your
-`notebook` server wins, making it easy to check in to version control.
+`notebook` server wins, making it easy to check in to version control. The absolute
+minimum listing requires `argv` (a list of shell tokens to launch the server)
+and `languages` (which languages to respond to), but many number of other options
+to enrich the user experience are available in the
+[schema](./py_src/jupyter_lsp/schema/schema.json).
 
 ```python
 # ./jupyter_notebook_config.json                 ---------- unique! -----------
@@ -134,4 +146,4 @@ The order is, roughly:
 > default: []
 
 Additional places `jupyter-lsp` will look for `node_modules`. These will be checked
-before `node_roots`
+_before_ `node_roots`.
