@@ -19,7 +19,7 @@ from .trait_types import Schema
 from .types import SessionStatus
 
 # these are not desirable to publish to the frontend
-SKIP_JSON_SPEC = ["argv", "debug_argv"]
+SKIP_JSON_SPEC = ["argv", "debug_argv", "env"]
 
 
 class LanguageServerSession(LoggingConfigurable):
