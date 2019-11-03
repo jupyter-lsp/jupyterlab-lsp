@@ -2,7 +2,10 @@
 """
 import asyncio
 import atexit
+import os
+import string
 import subprocess
+from copy import copy
 from datetime import datetime, timezone
 
 from tornado.queues import Queue
@@ -135,7 +138,10 @@ class LanguageServerSession(LoggingConfigurable):
         """ start the language server subprocess
         """
         self.process = subprocess.Popen(
-            self.spec["argv"], stdin=subprocess.PIPE, stdout=subprocess.PIPE
+            self.spec["argv"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            env=self.substitute_env(self.spec.get("env", {}), os.environ),
         )
 
     def init_queues(self):
@@ -157,6 +163,14 @@ class LanguageServerSession(LoggingConfigurable):
         self.writer = stdio.LspStdIoWriter(
             stream=self.process.stdin, queue=self.to_lsp, parent=self
         )
+
+    def substitute_env(self, env, base):
+        final_env = copy(os.environ)
+
+        for key, value in env.items():
+            final_env.update({key: string.Template(value).safe_substitute(base)})
+
+        return final_env
 
     async def _read_lsp(self):
         await self.reader.read()

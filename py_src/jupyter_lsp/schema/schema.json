@@ -6,13 +6,23 @@
       "title": "Client Configuration Schema",
       "type": "object"
     },
+    "current-version": {
+      "description": "which version of the spec this implements",
+      "enum": [1],
+      "title": "Spec Schema Version",
+      "type": "number"
+    },
+    "env-var": {
+      "title": "an environment variable. may contain python `string.Template` evaluated against the existing environment, e.g ${HOME}",
+      "type": "string"
+    },
     "install-bundle": {
       "additionalProperties": {
         "$ref": "#/definitions/install-help"
       },
       "description": "a list of installation approaches keyed by package manager, e.g. pip, npm, yarn, apt",
       "patternProperties": {
-        ".*": {
+        ".+": {
           "$ref": "#/definitions/install-help"
         }
       },
@@ -72,18 +82,9 @@
         }
       ]
     },
-    "current-version": {
-      "title": "Spec Schema Version",
-      "description": "which version of the spec this implements",
-      "type": "number",
-      "enum": [1]
-    },
     "partial-language-server-spec": {
       "description": "all properties that might be required to start and/or describe a Language Server",
       "properties": {
-        "version": {
-          "$ref": "#/definitions/current-version"
-        },
         "argv": {
           "$ref": "#/definitions/shell-args",
           "description": "the arguments to start the language server normally",
@@ -104,17 +105,26 @@
           "title": "Display Name",
           "type": "string"
         },
-        "extend": {
+        "env": {
           "additionalProperties": {
-            "$ref": "#/definitions/language-server-extension"
+            "$ref": "#/definitions/env-var"
           },
-          "description": "known extensions that can contribute to the Language Server's features",
+          "description": "additional environment variables to set when starting the language server",
           "patternProperties": {
-            ".*": {
-              "$ref": "#/definitions/language-server-extension"
+            "[^ ]+": {
+              "$ref": "#/definitions/env-var"
             }
           },
-          "title": "Extensions"
+          "title": "Environment Variables",
+          "type": "object"
+        },
+        "extend": {
+          "description": "known extensions that can contribute to the Language Server's features",
+          "items": {
+            "$ref": "#/definitions/language-server-extension"
+          },
+          "title": "Extensions",
+          "type": "array"
         },
         "install": {
           "$ref": "#/definitions/install-bundle",
@@ -130,13 +140,22 @@
           "title": "MIME Types"
         },
         "urls": {
+          "additionalProperties": {
+            "format": "uri",
+            "type": "string"
+          },
+          "description": "a collection of urls keyed by type, e.g. home, issues",
           "patternProperties": {
-            ".*": {
+            ".+": {
               "format": "uri",
               "type": "string"
             }
           },
+          "title": "URLs",
           "type": "object"
+        },
+        "version": {
+          "$ref": "#/definitions/current-version"
         }
       },
       "title": "Server Spec Properties"
