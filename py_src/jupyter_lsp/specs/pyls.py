@@ -1,6 +1,4 @@
-import json
-
-from .config import CONFIGS
+from .config import load_config_schema
 from .utils import ShellSpec
 
 
@@ -23,5 +21,5 @@ class PythonLanguageServer(ShellSpec):
             dict(display_name="pyls-black", install=dict(pip="pip install pyls-black")),
             dict(display_name="pyls-isort", install=dict(pip="pip install pyls-isort")),
         ],
-        config_schema=json.loads((CONFIGS / "pyls.schema.json").read_text()),
+        config_schema=load_config_schema(key),
     )
