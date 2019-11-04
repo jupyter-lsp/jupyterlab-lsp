@@ -1,6 +1,7 @@
 """ add language server support to the running jupyter notebook application
 """
 import json
+import os
 import pathlib
 
 import traitlets
@@ -31,10 +32,7 @@ def load_jupyter_server_extension(nbapp):
     contents = nbapp.contents_manager
 
     if hasattr(contents, "root_dir"):
-        root_dir = pathlib.Path(contents.root_dir).resolve()
-        # normalize for windows case
-        if root_dir.drive and root_dir.drive.endswith(":"):  # pragma: no cover
-            root_dir.drive = root_dir.drive.lower()
+        root_dir = pathlib.Path(os.path.normcase(contents.root_dir)).resolve()
         root_uri = root_dir.as_uri()
         web_app.settings.setdefault("page_config_data", {})["rootUri"] = root_uri
     else:  # pragma: no cover
