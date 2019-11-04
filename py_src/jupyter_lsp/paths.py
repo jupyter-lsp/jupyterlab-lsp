@@ -1,11 +1,17 @@
+import pathlib
 import re
 
-RE_WIN_PATH = r"^file:///([A-Z]):/"
+RE_PATH_ANCHOR = r"^file://([^/]+|/[A-Z]:)/"
 
 
-def normalize_uri(root_uri):
-    if not re.findall(RE_WIN_PATH, root_uri):
-        return root_uri
-    return re.sub(
-        RE_WIN_PATH, lambda m: "file:///{}:/".format(m.group(1).lower()), root_uri
+def normalized_uri(root_dir):
+    """ Attempt to make an LSP rootUri from a ContentsManager root_dir
+
+        Special care must be taken around windows paths: the canonical form of
+        windows drives and UNC paths is lower case
+    """
+    root_uri = pathlib.Path(root_dir).expanduser().resolve().as_uri()
+    root_uri = re.sub(
+        RE_PATH_ANCHOR, lambda m: "file://{}/".format(m.group(1).lower()), root_uri
     )
+    return root_uri

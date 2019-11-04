@@ -1,51 +1,38 @@
 """ add language server support to the running jupyter notebook application
 """
 import json
-import pathlib
 
 import traitlets
-from notebook.utils import url_path_join as ujoin
 
-from .handlers import LanguageServersHandler, LanguageServerWebSocketHandler
+from .handlers import add_handlers
 from .manager import LanguageServerManager
-from .paths import normalize_uri
+from .paths import normalized_uri
 
 
 def load_jupyter_server_extension(nbapp):
     """ create a LanguageServerManager and add handlers
     """
-    web_app = nbapp.web_app
     nbapp.add_traits(language_server_manager=traitlets.Instance(LanguageServerManager))
     manager = nbapp.language_server_manager = LanguageServerManager(parent=nbapp)
     manager.initialize()
-    nbapp.log.debug(
-        "[lsp] The following Language Servers will be available: {}".format(
-            json.dumps(manager.language_servers, indent=2, sort_keys=True)
-        )
-    )
-
-    lsp_url = ujoin(nbapp.base_url, "lsp")
-    re_langs = "(?P<language>.*)"
-
-    opts = {"manager": nbapp.language_server_manager}
 
     contents = nbapp.contents_manager
+    page_config = nbapp.web_app.settings.setdefault("page_config_data", {})
 
+    # try to set the rootUri from the contents manager path
     if hasattr(contents, "root_dir"):
-        root_dir = pathlib.Path(contents.root_dir).resolve()
-        root_uri = normalize_uri(root_dir.as_uri())
-        web_app.settings.setdefault("page_config_data", {})["rootUri"] = root_uri
-        nbapp.log.debug("[lsp] rootUri will be %s", root_uri)
+        page_config["rootUri"] = normalized_uri(contents.root_dir)
+        nbapp.log.debug("[lsp] rootUri will be %s", page_config["rootUri"])
     else:  # pragma: no cover
         nbapp.log.warn(
             "[lsp] %s did not appear to have a root_dir, could not set rootUri",
             contents,
         )
 
-    web_app.add_handlers(
-        ".*",
-        [
-            (lsp_url, LanguageServersHandler, opts),
-            (ujoin(lsp_url, re_langs), LanguageServerWebSocketHandler, opts),
-        ],
+    add_handlers(nbapp)
+
+    nbapp.log.debug(
+        "[lsp] The following Language Servers will be available: {}".format(
+            json.dumps(manager.language_servers, indent=2, sort_keys=True)
+        )
     )
