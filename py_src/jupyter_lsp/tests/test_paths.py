@@ -8,7 +8,7 @@ from ..paths import normalized_uri
 
 WIN = platform.system() == "Windows"
 HOME = pathlib.Path("~").expanduser()
-PY35 = sys.version_info[:2] < (3, 5)
+PY35 = sys.version_info[:2] == (3, 5)
 
 
 @pytest.mark.skipif(WIN, reason="can't test POSIX paths on Windows")
