@@ -1,6 +1,7 @@
 """ add language server support to the running jupyter notebook application
 """
 import json
+import pathlib
 
 import traitlets
 from notebook.utils import url_path_join as ujoin
@@ -12,11 +13,12 @@ from .manager import LanguageServerManager
 def load_jupyter_server_extension(nbapp):
     """ create a LanguageServerManager and add handlers
     """
+    web_app = nbapp.web_app
     nbapp.add_traits(language_server_manager=traitlets.Instance(LanguageServerManager))
     manager = nbapp.language_server_manager = LanguageServerManager(parent=nbapp)
     manager.initialize()
     nbapp.log.debug(
-        "The following Language Servers will be available: {}".format(
+        "[lsp] The following Language Servers will be available: {}".format(
             json.dumps(manager.language_servers, indent=2, sort_keys=True)
         )
     )
@@ -26,7 +28,18 @@ def load_jupyter_server_extension(nbapp):
 
     opts = {"manager": nbapp.language_server_manager}
 
-    nbapp.web_app.add_handlers(
+    contents = nbapp.contents_manager
+
+    if hasattr(contents, "root_dir"):
+        root_uri = pathlib.Path(contents.root_dir).as_uri()
+        web_app.settings["page_config_data"]["rootUri"] = root_uri
+    else:  # pragma: no cover
+        nbapp.log.warn(
+            "[lsp] %s did not appear to have a root_dir, could not set rootUri",
+            contents
+        )
+
+    web_app.add_handlers(
         ".*",
         [
             (lsp_url, LanguageServersHandler, opts),
