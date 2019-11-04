@@ -1,7 +1,7 @@
 import pathlib
 import re
 
-RE_PATH_ANCHOR = r"^file://([^/]+|/[A-Z]:)/"
+RE_PATH_ANCHOR = r"^file://([^/]+|/[A-Z]:)"
 
 
 def normalized_uri(root_dir):
@@ -12,6 +12,6 @@ def normalized_uri(root_dir):
     """
     root_uri = pathlib.Path(root_dir).expanduser().resolve().as_uri()
     root_uri = re.sub(
-        RE_PATH_ANCHOR, lambda m: "file://{}/".format(m.group(1).lower()), root_uri
+        RE_PATH_ANCHOR, lambda m: "file://{}".format(m.group(1).lower()), root_uri
     )
     return root_uri

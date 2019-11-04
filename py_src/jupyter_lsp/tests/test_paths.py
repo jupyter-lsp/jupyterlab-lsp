@@ -23,7 +23,6 @@ def test_normalize_paths(root_dir, expected_root_uri):  # pragma: no cover
     assert normalized_uri(root_dir) == expected_root_uri
 
 
-@pytest.mark.skipif(not WIN, reason="can't test Windows paths on POSIX")
 @pytest.mark.parametrize(
     "root_dir, expected_root_uri",
     [
