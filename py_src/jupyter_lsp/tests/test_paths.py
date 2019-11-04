@@ -1,5 +1,6 @@
 import pathlib
 import platform
+import sys
 
 import pytest
 
@@ -7,8 +8,10 @@ from ..paths import normalized_uri
 
 WIN = platform.system() == "Windows"
 HOME = pathlib.Path("~").expanduser()
+PY35 = sys.version_info[:2] < (3, 5)
 
 
+@pytest.mark.skipif(PY35, reason="can't test non-existant paths on py35")
 @pytest.mark.skipif(WIN, reason="can't test POSIX paths on Windows")
 @pytest.mark.parametrize(
     "root_dir, expected_root_uri",
