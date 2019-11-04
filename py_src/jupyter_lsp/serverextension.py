@@ -32,11 +32,11 @@ def load_jupyter_server_extension(nbapp):
 
     if hasattr(contents, "root_dir"):
         root_uri = pathlib.Path(contents.root_dir).as_uri()
-        web_app.settings["page_config_data"]["rootUri"] = root_uri
+        web_app.settings.setdefault("page_config_data", {})["rootUri"] = root_uri
     else:  # pragma: no cover
         nbapp.log.warn(
             "[lsp] %s did not appear to have a root_dir, could not set rootUri",
-            contents
+            contents,
         )
 
     web_app.add_handlers(
