@@ -8,6 +8,7 @@ from notebook.utils import url_path_join as ujoin
 from tornado.ioloop import IOLoop
 
 from .manager import LanguageServerManager
+from .schema import SERVERS_RESPONSE
 
 
 class BaseHandler(IPythonHandler):
@@ -47,18 +48,28 @@ class LanguageServersHandler(BaseHandler):
         Response should conform to schema in schema/servers.schema.json
     """
 
+    validator = SERVERS_RESPONSE
+
+    def initialize(self, *args, **kwargs):
+        super().initialize(*args, **kwargs)
+
     def get(self):
         """ finish with the JSON representations of the sessions
         """
-        self.finish(
-            {
-                "version": 0,
-                "sessions": sorted(
-                    [session.to_json() for session in self.manager.sessions.values()],
-                    key=lambda session: session["languages"],
-                ),
-            }
-        )
+        response = {
+            "version": 1,
+            "sessions": sorted(
+                [session.to_json() for session in self.manager.sessions.values()],
+                key=lambda session: session["spec"]["languages"],
+            ),
+        }
+
+        errors = list(self.validator.iter_errors(response))
+
+        if errors:  # pragma: no cover
+            self.log.warn("{} validation errors: {}", len(errors), errors)
+
+        self.finish(response)
 
 
 def add_handlers(nbapp):

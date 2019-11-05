@@ -2,20 +2,20 @@ import asyncio
 
 import pytest
 
-from .conftest import SERVERS_SCHEMA
+from ..schema import SERVERS_RESPONSE
 
 
 def assert_status_set(handler, expected_statuses, language=None):
     handler.get()
     payload = handler._payload
 
-    errors = list(SERVERS_SCHEMA.iter_errors(payload))
+    errors = list(SERVERS_RESPONSE.iter_errors(payload))
     assert not errors
 
     statuses = {
         s["status"]
         for s in payload["sessions"]
-        if language is None or language in s["languages"]
+        if language is None or language in s["spec"]["languages"]
     }
     assert statuses == expected_statuses
 

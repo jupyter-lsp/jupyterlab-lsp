@@ -182,8 +182,8 @@ server it will always win vs an auto-configured one.
 
 #### Writing a spec
 
-> See the built-in [specs](./specs) for implementations and some
-> [helpers](./specs/utils.py).
+> See the built-in [specs](./py_src/jupyter_lsp/specs) for implementations and some
+> [helpers](./py_src/jupyter_lsp/specs/utils.py).
 
 A spec is a python function that accepts a single argument, the
 `LanguageServerManager`, and returns a dictionary of the form:
@@ -191,11 +191,18 @@ A spec is a python function that accepts a single argument, the
 ```python
 {
   "python-language-server": {            # the name of the implementation
+      "version": 1,                      # the version of the spec schema
       "argv": ["python", "-m", "pyls"],  # a list of command line arguments
       "languages": ["python"]            # a list of languages it supports
   }
 }
 ```
+
+The absolute minimum listing requires `argv` (a list of shell tokens to launch
+the server) and `languages` (which languages to respond to), but many number of
+other options to enrich the user experience are available in the
+[schema](./py_src/jupyter_lsp/schema/schema.json) and are exercised by the
+current `entry_points`-based [specs]().
 
 The spec should only be advertised if the command _could actually_ be run:
 
@@ -212,7 +219,7 @@ The spec should only be advertised if the command _could actually_ be run:
     guess at where a user's `nodejs` might be found
 - some language servers are hard to start purely from the command line
   - use a helper script to encapsulate some complexity.
-    - See the [r spec](./specs/r_languageserver.py) for an example
+    - See the [r spec](./py_src/jupyter_lsp/specs/r_languageserver.py) for an example
 
 ##### Example: making a pip-installable `cool-language-server` spec
 
@@ -240,6 +247,7 @@ def cool(app):
 
     return {
         "cool-language-server": {
+            "version": 1,
             "argv": [cool_language_server],
             "languages": ["cool"]
         }
@@ -255,7 +263,7 @@ setuptools.setup(
     name="jupyter-lsp-my-cool-language-server",
     py_modules=["jupyter_lsp_my_cool_language_server"],
     entry_points={
-        "jupyter_lsp_spec_v0": [
+        "jupyter_lsp_spec_v1": [
             "cool-language-server":
               "jupyter_lsp_my_cool_language_server:cool"
         ]

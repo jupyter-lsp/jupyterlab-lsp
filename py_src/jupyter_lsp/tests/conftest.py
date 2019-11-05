@@ -10,7 +10,6 @@ from tornado.queues import Queue
 # local imports
 from jupyter_lsp import LanguageServerManager
 from jupyter_lsp.handlers import LanguageServersHandler, LanguageServerWebSocketHandler
-from jupyter_lsp.schema import servers_schema
 
 # these should always be available in a test environment ()
 KNOWN_LANGUAGES = [
@@ -38,8 +37,6 @@ KNOWN_LANGUAGES += sum(
 )
 
 KNOWN_UNKNOWN_LANGUAGES = ["cobol"]
-
-SERVERS_SCHEMA = servers_schema()
 
 
 @fixture

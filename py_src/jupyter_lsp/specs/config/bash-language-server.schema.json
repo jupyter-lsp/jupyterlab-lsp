@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "title": "Bash IDE configuration",
+  "properties": {
+    "bashIde.path": {
+      "type": "string",
+      "default": null,
+      "description": "The path to the bash language server binary (example: /usr/local/bin/bash-language-server)"
+    },
+    "bashIde.highlightParsingErrors": {
+      "type": "boolean",
+      "default": true,
+      "description": "If enabled parsing errors will be highlighted as 'problems' "
+    },
+    "bashIde.explainshellEndpoint": {
+      "type": "string",
+      "default": "",
+      "description": "Set this to https://explainshell.com (once https://github.com/idank/explainshell/pull/125 is merged in) in order to get hover documentation on flags and options."
+    }
+  }
+}
