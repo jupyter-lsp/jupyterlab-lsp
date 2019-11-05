@@ -58,6 +58,7 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
   }
 
   get missing_servers_text() {
+    // TODO: false negative for r vs R.
     const missing_languages = [...this.model.detected_languages].filter(
       language => !this.model.supported_languages.has(language)
     );
