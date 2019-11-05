@@ -4,6 +4,7 @@ from typing import Optional, Text
 
 from notebook.base.handlers import IPythonHandler
 from notebook.base.zmqhandlers import WebSocketHandler, WebSocketMixin
+from notebook.utils import url_path_join as ujoin
 from tornado.ioloop import IOLoop
 
 from .manager import LanguageServerManager
@@ -70,3 +71,20 @@ class LanguageServersHandler(BaseHandler):
             self.log.warn("{} validation errors: {}", len(errors), errors)
 
         self.finish(response)
+
+
+def add_handlers(nbapp):
+    """ Add Language Server routes to the notebook server web application
+    """
+    lsp_url = ujoin(nbapp.base_url, "lsp")
+    re_langs = "(?P<language>.*)"
+
+    opts = {"manager": nbapp.language_server_manager}
+
+    nbapp.web_app.add_handlers(
+        ".*",
+        [
+            (lsp_url, LanguageServersHandler, opts),
+            (ujoin(lsp_url, re_langs), LanguageServerWebSocketHandler, opts),
+        ],
+    )

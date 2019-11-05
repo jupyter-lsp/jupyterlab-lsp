@@ -1,6 +1,6 @@
 import { PageConfig } from '@jupyterlab/coreutils';
 
-const RE_WIN_PATH = /^file:\/\/\/[a-z]:\//i;
+const RE_PATH_ANCHOR = /^file:\/\/([^\/]+|\/[A-Z]:)/;
 
 export async function sleep(timeout: number) {
   return new Promise(resolve => {
@@ -89,19 +89,7 @@ export class DefaultMap<K, V> extends Map<K, V> {
 }
 
 export function server_root_uri() {
-  const server_root = PageConfig.getOption('serverRoot');
-  const user_settings = PageConfig.getOption('userSettingsDir');
-  if (server_root.startsWith('~') && user_settings.startsWith('/home/')) {
-    return (
-      'file://' +
-      server_root.replace(
-        '~',
-        user_settings.substring(0, user_settings.indexOf('/', 6))
-      )
-    );
-  } else {
-    return 'file://' + server_root;
-  }
+  return PageConfig.getOption('rootUri');
 }
 
 /**
@@ -122,14 +110,14 @@ export function uris_equal(a: string, b: string) {
  * grossly detect whether a URI represents a file on a windows drive
  */
 export function is_win_path(uri: string) {
-  return uri.match(RE_WIN_PATH);
+  return uri.match(RE_PATH_ANCHOR);
 }
 
 /**
  * lowercase the drive component of a URI
  */
 export function normalize_win_path(uri: string) {
-  return uri.replace(RE_WIN_PATH, it => it.toLowerCase());
+  return uri.replace(RE_PATH_ANCHOR, it => it.toLowerCase());
 }
 
 export function uri_to_contents_path(child: string, parent?: string) {
