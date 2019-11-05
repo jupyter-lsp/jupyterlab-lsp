@@ -18,24 +18,53 @@ import { DefaultIconReact } from '@jupyterlab/ui-components';
 import { JupyterLabWidgetAdapter } from '../jl_adapter';
 import { VirtualDocument } from '../../../virtual/document';
 import { LSPConnection } from '../../../connection';
+import { PageConfig } from '@jupyterlab/coreutils';
+
+function ServerStatus(props: any) {
+  // TODO: list opened connections (filename, [cell id]:  status | stop button)
+  // TODO: collapse servers with no open connections
+  // TODO: add a config buttons next to the header
+  return (
+    <div>
+      <h4>{props.name}</h4>
+    </div>
+  );
+}
 
 class LSPPopup extends VDomRenderer<LSPStatus.Model> {
   constructor(model: LSPStatus.Model) {
     super();
     this.model = model;
-    // TODO: add proper, custom class?
+    // TODO: add proper, custom class
     this.addClass('p-Menu');
   }
   render() {
     if (!this.model) {
       return null;
     }
-    return (
-      <GroupItem spacing={4} className={'p-Menu-item'}>
-        <TextItem source={this.model.lsp_servers} />
-        <TextItem source={this.model.long_message} />
-      </GroupItem>
+    const servers = this.model.server_extension_status.sessions.map(
+      (session: any) => (
+        <ServerStatus name={session.languages.join('/')} server={session} />
+      )
     );
+
+    return (
+      <div className={'p-Menu-item'}>
+        {servers}
+        <div>{this.model.long_message}</div>
+        <div>{this.missing_servers_text}</div>
+      </div>
+    );
+  }
+
+  get missing_servers_text() {
+    const missing_languages = [...this.model.detected_languages].filter(
+      language => !this.model.supported_languages.has(language)
+    );
+    if (missing_languages.length === 0) {
+      return '';
+    }
+    return `No LSP servers were found for: ${missing_languages.join(', ')}`;
   }
 }
 
@@ -133,14 +162,45 @@ export namespace LSPStatus {
    * A VDomModel for the LSP of current file editor/notebook.
    */
   export class Model extends VDomModel {
-    get lsp_servers(): string {
-      if (!this.adapter) {
-        return '';
+    server_extension_status: any = null;
+
+    constructor() {
+      super();
+
+      // PathExt.join skips on of the slashes in https://
+      let url = PageConfig.getBaseUrl() + 'lsp';
+      fetch(url)
+        .then(response => {
+          // TODO: retry a few times
+          if (!response.ok) {
+            throw new Error(response.statusText);
+          }
+          response.json().then(data => (this.server_extension_status = data));
+        })
+        .catch(console.error);
+    }
+
+    get available_servers(): any {
+      return this.server_extension_status.sessions;
+    }
+
+    get supported_languages(): Set<string> {
+      const languages = new Set<string>();
+      for (let server of this.available_servers) {
+        for (let language of server.languages) {
+          languages.add(language);
+        }
       }
+      return languages;
+    }
+
+    get detected_languages(): Set<string> {
+      if (!this.adapter) {
+        return new Set<string>();
+      }
+
       let document = this.adapter.virtual_editor.virtual_document;
-      return `Languages detected: ${[...collect_languages(document)].join(
-        ', '
-      )}`;
+      return collect_languages(document);
     }
 
     get lsp_servers_truncated(): string {
