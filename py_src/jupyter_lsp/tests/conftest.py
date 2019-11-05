@@ -8,7 +8,7 @@ from pytest import fixture
 from tornado.queues import Queue
 
 # local imports
-from jupyter_lsp import LanguageServerManager, schema
+from jupyter_lsp import LanguageServerManager
 from jupyter_lsp.handlers import LanguageServersHandler, LanguageServerWebSocketHandler
 
 # these should always be available in a test environment ()
@@ -37,8 +37,6 @@ KNOWN_LANGUAGES += sum(
 )
 
 KNOWN_UNKNOWN_LANGUAGES = ["cobol"]
-
-SERVERS_SCHEMA = schema.servers_response()
 
 
 @fixture

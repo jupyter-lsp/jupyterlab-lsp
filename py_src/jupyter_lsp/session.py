@@ -14,7 +14,7 @@ from traitlets import Bunch, Instance, Set, UseEnum, observe
 from traitlets.config import LoggingConfigurable
 
 from . import stdio
-from .schema import language_server_spec
+from .schema import LANGUAGE_SERVER_SPEC
 from .trait_types import Schema
 from .types import SessionStatus
 
@@ -26,7 +26,7 @@ class LanguageServerSession(LoggingConfigurable):
     """ Manage a session for a connection to a language server
     """
 
-    spec = Schema(language_server_spec())
+    spec = Schema(LANGUAGE_SERVER_SPEC)
 
     # run-time specifics
     process = Instance(

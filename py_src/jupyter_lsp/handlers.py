@@ -8,7 +8,7 @@ from notebook.utils import url_path_join as ujoin
 from tornado.ioloop import IOLoop
 
 from .manager import LanguageServerManager
-from .schema import servers_response
+from .schema import SERVERS_RESPONSE
 
 
 class BaseHandler(IPythonHandler):
@@ -48,11 +48,10 @@ class LanguageServersHandler(BaseHandler):
         Response should conform to schema in schema/servers.schema.json
     """
 
-    validator = None
+    validator = SERVERS_RESPONSE
 
     def initialize(self, *args, **kwargs):
         super().initialize(*args, **kwargs)
-        self.validator = servers_response()
 
     def get(self):
         """ finish with the JSON representations of the sessions

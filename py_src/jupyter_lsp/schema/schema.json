@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
-    "config-schema": {
+    "client-config-schema": {
       "description": "a JSON schema to configure the Language Server or extension behavior from the client",
       "title": "Client Configuration Schema",
       "type": "object"
@@ -43,10 +43,10 @@
       "uniqueItems": true
     },
     "language-server-extension": {
-      "description": "an extension which can extend the functionality of the language server",
+      "description": "an extension which can extend the functionality of the language server and client",
       "properties": {
         "config_schema": {
-          "$ref": "#/definitions/config-schema"
+          "$ref": "#/definitions/client-config-schema"
         },
         "display_name": {
           "type": "string"
@@ -91,7 +91,7 @@
           "title": "Launch Arguments"
         },
         "config_schema": {
-          "$ref": "#/definitions/config-schema",
+          "$ref": "#/definitions/client-config-schema",
           "description": "a JSON schema to configure the Language Server behavior from the client",
           "title": "Client Configuration Schema"
         },
@@ -218,6 +218,19 @@
         "type": "string"
       },
       "type": "array"
+    },
+    "language-server-specs-implementation-map": {
+      "title": "Language Server Specs Map",
+      "description": "a set of language servers keyed by their implementation name",
+      "patternProperties": {
+        ".*": {
+          "$ref": "#/definitions/language-server-spec"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/language-server-spec"
+      },
+      "type": "object"
     }
   },
   "description": "describes the current state of (potentially) running language servers",

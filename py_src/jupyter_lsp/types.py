@@ -4,14 +4,13 @@ import enum
 import pathlib
 import shutil
 import sys
-from typing import Callable, Dict, List, Text
+from typing import Any, Callable, Dict, Text
 
 from notebook.transutils import _
 from traitlets import List as List_, Unicode, default
 from traitlets.config import LoggingConfigurable
 
-# TODO: TypedDict?
-LanguageServerSpec = Dict[Text, List[Text]]
+LanguageServerSpec = Dict[Text, Any]
 KeyedLanguageServerSpecs = Dict[Text, LanguageServerSpec]
 
 

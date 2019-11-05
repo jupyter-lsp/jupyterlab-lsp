@@ -4,10 +4,12 @@ import typing
 
 import pkg_resources
 from notebook.transutils import _
-from traitlets import Bool, Dict as Dict_, Instance
+from traitlets import Bool, Dict as Dict_, Instance, default
 
-from .constants import EP_SPEC_V0
+from .constants import EP_SPEC_V1
+from .schema import LANGUAGE_SERVER_SPEC_MAP
 from .session import LanguageServerSession
+from .trait_types import Schema
 from .types import KeyedLanguageServerSpecs, LanguageServerManagerAPI, SpecMaker
 
 
@@ -15,9 +17,8 @@ class LanguageServerManager(LanguageServerManagerAPI):
     """ Manage language servers
     """
 
-    language_servers = Dict_(
-        trait=Dict_,
-        default_value=[],
+    language_servers = Schema(
+        validator=LANGUAGE_SERVER_SPEC_MAP,
         help=_("a dict of language server specs, keyed by implementation"),
     ).tag(
         config=True
@@ -34,6 +35,10 @@ class LanguageServerManager(LanguageServerManagerAPI):
         default_value={},
         help="sessions keyed by languages served",
     )  # type: typing.Dict[typing.Tuple[typing.Text], LanguageServerSession]
+
+    @default("language_servers")
+    def _default_language_servers(self):
+        return {}
 
     def __init__(self, **kwargs):
         """ Before starting, perform all necessary configuration
@@ -104,7 +109,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         entry_points = []
 
         try:
-            entry_points = list(pkg_resources.iter_entry_points(EP_SPEC_V0))
+            entry_points = list(pkg_resources.iter_entry_points(EP_SPEC_V1))
         except Exception:  # pragma: no cover
             self.log.exception("Failed to load entry_points")
 
@@ -120,8 +125,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
                 continue
 
             try:
-                for key, spec in spec_finder(self).items():
-                    yield key, spec
+                specs = spec_finder(self)
             except Exception as err:  # pragma: no cover
                 self.log.warning(
                     _(
@@ -130,3 +134,17 @@ class LanguageServerManager(LanguageServerManagerAPI):
                     ).format(ep.name, err)
                 )
                 continue
+
+            errors = list(LANGUAGE_SERVER_SPEC_MAP.iter_errors(specs))
+
+            if errors:  # pragma: no cover
+                self.log.warning(
+                    _(
+                        "Failed to validate commands from language server spec finder"
+                        "`{}`:\n{}"
+                    ).format(ep.name, errors)
+                )
+                continue
+
+            for key, spec in specs.items():
+                yield key, spec

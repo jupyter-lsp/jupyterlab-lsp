@@ -191,6 +191,7 @@ A spec is a python function that accepts a single argument, the
 ```python
 {
   "python-language-server": {            # the name of the implementation
+      "version": 1,                      # the version of the spec schema
       "argv": ["python", "-m", "pyls"],  # a list of command line arguments
       "languages": ["python"]            # a list of languages it supports
   }
@@ -246,6 +247,7 @@ def cool(app):
 
     return {
         "cool-language-server": {
+            "version": 1,
             "argv": [cool_language_server],
             "languages": ["cool"]
         }
@@ -261,7 +263,7 @@ setuptools.setup(
     name="jupyter-lsp-my-cool-language-server",
     py_modules=["jupyter_lsp_my_cool_language_server"],
     entry_points={
-        "jupyter_lsp_spec_v0": [
+        "jupyter_lsp_spec_v1": [
             "cool-language-server":
               "jupyter_lsp_my_cool_language_server:cool"
         ]
