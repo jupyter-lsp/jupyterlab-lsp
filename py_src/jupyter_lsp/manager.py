@@ -1,6 +1,7 @@
 """ A configurable frontend for stdio-based Language Servers
 """
-import typing
+import asyncio
+from typing import Dict, Text, Tuple
 
 import pkg_resources
 from notebook.transutils import _
@@ -34,7 +35,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         trait=Instance(LanguageServerSession),
         default_value={},
         help="sessions keyed by languages served",
-    )  # type: typing.Dict[typing.Tuple[typing.Text], LanguageServerSession]
+    )  # type: Dict[Tuple[Text], LanguageServerSession]
 
     @default("language_servers")
     def _default_language_servers(self):
@@ -76,7 +77,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         sessions = {}
         for spec in self.language_servers.values():
             sessions[tuple(sorted(spec["languages"]))] = LanguageServerSession(
-                spec=spec
+                spec=spec, parent=self
             )
         self.sessions = sessions
 
@@ -92,9 +93,31 @@ class LanguageServerManager(LanguageServerManagerAPI):
             for session in sessions:
                 session.handlers = set([handler]) | session.handlers
 
-    def on_message(self, message, handler):
+    async def on_handler_message(self, message, handler):
+        futures = [
+            listener(message, self)
+            for listener in self._handler_listeners
+            if listener.wants(message, [handler.language])
+        ]
+
+        if futures:
+            await asyncio.gather(*futures)
+
         for session in self.sessions_for_handler(handler):
             session.write(message)
+
+    async def on_session_message(self, message, session):
+        futures = [
+            listener(message, self)
+            for listener in self._session_listeners
+            if listener.wants(message, session.spec["languages"])
+        ]
+
+        if futures:
+            await asyncio.gather(*futures)
+
+        for handler in session.handlers:
+            handler.write_message(message)
 
     def unsubscribe(self, handler):
         for session in self.sessions_for_handler(handler):

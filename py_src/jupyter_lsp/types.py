@@ -2,16 +2,34 @@
 """
 import enum
 import pathlib
+import re
 import shutil
 import sys
-from typing import Any, Callable, Dict, Text
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Pattern,
+    Text,
+)
 
 from notebook.transutils import _
 from traitlets import List as List_, Unicode, default
 from traitlets.config import LoggingConfigurable
 
+if TYPE_CHECKING:
+    from .manager import LanguageServerManager
+
 LanguageServerSpec = Dict[Text, Any]
+LanguageServerMessage = Dict[Text, Any]
 KeyedLanguageServerSpecs = Dict[Text, LanguageServerSpec]
+HandlerListenerCallback = Callable[
+    [LanguageServerMessage, "LanguageServerManager"], Awaitable[None]
+]
 
 
 class SessionStatus(enum.Enum):
@@ -25,9 +43,49 @@ class SessionStatus(enum.Enum):
     STOPPED = "stopped"
 
 
-class LanguageServerManagerAPI(LoggingConfigurable):
-    """ Public API that can be used for python-based spec finders
+class MessageListener(object):
+    """ A base listener implementation
     """
+
+    listener = None  # type: HandlerListenerCallback
+    language = None  # type: Optional[Pattern[Text]]
+    method = None  # type: Optional[Pattern[Text]]
+
+    def __init__(
+        self,
+        listener: HandlerListenerCallback,
+        language: Optional[Text],
+        method: Optional[Text],
+    ):
+        self.listener = listener
+        self.language = re.compile(language) if language else None
+        self.method = re.compile(method) if method else None
+
+    async def __call__(
+        self,
+        message: "LanguageServerMessage",
+        languages: List[Text],
+        manager: "LanguageServerManager",
+    ) -> None:
+        """ actually dispatch the message to the listener
+        """
+        if self.wants(message, languages):
+            await self.listener(message, manager)
+
+    def wants(self, message: "LanguageServerMessage", languages: List[Text]):
+        if self.method is None or re.match(self.method, message["method"]) is None:
+            return False
+        return self.language is None or any(
+            [re.match(self.language, lang) is not None for lang in languages]
+        )
+
+
+class LanguageServerManagerAPI(LoggingConfigurable):
+    """ Public API that can be used for python-based spec finders and listeners
+    """
+
+    _handler_listeners = []
+    _session_listeners = []
 
     nodejs = Unicode(help=_("path to nodejs executable")).tag(config=True)
 
@@ -38,6 +96,49 @@ class LanguageServerManagerAPI(LoggingConfigurable):
     extra_node_roots = List_(
         [], help=_("additional absolute paths to seek node_modules first")
     ).tag(config=True)
+
+    @classmethod
+    def register_handler_listener(
+        cls, language: Optional[Text] = None, method: Optional[Text] = None
+    ):
+        """ register a listener for handler messages
+        """
+
+        def handler(listener: HandlerListenerCallback):
+            cls._handler_listeners += [
+                MessageListener(listener=listener, language=language, method=method)
+            ]
+            return listener
+
+        return handler
+
+    @classmethod
+    def unregister_handler_listener(cls, listener):
+        """ register a listener for handler messages
+        """
+        cls._handler_listeners = [
+            lst for lst in cls._handler_listeners if lst.listener == listener
+        ]
+
+    @classmethod
+    def register_session_listener(
+        cls, language: Optional[Text] = None, method: Optional[Text] = None
+    ):
+        """ decorate a function"""
+
+        def handler(listener):
+            cls._session_listeners += [
+                MessageListener(listener=listener, language=language, method=method)
+            ]
+            return listener
+
+        return handler
+
+    @classmethod
+    def unregister_session_listener(cls, listener):
+        cls._session_listeners = [
+            lst for lst in cls._message_listeners if lst.listener == listener
+        ]
 
     def find_node_module(self, *path_frag):
         """ look through the node_module roots to find the given node module
