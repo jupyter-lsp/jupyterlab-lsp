@@ -21,7 +21,7 @@ from notebook.transutils import _
 from traitlets import List as List_, Unicode, default
 from traitlets.config import LoggingConfigurable
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .manager import LanguageServerManager
 
 LanguageServerSpec = Dict[Text, Any]
@@ -62,18 +62,14 @@ class MessageListener(object):
         self.method = re.compile(method) if method else None
 
     async def __call__(
-        self,
-        message: "LanguageServerMessage",
-        languages: List[Text],
-        manager: "LanguageServerManager",
+        self, message: "LanguageServerMessage", manager: "LanguageServerManager"
     ) -> None:
         """ actually dispatch the message to the listener
         """
-        if self.wants(message, languages):
-            await self.listener(message, manager)
+        await self.listener(message=message, manager=manager)
 
     def wants(self, message: "LanguageServerMessage", languages: List[Text]):
-        if self.method is None or re.match(self.method, message["method"]) is None:
+        if self.method and re.match(self.method, message["method"]) is None:
             return False
         return self.language is None or any(
             [re.match(self.language, lang) is not None for lang in languages]
@@ -104,40 +100,38 @@ class LanguageServerManagerAPI(LoggingConfigurable):
         """ register a listener for handler messages
         """
 
-        def handler(listener: HandlerListenerCallback):
-            cls._handler_listeners += [
-                MessageListener(listener=listener, language=language, method=method)
-            ]
+        def inner(listener: HandlerListenerCallback):
+            lst = MessageListener(listener=listener, language=language, method=method)
+            cls._handler_listeners += [lst]
             return listener
 
-        return handler
+        return inner
 
     @classmethod
-    def unregister_handler_listener(cls, listener):
+    def unregister_handler_listener(cls, listener: HandlerListenerCallback):
         """ register a listener for handler messages
         """
         cls._handler_listeners = [
-            lst for lst in cls._handler_listeners if lst.listener == listener
+            lst for lst in cls._handler_listeners if lst.listener != listener
         ]
 
     @classmethod
     def register_session_listener(
         cls, language: Optional[Text] = None, method: Optional[Text] = None
     ):
-        """ decorate a function"""
+        """ register a listener for session messages """
 
-        def handler(listener):
-            cls._session_listeners += [
-                MessageListener(listener=listener, language=language, method=method)
-            ]
+        def inner(listener):
+            lst = MessageListener(listener=listener, language=language, method=method)
+            cls._session_listeners += [lst]
             return listener
 
-        return handler
+        return inner
 
     @classmethod
-    def unregister_session_listener(cls, listener):
+    def unregister_session_listener(cls, listener: HandlerListenerCallback):
         cls._session_listeners = [
-            lst for lst in cls._message_listeners if lst.listener == listener
+            lst for lst in cls._session_listeners if lst.listener != listener
         ]
 
     def find_node_module(self, *path_frag):
