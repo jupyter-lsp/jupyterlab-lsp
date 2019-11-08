@@ -5,7 +5,7 @@ from tornado.queues import Queue
 
 
 @pytest.mark.asyncio
-async def test_listeners(handlers, jsonrpc_init_msg):
+async def test_listeners(known_language, handlers, jsonrpc_init_msg):
     """ will a handler listener listen?
     """
     handler, ws_handler = handlers
@@ -16,7 +16,7 @@ async def test_listeners(handlers, jsonrpc_init_msg):
     handler_listened = Queue()
     server_listened = Queue()
 
-    @manager.register_handler_listener(language=r".*", method=r".*")
+    @manager.register_handler_listener(language=known_language, method="initialize")
     async def handler_listener(message, manager):
         await handler_listened.put(message)
 
@@ -36,13 +36,13 @@ async def test_listeners(handlers, jsonrpc_init_msg):
 
     assert len(manager._session_listeners) == 2
 
-    ws_handler.open("python")
+    ws_handler.open(known_language)
 
     await ws_handler.on_message(jsonrpc_init_msg)
 
     try:
         await asyncio.wait_for(
-            asyncio.gather(handler_listened.get(), server_listened.get()), 10
+            asyncio.gather(handler_listened.get(), server_listened.get()), 20
         )
         handler_listened.task_done()
         server_listened.task_done()
