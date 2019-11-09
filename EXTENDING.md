@@ -52,4 +52,14 @@ accessed as part of a `serverextension`
 
 #### Listener traitlets
 
-> TBD
+Like Language Servers Listeners can be added via `traitlets` configuration, e.g.
+
+```json
+{
+  "LanguageServerManager": {
+    "all_listeners": ["some_module.some_function"],
+    "client_listeners": ["some_module.some_other_function"],
+    "server_listeners": ["some_module.yet_some_function"]
+  }
+}
+```

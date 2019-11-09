@@ -4,12 +4,12 @@ from typing import Dict, Text, Tuple
 
 import pkg_resources
 from notebook.transutils import _
-from traitlets import Bool, Dict as Dict_, Instance, default
+from traitlets import Bool, Dict as Dict_, Instance, List as List_, default
 
 from .constants import EP_SPEC_V1
 from .schema import LANGUAGE_SERVER_SPEC_MAP
 from .session import LanguageServerSession
-from .trait_types import Schema
+from .trait_types import LoadableCallable, Schema
 from .types import (
     KeyedLanguageServerSpecs,
     LanguageServerManagerAPI,
@@ -41,6 +41,10 @@ class LanguageServerManager(LanguageServerManagerAPI):
         help="sessions keyed by languages served",
     )  # type: Dict[Tuple[Text], LanguageServerSession]
 
+    all_listeners = List_(trait=LoadableCallable).tag(config=True)
+    server_listeners = List_(trait=LoadableCallable).tag(config=True)
+    client_listeners = List_(trait=LoadableCallable).tag(config=True)
+
     @default("language_servers")
     def _default_language_servers(self):
         return {}
@@ -52,6 +56,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
     def initialize(self, *args, **kwargs):
         self.init_language_servers()
+        self.init_listeners()
         self.init_sessions()
 
     def init_language_servers(self) -> None:
@@ -84,6 +89,18 @@ class LanguageServerManager(LanguageServerManagerAPI):
                 spec=spec, parent=self
             )
         self.sessions = sessions
+
+    def init_listeners(self):
+        """ register traitlets-configured listeners
+        """
+        scopes = {
+            MessageScope.ALL: self.all_listeners,
+            MessageScope.CLIENT: self.client_listeners,
+            MessageScope.SERVER: self.server_listeners,
+        }
+        for scope, listeners in scopes.items():
+            for listener in listeners:
+                self.__class__.register_message_listener(scope=scope.value)(listener)
 
     def subscribe(self, handler):
         """ subscribe a handler to session, or sta

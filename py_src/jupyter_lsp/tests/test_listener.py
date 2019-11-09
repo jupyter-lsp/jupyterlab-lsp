@@ -1,9 +1,20 @@
 import asyncio
 
 import pytest
+import traitlets
 from tornado.queues import Queue
 
 from jupyter_lsp import lsp_message_listener
+
+
+@pytest.mark.parametrize("bad_string", ["not-a-function", "jupyter_lsp.__version__"])
+@pytest.mark.asyncio
+async def test_listener_bad_traitlets(bad_string, handlers):
+    handler, ws_handler = handlers
+    manager = handler.manager
+
+    with pytest.raises(traitlets.TraitError):
+        manager.all_listeners = [bad_string]
 
 
 @pytest.mark.asyncio
@@ -13,7 +24,11 @@ async def test_listeners(known_language, handlers, jsonrpc_init_msg):
     handler, ws_handler = handlers
     manager = handler.manager
 
+    manager.all_listeners = ["jupyter_lsp.tests.listener.dummy_listener"]
+
     manager.initialize()
+
+    assert len(manager._listeners["all"]) == 1
 
     handler_listened = Queue()
     server_listened = Queue()
@@ -50,7 +65,7 @@ async def test_listeners(known_language, handlers, jsonrpc_init_msg):
 
     assert len(manager._listeners["server"]) == 2
     assert len(manager._listeners["client"]) == 2
-    assert len(manager._listeners["all"]) == 1
+    assert len(manager._listeners["all"]) == 2
 
     ws_handler.open(known_language)
 
@@ -88,4 +103,4 @@ async def test_listeners(known_language, handlers, jsonrpc_init_msg):
 
     assert not manager._listeners["server"]
     assert not manager._listeners["client"]
-    assert not manager._listeners["all"]
+    assert len(manager._listeners["all"]) == 1
