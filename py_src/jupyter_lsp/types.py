@@ -1,6 +1,8 @@
 """ API used by spec finders and manager
 """
+import asyncio
 import enum
+import json
 import pathlib
 import re
 import shutil
@@ -43,11 +45,18 @@ class SessionStatus(enum.Enum):
     STOPPED = "stopped"
 
 
+class MessageScope(enum.Enum):
+    """ Scopes for message listeners
+    """
+
+    ALL = "all"
+    CLIENT = "client"
+    SERVER = "server"
+
+
 class MessageListener(object):
     """ A base listener implementation
     """
-
-    SCOPES = ["client", "server", "all"]
 
     listener = None  # type: HandlerListenerCallback
     language = None  # type: Optional[Pattern[Text]]
@@ -66,7 +75,7 @@ class MessageListener(object):
     async def __call__(
         self,
         scope: Text,
-        message: "LanguageServerMessage",
+        message: LanguageServerMessage,
         languages: List[Text],
         manager: "LanguageServerManager",
     ) -> None:
@@ -76,7 +85,7 @@ class MessageListener(object):
             scope=scope, message=message, languages=languages, manager=manager
         )
 
-    def wants(self, message: "LanguageServerMessage", languages: List[Text]):
+    def wants(self, message: LanguageServerMessage, languages: List[Text]):
         if self.method and re.match(self.method, message["method"]) is None:
             return False
         return self.language is None or any(
@@ -85,7 +94,7 @@ class MessageListener(object):
 
 
 class HasListeners:
-    _listeners = {scope: [] for scope in MessageListener.SCOPES}
+    _listeners = {scope.value: [] for scope in MessageScope}
 
     @classmethod
     def register_message_listener(
@@ -106,10 +115,27 @@ class HasListeners:
     def unregister_message_listener(cls, listener: HandlerListenerCallback):
         """ unregister a listener for language server protocol messages
         """
-        for scope in MessageListener.SCOPES:
-            cls._listeners[scope] = [
-                lst for lst in cls._listeners[scope] if lst.listener != listener
+        for scope in MessageScope:
+            cls._listeners[scope.value] = [
+                lst for lst in cls._listeners[scope.value] if lst.listener != listener
             ]
+
+    async def wait_for_listeners(
+        self, scope: MessageScope, message: LanguageServerMessage, languages: List[Text]
+    ) -> None:
+        listeners = self._listeners[scope] + self._listeners["all"]
+
+        if listeners:
+            message_dict = json.loads(message)
+
+            futures = [
+                listener(scope, message=message_dict, languages=languages, manager=self)
+                for listener in listeners
+                if listener.wants(message_dict, languages)
+            ]
+
+            if futures:
+                await asyncio.gather(*futures)
 
 
 class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):

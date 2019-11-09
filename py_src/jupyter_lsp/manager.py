@@ -1,7 +1,5 @@
 """ A configurable frontend for stdio-based Language Servers
 """
-import asyncio
-import json
 from typing import Dict, Text, Tuple
 
 import pkg_resources
@@ -93,20 +91,6 @@ class LanguageServerManager(LanguageServerManagerAPI):
         if sessions:
             for session in sessions:
                 session.handlers = set([handler]) | session.handlers
-
-    async def wait_for_listeners(self, scope, message, languages) -> None:
-        listeners = self._listeners[scope] + self._listeners["all"]
-        if listeners:
-            message_dict = json.loads(message)
-
-            futures = [
-                listener(scope, message=message_dict, languages=languages, manager=self)
-                for listener in listeners
-                if listener.wants(message_dict, languages)
-            ]
-
-            if futures:
-                await asyncio.gather(*futures)
 
     async def on_client_message(self, message, handler):
         await self.wait_for_listeners("client", message, [handler.language])
