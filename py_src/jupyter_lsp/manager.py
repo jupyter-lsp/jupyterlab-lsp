@@ -94,34 +94,28 @@ class LanguageServerManager(LanguageServerManagerAPI):
             for session in sessions:
                 session.handlers = set([handler]) | session.handlers
 
-    async def on_handler_message(self, message, handler):
-        if self._handler_listeners:
+    async def wait_for_listeners(self, scope, message, languages) -> None:
+        listeners = self._listeners[scope] + self._listeners["all"]
+        if listeners:
             message_dict = json.loads(message)
 
             futures = [
-                listener(message=message_dict, manager=self)
-                for listener in self._handler_listeners
-                if listener.wants(message_dict, [handler.language])
+                listener(scope, message=message_dict, languages=languages, manager=self)
+                for listener in listeners
+                if listener.wants(message_dict, languages)
             ]
 
             if futures:
                 await asyncio.gather(*futures)
+
+    async def on_client_message(self, message, handler):
+        await self.wait_for_listeners("client", message, [handler.language])
 
         for session in self.sessions_for_handler(handler):
             session.write(message)
 
-    async def on_session_message(self, message, session):
-        if self._session_listeners:
-            message_dict = json.loads(message)
-
-            futures = [
-                listener(message_dict, self)
-                for listener in self._session_listeners
-                if listener.wants(message_dict, session.spec["languages"])
-            ]
-
-            if futures:
-                await asyncio.gather(*futures)
+    async def on_server_message(self, message, session):
+        await self.wait_for_listeners("server", message, session.spec["languages"])
 
         for handler in session.handlers:
             handler.write_message(message)

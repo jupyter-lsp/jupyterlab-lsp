@@ -3,10 +3,12 @@ import asyncio
 import pytest
 from tornado.queues import Queue
 
+from jupyter_lsp import lsp_message_listener
+
 
 @pytest.mark.asyncio
 async def test_listeners(known_language, handlers, jsonrpc_init_msg):
-    """ will a handler listener listen?
+    """ will a some listeners listen?
     """
     handler, ws_handler = handlers
     manager = handler.manager
@@ -15,44 +17,75 @@ async def test_listeners(known_language, handlers, jsonrpc_init_msg):
 
     handler_listened = Queue()
     server_listened = Queue()
+    all_listened = Queue()
 
-    @manager.register_handler_listener(language=known_language, method="initialize")
-    async def handler_listener(message, manager):
+    # some client listeners
+    @lsp_message_listener("client", language=known_language, method="initialize")
+    async def client_listener(scope, message, languages, manager):
         await handler_listened.put(message)
 
-    @manager.register_handler_listener(method=r"not-a-method")
-    async def other_handler_listener(message, manager):  # pragma: no cover
+    @lsp_message_listener("client", method=r"not-a-method")
+    async def other_client_listener(
+        scope, message, languages, manager
+    ):  # pragma: no cover
+        await handler_listened.put(message)
         raise NotImplementedError("shouldn't get here")
 
-    assert len(manager._handler_listeners) == 2
-
-    @manager.register_session_listener(language=None, method=None)
-    async def session_listener(message, manager):
+    # some server listeners
+    @lsp_message_listener("server", language=None, method=None)
+    async def server_listener(scope, message, languages, manager):
         await server_listened.put(message)
 
-    @manager.register_session_listener(language=r"not-a-language")
-    async def other_session_listener(message, manager):  # pragma: no cover
+    @lsp_message_listener("server", language=r"not-a-language")
+    async def other_server_listener(
+        scope, message, languages, manager
+    ):  # pragma: no cover
+        await handler_listened.put(message)
         raise NotImplementedError("shouldn't get here")
 
-    assert len(manager._session_listeners) == 2
+    # an all listener
+    @lsp_message_listener("all")
+    async def all_listener(scope, message, languages, manager):  # pragma: no cover
+        await all_listened.put(message)
+
+    assert len(manager._listeners["server"]) == 2
+    assert len(manager._listeners["client"]) == 2
+    assert len(manager._listeners["all"]) == 1
 
     ws_handler.open(known_language)
 
     await ws_handler.on_message(jsonrpc_init_msg)
 
-    try:
-        await asyncio.wait_for(
-            asyncio.gather(handler_listened.get(), server_listened.get()), 20
-        )
-        handler_listened.task_done()
-        server_listened.task_done()
-    finally:
-        ws_handler.on_close()
+    results = await asyncio.wait_for(
+        asyncio.gather(
+            handler_listened.get(),
+            server_listened.get(),
+            all_listened.get(),
+            all_listened.get(),
+            return_exceptions=True,
+        ),
+        20,
+    )
+    assert all([isinstance(res, dict) for res in results])
 
-    manager.unregister_handler_listener(handler_listener)
-    manager.unregister_handler_listener(other_handler_listener)
-    manager.unregister_session_listener(session_listener)
-    manager.unregister_session_listener(other_session_listener)
+    ws_handler.on_close()
 
-    assert not manager._handler_listeners
-    assert not manager._session_listeners
+    handler_listened.task_done()
+    server_listened.task_done()
+    all_listened.task_done()
+    all_listened.task_done()
+
+    [
+        manager.unregister_message_listener(listener)
+        for listener in [
+            client_listener,
+            other_client_listener,
+            server_listener,
+            other_server_listener,
+            all_listener,
+        ]
+    ]
+
+    assert not manager._listeners["server"]
+    assert not manager._listeners["client"]
+    assert not manager._listeners["all"]

@@ -9,6 +9,9 @@ from .types import (
     LanguageServerSpec,
 )
 
+# the listener decorator
+lsp_message_listener = LanguageServerManager.register_message_listener  # noqa
+
 
 def _jupyter_server_extension_paths():
     return [{"module": "jupyter_lsp"}]

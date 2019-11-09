@@ -47,6 +47,8 @@ class MessageListener(object):
     """ A base listener implementation
     """
 
+    SCOPES = ["client", "server", "all"]
+
     listener = None  # type: HandlerListenerCallback
     language = None  # type: Optional[Pattern[Text]]
     method = None  # type: Optional[Pattern[Text]]
@@ -62,11 +64,17 @@ class MessageListener(object):
         self.method = re.compile(method) if method else None
 
     async def __call__(
-        self, message: "LanguageServerMessage", manager: "LanguageServerManager"
+        self,
+        scope: Text,
+        message: "LanguageServerMessage",
+        languages: List[Text],
+        manager: "LanguageServerManager",
     ) -> None:
         """ actually dispatch the message to the listener
         """
-        await self.listener(message=message, manager=manager)
+        await self.listener(
+            scope=scope, message=message, languages=languages, manager=manager
+        )
 
     def wants(self, message: "LanguageServerMessage", languages: List[Text]):
         if self.method and re.match(self.method, message["method"]) is None:
@@ -76,12 +84,37 @@ class MessageListener(object):
         )
 
 
-class LanguageServerManagerAPI(LoggingConfigurable):
+class HasListeners:
+    _listeners = {scope: [] for scope in MessageListener.SCOPES}
+
+    @classmethod
+    def register_message_listener(
+        cls, scope: Text, language: Optional[Text] = None, method: Optional[Text] = None
+    ):
+        """ register a listener for language server protocol messages
+        """
+
+        def inner(listener: HandlerListenerCallback) -> HandlerListenerCallback:
+            cls._listeners[scope].append(
+                MessageListener(listener=listener, language=language, method=method)
+            )
+            return listener
+
+        return inner
+
+    @classmethod
+    def unregister_message_listener(cls, listener: HandlerListenerCallback):
+        """ unregister a listener for language server protocol messages
+        """
+        for scope in MessageListener.SCOPES:
+            cls._listeners[scope] = [
+                lst for lst in cls._listeners[scope] if lst.listener != listener
+            ]
+
+
+class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
     """ Public API that can be used for python-based spec finders and listeners
     """
-
-    _handler_listeners = []
-    _session_listeners = []
 
     nodejs = Unicode(help=_("path to nodejs executable")).tag(config=True)
 
@@ -92,47 +125,6 @@ class LanguageServerManagerAPI(LoggingConfigurable):
     extra_node_roots = List_(
         [], help=_("additional absolute paths to seek node_modules first")
     ).tag(config=True)
-
-    @classmethod
-    def register_handler_listener(
-        cls, language: Optional[Text] = None, method: Optional[Text] = None
-    ):
-        """ register a listener for handler messages
-        """
-
-        def inner(listener: HandlerListenerCallback):
-            lst = MessageListener(listener=listener, language=language, method=method)
-            cls._handler_listeners += [lst]
-            return listener
-
-        return inner
-
-    @classmethod
-    def unregister_handler_listener(cls, listener: HandlerListenerCallback):
-        """ register a listener for handler messages
-        """
-        cls._handler_listeners = [
-            lst for lst in cls._handler_listeners if lst.listener != listener
-        ]
-
-    @classmethod
-    def register_session_listener(
-        cls, language: Optional[Text] = None, method: Optional[Text] = None
-    ):
-        """ register a listener for session messages """
-
-        def inner(listener):
-            lst = MessageListener(listener=listener, language=language, method=method)
-            cls._session_listeners += [lst]
-            return listener
-
-        return inner
-
-    @classmethod
-    def unregister_session_listener(cls, listener: HandlerListenerCallback):
-        cls._session_listeners = [
-            lst for lst in cls._session_listeners if lst.listener != listener
-        ]
 
     def find_node_module(self, *path_frag):
         """ look through the node_module roots to find the given node module

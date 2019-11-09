@@ -30,7 +30,7 @@ class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, BaseHandl
 
     async def on_message(self, message):
         self.log.debug("[{}] Handling a message".format(self.language))
-        await self.manager.on_handler_message(message, self)
+        await self.manager.on_client_message(message, self)
 
     def on_close(self):
         self.manager.unsubscribe(self)

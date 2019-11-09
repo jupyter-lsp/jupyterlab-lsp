@@ -184,5 +184,5 @@ class LanguageServerSession(LoggingConfigurable):
         """
         async for message in self.from_lsp:
             self.last_server_message_at = self.now()
-            await self.parent.on_session_message(message, self)
+            await self.parent.on_server_message(message, self)
             self.from_lsp.task_done()
