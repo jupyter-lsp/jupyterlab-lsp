@@ -23,15 +23,22 @@ from notebook.transutils import _
 from traitlets import List as List_, Unicode, default
 from traitlets.config import LoggingConfigurable
 
-if TYPE_CHECKING:  # pragma: no cover
-    from .manager import LanguageServerManager
-
 LanguageServerSpec = Dict[Text, Any]
 LanguageServerMessage = Dict[Text, Any]
 KeyedLanguageServerSpecs = Dict[Text, LanguageServerSpec]
-HandlerListenerCallback = Callable[
-    [LanguageServerMessage, "LanguageServerManager"], Awaitable[None]
-]
+
+if TYPE_CHECKING:  # pragma: no cover
+    from typing_extensions import Protocol
+
+    class HandlerListenerCallback(Protocol):
+        def __call__(
+            self,
+            scope: Text,
+            message: LanguageServerMessage,
+            languages: List[Text],
+            manager: "HasListeners",
+        ) -> Awaitable[None]:
+            ...
 
 
 class SessionStatus(enum.Enum):
@@ -64,7 +71,7 @@ class MessageListener(object):
 
     def __init__(
         self,
-        listener: HandlerListenerCallback,
+        listener: "HandlerListenerCallback",
         language: Optional[Text],
         method: Optional[Text],
     ):
@@ -77,7 +84,7 @@ class MessageListener(object):
         scope: Text,
         message: LanguageServerMessage,
         languages: List[Text],
-        manager: "LanguageServerManager",
+        manager: "HasListeners",
     ) -> None:
         """ actually dispatch the message to the listener
         """
@@ -94,7 +101,9 @@ class MessageListener(object):
 
 
 class HasListeners:
-    _listeners = {scope.value: [] for scope in MessageScope}
+    _listeners = {
+        str(scope.value): [] for scope in MessageScope
+    }  # type: Dict[Text, List[MessageListener]]
 
     @classmethod
     def register_message_listener(
@@ -112,26 +121,29 @@ class HasListeners:
         return inner
 
     @classmethod
-    def unregister_message_listener(cls, listener: HandlerListenerCallback):
+    def unregister_message_listener(cls, listener: "HandlerListenerCallback"):
         """ unregister a listener for language server protocol messages
         """
         for scope in MessageScope:
-            cls._listeners[scope.value] = [
-                lst for lst in cls._listeners[scope.value] if lst.listener != listener
+            cls._listeners[str(scope.value)] = [
+                lst
+                for lst in cls._listeners[str(scope.value)]
+                if lst.listener != listener
             ]
 
     async def wait_for_listeners(
-        self, scope: MessageScope, message: LanguageServerMessage, languages: List[Text]
+        self, scope: MessageScope, message_str: Text, languages: List[Text]
     ) -> None:
-        listeners = self._listeners[scope] + self._listeners["all"]
+        scope_val = str(scope.value)
+        listeners = self._listeners[scope_val] + self._listeners[MessageScope.ALL.value]
 
         if listeners:
-            message_dict = json.loads(message)
+            message = json.loads(message_str)
 
             futures = [
-                listener(scope, message=message_dict, languages=languages, manager=self)
+                listener(scope_val, message=message, languages=languages, manager=self)
                 for listener in listeners
-                if listener.wants(message_dict, languages)
+                if listener.wants(message, languages)
             ]
 
             if futures:

@@ -10,7 +10,12 @@ from .constants import EP_SPEC_V1
 from .schema import LANGUAGE_SERVER_SPEC_MAP
 from .session import LanguageServerSession
 from .trait_types import Schema
-from .types import KeyedLanguageServerSpecs, LanguageServerManagerAPI, SpecMaker
+from .types import (
+    KeyedLanguageServerSpecs,
+    LanguageServerManagerAPI,
+    MessageScope,
+    SpecMaker,
+)
 
 
 class LanguageServerManager(LanguageServerManagerAPI):
@@ -93,13 +98,15 @@ class LanguageServerManager(LanguageServerManagerAPI):
                 session.handlers = set([handler]) | session.handlers
 
     async def on_client_message(self, message, handler):
-        await self.wait_for_listeners("client", message, [handler.language])
+        await self.wait_for_listeners(MessageScope.CLIENT, message, [handler.language])
 
         for session in self.sessions_for_handler(handler):
             session.write(message)
 
     async def on_server_message(self, message, session):
-        await self.wait_for_listeners("server", message, session.spec["languages"])
+        await self.wait_for_listeners(
+            MessageScope.SERVER, message, session.spec["languages"]
+        )
 
         for handler in session.handlers:
             handler.write_message(message)

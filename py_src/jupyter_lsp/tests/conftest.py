@@ -88,7 +88,7 @@ def app():
 
 # mocks
 class MockWebsocketHandler(LanguageServerWebSocketHandler):
-    _messages_wrote = None
+    _messages_wrote = None  # type: Queue
 
     def __init__(self):
         pass
