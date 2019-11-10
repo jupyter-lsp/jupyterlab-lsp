@@ -4,7 +4,7 @@
 
 > _This project is in its early days, but you are welcome to check it out, leave feedback and/or a PR_
 
-Quick Links: **[Installation](#installation) | [Language Servers](./LANGUAGESERVERS.md) | [Updating](#updating) | [Changelog](./CHANGELOG.md) | [Roadmap](./ROADMAP.md) | [Contributing](./CONTRIBUTING.md)**
+Quick Links: **[Installation](#installation) | [Language Servers](./LANGUAGESERVERS.md) | [Updating](#updating) | [Changelog](./CHANGELOG.md) | [Roadmap](./ROADMAP.md) | [Contributing](./CONTRIBUTING.md) | [Extending](./EXTENDING.md)**
 
 ## Features
 
