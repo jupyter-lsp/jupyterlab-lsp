@@ -32,8 +32,8 @@ class LoadableCallable(traitlets.TraitType):
         if isinstance(value, str):
             try:
                 value = traitlets.import_item(value)
-            except ModuleNotFoundError:
-                value = None
+            except Exception:
+                self.error(obj, value)
 
         if six.callable(value):
             return value
