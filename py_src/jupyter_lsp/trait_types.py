@@ -24,7 +24,7 @@ class Schema(traitlets.Any):
 
 
 class LoadableCallable(traitlets.TraitType):
-    """A trait which loads a callable."""
+    """A trait which (maybe) loads a callable."""
 
     info_text = "a loadable callable"
 

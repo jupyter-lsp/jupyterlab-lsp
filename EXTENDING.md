@@ -22,7 +22,43 @@ received from the client (e.g. `jupyterlab-lsp`) or a language server. All
 listeners of a message are scheduled concurrently, and the message is passed
 along once all processing has completed.
 
-#### Python API
+#### Add a Listener with `entry_points`
+
+Listeners can be added via `entry_points` by a package installed in the same
+environment as `notebook`:
+
+```toml
+# setup.cfg
+
+[options.entry_points]
+jupyter_lsp_listener_all_v1 =
+  some-function = some.module:some_function
+jupyter_lsp_listener_client_v1 =
+  some-other-function = some.module:some_other_function
+jupyter_lsp_listener_server_v1 =
+  yet-another-function = some.module:yet_another_function
+```
+
+#### Add a Listener with Jupyter Configuration
+
+Listeners can be added via `traitlets` configuration, e.g.
+
+```yaml
+# jupyter_notebook_config.jsons
+{
+  'LanguageServerManager':
+    {
+      'all_listeners': ['some.module.some_function'],
+      'client_listeners': ['some.module.some_other_function'],
+      'server_listeners': ['some.module.yet_another_function'],
+    },
+}
+```
+
+#### Add a listener with the Python API
+
+`lsp_message_listener` can be used as a decorator, accessed as part of a
+`serverextension`.
 
 This listener receives _all_ messages from the client and server, and prints them
 out.
@@ -30,36 +66,21 @@ out.
 ```python
 from jupyter_lsp import lsp_message_listener
 
-@lsp_message_listener("all")
-async def my_listener(scope, message, languages, manager):
-    print("received a {} {} message about {}".format(
-      scope, message["method"], languages
-    ))
+def load_jupyter_server_extension(nbapp):
+
+    @lsp_message_listener("all")
+    async def my_listener(scope, message, languages, manager):
+        print("received a {} {} message about {}".format(
+          scope, message["method"], languages
+        ))
 ```
+
+`scope` is one of `client`, `server` or `all`, and is required.
 
 #### Listener options
 
-Fine-grained controls are available as part of the python API, which can be
-accessed as part of a `serverextension`
+Fine-grained controls are available as part of the Python API. Pass these as
+named arguments to `lsp_message_listener`.
 
-- `scope`: one of `client`, `server` or `all`
 - `languages`: a regular expression of languages
 - `method`: a regular expression of LSP JSON-RPC method names
-
-#### Listener entry_points
-
-> TBD
-
-#### Listener traitlets
-
-Like Language Servers Listeners can be added via `traitlets` configuration, e.g.
-
-```json
-{
-  "LanguageServerManager": {
-    "all_listeners": ["some_module.some_function"],
-    "client_listeners": ["some_module.some_other_function"],
-    "server_listeners": ["some_module.yet_some_function"]
-  }
-}
-```

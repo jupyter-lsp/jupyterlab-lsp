@@ -6,7 +6,12 @@ import pkg_resources
 from notebook.transutils import _
 from traitlets import Bool, Dict as Dict_, Instance, List as List_, default
 
-from .constants import EP_SPEC_V1
+from .constants import (
+    EP_LISTENER_ALL_V1,
+    EP_LISTENER_CLIENT_V1,
+    EP_LISTENER_SERVER_V1,
+    EP_SPEC_V1,
+)
 from .schema import LANGUAGE_SERVER_SPEC_MAP
 from .session import LanguageServerSession
 from .trait_types import LoadableCallable, Schema
@@ -93,12 +98,21 @@ class LanguageServerManager(LanguageServerManagerAPI):
     def init_listeners(self):
         """ register traitlets-configured listeners
         """
+
         scopes = {
-            MessageScope.ALL: self.all_listeners,
-            MessageScope.CLIENT: self.client_listeners,
-            MessageScope.SERVER: self.server_listeners,
+            MessageScope.ALL: [self.all_listeners, EP_LISTENER_ALL_V1],
+            MessageScope.CLIENT: [self.client_listeners, EP_LISTENER_CLIENT_V1],
+            MessageScope.SERVER: [self.server_listeners, EP_LISTENER_SERVER_V1],
         }
-        for scope, listeners in scopes.items():
+        for scope, trt_ep in scopes.items():
+            listeners, entry_point = trt_ep
+
+            for ept in pkg_resources.iter_entry_points(entry_point):  # pragma: no cover
+                try:
+                    listeners.append(entry_point.load())
+                except Exception as err:
+                    self.log.warning("Failed to load entry point %s: %s", ept, err)
+
             for listener in listeners:
                 self.__class__.register_message_listener(scope=scope.value)(listener)
 
