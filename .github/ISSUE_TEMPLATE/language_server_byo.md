@@ -44,6 +44,7 @@ https://jupyterlab.readthedocs.io/en/latest/getting_started/issue.html
 - Language Server version:
 - Language Server installed with: <!-- e.g. system package manager, app package manager -->
 - Language Server Spec
+
 ```python
 # jupyter_notebook_config.json
 {

@@ -25,8 +25,8 @@ https://github.com/jupyterlab/jupyterlab/blob/master/CONTRIBUTING.md
 
 <!-- Describe any backwards-incompatible changes to public APIs. -->
 
-
 ## Chores
+
 - [ ] linted
 - [ ] tested
 - [ ] documented
