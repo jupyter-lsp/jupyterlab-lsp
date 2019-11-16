@@ -22,7 +22,7 @@ def assert_status_set(handler, expected_statuses, language=None):
 
 @pytest.mark.asyncio
 async def test_start_known(known_language, handlers, jsonrpc_init_msg):
-    """ will a process start for a known language if a handler starts listening?
+    """ will a process start for a known language if a handler starts?
     """
     handler, ws_handler = handlers
     manager = handler.manager
@@ -38,7 +38,7 @@ async def test_start_known(known_language, handlers, jsonrpc_init_msg):
 
     assert_status_set(handler, {"started"}, known_language)
 
-    ws_handler.on_message(jsonrpc_init_msg)
+    await ws_handler.on_message(jsonrpc_init_msg)
 
     try:
         await asyncio.wait_for(ws_handler._messages_wrote.get(), 20)
@@ -56,7 +56,7 @@ async def test_start_known(known_language, handlers, jsonrpc_init_msg):
 
 @pytest.mark.asyncio
 async def test_start_unknown(known_unknown_language, handlers, jsonrpc_init_msg):
-    """ will a process not start for an unknown if a handler starts listening?
+    """ will a process not start for an unknown if a handler starts?
     """
     handler, ws_handler = handlers
     manager = handler.manager
@@ -69,7 +69,7 @@ async def test_start_unknown(known_unknown_language, handlers, jsonrpc_init_msg)
 
     assert_status_set(handler, {"not_started"})
 
-    ws_handler.on_message(jsonrpc_init_msg)
+    await ws_handler.on_message(jsonrpc_init_msg)
     assert_status_set(handler, {"not_started"})
     ws_handler.on_close()
 

@@ -10,6 +10,7 @@ pr:
 
 variables:
   PYTHONUNBUFFERED: 1
+  ATEST_RETRIES: 3
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
   PY_JLSP_VERSION: 0.6.0b0

@@ -3,7 +3,11 @@ from pathlib import Path
 from typing import List, Text
 
 from ..schema import SPEC_VERSION
-from ..types import KeyedLanguageServerSpecs, LanguageServerManagerAPI
+from ..types import (
+    KeyedLanguageServerSpecs,
+    LanguageServerManagerAPI,
+    LanguageServerSpec,
+)
 
 # helper scripts for known tricky language servers
 HELPERS = Path(__file__).parent / "helpers"
@@ -16,9 +20,8 @@ class SpecBase:
     key = ""
     languages = []  # type: List[Text]
     args = []  # type: List[Text]
-    spec = {}
+    spec = {}  # type: LanguageServerSpec
 
-    @classmethod
     def __call__(
         self, mgr: LanguageServerManagerAPI
     ) -> KeyedLanguageServerSpecs:  # pragma: no cover

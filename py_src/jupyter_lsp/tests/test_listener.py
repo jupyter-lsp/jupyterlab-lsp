@@ -1,0 +1,106 @@
+import asyncio
+
+import pytest
+import traitlets
+from tornado.queues import Queue
+
+from jupyter_lsp import lsp_message_listener
+
+
+@pytest.mark.parametrize("bad_string", ["not-a-function", "jupyter_lsp.__version__"])
+@pytest.mark.asyncio
+async def test_listener_bad_traitlets(bad_string, handlers):
+    handler, ws_handler = handlers
+    manager = handler.manager
+
+    with pytest.raises(traitlets.TraitError):
+        manager.all_listeners = [bad_string]
+
+
+@pytest.mark.asyncio
+async def test_listeners(known_language, handlers, jsonrpc_init_msg):
+    """ will a some listeners listen?
+    """
+    handler, ws_handler = handlers
+    manager = handler.manager
+
+    manager.all_listeners = ["jupyter_lsp.tests.listener.dummy_listener"]
+
+    manager.initialize()
+
+    assert len(manager._listeners["all"]) == 1
+
+    handler_listened = Queue()
+    server_listened = Queue()
+    all_listened = Queue()
+
+    # some client listeners
+    @lsp_message_listener("client", language=known_language, method="initialize")
+    async def client_listener(scope, message, languages, manager):
+        await handler_listened.put(message)
+
+    @lsp_message_listener("client", method=r"not-a-method")
+    async def other_client_listener(
+        scope, message, languages, manager
+    ):  # pragma: no cover
+        await handler_listened.put(message)
+        raise NotImplementedError("shouldn't get here")
+
+    # some server listeners
+    @lsp_message_listener("server", language=None, method=None)
+    async def server_listener(scope, message, languages, manager):
+        await server_listened.put(message)
+
+    @lsp_message_listener("server", language=r"not-a-language")
+    async def other_server_listener(
+        scope, message, languages, manager
+    ):  # pragma: no cover
+        await handler_listened.put(message)
+        raise NotImplementedError("shouldn't get here")
+
+    # an all listener
+    @lsp_message_listener("all")
+    async def all_listener(scope, message, languages, manager):  # pragma: no cover
+        await all_listened.put(message)
+
+    assert len(manager._listeners["server"]) == 2
+    assert len(manager._listeners["client"]) == 2
+    assert len(manager._listeners["all"]) == 2
+
+    ws_handler.open(known_language)
+
+    await ws_handler.on_message(jsonrpc_init_msg)
+
+    results = await asyncio.wait_for(
+        asyncio.gather(
+            handler_listened.get(),
+            server_listened.get(),
+            all_listened.get(),
+            all_listened.get(),
+            return_exceptions=True,
+        ),
+        20,
+    )
+    assert all([isinstance(res, dict) for res in results])
+
+    ws_handler.on_close()
+
+    handler_listened.task_done()
+    server_listened.task_done()
+    all_listened.task_done()
+    all_listened.task_done()
+
+    [
+        manager.unregister_message_listener(listener)
+        for listener in [
+            client_listener,
+            other_client_listener,
+            server_listener,
+            other_server_listener,
+            all_listener,
+        ]
+    ]
+
+    assert not manager._listeners["server"]
+    assert not manager._listeners["client"]
+    assert len(manager._listeners["all"]) == 1
