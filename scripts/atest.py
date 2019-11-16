@@ -15,32 +15,53 @@ OUT = ATEST / "output"
 OS = platform.system()
 PY = "".join(map(str, sys.version_info[:2]))
 
-STEM = "_".join([OS, PY]).replace(".", "_").lower()
 
-args = [
-    "--name",
-    f"{OS}{PY}",
-    "--outputdir",
-    OUT / STEM,
-    "--output",
-    OUT / f"{STEM}.robot.xml",
-    "--log",
-    OUT / f"{STEM}.log.html",
-    "--report",
-    OUT / f"{STEM}.report.html",
-    "--xunit",
-    OUT / f"{STEM}.xunit.xml",
-    "--variable",
-    f"OS:{OS}",
-    "--variable",
-    f"PY:{PY}",
-    *sys.argv[1:],
-    ATEST,
-]
+def atest(attempt=0):
 
-if __name__ == "__main__":
-    if (OUT / STEM).exists():
-        shutil.rmtree(OUT / STEM)
+    stem = "_".join([OS, PY, str(attempt)]).replace(".", "_").lower()
+    out_dir = OUT / stem
+
+    args = [
+        "--name",
+        f"{OS}{PY}",
+        "--outputdir",
+        out_dir,
+        "--output",
+        OUT / f"{stem}.robot.xml",
+        "--log",
+        OUT / f"{stem}.log.html",
+        "--report",
+        OUT / f"{stem}.report.html",
+        "--xunit",
+        OUT / f"{stem}.xunit.xml",
+        "--variable",
+        f"OS:{OS}",
+        "--variable",
+        f"PY:{PY}",
+        *sys.argv[1:],
+        ATEST,
+    ]
 
     os.chdir(ATEST)
-    sys.exit(robot.run_cli(list(map(str, args))))
+
+    if out_dir.exists():
+        print("trying to clean out {}".format(out_dir))
+        try:
+            shutil.rmtree(out_dir)
+        except Exception as err:
+            print("Error deleting {}, hopefully harmless: {}".format(out_dir, err))
+
+    return robot.run_cli(list(map(str, args)))
+
+
+if __name__ == "__main__":
+    attempt = 0
+    rc = -1
+
+    retries = int(os.environ.get("ATEST_RETRIES") or "0")
+    while rc != 0 and attempt <= retries:
+        attempt += 1
+        print("attempt {} of {}...".format(attempt, retries + 1))
+        rc = atest(attempt)
+
+    sys.exit(rc)

@@ -20,7 +20,15 @@ as many Language Servers work out of the box as possible, consider
 Message listeners may choose to receive LSP messages immediately after being
 received from the client (e.g. `jupyterlab-lsp`) or a language server. All
 listeners of a message are scheduled concurrently, and the message is passed
-along once all processing has completed.
+along **once all listeners return** (or fail). This allows listeners to, for example,
+modify files on disk before the language server reads them.
+
+If a listener is going to perform an expensive activity that _shouldn't_ block
+delivery of a message, a non-blocking technique like
+[IOLoop.add_callback][add_callback] and/or a
+[queue](https://www.tornadoweb.org/en/stable/queues.html) should be used.
+
+[add_callback]: https://www.tornadoweb.org/en/stable/ioloop.html#tornado.ioloop.IOLoop.add_callback
 
 #### Add a Listener with `entry_points`
 
