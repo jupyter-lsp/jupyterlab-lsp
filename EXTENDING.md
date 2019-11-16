@@ -24,7 +24,7 @@ along once all processing has completed.
 
 #### Add a Listener with `entry_points`
 
-Listeners can be added via `entry_points` by a package installed in the same
+Listeners can be added via [entry_points][] by a package installed in the same
 environment as `notebook`:
 
 ```toml
@@ -32,12 +32,17 @@ environment as `notebook`:
 
 [options.entry_points]
 jupyter_lsp_listener_all_v1 =
-  some-function = some.module:some_function
+  some-unique-name = some.module:some_function
 jupyter_lsp_listener_client_v1 =
-  some-other-function = some.module:some_other_function
+  some-other-unique-name = some.module:some_other_function
 jupyter_lsp_listener_server_v1 =
-  yet-another-function = some.module:yet_another_function
+  yet-another-unique-name = some.module:yet_another_function
 ```
+
+At present, the entry point names generally have no impact on functionality
+aside from logging in the event of an error on import.
+
+[entry_points]: https://packaging.python.org/specifications/entry-points/
 
 #### Add a Listener with Jupyter Configuration
 
