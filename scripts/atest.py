@@ -51,7 +51,7 @@ def atest(attempt=0):
         except Exception as err:
             print("Error deleting {}, hopefully harmless: {}".format(out_dir, err))
 
-    return robot.run_cli(list(map(str, args)))
+    return robot.run_cli(list(map(str, args)), exit=False)
 
 
 if __name__ == "__main__":
