@@ -5,7 +5,6 @@ from typing import Optional, Text
 from notebook.base.handlers import IPythonHandler
 from notebook.base.zmqhandlers import WebSocketHandler, WebSocketMixin
 from notebook.utils import url_path_join as ujoin
-from tornado.ioloop import IOLoop
 
 from .manager import LanguageServerManager
 from .schema import SERVERS_RESPONSE
@@ -27,19 +26,15 @@ class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, BaseHandl
     def open(self, language):
         self.language = language
         self.manager.subscribe(self)
-        self.log.debug("[{0: >16}] Opened a handler".format(self.language))
+        self.log.debug("[{}] Opened a handler".format(self.language))
 
-    def on_message(self, message):
-        def send(message):
-            self.log.debug("[{0: >16}] Handling a message".format(self.language))
-            self.manager.on_message(message, self)
-            self.log.debug("[{0: >16}] Handled a message".format(self.language))
-
-        IOLoop.current().spawn_callback(send, message)
+    async def on_message(self, message):
+        self.log.debug("[{}] Handling a message".format(self.language))
+        await self.manager.on_client_message(message, self)
 
     def on_close(self):
         self.manager.unsubscribe(self)
-        self.log.debug("[{0: >16}] Closed a handler".format(self.language))
+        self.log.debug("[{}] Closed a handler".format(self.language))
 
 
 class LanguageServersHandler(BaseHandler):

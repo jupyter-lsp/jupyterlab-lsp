@@ -182,8 +182,7 @@ class LanguageServerSession(LoggingConfigurable):
         """ loop for reading messages from the queue of messages from the language
             server
         """
-        async for msg in self.from_lsp:
+        async for message in self.from_lsp:
             self.last_server_message_at = self.now()
-            for handler in self.handlers:
-                handler.write_message(msg)
+            await self.parent.on_server_message(message, self)
             self.from_lsp.task_done()

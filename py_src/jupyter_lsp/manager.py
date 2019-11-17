@@ -1,16 +1,26 @@
 """ A configurable frontend for stdio-based Language Servers
 """
-import typing
+from typing import Dict, Text, Tuple
 
 import pkg_resources
 from notebook.transutils import _
-from traitlets import Bool, Dict as Dict_, Instance, default
+from traitlets import Bool, Dict as Dict_, Instance, List as List_, default
 
-from .constants import EP_SPEC_V1
+from .constants import (
+    EP_LISTENER_ALL_V1,
+    EP_LISTENER_CLIENT_V1,
+    EP_LISTENER_SERVER_V1,
+    EP_SPEC_V1,
+)
 from .schema import LANGUAGE_SERVER_SPEC_MAP
 from .session import LanguageServerSession
-from .trait_types import Schema
-from .types import KeyedLanguageServerSpecs, LanguageServerManagerAPI, SpecMaker
+from .trait_types import LoadableCallable, Schema
+from .types import (
+    KeyedLanguageServerSpecs,
+    LanguageServerManagerAPI,
+    MessageScope,
+    SpecMaker,
+)
 
 
 class LanguageServerManager(LanguageServerManagerAPI):
@@ -34,7 +44,11 @@ class LanguageServerManager(LanguageServerManagerAPI):
         trait=Instance(LanguageServerSession),
         default_value={},
         help="sessions keyed by languages served",
-    )  # type: typing.Dict[typing.Tuple[typing.Text], LanguageServerSession]
+    )  # type: Dict[Tuple[Text], LanguageServerSession]
+
+    all_listeners = List_(trait=LoadableCallable).tag(config=True)
+    server_listeners = List_(trait=LoadableCallable).tag(config=True)
+    client_listeners = List_(trait=LoadableCallable).tag(config=True)
 
     @default("language_servers")
     def _default_language_servers(self):
@@ -47,6 +61,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
     def initialize(self, *args, **kwargs):
         self.init_language_servers()
+        self.init_listeners()
         self.init_sessions()
 
     def init_language_servers(self) -> None:
@@ -76,9 +91,30 @@ class LanguageServerManager(LanguageServerManagerAPI):
         sessions = {}
         for spec in self.language_servers.values():
             sessions[tuple(sorted(spec["languages"]))] = LanguageServerSession(
-                spec=spec
+                spec=spec, parent=self
             )
         self.sessions = sessions
+
+    def init_listeners(self):
+        """ register traitlets-configured listeners
+        """
+
+        scopes = {
+            MessageScope.ALL: [self.all_listeners, EP_LISTENER_ALL_V1],
+            MessageScope.CLIENT: [self.client_listeners, EP_LISTENER_CLIENT_V1],
+            MessageScope.SERVER: [self.server_listeners, EP_LISTENER_SERVER_V1],
+        }
+        for scope, trt_ep in scopes.items():
+            listeners, entry_point = trt_ep
+
+            for ept in pkg_resources.iter_entry_points(entry_point):  # pragma: no cover
+                try:
+                    listeners.append(entry_point.load())
+                except Exception as err:
+                    self.log.warning("Failed to load entry point %s: %s", ept, err)
+
+            for listener in listeners:
+                self.__class__.register_message_listener(scope=scope.value)(listener)
 
     def subscribe(self, handler):
         """ subscribe a handler to session, or sta
@@ -92,9 +128,19 @@ class LanguageServerManager(LanguageServerManagerAPI):
             for session in sessions:
                 session.handlers = set([handler]) | session.handlers
 
-    def on_message(self, message, handler):
+    async def on_client_message(self, message, handler):
+        await self.wait_for_listeners(MessageScope.CLIENT, message, [handler.language])
+
         for session in self.sessions_for_handler(handler):
             session.write(message)
+
+    async def on_server_message(self, message, session):
+        await self.wait_for_listeners(
+            MessageScope.SERVER, message, session.spec["languages"]
+        )
+
+        for handler in session.handlers:
+            handler.write_message(message)
 
     def unsubscribe(self, handler):
         for session in self.sessions_for_handler(handler):

@@ -13,10 +13,14 @@ You can contribute to the project through:
     and its various distributions
     - these are great first issues, as you might not need to know any python or
       javascript
+- proposing parts of the architecture that can be [extended](./EXTENDING.md)
 - improving [documentation](#Documentation)
 - tackling Big Issues from the [future roadmap](./ROADMAP.md)
 - improving [testing](#Testing)
 - reviewing pull requests
+
+[jupyterlab-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
+[code-of-conduct]: https://github.com/jupyter/governance/blob/master/conduct/code_of_conduct.md
 
 ## Set up the environment
 
@@ -168,9 +172,6 @@ black py_src
 >
 > - sphinx
 > - one of the sphinx/ipynb connectors
-
-[jupyterlab-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
-[code-of-conduct]: https://github.com/jupyter/governance/blob/master/conduct/code_of_conduct.md
 
 ### Specs
 
