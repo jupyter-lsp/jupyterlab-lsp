@@ -55,7 +55,7 @@ Open JupyterLab
     ${firefox} =  Which  firefox
     ${geckodriver} =  Which  geckodriver
     Create WebDriver    Firefox    executable_path=${geckodriver}    firefox_binary=${firefox}  service_log_path=${OUTPUT DIR}${/}geckodriver.log
-    Go To  ${URL}lab?token=${TOKEN}
+    Wait Until Keyword Succeeds  10x  5s  Go To  ${URL}lab?token=${TOKEN}
     Set Window Size  1024  768
     Wait For Splash
 
