@@ -22,7 +22,7 @@
     "vscode-css-languageserver-bin": "^1.4.0",
     "vscode-html-languageserver-bin": "^1.4.0",
     "vscode-json-languageserver-bin": "^1.0.1",
-    "yaml-language-server": "^0.6.0"
+    "yaml-language-server": "^0.4.0"
   },
   "husky": {
     "hooks": {
