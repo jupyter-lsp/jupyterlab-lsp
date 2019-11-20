@@ -34,6 +34,11 @@ Setup Server and Browser
     Set Global Variable    ${SERVER}    ${server}
     Open JupyterLab
 
+Setup Suite For Screenshots
+    [Arguments]  ${folder}
+    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}${folder}
+    Set Tags    lab:${LAB VERSION}
+
 Initialize User Settings
     Set Suite Variable   ${SETTINGS DIR}   ${OUTPUT DIR}${/}user-settings  children=${True}
     Create File    ${SETTINGS DIR}${/}@jupyterlab${/}codemirror-extension${/}commands.jupyterlab-settings  {"styleActiveLine": true}

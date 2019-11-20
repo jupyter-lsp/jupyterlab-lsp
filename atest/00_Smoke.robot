@@ -2,16 +2,21 @@
 Suite Setup       Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}smoke
 Resource          Keywords.robot
 
-*** Test Cases ***
-Smoke
-    Capture Page Screenshot    00-splash.png
+*** Variables ***
+${XP MENU}        xpath://*[@id="jp-MainMenu"]
+${XP HELP}        ${XP MENU}//*[contains(@class, "p-MenuBar-itemLabel")][text()="Help"]
+${XP ABOUT}       xpath://*[contains(@class, "p-Menu-item")][text()="About JupyterLab"]
+${CSS VERSION}    css:.jp-About-version
+${CSS CLOSE}      css:.jp-Dialog-button.jp-About-button
 
-Settings
-    [Setup]    Reset Application State
-    Lab Command    Advanced Settings Editor
-    Capture Page Screenshot    01-settings-all.png
-    ${sel} =    Set Variable    css:[data-id="@krassowski/jupyterlab-lsp:plugin"]
-    Wait Until Page Contains Element    ${sel}
-    Click Element    ${sel}
-    Wait Until Page Contains    System Defaults
-    Capture Page Screenshot    02-settings-lsp.png
+*** Test Cases ***
+Lab Version
+    ${sel} =    Set Variable
+    Mouse Over    ${XP HELP}
+    Click Element    ${XP HELP}
+    Mouse Over    ${XP ABOUT}
+    Click Element    ${XP ABOUT}
+    ${version} =    Get WebElement    ${CSS VERSION}
+    Set Global Variable    ${LAB VERSION}    ${version.text.split(" ")[-1]}
+    Capture Page Screenshot    00-version.png
+    Click Element    ${CSS CLOSE}

@@ -106,11 +106,7 @@ def test_ts_package_integrity(name, info, the_meta_package):
 
 
 @pytest.mark.parametrize(
-    "path",
-    map(
-        str,
-        [ROOT / "requirements-lab.txt", CI / "job.test.yml", MAIN_README],
-    ),
+    "path", map(str, [ROOT / "requirements-lab.txt", CI / "job.test.yml", MAIN_README])
 )
 def test_jlab_versions(path):
     assert (
