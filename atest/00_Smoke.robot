@@ -11,11 +11,12 @@ ${CSS CLOSE}      css:.jp-Dialog-button.jp-About-button
 
 *** Test Cases ***
 Lab Version
-    ${sel} =    Set Variable
     Mouse Over    ${XP HELP}
     Click Element    ${XP HELP}
+    Wait Until Page Contains Element    ${XP ABOUT}
     Mouse Over    ${XP ABOUT}
     Click Element    ${XP ABOUT}
+    Wait Until Page Contains Element    ${CSS VERSION}
     ${version} =    Get WebElement    ${CSS VERSION}
     Set Global Variable    ${LAB VERSION}    ${version.text.split(" ")[-1]}
     Capture Page Screenshot    00-version.png
