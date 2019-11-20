@@ -12,7 +12,7 @@ parameters:
   pythons:
     - name: ThreeSix
       spec: '>=3.6,<3.7.0a0'
-      lab: '>=1.1,<1.2.0a0`'
+      lab: '>=1.1,<1.2.0a0'
     - name: ThreeSeven
       spec: '>=3.7,<3.8.0a0'
       lab: '>=1.2.3,<1.3.0a0'
