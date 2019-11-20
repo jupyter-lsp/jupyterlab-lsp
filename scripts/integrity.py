@@ -54,6 +54,8 @@ PIPE_FILE = ROOT / "azure-pipelines.yml"
 PIPELINES = yaml.safe_load(PIPE_FILE.read_text())
 PIPE_VARS = PIPELINES["variables"]
 
+CI = ROOT / "ci"
+
 
 @pytest.fixture(scope="module")
 def the_meta_package():
@@ -107,12 +109,12 @@ def test_ts_package_integrity(name, info, the_meta_package):
     "path",
     map(
         str,
-        [ROOT / "requirements-lab.txt", ROOT / "ci" / "env-test.yml.in", MAIN_README],
+        [ROOT / "requirements-lab.txt", CI / "job.test.yml", MAIN_README],
     ),
 )
 def test_jlab_versions(path):
     assert (
-        "jupyterlab {}".format(LAB_SPEC) in pathlib.Path(path).read_text().lower()
+        LAB_SPEC in pathlib.Path(path).read_text().lower()
     ), "{} lab version is out-of-sync vs {}".format(path, LAB_SPEC)
 
 
