@@ -100,3 +100,27 @@ Which
     [Arguments]  ${cmd}
     ${path} =  Evaluate    __import__("shutil").which("${cmd}")
     [Return]  ${path}
+
+Click JupyterLab Menu
+    [Arguments]    ${label}
+    [Documentation]    Click a top-level JupyterLab menu bar item with by ``label``,
+    ...   e.g. File, Help, etc.
+    ${xpath} =  Set Variable  ${JLAB XP TOP}${JLAB XP MENU LABEL}\[text() = '${label}']
+    Wait Until Page Contains Element    ${xpath}
+    Mouse Over    ${xpath}
+    Click Element    ${xpath}
+
+Click JupyterLab Menu Item
+    [Arguments]    ${label}
+    [Documentation]    Click a currently-visible JupyterLab menu item by ``label``.
+    ${item} =    Set Variable  ${JLAB XP MENU ITEM LABEL}\[text() = '${label}']
+    Wait Until Page Contains Element    ${item}
+    Mouse Over    ${item}
+    Click Element    ${item}
+
+Open With JupyterLab Menu
+    [Arguments]  ${menu}  @{submenus}
+    [Documentation]  Click into a ``menu``, then a series of ``submenus``
+    Click JupyterLab Menu  ${menu}
+    :FOR  ${submenu}  IN  @{submenus}
+    \  Click JupyterLab Menu Item  ${submenu}
