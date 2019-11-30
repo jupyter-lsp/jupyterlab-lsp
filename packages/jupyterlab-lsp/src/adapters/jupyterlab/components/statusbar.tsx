@@ -81,6 +81,17 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
       </div>
     );
   }
+
+  get missing_servers_text() {
+    // TODO: false negative for r vs R.
+    const missing_languages = [...this.model.detected_languages].filter(
+      language => !this.model.supported_languages.has(language)
+    );
+    if (missing_languages.length === 0) {
+      return '';
+    }
+    return `No LSP servers were found for: ${missing_languages.join(', ')}`;
+  }
 }
 
 /**
