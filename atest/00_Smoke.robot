@@ -2,16 +2,14 @@
 Suite Setup       Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}smoke
 Resource          Keywords.robot
 
-*** Test Cases ***
-Smoke
-    Capture Page Screenshot    00-splash.png
+*** Variables ***
+${CSS CLOSE}      css:.jp-Dialog-button.jp-About-button
 
-Settings
-    [Setup]    Reset Application State
-    Lab Command    Advanced Settings Editor
-    Capture Page Screenshot    01-settings-all.png
-    ${sel} =    Set Variable    css:[data-id="@krassowski/jupyterlab-lsp:plugin"]
-    Wait Until Page Contains Element    ${sel}
-    Click Element    ${sel}
-    Wait Until Page Contains    System Defaults
-    Capture Page Screenshot    02-settings-lsp.png
+*** Test Cases ***
+Lab Version
+    Open With JupyterLab Menu    Help    About JupyterLab
+    Wait Until Page Contains Element    ${JLAB CSS VERSION}
+    ${version} =    Get WebElement    ${JLAB CSS VERSION}
+    Set Global Variable    ${LAB VERSION}    ${version.text.split(" ")[-1]}
+    Capture Page Screenshot    00-version.png
+    Click Element    ${CSS CLOSE}

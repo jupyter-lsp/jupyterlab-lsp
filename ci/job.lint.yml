@@ -19,7 +19,7 @@ jobs:
                 parameters:
                   name: ${{ platform.name }}
 
-              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}"
+              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" ">=1,<2"
                 displayName: update environment with python version
 
               - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
