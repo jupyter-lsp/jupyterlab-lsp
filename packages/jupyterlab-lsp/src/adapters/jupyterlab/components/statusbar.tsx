@@ -24,9 +24,20 @@ function ServerStatus(props: any) {
   // TODO: list opened connections (filename, [cell id]:  status | stop button)
   // TODO: collapse servers with no open connections
   // TODO: add a config buttons next to the header
+  console.log(props.server);
   return (
     <div>
-      <h4>{props.name}</h4>
+      <h5>{props.server.spec.display_name}</h5>
+      {props.server.spec.languages}
+    </div>
+  );
+}
+
+function CollapsibleList(props: any) {
+  return (
+    <div>
+      <h4>{props.title}</h4>
+      {props.list}
     </div>
   );
 }
@@ -42,30 +53,33 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
     if (!this.model) {
       return null;
     }
-    const servers = this.model.server_extension_status.sessions.map(
-      (session: any) => (
-        <ServerStatus name={session.languages.join('/')} server={session} />
-      )
+    const servers_available = this.model.servers_available_not_in_use.map(
+      (session: any) => <ServerStatus server={session} />
     );
 
+    const running_servers = this.model.running_servers.map((session: any) => (
+      // TODO: add the documents linked to the servers!
+      <ServerStatus server={session} />
+    ));
+
+    const missing_languages = this.model.missing_languages.map(language => (
+      <div>{language}</div>
+    ));
     return (
       <div className={'p-Menu-item'}>
-        {servers}
+        <h3>LSP servers</h3>
+        {servers_available.length && (
+          <CollapsibleList title={'Available'} list={servers_available} />
+        )}
+        {running_servers.length && (
+          <CollapsibleList title={'Running'} list={running_servers} />
+        )}
+        {missing_languages && (
+          <CollapsibleList title={'Missing'} list={missing_languages} />
+        )}
         <div>{this.model.long_message}</div>
-        <div>{this.missing_servers_text}</div>
       </div>
     );
-  }
-
-  get missing_servers_text() {
-    // TODO: false negative for r vs R.
-    const missing_languages = [...this.model.detected_languages].filter(
-      language => !this.model.supported_languages.has(language)
-    );
-    if (missing_languages.length === 0) {
-      return '';
-    }
-    return `No LSP servers were found for: ${missing_languages.join(', ')}`;
   }
 }
 
@@ -181,18 +195,40 @@ export namespace LSPStatus {
         .catch(console.error);
     }
 
-    get available_servers(): any {
+    get available_servers(): Array<any> {
       return this.server_extension_status.sessions;
     }
 
     get supported_languages(): Set<string> {
       const languages = new Set<string>();
       for (let server of this.available_servers) {
-        for (let language of server.languages) {
+        for (let language of server.spec.languages) {
           languages.add(language);
         }
       }
       return languages;
+    }
+
+    private is_server_running(server: any): boolean {
+      for (let language of server.spec.languages) {
+        if (this.detected_languages.has(language)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    get running_servers(): Array<any> {
+      // TODO: return server - list of documents map instead
+      return this.available_servers.filter(server =>
+        this.is_server_running(server)
+      );
+    }
+
+    get servers_available_not_in_use(): Array<any> {
+      return this.available_servers.filter(
+        server => !this.is_server_running(server)
+      );
     }
 
     get detected_languages(): Set<string> {
@@ -202,6 +238,13 @@ export namespace LSPStatus {
 
       let document = this.adapter.virtual_editor.virtual_document;
       return collect_languages(document);
+    }
+
+    get missing_languages(): Array<string> {
+      // TODO: false negative for r vs R?
+      return [...this.detected_languages].filter(
+        language => !this.supported_languages.has(language)
+      );
     }
 
     get lsp_servers_truncated(): string {
