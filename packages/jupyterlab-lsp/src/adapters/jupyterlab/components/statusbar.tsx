@@ -27,7 +27,7 @@ function ServerStatus(props: any) {
   // TODO: add a config buttons next to the header
   console.log(props.server);
   return (
-    <div>
+    <div className={'lsp-server-status'}>
       <h5>{props.server.spec.display_name}</h5>
       {props.server.spec.languages.join(', ')}
     </div>
@@ -40,6 +40,10 @@ export interface IListProps {
    */
   title: string;
   list: any[];
+  /**
+   * By default the list will be expanded; to change the initial state to collapsed, set to true.
+   */
+  startCollapsed?: boolean;
 }
 
 export interface ICollapsibleListStates {
@@ -52,7 +56,7 @@ class CollapsibleList extends React.Component<
 > {
   constructor(props: any) {
     super(props);
-    this.state = { isCollapsed: true };
+    this.state = { isCollapsed: props.startCollapsed || false };
 
     // This binding is necessary to make `this` work in the callback
     this.handleClick = this.handleClick.bind(this);
@@ -73,8 +77,8 @@ class CollapsibleList extends React.Component<
         }
       >
         <h4 onClick={this.handleClick}>
-          {this.props.title} ({this.props.list.length})
           <span className={'lsp-caret'}></span>
+          {this.props.title} ({this.props.list.length})
         </h4>
         <div>{this.props.list}</div>
       </div>
@@ -105,24 +109,32 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
       <div>{language}</div>
     ));
     return (
-      <div className={'lsp-servers-menu'}>
-        <h3>LSP servers</h3>
-        {servers_available.length ? (
-          <CollapsibleList title={'Available'} list={servers_available} />
-        ) : (
-          ''
-        )}
-        {running_servers.length ? (
-          <CollapsibleList title={'Running'} list={running_servers} />
-        ) : (
-          ''
-        )}
-        {missing_languages.length ? (
-          <CollapsibleList title={'Missing'} list={missing_languages} />
-        ) : (
-          ''
-        )}
-        <div>{this.model.long_message}</div>
+      <div className={'lsp-popover-content'}>
+        <div className={'lsp-servers-menu'}>
+          <h3 className={'lsp-servers-title'}>LSP servers</h3>
+          <div className={'lsp-servers-lists'}>
+            {servers_available.length ? (
+              <CollapsibleList
+                title={'Available'}
+                list={servers_available}
+                startCollapsed={true}
+              />
+            ) : (
+              ''
+            )}
+            {running_servers.length ? (
+              <CollapsibleList title={'Running'} list={running_servers} />
+            ) : (
+              ''
+            )}
+            {missing_languages.length ? (
+              <CollapsibleList title={'Missing'} list={missing_languages} />
+            ) : (
+              ''
+            )}
+          </div>
+        </div>
+        <div className={'lsp-popover-status'}>{this.model.long_message}</div>
       </div>
     );
   }

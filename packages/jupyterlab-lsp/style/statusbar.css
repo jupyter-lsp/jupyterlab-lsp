@@ -7,12 +7,32 @@
     border: var(--jp-border-width) solid var(--jp-border-color1);
     font-size: var(--jp-ui-font-size1);
     box-shadow: var(--jp-elevation-z6);
-    height: 400px;
 }
 
-.lsp-servers-menu {
+.lsp-popover-content {
     padding: 5px 10px;
-    height: 100%;
+}
+
+.lsp-servers-title {
+    margin-bottom: 5px;
+}
+
+
+.lsp-servers-menu {
+    height: 350px;
+}
+
+.lsp-server-status {
+    margin-left: 20px
+}
+
+.lsp-servers-lists {
+    margin-left: 5px;
+}
+
+.lsp-popover-status {
+    padding-top: 5px;
+    border-top: 1px solid var(--jp-border-color1);
 }
 
 .lsp-servers-menu h3, h4, h5 {
@@ -27,6 +47,8 @@
     background-repeat: no-repeat;
     background-position: center;
     display: inline-block;
+    position: relative;
+    top: 3px
 }
 
 .lsp-collapsible-list h4 {
