@@ -5,6 +5,7 @@
 import React from 'react';
 
 import { VDomRenderer, VDomModel } from '@jupyterlab/apputils';
+import '../../../../style/statusbar.css';
 
 import {
   interactiveItem,
@@ -28,26 +29,64 @@ function ServerStatus(props: any) {
   return (
     <div>
       <h5>{props.server.spec.display_name}</h5>
-      {props.server.spec.languages}
+      {props.server.spec.languages.join(', ')}
     </div>
   );
 }
 
-function CollapsibleList(props: any) {
-  return (
-    <div>
-      <h4>{props.title}</h4>
-      {props.list}
-    </div>
-  );
+export interface IListProps {
+  /**
+   * A title to display.
+   */
+  title: string;
+  list: any[];
+}
+
+export interface ICollapsibleListStates {
+  isCollapsed: boolean;
+}
+
+class CollapsibleList extends React.Component<
+  IListProps,
+  ICollapsibleListStates
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { isCollapsed: true };
+
+    // This binding is necessary to make `this` work in the callback
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleClick() {
+    this.setState(state => ({
+      isCollapsed: !state.isCollapsed
+    }));
+  }
+
+  render() {
+    return (
+      <div
+        className={
+          'lsp-collapsible-list ' +
+          (this.state.isCollapsed ? 'lsp-collapsed' : '')
+        }
+      >
+        <h4 onClick={this.handleClick}>
+          {this.props.title} ({this.props.list.length})
+          <span className={'lsp-caret'}></span>
+        </h4>
+        <div>{this.props.list}</div>
+      </div>
+    );
+  }
 }
 
 class LSPPopup extends VDomRenderer<LSPStatus.Model> {
   constructor(model: LSPStatus.Model) {
     super();
     this.model = model;
-    // TODO: add proper, custom class
-    this.addClass('p-Menu');
+    this.addClass('lsp-popover');
   }
   render() {
     if (!this.model) {
@@ -66,16 +105,22 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
       <div>{language}</div>
     ));
     return (
-      <div className={'p-Menu-item'}>
+      <div className={'lsp-servers-menu'}>
         <h3>LSP servers</h3>
-        {servers_available.length && (
+        {servers_available.length ? (
           <CollapsibleList title={'Available'} list={servers_available} />
+        ) : (
+          ''
         )}
-        {running_servers.length && (
+        {running_servers.length ? (
           <CollapsibleList title={'Running'} list={running_servers} />
+        ) : (
+          ''
         )}
-        {missing_languages && (
+        {missing_languages.length ? (
           <CollapsibleList title={'Missing'} list={missing_languages} />
+        ) : (
+          ''
         )}
         <div>{this.model.long_message}</div>
       </div>

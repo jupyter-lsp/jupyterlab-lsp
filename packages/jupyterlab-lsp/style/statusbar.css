@@ -1,0 +1,43 @@
+.lsp-popover {
+    /* jupyterlab Menu */
+    z-index: 10000;
+    padding: 4px 0px;
+    background: var(--jp-layout-color0);
+    color: var(--jp-ui-font-color1);
+    border: var(--jp-border-width) solid var(--jp-border-color1);
+    font-size: var(--jp-ui-font-size1);
+    box-shadow: var(--jp-elevation-z6);
+    height: 400px;
+}
+
+.lsp-servers-menu {
+    padding: 5px 10px;
+    height: 100%;
+}
+
+.lsp-servers-menu h3, h4, h5 {
+    margin: 0;
+}
+
+.lsp-caret {
+    height: 16px;
+    width: 16px;
+    background-size: 18px;
+    background-image: 18px;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: inline-block;
+}
+
+.lsp-collapsible-list h4 {
+    cursor: pointer;
+}
+.lsp-collapsible-list .lsp-caret {
+    background-image: var(--jp-icon-caretup);
+}
+.lsp-collapsible-list.lsp-collapsed .lsp-caret {
+    background-image: var(--jp-icon-caretdown);
+}
+.lsp-collapsible-list.lsp-collapsed div {
+    display: none;
+}
