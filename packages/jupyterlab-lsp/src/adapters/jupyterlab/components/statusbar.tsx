@@ -21,15 +21,16 @@ import { VirtualDocument } from '../../../virtual/document';
 import { LSPConnection } from '../../../connection';
 import { PageConfig } from '@jupyterlab/coreutils';
 
-function ServerStatus(props: any) {
-  // TODO: list opened connections (filename, [cell id]:  status | stop button)
-  // TODO: collapse servers with no open connections
-  // TODO: add a config buttons next to the header
-  console.log(props.server);
+interface IServerStatusProps {
+  server: IServer;
+}
+
+function ServerStatus(props: IServerStatusProps) {
+  let list = props.server.spec.languages.map(language => <li>{language}</li>);
   return (
     <div className={'lsp-server-status'}>
       <h5>{props.server.spec.display_name}</h5>
-      {props.server.spec.languages.join(', ')}
+      <ul>{list}</ul>
     </div>
   );
 }
@@ -97,16 +98,69 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
       return null;
     }
     const servers_available = this.model.servers_available_not_in_use.map(
-      (session: any) => <ServerStatus server={session} />
+      (session: IServer) => <ServerStatus server={session} />
     );
 
-    const running_servers = this.model.running_servers.map((session: any) => (
-      // TODO: add the documents linked to the servers!
-      <ServerStatus server={session} />
-    ));
+    let running_servers = new Array<any>();
+    for (let [
+      session,
+      documents_by_language
+    ] of this.model.documents_by_server.entries()) {
+      let documents_html = new Array<any>();
+      for (let [language, documents] of documents_by_language) {
+        // TODO user readable document ids: filename, [cell id]
+        // TODO: stop button
+        // TODO: add a config buttons next to the language header
+        let list = documents.map(document => {
+          let connection = this.model.adapter.connection_manager.connections.get(
+            document.id_path
+          );
+
+          let status = '';
+          if (connection.isInitialized) {
+            status = 'initialized';
+          } else if (connection.isConnected) {
+            status = 'connected';
+          } else {
+            status = 'not connected';
+          }
+
+          return (
+            <li>
+              {document.id_path}
+              <span className={'lsp-document-status'}>
+                {status}
+                <span
+                  className={
+                    'lsp-document-status-icon ' +
+                    (status === 'initialized'
+                      ? 'jp-FilledCircleIcon'
+                      : 'jp-CircleIcon')
+                  }
+                ></span>
+              </span>
+            </li>
+          );
+        });
+
+        documents_html.push(
+          <div className={'lsp-documents-by-language'}>
+            <h5>
+              {language}{' '}
+              <span className={'lsp-language-server-name'}>
+                ({session.spec.display_name})
+              </span>
+            </h5>
+            <ul>{list}</ul>
+          </div>
+        );
+      }
+
+      running_servers.push(<div>{documents_html}</div>);
+    }
 
     const missing_languages = this.model.missing_languages.map(language => (
-      <div>{language}</div>
+      <div className={'lsp-missing-server'}>{language}</div>
     ));
     return (
       <div className={'lsp-popover-content'}>
@@ -138,17 +192,6 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
       </div>
     );
   }
-
-  get missing_servers_text() {
-    // TODO: false negative for r vs R.
-    const missing_languages = [...this.model.detected_languages].filter(
-      language => !this.model.supported_languages.has(language)
-    );
-    if (missing_languages.length === 0) {
-      return '';
-    }
-    return `No LSP servers were found for: ${missing_languages.join(', ')}`;
-  }
 }
 
 /**
@@ -179,8 +222,6 @@ export class LSPStatus extends VDomRenderer<LSPStatus.Model> {
         title={'LSP Code Intelligence'}
         onClick={this.handleClick}
       >
-        <DefaultIconReact name={'file'} top={'2px'} kind={'statusBar'} />
-        <TextItem source={this.model.lsp_servers_truncated} />
         <DefaultIconReact
           name={this.model.status_icon}
           top={'2px'}
@@ -214,14 +255,23 @@ export interface IStatus {
   status: StatusCode;
 }
 
-function collect_languages(virtual_document: VirtualDocument): Set<string> {
-  let collected = new Set<string>();
-  collected.add(virtual_document.language);
+function collect_documents(
+  virtual_document: VirtualDocument
+): Set<VirtualDocument> {
+  let collected = new Set<VirtualDocument>();
+  collected.add(virtual_document);
   for (let foreign of virtual_document.foreign_documents.values()) {
-    let foreign_languages = collect_languages(foreign);
+    let foreign_languages = collect_documents(foreign);
     foreign_languages.forEach(collected.add, collected);
   }
   return collected;
+}
+
+function collect_languages(virtual_document: VirtualDocument): Set<string> {
+  let documents = collect_documents(virtual_document);
+  return new Set(
+    [...documents].map(document => document.language.toLocaleLowerCase())
+  );
 }
 
 type StatusMap = Record<StatusCode, string>;
@@ -236,9 +286,25 @@ const iconByStatus: StatusMap = {
 const shortMessageByStatus: StatusMap = {
   waiting: 'Waiting...',
   initialized: 'Fully initialized',
-  initializing: 'Fully connected & partially initialized',
+  initializing: 'Partially initialized',
   connecting: 'Connecting...'
 };
+
+// TODO ideally, this would be generated from schema
+export interface IServerSpecification {
+  display_name: string;
+  install: object;
+  urls: object;
+  languages: string[];
+}
+
+export interface IServer {
+  spec: IServerSpecification;
+  status: string;
+  handler_count: number;
+  last_server_message_at: string;
+  last_handler_message_at: string;
+}
 
 export namespace LSPStatus {
   /**
@@ -263,7 +329,7 @@ export namespace LSPStatus {
         .catch(console.error);
     }
 
-    get available_servers(): Array<any> {
+    get available_servers(): Array<IServer> {
       return this.server_extension_status.sessions;
     }
 
@@ -271,29 +337,60 @@ export namespace LSPStatus {
       const languages = new Set<string>();
       for (let server of this.available_servers) {
         for (let language of server.spec.languages) {
-          languages.add(language);
+          languages.add(language.toLocaleLowerCase());
         }
       }
       return languages;
     }
 
-    private is_server_running(server: any): boolean {
+    private is_server_running(server: IServer): boolean {
       for (let language of server.spec.languages) {
-        if (this.detected_languages.has(language)) {
+        if (this.detected_languages.has(language.toLocaleLowerCase())) {
           return true;
         }
       }
       return false;
     }
 
-    get running_servers(): Array<any> {
-      // TODO: return server - list of documents map instead
-      return this.available_servers.filter(server =>
-        this.is_server_running(server)
-      );
+    get documents_by_server(): Map<IServer, Map<string, VirtualDocument[]>> {
+      let data = new Map();
+      if (!this.adapter) {
+        return new Map();
+      }
+
+      let main_document = this.adapter.virtual_editor.virtual_document;
+      let documents = collect_documents(main_document);
+
+      for (let document of documents.values()) {
+        let language = document.language.toLocaleLowerCase();
+        let servers = this.available_servers.filter(
+          server => server.spec.languages.indexOf(language) !== -1
+        );
+        if (servers.length > 1) {
+          console.warn('More than one server per language for' + language);
+        }
+        if (servers.length === 0) {
+          continue;
+        }
+        let server = servers[0];
+
+        if (!data.has(server)) {
+          data.set(server, new Map<string, VirtualDocument>());
+        }
+
+        let documents_map = data.get(server);
+
+        if (!documents_map.has(language)) {
+          documents_map.set(language, new Array<VirtualDocument>());
+        }
+
+        let documents = documents_map.get(language);
+        documents.push(document);
+      }
+      return data;
     }
 
-    get servers_available_not_in_use(): Array<any> {
+    get servers_available_not_in_use(): Array<IServer> {
       return this.available_servers.filter(
         server => !this.is_server_running(server)
       );
@@ -311,26 +408,8 @@ export namespace LSPStatus {
     get missing_languages(): Array<string> {
       // TODO: false negative for r vs R?
       return [...this.detected_languages].filter(
-        language => !this.supported_languages.has(language)
+        language => !this.supported_languages.has(language.toLocaleLowerCase())
       );
-    }
-
-    get lsp_servers_truncated(): string {
-      if (!this.adapter) {
-        return '';
-      }
-      let document = this.adapter.virtual_editor.virtual_document;
-      let foreign_languages = collect_languages(document);
-      foreign_languages.delete(this.adapter.language);
-      if (foreign_languages.size) {
-        if (foreign_languages.size < 4) {
-          return `${this.adapter.language}, ${[...foreign_languages].join(
-            ', '
-          )}`;
-        }
-        return `${this.adapter.language} (+${foreign_languages.size} more)`;
-      }
-      return this.adapter.language;
     }
 
     get status(): IStatus {

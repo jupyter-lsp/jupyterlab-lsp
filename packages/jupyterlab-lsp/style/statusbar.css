@@ -20,10 +20,23 @@
 
 .lsp-servers-menu {
     height: 350px;
+    overflow-y: auto;
 }
 
-.lsp-server-status {
+.lsp-server-status, .lsp-missing-server, .lsp-documents-by-language {
     margin-left: 20px
+}
+
+h5 .lsp-language-server-name {
+    color: var(--jp-ui-font-color2);
+}
+.lsp-documents-by-language ul, .lsp-server-status ul {
+    margin: 0
+}
+
+.lsp-servers-menu h5 {
+    font-weight: normal;
+    font-size: 100%;
 }
 
 .lsp-servers-lists {
@@ -39,7 +52,7 @@
     margin: 0;
 }
 
-.lsp-caret {
+.lsp-caret, .lsp-document-status-icon {
     height: 16px;
     width: 16px;
     background-size: 18px;
@@ -51,14 +64,31 @@
     top: 3px
 }
 
+.lsp-documents-by-language li {
+    clear: both;
+    width: 100%;
+}
+
+.lsp-document-status {
+    float: right;
+}
+
+.lsp-document-status-icon {
+    height: 13px;
+    width: 13px;
+    background-size: 15px;
+    background-image: 15px;
+    margin-left: 10px;
+}
+
 .lsp-collapsible-list h4 {
     cursor: pointer;
 }
 .lsp-collapsible-list .lsp-caret {
-    background-image: var(--jp-icon-caretup);
+    background-image: var(--jp-icon-caretdown);
 }
 .lsp-collapsible-list.lsp-collapsed .lsp-caret {
-    background-image: var(--jp-icon-caretdown);
+    background-image: var(--jp-icon-caretright);
 }
 .lsp-collapsible-list.lsp-collapsed div {
     display: none;
