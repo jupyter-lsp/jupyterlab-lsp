@@ -112,3 +112,4 @@ node_modules
 atest/output/
 junit.xml
 coverage/
+.vscode/

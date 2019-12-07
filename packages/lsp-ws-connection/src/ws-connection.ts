@@ -124,7 +124,11 @@ export class LspWsConnection extends events.EventEmitter
     return this.documentInfo.documentUri;
   }
 
-  public initializeParams(): protocol.InitializeParams {
+  /**
+   * Initialization parameters to be sent to the language server. 
+   * Subclasses can overload this when adding more features.
+   */
+  protected initializeParams(): protocol.InitializeParams {
     return {
       capabilities: {
         textDocument: {
