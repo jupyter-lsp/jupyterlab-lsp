@@ -310,7 +310,7 @@ describe('LspWsConnection', () => {
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('hover', response => {
-        expect(response).equal(null);
+        expect(response).to.be.a('null');
         done();
       });
     });
@@ -347,7 +347,7 @@ describe('LspWsConnection', () => {
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('hover', response => {
-        expect(response).equal(hoverResponse);
+        expect(response).to.deep.equal(hoverResponse);
         done();
       });
     });
@@ -415,7 +415,7 @@ describe('LspWsConnection', () => {
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('completion', response => {
-        expect(response).equal(null);
+        expect(response).to.be.a('null');
         done();
       });
     });
@@ -450,7 +450,7 @@ describe('LspWsConnection', () => {
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('completion', response => {
-        expect(response).equal(completionResponse.items);
+        expect(response).to.deep.equal(completionResponse.items);
         done();
       });
     });
@@ -482,7 +482,7 @@ describe('LspWsConnection', () => {
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('completion', response => {
-        expect(response).equal(completion);
+        expect(response).to.deep.equal(completion);
         done();
       });
     });

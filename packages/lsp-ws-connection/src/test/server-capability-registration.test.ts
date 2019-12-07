@@ -49,8 +49,7 @@ describe('ServerCapabilities client registration', () => {
 
   it('registers server capabilities', () => {
     Object.keys(serverCapabilities).forEach(capability => {
-      // @ts-ignore
-      const capabilityOptions = serverCapabilities[capability];
+      const capabilityOptions = (serverCapabilities as any)[capability];
       const registration = {
         id: 'id',
         method: getMethodFromCapability(capability)
@@ -66,11 +65,9 @@ describe('ServerCapabilities client registration', () => {
       );
 
       if (typeof capabilityOptions === 'boolean') {
-        // @ts-ignore
-        expect(newServerCapabilities[capability]).equal(capabilityOptions);
+        expect((newServerCapabilities as any)[capability]).equal(capabilityOptions);
       } else {
-        // @ts-ignore
-        expect(newServerCapabilities[capability]).toMatchObject(
+        expect((newServerCapabilities as any)[capability]).to.deep.equal(
           capabilityOptions
         );
       }
@@ -87,8 +84,8 @@ describe('ServerCapabilities client registration', () => {
         serverCapabilities,
         unregistration
       );
-      // @ts-ignore
-      expect(newServerCapabilities[capability]).equal(void 0);
+
+      expect((newServerCapabilities as any)[capability]).equal(void 0);
     });
   });
 });
