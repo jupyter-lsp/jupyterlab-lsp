@@ -6,7 +6,7 @@ module.exports = function(config) {
 
     files: [
       // The entry files are processed by webpack
-      'test/**/*.test.ts'
+      'lib/test/**/*.test.js'
     ],
 
     browsers: ['ChromeHeadless'],
@@ -39,19 +39,6 @@ module.exports = function(config) {
 
     webpack: {
       mode: 'development',
-      module: {
-        rules: [
-          {
-            test: /\.tsx?$/,
-            use: 'ts-loader',
-            exclude: /node_modules/
-          },
-          {
-            test: /\.css$/,
-            use: [{ loader: 'style-loader' }, { loader: 'css-loader' }]
-          }
-        ]
-      },
       resolve: {
         extensions: ['.tsx', '.ts', '.js']
       },

@@ -2,7 +2,6 @@
   "dependencies": {
   },
   "devDependencies": {
-    "@types/mocha": "^5.2.6",
     "bash-language-server": "^1.6.1",
     "dockerfile-language-server-nodejs": "^0.0.21",
     "eslint": "^5.16.0",
@@ -42,14 +41,24 @@
     "lint:check": "jlpm prettier:check && jlpm tslint:check",
     "lint": "jlpm prettier && jlpm tslint",
     "prettier:check": "prettier --check '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
+    "test": "lerna run --stream --concurrency=1 test",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
-    "test": "lerna run test",
     "tslint": "tslint --fix -c tslint.json --project tsconfigbase.json 'packages/**/*{.ts,.tsx}'",
     "tslint:check": "tslint -c tslint.json --project tsconfigbase.json 'packages/**/*{.ts,.tsx}'"
   },
   "workspaces": {
     "packages": [
       "packages/*"
+    ],
+    "nohoist": [
+      "**/@types/jest",
+      "**/@types/jest/**",
+      "**/@types/mocha/",
+      "**/@types/mocha/**",
+      "**/@types/expect/",
+      "**/@types/expect/**",
+      "**/@types/sinon/",
+      "**/@types/sinon/**"
     ]
   }
 }

@@ -1,5 +1,5 @@
-import sinon from 'sinon';
-import { ILspConnection } from '../src';
+import * as sinon from 'sinon';
+import { ILspConnection } from '..';
 
 interface IListeners {
   [key: string]: Array<(arg: any) => void>;

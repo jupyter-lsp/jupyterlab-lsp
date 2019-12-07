@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'chai';
 import {
   Registration,
   ServerCapabilities,
@@ -7,7 +7,7 @@ import {
 import {
   registerServerCapability,
   unregisterServerCapability
-} from '../src/server-capability-registration';
+} from '../server-capability-registration';
 
 describe('ServerCapabilities client registration', () => {
   const serverCapabilities = {
@@ -67,7 +67,7 @@ describe('ServerCapabilities client registration', () => {
 
       if (typeof capabilityOptions === 'boolean') {
         // @ts-ignore
-        expect(newServerCapabilities[capability]).toBe(capabilityOptions);
+        expect(newServerCapabilities[capability]).equal(capabilityOptions);
       } else {
         // @ts-ignore
         expect(newServerCapabilities[capability]).toMatchObject(
@@ -88,7 +88,7 @@ describe('ServerCapabilities client registration', () => {
         unregistration
       );
       // @ts-ignore
-      expect(newServerCapabilities[capability]).toBeUndefined();
+      expect(newServerCapabilities[capability]).equal(void 0);
     });
   });
 });

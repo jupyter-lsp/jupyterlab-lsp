@@ -1,7 +1,7 @@
-import * as expect from 'expect';
+import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as lsProtocol from 'vscode-languageserver-protocol';
-import { LspWsConnection } from '../src/';
+import { LspWsConnection } from '..';
 
 const serverUri = 'ws://localhost:8080';
 
@@ -109,7 +109,7 @@ describe('LspWsConnection', () => {
     // 1. It sends initialize and expects a response with capabilities
     mockSocket.send.onFirstCall().callsFake(str => {
       const message = JSON.parse(str);
-      expect(message.method).toEqual('initialize');
+      expect(message.method).equal('initialize');
 
       // This is an actual response from the html language server
       const data = JSON.stringify({
@@ -153,20 +153,20 @@ describe('LspWsConnection', () => {
     // 2. After receiving capabilities from the server, it sends more configuration options
     mockSocket.send.onSecondCall().callsFake(str => {
       const message = JSON.parse(str);
-      expect(message.method).toEqual('initialized');
+      expect(message.method).equal('initialized');
 
       setTimeout(() => {
         const mock = mockSocket.send;
-        expect(mock.callCount).toEqual(5);
+        expect(mock.callCount).equal(5);
 
         // 3, 4, 5 are sent after initialization
-        expect(JSON.parse(mock.getCall(2).args[0]).method).toEqual(
+        expect(JSON.parse(mock.getCall(2).args[0]).method).equal(
           'workspace/didChangeConfiguration'
         );
-        expect(JSON.parse(mock.getCall(3).args[0]).method).toEqual(
+        expect(JSON.parse(mock.getCall(3).args[0]).method).equal(
           'textDocument/didOpen'
         );
-        expect(JSON.parse(mock.getCall(4).args[0]).method).toEqual(
+        expect(JSON.parse(mock.getCall(4).args[0]).method).equal(
           'textDocument/didChange'
         );
 
@@ -178,8 +178,8 @@ describe('LspWsConnection', () => {
     mockSocket.dispatchEvent(new Event('open'));
 
     // Send the messages
-    expect(mockSocket.send.callCount).toEqual(1);
-    expect(JSON.parse(mockSocket.send.firstCall.args[0]).method).toEqual(
+    expect(mockSocket.send.callCount).equal(1);
+    expect(JSON.parse(mockSocket.send.firstCall.args[0]).method).equal(
       'initialize'
     );
   });
@@ -203,8 +203,8 @@ describe('LspWsConnection', () => {
 
     it('registers a new server capability', done => {
       mockSocket.send.onSecondCall().callsFake(() => {
-        expect(connection.isDefinitionSupported()).toBe(true);
-        expect(connection.isImplementationSupported()).toBe(false);
+        expect(connection.isDefinitionSupported()).equal(true);
+        expect(connection.isImplementationSupported()).equal(false);
 
         const data = JSON.stringify({
           jsonrpc: '2.0',
@@ -223,8 +223,8 @@ describe('LspWsConnection', () => {
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
 
         setTimeout(() => {
-          expect(connection.isDefinitionSupported()).toBe(true);
-          expect(connection.isImplementationSupported()).toBe(true);
+          expect(connection.isDefinitionSupported()).equal(true);
+          expect(connection.isImplementationSupported()).equal(true);
           done();
         }, 0);
       });
@@ -235,7 +235,7 @@ describe('LspWsConnection', () => {
 
     it('unregisters a server capability', done => {
       mockSocket.send.onSecondCall().callsFake(() => {
-        expect(connection.isDefinitionSupported()).toBe(true);
+        expect(connection.isDefinitionSupported()).equal(true);
 
         const data = JSON.stringify({
           jsonrpc: '2.0',
@@ -254,7 +254,7 @@ describe('LspWsConnection', () => {
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
 
         setTimeout(() => {
-          expect(connection.isDefinitionSupported()).toBe(false);
+          expect(connection.isDefinitionSupported()).equal(false);
           done();
         });
       });
@@ -310,7 +310,7 @@ describe('LspWsConnection', () => {
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('hover', response => {
-        expect(response).toBeNull();
+        expect(response).equal(null);
         done();
       });
     });
@@ -347,7 +347,7 @@ describe('LspWsConnection', () => {
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('hover', response => {
-        expect(response).toEqual(hoverResponse);
+        expect(response).equal(hoverResponse);
         done();
       });
     });
@@ -415,7 +415,7 @@ describe('LspWsConnection', () => {
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('completion', response => {
-        expect(response).toBeNull();
+        expect(response).equal(null);
         done();
       });
     });
@@ -450,7 +450,7 @@ describe('LspWsConnection', () => {
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('completion', response => {
-        expect(response).toEqual(completionResponse.items);
+        expect(response).equal(completionResponse.items);
         done();
       });
     });
@@ -482,7 +482,7 @@ describe('LspWsConnection', () => {
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('completion', response => {
-        expect(response).toEqual(completion);
+        expect(response).equal(completion);
         done();
       });
     });
@@ -493,6 +493,6 @@ describe('LspWsConnection', () => {
     connection.close();
 
     connection.sendChange();
-    expect(mockSocket.send.callCount).toEqual(0);
+    expect(mockSocket.send.callCount).equal(0);
   });
 });

@@ -4,7 +4,9 @@
     "rootDir": "src",
     "outDir": "lib",
     "lib": ["es6", "dom", "scripthost"],
-    "tsBuildInfoFile": "lib/.tsbuildinfo"
+    "tsBuildInfoFile": "lib/.tsbuildinfo",
+    "types": ["mocha", "node"],
+    "target": "es5"
   },
   "include": ["src"],
   "exclude": ["node_modules"]
