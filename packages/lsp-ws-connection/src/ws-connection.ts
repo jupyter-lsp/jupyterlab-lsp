@@ -125,7 +125,7 @@ export class LspWsConnection extends events.EventEmitter
   }
 
   /**
-   * Initialization parameters to be sent to the language server. 
+   * Initialization parameters to be sent to the language server.
    * Subclasses can overload this when adding more features.
    */
   protected initializeParams(): protocol.InitializeParams {
