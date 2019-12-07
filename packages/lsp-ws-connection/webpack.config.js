@@ -5,6 +5,7 @@ module.exports = {
   entry: {
     index: './lib/index.js'
   },
+  devtool: 'sourcemap',
   module: {
     rules: [
       {
