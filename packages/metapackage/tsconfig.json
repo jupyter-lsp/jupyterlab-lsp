@@ -10,6 +10,9 @@
   "references": [
     {
       "path": "../jupyterlab-lsp"
+    },
+    {
+      "path": "../lsp-ws-connection"
     }
   ]
 }

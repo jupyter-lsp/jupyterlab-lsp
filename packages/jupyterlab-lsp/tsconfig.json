@@ -6,5 +6,10 @@
     "types": ["jest"],
     "tsBuildInfoFile": "lib/.tsbuildinfo"
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "references": [
+    {
+      "path": "../lsp-ws-connection"
+    }
+  ]
 }

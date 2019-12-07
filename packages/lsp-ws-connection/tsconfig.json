@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfigbase",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib",
+    "lib": ["es6", "dom", "scripthost"],
+    "tsBuildInfoFile": "lib/.tsbuildinfo"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}
