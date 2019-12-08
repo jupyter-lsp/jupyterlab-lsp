@@ -96,7 +96,7 @@ To check and fix code style:
 jlpm lint
 ```
 
-To run test the suite:
+To run test the suite (after running `jlpm build` or `watch`):
 
 ```bash
 jlpm test
