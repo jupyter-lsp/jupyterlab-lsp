@@ -1,30 +1,12 @@
 # lsp-ws-connection
 
+> This is a fork of [lsp-editor-adapter](https://github.com/wylieconlon/lsp-editor-adapter), with
+> a number of modifications made to make it more easily integrated into [jupyterlab-lsp](https://github.com/krassowski/jupyterlab-lsp)
+
 ## Installation
 
-Current requirements:
-
-- Language server running on a web socket connection, such as [jsonrpc-ws-proxy](https://github.com/wylieconlon/jsonrpc-ws-proxy)
+> TBD
 
 ## Developing
 
-To develop against this library, and see updates in the example, run both of these:
-
-```
-# From parent directory
-npx webpack --watch
-```
-
-```
-# From example directory
-npm run dev
-```
-
-To run library tests, there are two options:
-
-```
-npm test
-npm run test-dev
-```
-
-test-dev will watch the source code and rerun tests in the background
+This library is built and tested as part of the [`jupyterlab-lsp` monorepo](https://github.com/krassowski/jupyterlab-lsp).
