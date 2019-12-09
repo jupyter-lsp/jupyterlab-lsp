@@ -335,7 +335,10 @@ export namespace LSPStatus {
           if (!response.ok) {
             throw new Error(response.statusText);
           }
-          response.json().then(data => (this.server_extension_status = data));
+          response
+            .json()
+            .then(data => (this.server_extension_status = data))
+            .catch(console.warn);
         })
         .catch(console.error);
     }
