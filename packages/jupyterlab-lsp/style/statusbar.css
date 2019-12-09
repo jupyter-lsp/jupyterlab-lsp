@@ -52,7 +52,7 @@ h5 .lsp-language-server-name {
 }
 
 .lsp-popover-status a {
-  color: var(--jp-content-link-color)
+  color: var(--jp-content-link-color);
 }
 
 .lsp-servers-menu h3,
