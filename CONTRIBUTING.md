@@ -41,6 +41,18 @@ pip install -r requirements-dev.txt  # in a virtualenv, probably
                                      # ... and install nodejs, somehow
 ```
 
+### The Easy Way
+
+Once your environment is created and activated, on Linux/OSX you can run:
+
+```bash
+bash postBuild
+```
+
+This performs all of the basic setup steps, and is used for the binder demo.
+
+### The Hard Way
+
 Install `jupyter-lsp` from source in your virtual environment:
 
 ```bash
@@ -74,7 +86,7 @@ jupyter lab build
 To watch the files and build continuously:
 
 ```bash
-jlpm build --watch   # leave this running...
+jlpm watch   # leave this running...
 jupyter lab --watch  # ...in another terminal
 ```
 
@@ -84,7 +96,7 @@ To check and fix code style:
 jlpm lint
 ```
 
-To run test the suite:
+To run test the suite (after running `jlpm build` or `watch`):
 
 ```bash
 jlpm test

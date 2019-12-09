@@ -2,7 +2,6 @@
   "dependencies": {
   },
   "devDependencies": {
-    "@types/mocha": "^5.2.6",
     "bash-language-server": "^1.6.1",
     "dockerfile-language-server-nodejs": "^0.0.21",
     "eslint": "^5.16.0",
@@ -32,21 +31,34 @@
   "private": true,
   "scripts": {
     "bootstrap": "jlpm --no-optional --prefer-offline && lerna bootstrap && jlpm lint && jlpm clean && jlpm build",
-    "build": "cd packages/metapackage && jlpm build",
-    "bundle": "lerna run bundle",
-    "clean": "lerna run clean",
+    "build": "jlpm build:meta && jlpm build:ws",
+    "build:meta": "lerna run build --stream --scope @krassowski/jupyterlab-lsp-metapackage",
+    "build:ws": "lerna run build --stream --scope lsp-ws-connection",
+    "watch": "lerna run --parallel watch",
+    "bundle": "lerna run --parallel bundle",
+    "clean": "lerna run --parallel clean",
     "lab:link": "lerna run lab:link",
     "lint:check": "jlpm prettier:check && jlpm tslint:check",
     "lint": "jlpm prettier && jlpm tslint",
     "prettier:check": "prettier --check '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
+    "test": "lerna run --stream --concurrency=1 test",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
-    "test": "lerna run test",
     "tslint": "tslint --fix -c tslint.json --project tsconfigbase.json 'packages/**/*{.ts,.tsx}'",
     "tslint:check": "tslint -c tslint.json --project tsconfigbase.json 'packages/**/*{.ts,.tsx}'"
   },
   "workspaces": {
     "packages": [
       "packages/*"
+    ],
+    "nohoist": [
+      "**/@types/jest",
+      "**/@types/jest/**",
+      "**/@types/mocha/",
+      "**/@types/mocha/**",
+      "**/@types/expect/",
+      "**/@types/expect/**",
+      "**/@types/sinon/",
+      "**/@types/sinon/**"
     ]
   }
 }

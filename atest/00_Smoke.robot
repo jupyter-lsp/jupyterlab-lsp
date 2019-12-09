@@ -2,14 +2,14 @@
 Suite Setup       Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}smoke
 Resource          Keywords.robot
 
-*** Variables ***
-${CSS CLOSE}      css:.jp-Dialog-button.jp-About-button
-
 *** Test Cases ***
 Lab Version
-    Open With JupyterLab Menu    Help    About JupyterLab
-    Wait Until Page Contains Element    ${JLAB CSS VERSION}
-    ${version} =    Get WebElement    ${JLAB CSS VERSION}
-    Set Global Variable    ${LAB VERSION}    ${version.text.split(" ")[-1]}
-    Capture Page Screenshot    00-version.png
-    Click Element    ${CSS CLOSE}
+    Capture Page Screenshot    00-smoke.png
+    ${script} =  Get Element Attribute    id:jupyter-config-data  innerHTML
+    ${config} =  Evaluate  __import__("json").loads("""${script}""")
+    Set Global Variable    ${PAGE CONFIG}    ${config}
+    Set Global Variable    ${LAB VERSION}    ${config["appVersion"]}
+
+Root URI
+    [Documentation]  the rootUri should be set in the page config
+    Should Not Be Empty    ${PAGE CONFIG["rootUri"]}

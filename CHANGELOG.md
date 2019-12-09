@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## `lsp-ws-connection` (unreleased)
+
+- infrastructure
+  - brought into monorepo
+- dev
+  - allows `initializeParams` to be overloaded by subclasses
+  - adopts
+    - typescript 3.7
+    - prettier
+    - tslint
+
 ## `jupyter-lsp` (unreleased)
 
 - features
