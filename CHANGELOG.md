@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## `@krassowski/jupyterlab-lsp` (unreleased)
+
+- reduced space taken up by the statusbar indicator
+- implemented statusbar popover with connections statuses
+
 ## `lsp-ws-connection` (unreleased)
 
 - infrastructure
