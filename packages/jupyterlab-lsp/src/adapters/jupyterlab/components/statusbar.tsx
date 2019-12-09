@@ -188,7 +188,17 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
             )}
           </div>
         </div>
-        <div className={'lsp-popover-status'}>{this.model.long_message}</div>
+        <div className={'lsp-popover-status'}>
+          Documentation:{' '}
+          <a
+            href={
+              'https://github.com/krassowski/jupyterlab-lsp/blob/master/LANGUAGESERVERS.md'
+            }
+            target={'_blank'}
+          >
+            Language Servers
+          </a>
+        </div>
       </div>
     );
   }
@@ -219,13 +229,14 @@ export class LSPStatus extends VDomRenderer<LSPStatus.Model> {
     return (
       <GroupItem
         spacing={4}
-        title={'LSP Code Intelligence'}
+        title={this.model.long_message}
         onClick={this.handleClick}
       >
         <DefaultIconReact
           name={this.model.status_icon}
           top={'2px'}
           kind={'statusBar'}
+          title={'LSP Code Intelligence'}
         />
         <TextItem source={this.model.short_message} />
         <TextItem source={this.model.feature_message} />

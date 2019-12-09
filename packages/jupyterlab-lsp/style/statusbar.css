@@ -51,6 +51,10 @@ h5 .lsp-language-server-name {
   border-top: 1px solid var(--jp-border-color1);
 }
 
+.lsp-popover-status a {
+  color: var(--jp-content-link-color)
+}
+
 .lsp-servers-menu h3,
 h4,
 h5 {
@@ -77,6 +81,7 @@ h5 {
 
 .lsp-document-status {
   float: right;
+  padding-left: 15px;
 }
 
 .lsp-document-status-icon {
