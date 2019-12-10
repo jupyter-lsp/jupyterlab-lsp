@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@krassowski/jupyterlab_go_to_definition": "^0.7.1",
-    "lsp-ws-connection": "~0.1.1"
+    "lsp-ws-connection": "^0.2.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.4.3",

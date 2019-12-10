@@ -1312,6 +1312,12 @@
     react "~16.8.4"
     typestyle "^2.0.1"
 
+"@krassowski/jupyterlab-lsp@file:packages/jupyterlab-lsp":
+  version "0.6.1"
+  dependencies:
+    "@krassowski/jupyterlab_go_to_definition" "^0.7.1"
+    lsp-ws-connection "^0.2.0"
+
 "@krassowski/jupyterlab_go_to_definition@^0.7.1":
   version "0.7.1"
   resolved "https://registry.yarnpkg.com/@krassowski/jupyterlab_go_to_definition/-/jupyterlab_go_to_definition-0.7.1.tgz#62c45e5869b0099fd1878734b103f75d05d4a773"
@@ -7207,12 +7213,10 @@ lru-cache@^5.1.1:
   dependencies:
     yallist "^3.0.2"
 
-lsp-ws-connection@~0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/lsp-ws-connection/-/lsp-ws-connection-0.1.1.tgz#5e259a5079aa91f9bb55453d03df14f3e526fa6b"
-  integrity sha512-JLGsBbJc5NlNkvo8hyjVqOG2jZrCtXnz65d1pPPnp6mRl++J3pa0M0e2/jOGeDx+emDNk31/pUlLDOSHhphE4w==
+"lsp-ws-connection@file:packages/lsp-ws-connection":
+  version "0.2.0"
   dependencies:
-    vscode-jsonrpc "^4.0.0"
+    vscode-jsonrpc "^4.1.0-next"
     vscode-languageclient "^5.2.1"
     vscode-languageserver-protocol "^3.14.1"
     vscode-languageserver-types "^3.14.0"
