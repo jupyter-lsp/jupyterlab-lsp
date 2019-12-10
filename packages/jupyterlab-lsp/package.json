@@ -30,7 +30,8 @@
     "url": "https://github.com/krassowski/jupyterlab-lsp.git"
   },
   "scripts": {
-    "build": "tsc -b",
+    "build": "jlpm build:schema && tsc -b",
+    "build:schema": "json2ts ../../py_src/jupyter_lsp/schema/schema.json --unreachableDefinitions | prettier --stdin-filepath _schema.d.ts > src/_schema.d.ts",
     "bundle": "npm pack .",
     "clean": "rimraf lib",
     "lab:link": "jupyter labextension link . --no-build",
@@ -68,7 +69,7 @@
     "events": "^3.0.0",
     "jest": "^24.7.1",
     "jest-junit": "^8.0.0",
-    "prettier": "^1.18.2",
+    "json-schema-to-typescript": "^8.0.0",
     "react": "*",
     "rimraf": "~2.6.2",
     "ts-jest": "^24.0.2",

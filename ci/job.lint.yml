@@ -31,5 +31,8 @@ jobs:
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm || jlpm || jlpm
                 displayName: install npm dependencies
 
+              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm build:schema
+                displayName: build schema so linting can complete
+
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm lint:check
                 displayName: lint frontend

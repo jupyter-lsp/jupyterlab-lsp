@@ -31,7 +31,8 @@
   "private": true,
   "scripts": {
     "bootstrap": "jlpm --no-optional --prefer-offline && lerna bootstrap && jlpm lint && jlpm clean && jlpm build",
-    "build": "jlpm build:meta && jlpm build:ws",
+    "build": "jlpm build:schema && jlpm build:meta && jlpm build:ws",
+    "build:schema": "lerna run build:schema --stream",
     "build:meta": "lerna run build --stream --scope @krassowski/jupyterlab-lsp-metapackage",
     "build:ws": "lerna run build --stream --scope lsp-ws-connection",
     "watch": "lerna run --parallel watch",

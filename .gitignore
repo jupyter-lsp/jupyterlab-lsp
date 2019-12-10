@@ -113,3 +113,4 @@ atest/output/
 junit.xml
 coverage/
 .vscode/
+_schema.d.ts
