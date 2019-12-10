@@ -23,19 +23,16 @@ module.exports = function(config) {
 
     frameworks: ['mocha'],
 
-    reporters: ['mocha'],
+    reporters: ['mocha', 'junit'],
 
     preprocessors: {
       '**/*!(.d).ts': 'webpack',
       '**/*!(.d).js': 'webpack'
     },
 
-    plugins: [
-      'karma-mocha',
-      'karma-chrome-launcher',
-      'karma-webpack',
-      'karma-mocha-reporter'
-    ],
+    junitReporter: {
+      outputFile: 'junit.xml'
+    },
 
     webpack: {
       mode: 'development',
