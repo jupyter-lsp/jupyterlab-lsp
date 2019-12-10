@@ -4,11 +4,14 @@
 
 - reduced space taken up by the statusbar indicator
 - implemented statusbar popover with connections statuses
+- generates types for server data responses from JSON schema (
+  [#110](https://github.com/krassowski/jupyterlab-lsp/pull/110)
+  )
 
 ## `lsp-ws-connection` (unreleased)
 
 - infrastructure
-  - brought into monorepo
+  - brought into monorepo [#107](https://github.com/krassowski/jupyterlab-lsp/pull/107)
 - dev
   - allows `initializeParams` to be overloaded by subclasses
   - adopts

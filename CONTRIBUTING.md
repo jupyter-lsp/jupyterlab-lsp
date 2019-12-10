@@ -76,7 +76,7 @@ jlpm lab:link
 
 ## Frontend Development
 
-To rebuild the packages and the JupyterLab app:
+To rebuild the schemas, packages, and the JupyterLab app:
 
 ```bash
 jlpm build
@@ -89,6 +89,8 @@ To watch the files and build continuously:
 jlpm watch   # leave this running...
 jupyter lab --watch  # ...in another terminal
 ```
+
+> Note: the backend schema is not included in `watch`, and is only refreshed by `build`
 
 To check and fix code style:
 
