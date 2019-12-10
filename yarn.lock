@@ -1316,7 +1316,7 @@
   version "0.6.1"
   dependencies:
     "@krassowski/jupyterlab_go_to_definition" "^0.7.1"
-    lsp-ws-connection "^0.2.0"
+    lsp-ws-connection "*"
 
 "@krassowski/jupyterlab_go_to_definition@^0.7.1":
   version "0.7.1"

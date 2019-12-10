@@ -34,12 +34,11 @@
     "bundle": "npm pack .",
     "clean": "rimraf lib",
     "lab:link": "jupyter labextension link . --no-build",
-    "test": "jlpm jest --coverage --coverageReporters=cobertura --coverageReporters=html --coverageReporters=text-summary",
-    "watch": "tsc -b -w"
+    "test": "jlpm jest --coverage --coverageReporters=cobertura --coverageReporters=html --coverageReporters=text-summary"
   },
   "dependencies": {
     "@krassowski/jupyterlab_go_to_definition": "^0.7.1",
-    "lsp-ws-connection": "^0.2.0"
+    "lsp-ws-connection": "*"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.4.3",
