@@ -26,8 +26,8 @@
     "watch": "tsc -b --watch"
   },
   "dependencies": {
-    "@krassowski/jupyterlab-lsp": "^0.6.1",
-    "lsp-ws-connection": "^0.2.0"
+    "@krassowski/jupyterlab-lsp": "file:../jupyterlab-lsp",
+    "lsp-ws-connection": "file:../lsp-ws-connection"
   },
   "devDependencies": {
     "fs-extra": "^8.0.1",
