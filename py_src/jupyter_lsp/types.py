@@ -106,10 +106,11 @@ class MessageListener(object):
             `method` is currently the only message content descriminator, but not
             all messages will have a `method`
         """
-        method = message.get("method")
+        if self.method:
+            method = message.get("method")
 
-        if method and self.method and re.match(self.method, method) is None:
-            return False
+            if method is None or re.match(self.method, method) is None:
+                return False
 
         return self.language is None or any(
             [re.match(self.language, lang) is not None for lang in languages]
