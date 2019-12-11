@@ -20,7 +20,7 @@ from typing import (
 )
 
 from notebook.transutils import _
-from traitlets import List as List_, Unicode, default
+from traitlets import Instance, List as List_, Unicode, default
 from traitlets.config import LoggingConfigurable
 
 LanguageServerSpec = Dict[Text, Any]
@@ -86,15 +86,32 @@ class MessageListener(object):
         languages: List[Text],
         manager: "HasListeners",
     ) -> None:
-        """ actually dispatch the message to the listener
+        """ actually dispatch the message to the listener and capture any errors
         """
-        await self.listener(
-            scope=scope, message=message, languages=languages, manager=manager
-        )
+        try:
+            await self.listener(
+                scope=scope, message=message, languages=languages, manager=manager
+            )
+        except Exception:  # pragma: no cover
+            manager.log.warn(
+                "[lsp] error in listener %s for message %s",
+                self.listener,
+                message,
+                exc_info=True,
+            )
 
     def wants(self, message: LanguageServerMessage, languages: List[Text]):
-        if self.method and re.match(self.method, message["method"]) is None:
-            return False
+        """ whether this listener wants a particular message
+
+            `method` is currently the only message content descriminator, but not
+            all messages will have a `method`
+        """
+        if self.method:
+            method = message.get("method")
+
+            if method is None or re.match(self.method, method) is None:
+                return False
+
         return self.language is None or any(
             [re.match(self.language, lang) is not None for lang in languages]
         )
@@ -104,6 +121,8 @@ class HasListeners:
     _listeners = {
         str(scope.value): [] for scope in MessageScope
     }  # type: Dict[Text, List[MessageListener]]
+
+    log = Instance("logging.Logger")
 
     @classmethod
     def register_message_listener(
