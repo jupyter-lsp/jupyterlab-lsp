@@ -31,5 +31,5 @@ def file_uri_to_path(file_uri):
     if windows_path and file_uri_path_unquoted.startswith("/"):
         result = file_uri_path_unquoted[1:]   # pragma: no cover
     else:
-        result = file_uri_path_unquoted
+        result = file_uri_path_unquoted       # pragma: no cover
     return result
