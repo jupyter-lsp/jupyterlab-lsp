@@ -44,5 +44,5 @@ async def test_shadow(tmpdir, message_func, content, expected_content):
     message = message_func(ok_file_path.as_uri(), content)
     await shadow('client', message, ['python'], None)
 
-    with open(ok_file_path) as f:
+    with open(str(ok_file_path)) as f:    # str is a Python 3.5 relict
         assert f.read() == expected_content
