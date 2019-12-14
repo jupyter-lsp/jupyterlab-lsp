@@ -65,12 +65,12 @@ def setup_shadow_filesystem(virtual_documents_uri):
     shadow_filesystem.mkdir(parents=True, exist_ok=True)
     # remove with contents
     rmtree(str(shadow_filesystem))
-    # create again if needed
+    # create again
     shadow_filesystem.mkdir(parents=True, exist_ok=True)
 
     @lsp_message_listener("client")
     async def shadow_virtual_documents(scope, message, languages, manager):
-        """Intercept a message with document contents and a shadow file for it.
+        """Intercept a message with document contents creating a shadow file for it.
 
         Only create the shadow file if the URI matches the virtual documents URI.
         Returns the path on filesystem where the content was stored.
@@ -107,9 +107,9 @@ def setup_shadow_filesystem(virtual_documents_uri):
             changes = message['params']['contentChanges']
 
         if len(changes) > 1:
-            print('LSP: up to one change supported at the moment')
+            print('LSP warning: up to one change supported for textDocument/didChange')
 
-        for change in changes:
+        for change in changes[:1]:
             change_range = change.get('range', file.full_range)
             file.apply_change(change['text'], **change_range)
 
