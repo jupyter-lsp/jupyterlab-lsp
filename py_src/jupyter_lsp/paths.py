@@ -29,7 +29,7 @@ def file_uri_to_path(file_uri):
     file_uri_parsed = urlparse(file_uri)
     file_uri_path_unquoted = unquote(file_uri_parsed.path)
     if windows_path and file_uri_path_unquoted.startswith("/"):
-        result = file_uri_path_unquoted[1:]
+        result = file_uri_path_unquoted[1:]   # pragma: no cover
     else:
         result = file_uri_path_unquoted
     return result

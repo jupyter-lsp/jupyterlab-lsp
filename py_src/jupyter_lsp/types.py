@@ -103,7 +103,7 @@ class MessageListener(object):
     def wants(self, message: LanguageServerMessage, languages: List[Text]):
         """ whether this listener wants a particular message
 
-            `method` is currently the only message content descriminator, but not
+            `method` is currently the only message content discriminator, but not
             all messages will have a `method`
         """
         if self.method:
@@ -115,6 +115,14 @@ class MessageListener(object):
         return self.language is None or any(
             [re.match(self.language, lang) is not None for lang in languages]
         )
+
+    def __repr__(self):
+        return (
+            "<MessageListener"
+            " listener={self.listener},"
+            " method={self.method},"
+            " language={self.language}>"
+        ).format(self=self)
 
 
 class HasListeners:
@@ -130,9 +138,8 @@ class HasListeners:
     ):
         """ register a listener for language server protocol messages
         """
-
         def inner(listener: "HandlerListenerCallback") -> "HandlerListenerCallback":
-            cls.unregister_message_listener(listener)
+            cls.unregister_message_listener(listener)   # Why?
             cls._listeners[scope].append(
                 MessageListener(listener=listener, language=language, method=method)
             )

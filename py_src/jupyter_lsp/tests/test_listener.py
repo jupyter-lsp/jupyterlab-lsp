@@ -1,4 +1,5 @@
 import asyncio
+import re
 
 import pytest
 import traitlets
@@ -19,7 +20,7 @@ async def test_listener_bad_traitlets(bad_string, handlers):
 
 @pytest.mark.asyncio
 async def test_listeners(known_language, handlers, jsonrpc_init_msg):
-    """ will a some listeners listen?
+    """ will some listeners listen?
     """
     handler, ws_handler = handlers
     manager = handler.manager
@@ -27,8 +28,18 @@ async def test_listeners(known_language, handlers, jsonrpc_init_msg):
     manager.all_listeners = ["jupyter_lsp.tests.listener.dummy_listener"]
 
     manager.initialize()
+    manager._listeners['client'] = []  # hide predefined client listeners
 
     assert len(manager._listeners["all"]) == 1
+
+    dummy_listener = manager._listeners["all"][0]
+    assert re.match(
+        (
+            "<MessageListener listener=<function dummy_listener at .*?>,"
+            " method=None, language=None>"
+        ),
+        repr(dummy_listener),
+    )
 
     handler_listened = Queue()
     server_listened = Queue()
