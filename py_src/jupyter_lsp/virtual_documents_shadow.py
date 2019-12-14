@@ -24,23 +24,44 @@ class EditableFile:
         lines = ['']
         try:
             with open(self.path) as f:
-                lines = f.readlines()
+                lines = f.read().splitlines()
         except FileNotFoundError:
             pass
         return lines
 
-    def apply_change(self, text: str, start, end):
+    @staticmethod
+    def trim(lines: list, character: int, side: int):
+        needs_glue = False
+        if lines:
+            trimmed = lines[side][character:]
+            if lines[side] != trimmed:
+                needs_glue = True
+            lines[side] = trimmed
+        return needs_glue
 
+    @staticmethod
+    def join(left, right, glue: bool):
+        if not glue:
+            return []
+        return [(left[-1] if left else '') + (right[0] if right else '')]
+
+    def apply_change(self, text: str, start, end):
         # first remove start-end
         before = self.lines[:start['line']]
-        if before:
-            before[0] = before[0][:start['character']]
-
         after = self.lines[end['line']:]
-        if after:
-            after[-1] = after[-1][end['character']:]
 
-        self.lines = before + text.split('\n') + after
+        needs_glue_left = self.trim(lines=before, character=start['character'], side=0)
+        needs_glue_right = self.trim(lines=after, character=end['character'], side=-1)
+
+        inner = text.split('\n')
+
+        self.lines = (
+            before[:-1 if needs_glue_left else None]
+            + self.join(before, inner, needs_glue_left)
+            + inner[1 if needs_glue_left else None:-1 if needs_glue_right else None]
+            + self.join(inner, after, needs_glue_right)
+            + after[1 if needs_glue_right else None:]
+        )
 
     def write(self):
 
@@ -86,11 +107,11 @@ def setup_shadow_filesystem(virtual_documents_uri):
             return
 
         document = extract_or_none(message, ['params', 'textDocument'])
-        if not document:
+        if document is None:
             raise ValueError('Could not get textDocument from: {}'.format(message))
 
         uri = extract_or_none(document, ['uri'])
-        if not uri or document is None:
+        if not uri:
             raise ValueError('Could not get URI from: {}'.format(message))
 
         if not uri.startswith(virtual_documents_uri):
@@ -107,7 +128,10 @@ def setup_shadow_filesystem(virtual_documents_uri):
             changes = message['params']['contentChanges']
 
         if len(changes) > 1:
-            print('LSP warning: up to one change supported for textDocument/didChange')
+            print(      # pragma: no cover
+                'LSP warning: up to one change'
+                ' supported for textDocument/didChange'
+            )
 
         for change in changes[:1]:
             change_range = change.get('range', file.full_range)
