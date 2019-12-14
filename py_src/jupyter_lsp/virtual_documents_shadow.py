@@ -23,7 +23,7 @@ class EditableFile:
     def read_lines(self):
         lines = ['']
         try:
-            with open(self.path) as f:
+            with open(str(self.path)) as f:  # Python 3.5 relict
                 lines = f.read().splitlines()
         except FileNotFoundError:
             pass
@@ -46,7 +46,6 @@ class EditableFile:
         return [(left[-1] if left else '') + (right[0] if right else '')]
 
     def apply_change(self, text: str, start, end):
-        # first remove start-end
         before = self.lines[:start['line']]
         after = self.lines[end['line']:]
 
@@ -64,7 +63,6 @@ class EditableFile:
         )
 
     def write(self):
-
         Path(self.path).parent.mkdir(parents=True, exist_ok=True)
 
         with open(self.path, 'w') as f:
