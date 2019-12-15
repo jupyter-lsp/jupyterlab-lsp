@@ -40,6 +40,7 @@ h5 .lsp-language-server-name {
 .lsp-servers-menu h5 {
   font-weight: normal;
   font-size: 100%;
+  white-space: nowrap;
 }
 
 .lsp-servers-lists {
@@ -106,4 +107,9 @@ h5 {
 
 .lsp-collapsible-list.lsp-collapsed div {
   display: none;
+}
+
+.lsp-statusbar-item {
+  overflow: hidden;
+  white-space: nowrap;
 }
