@@ -13,6 +13,16 @@
       "command": "lsp:jump-to-definition-file_editor",
       "keys": ["Accel B"],
       "selector": ".jp-FileEditor"
+    },
+    {
+      "command": "lsp:rename-symbol-notebook",
+      "keys": ["F2"],
+      "selector": ".jp-Notebook .jp-CodeCell"
+    },
+    {
+      "command": "lsp:rename-symbol-file_editor'",
+      "keys": ["F2"],
+      "selector": ".jp-FileEditor"
     }
   ]
 }
