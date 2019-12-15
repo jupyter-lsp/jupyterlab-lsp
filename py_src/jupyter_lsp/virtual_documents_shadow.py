@@ -60,7 +60,7 @@ class EditableFile:
             + inner[1 if needs_glue_left else None:-1 if needs_glue_right else None]
             + self.join(inner, after, needs_glue_right)
             + after[1 if needs_glue_right else None:]
-        )
+        ) or ['']
 
     def write(self):
         Path(self.path).parent.mkdir(parents=True, exist_ok=True)
@@ -71,7 +71,10 @@ class EditableFile:
     @property
     def full_range(self):
         start = {'line': 0, 'character': 0}
-        end = {'line': len(self.lines), 'character': len(self.lines[-1])}
+        end = {
+            'line': len(self.lines),
+            'character': len(self.lines[-1]) if self.lines else 0
+        }
         return {'start': start, 'end': end}
 
 

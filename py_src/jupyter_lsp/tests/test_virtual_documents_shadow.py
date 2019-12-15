@@ -34,6 +34,9 @@ def test_apply_change(tmp_path):
     )
     assert file.lines == ['new', 'vest']
 
+    file.apply_change('', **file.full_range)
+    assert file.lines == ['']
+
 
 def test_extract_or_none():
     obj = {'nested': {'value': 1}}
