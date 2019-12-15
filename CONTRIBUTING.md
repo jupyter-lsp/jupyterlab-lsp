@@ -104,6 +104,12 @@ To run test the suite (after running `jlpm build` or `watch`):
 jlpm test
 ```
 
+To run tests matching specific phrase, forward `-t` argument over yarn and lerna to the test runners with two `--`:
+
+```bash
+jlpm test -- -- -t match_phrase
+```
+
 ## Server Development
 
 ### Testing `jupyter-lsp`
