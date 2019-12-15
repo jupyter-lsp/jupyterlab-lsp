@@ -1,7 +1,6 @@
 """ add language server support to the running jupyter notebook application
 """
 import json
-import os
 
 import traitlets
 
