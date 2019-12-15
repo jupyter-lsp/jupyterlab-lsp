@@ -27,7 +27,7 @@ def load_jupyter_server_extension(nbapp):
         page_config["rootUri"] = root_uri
         nbapp.log.debug("[lsp] rootUri will be %s", root_uri)
 
-        virtual_documents_uri = os.path.join(root_uri, '.virtual_documents')
+        virtual_documents_uri = root_uri + '/.virtual_documents'
         page_config["virtualDocumentsUri"] = virtual_documents_uri
         nbapp.log.debug("[lsp] virtualDocumentsUri will be %s", virtual_documents_uri)
     else:  # pragma: no cover
