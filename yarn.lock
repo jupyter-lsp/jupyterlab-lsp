@@ -1261,7 +1261,7 @@
     react "~16.8.4"
     typestyle "^2.0.1"
 
-"@jupyterlab/testutils@^1.0.0-alpha.6":
+"@jupyterlab/testutils@^1.2.2":
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@jupyterlab/testutils/-/testutils-1.2.2.tgz#12bba3fafa2d703c5492a304e099e0ad17854084"
   integrity sha512-gf0Arpe8Sp+82Pha+MmGWeNf8qq7jPEKn5UNjHtXf69/2BEKHRo5IlAVhqoE2ymXtcEQskisYsejnaWrCya78g==

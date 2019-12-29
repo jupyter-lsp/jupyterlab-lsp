@@ -7,8 +7,11 @@ Resource          Keywords.robot
 ${MENU EDITOR}    xpath://div[contains(@class, 'p-Menu-itemLabel')][contains(., "Editor")]
 ${MENU OPEN WITH}    xpath://div[contains(@class, 'p-Menu-itemLabel')][contains(text(), "Open With")]
 ${MENU JUMP}      xpath://div[contains(@class, 'p-Menu-itemLabel')][contains(text(), "Jump to definition")]
+${MENU RENAME}      xpath://div[contains(@class, 'p-Menu-itemLabel')][contains(text(), "Rename")]
 ${CM CURSOR}      css:.CodeMirror-cursor
 ${CM CURSORS}     css:.CodeMirror-cursors:not([style='visibility: hidden'])
+${DIALOG WINDOW}  css:.jp-Dialog
+${DIALOG INPUT}   css:.jp-Input-Dialog input
 
 *** Test Cases ***
 Bash
@@ -41,7 +44,10 @@ Less
 
 Python
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
-    Editor Shows Features for Language    Python    example.py    Diagnostics=multiple spaces after keyword    Jump to Definition=${def}
+    # xpath:(//span[@role="presentation"][contains(., "[xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]]")])[last()]
+    # xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
+    ${symbol} =   Set Variable   fib
+    Editor Shows Features for Language    Python    example.py    Diagnostics=multiple spaces after keyword    Jump to Definition=${def}    Rename=${def}
 
 R
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
@@ -74,6 +80,7 @@ Editor Shows Features for Language
     FOR    ${f}    IN    @{features}
         Run Keyword If    "${f}" == "Diagnostics"    Editor Should Show Diagnostics    ${features["${f}"]}
         ...    ELSE IF    "${f}" == "Jump to Definition"    Editor Should Jump To Definition    ${features["${f}"]}
+        ...    ELSE IF    "${f}" == "Rename"    Editor Should Rename   ${features["${f}"]}
     END
     Capture Page Screenshot    99-done.png
     [Teardown]    Clean Up After Working With File    ${file}
@@ -129,3 +136,41 @@ Measure Cursor Position
     Wait Until Page Contains Element    ${CM CURSORS}
     ${position} =    Wait Until Keyword Succeeds    20 x    0.05s    Get Vertical Position    ${CM CURSOR}
     [Return]    ${position}
+
+Cursor Should Not Move
+    [Arguments]    ${original}
+    ${current} =    Measure Cursor Position
+    Should Be Equal    ${original}    ${current}
+
+Wait For Dialog
+    Wait Until Page Contains Element   ${DIALOG WINDOW}   timeout=180s
+
+Editor Should Rename
+    [Arguments]    ${symbol}
+    Set Tags    feature:rename
+    ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
+    Mouse Over    ${sel}
+    Sleep    10s
+    Mouse Over    ${sel}
+    Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
+    Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
+    ${cursor} =    Measure Cursor Position
+    ${old_content}   Execute JavaScript   return document.querySelector('.CodeMirror').CodeMirror.getValue()
+    Capture Page Screenshot    03-rename-0.png
+    Mouse Over    ${MENU RENAME}
+    Capture Page Screenshot    03-rename-1.png
+    Click Element    ${MENU RENAME}
+    Wait For Dialog
+    # ${symbol_text} =  Get Value   ${DIALOG INPUT}
+    # TODO contents should equal symbol
+    Click Element  ${DIALOG INPUT}
+    Capture Page Screenshot    03-rename-3.png
+    Input Text   ${DIALOG INPUT}  new_name
+    Capture Page Screenshot    03-rename-4.png
+    Click Element     css:button.jp-Dialog-button.jp-mod-accept
+    Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Not Move    ${cursor}
+    Capture Page Screenshot    03-rename-5.png
+    ${new_content}  Execute JavaScript   return document.querySelector('.CodeMirror').CodeMirror.getValue()
+    Lab Command   Save Python File
+    Should Not Be Equal  ${old_content}  ${new_content}
+    Should Be True   "new_name" in """${new_content}"""
