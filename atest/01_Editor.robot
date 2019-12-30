@@ -171,6 +171,5 @@ Editor Should Rename
     Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Not Move    ${cursor}
     Capture Page Screenshot    03-rename-5.png
     ${new_content}  Execute JavaScript   return document.querySelector('.CodeMirror').CodeMirror.getValue()
-    Lab Command   Save Python File
     Should Not Be Equal  ${old_content}  ${new_content}
     Should Be True   "new_name" in """${new_content}"""
