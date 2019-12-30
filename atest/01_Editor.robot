@@ -44,9 +44,6 @@ Less
 
 Python
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
-    # xpath:(//span[@role="presentation"][contains(., "[xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]]")])[last()]
-    # xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
-    ${symbol} =   Set Variable   fib
     Editor Shows Features for Language    Python    example.py    Diagnostics=multiple spaces after keyword    Jump to Definition=${def}    Rename=${def}
 
 R
@@ -161,8 +158,6 @@ Editor Should Rename
     Capture Page Screenshot    03-rename-1.png
     Click Element    ${MENU RENAME}
     Wait For Dialog
-    # ${symbol_text} =  Get Value   ${DIALOG INPUT}
-    # TODO contents should equal symbol
     Click Element  ${DIALOG INPUT}
     Capture Page Screenshot    03-rename-3.png
     Input Text   ${DIALOG INPUT}  new_name
