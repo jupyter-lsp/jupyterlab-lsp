@@ -22,14 +22,17 @@ Bash
 CSS
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable-2')][contains(text(), '--some-var')])[last()]
     Editor Shows Features for Language    CSS    example.css    Diagnostics=Do not use empty rulesets    Jump to Definition=${def}
+    ...    Rename=${def}
 
 Docker
     ${def} =    Set Variable    xpath://span[contains(@class, 'cm-string')][contains(text(), 'PLANET')]
     Editor Shows Features for Language    Docker    Dockerfile    Diagnostics=Instruction has no arguments    Jump to Definition=${def}
 
 JS
+    #TODO: restore cursor position test?
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
     Editor Shows Features for Language    JS    example.js    Diagnostics=Expression expected    Jump to Definition=${def}
+    ...    Rename=${def}
 
 JSON
     Editor Shows Features for Language    JSON    example.json    Diagnostics=Duplicate object key
@@ -111,11 +114,7 @@ Editor Should Jump To Definition
     [Arguments]    ${symbol}
     Set Tags    feature:jump-to-definition
     ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
-    Mouse Over    ${sel}
-    Sleep    10s
-    Mouse Over    ${sel}
-    Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
-    Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
+    Open Context Menu Over   ${sel}
     ${cursor} =    Measure Cursor Position
     Capture Page Screenshot    02-jump-to-definition-0.png
     Mouse Over    ${MENU JUMP}
@@ -142,15 +141,19 @@ Cursor Should Not Move
 Wait For Dialog
     Wait Until Page Contains Element   ${DIALOG WINDOW}   timeout=180s
 
+Open Context Menu Over
+    [Arguments]    ${sel}
+    Mouse Over    ${sel}
+    Sleep    1s
+    Mouse Over    ${sel}
+    Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
+    Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
+
 Editor Should Rename
     [Arguments]    ${symbol}
     Set Tags    feature:rename
     ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
-    Mouse Over    ${sel}
-    Sleep    10s
-    Mouse Over    ${sel}
-    Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
-    Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
+    Open Context Menu Over   ${sel}
     ${cursor} =    Measure Cursor Position
     ${old_content}   Execute JavaScript   return document.querySelector('.CodeMirror').CodeMirror.getValue()
     Capture Page Screenshot    03-rename-0.png
