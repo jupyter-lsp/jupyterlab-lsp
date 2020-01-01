@@ -29,7 +29,6 @@ Docker
     Editor Shows Features for Language    Docker    Dockerfile    Diagnostics=Instruction has no arguments    Jump to Definition=${def}
 
 JS
-    #TODO: restore cursor position test?
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
     Editor Shows Features for Language    JS    example.js    Diagnostics=Expression expected    Jump to Definition=${def}
     ...    Rename=${def}
@@ -133,18 +132,13 @@ Measure Cursor Position
     ${position} =    Wait Until Keyword Succeeds    20 x    0.05s    Get Vertical Position    ${CM CURSOR}
     [Return]    ${position}
 
-Cursor Should Not Move
-    [Arguments]    ${original}
-    ${current} =    Measure Cursor Position
-    Should Be Equal    ${original}    ${current}
-
 Wait For Dialog
     Wait Until Page Contains Element   ${DIALOG WINDOW}   timeout=180s
 
 Open Context Menu Over
     [Arguments]    ${sel}
     Mouse Over    ${sel}
-    Sleep    1s
+    Sleep    10s
     Mouse Over    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
@@ -154,7 +148,6 @@ Editor Should Rename
     Set Tags    feature:rename
     ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
     Open Context Menu Over   ${sel}
-    ${cursor} =    Measure Cursor Position
     ${old_content}   Execute JavaScript   return document.querySelector('.CodeMirror').CodeMirror.getValue()
     Capture Page Screenshot    03-rename-0.png
     Mouse Over    ${MENU RENAME}
@@ -166,7 +159,6 @@ Editor Should Rename
     Input Text   ${DIALOG INPUT}  new_name
     Capture Page Screenshot    03-rename-4.png
     Click Element     css:button.jp-Dialog-button.jp-mod-accept
-    Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Not Move    ${cursor}
     Capture Page Screenshot    03-rename-5.png
     ${new_content}  Execute JavaScript   return document.querySelector('.CodeMirror').CodeMirror.getValue()
     Should Not Be Equal  ${old_content}  ${new_content}
