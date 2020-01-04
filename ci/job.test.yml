@@ -39,11 +39,12 @@ jobs:
               - script: conda info && conda list -n jupyterlab-lsp
                 displayName: list conda packages and info
 
-              - task: CacheBeta@0
-                inputs:
-                  key: yarn | $(Agent.OS) | yarn.lock
-                  path: $(YARN_CACHE_FOLDER)
-                displayName: restore cached yarn packages
+              # TODO: determine how can bring this back to get more robust installs (see #115)
+              # - task: CacheBeta@0
+              #   inputs:
+              #     key: yarn | $(Agent.OS) | yarn.lock
+              #     path: $(YARN_CACHE_FOLDER)
+              #   displayName: restore cached yarn packages
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm || jlpm || jlpm
                 displayName: install npm dependencies
