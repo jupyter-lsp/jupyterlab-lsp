@@ -30,9 +30,9 @@ async def test_listeners(known_language, handlers, jsonrpc_init_msg):
     manager.initialize()
     manager._listeners['client'] = []  # hide predefined client listeners
 
-    # assert len(manager._listeners["all"]) == 3
+    assert len(manager._listeners["all"]) == 1
 
-    dummy_listener = manager._listeners["all"][-1]
+    dummy_listener = manager._listeners["all"][0]
     assert re.match(
         (
             "<MessageListener listener=<function dummy_listener at .*?>,"
@@ -74,9 +74,9 @@ async def test_listeners(known_language, handlers, jsonrpc_init_msg):
     async def all_listener(scope, message, languages, manager):  # pragma: no cover
         await all_listened.put(message)
 
-    # assert len(manager._listeners["server"]) == 2
-    # assert len(manager._listeners["client"]) == 2
-    # assert len(manager._listeners["all"]) == 2
+    assert len(manager._listeners["server"]) == 2
+    assert len(manager._listeners["client"]) == 2
+    assert len(manager._listeners["all"]) == 2
 
     ws_handler.open(known_language)
 
@@ -112,6 +112,6 @@ async def test_listeners(known_language, handlers, jsonrpc_init_msg):
         ]
     ]
 
-    # assert not manager._listeners["server"]
-    # assert not manager._listeners["client"]
-    # assert len(manager._listeners["all"]) == 3
+    assert not manager._listeners["server"]
+    assert not manager._listeners["client"]
+    assert len(manager._listeners["all"]) == 1
