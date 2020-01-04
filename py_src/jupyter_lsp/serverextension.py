@@ -46,7 +46,7 @@ def load_jupyter_server_extension(nbapp):
     )
 
     @lsp_message_listener("all")
-    async def shadow_virtual_documents(scope, message, languages, manager):
-        nbapp.log.debug("[lsp] intercepted message:", message)
+    async def unique_name(scope, message, languages, manager):
+        nbapp.log.debug("[lsp] intercepted a message: " + str(message) + ' | ' + str(scope))
 
     setup_shadow_filesystem(virtual_documents_uri=virtual_documents_uri)
