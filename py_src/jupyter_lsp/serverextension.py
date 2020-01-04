@@ -5,7 +5,7 @@ import json
 import traitlets
 
 from .handlers import add_handlers
-from .manager import LanguageServerManager, lsp_message_listener
+from .manager import LanguageServerManager
 from .paths import normalized_uri
 from .virtual_documents_shadow import setup_shadow_filesystem
 
