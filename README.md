@@ -124,6 +124,15 @@ For the current stable version:
    (written for a related jupyterlab-go-to-definition extension) is available
    [here](https://github.com/krassowski/jupyterlab-go-to-definition/blob/master/README.md#which-directories-to-symlink).
 
+5. Restart your JupyterLab (if it was running).
+
+If you decide to install the JupyterLab extension from browser (using the extension manager), make sure that you first:
+
+- install the server extension (`jupyter-lsp`),
+- restart JupyterLab,
+
+and only then attempt to install the lab extension (`@krassowski/jupyterlab-lsp`).
+
 ### Updating
 
 To update previously installed extensions:
