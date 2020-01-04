@@ -143,6 +143,12 @@ Open Context Menu Over
     Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
 
+Editor Content Changed
+    [Arguments]    ${old_content}
+    ${new_content}  Execute JavaScript   return document.querySelector('.CodeMirror').CodeMirror.getValue()
+    Should Not Be Equal  ${old_content}  ${new_content}
+    [Return]    ${new_content}
+
 Editor Should Rename
     [Arguments]    ${symbol}
     Set Tags    feature:rename
@@ -160,6 +166,5 @@ Editor Should Rename
     Capture Page Screenshot    03-rename-4.png
     Click Element     css:button.jp-Dialog-button.jp-mod-accept
     Capture Page Screenshot    03-rename-5.png
-    ${new_content}  Execute JavaScript   return document.querySelector('.CodeMirror').CodeMirror.getValue()
-    Should Not Be Equal  ${old_content}  ${new_content}
+    ${new_content}   Wait Until Keyword Succeeds    10 x    0.1 s    Editor Content Changed  ${old_content}
     Should Be True   "new_name" in """${new_content}"""
