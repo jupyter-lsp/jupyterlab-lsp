@@ -5,7 +5,7 @@ import json
 import traitlets
 
 from .handlers import add_handlers
-from .manager import LanguageServerManager
+from .manager import LanguageServerManager, lsp_message_listener
 from .paths import normalized_uri
 from .virtual_documents_shadow import setup_shadow_filesystem
 
@@ -44,5 +44,9 @@ def load_jupyter_server_extension(nbapp):
             json.dumps(manager.language_servers, indent=2, sort_keys=True)
         )
     )
+
+    @lsp_message_listener("all")
+    async def shadow_virtual_documents(scope, message, languages, manager):
+        nbapp.log.debug("[lsp] intercepted message:", message)
 
     setup_shadow_filesystem(virtual_documents_uri=virtual_documents_uri)
