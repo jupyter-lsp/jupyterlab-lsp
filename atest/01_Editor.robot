@@ -165,6 +165,7 @@ Editor Should Rename
     Input Text   ${DIALOG INPUT}  new_name
     Capture Page Screenshot    03-rename-4.png
     Click Element     css:button.jp-Dialog-button.jp-mod-accept
+    Sleep    3s
     Capture Page Screenshot    03-rename-5.png
     ${new_content}   Wait Until Keyword Succeeds    10 x    0.1 s    Editor Content Changed  ${old_content}
     Should Be True   "new_name" in """${new_content}"""
