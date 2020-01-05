@@ -17,7 +17,8 @@ def extract_or_none(obj, path):
 class EditableFile:
 
     def __init__(self, path):
-        self.path = Path(path)
+        # Python 3.5 relict:
+        self.path = Path(path) if isinstance(path, str) else path
         self.lines = self.read_lines()
 
     def read_lines(self):
