@@ -104,6 +104,12 @@ To run test the suite (after running `jlpm build` or `watch`):
 jlpm test
 ```
 
+To run tests matching specific phrase, forward `-t` argument over yarn and lerna to the test runners with two `--`:
+
+```bash
+jlpm test -- -- -t match_phrase
+```
+
 ## Server Development
 
 ### Testing `jupyter-lsp`
@@ -139,12 +145,16 @@ python scripts/atest.py
 ```
 
 The Robot Framework reports and screenshots will be in `atest/output`, with
-`<operating system>_<python version>.log.html` being the most interesting
-artifacts, e.g.
+`<operating system>_<python version>_<attempt>.<log|report>.html` and subsequent `screenshots` being the most interesting
+artifact, e.g.
 
 ```
-- linux_37.log.html
-- linux_37.report.html
+atest/
+  output/
+    linux_37_1.log.html
+    linux_37_1.report.html
+    linux_37_1/
+      screenshots/
 ```
 
 #### Troubleshooting
@@ -161,6 +171,19 @@ artifacts, e.g.
 
 - If a test suite for a specific language fails it may indicate that you have no
   appropriate server language installed (see packages table in [README.md](./README.md))
+
+- If you are seeing errors like `Element is blocked by .jp-Dialog`, caused by
+  the JupyterLab _Build suggested_ dialog, (likely if you have been using
+  `jlpm watch`) ensure you have a "clean" lab with:
+
+  ```bash
+  jupyter lab clean
+  jlpm build
+  jlpm lab:link
+  jupyter lab build
+  ```
+
+  and re-run the tests.
 
 ### Formatting
 

@@ -4,7 +4,8 @@ from typing import List
 import pytest
 
 from ..virtual_documents_shadow import (
-    setup_shadow_filesystem, extract_or_none, EditableFile
+    setup_shadow_filesystem, extract_or_none, EditableFile,
+    ShadowFilesystemError,
 )
 
 
@@ -93,11 +94,11 @@ async def test_shadow_failures(shadow_path):
         return shadow('client', message, ['python'], None)
 
     # missing textDocument
-    with pytest.raises(ValueError, match='Could not get textDocument from'):
+    with pytest.raises(ShadowFilesystemError, match='Could not get textDocument from'):
         await run_shadow({'method': 'textDocument/didChange'})
 
     # missing URI
-    with pytest.raises(ValueError, match='Could not get URI from'):
+    with pytest.raises(ShadowFilesystemError, match='Could not get URI from'):
         await run_shadow(
             {'method': 'textDocument/didChange', 'params': {'textDocument': {}}}
         )

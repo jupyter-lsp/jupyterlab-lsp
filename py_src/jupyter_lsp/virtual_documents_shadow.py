@@ -17,14 +17,15 @@ def extract_or_none(obj, path):
 class EditableFile:
 
     def __init__(self, path):
-        self.path = path
+        # Python 3.5 relict:
+        self.path = Path(path) if isinstance(path, str) else path
         self.lines = self.read_lines()
 
     def read_lines(self):
+        # empty string required by the assumptions of the gluing algorithm
         lines = ['']
         try:
-            with open(str(self.path)) as f:  # Python 3.5 relict
-                lines = f.read().splitlines()
+            lines = self.path.read_text().splitlines()
         except FileNotFoundError:
             pass
         return lines
@@ -63,10 +64,8 @@ class EditableFile:
         ) or ['']
 
     def write(self):
-        Path(self.path).parent.mkdir(parents=True, exist_ok=True)
-
-        with open(self.path, 'w') as f:
-            f.write('\n'.join(self.lines))
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text('\n'.join(self.lines))
 
     @property
     def full_range(self):
@@ -78,9 +77,24 @@ class EditableFile:
         return {'start': start, 'end': end}
 
 
+WRITE_ONE = [
+    'textDocument/didOpen',
+    'textDocument/didChange',
+    'textDocument/didSave'
+]
+
+
+class ShadowFilesystemError(ValueError):
+    """Error in the shadow file system."""
+
+
 def setup_shadow_filesystem(virtual_documents_uri):
 
-    assert virtual_documents_uri.startswith('file:/')
+    if not virtual_documents_uri.startswith('file:/'):
+        raise ShadowFilesystemError(    # pragma: no cover
+            'Virtual documents URI has to start with "file:/", got '
+            + virtual_documents_uri
+        )
 
     shadow_filesystem = Path(file_uri_to_path(virtual_documents_uri))
     # create if does no exist (so that removal does not raise)
@@ -98,22 +112,18 @@ def setup_shadow_filesystem(virtual_documents_uri):
         Returns the path on filesystem where the content was stored.
         """
 
-        write_on = [
-            'textDocument/didOpen',
-            'textDocument/didChange',
-            'textDocument/didSave'
-        ]
-
-        if not ('method' in message and message['method'] in write_on):
+        if not message.get('method') in WRITE_ONE:
             return
 
         document = extract_or_none(message, ['params', 'textDocument'])
         if document is None:
-            raise ValueError('Could not get textDocument from: {}'.format(message))
+            raise ShadowFilesystemError(
+                'Could not get textDocument from: {}'.format(message)
+            )
 
         uri = extract_or_none(document, ['uri'])
         if not uri:
-            raise ValueError('Could not get URI from: {}'.format(message))
+            raise ShadowFilesystemError('Could not get URI from: {}'.format(message))
 
         if not uri.startswith(virtual_documents_uri):
             return
@@ -129,7 +139,7 @@ def setup_shadow_filesystem(virtual_documents_uri):
             changes = message['params']['contentChanges']
 
         if len(changes) > 1:
-            print(      # pragma: no cover
+            manager.log.warn(      # pragma: no cover
                 'LSP warning: up to one change'
                 ' supported for textDocument/didChange'
             )

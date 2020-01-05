@@ -203,7 +203,7 @@ export class LspWsConnection extends events.EventEmitter
           this.onServerInitialized(params);
         },
         e => {
-          console.warn(e);
+          console.warn('lsp-ws-connection initialization failure', e);
         }
       );
   }
