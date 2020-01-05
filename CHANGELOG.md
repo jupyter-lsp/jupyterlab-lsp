@@ -7,7 +7,9 @@
 - generates types for server data responses from JSON schema (
   [#110](https://github.com/krassowski/jupyterlab-lsp/pull/110)
   )
-- add 'rename' function for notebooks
+- add 'rename' function for notebooks, using shadow filesystem (
+  [#115](https://github.com/krassowski/jupyterlab-lsp/pull/115)
+  )
 
 ## `lsp-ws-connection` (unreleased)
 

@@ -139,7 +139,7 @@ class HasListeners:
         """ register a listener for language server protocol messages
         """
         def inner(listener: "HandlerListenerCallback") -> "HandlerListenerCallback":
-            cls.unregister_message_listener(listener)   # Why?
+            cls.unregister_message_listener(listener)
             cls._listeners[scope].append(
                 MessageListener(listener=listener, language=language, method=method)
             )
