@@ -69,10 +69,16 @@ Close JupyterLab
 
 Reset Application State
     Lab Command   Close All Tabs
+    Accept Default Dialog Option
     Ensure All Kernels Are Shut Down
     Lab Command   Reset Application State
     Wait For Splash
     Lab Command   Close All Tabs
+
+Accept Default Dialog Option
+    [Documentation]    Accept a dialog, if it exists
+    ${el} =    Get WebElements    ${CSS DIALOG OK}
+    Run Keyword If    ${el.__len__()}    Click Element    ${CSS DIALOG OK}
 
 Ensure All Kernels Are Shut Down
     Enter Command Name   Shut Down All Kernels

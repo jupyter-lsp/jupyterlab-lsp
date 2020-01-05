@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from ..paths import normalized_uri
+from ..paths import normalized_uri, file_uri_to_path
 
 WIN = platform.system() == "Windows"
 HOME = pathlib.Path("~").expanduser()
@@ -17,7 +17,7 @@ def test_normalize_posix_path_home(root_dir, expected_root_uri):  # pragma: no c
     assert normalized_uri(root_dir) == expected_root_uri
 
 
-@pytest.mark.skipif(PY35, reason="can't test non-existant paths on py35")
+@pytest.mark.skipif(PY35, reason="can't test non-existent paths on py35")
 @pytest.mark.skipif(WIN, reason="can't test POSIX paths on Windows")
 @pytest.mark.parametrize(
     "root_dir, expected_root_uri",
@@ -43,3 +43,28 @@ def test_normalize_posix_path_home_subdir(
 )
 def test_normalize_windows_path_case(root_dir, expected_root_uri):  # pragma: no cover
     assert normalized_uri(root_dir) == expected_root_uri
+
+
+@pytest.mark.skipif(WIN, reason="can't test POSIX paths on Windows")
+@pytest.mark.parametrize(
+    "file_uri, expected_posix_path",
+    [
+        ["file:///C:/Windows/System32/Drivers/etc", "/C:/Windows/System32/Drivers/etc"],
+        ["file:///C:/some%20dir/some%20file.txt", "/C:/some dir/some file.txt"],
+        ["file:///home/user/some%20file.txt", "/home/user/some file.txt"]
+    ],
+)
+def test_file_uri_to_path_posix(file_uri, expected_posix_path):  # pragma: no cover
+    assert file_uri_to_path(file_uri) == expected_posix_path
+
+
+@pytest.mark.skipif(~WIN, reason="can't test Windows paths on POSIX")
+@pytest.mark.parametrize(
+    "file_uri, expected_windows_path",
+    [
+        ["file:///C:/Windows/System32/Drivers/etc", r"C:\Windows\System32\Drivers\etc"],
+        ["file:///C:/some%20dir/some%20file.txt", r"C:\some dir\some file.txt"]
+    ],
+)
+def test_file_uri_to_path_windows(file_uri, expected_windows_path):  # pragma: no cover
+    assert file_uri_to_path(file_uri) == expected_windows_path

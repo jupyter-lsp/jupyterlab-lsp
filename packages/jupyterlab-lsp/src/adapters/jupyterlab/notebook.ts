@@ -70,7 +70,8 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
       this.widget.context.isReady &&
       this.widget.content.isVisible &&
       this.widget.content.widgets.length > 0 &&
-      this.widget.context.session.kernel !== null
+      this.widget.context.session.kernel !== null &&
+      this.language_info() !== null
     );
   }
 
@@ -114,7 +115,8 @@ export class NotebookAdapter extends JupyterLabWidgetAdapter {
     console.log('LSP:', this.document_path, 'ready for connection');
 
     this.virtual_editor = new VirtualEditorForNotebook(
-      this.widget,
+      this.widget.content,
+      this.widget.node,
       () => this.language,
       () => this.language_file_extension,
       language_specific_overrides,

@@ -86,20 +86,35 @@ export class DocumentConnectionManager {
     this.documents_changed.emit(this.documents);
   }
 
+  protected solve_uris(virtual_document: VirtualDocument, language: string) {
+    const wsBase = PageConfig.getBaseUrl().replace(/^http/, 'ws');
+    const rootUri = PageConfig.getOption('rootUri');
+    const virtualDocumentsUri = PageConfig.getOption('virtualDocumentsUri');
+
+    const baseUri = virtual_document.has_lsp_supported_file
+      ? rootUri
+      : virtualDocumentsUri;
+
+    return {
+      base: baseUri,
+      document: URLExt.join(baseUri, virtual_document.uri),
+      server: URLExt.join('ws://jupyter-lsp', language),
+      socket: URLExt.join(wsBase, 'lsp', language)
+    };
+  }
+
   private connect_socket(options: ISocketConnectionOptions): LSPConnection {
     let { virtual_document, language } = options;
 
-    const wsBase = PageConfig.getBaseUrl().replace(/^http/, 'ws');
-    const rootUri = PageConfig.getOption('rootUri');
-    const documentUri = URLExt.join(rootUri, virtual_document.uri);
-    const serverUri = URLExt.join('ws://jupyter-lsp', language);
-    let socket = new WebSocket(URLExt.join(wsBase, 'lsp', language));
+    const uris = this.solve_uris(virtual_document, language);
+
+    let socket = new WebSocket(uris.socket);
 
     let connection = new LSPConnection({
       languageId: language,
-      serverUri,
-      rootUri,
-      documentUri,
+      serverUri: uris.server,
+      rootUri: uris.base,
+      documentUri: uris.document,
       documentText: () => {
         // NOTE: Update is async now and this is not really used, as an alternative method
         // which is compatible with async is used.

@@ -7,6 +7,7 @@ import traitlets
 from .handlers import add_handlers
 from .manager import LanguageServerManager
 from .paths import normalized_uri
+from .virtual_documents_shadow import setup_shadow_filesystem
 
 
 def load_jupyter_server_extension(nbapp):
@@ -21,9 +22,16 @@ def load_jupyter_server_extension(nbapp):
 
     # try to set the rootUri from the contents manager path
     if hasattr(contents, "root_dir"):
-        page_config["rootUri"] = normalized_uri(contents.root_dir)
-        nbapp.log.debug("[lsp] rootUri will be %s", page_config["rootUri"])
+        root_uri = normalized_uri(contents.root_dir)
+        page_config["rootUri"] = root_uri
+        nbapp.log.debug("[lsp] rootUri will be %s", root_uri)
+
+        virtual_documents_uri = root_uri + '/.virtual_documents'
+        page_config["virtualDocumentsUri"] = virtual_documents_uri
+        nbapp.log.debug("[lsp] virtualDocumentsUri will be %s", virtual_documents_uri)
     else:  # pragma: no cover
+        page_config["rootUri"] = ''
+        page_config["virtualDocumentsUri"] = ''
         nbapp.log.warn(
             "[lsp] %s did not appear to have a root_dir, could not set rootUri",
             contents,
@@ -36,3 +44,5 @@ def load_jupyter_server_extension(nbapp):
             json.dumps(manager.language_servers, indent=2, sort_keys=True)
         )
     )
+
+    setup_shadow_filesystem(virtual_documents_uri=virtual_documents_uri)

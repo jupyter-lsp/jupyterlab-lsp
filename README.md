@@ -142,6 +142,16 @@ extension name, like this:
 jupyter labextension install @krassowski/jupyterlab-lsp@0.7.0-rc.0
 ```
 
+### Troubleshooting
+
+#### Rename fails with `IndexError`
+
+Question: using rename feature for Python does not work, the statusbar displays `Rename failed: Error: IndexError: list index out of range`
+
+Answer: this is a pyls-specific error which happens when there is a syntax error and rope (the package used by pyls to perform edits) cannot parse the Python file.
+
+Solution: Fix (or comment out) the fragments with syntax errors as indicated by diagnostics feature first, and try again.
+
 ## Acknowledgements
 
 This would not be possible without the fantastic initial work at

@@ -194,3 +194,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
             for key, spec in specs.items():
                 yield key, spec
+
+
+# the listener decorator
+lsp_message_listener = LanguageServerManager.register_message_listener  # noqa

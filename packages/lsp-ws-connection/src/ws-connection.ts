@@ -9,7 +9,7 @@ import {
 import { ILspConnection, ILspOptions, IPosition, ITokenInfo } from './types';
 
 /**
- * Changes as compared to master:
+ * Changes as compared to upstream:
  *  - markdown is preferred over plaintext
  *  - informative members are public and others are protected, not private
  *  - onServerInitialized() was extracted; it also emits a message once connected
@@ -198,13 +198,18 @@ export class LspWsConnection extends events.EventEmitter
 
     this.connection
       .sendRequest<protocol.InitializeResult>('initialize', message)
-      .then(this.onServerInitialized.bind(this), e => {
-        console.warn(e);
-      });
+      .then(
+        params => {
+          this.onServerInitialized(params);
+        },
+        e => {
+          console.warn('lsp-ws-connection initialization failure', e);
+        }
+      );
   }
 
   public sendChange() {
-    if (!this.isConnected) {
+    if (!this.isConnected || !this.isInitialized) {
       return;
     }
     const textDocumentChange: protocol.DidChangeTextDocumentParams = {

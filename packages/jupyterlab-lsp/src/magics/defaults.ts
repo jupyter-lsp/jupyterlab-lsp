@@ -1,4 +1,25 @@
 import { IOverridesRegistry } from './overrides';
+import {
+  parse_r_args,
+  rpy2_reverse_pattern,
+  rpy2_reverse_replacement
+} from './rpy2';
+
+function escape(x: string) {
+  return x.replace(/"/g, '\\"');
+}
+
+function unescape(x: string) {
+  return x.replace(/\\"/g, '"');
+}
+
+function empty_or_escaped(x: string) {
+  if (!x) {
+    return '';
+  } else {
+    return escape(x);
+  }
+}
 
 /**
  * Interactive kernels often provide additional functionality invoked by so-called magics,
@@ -12,24 +33,88 @@ export const language_specific_overrides: IOverridesRegistry = {
     // if a match for expresion in the key is found against a line, the line is replaced with the value
     line_magics: [
       // filter out IPython line magics and shell assignments:
-      //  remove the content, keep magic/command name and new line at the end
-      { pattern: '^[%!](\\S+)(.*)(\n)?', replacement: '$1()$3' }
+      //  keep the content, keep magic/command name and new line at the end
+
+      // note magics do not have to start with the new line, for example x = !ls or x = %ls are both valid.
+      {
+        pattern: '!(\\S+)(.*)(\n)?',
+        replacement: 'get_ipython().getoutput("$1$2")$3',
+        reverse: {
+          pattern: 'get_ipython\\(\\).getoutput\\("(.*?)"\\)(\n)?',
+          replacement: '!$1$2'
+        }
+      },
+      {
+        // support up to 10 arguments
+        pattern: '%R' + '(?: -(\\S+) (\\S+))?'.repeat(10) + '(.*)(\n)?',
+        replacement: (match, ...args) => {
+          let r = parse_r_args(args, -4);
+          return `${r.outputs}rpy2.ipython.rmagic.RMagics.R("${r.content}", "${r.others}"${r.inputs})`;
+        },
+        reverse: {
+          pattern: rpy2_reverse_pattern(),
+          replacement: (match, ...args) => {
+            let r = rpy2_reverse_replacement(match, ...args);
+            return '%R' + r.input + r.output + r.other + r.contents;
+          }
+        }
+      },
+      {
+        pattern: '%(\\S+)(.*)(\n)?',
+        replacement: (match, name, args, line_break) => {
+          args = empty_or_escaped(args);
+          line_break = line_break || '';
+          return `get_ipython().run_line_magic("${name}", "${args}")${line_break}`;
+        },
+        reverse: {
+          pattern:
+            'get_ipython\\(\\).run_line_magic\\("(.*?)", "(.*?)"\\)(\n)?',
+          replacement: (match, name, args) => {
+            args = unescape(args);
+            return `%${name}${args}`;
+          }
+        }
+      }
     ],
     // if a match for expresion in the key is found at the beginning of a cell, the entire cell is replaced with the value
     cell_magics: [
       // rpy2 extension R magic - this should likely go as an example to the user documentation, rather than being a default
       //   only handles simple one input - one output case
-      { pattern: '%%R -i (.+) -o (.+)( .*)?', replacement: '$2 = R($1)' },
-      //   handle one input
-      { pattern: '%%R -i (.+)( .*)?', replacement: 'R($1)' },
-      //   handle one output
-      { pattern: '%%R -o (.+)( .*)?', replacement: '$1 = R()' },
-      //   handle no input/output arguments
-      { pattern: '%%R( .*)?', replacement: 'R()' },
-      // skip all other cell magics;
-      //   the call (even if invalid) will make linters think that the magic symbol was used in the code,
-      //   and silence potential "imported but unused" messages
-      { pattern: '%%(.+)( )?(.*)', replacement: '$1()' }
+      {
+        pattern: '^%%R' + '(?: -(\\S) (\\S+))?'.repeat(10) + '(\n)?([\\s\\S]*)',
+        replacement: (match, ...args) => {
+          let r = parse_r_args(args, -3);
+          return `${r.outputs}rpy2.ipython.rmagic.RMagics.R("""${r.content}""", "${r.others}"${r.inputs})`;
+        },
+        reverse: {
+          pattern: rpy2_reverse_pattern('"""', true),
+          replacement: (match, ...args) => {
+            let r = rpy2_reverse_replacement(match, ...args);
+            return '%%R' + r.input + r.output + r.other + '\n' + r.contents;
+          }
+        }
+      },
+      {
+        pattern: '^%%(\\S+)(.*\n)([\\s\\S]*)',
+        replacement: (match, name, first_line, content, offset, entire) => {
+          first_line = empty_or_escaped(first_line);
+          if (first_line) {
+            // remove the new line
+            first_line = first_line.slice(0, -1);
+          }
+          content = content.replace(/"""/g, '\\"\\"\\"');
+          return `get_ipython().run_cell_magic("${name}", "${first_line}", """${content}""")`;
+        },
+        reverse: {
+          pattern:
+            '^get_ipython\\(\\).run_cell_magic\\("(.*?)", "(.*?)", """([\\s\\S]*)"""\\)',
+          replacement: (match, name, line, content) => {
+            content = content.replace(/\\"\\"\\"/g, '"""');
+            line = unescape(line);
+            return `%%${name}${line}\n${content}`;
+          }
+        }
+      }
     ]
   }
 };
