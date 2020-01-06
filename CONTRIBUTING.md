@@ -174,15 +174,15 @@ atest/
 
 - If you are seeing errors like `Element is blocked by .jp-Dialog`, caused by
   the JupyterLab _Build suggested_ dialog, (likely if you have been using
-  `jlpm watch`) ensure you have a "clean" lab with:
+  `jlpm watch`) ensure you have a "clean" lab (with production assets) with:
 
   ```bash
   jupyter lab clean
   jlpm build
   jlpm lab:link
-  jupyter lab build
+  jupyter lab build --dev-build=False --minimize=True
   ```
-
+s
   and re-run the tests.
 
 ### Formatting

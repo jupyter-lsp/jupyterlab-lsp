@@ -86,7 +86,7 @@ jobs:
               - script: ${{ platform.activate }} jupyterlab-lsp && ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }}
                 displayName: install labextensions
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter lab build || jupyter lab build --debug || jupyter lab build --debug
+              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter lab build --dev-mode=False --minimize=True || jupyter lab build --debug --dev-mode=False --minimize=True || jupyter lab build --debug
                 displayName: build lab
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jupyter labextension list
