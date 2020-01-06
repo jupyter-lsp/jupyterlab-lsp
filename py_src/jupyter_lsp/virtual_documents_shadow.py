@@ -15,7 +15,6 @@ def extract_or_none(obj, path):
 
 
 class EditableFile:
-
     def __init__(self, path):
         # Python 3.5 relict:
         self.path = Path(path) if isinstance(path, str) else path
@@ -23,7 +22,7 @@ class EditableFile:
 
     def read_lines(self):
         # empty string required by the assumptions of the gluing algorithm
-        lines = ['']
+        lines = [""]
         try:
             lines = self.path.read_text().splitlines()
         except FileNotFoundError:
@@ -44,44 +43,40 @@ class EditableFile:
     def join(left, right, glue: bool):
         if not glue:
             return []
-        return [(left[-1] if left else '') + (right[0] if right else '')]
+        return [(left[-1] if left else "") + (right[0] if right else "")]
 
     def apply_change(self, text: str, start, end):
-        before = self.lines[:start['line']]
-        after = self.lines[end['line']:]
+        before = self.lines[: start["line"]]
+        after = self.lines[end["line"] :]
 
-        needs_glue_left = self.trim(lines=before, character=start['character'], side=0)
-        needs_glue_right = self.trim(lines=after, character=end['character'], side=-1)
+        needs_glue_left = self.trim(lines=before, character=start["character"], side=0)
+        needs_glue_right = self.trim(lines=after, character=end["character"], side=-1)
 
-        inner = text.split('\n')
+        inner = text.split("\n")
 
         self.lines = (
-            before[:-1 if needs_glue_left else None]
+            before[: -1 if needs_glue_left else None]
             + self.join(before, inner, needs_glue_left)
-            + inner[1 if needs_glue_left else None:-1 if needs_glue_right else None]
+            + inner[1 if needs_glue_left else None : -1 if needs_glue_right else None]
             + self.join(inner, after, needs_glue_right)
-            + after[1 if needs_glue_right else None:]
-        ) or ['']
+            + after[1 if needs_glue_right else None :]
+        ) or [""]
 
     def write(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text('\n'.join(self.lines))
+        self.path.write_text("\n".join(self.lines))
 
     @property
     def full_range(self):
-        start = {'line': 0, 'character': 0}
+        start = {"line": 0, "character": 0}
         end = {
-            'line': len(self.lines),
-            'character': len(self.lines[-1]) if self.lines else 0
+            "line": len(self.lines),
+            "character": len(self.lines[-1]) if self.lines else 0,
         }
-        return {'start': start, 'end': end}
+        return {"start": start, "end": end}
 
 
-WRITE_ONE = [
-    'textDocument/didOpen',
-    'textDocument/didChange',
-    'textDocument/didSave'
-]
+WRITE_ONE = ["textDocument/didOpen", "textDocument/didChange", "textDocument/didSave"]
 
 
 class ShadowFilesystemError(ValueError):
@@ -90,8 +85,8 @@ class ShadowFilesystemError(ValueError):
 
 def setup_shadow_filesystem(virtual_documents_uri):
 
-    if not virtual_documents_uri.startswith('file:/'):
-        raise ShadowFilesystemError(    # pragma: no cover
+    if not virtual_documents_uri.startswith("file:/"):
+        raise ShadowFilesystemError(  # pragma: no cover
             'Virtual documents URI has to start with "file:/", got '
             + virtual_documents_uri
         )
@@ -112,18 +107,18 @@ def setup_shadow_filesystem(virtual_documents_uri):
         Returns the path on filesystem where the content was stored.
         """
 
-        if not message.get('method') in WRITE_ONE:
+        if not message.get("method") in WRITE_ONE:
             return
 
-        document = extract_or_none(message, ['params', 'textDocument'])
+        document = extract_or_none(message, ["params", "textDocument"])
         if document is None:
             raise ShadowFilesystemError(
-                'Could not get textDocument from: {}'.format(message)
+                "Could not get textDocument from: {}".format(message)
             )
 
-        uri = extract_or_none(document, ['uri'])
+        uri = extract_or_none(document, ["uri"])
         if not uri:
-            raise ShadowFilesystemError('Could not get URI from: {}'.format(message))
+            raise ShadowFilesystemError("Could not get URI from: {}".format(message))
 
         if not uri.startswith(virtual_documents_uri):
             return
@@ -131,22 +126,21 @@ def setup_shadow_filesystem(virtual_documents_uri):
         path = file_uri_to_path(uri)
         file = EditableFile(path)
 
-        text = extract_or_none(document, ['text'])
+        text = extract_or_none(document, ["text"])
 
         if text is not None:
-            changes = [{'text': text}]
+            changes = [{"text": text}]
         else:
-            changes = message['params']['contentChanges']
+            changes = message["params"]["contentChanges"]
 
         if len(changes) > 1:
-            manager.log.warn(      # pragma: no cover
-                'LSP warning: up to one change'
-                ' supported for textDocument/didChange'
+            manager.log.warn(  # pragma: no cover
+                "LSP warning: up to one change" " supported for textDocument/didChange"
             )
 
         for change in changes[:1]:
-            change_range = change.get('range', file.full_range)
-            file.apply_change(change['text'], **change_range)
+            change_range = change.get("range", file.full_range)
+            file.apply_change(change["text"], **change_range)
 
         file.write()
 

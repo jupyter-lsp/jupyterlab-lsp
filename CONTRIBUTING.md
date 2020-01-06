@@ -182,7 +182,8 @@ atest/
   jlpm lab:link
   jupyter lab build --dev-build=False --minimize=True
   ```
-s
+
+  s
   and re-run the tests.
 
 ### Formatting
