@@ -2,6 +2,8 @@
 
     these should be quick to run (not invoke any other process)
 """
+# pylint: disable=redefined-outer-name,unused-variable
+
 import json
 import pathlib
 import re
@@ -148,8 +150,8 @@ def check_integrity():
     except ImportError:
         pass
 
-    with tempfile.TemporaryDirectory() as td:
-        ini = pathlib.Path(td) / "pytest.ini"
+    with tempfile.TemporaryDirectory() as tmp:
+        ini = pathlib.Path(tmp) / "pytest.ini"
         ini.write_text(PYTEST_INI)
 
         args += ["-c", str(ini)]

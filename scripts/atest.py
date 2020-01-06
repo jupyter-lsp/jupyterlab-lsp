@@ -1,5 +1,6 @@
 """ Run acceptance tests with robot framework
 """
+# pylint: disable=broad-except
 import os
 import platform
 import shutil
@@ -16,8 +17,9 @@ OS = platform.system()
 PY = "".join(map(str, sys.version_info[:2]))
 
 
-def atest(attempt=0):
-
+def atest(attempt, extra_args):
+    """ perform a single attempt of the acceptance tests
+    """
     stem = "_".join([OS, PY, str(attempt)]).replace(".", "_").lower()
     out_dir = OUT / stem
 
@@ -38,7 +40,7 @@ def atest(attempt=0):
         f"OS:{OS}",
         "--variable",
         f"PY:{PY}",
-        *sys.argv[1:],
+        *(extra_args or []),
         ATEST,
     ]
 
@@ -51,17 +53,28 @@ def atest(attempt=0):
         except Exception as err:
             print("Error deleting {}, hopefully harmless: {}".format(out_dir, err))
 
-    return robot.run_cli(list(map(str, args)), exit=False)
+    try:
+        robot.run_cli(list(map(str, args)))
+        return 0
+    except SystemExit as err:
+        return err.code
+
+
+def attempt_atest_with_retries(*extra_args):
+    """ retry the robot tests a number of times
+    """
+    attempt = 0
+    error_count = -1
+
+    retries = int(os.environ.get("ATEST_RETRIES") or "0")
+
+    while error_count != 0 and attempt <= retries:
+        attempt += 1
+        print("attempt {} of {}...".format(attempt, retries + 1))
+        error_count = atest(attempt=attempt, extra_args=extra_args)
+
+    return error_count
 
 
 if __name__ == "__main__":
-    attempt = 0
-    rc = -1
-
-    retries = int(os.environ.get("ATEST_RETRIES") or "0")
-    while rc != 0 and attempt <= retries:
-        attempt += 1
-        print("attempt {} of {}...".format(attempt, retries + 1))
-        rc = atest(attempt)
-
-    sys.exit(rc)
+    sys.exit(attempt_atest_with_retries(*sys.argv[1:]))

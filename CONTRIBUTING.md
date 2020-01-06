@@ -187,15 +187,14 @@ atest/
 
 ### Formatting
 
-Minimal code style is enforced with `flake8` during unit testing. If installed,
+Minimal code style is enforced with `pytest-flake8` during unit testing. If installed,
 `pytest-black` and `pytest-isort` can help find potential problems, and lead to
-cleaner commits, but are not enforced during CI.
+cleaner commits, but are not enforced during CI tests (but are checked during lint).
 
-You can clean up your code using the project's style guide with:
+You can clean up your code, and check for using the project's style guide with:
 
 ```bash
-isort -y -rc py_src
-black py_src
+python scripts/lint.py
 ```
 
 > TBD
