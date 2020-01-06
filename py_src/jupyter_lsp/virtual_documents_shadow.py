@@ -1,3 +1,4 @@
+# flake8: noqa: W503
 from pathlib import Path
 from shutil import rmtree
 
