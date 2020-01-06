@@ -10,6 +10,11 @@
 - add 'rename' function for notebooks, using shadow filesystem (
   [#115](https://github.com/krassowski/jupyterlab-lsp/pull/115)
   )
+- add a widget panel with diagnostics (inspections), allowing to
+  sort and explore diagnostics, and to go-to the respective location
+  in code (on click); accessible from the context menu (
+  [#129](https://github.com/krassowski/jupyterlab-lsp/pull/129)
+  )
 
 ## `lsp-ws-connection` (unreleased)
 
