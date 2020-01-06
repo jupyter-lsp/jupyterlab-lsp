@@ -1,7 +1,7 @@
 import os
 import pathlib
 import re
-from urllib.parse import urlparse, unquote
+from urllib.parse import unquote, urlparse
 
 RE_PATH_ANCHOR = r"^file://([^/]+|/[A-Z]:)"
 
@@ -25,11 +25,11 @@ def file_uri_to_path(file_uri):
         Respect the different path convention on Windows.
         Based on https://stackoverflow.com/a/57463161/6646912, BSD 0
     """
-    windows_path = os.name == 'nt'
+    windows_path = os.name == "nt"
     file_uri_parsed = urlparse(file_uri)
     file_uri_path_unquoted = unquote(file_uri_parsed.path)
     if windows_path and file_uri_path_unquoted.startswith("/"):
-        result = file_uri_path_unquoted[1:]   # pragma: no cover
+        result = file_uri_path_unquoted[1:]  # pragma: no cover
     else:
-        result = file_uri_path_unquoted       # pragma: no cover
+        result = file_uri_path_unquoted  # pragma: no cover
     return result

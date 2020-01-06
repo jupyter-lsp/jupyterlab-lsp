@@ -28,7 +28,7 @@ async def test_listeners(known_language, handlers, jsonrpc_init_msg):
     manager.all_listeners = ["jupyter_lsp.tests.listener.dummy_listener"]
 
     manager.initialize()
-    manager._listeners['client'] = []  # hide predefined client listeners
+    manager._listeners["client"] = []  # hide predefined client listeners
 
     assert len(manager._listeners["all"]) == 1
 
