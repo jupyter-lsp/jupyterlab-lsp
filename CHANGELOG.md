@@ -2,23 +2,31 @@
 
 ## `@krassowski/jupyterlab-lsp 0.7.0-beta.0`
 
-- reduced space taken up by the statusbar indicator
-- implemented statusbar popover with connections statuses
-- generates types for server data responses from JSON schema (
-  [#110](https://github.com/krassowski/jupyterlab-lsp/pull/110)
-  )
-- added 'rename' function for notebooks, using shadow filesystem (
-  [#115](https://github.com/krassowski/jupyterlab-lsp/pull/115)
-  )
-- added a UX workaround for rope rename issues when there is a
-  SyntaxError in the Python code (
-  [#129](https://github.com/krassowski/jupyterlab-lsp/pull/129)
-  )
-- added a widget panel with diagnostics (inspections), allowing to
-  sort and explore diagnostics, and to go-to the respective location
-  in code (on click); accessible from the context menu (
-  [#127](https://github.com/krassowski/jupyterlab-lsp/pull/127)
-  )
+- features
+  - reduced space taken up by the statusbar indicator
+  - implemented statusbar popover with connections statuses
+  - generates types for server data responses from JSON schema (
+    [#110](https://github.com/krassowski/jupyterlab-lsp/pull/110)
+    )
+  - added 'rename' function for notebooks, using shadow filesystem (
+    [#115](https://github.com/krassowski/jupyterlab-lsp/pull/115)
+    )
+  - added a UX workaround for rope rename issues when there is a
+    SyntaxError in the Python code (
+    [#129](https://github.com/krassowski/jupyterlab-lsp/pull/129)
+    )
+  - added a widget panel with diagnostics (inspections), allowing to
+    sort and explore diagnostics, and to go-to the respective location
+    in code (on click); accessible from the context menu (
+    [#127](https://github.com/krassowski/jupyterlab-lsp/pull/127)
+    )
+- bugfixes
+  - diagnostics in foreign documents are now correctly updated (
+    [133fd3d](https://github.com/krassowski/jupyterlab-lsp/pull/129/commits/133fd3d71401c7e5affc0a8637ee157de65bef62)
+    )
+  - diagnostics are now always correctly displayed in the document they were intended for (
+    [b77f19eR174-R190](https://github.com/krassowski/jupyterlab-lsp/pull/129/commits/b77f19e7c141a2fa3c25bbc23aa49be9fd2f08d5#diff-9d372fb0c380c0a25af6c75f303a1323R174-R190)
+    )
 
 ## `lsp-ws-connection 0.3.0`
 
