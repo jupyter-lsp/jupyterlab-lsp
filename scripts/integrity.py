@@ -7,6 +7,7 @@ import pathlib
 import re
 import sys
 import tempfile
+from importlib.util import find_spec
 
 import jsonschema
 import pytest
@@ -142,9 +143,8 @@ def check_integrity():
     args = ["-vv", __file__]
 
     try:
-        import pytest_azurepipelines
-
-        args += ["--no-coverage-upload"]
+        if find_spec("pytest_azurepipelines"):
+            args += ["--no-coverage-upload"]
     except ImportError:
         pass
 
