@@ -29,7 +29,7 @@ tested to work with `jupyter-lsp`.
 [lsp-implementations]: https://microsoft.github.io/language-server-protocol/implementors/servers
 [jupyter-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
 [jupyterlab]: https://github.com/jupyterlab/jupyterlab
-[bash-language-server]: https://github.com/mads-hartmann/https://github.com/mads-hartmann
+[bash-language-server]: https://github.com/mads-hartmann/bash-language-server
 [vscode-css-languageserver-bin]: https://github.com/vscode-langservers/vscode-css-languageserver-bin
 [vscode-html-languageserver-bin]: https://github.com/vscode-langservers/vscode-html-languageserver-bin
 [dockerfile-language-server-nodejs]: https://github.com/rcjsuen/dockerfile-language-server-nodejs
