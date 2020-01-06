@@ -183,7 +183,6 @@ atest/
   jupyter lab build --dev-build=False --minimize=True
   ```
 
-  s
   and re-run the tests.
 
 ### Formatting
