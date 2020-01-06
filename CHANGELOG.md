@@ -1,22 +1,26 @@
 # CHANGELOG
 
-## `@krassowski/jupyterlab-lsp` (unreleased)
+## `@krassowski/jupyterlab-lsp 0.7.0-beta.0`
 
 - reduced space taken up by the statusbar indicator
 - implemented statusbar popover with connections statuses
 - generates types for server data responses from JSON schema (
   [#110](https://github.com/krassowski/jupyterlab-lsp/pull/110)
   )
-- add 'rename' function for notebooks, using shadow filesystem (
+- added 'rename' function for notebooks, using shadow filesystem (
   [#115](https://github.com/krassowski/jupyterlab-lsp/pull/115)
   )
-- add a widget panel with diagnostics (inspections), allowing to
-  sort and explore diagnostics, and to go-to the respective location
-  in code (on click); accessible from the context menu (
+- added a UX workaround for rope rename issues when there is a
+  SyntaxError in the Python code (
   [#129](https://github.com/krassowski/jupyterlab-lsp/pull/129)
   )
+- added a widget panel with diagnostics (inspections), allowing to
+  sort and explore diagnostics, and to go-to the respective location
+  in code (on click); accessible from the context menu (
+  [#127](https://github.com/krassowski/jupyterlab-lsp/pull/127)
+  )
 
-## `lsp-ws-connection` (unreleased)
+## `lsp-ws-connection 0.3.0`
 
 - infrastructure
   - brought into monorepo [#107](https://github.com/krassowski/jupyterlab-lsp/pull/107)
@@ -26,8 +30,10 @@
     - typescript 3.7
     - prettier
     - tslint
+  - added initialization checks before executing sendChange to comply
+    with LSP specs [#115](https://github.com/krassowski/jupyterlab-lsp/pull/115)
 
-## `jupyter-lsp` (unreleased)
+## `jupyter-lsp 0.7.0b0`
 
 - features
   - adds a language server status endpoint (
