@@ -6,4 +6,6 @@ channels:
 
 dependencies:
   - black
+  - isort
+  - mypy
   - robotframework-lint

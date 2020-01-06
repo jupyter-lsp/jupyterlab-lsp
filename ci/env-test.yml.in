@@ -28,5 +28,4 @@ dependencies:
   # browser testing
   - firefox
   - geckodriver
-  - robotframework-lint
   - robotframework-seleniumlibrary
