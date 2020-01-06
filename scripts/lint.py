@@ -55,7 +55,7 @@ def lint():
                 ["mypy", *PY_SRC],
                 ["python", "-m", "robot.tidy", "--inplace", *ALL_ROBOT],
                 ["rflint", *RFLINT, *ALL_ROBOT],
-                ["python", "scripts/atest.py", "--dryrun"],
+                ["python", "scripts/atest.py", "--dryrun", "--console", "quiet"],
             ],
         )
     )
