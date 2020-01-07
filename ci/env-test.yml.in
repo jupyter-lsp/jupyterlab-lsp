@@ -26,6 +26,6 @@ dependencies:
   - pytest-runner
   - ruamel_yaml
   # browser testing
-  - robotframework-seleniumlibrary
   - firefox
   - geckodriver
+  - robotframework-seleniumlibrary

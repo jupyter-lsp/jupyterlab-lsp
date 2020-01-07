@@ -5,6 +5,7 @@ channels:
   - defaults
 
 dependencies:
-  - robotframework-seleniumlibrary
-  - firefox
-  - geckodriver
+  - black
+  - isort
+  - mypy
+  - robotframework-lint

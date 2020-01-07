@@ -10,15 +10,22 @@ ROOT = Path(__file__).parent.parent.resolve()
 ATEST = ROOT / "atest"
 OUT = ATEST / "output"
 
-args = [
-    "--outputdir",
-    OUT,
-    "--output",
-    "output.xml",
-    *sys.argv[1:],
-    *OUT.glob("*.robot.xml"),
-]
+
+def combine_robot_reports():
+    """ generate a single report/log.html and output.xml from all available outputs
+    """
+
+    args = [
+        "--outputdir",
+        OUT,
+        "--output",
+        "output.xml",
+        *sys.argv[1:],
+        *OUT.glob("*.robot.xml"),
+    ]
+
+    return rebot_cli(args, exit=False)
 
 
 if __name__ == "__main__":
-    rebot_cli(args, exit=False)
+    sys.exit(combine_robot_reports())

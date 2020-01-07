@@ -174,28 +174,27 @@ atest/
 
 - If you are seeing errors like `Element is blocked by .jp-Dialog`, caused by
   the JupyterLab _Build suggested_ dialog, (likely if you have been using
-  `jlpm watch`) ensure you have a "clean" lab with:
+  `jlpm watch`) ensure you have a "clean" lab (with production assets) with:
 
   ```bash
   jupyter lab clean
   jlpm build
   jlpm lab:link
-  jupyter lab build
+  jupyter lab build --dev-build=False --minimize=True
   ```
 
   and re-run the tests.
 
 ### Formatting
 
-Minimal code style is enforced with `flake8` during unit testing. If installed,
+Minimal code style is enforced with `pytest-flake8` during unit testing. If installed,
 `pytest-black` and `pytest-isort` can help find potential problems, and lead to
-cleaner commits, but are not enforced during CI.
+cleaner commits, but are not enforced during CI tests (but are checked during lint).
 
-You can clean up your code using the project's style guide with:
+You can clean up your code, and check for using the project's style guide with:
 
 ```bash
-isort -y -rc py_src
-black py_src
+python scripts/lint.py
 ```
 
 > TBD

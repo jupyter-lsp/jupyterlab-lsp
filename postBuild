@@ -18,4 +18,4 @@ jlpm lab:link && jupyter labextension list
 jupyter labextension install @krassowski/jupyterlab_go_to_definition --no-build
 
 # actually build
-jupyter lab build && jupyter labextension list
+jupyter lab build --dev-build=False --minimize=True && jupyter labextension list

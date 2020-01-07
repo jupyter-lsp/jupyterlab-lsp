@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from ..paths import normalized_uri, file_uri_to_path
+from ..paths import file_uri_to_path, normalized_uri
 
 WIN = platform.system() == "Windows"
 HOME = pathlib.Path("~").expanduser()
@@ -51,7 +51,7 @@ def test_normalize_windows_path_case(root_dir, expected_root_uri):  # pragma: no
     [
         ["file:///C:/Windows/System32/Drivers/etc", "/C:/Windows/System32/Drivers/etc"],
         ["file:///C:/some%20dir/some%20file.txt", "/C:/some dir/some file.txt"],
-        ["file:///home/user/some%20file.txt", "/home/user/some file.txt"]
+        ["file:///home/user/some%20file.txt", "/home/user/some file.txt"],
     ],
 )
 def test_file_uri_to_path_posix(file_uri, expected_posix_path):  # pragma: no cover
@@ -63,7 +63,7 @@ def test_file_uri_to_path_posix(file_uri, expected_posix_path):  # pragma: no co
     "file_uri, expected_windows_path",
     [
         ["file:///C:/Windows/System32/Drivers/etc", r"C:\Windows\System32\Drivers\etc"],
-        ["file:///C:/some%20dir/some%20file.txt", r"C:\some dir\some file.txt"]
+        ["file:///C:/some%20dir/some%20file.txt", r"C:\some dir\some file.txt"],
     ],
 )
 def test_file_uri_to_path_windows(file_uri, expected_windows_path):  # pragma: no cover

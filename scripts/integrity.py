@@ -2,11 +2,14 @@
 
     these should be quick to run (not invoke any other process)
 """
+# pylint: disable=redefined-outer-name,unused-variable
+
 import json
 import pathlib
 import re
 import sys
 import tempfile
+from importlib.util import find_spec
 
 import jsonschema
 import pytest
@@ -56,9 +59,16 @@ PIPE_VARS = PIPELINES["variables"]
 
 CI = ROOT / "ci"
 
+PYTEST_INI = """
+[pytest]
+junit_family=xunit2
+"""
+
 
 @pytest.fixture(scope="module")
 def the_meta_package():
+    """ loads up the files in the metapackage that might be out-of-date
+    """
     meta_path, meta = PACKAGES[META_NAME]
     return (
         meta_path,
@@ -73,6 +83,8 @@ def the_meta_package():
     [["PY_JLSP_VERSION", PY_VERSION], ["JS_JLLSP_VERSION", MAIN_EXT_VERSION]],
 )
 def test_ci_variables(name, version):
+    """ Are the CI version variables consistent?
+    """
     assert PIPE_VARS[name] == version
 
 
@@ -80,6 +92,8 @@ def test_ci_variables(name, version):
     "name,info", [p for p in PACKAGES.items() if p[0] != META_NAME]
 )
 def test_ts_package_integrity(name, info, the_meta_package):
+    """ are the versions of the frontend packages consistent and in the metapackage?
+    """
     m_path, m_pkg, m_tsconfig, m_index = the_meta_package
     path, pkg = info
 
@@ -109,21 +123,41 @@ def test_ts_package_integrity(name, info, the_meta_package):
     "path", map(str, [ROOT / "requirements-lab.txt", CI / "job.test.yml", MAIN_README])
 )
 def test_jlab_versions(path):
+    """ is the version of jupyterlab consistent?
+    """
     assert (
         LAB_SPEC in pathlib.Path(path).read_text().lower()
     ), "{} lab version is out-of-sync vs {}".format(path, LAB_SPEC)
-
-
-if __name__ == "__main__":
-    with tempfile.TemporaryDirectory() as td:
-        ini = pathlib.Path(td) / "pytest.ini"
-        ini.write_text("")
-
-        sys.exit(pytest.main(["-c", str(ini), "-vv", __file__]))
 
 
 @pytest.mark.parametrize(
     "pkg,version", [[PY_NAME, PY_VERSION], [MAIN_NAME, MAIN_EXT_VERSION]]
 )
 def test_changelog_versions(pkg, version):
+    """ are the current versions represented in the changelog?
+    """
     assert "## `{} {}`".format(pkg, version) in CHANGELOG.read_text()
+
+
+def check_integrity():
+    """ actually run the tests
+    """
+    args = ["-vv", __file__]
+
+    try:
+        if find_spec("pytest_azurepipelines"):
+            args += ["--no-coverage-upload"]
+    except ImportError:
+        pass
+
+    with tempfile.TemporaryDirectory() as tmp:
+        ini = pathlib.Path(tmp) / "pytest.ini"
+        ini.write_text(PYTEST_INI)
+
+        args += ["-c", str(ini)]
+
+        return pytest.main(args)
+
+
+if __name__ == "__main__":
+    sys.exit(check_integrity())
