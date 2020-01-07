@@ -25,7 +25,7 @@ CSS
 
 Docker
     ${def} =    Set Variable    xpath://span[contains(@class, 'cm-string')][contains(text(), 'PLANET')]
-    Editor Shows Features for Language    Docker    Dockerfile    Diagnostics=Instruction has no arguments    Jump to Definition=${def}
+    Editor Shows Features for Language    Docker    Dockerfile    Diagnostics=Instruction has no arguments    Jump to Definition=${def}    Rename=${def}
 
 JS
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
@@ -36,7 +36,7 @@ JSON
 
 JSX
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'hello')])[last()]
-    Editor Shows Features for Language    JSX    example.jsx    Diagnostics=Expression expected    Jump to Definition=${def}
+    Editor Shows Features for Language    JSX    example.jsx    Diagnostics=Expression expected    Jump to Definition=${def}    Rename=${def}
 
 Less
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable-2')][contains(text(), '@width')])[last()]
@@ -56,11 +56,11 @@ SCSS
 
 TSX
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-tag')][contains(text(), 'HelloWorld')])[last()]
-    Editor Shows Features for Language    TSX    example.tsx    Diagnostics=Cannot find module 'react'    Jump to Definition=${def}
+    Editor Shows Features for Language    TSX    example.tsx    Diagnostics=Cannot find module 'react'    Jump to Definition=${def}    Rename=${def}
 
 TypeScript
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'inc')])[last()]
-    Editor Shows Features for Language    TypeScript    example.ts    Diagnostics=The left-hand side of an arithmetic    Jump to Definition=${def}
+    Editor Shows Features for Language    TypeScript    example.ts    Diagnostics=The left-hand side of an arithmetic    Jump to Definition=${def}    Rename=${def}
 
 YAML
     Editor Shows Features for Language    YAML    example.yaml    Diagnostics=duplicate key
@@ -163,7 +163,7 @@ Editor Should Rename
     Input Text    ${DIALOG INPUT}    new_name
     Capture Page Screenshot    03-rename-4.png
     Click Element    css:button.jp-Dialog-button.jp-mod-accept
-    Sleep    3s
+    Sleep    2s
     Capture Page Screenshot    03-rename-5.png
     ${new_content}    Wait Until Keyword Succeeds    10 x    0.1 s    Editor Content Changed    ${old_content}
     Should Be True    "new_name" in """${new_content}"""
