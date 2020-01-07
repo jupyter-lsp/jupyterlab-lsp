@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## `@krassowski/jupyterlab-lsp 0.7.0-beta.0`
+## `@krassowski/jupyterlab-lsp 0.7.0-beta.1`
 
 - features
   - reduced space taken up by the statusbar indicator
@@ -24,9 +24,7 @@
   - diagnostics in foreign documents are now correctly updated (
     [133fd3d](https://github.com/krassowski/jupyterlab-lsp/pull/129/commits/133fd3d71401c7e5affc0a8637ee157de65bef62)
     )
-  - diagnostics are now always correctly displayed in the document they were intended for (
-    [b77f19eR174-R190](https://github.com/krassowski/jupyterlab-lsp/pull/129/commits/b77f19e7c141a2fa3c25bbc23aa49be9fd2f08d5#diff-9d372fb0c380c0a25af6c75f303a1323R174-R190)
-    )
+  - diagnostics are now always correctly displayed in the document they were intended for
 
 ## `lsp-ws-connection 0.3.0`
 
