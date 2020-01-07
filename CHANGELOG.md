@@ -20,6 +20,7 @@
     in code (on click); accessible from the context menu (
     [#127](https://github.com/krassowski/jupyterlab-lsp/pull/127)
     )
+  - all commands are now accessible from the command palette
 - bugfixes
   - diagnostics in foreign documents are now correctly updated (
     [133fd3d](https://github.com/krassowski/jupyterlab-lsp/pull/129/commits/133fd3d71401c7e5affc0a8637ee157de65bef62)
