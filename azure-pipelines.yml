@@ -14,7 +14,7 @@ variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
   PY_JLSP_VERSION: 0.7.0b0
-  JS_JLLSP_VERSION: 0.7.0-beta.0
+  JS_JLLSP_VERSION: 0.7.0-beta.1
 
   FIRST_PARTY_LABEXTENSIONS: >-
     packages/jupyterlab-lsp/krassowski-jupyterlab-lsp-$(JS_JLLSP_VERSION).tgz
