@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## `@krassowski/jupyterlab-lsp 0.7.0-beta.2` (unreleased)
+## `@krassowski/jupyterlab-lsp 0.7.0-beta.1`
 
 - features
   - reduced space taken up by the statusbar indicator
