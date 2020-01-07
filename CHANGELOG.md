@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## `@krassowski/jupyterlab-lsp 0.7.0-beta.1`
+## `@krassowski/jupyterlab-lsp 0.7.0-beta.2` (unreleased)
 
 - features
   - reduced space taken up by the statusbar indicator
@@ -25,6 +25,9 @@
     [133fd3d](https://github.com/krassowski/jupyterlab-lsp/pull/129/commits/133fd3d71401c7e5affc0a8637ee157de65bef62)
     )
   - diagnostics are now always correctly displayed in the document they were intended for
+  - the workaround for relative root path is now also applied on Mac (
+    [#139](https://github.com/krassowski/jupyterlab-lsp/pull/139)
+    )
 
 ## `lsp-ws-connection 0.3.0`
 
