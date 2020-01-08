@@ -12,6 +12,8 @@ ${CM CURSOR}      css:.CodeMirror-cursor
 ${CM CURSORS}     css:.CodeMirror-cursors:not([style='visibility: hidden'])
 ${DIALOG WINDOW}    css:.jp-Dialog
 ${DIALOG INPUT}    css:.jp-Input-Dialog input
+${DIAGNOSTICS PANEL}    css:#lsp-diagnostics-panel
+${DIAGNOSTIC PANEL CLOSE}    css:.p-DockPanel-tabBar .p-TabBar-tab[data-id="lsp-diagnostics-panel"] .p-TabBar-tabCloseIcon
 
 *** Test Cases ***
 Bash
@@ -106,6 +108,13 @@ Editor Should Show Diagnostics
     Set Tags    feature:diagnostics
     Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="${diagnostic}"]    timeout=20s
     Capture Page Screenshot    01-diagnostics.png
+    Lab Command    Show Diagnostics Panel
+    Wait Until Page Contains Element    ${DIAGNOSTICS PANEL}    timeout=20s
+    Capture Page Screenshot    02-diagnostics.png
+    ${count} =    Get Element Count    css:.lsp-diagnostics-listing tr
+    SHOULD BE TRUE    ${count} >= 1
+    Mouse Over    ${DIAGNOSTIC PANEL CLOSE}
+    Click Element    ${DIAGNOSTIC PANEL CLOSE}
 
 Editor Should Jump To Definition
     [Arguments]    ${symbol}
