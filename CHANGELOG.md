@@ -23,6 +23,7 @@
   - all commands are now accessible from the command palette (
     [#142](https://github.com/krassowski/jupyterlab-lsp/pull/142)
     )
+  - bash LSP now covers also `%%bash` magic cell in addition to `%%sh`
 - bugfixes
   - diagnostics in foreign documents are now correctly updated (
     [133fd3d](https://github.com/krassowski/jupyterlab-lsp/pull/129/commits/133fd3d71401c7e5affc0a8637ee157de65bef62)
@@ -31,6 +32,7 @@
   - the workaround for relative root path is now also applied on Mac (
     [#139](https://github.com/krassowski/jupyterlab-lsp/pull/139)
     )
+  - fixed LSP of R in Python (`%%R` magic cell from rpy2)
 
 ## `lsp-ws-connection 0.3.0`
 
