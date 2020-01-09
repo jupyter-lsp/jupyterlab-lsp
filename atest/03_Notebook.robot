@@ -15,7 +15,7 @@ Python
 Foregin Extractors
     [Setup]    Reset Application State
     Setup Notebook    Python    Foreign extractors.ipynb
-    @{diagnostics} =    Create List    Failed to parse expression    Name 'valid' is not defined (mypy)    Trailing whitespace is superfluous. (lintr)
+    @{diagnostics} =    Create List    Failed to parse expression    undefined name 'valid' (pyflakes)    Trailing whitespace is superfluous. (lintr)
     FOR    ${diagnostic}    IN    @{diagnostics}
         Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title="${diagnostic}"]    timeout=30s
         Capture Page Screenshot    0x-${diagnostic}.png
