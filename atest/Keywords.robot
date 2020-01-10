@@ -132,6 +132,17 @@ Ensure File Browser is Open
     ${els} =    Get WebElements    ${sel}
     Run Keyword If    ${els.__len__()}    Click Element    ${sel}
 
+Rename Jupyter File
+    [Arguments]    ${old}    ${new}
+    Ensure File Browser is Open
+    Click Element    css:button[title="Refresh File List"]
+    Open Context Menu    //span[@class='jp-DirListing-itemText']\[text() = '${old}']
+    Mouse Over    ${MENU RENAME}
+    Click Element    ${MENU RENAME}
+    Press Keys    None    CTRL+a
+    Press Keys    None    ${new}
+    Press Keys    None    RETURN
+
 Input Into Dialog
     [Arguments]    ${text}
     Wait For Dialog
