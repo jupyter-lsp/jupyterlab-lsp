@@ -11,7 +11,7 @@ Diagnostics Panel Opens
     [Setup]    Gently Reset Workspace
     Open Notebook And Panel    Panel.ipynb
     Capture Page Screenshot    03-panel-opens.png
-    Wait Until Keyword Succeeds   10 x    1s    Should Have Expected Rows Count
+    Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count
     [Teardown]    Clean Up After Working With File    Panel.ipynb
 
 Diagnostics Panel Works After Rename
@@ -24,7 +24,7 @@ Diagnostics Panel Works After Rename
     Capture Page Screenshot    00-panel-rename.png
     Open Diagnostics Panel
     Capture Page Screenshot    01-panel-rename.png
-    Wait Until Keyword Succeeds   10 x    1s    Should Have Expected Rows Count
+    Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count
     Clean Up After Working With File    PanelRenamed.ipynb
     [Teardown]    Clean Up After Working With File    Panel.ipynb
 
@@ -33,7 +33,7 @@ Diagnostics Panel Can Be Restored
     Open Notebook And Panel    Panel.ipynb
     Close Diagnostics Panel
     Open Diagnostics Panel
-    Wait Until Keyword Succeeds   10 x    1s    Should Have Expected Rows Count
+    Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count
     [Teardown]    Clean Up After Working With File    Panel.ipynb
 
 *** Keywords ***
