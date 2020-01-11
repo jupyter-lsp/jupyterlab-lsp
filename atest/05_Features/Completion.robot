@@ -27,7 +27,7 @@ Works With Kernel Running
     Should Contain    ${content}    TabError
     [Teardown]    Clean Up After Working With File    Completion.ipynb
 
-Works With Kernel Shut Down
+Works When Kernel Is Shut Down
     Setup Notebook    Python    Completion.ipynb
     Lab Command    Shut Down All Kernels…
     Capture Page Screenshot    01-shutting-kernels.png
@@ -42,6 +42,14 @@ Works With Kernel Shut Down
     Completer Should Not Suggest    %%timeit
     [Teardown]    Clean Up After Working With File    Completion.ipynb
 
+Autocompletes If Only One Option
+    Setup Notebook    Python    Completion.ipynb
+    Enter Cell Editor    3    line=1
+    Press Keys    None    cle
+    Press Keys    None    TAB
+    Wait Until Keyword Succeeds    20x    0.5s    Cell Editor Should Equal    3    list.clear
+    [Teardown]    Clean Up After Working With File    Completion.ipynb
+
 *** Keywords ***
 Enter Cell Editor
     [Arguments]    ${cell_nr}    ${line}=1
@@ -53,6 +61,11 @@ Get Cell Editor Content
     ${content}    Execute JavaScript    return document.querySelector('.jp-CodeCell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()
     [Return]    ${content}
 
+Cell Editor Should Equal
+    [Arguments]    ${cell}    ${value}
+    ${content} =    Get Cell Editor Content    ${cell}
+    Should Be Equal    ${content}    ${value}
+
 Completer Should Suggest
     [Arguments]    ${text}
     Page Should Contain Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
@@ -63,4 +76,4 @@ Completer Should Not Suggest
 
 Trigger Completer
     Press Keys    None    TAB
-    Wait Until Page Contains Element    ${COMPLETER_BOX}
+    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=6s
