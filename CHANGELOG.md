@@ -6,7 +6,7 @@
   [#147](https://github.com/krassowski/jupyterlab-lsp/pull/147)
   )
 
-## `@krassowski/jupyterlab-lsp 0.7.0-beta.1`
+## `@krassowski/jupyterlab-lsp 0.7.0-rc.0`
 
 - features
   - reduced space taken up by the statusbar indicator

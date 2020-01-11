@@ -1,6 +1,6 @@
 {
   "name": "lsp-ws-connection",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Utility for adapting editors to language server protocol",
   "main": "dist/index.js",
   "module": "dist/index.js",
