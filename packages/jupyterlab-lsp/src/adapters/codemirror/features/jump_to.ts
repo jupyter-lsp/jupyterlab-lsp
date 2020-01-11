@@ -92,7 +92,14 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
     }
   }
 
-  async handle_jump(locations: lsProtocol.Location[]) {
+  async handle_jump(location_s: lsProtocol.Location | lsProtocol.Location[]) {
+    let locations: lsProtocol.Location[];
+    if (!Array.isArray(location_s)) {
+      locations = [location_s];
+    } else {
+      locations = location_s;
+    }
+    console.log(locations);
     if (locations.length === 0) {
       console.log('No jump targets found');
       return;
