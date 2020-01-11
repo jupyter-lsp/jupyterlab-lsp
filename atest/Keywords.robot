@@ -189,3 +189,11 @@ Wait For Dialog
 
 Gently Reset Workspace
     Lab Command    Close All Tabs
+
+Enter Cell Editor
+    [Arguments]    ${cell_nr}    ${line}=1
+    Click Element    css:.jp-CodeCell:nth-child(${cell_nr}) .CodeMirror-line:nth-child(${line})
+    Wait Until Page Contains Element    css:.jp-CodeCell:nth-child(${cell_nr}) .CodeMirror-focused
+
+Wait Until Fully Initialized
+    Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=30s
