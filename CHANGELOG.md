@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## `lsp-ws-connection 0.3.1`
+
+- added sendSaved() method (textDocument/didSave) (
+  [#147](https://github.com/krassowski/jupyterlab-lsp/pull/147)
+  )
+
 ## `@krassowski/jupyterlab-lsp 0.7.0-beta.1`
 
 - features
@@ -39,6 +45,11 @@
     )
   - completion now work properly when the kernel is shut down (
     [#146](https://github.com/krassowski/jupyterlab-lsp/pull/146)
+    )
+  - `didSave()` is emitted on file save, enabling the workaround
+    used by R language server to lazily load `library(tidyverse)` (
+    [#95](https://github.com/krassowski/jupyterlab-lsp/pull/95),
+    [#147](https://github.com/krassowski/jupyterlab-lsp/pull/147),
     )
 
 ## `lsp-ws-connection 0.3.0`
