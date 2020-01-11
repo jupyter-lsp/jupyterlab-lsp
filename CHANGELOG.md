@@ -32,6 +32,9 @@
   - bash LSP now also covers `%%bash` magic cell in addition to `%%sh` (
     [#144](https://github.com/krassowski/jupyterlab-lsp/pull/144)
     )
+  - rpy2 magics received enhanced support for argument parsing
+    in both parent Python document (re-written overrides) and
+    exctracted R documents (improved foreign code extractor)
 - bugfixes
   - diagnostics in foreign documents are now correctly updated (
     [133fd3d](https://github.com/krassowski/jupyterlab-lsp/pull/129/commits/133fd3d71401c7e5affc0a8637ee157de65bef62)
