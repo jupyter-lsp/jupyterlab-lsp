@@ -19,8 +19,8 @@ Works With Kernel Running
     Completer Should Suggest    TabError
     # this comes from LSP:
     Completer Should Suggest    test
-    # this comes from kernel
-    Completer Should Suggest    %%timeit
+    # this comes from kernel; sometimes the kernel response may come a bit later
+    Wait Until Keyword Succeeds    20x    0.5s    Completer Should Suggest    %%timeit
     Press Keys    None    ENTER
     Capture Page Screenshot    03-completion-confirmed.png
     ${content} =    Get Cell Editor Content    1
@@ -47,7 +47,7 @@ Autocompletes If Only One Option
     Enter Cell Editor    3    line=1
     Press Keys    None    cle
     Press Keys    None    TAB
-    Wait Until Keyword Succeeds    20x    0.5s    Cell Editor Should Equal    3    list.clear
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    3    list.clear
     [Teardown]    Clean Up After Working With File    Completion.ipynb
 
 User Can Select Lowercase After Starting Uppercase
@@ -56,7 +56,7 @@ User Can Select Lowercase After Starting Uppercase
     Trigger Completer
     Completer Should Suggest  time
     Press Keys    None    ENTER
-    Wait Until Keyword Succeeds    20x    0.5s    Cell Editor Should Equal    4    from time import time
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    4    from time import time
     [Teardown]    Clean Up After Working With File    Completion.ipynb
 
 *** Keywords ***
@@ -85,4 +85,4 @@ Completer Should Not Suggest
 
 Trigger Completer
     Press Keys    None    TAB
-    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=6s
+    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=15s

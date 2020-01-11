@@ -37,9 +37,6 @@ Diagnostics Panel Can Be Restored
     [Teardown]    Clean Up After Working With File    Panel.ipynb
 
 *** Keywords ***
-Gently Reset Workspace
-    Lab Command    Close All Tabs
-
 Open Notebook And Panel
     [Arguments]    ${notebook}
     Setup Notebook    Python    ${notebook}

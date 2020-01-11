@@ -55,7 +55,7 @@ Open JupyterLab
     ${firefox} =    Which    firefox
     ${geckodriver} =    Which    geckodriver
     Create WebDriver    Firefox    executable_path=${geckodriver}    firefox_binary=${firefox}    service_log_path=${OUTPUT DIR}${/}geckodriver.log
-    Wait Until Keyword Succeeds    10x    5s    Go To    ${URL}lab?token=${TOKEN}
+    Wait Until Keyword Succeeds    20x    3s    Go To    ${URL}lab?token=${TOKEN}
     Set Window Size    1024    768
     Wait For Splash
 
@@ -68,7 +68,6 @@ Reset Application State
     Ensure All Kernels Are Shut Down
     Lab Command    Reset Application State
     Wait For Splash
-    Lab Command    Close All Tabs
 
 Accept Default Dialog Option
     [Documentation]    Accept a dialog, if it exists
@@ -187,3 +186,6 @@ Close Diagnostics Panel
 
 Wait For Dialog
     Wait Until Page Contains Element    ${DIALOG WINDOW}    timeout=180s
+
+Gently Reset Workspace
+    Lab Command    Close All Tabs
