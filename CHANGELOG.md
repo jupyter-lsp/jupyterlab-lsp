@@ -1,8 +1,15 @@
 # CHANGELOG
 
-## `@krassowski/jupyterlab-lsp 0.7.0-beta.1`
+## `lsp-ws-connection 0.3.1`
+
+- added sendSaved() method (textDocument/didSave) (
+  [#147](https://github.com/krassowski/jupyterlab-lsp/pull/147)
+  )
+
+## `@krassowski/jupyterlab-lsp 0.7.0-rc.0`
 
 - features
+
   - reduced space taken up by the statusbar indicator
   - implemented statusbar popover with connections statuses
   - generates types for server data responses from JSON schema (
@@ -16,15 +23,45 @@
     [#129](https://github.com/krassowski/jupyterlab-lsp/pull/129)
     )
   - added a widget panel with diagnostics (inspections), allowing to
-    sort and explore diagnostics, and to go-to the respective location
-    in code (on click); accessible from the context menu (
+    sort and explore diagnostics, and to go to the respective location
+    in code (with a click); accessible from the context menu (
     [#127](https://github.com/krassowski/jupyterlab-lsp/pull/127)
     )
+  - all commands are now accessible from the command palette (
+    [#142](https://github.com/krassowski/jupyterlab-lsp/pull/142)
+    )
+  - bash LSP now also covers `%%bash` magic cell in addition to `%%sh` (
+    [#144](https://github.com/krassowski/jupyterlab-lsp/pull/144)
+    )
+  - rpy2 magics received enhanced support for argument parsing
+    in both parent Python document (re-written overrides) and
+    exctracted R documents (improved foreign code extractor) (
+    [#148](https://github.com/krassowski/jupyterlab-lsp/pull/148)
+    )
+
 - bugfixes
   - diagnostics in foreign documents are now correctly updated (
     [133fd3d](https://github.com/krassowski/jupyterlab-lsp/pull/129/commits/133fd3d71401c7e5affc0a8637ee157de65bef62)
     )
   - diagnostics are now always correctly displayed in the document they were intended for
+  - the workaround for relative root path is now also applied on Mac (
+    [#139](https://github.com/krassowski/jupyterlab-lsp/pull/139)
+    )
+  - fixed LSP of R in Python (`%%R` magic cell from rpy2) (
+    [#144](https://github.com/krassowski/jupyterlab-lsp/pull/144)
+    )
+  - completion now work properly when the kernel is shut down (
+    [#146](https://github.com/krassowski/jupyterlab-lsp/pull/146)
+    )
+  - a lowercase completion option selected from an uppercase token
+    will now correctly substitute the incomplete token (
+    [#143](https://github.com/krassowski/jupyterlab-lsp/pull/143)
+    )
+  - `didSave()` is emitted on file save, enabling the workaround
+    used by R language server to lazily load `library(tidyverse)` (
+    [#95](https://github.com/krassowski/jupyterlab-lsp/pull/95),
+    [#147](https://github.com/krassowski/jupyterlab-lsp/pull/147),
+    )
 
 ## `lsp-ws-connection 0.3.0`
 

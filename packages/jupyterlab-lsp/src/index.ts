@@ -80,7 +80,16 @@ const plugin: JupyterFrontEndPlugin<void> = {
           user_settings.substring(0, user_settings.indexOf('/', 6))
         );
         console.log(
-          'Guessing the server root using user settings path',
+          'Guessing Linux the server root using user settings path',
+          server_root
+        );
+      } else if (user_settings.startsWith('/Users/')) {
+        server_root = server_root.replace(
+          '~',
+          user_settings.substring(0, user_settings.indexOf('/', 7))
+        );
+        console.log(
+          'Guessing Mac the server root using user settings path',
           server_root
         );
       } else {
@@ -100,7 +109,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
       let adapter = null;
       if (notebookTracker.has(current)) {
         let id = (current as NotebookPanel).id;
-        console.warn(id);
         adapter = notebook_adapters.get(id);
       } else if (fileEditorTracker.has(current)) {
         let id = (current as IDocumentWidget<FileEditor>).content.id;
@@ -153,6 +161,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     let command_manager = new FileEditorCommandManager(
       app,
+      palette,
       fileEditorTracker,
       'file_editor'
     );
@@ -180,6 +189,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     // TODO: PR bumping rank of clear all outputs instead?
     let notebook_command_manager = new NotebookCommandManager(
       app,
+      palette,
       notebookTracker,
       'notebook',
       // adding a very small number (epsilon) places the group just after 10th entry

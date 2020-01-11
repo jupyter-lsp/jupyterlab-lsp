@@ -67,6 +67,13 @@ export class LSPConnector extends DataConnector<
     this.options = options;
   }
 
+  protected get _has_kernel(): boolean {
+    return (
+      typeof this.options.session !== 'undefined' &&
+      this.options.session.kernel !== null
+    );
+  }
+
   protected get _kernel_language(): string {
     return this.options.session.kernel.info.language_info.name;
   }
@@ -128,6 +135,7 @@ export class LSPConnector extends DataConnector<
     try {
       if (
         this._kernel_connector &&
+        this._has_kernel &&
         // TODO: this would be awesome if we could connect to rpy2 for R suggestions in Python,
         //  but this is not the job of this extension; nevertheless its better to keep this in
         //  mind to avoid introducing design decisions which would make this impossible
@@ -157,10 +165,11 @@ export class LSPConnector extends DataConnector<
         virtual_cursor,
         document
       ).catch(e => {
-        console.log(e);
+        console.warn('LSP: hint failed', e);
         return this.fallback_connector.fetch(request);
       });
     } catch (e) {
+      console.warn('LSP: kernel completions failed', e);
       return this.fallback_connector.fetch(request);
     }
   }
@@ -212,7 +221,7 @@ export class LSPConnector extends DataConnector<
       // sortText: "amean"
       let text = match.insertText ? match.insertText : match.label;
 
-      if (text.startsWith(token.value)) {
+      if (text.toLowerCase().startsWith(token.value.toLowerCase())) {
         all_non_prefixed = false;
       }
 
@@ -276,7 +285,7 @@ export class LSPConnector extends DataConnector<
     if (lsp.start > kernel.start) {
       const cursor = editor.getCursorPosition();
       const line = editor.getLine(cursor.line);
-      prefix = line.substring(kernel.start, kernel.end);
+      prefix = line.substring(cursor.column - 1, cursor.column);
       console.log('will remove prefix from kernel response:', prefix);
     }
 

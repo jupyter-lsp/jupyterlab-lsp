@@ -139,7 +139,7 @@ export class LspWsConnection extends events.EventEmitter
           synchronization: {
             dynamicRegistration: true,
             willSave: false,
-            didSave: false,
+            didSave: true,
             willSaveWaitUntil: false
           },
           completion: {
@@ -228,6 +228,23 @@ export class LspWsConnection extends events.EventEmitter
       textDocumentChange
     );
     this.documentVersion++;
+  }
+
+  public sendSaved() {
+    if (!this.isConnected || !this.isInitialized) {
+      return;
+    }
+    const textDocumentChange: protocol.DidSaveTextDocumentParams = {
+      textDocument: {
+        uri: this.documentInfo.documentUri,
+        version: this.documentVersion
+      } as protocol.VersionedTextDocumentIdentifier,
+      text: this.documentInfo.documentText()
+    };
+    this.connection.sendNotification(
+      'textDocument/didSave',
+      textDocumentChange
+    );
   }
 
   public getHoverTooltip(location: IPosition) {

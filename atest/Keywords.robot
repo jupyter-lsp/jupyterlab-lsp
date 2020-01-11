@@ -55,7 +55,7 @@ Open JupyterLab
     ${firefox} =    Which    firefox
     ${geckodriver} =    Which    geckodriver
     Create WebDriver    Firefox    executable_path=${geckodriver}    firefox_binary=${firefox}    service_log_path=${OUTPUT DIR}${/}geckodriver.log
-    Wait Until Keyword Succeeds    10x    5s    Go To    ${URL}lab?token=${TOKEN}
+    Wait Until Keyword Succeeds    20x    3s    Go To    ${URL}lab?token=${TOKEN}
     Set Window Size    1024    768
     Wait For Splash
 
@@ -68,7 +68,6 @@ Reset Application State
     Ensure All Kernels Are Shut Down
     Lab Command    Reset Application State
     Wait For Splash
-    Lab Command    Close All Tabs
 
 Accept Default Dialog Option
     [Documentation]    Accept a dialog, if it exists
@@ -126,3 +125,67 @@ Open With JupyterLab Menu
     FOR    ${submenu}    IN    @{submenus}
         Click JupyterLab Menu Item    ${submenu}
     END
+
+Ensure File Browser is Open
+    ${sel} =    Set Variable    css:.p-TabBar-tab[data-id="filebrowser"]:not(.p-mod-current)
+    ${els} =    Get WebElements    ${sel}
+    Run Keyword If    ${els.__len__()}    Click Element    ${sel}
+
+Rename Jupyter File
+    [Arguments]    ${old}    ${new}
+    Ensure File Browser is Open
+    Click Element    css:button[title="Refresh File List"]
+    Open Context Menu    //span[@class='jp-DirListing-itemText']\[text() = '${old}']
+    Mouse Over    ${MENU RENAME}
+    Click Element    ${MENU RENAME}
+    Press Keys    None    CTRL+a
+    Press Keys    None    ${new}
+    Press Keys    None    RETURN
+
+Input Into Dialog
+    [Arguments]    ${text}
+    Wait For Dialog
+    Click Element    ${DIALOG INPUT}
+    Input Text    ${DIALOG INPUT}    ${text}
+    Click Element    ${DIALOG ACCEPT}
+
+Open ${file} in ${editor}
+    Ensure File Browser is Open
+    Click Element    css:button[title="Refresh File List"]
+    Open Context Menu    css:.jp-DirListing-item[title="${file}"]
+    Mouse Over    ${MENU OPEN WITH}
+    Wait Until Page Contains Element    ${editor}
+    Mouse Over    ${editor}
+    Click Element    ${editor}
+
+Clean Up After Working With File
+    [Arguments]    ${file}
+    Remove File    ${OUTPUT DIR}${/}home${/}${file}
+    Reset Application State
+
+Setup Notebook
+    [Arguments]    ${Language}    ${file}
+    Set Tags    language:${Language.lower()}
+    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}notebook${/}${file.lower()}
+    Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
+    Lab Command    Close All Tabs
+    Open ${file} in ${MENU NOTEBOOK}
+    Capture Page Screenshot    00-opened.png
+
+Open Diagnostics Panel
+    Lab Command    Show Diagnostics Panel
+    Wait Until Page Contains Element    ${DIAGNOSTICS PANEL}    timeout=20s
+
+Count Diagnostics In Panel
+    ${count} =    Get Element Count    css:.lsp-diagnostics-listing tbody tr
+    [Return]    ${count}
+
+Close Diagnostics Panel
+    Mouse Over    ${DIAGNOSTIC PANEL CLOSE}
+    Click Element    ${DIAGNOSTIC PANEL CLOSE}
+
+Wait For Dialog
+    Wait Until Page Contains Element    ${DIALOG WINDOW}    timeout=180s
+
+Gently Reset Workspace
+    Lab Command    Close All Tabs
