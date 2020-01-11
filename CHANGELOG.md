@@ -40,6 +40,10 @@
   - completion now work properly when the kernel is shut down (
     [#146](https://github.com/krassowski/jupyterlab-lsp/pull/146)
     )
+  - a lowercase completion option selected from an uppercase token
+    will now correctly substitute the incomplete token (
+    [#143](https://github.com/krassowski/jupyterlab-lsp/pull/143)
+    )
 
 ## `lsp-ws-connection 0.3.0`
 
