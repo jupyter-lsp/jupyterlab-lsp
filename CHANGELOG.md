@@ -38,6 +38,8 @@
     exctracted R documents (improved foreign code extractor) (
     [#148](https://github.com/krassowski/jupyterlab-lsp/pull/148)
     )
+  - console logs can now easily be redirected to a floating console
+    windows for debugging of the browser tests (see CONTRIBUTING.md)
 
 - bugfixes
   - diagnostics in foreign documents are now correctly updated (

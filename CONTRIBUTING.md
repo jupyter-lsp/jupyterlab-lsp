@@ -185,6 +185,10 @@ atest/
 
   and re-run the tests.
 
+- To display logs on the screenshots, write logs with `virtual_editor.console.log` method,
+  and change `create_console('browser')` to `create_console('floating')` in `VirtualEditor`
+  constructor (please feel free to add a config option for this).
+
 ### Formatting
 
 Minimal code style is enforced with `pytest-flake8` during unit testing. If installed,

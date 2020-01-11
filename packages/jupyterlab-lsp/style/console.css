@@ -1,0 +1,25 @@
+.lsp-floating-console {
+  position: absolute;
+  width: 600px;
+  height: 350px;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  border: 3px solid rgba(204, 204, 204, 0.7);
+  font-size: 12px;
+  overflow-y: auto;
+  margin: 0;
+  list-style-type: none;
+  padding: 5px;
+}
+
+.lsp-code {
+  font-family: monospace;
+  background: #eee;
+  border-radius: 2px;
+  padding: 2px 5px;
+}
+
+.lsp-kind {
+  padding: 2px 5px;
+}
