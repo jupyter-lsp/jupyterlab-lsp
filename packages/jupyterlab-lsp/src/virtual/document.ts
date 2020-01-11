@@ -129,7 +129,7 @@ export class VirtualDocument {
   private cell_magics_overrides: CellMagicsMap;
   private line_magics_overrides: LineMagicsMap;
   private static instances_count = 0;
-  private foreign_documents: Map<VirtualDocument.virtual_id, VirtualDocument>;
+  public foreign_documents: Map<VirtualDocument.virtual_id, VirtualDocument>;
 
   // TODO: make this configurable, depending on the language used
   blank_lines_between_cells: number = 2;
@@ -143,8 +143,9 @@ export class VirtualDocument {
     overrides_registry: IOverridesRegistry,
     foreign_code_extractors: IForeignCodeExtractorsRegistry,
     standalone: boolean,
-    protected file_extension: string,
-    private readonly parent?: VirtualDocument
+    public file_extension: string,
+    public has_lsp_supported_file: boolean,
+    readonly parent?: VirtualDocument
   ) {
     this.language = language;
     let overrides =
@@ -248,6 +249,7 @@ export class VirtualDocument {
       this.foreign_extractors_registry,
       standalone,
       file_extension,
+      false,
       this
     );
     this.foreign_document_opened.emit({
@@ -419,12 +421,26 @@ export class VirtualDocument {
     return { cell_code_kept: cell_code, foreign_document_map };
   }
 
-  append_code_block(
+  decode_code_block(raw_code: string): string {
+    // TODO: add back previously extracted foreign code
+    let cell_override = this.cell_magics_overrides.reverse.override_for(
+      raw_code
+    );
+    if (cell_override !== null) {
+      return cell_override;
+    } else {
+      let lines = this.line_magics_overrides.reverse_replace_all(
+        raw_code.split('\n')
+      );
+      return lines.join('\n');
+    }
+  }
+
+  prepare_code_block(
     cell_code: string,
     cm_editor: CodeMirror.Editor,
     editor_shift: CodeEditor.IPosition = { line: 0, column: 0 }
   ) {
-    let source_cell_lines = cell_code.split('\n');
     let lines: Array<string>;
     let skip_inspect: Array<Array<VirtualDocument.id_path>>;
 
@@ -451,6 +467,22 @@ export class VirtualDocument {
       );
     }
 
+    return { lines, foreign_document_map, skip_inspect };
+  }
+
+  append_code_block(
+    cell_code: string,
+    cm_editor: CodeMirror.Editor,
+    editor_shift: CodeEditor.IPosition = { line: 0, column: 0 }
+  ) {
+    let source_cell_lines = cell_code.split('\n');
+
+    let { lines, foreign_document_map, skip_inspect } = this.prepare_code_block(
+      cell_code,
+      cm_editor,
+      editor_shift
+    );
+
     for (let i = 0; i < lines.length; i++) {
       this.virtual_lines.set(this.last_virtual_line + i, {
         skip_inspect: skip_inspect[i],
@@ -471,11 +503,22 @@ export class VirtualDocument {
       });
     }
 
+    this.last_virtual_line += lines.length;
+
     // one empty line is necessary to separate code blocks, next 'n' lines are to silence linters;
     // the final cell does not get the additional lines (thanks to the use of join, see below)
     this.lines.push(lines.join('\n') + '\n');
 
-    this.last_virtual_line += lines.length + this.blank_lines_between_cells;
+    // adding the virtual lines for the blank lines
+    for (let i = 0; i < this.blank_lines_between_cells; i++) {
+      this.virtual_lines.set(this.last_virtual_line + i, {
+        skip_inspect: [this.id_path],
+        editor: cm_editor,
+        source_line: null
+      });
+    }
+
+    this.last_virtual_line += this.blank_lines_between_cells;
     this.last_source_line += source_cell_lines.length;
   }
 
@@ -525,6 +568,13 @@ export class VirtualDocument {
     return this.standalone
       ? this.instance_id + '(' + this.language + ')'
       : this.language;
+  }
+
+  get ancestry(): Array<VirtualDocument> {
+    if (!this.parent) {
+      return [this];
+    }
+    return this.parent.ancestry.concat([this]);
   }
 
   get id_path(): VirtualDocument.id_path {
@@ -613,4 +663,16 @@ export namespace VirtualDocument {
    * for documents which should be interpreted as one when stretched across cells.
    */
   export type virtual_id = string;
+}
+
+export function collect_documents(
+  virtual_document: VirtualDocument
+): Set<VirtualDocument> {
+  let collected = new Set<VirtualDocument>();
+  collected.add(virtual_document);
+  for (let foreign of virtual_document.foreign_documents.values()) {
+    let foreign_languages = collect_documents(foreign);
+    foreign_languages.forEach(collected.add, collected);
+  }
+  return collected;
 }

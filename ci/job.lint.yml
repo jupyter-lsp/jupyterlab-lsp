@@ -7,6 +7,7 @@ parameters:
     - name: ThreeSeven
       spec: '>=3.7,<3.8.0a0'
   env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
+  env_lint: conda env update -n jupyterlab-lsp --file environment-lint.yml --quiet
 
 jobs:
   - ${{ each platform in parameters.platforms }}:
@@ -19,17 +20,26 @@ jobs:
                 parameters:
                   name: ${{ platform.name }}
 
-              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}"
-                displayName: update environment with python version
+              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" ">=1,<2"
+                displayName: base dependencies
 
               - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
-                displayName: update conda environment with test dependencies
+                displayName: testing dependencies
+
+              - script: ${{ parameters.env_lint }} || ${{ parameters.env_lint }} || ${{ parameters.env_lint }}
+                displayName: linting dependencies
 
               - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/integrity.py
                 displayName: check integrity of package versions
 
+              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/lint.py
+                displayName: lint backend
+
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm || jlpm || jlpm
                 displayName: install npm dependencies
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm build:schema
+                displayName: build schema so linting can complete
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm lint:check
                 displayName: lint frontend

@@ -1,7 +1,7 @@
 import { VirtualDocument } from './virtual/document';
 import { LSPConnection } from './connection';
 import { Signal } from '@phosphor/signaling';
-import { PageConfig, PathExt } from '@jupyterlab/coreutils';
+import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import { sleep, until_ready } from './utils';
 
 export interface IDocumentConnectionData {
@@ -36,6 +36,7 @@ interface ISocketConnectionOptions {
 export class DocumentConnectionManager {
   connections: Map<VirtualDocument.id_path, LSPConnection>;
   documents: Map<VirtualDocument.id_path, VirtualDocument>;
+  initialized: Signal<DocumentConnectionManager, IDocumentConnectionData>;
   connected: Signal<DocumentConnectionManager, IDocumentConnectionData>;
   /**
    * Connection temporarily lost or could not be fully established; a re-connection will be attempted;
@@ -48,6 +49,10 @@ export class DocumentConnectionManager {
    *  - re-connection attempts exceeded,
    */
   closed: Signal<DocumentConnectionManager, IDocumentConnectionData>;
+  documents_changed: Signal<
+    DocumentConnectionManager,
+    Map<VirtualDocument.id_path, VirtualDocument>
+  >;
   private ignored_languages: Set<string>;
 
   constructor() {
@@ -55,8 +60,10 @@ export class DocumentConnectionManager {
     this.documents = new Map();
     this.ignored_languages = new Set();
     this.connected = new Signal(this);
+    this.initialized = new Signal(this);
     this.disconnected = new Signal(this);
     this.closed = new Signal(this);
+    this.documents_changed = new Signal(this);
   }
 
   connect_document_signals(virtual_document: VirtualDocument) {
@@ -72,33 +79,32 @@ export class DocumentConnectionManager {
         this.connections.get(foreign_document.id_path).close();
         this.connections.delete(foreign_document.id_path);
         this.documents.delete(foreign_document.id_path);
+        this.documents_changed.emit(this.documents);
       }
     );
     this.documents.set(virtual_document.id_path, virtual_document);
+    this.documents_changed.emit(this.documents);
   }
 
   private connect_socket(options: ISocketConnectionOptions): LSPConnection {
-    let { virtual_document, language, server_root, root_path } = options;
-    console.log(root_path);
+    let { virtual_document, language } = options;
 
-    // capture just the s?://*
-    const wsBase = PageConfig.getBaseUrl().replace(/^http/, '');
-    const wsUrl = `ws${wsBase}lsp/${language}`;
-    let socket = new WebSocket(wsUrl);
+    const uris = DocumentConnectionManager.solve_uris(
+      virtual_document,
+      language
+    );
+
+    let socket = new WebSocket(uris.socket);
 
     let connection = new LSPConnection({
-      serverUri: 'ws://jupyter-lsp/' + language,
       languageId: language,
-      // paths handling needs testing on Windows and with other language servers
-      // TODO: compare against: rootUri: 'file:///' + PathExt.join(server_root, root_path),
-      rootUri: 'file:///' + PathExt.join(server_root),
-      // TODO: compare against: 'file:///' + PathExt.join(server_root, root_path, virtual_document.uri),
-      documentUri: 'file:///' + PathExt.join(server_root, virtual_document.uri),
+      serverUri: uris.server,
+      rootUri: uris.base,
+      documentUri: uris.document,
       documentText: () => {
         // NOTE: Update is async now and this is not really used, as an alternative method
         // which is compatible with async is used.
         // This should be only used in the initialization step.
-        // @ts-ignore
         // if (main_connection.isConnected) {
         //  console.warn('documentText is deprecated for use in JupyterLab LSP');
         // }
@@ -170,6 +176,10 @@ export class DocumentConnectionManager {
   async connect(options: ISocketConnectionOptions) {
     let connection = this.connect_socket(options);
 
+    connection.on('serverInitialized', capabilities => {
+      this.initialized.emit({ connection, virtual_document });
+    });
+
     let { virtual_document, document_path } = options;
 
     await until_ready(
@@ -207,5 +217,27 @@ export class DocumentConnectionManager {
       this.closed.emit({ connection, virtual_document });
     }
     this.connections.clear();
+  }
+}
+
+export namespace DocumentConnectionManager {
+  export function solve_uris(
+    virtual_document: VirtualDocument,
+    language: string
+  ) {
+    const wsBase = PageConfig.getBaseUrl().replace(/^http/, 'ws');
+    const rootUri = PageConfig.getOption('rootUri');
+    const virtualDocumentsUri = PageConfig.getOption('virtualDocumentsUri');
+
+    const baseUri = virtual_document.has_lsp_supported_file
+      ? rootUri
+      : virtualDocumentsUri;
+
+    return {
+      base: baseUri,
+      document: URLExt.join(baseUri, virtual_document.uri),
+      server: URLExt.join('ws://jupyter-lsp', language),
+      socket: URLExt.join(wsBase, 'lsp', language)
+    };
   }
 }

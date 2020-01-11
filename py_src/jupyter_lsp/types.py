@@ -1,18 +1,44 @@
 """ API used by spec finders and manager
 """
+import asyncio
 import enum
+import json
 import pathlib
+import re
 import shutil
 import sys
-from typing import Callable, Dict, List, Text
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Pattern,
+    Text,
+)
 
 from notebook.transutils import _
-from traitlets import List as List_, Unicode, default
+from traitlets import Instance, List as List_, Unicode, default
 from traitlets.config import LoggingConfigurable
 
-# TODO: TypedDict?
-LanguageServerSpec = Dict[Text, List[Text]]
+LanguageServerSpec = Dict[Text, Any]
+LanguageServerMessage = Dict[Text, Any]
 KeyedLanguageServerSpecs = Dict[Text, LanguageServerSpec]
+
+if TYPE_CHECKING:  # pragma: no cover
+    from typing_extensions import Protocol
+
+    class HandlerListenerCallback(Protocol):
+        def __call__(
+            self,
+            scope: Text,
+            message: LanguageServerMessage,
+            languages: List[Text],
+            manager: "HasListeners",
+        ) -> Awaitable[None]:
+            ...
 
 
 class SessionStatus(enum.Enum):
@@ -26,8 +52,134 @@ class SessionStatus(enum.Enum):
     STOPPED = "stopped"
 
 
-class LanguageServerManagerAPI(LoggingConfigurable):
-    """ Public API that can be used for python-based spec finders
+class MessageScope(enum.Enum):
+    """ Scopes for message listeners
+    """
+
+    ALL = "all"
+    CLIENT = "client"
+    SERVER = "server"
+
+
+class MessageListener(object):
+    """ A base listener implementation
+    """
+
+    listener = None  # type: HandlerListenerCallback
+    language = None  # type: Optional[Pattern[Text]]
+    method = None  # type: Optional[Pattern[Text]]
+
+    def __init__(
+        self,
+        listener: "HandlerListenerCallback",
+        language: Optional[Text],
+        method: Optional[Text],
+    ):
+        self.listener = listener
+        self.language = re.compile(language) if language else None
+        self.method = re.compile(method) if method else None
+
+    async def __call__(
+        self,
+        scope: Text,
+        message: LanguageServerMessage,
+        languages: List[Text],
+        manager: "HasListeners",
+    ) -> None:
+        """ actually dispatch the message to the listener and capture any errors
+        """
+        try:
+            await self.listener(
+                scope=scope, message=message, languages=languages, manager=manager
+            )
+        except Exception:  # pragma: no cover
+            manager.log.warn(
+                "[lsp] error in listener %s for message %s",
+                self.listener,
+                message,
+                exc_info=True,
+            )
+
+    def wants(self, message: LanguageServerMessage, languages: List[Text]):
+        """ whether this listener wants a particular message
+
+            `method` is currently the only message content discriminator, but not
+            all messages will have a `method`
+        """
+        if self.method:
+            method = message.get("method")
+
+            if method is None or re.match(self.method, method) is None:
+                return False
+
+        return self.language is None or any(
+            [re.match(self.language, lang) is not None for lang in languages]
+        )
+
+    def __repr__(self):
+        return (
+            "<MessageListener"
+            " listener={self.listener},"
+            " method={self.method},"
+            " language={self.language}>"
+        ).format(self=self)
+
+
+class HasListeners:
+    _listeners = {
+        str(scope.value): [] for scope in MessageScope
+    }  # type: Dict[Text, List[MessageListener]]
+
+    log = Instance("logging.Logger")
+
+    @classmethod
+    def register_message_listener(
+        cls, scope: Text, language: Optional[Text] = None, method: Optional[Text] = None
+    ):
+        """ register a listener for language server protocol messages
+        """
+
+        def inner(listener: "HandlerListenerCallback") -> "HandlerListenerCallback":
+            cls.unregister_message_listener(listener)
+            cls._listeners[scope].append(
+                MessageListener(listener=listener, language=language, method=method)
+            )
+            return listener
+
+        return inner
+
+    @classmethod
+    def unregister_message_listener(cls, listener: "HandlerListenerCallback"):
+        """ unregister a listener for language server protocol messages
+        """
+        for scope in MessageScope:
+            cls._listeners[str(scope.value)] = [
+                lst
+                for lst in cls._listeners[str(scope.value)]
+                if lst.listener != listener
+            ]
+
+    async def wait_for_listeners(
+        self, scope: MessageScope, message_str: Text, languages: List[Text]
+    ) -> None:
+        scope_val = str(scope.value)
+        listeners = self._listeners[scope_val] + self._listeners[MessageScope.ALL.value]
+
+        if listeners:
+            message = json.loads(message_str)
+
+            futures = [
+                listener(scope_val, message=message, languages=languages, manager=self)
+                for listener in listeners
+                if listener.wants(message, languages)
+            ]
+
+            if futures:
+                await asyncio.gather(*futures)
+
+
+class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
+    """ Public API that can be used for python-based spec finders and listeners
     """
 
     nodejs = Unicode(help=_("path to nodejs executable")).tag(config=True)

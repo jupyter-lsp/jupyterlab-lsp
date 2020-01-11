@@ -23,7 +23,7 @@ import { Diagnostics } from '../codemirror/features/diagnostics';
 import { Highlights } from '../codemirror/features/highlights';
 import { Hover } from '../codemirror/features/hover';
 import { Signature } from '../codemirror/features/signature';
-import { CodeMirrorLSPFeature, ILSPFeature } from '../codemirror/feature';
+import { ILSPFeatureConstructor, ILSPFeature } from '../codemirror/feature';
 import { JumpToDefinition } from '../codemirror/features/jump_to';
 import { ICommandContext } from '../../command_manager';
 import { JSONObject } from '@phosphor/coreutils';
@@ -33,7 +33,7 @@ import {
 } from '../../connection_manager';
 import { Rename } from '../codemirror/features/rename';
 
-export const lsp_features: Array<typeof CodeMirrorLSPFeature> = [
+export const lsp_features: Array<ILSPFeatureConstructor> = [
   Completion,
   Diagnostics,
   Highlights,
@@ -52,6 +52,38 @@ export interface IJupyterLabComponentsManager {
   ) => FreeTooltip;
   remove_tooltip: () => void;
   jumper: CodeJumper;
+}
+
+export class StatusMessage {
+  /**
+   * The text message to be shown on the statusbar
+   */
+  message: string;
+  changed: Signal<StatusMessage, string>;
+
+  constructor() {
+    this.message = '';
+    this.changed = new Signal(this);
+  }
+
+  /**
+   * Set the text message and (optionally) the timeout to remove it.
+   * @param message
+   * @param timeout - number of ms to until the message is cleaned;
+   *        -1 if the message should stay up indefinitely
+   */
+  set(message: string, timeout?: number) {
+    this.message = message;
+    this.changed.emit('');
+    if (typeof timeout !== 'undefined' && timeout !== -1) {
+      setTimeout(this.cleanup.bind(this), timeout);
+    }
+  }
+
+  cleanup() {
+    this.message = '';
+    this.changed.emit('');
+  }
 }
 
 /**
@@ -82,6 +114,7 @@ export abstract class JupyterLabWidgetAdapter
   protected abstract current_completion_connector: LSPConnector;
   private _tooltip: FreeTooltip;
   public connection_manager: DocumentConnectionManager;
+  public status_message: StatusMessage;
 
   protected constructor(
     protected app: JupyterFrontEnd,
@@ -90,6 +123,7 @@ export abstract class JupyterLabWidgetAdapter
     invoke: string,
     private server_root: string
   ) {
+    this.status_message = new StatusMessage();
     this.widget.context.pathChanged.connect(this.reload_connection.bind(this));
     this.invoke_command = invoke;
     this.document_connected = new Signal(this);
@@ -143,14 +177,14 @@ export abstract class JupyterLabWidgetAdapter
   }
 
   // equivalent to triggering didClose and didOpen, as per syncing specification,
-  // but also reloads the connection
+  // but also reloads the connection; used during file rename (or when it was moved)
   protected reload_connection() {
     // ignore premature calls (before the editor was initialized)
     if (typeof this.virtual_editor === 'undefined') {
       return;
     }
 
-    // disconnect all existing connections
+    // disconnect all existing connections (and dispose adapters)
     this.connection_manager.close_all();
     // recreate virtual document using current path and language
     this.virtual_editor.create_virtual_document();
@@ -176,7 +210,7 @@ export abstract class JupyterLabWidgetAdapter
 
     await this.virtual_editor.update_documents().then(() => {
       // refresh the document on the LSP server
-      this.document_changed(virtual_document);
+      this.document_changed(virtual_document, true);
       console.log(
         'LSP: virtual document(s) for',
         this.document_path,
@@ -191,11 +225,11 @@ export abstract class JupyterLabWidgetAdapter
     await this.connect(virtual_document).catch(console.warn);
 
     virtual_document.foreign_document_opened.connect((host, context) => {
-      this.connect(context.foreign_document).catch(console.warn);
+      this.connect_document(context.foreign_document).catch(console.warn);
     });
   }
 
-  document_changed(virtual_document: VirtualDocument) {
+  document_changed(virtual_document: VirtualDocument, is_init = false) {
     // TODO only send the difference, using connection.sendSelectiveChange()
     let connection = this.connection_manager.connections.get(
       virtual_document.id_path
@@ -217,18 +251,22 @@ export abstract class JupyterLabWidgetAdapter
       'has changed sending update'
     );
     connection.sendFullTextChange(virtual_document.value);
-    // guarantee that the virtual editor won't perform an update of the virtual documents while
-    // the changes are recorded...
-    // TODO this is not ideal - why it solves the problem of some errors,
-    //  it introduces an unnecessary delay. A better way could be to invalidate some of the updates when a new one comes in.
-    //  but maybe not every one (then the outdated state could be kept for too long fo a user who writes very quickly)
-    //  also we would not want to invalidate the updates for the purpose of autocompletion (the trigger characters)
-    this.virtual_editor
-      .with_update_lock(async () => {
-        await adapter.updateAfterChange();
-      })
-      .then()
-      .catch(console.warn);
+    // the first change (initial) is not propagated to features,
+    // as it has no associated CodeMirrorChange object
+    if (!is_init) {
+      // guarantee that the virtual editor won't perform an update of the virtual documents while
+      // the changes are recorded...
+      // TODO this is not ideal - why it solves the problem of some errors,
+      //  it introduces an unnecessary delay. A better way could be to invalidate some of the updates when a new one comes in.
+      //  but maybe not every one (then the outdated state could be kept for too long fo a user who writes very quickly)
+      //  also we would not want to invalidate the updates for the purpose of autocompletion (the trigger characters)
+      this.virtual_editor
+        .with_update_lock(async () => {
+          await adapter.updateAfterChange();
+        })
+        .then()
+        .catch(console.warn);
+    }
   }
 
   private async connect_adapter(
@@ -245,6 +283,11 @@ export abstract class JupyterLabWidgetAdapter
     if (typeof adapter !== 'undefined') {
       adapter.remove();
     }
+  }
+
+  public get_features(virtual_document: VirtualDocument) {
+    let adapter = this.adapters.get(virtual_document.id_path);
+    return adapter.features;
   }
 
   private async connect(virtual_document: VirtualDocument) {
@@ -299,7 +342,8 @@ export abstract class JupyterLabWidgetAdapter
         this.virtual_editor,
         virtual_document,
         connection,
-        this
+        this,
+        this.status_message
       );
       adapter_features.push(feature);
     }
@@ -323,6 +367,9 @@ export abstract class JupyterLabWidgetAdapter
   }
 
   get_position_from_context_menu(): IRootPosition {
+    // Note: could also try using this.app.contextMenu.menu.contentNode position.
+    // Note: could add a guard on this.app.contextMenu.menu.isAttached
+
     // get the first node as it gives the most accurate approximation
     let leaf_node = this.app.contextMenuHitTest(() => true);
 
@@ -338,6 +385,7 @@ export abstract class JupyterLabWidgetAdapter
       top = event.clientY;
       event.stopPropagation();
     }
+
     return this.virtual_editor.coordsChar(
       {
         left: left,
@@ -347,14 +395,25 @@ export abstract class JupyterLabWidgetAdapter
     ) as IRootPosition;
   }
 
-  get_context_from_context_menu(): ICommandContext {
-    let root_position = this.get_position_from_context_menu();
+  get_context(root_position: IRootPosition): ICommandContext {
     let document = this.virtual_editor.document_at_root_position(root_position);
-    let connection = this.connection_manager.connections.get(document.id_path);
     let virtual_position = this.virtual_editor.root_position_to_virtual_position(
       root_position
     );
-    return { document, connection, virtual_position, root_position };
+    return {
+      document,
+      connection: this.connection_manager.connections.get(document.id_path),
+      virtual_position,
+      root_position,
+      features: this.get_features(document),
+      editor: this.virtual_editor,
+      app: this.app
+    };
+  }
+
+  get_context_from_context_menu(): ICommandContext {
+    let root_position = this.get_position_from_context_menu();
+    return this.get_context(root_position);
   }
 
   public create_tooltip(

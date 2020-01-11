@@ -8,7 +8,7 @@ import {
   IPosition,
   ITokenInfo,
   LspWsConnection
-} from 'lsp-editor-adapter';
+} from 'lsp-ws-connection';
 import { CompletionTriggerKind } from './lsp';
 import { until_ready } from './utils';
 
@@ -30,49 +30,49 @@ export class LSPConnection extends LspWsConnection {
   }
 
   public isRenameSupported() {
-    // prettier-ignore
     return !!(
-      // @ts-ignore
       this.serverCapabilities && this.serverCapabilities.renameProvider
     );
   }
 
-  public rename(location: IPosition, newName: string) {
-    // @ts-ignore
+  async rename(location: IPosition, newName: string): Promise<boolean> {
     if (!this.isConnected || !this.isRenameSupported()) {
       return;
     }
 
-    // @ts-ignore
-    this.connection
-      .sendRequest('textDocument/rename', {
-        textDocument: {
-          // @ts-ignore
-          uri: this.documentInfo.documentUri
-        },
-        position: {
-          line: location.line,
-          character: location.ch
-        },
-        newName: newName
-      } as lsProtocol.RenameParams)
-      .then((result: lsProtocol.WorkspaceEdit | null) => {
-        this.emit('renamed', result);
-      });
+    return new Promise((resolve, reject) => {
+      this.connection
+        .sendRequest('textDocument/rename', {
+          textDocument: {
+            uri: this.documentInfo.documentUri
+          },
+          position: {
+            line: location.line,
+            character: location.ch
+          },
+          newName: newName
+        } as lsProtocol.RenameParams)
+        .then(
+          (result: lsProtocol.WorkspaceEdit | null) => {
+            this.emit('renamed', result);
+            resolve(true);
+          },
+          error => {
+            console.warn(error);
+            reject(error);
+          }
+        );
+    });
   }
 
   public connect(socket: WebSocket): this {
     super.connect(socket);
 
     until_ready(() => {
-      // @ts-ignore
       return this.isConnected;
     }, -1)
       .then(() => {
-        // @ts-ignore
-        let connection = this.connection;
-        connection.onClose(() => {
-          // @ts-ignore
+        this.connection.onClose(() => {
           this.isConnected = false;
           this.emit('close', this.closing_manually);
         });
@@ -97,26 +97,20 @@ export class LSPConnection extends LspWsConnection {
   private _sendChange(
     changeEvents: lsProtocol.TextDocumentContentChangeEvent[]
   ) {
-    // @ts-ignore
-    if (!this.isConnected) {
+    if (!this.isConnected || !this.isInitialized) {
       return;
     }
-    // @ts-ignore
-    let documentInfo = this.documentInfo;
     const textDocumentChange: lsProtocol.DidChangeTextDocumentParams = {
       textDocument: {
-        uri: documentInfo.documentUri,
-        // @ts-ignore
+        uri: this.documentInfo.documentUri,
         version: this.documentVersion
       } as lsProtocol.VersionedTextDocumentIdentifier,
       contentChanges: changeEvents
     };
-    // @ts-ignore
     this.connection.sendNotification(
       'textDocument/didChange',
       textDocumentChange
     );
-    // @ts-ignore
     this.documentVersion++;
   }
 
@@ -126,24 +120,19 @@ export class LSPConnection extends LspWsConnection {
     triggerCharacter: string,
     triggerKind: CompletionTriggerKind
   ): Promise<lsProtocol.CompletionItem[]> {
-    // @ts-ignore
     if (!this.isConnected) {
       return;
     }
     if (
-      // @ts-ignore
       !(this.serverCapabilities && this.serverCapabilities.completionProvider)
     ) {
       return;
     }
 
-    // @ts-ignore
-    let connection = this.connection;
     return new Promise<lsProtocol.CompletionItem[]>(resolve => {
-      connection
+      this.connection
         .sendRequest('textDocument/completion', {
           textDocument: {
-            // @ts-ignore
             uri: this.documentInfo.documentUri
           },
           position: {

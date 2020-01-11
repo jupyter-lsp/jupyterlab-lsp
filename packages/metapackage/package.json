@@ -1,6 +1,6 @@
 {
   "name": "@krassowski/jupyterlab-lsp-metapackage",
-  "version": "0.6.0",
+  "version": "0.7.0-beta.0",
   "description": "JupyterLab LSP - Meta Package.  All of the packages used by JupyterLab LSP",
   "homepage": "https://github.com/krassowski/jupyterlab-lsp",
   "bugs": {
@@ -26,13 +26,14 @@
     "watch": "tsc -b --watch"
   },
   "dependencies": {
-    "@krassowski/jupyterlab-lsp": "^0.6.0"
+    "@krassowski/jupyterlab-lsp": "file:../jupyterlab-lsp",
+    "lsp-ws-connection": "file:../lsp-ws-connection"
   },
   "devDependencies": {
     "fs-extra": "^8.0.1",
     "rimraf": "~2.6.2",
     "typedoc": "^0.14.2",
-    "typescript": "~3.5.1"
+    "typescript": "~3.7.2"
   },
   "publishConfig": {
     "access": "public"

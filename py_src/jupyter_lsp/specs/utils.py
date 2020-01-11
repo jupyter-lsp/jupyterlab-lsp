@@ -2,7 +2,12 @@ import shutil
 from pathlib import Path
 from typing import List, Text
 
-from ..types import KeyedLanguageServerSpecs, LanguageServerManagerAPI
+from ..schema import SPEC_VERSION
+from ..types import (
+    KeyedLanguageServerSpecs,
+    LanguageServerManagerAPI,
+    LanguageServerSpec,
+)
 
 # helper scripts for known tricky language servers
 HELPERS = Path(__file__).parent / "helpers"
@@ -15,8 +20,8 @@ class SpecBase:
     key = ""
     languages = []  # type: List[Text]
     args = []  # type: List[Text]
+    spec = {}  # type: LanguageServerSpec
 
-    @classmethod
     def __call__(
         self, mgr: LanguageServerManagerAPI
     ) -> KeyedLanguageServerSpecs:  # pragma: no cover
@@ -39,7 +44,14 @@ class ShellSpec(SpecBase):
         if not cmd:  # pragma: no cover
             return {}
 
-        return {self.key: {"argv": [cmd, *self.args], "languages": self.languages}}
+        return {
+            self.key: {
+                "argv": [cmd, *self.args],
+                "languages": self.languages,
+                "version": SPEC_VERSION,
+                **self.spec,
+            }
+        }
 
 
 class NodeModuleSpec(SpecBase):
@@ -60,5 +72,7 @@ class NodeModuleSpec(SpecBase):
             self.key: {
                 "argv": [mgr.nodejs, node_module, *self.args],
                 "languages": self.languages,
+                "version": SPEC_VERSION,
+                **self.spec,
             }
         }

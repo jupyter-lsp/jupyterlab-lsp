@@ -1,5 +1,9 @@
 name: jupyterlab-lsp
 
+channels:
+  - conda-forge
+  - defaults
+
 dependencies:
   - robotframework-seleniumlibrary
   - firefox

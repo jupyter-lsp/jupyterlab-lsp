@@ -1,0 +1,11 @@
+name: jupyterlab-lsp
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - black
+  - isort
+  - mypy
+  - robotframework-lint

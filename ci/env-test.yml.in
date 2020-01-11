@@ -6,8 +6,8 @@ channels:
 
 dependencies:
   # runtime dependencies
-  - python {}
-  - jupyterlab >=1.1,<1.2
+  - python {python}
+  - jupyterlab {lab}
   # build dependencies
   - nodejs
   # for python language server (and development)
@@ -26,6 +26,6 @@ dependencies:
   - pytest-runner
   - ruamel_yaml
   # browser testing
-  - robotframework-seleniumlibrary
   - firefox
   - geckodriver
+  - robotframework-seleniumlibrary

@@ -9,18 +9,16 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
     // R magics (non-standalone: the R code will always be in the same, single R-namespace)
     //
     new RegExpForeignCodeExtractor({
-      language: 'R',
+      language: 'r',
       pattern: '^%%R( .*?)?\n([^]*)',
       extract_to_foreign: '$2',
-      keep_in_host: true,
       is_standalone: false,
       file_extension: 'R'
     }),
     new RegExpForeignCodeExtractor({
-      language: 'R',
+      language: 'r',
       pattern: '(^|\n)%R (.*)\n?',
       extract_to_foreign: '$2',
-      keep_in_host: true,
       is_standalone: false,
       file_extension: 'R'
     }),
@@ -32,7 +30,6 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       language: 'python',
       pattern: '^%%(python|python2|python3|pypy)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
-      keep_in_host: false,
       is_standalone: true,
       file_extension: 'py'
     }),
@@ -40,7 +37,6 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       language: 'perl',
       pattern: '^%%(perl)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
-      keep_in_host: false,
       is_standalone: true,
       file_extension: 'pl'
     }),
@@ -48,15 +44,13 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       language: 'ruby',
       pattern: '^%%(ruby)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
-      keep_in_host: false,
       is_standalone: true,
       file_extension: 'rb'
     }),
     new RegExpForeignCodeExtractor({
       language: 'sh',
-      pattern: '^%%(sh)( .*?)?\n([^]*)',
+      pattern: '^%%(sh|bash)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
-      keep_in_host: false,
       is_standalone: true,
       file_extension: 'sh'
     }),
@@ -64,7 +58,6 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       language: 'html',
       pattern: '^%%(html --isolated)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
-      keep_in_host: false,
       is_standalone: true,
       file_extension: 'html'
     }),
@@ -75,7 +68,6 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       language: 'js',
       pattern: '^%%(js|javascript)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
-      keep_in_host: false,
       is_standalone: false,
       file_extension: 'js'
     }),
@@ -83,7 +75,6 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       language: 'html',
       pattern: '^%%(html)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
-      keep_in_host: false,
       is_standalone: false,
       file_extension: 'html'
     }),
@@ -91,7 +82,6 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       language: 'latex',
       pattern: '^%%(latex)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
-      keep_in_host: false,
       is_standalone: false,
       file_extension: 'latex'
     }),
@@ -99,7 +89,6 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       language: 'markdown',
       pattern: '^%%(markdown)( .*?)?\n([^]*)',
       extract_to_foreign: '$3',
-      keep_in_host: false,
       is_standalone: false,
       file_extension: 'md'
     })

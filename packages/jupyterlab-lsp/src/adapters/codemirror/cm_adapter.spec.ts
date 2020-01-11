@@ -1,16 +1,19 @@
 import { expect } from 'chai';
 import { CodeMirrorAdapter } from './cm_adapter';
 import { LSPConnection } from '../../connection';
-import { IJupyterLabComponentsManager } from '../jupyterlab/jl_adapter';
+import {
+  IJupyterLabComponentsManager,
+  StatusMessage
+} from '../jupyterlab/jl_adapter';
 import { IRootPosition } from '../../positioning';
 import * as CodeMirror from 'codemirror';
 import { CodeMirrorLSPFeature } from './feature';
-import { FeatureTestEnvironment } from './testutils';
+import { FileEditorFeatureTestEnvironment } from './testutils';
 
 describe('CodeMirrorAdapter', () => {
-  let env: FeatureTestEnvironment;
+  let env: FileEditorFeatureTestEnvironment;
 
-  beforeEach(() => (env = new FeatureTestEnvironment()));
+  beforeEach(() => (env = new FileEditorFeatureTestEnvironment()));
   afterEach(() => env.dispose());
 
   describe('Works with VirtualFileEditor', () => {
@@ -19,6 +22,7 @@ describe('CodeMirrorAdapter', () => {
 
     it('updates on change', async () => {
       class UpdateReceivingFeature extends CodeMirrorLSPFeature {
+        name = 'UpdateReceivingFeature';
         public received_update = false;
         public last_change: CodeMirror.EditorChange = null;
         public last_change_position: IRootPosition;
@@ -41,7 +45,8 @@ describe('CodeMirrorAdapter', () => {
         virtual_editor,
         virtual_editor.virtual_document,
         connection,
-        dummy_components_manager
+        dummy_components_manager,
+        new StatusMessage()
       );
 
       let adapter = new CodeMirrorAdapter(

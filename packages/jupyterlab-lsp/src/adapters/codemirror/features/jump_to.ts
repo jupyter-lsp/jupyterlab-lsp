@@ -6,6 +6,7 @@ import { InputDialog } from '@jupyterlab/apputils';
 import { uri_to_contents_path, uris_equal } from '../../../utils';
 
 export class JumpToDefinition extends CodeMirrorLSPFeature {
+  name = 'JumpToDefinition';
   static commands: Array<IFeatureCommand> = [
     {
       id: 'jump-to-definition',

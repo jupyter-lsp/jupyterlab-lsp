@@ -1,22 +1,23 @@
 import {
+  ILabShell,
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
-import { INotebookTracker } from '@jupyterlab/notebook';
+import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
-import { IEditorTracker } from '@jupyterlab/fileeditor';
+import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ISettingRegistry } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 
 import { FileEditorJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/fileeditor';
 import { NotebookJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/notebook';
 
-import 'codemirror/addon/hint/show-hint.css';
-import 'codemirror/addon/hint/show-hint';
+// TODO: make use of it for jump target selection (requires to be added to package.json)?
+// import 'codemirror/addon/hint/show-hint.css';
+// import 'codemirror/addon/hint/show-hint';
 import '../style/index.css';
 
-import 'lsp-editor-adapter/lib/codemirror-lsp.css';
 import { ICompletionManager } from '@jupyterlab/completer';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { NotebookAdapter } from './adapters/jupyterlab/notebook';
@@ -30,6 +31,9 @@ import {
   NotebookCommandManager
 } from './command_manager';
 import IPaths = JupyterFrontEnd.IPaths;
+import { IStatusBar } from '@jupyterlab/statusbar';
+import { LSPStatus } from './adapters/jupyterlab/components/statusbar';
+import { IDocumentWidget } from '@jupyterlab/docregistry/lib/registry';
 
 const lsp_commands: Array<IFeatureCommand> = [].concat(
   ...lsp_features.map(feature => feature.commands)
@@ -48,7 +52,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
     IDocumentManager,
     ICompletionManager,
     IRenderMimeRegistry,
-    IPaths
+    IPaths,
+    ILabShell,
+    IStatusBar
   ],
   activate: (
     app: JupyterFrontEnd,
@@ -59,7 +65,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
     documentManager: IDocumentManager,
     completion_manager: ICompletionManager,
     rendermime_registry: IRenderMimeRegistry,
-    paths: IPaths
+    paths: IPaths,
+    labShell: ILabShell,
+    status_bar: IStatusBar
   ) => {
     // temporary workaround for getting the absolute path
     let server_root = paths.directories.serverRoot;
@@ -72,7 +80,16 @@ const plugin: JupyterFrontEndPlugin<void> = {
           user_settings.substring(0, user_settings.indexOf('/', 6))
         );
         console.log(
-          'Guessing the server root using user settings path',
+          'Guessing Linux the server root using user settings path',
+          server_root
+        );
+      } else if (user_settings.startsWith('/Users/')) {
+        server_root = server_root.replace(
+          '~',
+          user_settings.substring(0, user_settings.indexOf('/', 7))
+        );
+        console.log(
+          'Guessing Mac the server root using user settings path',
           server_root
         );
       } else {
@@ -81,6 +98,41 @@ const plugin: JupyterFrontEndPlugin<void> = {
         );
       }
     }
+
+    const status_bar_item = new LSPStatus();
+
+    labShell.currentChanged.connect(() => {
+      const current = labShell.currentWidget;
+      if (!current) {
+        return;
+      }
+      let adapter = null;
+      if (notebookTracker.has(current)) {
+        let id = (current as NotebookPanel).id;
+        adapter = notebook_adapters.get(id);
+      } else if (fileEditorTracker.has(current)) {
+        let id = (current as IDocumentWidget<FileEditor>).content.id;
+        adapter = file_editor_adapters.get(id);
+      }
+
+      if (adapter !== null) {
+        status_bar_item.model.adapter = adapter;
+      }
+    });
+
+    status_bar.registerStatusItem(
+      '@krassowski/jupyterlab-lsp:language-server-status',
+      {
+        item: status_bar_item,
+        align: 'left',
+        rank: 1,
+        isActive: () =>
+          labShell.currentWidget &&
+          (fileEditorTracker.currentWidget || notebookTracker.currentWidget) &&
+          (labShell.currentWidget === fileEditorTracker.currentWidget ||
+            labShell.currentWidget === notebookTracker.currentWidget)
+      }
+    );
 
     fileEditorTracker.widgetUpdated.connect((sender, widget) => {
       console.log(sender);
@@ -109,6 +161,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     let command_manager = new FileEditorCommandManager(
       app,
+      palette,
       fileEditorTracker,
       'file_editor'
     );
@@ -136,6 +189,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     // TODO: PR bumping rank of clear all outputs instead?
     let notebook_command_manager = new NotebookCommandManager(
       app,
+      palette,
       notebookTracker,
       'notebook',
       // adding a very small number (epsilon) places the group just after 10th entry

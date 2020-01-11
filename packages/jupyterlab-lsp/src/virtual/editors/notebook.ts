@@ -1,7 +1,6 @@
-import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
+import { Notebook } from '@jupyterlab/notebook';
 import { Cell } from '@jupyterlab/cells';
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
-import { ShowHintOptions } from 'codemirror';
 import { IOverridesRegistry } from '../../magics/overrides';
 import { IForeignCodeExtractorsRegistry } from '../../extractors/types';
 import { VirtualEditor } from '../editor';
@@ -39,27 +38,24 @@ class DocDispatcher implements CodeMirror.Doc {
       );
   }
 
-  getValue(seperator?: string): string {
-    return this.virtual_editor.getValue();
-  }
-
   getCursor(start?: string): CodeMirror.Position {
     let cell = this.virtual_editor.notebook.activeCell;
     let active_editor = cell.editor as CodeMirrorEditor;
-    let cursor = active_editor.editor.getDoc().getCursor(start);
+    let cursor = active_editor.editor
+      .getDoc()
+      .getCursor(start) as IEditorPosition;
     return this.virtual_editor.transform_from_notebook_to_root(cell, cursor);
   }
 }
 
 export class VirtualEditorForNotebook extends VirtualEditor {
-  notebook: Notebook;
-  notebook_panel: NotebookPanel;
-
   cell_to_corresponding_source_line: Map<Cell, number>;
   cm_editor_to_cell: Map<CodeMirror.Editor, Cell>;
+  has_cells = true;
 
   constructor(
-    notebook_panel: NotebookPanel,
+    public notebook: Notebook,
+    private wrapper: HTMLElement,
     language: () => string,
     file_extension: () => string,
     overrides_registry: IOverridesRegistry,
@@ -69,12 +65,11 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     super(
       language,
       file_extension,
-      path,
+      () => path() + '.' + file_extension(),
       overrides_registry,
-      foreign_code_extractors
+      foreign_code_extractors,
+      false
     );
-    this.notebook_panel = notebook_panel;
-    this.notebook = notebook_panel.content;
     this.cell_to_corresponding_source_line = new Map();
     this.cm_editor_to_cell = new Map();
     this.overrides_registry = overrides_registry;
@@ -101,7 +96,7 @@ export class VirtualEditorForNotebook extends VirtualEditor {
 
   transform_from_notebook_to_root(
     cell: Cell,
-    position: CodeMirror.Position
+    position: IEditorPosition
   ): IRootPosition {
     // TODO: if cell is not known, refresh
     let shift = this.cell_to_corresponding_source_line.get(cell);
@@ -109,7 +104,7 @@ export class VirtualEditorForNotebook extends VirtualEditor {
       throw Error('Cell not found in cell_line_map');
     }
     return {
-      ...position,
+      ...(position as CodeMirror.Position),
       line: position.line + shift
     } as IRootPosition;
   }
@@ -138,7 +133,6 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     return this.get_editor_at_root_line(position);
   }
 
-  showHint: (options: ShowHintOptions) => void;
   state: any;
 
   addKeyMap(map: string | CodeMirror.KeyMap, bottom?: boolean): void {
@@ -205,7 +199,7 @@ export class VirtualEditorForNotebook extends VirtualEditor {
         continue;
       }
 
-      return this.transform_from_notebook_to_root(cell, pos);
+      return this.transform_from_notebook_to_root(cell, pos as IEditorPosition);
     }
   }
 
@@ -317,7 +311,7 @@ export class VirtualEditorForNotebook extends VirtualEditor {
   }
 
   getWrapperElement(): HTMLElement {
-    return this.notebook_panel.node;
+    return this.wrapper;
   }
 
   heightAtLine(
@@ -362,6 +356,26 @@ export class VirtualEditorForNotebook extends VirtualEditor {
           callback(cm_editor);
         }
       });
+    }
+  }
+
+  /**
+   * Find a cell in notebook which uses given CodeMirror editor.
+   * This function is O(n) - when looking up many cells
+   * using a hashmap based approach may be more efficient.
+   * @param cm_editor
+   */
+  find_cell_by_editor(cm_editor: CodeMirror.Editor) {
+    let cells = this.notebook.widgets;
+    for (let i = 0; i < cells.length; i++) {
+      let cell = cells[i];
+      let cell_editor = (cell.editor as CodeMirrorEditor).editor;
+      if (cell_editor === cm_editor) {
+        return {
+          cell_id: i,
+          cell: cell
+        };
+      }
     }
   }
 }

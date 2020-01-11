@@ -2,32 +2,33 @@
 """
 import asyncio
 import atexit
+import os
+import string
 import subprocess
+from copy import copy
 from datetime import datetime, timezone
 
 from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
-from traitlets import Bunch, Instance, List, Set, Unicode, UseEnum, observe
+from traitlets import Bunch, Instance, Set, UseEnum, observe
 from traitlets.config import LoggingConfigurable
 
 from . import stdio
+from .schema import LANGUAGE_SERVER_SPEC
+from .trait_types import Schema
 from .types import SessionStatus
+
+# these are not desirable to publish to the frontend
+SKIP_JSON_SPEC = ["argv", "debug_argv", "env"]
 
 
 class LanguageServerSession(LoggingConfigurable):
     """ Manage a session for a connection to a language server
     """
 
-    argv = List(
-        trait=Unicode,
-        default_value=[],
-        help="the command line arguments to start the language server",
-    )
-    languages = List(
-        trait=Unicode,
-        default_value=[],
-        help="the languages this session can provide language server features",
-    )
+    spec = Schema(LANGUAGE_SERVER_SPEC)
+
+    # run-time specifics
     process = Instance(
         subprocess.Popen, help="the language server subprocess", allow_none=True
     )
@@ -50,6 +51,8 @@ class LanguageServerSession(LoggingConfigurable):
 
     _tasks = None
 
+    _skip_serialize = ["argv", "debug_argv"]
+
     def __init__(self, *args, **kwargs):
         """ set up the required traitlets and exit behavior for a session
         """
@@ -57,13 +60,12 @@ class LanguageServerSession(LoggingConfigurable):
         atexit.register(self.stop)
 
     def __repr__(self):  # pragma: no cover
-        return "<LanguageServerSession(languages={}, argv={})>".format(
-            self.languages, self.argv
+        return "<LanguageServerSession(languages={languages}, argv={argv})>".format(
+            **self.spec
         )
 
     def to_json(self):
         return dict(
-            languages=self.languages,
             handler_count=len(self.handlers),
             status=self.status.value,
             last_server_message_at=self.last_server_message_at.isoformat()
@@ -72,6 +74,7 @@ class LanguageServerSession(LoggingConfigurable):
             last_handler_message_at=self.last_handler_message_at.isoformat()
             if self.last_handler_message_at
             else None,
+            spec={k: v for k, v in self.spec.items() if k not in SKIP_JSON_SPEC},
         )
 
     def initialize(self):
@@ -135,7 +138,10 @@ class LanguageServerSession(LoggingConfigurable):
         """ start the language server subprocess
         """
         self.process = subprocess.Popen(
-            self.argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE
+            self.spec["argv"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            env=self.substitute_env(self.spec.get("env", {}), os.environ),
         )
 
     def init_queues(self):
@@ -158,6 +164,14 @@ class LanguageServerSession(LoggingConfigurable):
             stream=self.process.stdin, queue=self.to_lsp, parent=self
         )
 
+    def substitute_env(self, env, base):
+        final_env = copy(os.environ)
+
+        for key, value in env.items():
+            final_env.update({key: string.Template(value).safe_substitute(base)})
+
+        return final_env
+
     async def _read_lsp(self):
         await self.reader.read()
 
@@ -168,8 +182,7 @@ class LanguageServerSession(LoggingConfigurable):
         """ loop for reading messages from the queue of messages from the language
             server
         """
-        async for msg in self.from_lsp:
+        async for message in self.from_lsp:
             self.last_server_message_at = self.now()
-            for handler in self.handlers:
-                handler.write_message(msg)
+            await self.parent.on_server_message(message, self)
             self.from_lsp.task_done()

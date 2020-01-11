@@ -26,6 +26,9 @@ install:
   - python3 -m pip install dist/jupyter_lsp*.whl --no-deps -vv
   - jlpm
 
+before_script:
+  - jlpm build
+
 script:
   - jlpm test
   - python3 -m jupyter serverextension list

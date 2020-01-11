@@ -4,12 +4,24 @@ Releases may require building both the python package and nodejs packages.
 
 ## Updating Version Strings
 
-The version for PyPI must be updated in two places:
+Check the version strings across the various files:
 
-- `py_src/jupyter_lsp/_version.py`
+```bash
+python scripts/integrity.py
+```
+
+> TODO: create a `release.py` script
+> [#88](https://github.com/krassowski/jupyterlab-lsp/issues/88)
+
+The PyPI version must be updated in the following places:
+
+- `py_src/jupyter_lsp/_version.py` (canonical)
 - `azure-pipelines.yml`
+- `CHANGELOG.md`
 
-The version for npm must be updated in two places:
+The npm version must be updated in the following places
 
-- `package.json`
+- `packages/jupyterlab-lsp/package.json` (canonical)
 - `azure-pipelines.yml`
+- `packages/metapackage/package.json`
+- `CHANGELOG.md`

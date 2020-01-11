@@ -29,13 +29,18 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
    * Signal emitted by the editor that triggered the update, providing the root document of the updated documents.
    */
   private documents_updated: Signal<VirtualEditor, VirtualDocument>;
+  /**
+   * Whether the editor reflects an interface with multiple cells (such as a notebook)
+   */
+  has_cells: boolean;
 
   public constructor(
     protected language: () => string,
     protected file_extension: () => string,
     protected path: () => string,
     protected overrides_registry: IOverridesRegistry,
-    protected foreign_code_extractors: IForeignCodeExtractorsRegistry
+    protected foreign_code_extractors: IForeignCodeExtractorsRegistry,
+    public has_lsp_supported_file: boolean
   ) {
     this.create_virtual_document();
     this.documents_updated = new Signal<VirtualEditor, VirtualDocument>(this);
@@ -49,7 +54,8 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
       this.overrides_registry,
       this.foreign_code_extractors,
       false,
-      this.file_extension()
+      this.file_extension(),
+      this.has_lsp_supported_file
     );
   }
 
@@ -96,7 +102,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
    * @param fn - the callback to execute in update lock
    */
   public async with_update_lock(fn: Function) {
-    await until_ready(() => this.can_update(), 10, 10).then(() => {
+    await until_ready(() => this.can_update(), 12, 10).then(() => {
       try {
         this.update_lock = true;
         fn();

@@ -3,15 +3,13 @@ Suite Setup       Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}sm
 Resource          Keywords.robot
 
 *** Test Cases ***
-Smoke
-    Capture Page Screenshot    00-splash.png
+Lab Version
+    Capture Page Screenshot    00-smoke.png
+    ${script} =    Get Element Attribute    id:jupyter-config-data    innerHTML
+    ${config} =    Evaluate    __import__("json").loads("""${script}""")
+    Set Global Variable    ${PAGE CONFIG}    ${config}
+    Set Global Variable    ${LAB VERSION}    ${config["appVersion"]}
 
-Settings
-    [Setup]    Reset Application State
-    Lab Command    Advanced Settings Editor
-    Capture Page Screenshot    01-settings-all.png
-    ${sel} =    Set Variable    css:[data-id="@krassowski/jupyterlab-lsp:plugin"]
-    Wait Until Page Contains Element    ${sel}
-    Click Element    ${sel}
-    Wait Until Page Contains    System Defaults
-    Capture Page Screenshot    02-settings-lsp.png
+Root URI
+    [Documentation]    the rootUri should be set in the page config
+    Should Not Be Empty    ${PAGE CONFIG["rootUri"]}

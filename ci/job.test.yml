@@ -12,8 +12,10 @@ parameters:
   pythons:
     - name: ThreeSix
       spec: '>=3.6,<3.7.0a0'
+      lab: '>=1.1,<1.2.0a0'
     - name: ThreeSeven
       spec: '>=3.7,<3.8.0a0'
+      lab: '>=1.2.3,<1.3.0a0'
   env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
   lab_ext: jupyter labextension install --no-build $(THIRD_PARTY_LABEXTENSIONS) $(FIRST_PARTY_LABEXTENSIONS)
 
@@ -28,8 +30,8 @@ jobs:
                 parameters:
                   name: ${{ platform.name }}
 
-              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}"
-                displayName: update environment with python version
+              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" "${{ python.lab }}"
+                displayName: update environment with python and lab version
 
               - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
                 displayName: update conda environment with test dependencies
@@ -37,11 +39,12 @@ jobs:
               - script: conda info && conda list -n jupyterlab-lsp
                 displayName: list conda packages and info
 
-              - task: CacheBeta@0
-                inputs:
-                  key: yarn | $(Agent.OS) | yarn.lock
-                  path: $(YARN_CACHE_FOLDER)
-                displayName: restore cached yarn packages
+              # TODO: determine how can bring this back to get more robust installs (see #115)
+              # - task: CacheBeta@0
+              #   inputs:
+              #     key: yarn | $(Agent.OS) | yarn.lock
+              #     path: $(YARN_CACHE_FOLDER)
+              #   displayName: restore cached yarn packages
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm || jlpm || jlpm
                 displayName: install npm dependencies
@@ -83,7 +86,7 @@ jobs:
               - script: ${{ platform.activate }} jupyterlab-lsp && ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }}
                 displayName: install labextensions
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter lab build || jupyter lab build --debug || jupyter lab build --debug
+              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter lab build --dev-mode=False --minimize=True || jupyter lab build --debug --dev-mode=False --minimize=True || jupyter lab build --debug
                 displayName: build lab
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jupyter labextension list
