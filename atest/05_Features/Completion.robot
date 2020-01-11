@@ -50,6 +50,15 @@ Autocompletes If Only One Option
     Wait Until Keyword Succeeds    20x    0.5s    Cell Editor Should Equal    3    list.clear
     [Teardown]    Clean Up After Working With File    Completion.ipynb
 
+User Can Select Lowercase After Starting Uppercase
+    Setup Notebook    Python    Completion.ipynb
+    Enter Cell Editor    4    line=1
+    Trigger Completer
+    Completer Should Suggest  time
+    Press Keys    None    ENTER
+    Wait Until Keyword Succeeds    20x    0.5s    Cell Editor Should Equal    4    from time import time
+    [Teardown]    Clean Up After Working With File    Completion.ipynb
+
 *** Keywords ***
 Enter Cell Editor
     [Arguments]    ${cell_nr}    ${line}=1

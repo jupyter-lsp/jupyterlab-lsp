@@ -46,6 +46,10 @@
   - completion now work properly when the kernel is shut down (
     [#146](https://github.com/krassowski/jupyterlab-lsp/pull/146)
     )
+  - a lowercase completion option selected from an uppercase token
+    will now correctly substitute the incomplete token (
+    [#143](https://github.com/krassowski/jupyterlab-lsp/pull/143)
+    )
   - `didSave()` is emitted on file save, enabling the workaround
     used by R language server to lazily load `library(tidyverse)` (
     [#95](https://github.com/krassowski/jupyterlab-lsp/pull/95),
