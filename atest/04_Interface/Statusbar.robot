@@ -17,3 +17,4 @@ Statusbar Popup Opens
     Capture Page Screenshot    01-statusbar.png
     Element Should Contain    ${POPOVER}    python
     Element Should Contain    ${POPOVER}    initialized
+    [Teardown]    Clean Up After Working With File    Python.ipynb
