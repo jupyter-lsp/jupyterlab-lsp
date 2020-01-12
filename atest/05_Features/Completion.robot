@@ -66,7 +66,7 @@ Triggers Completer On Dot
     Wait Until Fully Initialized
     Press Keys    None    .
     Wait Until Keyword Succeeds  10x   0.5s   Cell Editor Should Equal  2   list.
-    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=25s
+    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=35s
     Completer Should Suggest    append
     [Teardown]    Clean Up After Working With File    Completion.ipynb
 
@@ -91,4 +91,4 @@ Completer Should Not Suggest
 
 Trigger Completer
     Press Keys    None    TAB
-    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=25s
+    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=35s
