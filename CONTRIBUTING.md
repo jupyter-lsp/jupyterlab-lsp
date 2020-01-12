@@ -16,7 +16,7 @@ You can contribute to the project through:
 - proposing parts of the architecture that can be [extended](./EXTENDING.md)
 - improving [documentation](#Documentation)
 - tackling Big Issues from the [future roadmap](./ROADMAP.md)
-- improving [testing](#Testing)
+- improving testing
 - reviewing pull requests
 
 [jupyterlab-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
@@ -74,6 +74,15 @@ jlpm build
 jlpm lab:link
 ```
 
+If `npm` dependencies did not get installed, you can trigger installation script for each package separately:
+
+```bash
+cd packages/jupyterlab-lsp
+jlpm install
+cd ../lsp-ws-connection
+npm install
+```
+
 ## Frontend Development
 
 To rebuild the schemas, packages, and the JupyterLab app:
@@ -129,7 +138,7 @@ Language Server features with [Robot Framework][] and [SeleniumLibrary][].
 First, ensure you've prepared JupyterLab for `jupyterlab-lsp`
 [frontend](#frontend-development) and [server](#server-development) development.
 
-Prepare the enviroment:
+Prepare the environment:
 
 ```bash
 conda env update -n jupyterlab-lsp --file environment-atest.yml
@@ -188,6 +197,8 @@ atest/
 - To display logs on the screenshots, write logs with `virtual_editor.console.log` method,
   and change `create_console('browser')` to `create_console('floating')` in `VirtualEditor`
   constructor (please feel free to add a config option for this).
+
+-
 
 ### Formatting
 
