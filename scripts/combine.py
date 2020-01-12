@@ -24,7 +24,8 @@ def combine_robot_reports():
         *OUT.glob("*.robot.xml"),
     ]
 
-    rebot_cli(args, exit=False)
+    return_code = rebot_cli(args, exit=False)
+    print("rebot returned", return_code)
 
     return 0
 
