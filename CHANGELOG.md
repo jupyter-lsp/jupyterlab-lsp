@@ -39,7 +39,8 @@
   - rpy2 magics received enhanced support for argument parsing
     in both parent Python document (re-written overrides) and
     exctracted R documents (improved foreign code extractor) (
-    [#148](https://github.com/krassowski/jupyterlab-lsp/pull/148)
+    [#148](https://github.com/krassowski/jupyterlab-lsp/pull/148),
+    [#153](https://github.com/krassowski/jupyterlab-lsp/pull/153)
     )
   - console logs can now easily be redirected to a floating console
     windows for debugging of the browser tests (see CONTRIBUTING.md)
