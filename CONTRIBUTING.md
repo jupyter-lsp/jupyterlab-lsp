@@ -183,10 +183,17 @@ python scripts/atest.py --test "Works With Kernel Running"
 
 ##### Run test with a tag
 
-Tags are preferrable in many settings, as they are aggregated nicely between runs
+Tags are preferrable to file names and test name matching in many settings, as
+they are aggregated nicely between runs.
 
 ```bash
 python scripts/atest.py --include feature:completion
+```
+
+... or only Python completion
+
+```bash
+python scripts/atest.py --include feature:completionANDlanguage:python
 ```
 
 ##### Just Keep Testing with `ATEST_RETRIES`
