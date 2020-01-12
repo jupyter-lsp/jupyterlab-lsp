@@ -10,8 +10,9 @@
 - system of settings, including options:
   - to enable aggressive autocompletion (like in hinterland)
   - to change the verbosity of signature hints (whether to show documentation, number of lines to be shown)
-- "rename" action in notebooks
-- gutter with linter results (low priority)
+  - custom foreign extractors allowing to customize behaviour for magics
+- code actions (allowing to "quick fix" a typo, etc.)
+- gutter with linter results
 - use the kernel session for autocompletion in FileEditor if available (PR welcome)
 
 ## Backend
