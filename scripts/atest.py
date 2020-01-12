@@ -5,6 +5,7 @@ import os
 import platform
 import shutil
 import sys
+import time
 from pathlib import Path
 
 import robot
@@ -95,7 +96,9 @@ def attempt_atest_with_retries(*extra_args):
     while error_count != 0 and attempt <= retries:
         attempt += 1
         print("attempt {} of {}...".format(attempt, retries + 1))
+        start_time = time.time()
         error_count = atest(attempt=attempt, extra_args=list(extra_args))
+        print(error_count, "errors in", int(time.time() - start_time), "seconds")
 
     return error_count
 
