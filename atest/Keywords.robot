@@ -78,7 +78,7 @@ Ensure All Kernels Are Shut Down
     Enter Command Name    Shut Down All Kernels
     ${els} =    Get WebElements    ${CMD PALETTE ITEM ACTIVE}
     Run Keyword If    ${els.__len__()}    Click Element    ${CMD PALETTE ITEM ACTIVE}
-    ${accept} =   Set Variable    css:.jp-mod-accept.jp-mod-warn
+    ${accept} =    Set Variable    css:.jp-mod-accept.jp-mod-warn
     Run Keyword If    ${els.__len__()}    Wait Until Page Contains Element    ${accept}
     Run Keyword If    ${els.__len__()}    Click Element    ${accept}
 

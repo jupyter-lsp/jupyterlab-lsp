@@ -55,7 +55,7 @@ User Can Select Lowercase After Starting Uppercase
     Setup Notebook    Python    Completion.ipynb
     Enter Cell Editor    4    line=1
     Trigger Completer
-    Completer Should Suggest  time
+    Completer Should Suggest    time
     Press Keys    None    ENTER
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    4    from time import time
     [Teardown]    Clean Up After Working With File    Completion.ipynb
@@ -65,7 +65,7 @@ Triggers Completer On Dot
     Enter Cell Editor    2    line=1
     Wait Until Fully Initialized
     Press Keys    None    .
-    Wait Until Keyword Succeeds  10x   0.5s   Cell Editor Should Equal  2   list.
+    Wait Until Keyword Succeeds    10x    0.5s    Cell Editor Should Equal    2    list.
     Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=35s
     Completer Should Suggest    append
     [Teardown]    Clean Up After Working With File    Completion.ipynb

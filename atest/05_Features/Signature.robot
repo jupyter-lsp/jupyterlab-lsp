@@ -11,8 +11,8 @@ Triggers Signature Help After A Keystroke
     Wait Until Fully Initialized
     Enter Cell Editor    1    line=6
     Capture Page Screenshot    01-entered-cell.png
-    Press Keys     None    (
+    Press Keys    None    (
     Capture Page Screenshot    02-signature-shown.png
-    Wait Until Keyword Succeeds   20x    0.5s    Page Should Contain Element    ${SIGNATURE_BOX}
-    Element Should Contain   ${SIGNATURE_BOX}    Important docstring of abc()
+    Wait Until Keyword Succeeds    20x    0.5s    Page Should Contain Element    ${SIGNATURE_BOX}
+    Element Should Contain    ${SIGNATURE_BOX}    Important docstring of abc()
     [Teardown]    Clean Up After Working With File    Signature.ipynb
