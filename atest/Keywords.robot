@@ -28,6 +28,10 @@ Setup Server and Browser
     ...    stderr=STDOUT
     Set Global Variable    ${SERVER}    ${server}
     Open JupyterLab
+    ${script} =    Get Element Attribute    id:jupyter-config-data    innerHTML
+    ${config} =    Evaluate    __import__("json").loads("""${script}""")
+    Set Global Variable    ${PAGE CONFIG}    ${config}
+    Set Global Variable    ${LAB VERSION}    ${config["appVersion"]}
 
 Setup Suite For Screenshots
     [Arguments]    ${folder}

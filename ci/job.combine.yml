@@ -6,6 +6,7 @@ parameters:
   pythons:
     - ThreeSix
     - ThreeSeven
+    - ThreeEight
   install_robot: conda install -yc conda-forge robotframework
 
 jobs:
