@@ -16,11 +16,33 @@ OUT = ATEST / "output"
 OS = platform.system()
 PY = "".join(map(str, sys.version_info[:2]))
 
+OS_PY_ARGS = {
+    # notebook and ipykernel releases do not yet support python 3.8 on windows
+    ("Windows", "38"): ["--exclude", "*"]
+}
+
+
+def get_stem(attempt, extra_args):
+    stem = "_".join([OS, PY, str(attempt)]).replace(".", "_").lower()
+
+    if "--dryrun" in extra_args:
+        stem = f"dry_run_{stem}"
+
+    return stem
+
 
 def atest(attempt, extra_args):
     """ perform a single attempt of the acceptance tests
     """
-    stem = "_".join([OS, PY, str(attempt)]).replace(".", "_").lower()
+    extra_args += OS_PY_ARGS.get((OS, PY), [])
+
+    stem = get_stem(attempt, extra_args)
+
+    if attempt != 1:
+        previous = OUT / f"{get_stem(attempt - 1, extra_args)}.robot.xml"
+        if previous.exists():
+            extra_args += ["--rerunfailed", str(previous)]
+
     out_dir = OUT / stem
 
     args = [
@@ -71,7 +93,7 @@ def attempt_atest_with_retries(*extra_args):
     while error_count != 0 and attempt <= retries:
         attempt += 1
         print("attempt {} of {}...".format(attempt, retries + 1))
-        error_count = atest(attempt=attempt, extra_args=extra_args)
+        error_count = atest(attempt=attempt, extra_args=list(extra_args))
 
     return error_count
 
