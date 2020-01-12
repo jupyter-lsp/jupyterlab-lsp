@@ -9,12 +9,16 @@
   [#140](https://github.com/krassowski/jupyterlab-lsp/pull/140)
   )
 
-## `@krassowski/jupyterlab-lsp 0.7.0-rc.1`
+## `@krassowski/jupyterlab-lsp 0.7.0`
 
 - features
 
-  - reduced space taken up by the statusbar indicator
-  - implemented statusbar popover with connections statuses
+  - reduced space taken up by the statusbar indicator (
+    [#106](https://github.com/krassowski/jupyterlab-lsp/pull/106)
+    )
+  - implemented statusbar popover with connections statuses (
+    [#106](https://github.com/krassowski/jupyterlab-lsp/pull/106)
+    )
   - generates types for server data responses from JSON schema (
     [#110](https://github.com/krassowski/jupyterlab-lsp/pull/110)
     )

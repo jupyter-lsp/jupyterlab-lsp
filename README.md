@@ -58,6 +58,20 @@ Advanced static-analysis autocompletion without a running kernel
 > dict and columns of a DataFrame autocompletion) are merged with the suggestions
 > from the Language Server (currently only in notebook).
 
+### Rename
+
+Rename variables, functions and more, in both: notebooks and the file editor.
+Use the context menu option or the <kbd>F2</kbd> shortcut to invoke.
+
+![rename](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/rename.png)
+
+### Diagnostics panel
+
+Sort and jump between the diagnostics using the diagnostics panel.
+Open it searching for "Show diagnostics panel" in JupyterLab commands palette or from the context menu.
+
+![panel](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/panel.png)
+
 ## Prerequisites
 
 Either:
