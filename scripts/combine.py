@@ -24,7 +24,9 @@ def combine_robot_reports():
         *OUT.glob("*.robot.xml"),
     ]
 
-    return rebot_cli(args, exit=False)
+    rebot_cli(args, exit=False)
+
+    return 0
 
 
 if __name__ == "__main__":
