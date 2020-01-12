@@ -13,6 +13,8 @@ OS_PY_ARGS = {
     ("Windows", "38"): ["-k", "not serverextension"]
 }
 
+DEFAULT_ARGS = ["--cov-fail-under=100"]
+
 
 def run_tests():
     """ actually run the tests
@@ -27,9 +29,8 @@ def run_tests():
         "-p",
         "no:warnings",
         "--flake8",
-        "--cov-fail-under=100",
         "-vv",
-        *OS_PY_ARGS.get((OS, PY), []),
+        *OS_PY_ARGS.get((OS, PY), DEFAULT_ARGS),
     ] + list(sys.argv[1:])
 
     return pytest.main(args)
