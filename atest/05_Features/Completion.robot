@@ -3,14 +3,13 @@ Suite Setup       Setup Suite For Screenshots    completion
 Resource          ../Keywords.robot
 
 *** Variables ***
-${STATUSBAR}      css:div.lsp-statusbar-item
 ${COMPLETER_BOX}    css:.jp-Completer.jp-HoverBox
 
 *** Test Cases ***
 Works With Kernel Running
     [Documentation]    The suggestions from kernel and LSP should get integrated.
     Setup Notebook    Python    Completion.ipynb
-    Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=20s
+    Wait Until Fully Initialized
     Enter Cell Editor    1    line=2
     Capture Page Screenshot    01-entered-cell.png
     Trigger Completer
@@ -29,6 +28,7 @@ Works With Kernel Running
 
 Works When Kernel Is Shut Down
     Setup Notebook    Python    Completion.ipynb
+    Wait Until Fully Initialized
     Lab Command    Shut Down All Kernels…
     Capture Page Screenshot    01-shutting-kernels.png
     Accept Default Dialog Option
@@ -46,6 +46,7 @@ Autocompletes If Only One Option
     Setup Notebook    Python    Completion.ipynb
     Enter Cell Editor    3    line=1
     Press Keys    None    cle
+    Wait Until Fully Initialized
     Press Keys    None    TAB
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    3    list.clear
     [Teardown]    Clean Up After Working With File    Completion.ipynb
@@ -54,17 +55,22 @@ User Can Select Lowercase After Starting Uppercase
     Setup Notebook    Python    Completion.ipynb
     Enter Cell Editor    4    line=1
     Trigger Completer
-    Completer Should Suggest  time
+    Completer Should Suggest    time
     Press Keys    None    ENTER
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    4    from time import time
     [Teardown]    Clean Up After Working With File    Completion.ipynb
 
-*** Keywords ***
-Enter Cell Editor
-    [Arguments]    ${cell_nr}    ${line}=1
-    Click Element    css:.jp-CodeCell:nth-child(${cell_nr}) .CodeMirror-line:nth-child(${line})
-    Wait Until Page Contains Element    css:.jp-CodeCell:nth-child(${cell_nr}) .CodeMirror-focused
+Triggers Completer On Dot
+    Setup Notebook    Python    Completion.ipynb
+    Enter Cell Editor    2    line=1
+    Wait Until Fully Initialized
+    Press Keys    None    .
+    Wait Until Keyword Succeeds    10x    0.5s    Cell Editor Should Equal    2    list.
+    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=35s
+    Completer Should Suggest    append
+    [Teardown]    Clean Up After Working With File    Completion.ipynb
 
+*** Keywords ***
 Get Cell Editor Content
     [Arguments]    ${cell_nr}
     ${content}    Execute JavaScript    return document.querySelector('.jp-CodeCell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()
@@ -85,4 +91,4 @@ Completer Should Not Suggest
 
 Trigger Completer
     Press Keys    None    TAB
-    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=15s
+    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=35s

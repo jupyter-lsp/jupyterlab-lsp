@@ -323,7 +323,7 @@ export class LspWsConnection extends events.EventEmitter
 
     const code = this.documentInfo.documentText();
     const lines = code.split('\n');
-    const typedCharacter = lines[location.line][location.ch];
+    const typedCharacter = lines[location.line][location.ch - 1];
 
     const triggers =
       this.serverCapabilities?.signatureHelpProvider?.triggerCharacters || [];

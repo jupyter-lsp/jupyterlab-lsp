@@ -21,3 +21,4 @@ ${DIAGNOSTIC PANEL CLOSE}    css:.p-DockPanel-tabBar .p-TabBar-tab[data-id="lsp-
 ${DIALOG WINDOW}    css:.jp-Dialog
 ${DIALOG INPUT}    css:.jp-Input-Dialog input
 ${DIALOG ACCEPT}    css:button.jp-Dialog-button.jp-mod-accept
+${STATUSBAR}      css:div.lsp-statusbar-item

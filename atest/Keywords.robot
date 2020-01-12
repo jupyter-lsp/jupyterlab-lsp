@@ -78,7 +78,9 @@ Ensure All Kernels Are Shut Down
     Enter Command Name    Shut Down All Kernels
     ${els} =    Get WebElements    ${CMD PALETTE ITEM ACTIVE}
     Run Keyword If    ${els.__len__()}    Click Element    ${CMD PALETTE ITEM ACTIVE}
-    Run Keyword If    ${els.__len__()}    Click Element    css:.jp-mod-accept.jp-mod-warn
+    ${accept} =    Set Variable    css:.jp-mod-accept.jp-mod-warn
+    Run Keyword If    ${els.__len__()}    Wait Until Page Contains Element    ${accept}
+    Run Keyword If    ${els.__len__()}    Click Element    ${accept}
 
 Open Command Palette
     Press Keys    id:main    ${ACCEL}+SHIFT+c
@@ -189,3 +191,11 @@ Wait For Dialog
 
 Gently Reset Workspace
     Lab Command    Close All Tabs
+
+Enter Cell Editor
+    [Arguments]    ${cell_nr}    ${line}=1
+    Click Element    css:.jp-CodeCell:nth-child(${cell_nr}) .CodeMirror-line:nth-child(${line})
+    Wait Until Page Contains Element    css:.jp-CodeCell:nth-child(${cell_nr}) .CodeMirror-focused
+
+Wait Until Fully Initialized
+    Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=35s
