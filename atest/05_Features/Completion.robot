@@ -1,5 +1,6 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    completion
+Force Tags        feature:completion
 Resource          ../Keywords.robot
 
 *** Variables ***
@@ -8,6 +9,7 @@ ${COMPLETER_BOX}    css:.jp-Completer.jp-HoverBox
 *** Test Cases ***
 Works With Kernel Running
     [Documentation]    The suggestions from kernel and LSP should get integrated.
+    [Tags]    language:python
     Setup Notebook    Python    Completion.ipynb
     Wait Until Fully Initialized
     Enter Cell Editor    1    line=2
@@ -27,6 +29,7 @@ Works With Kernel Running
     [Teardown]    Clean Up After Working With File    Completion.ipynb
 
 Works When Kernel Is Shut Down
+    [Tags]    language:python
     Setup Notebook    Python    Completion.ipynb
     Wait Until Fully Initialized
     Lab Command    Shut Down All Kernels…
@@ -43,6 +46,7 @@ Works When Kernel Is Shut Down
     [Teardown]    Clean Up After Working With File    Completion.ipynb
 
 Autocompletes If Only One Option
+    [Tags]    language:python
     Setup Notebook    Python    Completion.ipynb
     Enter Cell Editor    3    line=1
     Press Keys    None    cle
@@ -52,6 +56,7 @@ Autocompletes If Only One Option
     [Teardown]    Clean Up After Working With File    Completion.ipynb
 
 User Can Select Lowercase After Starting Uppercase
+    [Tags]    language:python
     Setup Notebook    Python    Completion.ipynb
     Enter Cell Editor    4    line=1
     Trigger Completer
@@ -61,6 +66,7 @@ User Can Select Lowercase After Starting Uppercase
     [Teardown]    Clean Up After Working With File    Completion.ipynb
 
 Triggers Completer On Dot
+    [Tags]    language:python
     Setup Notebook    Python    Completion.ipynb
     Enter Cell Editor    2    line=1
     Wait Until Fully Initialized
