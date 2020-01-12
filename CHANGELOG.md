@@ -9,7 +9,7 @@
   [#140](https://github.com/krassowski/jupyterlab-lsp/pull/140)
   )
 
-## `@krassowski/jupyterlab-lsp 0.7.0-rc.0`
+## `@krassowski/jupyterlab-lsp 0.7.0-rc.1`
 
 - features
 
