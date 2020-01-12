@@ -198,8 +198,6 @@ atest/
   and change `create_console('browser')` to `create_console('floating')` in `VirtualEditor`
   constructor (please feel free to add a config option for this).
 
--
-
 ### Formatting
 
 Minimal code style is enforced with `pytest-flake8` during unit testing. If installed,
