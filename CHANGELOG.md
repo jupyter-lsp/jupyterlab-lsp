@@ -2,8 +2,11 @@
 
 ## `lsp-ws-connection 0.3.1`
 
-- added sendSaved() method (textDocument/didSave) (
+- added `sendSaved()` method (textDocument/didSave) (
   [#147](https://github.com/krassowski/jupyterlab-lsp/pull/147)
+  )
+- fixed `getSignatureHelp()` off-by-one error (
+  [#140](https://github.com/krassowski/jupyterlab-lsp/pull/140)
   )
 
 ## `@krassowski/jupyterlab-lsp 0.7.0-rc.0`
@@ -63,6 +66,9 @@
     used by R language server to lazily load `library(tidyverse)` (
     [#95](https://github.com/krassowski/jupyterlab-lsp/pull/95),
     [#147](https://github.com/krassowski/jupyterlab-lsp/pull/147),
+    )
+  - signature feature is now correctly working in notebooks (
+    [#140](https://github.com/krassowski/jupyterlab-lsp/pull/140)
     )
 
 ## `lsp-ws-connection 0.3.0`
