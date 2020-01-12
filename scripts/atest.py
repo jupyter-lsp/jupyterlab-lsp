@@ -62,6 +62,8 @@ def atest(attempt, extra_args):
         f"OS:{OS}",
         "--variable",
         f"PY:{PY}",
+        "--randomize",
+        "all",
         *(extra_args or []),
         ATEST,
     ]
