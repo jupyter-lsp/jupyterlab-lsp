@@ -17,7 +17,7 @@ parameters:
       spec: '>=3.7,<3.8.0a0'
       lab: '>=1.2.4,<1.3.0a0'
     - name: ThreeEight
-      spec: '>=3.8,<3.7.0a0'
+      spec: '>=3.8,<3.9.0a0'
       lab: '>=1.2.4,<1.3.0a0'
   env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
   lab_ext: jupyter labextension install --no-build $(THIRD_PARTY_LABEXTENSIONS) $(FIRST_PARTY_LABEXTENSIONS)
