@@ -12,6 +12,13 @@ export interface ITokenInfo {
   text: string;
 }
 
+export interface IDocumentInfo {
+  uri: string;
+  version: number;
+  text: string;
+  languageId: string;
+}
+
 type ConnectionEvent =
   | 'completion'
   | 'completionResolved'
@@ -65,19 +72,24 @@ export interface ILspConnection {
    */
   sendInitialize(): void;
   /**
+   * Inform the server that the document was opened
+   */
+  sendOpen(documentInfo: IDocumentInfo): void;
+  /**
    * Sends the full text of the document to the server
    */
-  sendChange(): void;
+  sendChange(documentInfo: IDocumentInfo): void;
   /**
    * Requests additional information for a particular character
    */
-  getHoverTooltip(position: IPosition): void;
+  getHoverTooltip(position: IPosition, documentInfo: IDocumentInfo): void;
   /**
    * Request possible completions from the server
    */
   getCompletion(
     location: IPosition,
     token: ITokenInfo,
+    documentInfo: IDocumentInfo,
     triggerCharacter?: string,
     triggerKind?: lsProtocol.CompletionTriggerKind
   ): void;
@@ -88,31 +100,31 @@ export interface ILspConnection {
   /**
    * Request possible signatures for the current method
    */
-  getSignatureHelp(position: IPosition): void;
+  getSignatureHelp(position: IPosition, documentInfo: IDocumentInfo): void;
   /**
    * Request all matching symbols in the document scope
    */
-  getDocumentHighlights(position: IPosition): void;
+  getDocumentHighlights(position: IPosition, documentInfo: IDocumentInfo): void;
   /**
    * Request a link to the definition of the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  getDefinition(position: IPosition): void;
+  getDefinition(position: IPosition, documentInfo: IDocumentInfo): void;
   /**
    * Request a link to the type definition of the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  getTypeDefinition(position: IPosition): void;
+  getTypeDefinition(position: IPosition, documentInfo: IDocumentInfo): void;
   /**
    * Request a link to the implementation of the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  getImplementation(position: IPosition): void;
+  getImplementation(position: IPosition, documentInfo: IDocumentInfo): void;
   /**
    * Request a link to all references to the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  getReferences(position: IPosition): void;
+  getReferences(position: IPosition, documentInfo: IDocumentInfo): void;
 
   // TODO:
   // Workspaces: Not in scope
@@ -139,8 +151,6 @@ export interface ILspConnection {
 
   getLanguageCompletionCharacters(): string[];
   getLanguageSignatureCharacters(): string[];
-
-  getDocumentUri(): string;
 
   /**
    * Does the server support go to definition?
@@ -276,8 +286,6 @@ export interface ITextEditorOptions {
 export interface ILspOptions {
   serverUri: string;
   languageId: string;
-  documentUri: string;
-  documentText: () => string;
   rootUri: string;
 }
 

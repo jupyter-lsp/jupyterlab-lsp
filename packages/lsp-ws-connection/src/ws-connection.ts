@@ -6,7 +6,13 @@ import {
   registerServerCapability,
   unregisterServerCapability
 } from './server-capability-registration';
-import { ILspConnection, ILspOptions, IPosition, ITokenInfo } from './types';
+import {
+  ILspConnection,
+  ILspOptions,
+  IPosition,
+  ITokenInfo,
+  IDocumentInfo
+} from './types';
 
 /**
  * Changes as compared to upstream:
@@ -23,12 +29,16 @@ export class LspWsConnection extends events.EventEmitter
   public documentInfo: ILspOptions;
   public serverCapabilities: protocol.ServerCapabilities;
   protected socket: WebSocket;
-  protected documentVersion = 0;
   protected connection: MessageConnection;
+  private rootUri: string;
 
   constructor(options: ILspOptions) {
     super();
-    this.documentInfo = options;
+    this.rootUri = options.rootUri;
+  }
+
+  get isReady() {
+    return this.isConnected && this.isInitialized;
   }
 
   /**
@@ -120,10 +130,6 @@ export class LspWsConnection extends events.EventEmitter
     this.socket.close();
   }
 
-  public getDocumentUri() {
-    return this.documentInfo.documentUri;
-  }
-
   /**
    * Initialization parameters to be sent to the language server.
    * Subclasses can overload this when adding more features.
@@ -184,7 +190,7 @@ export class LspWsConnection extends events.EventEmitter
       } as protocol.ClientCapabilities,
       initializationOptions: null,
       processId: null,
-      rootUri: this.documentInfo.rootUri,
+      rootUri: this.rootUri,
       workspaceFolders: null
     };
   }
@@ -208,38 +214,51 @@ export class LspWsConnection extends events.EventEmitter
       );
   }
 
-  public sendChange() {
-    if (!this.isConnected || !this.isInitialized) {
+  public sendOpen(documentInfo: IDocumentInfo) {
+    const textDocumentMessage: protocol.DidOpenTextDocumentParams = {
+      textDocument: {
+        uri: documentInfo.uri,
+        languageId: documentInfo.languageId,
+        text: documentInfo.text,
+        version: documentInfo.version
+      } as protocol.TextDocumentItem
+    };
+    this.connection.sendNotification(
+      'textDocument/didOpen',
+      textDocumentMessage
+    );
+    this.sendChange(documentInfo);
+  }
+
+  public sendChange(documentInfo: IDocumentInfo) {
+    if (!this.isReady) {
       return;
     }
     const textDocumentChange: protocol.DidChangeTextDocumentParams = {
       textDocument: {
-        uri: this.documentInfo.documentUri,
-        version: this.documentVersion
+        uri: documentInfo.uri,
+        version: documentInfo.version
       } as protocol.VersionedTextDocumentIdentifier,
-      contentChanges: [
-        {
-          text: this.documentInfo.documentText()
-        }
-      ]
+      contentChanges: [{ text: documentInfo.text }]
     };
     this.connection.sendNotification(
       'textDocument/didChange',
       textDocumentChange
     );
-    this.documentVersion++;
+    documentInfo.version++;
   }
 
-  public sendSaved() {
-    if (!this.isConnected || !this.isInitialized) {
+  public sendSaved(documentInfo: IDocumentInfo) {
+    if (!this.isReady) {
       return;
     }
+
     const textDocumentChange: protocol.DidSaveTextDocumentParams = {
       textDocument: {
-        uri: this.documentInfo.documentUri,
-        version: this.documentVersion
+        uri: documentInfo.uri,
+        version: documentInfo.version
       } as protocol.VersionedTextDocumentIdentifier,
-      text: this.documentInfo.documentText()
+      text: documentInfo.text
     };
     this.connection.sendNotification(
       'textDocument/didSave',
@@ -247,14 +266,14 @@ export class LspWsConnection extends events.EventEmitter
     );
   }
 
-  public getHoverTooltip(location: IPosition) {
+  public getHoverTooltip(location: IPosition, documentInfo: IDocumentInfo) {
     if (!this.isInitialized) {
       return;
     }
     this.connection
       .sendRequest<protocol.Hover>('textDocument/hover', {
         textDocument: {
-          uri: this.documentInfo.documentUri
+          uri: documentInfo.uri
         },
         position: {
           line: location.line,
@@ -269,6 +288,7 @@ export class LspWsConnection extends events.EventEmitter
   public getCompletion(
     location: IPosition,
     token: ITokenInfo,
+    documentInfo: IDocumentInfo,
     triggerCharacter?: string,
     triggerKind?: protocol.CompletionTriggerKind
   ) {
@@ -281,7 +301,7 @@ export class LspWsConnection extends events.EventEmitter
         'textDocument/completion',
         {
           textDocument: {
-            uri: this.documentInfo.documentUri
+            uri: documentInfo.uri
           },
           position: {
             line: location.line,
@@ -303,7 +323,7 @@ export class LspWsConnection extends events.EventEmitter
   }
 
   public getDetailedCompletion(completionItem: protocol.CompletionItem) {
-    if (!this.isConnected) {
+    if (!this.isReady) {
       return;
     }
     this.connection
@@ -316,12 +336,12 @@ export class LspWsConnection extends events.EventEmitter
       });
   }
 
-  public getSignatureHelp(location: IPosition) {
-    if (!this.isConnected || !this.serverCapabilities?.signatureHelpProvider) {
+  public getSignatureHelp(location: IPosition, documentInfo: IDocumentInfo) {
+    if (!this.isReady || !this.serverCapabilities?.signatureHelpProvider) {
       return;
     }
 
-    const code = this.documentInfo.documentText();
+    const code = documentInfo.text;
     const lines = code.split('\n');
     const typedCharacter = lines[location.line][location.ch - 1];
 
@@ -335,7 +355,7 @@ export class LspWsConnection extends events.EventEmitter
     this.connection
       .sendRequest<protocol.SignatureHelp>('textDocument/signatureHelp', {
         textDocument: {
-          uri: this.documentInfo.documentUri
+          uri: documentInfo.uri
         },
         position: {
           line: location.line,
@@ -350,7 +370,10 @@ export class LspWsConnection extends events.EventEmitter
   /**
    * Request the locations of all matching document symbols
    */
-  public getDocumentHighlights(location: IPosition) {
+  public getDocumentHighlights(
+    location: IPosition,
+    documentInfo: IDocumentInfo
+  ) {
     if (
       !this.isConnected ||
       !this.serverCapabilities?.documentHighlightProvider
@@ -363,7 +386,7 @@ export class LspWsConnection extends events.EventEmitter
         'textDocument/documentHighlight',
         {
           textDocument: {
-            uri: this.documentInfo.documentUri
+            uri: documentInfo.uri
           },
           position: {
             line: location.line,
@@ -380,8 +403,8 @@ export class LspWsConnection extends events.EventEmitter
    * Request a link to the definition of the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  public getDefinition(location: IPosition) {
-    if (!this.isConnected || !this.isDefinitionSupported()) {
+  public getDefinition(location: IPosition, documentInfo: IDocumentInfo) {
+    if (!this.isReady || !this.isDefinitionSupported()) {
       return;
     }
 
@@ -390,7 +413,7 @@ export class LspWsConnection extends events.EventEmitter
         'textDocument/definition',
         {
           textDocument: {
-            uri: this.documentInfo.documentUri
+            uri: documentInfo.uri
           },
           position: {
             line: location.line,
@@ -407,8 +430,8 @@ export class LspWsConnection extends events.EventEmitter
    * Request a link to the type definition of the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  public getTypeDefinition(location: IPosition) {
-    if (!this.isConnected || !this.isTypeDefinitionSupported()) {
+  public getTypeDefinition(location: IPosition, documentInfo: IDocumentInfo) {
+    if (!this.isReady || !this.isTypeDefinitionSupported()) {
       return;
     }
 
@@ -417,7 +440,7 @@ export class LspWsConnection extends events.EventEmitter
         'textDocument/typeDefinition',
         {
           textDocument: {
-            uri: this.documentInfo.documentUri
+            uri: documentInfo.uri
           },
           position: {
             line: location.line,
@@ -434,7 +457,7 @@ export class LspWsConnection extends events.EventEmitter
    * Request a link to the implementation of the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  public getImplementation(location: IPosition) {
+  public getImplementation(location: IPosition, documentInfo: IDocumentInfo) {
     if (!this.isConnected || !this.isImplementationSupported()) {
       return;
     }
@@ -444,7 +467,7 @@ export class LspWsConnection extends events.EventEmitter
         'textDocument/implementation',
         {
           textDocument: {
-            uri: this.documentInfo.documentUri
+            uri: documentInfo.uri
           },
           position: {
             line: location.line,
@@ -461,7 +484,7 @@ export class LspWsConnection extends events.EventEmitter
    * Request a link to all references to the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  public getReferences(location: IPosition) {
+  public getReferences(location: IPosition, documentInfo: IDocumentInfo) {
     if (!this.isConnected || !this.isReferencesSupported()) {
       return;
     }
@@ -469,7 +492,7 @@ export class LspWsConnection extends events.EventEmitter
     this.connection
       .sendRequest<Location[]>('textDocument/references', {
         textDocument: {
-          uri: this.documentInfo.documentUri
+          uri: documentInfo.uri
         },
         position: {
           line: location.line,
@@ -528,23 +551,10 @@ export class LspWsConnection extends events.EventEmitter
   protected onServerInitialized(params: protocol.InitializeResult) {
     this.isInitialized = true;
     this.serverCapabilities = params.capabilities;
-    const textDocumentMessage: protocol.DidOpenTextDocumentParams = {
-      textDocument: {
-        uri: this.documentInfo.documentUri,
-        languageId: this.documentInfo.languageId,
-        text: this.documentInfo.documentText(),
-        version: this.documentVersion
-      } as protocol.TextDocumentItem
-    };
     this.connection.sendNotification('initialized');
     this.connection.sendNotification('workspace/didChangeConfiguration', {
       settings: {}
     });
-    this.connection.sendNotification(
-      'textDocument/didOpen',
-      textDocumentMessage
-    );
-    this.sendChange();
     this.emit('serverInitialized', this.serverCapabilities);
   }
 }
