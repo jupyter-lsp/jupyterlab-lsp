@@ -46,7 +46,7 @@ export interface ILspConnection {
   ): void;
   on(
     event: 'highlight',
-    callback: (highlights: lsProtocol.DocumentHighlight[]) => void
+    callback: (highlights: lsProtocol.DocumentHighlight[], documentUri: string) => void
   ): void;
   on(
     event: 'signature',

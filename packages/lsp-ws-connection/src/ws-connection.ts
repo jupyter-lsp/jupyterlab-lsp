@@ -391,8 +391,8 @@ export class LspWsConnection extends events.EventEmitter
           }
         } as protocol.TextDocumentPositionParams
       )
-      .then(params => {
-        this.emit('highlight', params);
+      .then(highlights => {
+        this.emit('highlight', highlights, documentInfo.uri);
       });
   }
 
