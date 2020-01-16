@@ -39,14 +39,20 @@ export interface ILspConnection {
     event: 'completionResolved',
     callback: (item: lsProtocol.CompletionItem) => void
   ): void;
-  on(event: 'hover', callback: (hover: lsProtocol.Hover) => void): void;
+  on(
+    event: 'hover',
+    callback: (hover: lsProtocol.Hover, documentUri: string) => void
+  ): void;
   on(
     event: 'diagnostic',
     callback: (diagnostic: lsProtocol.PublishDiagnosticsParams) => void
   ): void;
   on(
     event: 'highlight',
-    callback: (highlights: lsProtocol.DocumentHighlight[], documentUri: string) => void
+    callback: (
+      highlights: lsProtocol.DocumentHighlight[],
+      documentUri: string
+    ) => void
   ): void;
   on(
     event: 'signature',
@@ -54,7 +60,10 @@ export interface ILspConnection {
   ): void;
   on(
     event: 'goTo',
-    callback: (location: Location | Location[] | LocationLink[] | null) => void
+    callback: (
+      location: Location | Location[] | LocationLink[] | null,
+      documentUri: string
+    ) => void
   ): void;
   on(event: 'error', callback: (error: any) => void): void;
   on(event: 'logging', callback: (log: any) => void): void;

@@ -281,7 +281,7 @@ export class LspWsConnection extends events.EventEmitter
         }
       } as protocol.TextDocumentPositionParams)
       .then(params => {
-        this.emit('hover', params);
+        this.emit('hover', params, documentInfo.uri);
       });
   }
 
@@ -419,7 +419,7 @@ export class LspWsConnection extends events.EventEmitter
         } as protocol.TextDocumentPositionParams
       )
       .then(result => {
-        this.emit('goTo', result);
+        this.emit('goTo', result, documentInfo.uri);
       });
   }
 
