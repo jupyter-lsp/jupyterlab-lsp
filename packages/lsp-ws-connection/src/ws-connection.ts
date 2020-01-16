@@ -374,10 +374,7 @@ export class LspWsConnection extends events.EventEmitter
     location: IPosition,
     documentInfo: IDocumentInfo
   ) {
-    if (
-      !this.isConnected ||
-      !this.serverCapabilities?.documentHighlightProvider
-    ) {
+    if (!this.isReady || !this.serverCapabilities?.documentHighlightProvider) {
       return;
     }
 
@@ -458,7 +455,7 @@ export class LspWsConnection extends events.EventEmitter
    * unless they are within the same file URI
    */
   public getImplementation(location: IPosition, documentInfo: IDocumentInfo) {
-    if (!this.isConnected || !this.isImplementationSupported()) {
+    if (!this.isReady || !this.isImplementationSupported()) {
       return;
     }
 
@@ -485,7 +482,7 @@ export class LspWsConnection extends events.EventEmitter
    * unless they are within the same file URI
    */
   public getReferences(location: IPosition, documentInfo: IDocumentInfo) {
-    if (!this.isConnected || !this.isReferencesSupported()) {
+    if (!this.isReady || !this.isReferencesSupported()) {
       return;
     }
 
