@@ -3,7 +3,7 @@
   "rules": {
     "prettier": [true, { "singleQuote": true }],
     "align": [true, "parameters", "statements"],
-    "await-promise": true,
+    "await-promise": [true, "Thenable"],
     "ban": [
       true,
       ["_", "forEach"],

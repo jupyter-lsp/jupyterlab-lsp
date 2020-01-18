@@ -370,30 +370,32 @@ export class LspWsConnection extends events.EventEmitter
   /**
    * Request the locations of all matching document symbols
    */
-  public getDocumentHighlights(
+  public async getDocumentHighlights(
     location: IPosition,
-    documentInfo: IDocumentInfo
+    documentInfo: IDocumentInfo,
+    emit = true
   ) {
     if (!this.isReady || !this.serverCapabilities?.documentHighlightProvider) {
       return;
     }
 
-    this.connection
-      .sendRequest<protocol.DocumentHighlight[]>(
-        'textDocument/documentHighlight',
-        {
-          textDocument: {
-            uri: documentInfo.uri
-          },
-          position: {
-            line: location.line,
-            character: location.ch
-          }
-        } as protocol.TextDocumentPositionParams
-      )
-      .then(highlights => {
-        this.emit('highlight', highlights, documentInfo.uri);
-      });
+    const highlights = await this.connection.sendRequest<
+      protocol.DocumentHighlight[]
+    >('textDocument/documentHighlight', {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      }
+    } as protocol.TextDocumentPositionParams);
+
+    if (emit) {
+      this.emit('highlight', highlights, documentInfo.uri);
+    }
+
+    return highlights;
   }
 
   /**
@@ -481,24 +483,38 @@ export class LspWsConnection extends events.EventEmitter
    * Request a link to all references to the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  public getReferences(location: IPosition, documentInfo: IDocumentInfo) {
+  public async getReferences(
+    location: IPosition,
+    documentInfo: IDocumentInfo,
+    emit = false
+  ) {
     if (!this.isReady || !this.isReferencesSupported()) {
       return;
     }
 
-    this.connection
-      .sendRequest<Location[]>('textDocument/references', {
-        textDocument: {
-          uri: documentInfo.uri
-        },
-        position: {
-          line: location.line,
-          character: location.ch
-        }
-      } as protocol.ReferenceParams)
-      .then(result => {
-        this.emit('goTo', result);
-      });
+    const params: protocol.ReferenceParams = {
+      context: {
+        includeDeclaration: true
+      },
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      }
+    };
+
+    const locations = await this.connection.sendRequest<Location[]>(
+      'textDocument/references',
+      params
+    );
+
+    if (emit) {
+      this.emit('goTo', locations, documentInfo.uri);
+    }
+
+    return locations;
   }
 
   /**
