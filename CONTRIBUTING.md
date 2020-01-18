@@ -121,10 +121,13 @@ python scripts/utest.py
 ## Browser-based Acceptance Tests
 
 The browser tests will launch JupyterLab on a random port and exercise the
-Language Server features with [Robot Framework][] and [SeleniumLibrary][].
+Language Server features with [Robot Framework][] and [SeleniumLibrary][]. It
+is recommended to peruse the [Robot Framework User's Guide][rfug] (and the existing
+`.robot` files in `atest`) before working on tests in anger.
 
 [robot framework]: https://github.com/robotframework/robotframework
 [seleniumlibrary]: https://github.com/robotframework/seleniumlibrary
+[rfug]: https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html
 
 First, ensure you've prepared JupyterLab for `jupyterlab-lsp`
 [frontend](#frontend-development) and [server](#server-development) development.
@@ -155,6 +158,59 @@ atest/
     linux_37_1.report.html
     linux_37_1/
       screenshots/
+```
+
+#### Customizing the Acceptance Test Run
+
+By default, all of the tests will be run, once.
+
+The underlying `robot` command supports a vast number of options and many
+support wildcards (`*` and `?`) and boolean operators (`NOT`, `OR`). For more,
+start with
+[simple patterns](https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#simple-patterns).
+
+##### Run a suite
+
+```bash
+python scripts/atest.py --suite "05_Features.Completion"
+```
+
+##### Run a single test
+
+```bash
+python scripts/atest.py --test "Works With Kernel Running"
+```
+
+##### Run test with a tag
+
+Tags are preferrable to file names and test name matching in many settings, as
+they are aggregated nicely between runs.
+
+```bash
+python scripts/atest.py --include feature:completion
+```
+
+... or only Python completion
+
+```bash
+python scripts/atest.py --include feature:completionANDlanguage:python
+```
+
+##### Just Keep Testing with `ATEST_RETRIES`
+
+Run tests, and _rerun_ only failed tests up to two times:
+
+```bash
+ATEST_RETRIES=2 python scripts/atest.py --include feature:completion
+```
+
+After running a bunch of tests, it may be helpful to combine them back together
+into a single `log.html` and `report.html` with
+[rebot](https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#rebot).
+Like `atest.py`, `combine.py` also passes through extra arguments
+
+```bash
+python scripts/combine.py
 ```
 
 #### Troubleshooting

@@ -69,6 +69,8 @@ def atest(attempt, extra_args):
         ATEST,
     ]
 
+    print("Robot Arguments\n", " ".join(["robot"] + list(map(str, args))))
+
     os.chdir(ATEST)
 
     if out_dir.exists():
