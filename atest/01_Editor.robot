@@ -112,12 +112,6 @@ Measure Cursor Position
     ${position} =    Wait Until Keyword Succeeds    20 x    0.05s    Get Vertical Position    ${CM CURSOR}
     [Return]    ${position}
 
-Open Context Menu Over
-    [Arguments]    ${sel}
-    Wait Until Keyword Succeeds    10 x    0.1 s    Mouse Over    ${sel}
-    Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
-    Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
-
 Get Editor Content
     ${content}    Execute JavaScript    return document.querySelector('.CodeMirror').CodeMirror.getValue()
     [Return]    ${content}
