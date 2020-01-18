@@ -27,12 +27,12 @@
     )
   - added a UX workaround for rope rename issues when there is a
     SyntaxError in the Python code (
-    [#129](https://github.com/krassowski/jupyterlab-lsp/pull/129)
+    [#127](https://github.com/krassowski/jupyterlab-lsp/pull/127)
     )
   - added a widget panel with diagnostics (inspections), allowing to
     sort and explore diagnostics, and to go to the respective location
     in code (with a click); accessible from the context menu (
-    [#127](https://github.com/krassowski/jupyterlab-lsp/pull/127)
+    [#129](https://github.com/krassowski/jupyterlab-lsp/pull/129)
     )
   - all commands are now accessible from the command palette (
     [#142](https://github.com/krassowski/jupyterlab-lsp/pull/142)
