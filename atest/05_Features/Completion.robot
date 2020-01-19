@@ -59,6 +59,7 @@ User Can Select Lowercase After Starting Uppercase
     [Tags]    language:python
     Setup Notebook    Python    Completion.ipynb
     # `from time import Tim<tab>` → `from time import time`
+    Wait Until Fully Initialized
     Enter Cell Editor    5    line=1
     Trigger Completer
     Completer Should Suggest    time
