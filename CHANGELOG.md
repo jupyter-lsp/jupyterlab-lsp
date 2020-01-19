@@ -9,6 +9,12 @@
     [#159](https://github.com/krassowski/jupyterlab-lsp/pull/159)
     )
 
+- bugfixes
+
+  - fixed various small bugs in the completer (
+    [#162](https://github.com/krassowski/jupyterlab-lsp/pull/162)
+    )
+
 ## `lsp-ws-connection 0.3.1`
 
 - added `sendSaved()` method (textDocument/didSave) (
