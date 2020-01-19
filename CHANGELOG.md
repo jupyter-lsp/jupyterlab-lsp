@@ -4,9 +4,13 @@
 
 - features
 
-  - users can now choose which columns to display/hide
+  - users can now choose which columns to display
     in the diagnostic panel, using a context menu action (
     [#159](https://github.com/krassowski/jupyterlab-lsp/pull/159)
+    )
+  - start the diagnostics panel docked at the bottom and improve
+    the re-spawning of the diagnostics panel (
+    [#166](https://github.com/krassowski/jupyterlab-lsp/pull/166)
     )
 
 - bugfixes
@@ -17,10 +21,6 @@
   - fix documentation display in signature for LSP servers which
     return MarkupContent (
     [#164](https://github.com/krassowski/jupyterlab-lsp/pull/164)
-    )
-  - Start the diagnostics panel docked at the bottom and improve
-    the re-spawning of the (closed) diagnostics panel (
-    [#166](https://github.com/krassowski/jupyterlab-lsp/pull/166)
     )
 
 ## `lsp-ws-connection 0.3.1`
