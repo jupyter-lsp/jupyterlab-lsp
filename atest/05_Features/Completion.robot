@@ -58,11 +58,54 @@ Autocompletes If Only One Option
 User Can Select Lowercase After Starting Uppercase
     [Tags]    language:python
     Setup Notebook    Python    Completion.ipynb
-    Enter Cell Editor    4    line=1
+    # `from time import Tim<tab>` → `from time import time`
+    Enter Cell Editor    5    line=1
     Trigger Completer
     Completer Should Suggest    time
     Press Keys    None    ENTER
-    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    4    from time import time
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    5    from time import time
+    [Teardown]    Clean Up After Working With File    Completion.ipynb
+
+Mid Token Completions Do Not Overwrite
+    [Tags]    language:python
+    Setup Notebook    Python    Completion.ipynb
+    # `disp<tab>data` → `display_table<cursor>data`
+    Place Cursor In Cell Editor At    9    line=1    character=4
+    Capture Page Screenshot    01-cursor-placed.png
+    Wait Until Fully Initialized
+    Press Keys    None    TAB
+    Capture Page Screenshot    02-completed.png
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    9    display_tabledata
+    # `disp<tab>lay` → `display_table<cursor>`
+    Place Cursor In Cell Editor At    11    line=1    character=4
+    Press Keys    None    TAB
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    11    display_table
+    [Teardown]    Clean Up After Working With File    Completion.ipynb
+
+Completion Works For Tokens Separated By Space
+    [Tags]    language:python
+    Setup Notebook    Python    Completion.ipynb
+    # `from statistics <tab>` → `from statistics import<cursor>`
+    Enter Cell Editor    13    line=1
+    Wait Until Fully Initialized
+    Trigger Completer
+    Completer Should Suggest    import
+    Press Keys    None    ENTER
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    13    from statistics import
+    [Teardown]    Clean Up After Working With File    Completion.ipynb
+
+Kernel And LSP Completions Merge Prefix Conflicts Are Resolved
+    [Documentation]    Reconciliate Python kernel returning prefixed completions and LSP (pyls) not-prefixed ones
+    [Tags]    language:python
+    # For more details see: https://github.com/krassowski/jupyterlab-lsp/issues/30#issuecomment-576003987
+    # `import os.pat<tab>` → `import os.pathsep`
+    Setup Notebook    Python    Completion.ipynb
+    Enter Cell Editor    15    line=1
+    Wait Until Fully Initialized
+    Trigger Completer
+    Completer Should Suggest    pathsep
+    Select Completer Suggestion    pathsep
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    15    import os.pathsep
     [Teardown]    Clean Up After Working With File    Completion.ipynb
 
 Triggers Completer On Dot
@@ -79,13 +122,19 @@ Triggers Completer On Dot
 *** Keywords ***
 Get Cell Editor Content
     [Arguments]    ${cell_nr}
-    ${content}    Execute JavaScript    return document.querySelector('.jp-CodeCell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()
+    ${content}    Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()
     [Return]    ${content}
 
 Cell Editor Should Equal
     [Arguments]    ${cell}    ${value}
     ${content} =    Get Cell Editor Content    ${cell}
     Should Be Equal    ${content}    ${value}
+
+Select Completer Suggestion
+    [Arguments]    ${text}
+    ${suggestion} =    Set Variable    css:.jp-Completer-item[data-value="${text}"]
+    Mouse Over    ${suggestion}
+    Click Element    ${suggestion} code
 
 Completer Should Suggest
     [Arguments]    ${text}
