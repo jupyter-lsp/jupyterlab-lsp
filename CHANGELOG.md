@@ -14,6 +14,10 @@
   - fixed various small bugs in the completer (
     [#162](https://github.com/krassowski/jupyterlab-lsp/pull/162)
     )
+  - fix documentation display in signature for LSP servers which
+    return MarkupContent (
+    [#164](https://github.com/krassowski/jupyterlab-lsp/pull/164)
+    )
 
 ## `lsp-ws-connection 0.3.1`
 
