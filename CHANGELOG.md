@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## `@krassowski/jupyterlab-lsp 0.7.1` (unreleased)
+
+- features
+
+  - users can now choose which columns to display/hide
+    in the diagnostic panel, using a context menu action (
+    [#159](https://github.com/krassowski/jupyterlab-lsp/pull/159)
+    )
+
 ## `lsp-ws-connection 0.3.1`
 
 - added `sendSaved()` method (textDocument/didSave) (

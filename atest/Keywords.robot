@@ -203,3 +203,9 @@ Enter Cell Editor
 
 Wait Until Fully Initialized
     Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=35s
+
+Open Context Menu Over
+    [Arguments]    ${sel}
+    Wait Until Keyword Succeeds    10 x    0.1 s    Mouse Over    ${sel}
+    Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
+    Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
