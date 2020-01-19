@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## `@krassowski/jupyterlab-lsp 0.7.1` (unreleased)
+## `@krassowski/jupyterlab-lsp 0.7.1`
 
 - features
 
