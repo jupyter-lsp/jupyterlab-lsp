@@ -18,6 +18,10 @@
     return MarkupContent (
     [#164](https://github.com/krassowski/jupyterlab-lsp/pull/164)
     )
+  - Start the diagnostics panel docked at the bottom and improve
+    the re-spawning of the (closed) diagnostics panel (
+    [#166](https://github.com/krassowski/jupyterlab-lsp/pull/166)
+    )
 
 ## `lsp-ws-connection 0.3.1`
 
