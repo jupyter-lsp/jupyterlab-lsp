@@ -162,17 +162,11 @@ describe('LspWsConnection', () => {
 
       setTimeout(() => {
         const mock = mockSocket.send;
-        expect(mock.callCount).equal(5);
+        expect(mock.callCount).equal(3);
 
-        // 3, 4, 5 are sent after initialization
+        // 3 is sent after initialization
         expect(JSON.parse(mock.getCall(2).args[0]).method).equal(
           'workspace/didChangeConfiguration'
-        );
-        expect(JSON.parse(mock.getCall(3).args[0]).method).equal(
-          'textDocument/didOpen'
-        );
-        expect(JSON.parse(mock.getCall(4).args[0]).method).equal(
-          'textDocument/didChange'
         );
 
         done();
