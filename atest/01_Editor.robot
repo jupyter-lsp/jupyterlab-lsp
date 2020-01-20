@@ -67,7 +67,7 @@ Editor Shows Features for Language
     Set Tags    language:${Language.lower()}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}editor${/}${Language.lower()}
     Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
-    Lab Command    Close All Tabs
+    Try to Close All Tabs
     Open ${file} in ${MENU EDITOR}
     Capture Page Screenshot    00-opened.png
     FOR    ${f}    IN    @{features}

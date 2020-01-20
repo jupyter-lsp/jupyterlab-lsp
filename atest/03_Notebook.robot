@@ -1,10 +1,10 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    notebook
 Resource          Keywords.robot
+Test Setup        Try to Close All Tabs
 
 *** Test Cases ***
 Python
-    [Setup]    Gently Reset Workspace
     Setup Notebook    Python    Python.ipynb
     Capture Page Screenshot    01-python.png
     ${diagnostic} =    Set Variable    W291 trailing whitespace (pycodestyle)
@@ -13,7 +13,6 @@ Python
     Clean Up After Working With File    Python.ipynb
 
 Foregin Extractors
-    [Setup]    Gently Reset Workspace
     Setup Notebook    Python    Foreign extractors.ipynb
     @{diagnostics} =    Create List    Failed to parse expression    undefined name 'valid' (pyflakes)    Trailing whitespace is superfluous. (lintr)
     FOR    ${diagnostic}    IN    @{diagnostics}

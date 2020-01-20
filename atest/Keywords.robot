@@ -66,8 +66,16 @@ Open JupyterLab
 Close JupyterLab
     Close All Browsers
 
-Reset Application State
+Close All Tabs
+    Accept Default Dialog Option
     Lab Command    Close All Tabs
+    Accept Default Dialog Option
+
+Try to Close All Tabs
+    Wait Until Keyword Succeeds   5x  50ms   Close All Tabs
+
+Reset Application State
+    Try to Close All Tabs
     Accept Default Dialog Option
     Ensure All Kernels Are Shut Down
     Lab Command    Reset Application State
@@ -174,7 +182,7 @@ Setup Notebook
     Set Tags    language:${Language.lower()}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}notebook${/}${file.lower()}
     Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
-    Lab Command    Close All Tabs
+    Try to Close All Tabs
     Open ${file} in ${MENU NOTEBOOK}
     Capture Page Screenshot    00-opened.png
 
@@ -194,7 +202,7 @@ Wait For Dialog
     Wait Until Page Contains Element    ${DIALOG WINDOW}    timeout=180s
 
 Gently Reset Workspace
-    Lab Command    Close All Tabs
+    Try to Close All Tabs
 
 Enter Cell Editor
     [Arguments]    ${cell_nr}    ${line}=1
