@@ -92,6 +92,15 @@ const plugin: JupyterFrontEndPlugin<void> = {
           'Guessing Mac the server root using user settings path',
           server_root
         );
+      } else if (user_settings.startsWith('C:/Users/')) {
+        server_root = server_root.replace(
+          '~',
+          user_settings.substring(0, user_settings.indexOf('/', 9))
+        );
+        console.log(
+          'Guessing Windows the server root using user settings path',
+          server_root
+        );
       } else {
         console.warn(
           'Unable to solve the absolute path: some LSP servers may not work correctly'
