@@ -1,6 +1,6 @@
 {
   "name": "@krassowski/jupyterlab-lsp",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Language Server Protocol integration for JupyterLab",
   "keywords": [
     "jupyter",
@@ -60,6 +60,7 @@
     "@jupyterlab/testutils": "^1.2.2",
     "@jupyterlab/tooltip": "^1.1",
     "@phosphor/algorithm": "*",
+    "@phosphor/widgets": "*",
     "@types/chai": "^4.1.7",
     "@types/codemirror": "^0.0.74",
     "@types/events": "^3.0.0",
@@ -93,6 +94,7 @@
     "@jupyterlab/testutils": "^1.2.2",
     "@jupyterlab/tooltip": "^1.1",
     "@phosphor/algorithm": "*",
+    "@phosphor/widgets": "*",
     "codemirror": "*",
     "react": "*"
   },

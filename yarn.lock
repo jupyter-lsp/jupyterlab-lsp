@@ -1313,10 +1313,10 @@
     typestyle "^2.0.1"
 
 "@krassowski/jupyterlab-lsp@file:packages/jupyterlab-lsp":
-  version "0.6.1"
+  version "0.7.0"
   dependencies:
     "@krassowski/jupyterlab_go_to_definition" "^0.7.1"
-    lsp-ws-connection "*"
+    lsp-ws-connection "0.3.1"
 
 "@krassowski/jupyterlab_go_to_definition@^0.7.1":
   version "0.7.1"
@@ -2168,7 +2168,7 @@
   dependencies:
     "@phosphor/algorithm" "^1.2.0"
 
-"@phosphor/widgets@^1.9.0", "@phosphor/widgets@^1.9.3":
+"@phosphor/widgets@*", "@phosphor/widgets@^1.9.0", "@phosphor/widgets@^1.9.3":
   version "1.9.3"
   resolved "https://registry.npmjs.org/@phosphor/widgets/-/widgets-1.9.3.tgz#b8b7ad69fd7cc7af8e8c312ebead0e0965a4cefd"
   integrity sha512-61jsxloDrW/+WWQs8wOgsS5waQ/MSsXBuhONt0o6mtdeL93HVz7CYO5krOoot5owammfF6oX1z0sDaUYIYgcPA==
@@ -7346,7 +7346,7 @@ lru-queue@0.1:
     es5-ext "~0.10.2"
 
 "lsp-ws-connection@file:packages/lsp-ws-connection":
-  version "0.2.0"
+  version "0.3.1"
   dependencies:
     vscode-jsonrpc "^4.1.0-next"
     vscode-languageclient "^5.2.1"

@@ -198,8 +198,19 @@ Gently Reset Workspace
 
 Enter Cell Editor
     [Arguments]    ${cell_nr}    ${line}=1
-    Click Element    css:.jp-CodeCell:nth-child(${cell_nr}) .CodeMirror-line:nth-child(${line})
-    Wait Until Page Contains Element    css:.jp-CodeCell:nth-child(${cell_nr}) .CodeMirror-focused
+    Click Element    css:.jp-Cell:nth-child(${cell_nr}) .CodeMirror-line:nth-child(${line})
+    Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_nr}) .CodeMirror-focused
+
+Place Cursor In Cell Editor At
+    [Arguments]    ${cell_nr}    ${line}    ${character}
+    Enter Cell Editor    ${cell_nr}    ${line}
+    Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
 
 Wait Until Fully Initialized
     Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=35s
+
+Open Context Menu Over
+    [Arguments]    ${sel}
+    Wait Until Keyword Succeeds    10 x    0.1 s    Mouse Over    ${sel}
+    Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
+    Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}

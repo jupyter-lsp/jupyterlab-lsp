@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## `@krassowski/jupyterlab-lsp 0.7.1`
+
+- features
+
+  - users can now choose which columns to display
+    in the diagnostic panel, using a context menu action (
+    [#159](https://github.com/krassowski/jupyterlab-lsp/pull/159)
+    )
+  - start the diagnostics panel docked at the bottom and improve
+    the re-spawning of the diagnostics panel (
+    [#166](https://github.com/krassowski/jupyterlab-lsp/pull/166)
+    )
+
+- bugfixes
+
+  - fixed various small bugs in the completer (
+    [#162](https://github.com/krassowski/jupyterlab-lsp/pull/162)
+    )
+  - fix documentation display in signature for LSP servers which
+    return MarkupContent (
+    [#164](https://github.com/krassowski/jupyterlab-lsp/pull/164)
+    )
+
 ## `lsp-ws-connection 0.3.1`
 
 - added `sendSaved()` method (textDocument/didSave) (
@@ -27,12 +50,12 @@
     )
   - added a UX workaround for rope rename issues when there is a
     SyntaxError in the Python code (
-    [#129](https://github.com/krassowski/jupyterlab-lsp/pull/129)
+    [#127](https://github.com/krassowski/jupyterlab-lsp/pull/127)
     )
   - added a widget panel with diagnostics (inspections), allowing to
     sort and explore diagnostics, and to go to the respective location
     in code (with a click); accessible from the context menu (
-    [#127](https://github.com/krassowski/jupyterlab-lsp/pull/127)
+    [#129](https://github.com/krassowski/jupyterlab-lsp/pull/129)
     )
   - all commands are now accessible from the command palette (
     [#142](https://github.com/krassowski/jupyterlab-lsp/pull/142)

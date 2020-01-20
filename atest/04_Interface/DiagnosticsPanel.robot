@@ -5,6 +5,9 @@ Resource          ../Keywords.robot
 *** Variables ***
 ${EXPECTED_COUNT}    1
 ${DIAGNOSTIC}     W291 trailing whitespace (pycodestyle)
+${DIAGNOSTIC MESSAGE}    trailing whitespace
+${MENU COLUMNS}    xpath://div[contains(@class, 'p-Menu-itemLabel')][contains(text(), "columns")]
+${MENU COLUMN MESSAGE}    xpath://div[contains(@class, 'p-Menu-itemLabel')][contains(text(), "Message")]
 
 *** Test Cases ***
 Diagnostics Panel Opens
@@ -34,6 +37,21 @@ Diagnostics Panel Can Be Restored
     Close Diagnostics Panel
     Open Diagnostics Panel
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count
+    [Teardown]    Clean Up After Working With File    Panel.ipynb
+
+Columns Can Be Hidden
+    [Setup]    Gently Reset Workspace
+    Open Notebook And Panel    Panel.ipynb
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
+    Open Context Menu Over    css:.lsp-diagnostics-listing th
+    Capture Page Screenshot    01-menu-visible.png
+    Mouse Over    ${MENU COLUMNS}
+    Wait Until Page Contains Element    ${MENU COLUMN MESSAGE}    timeout=10s
+    Mouse Over    ${MENU COLUMN MESSAGE}
+    Capture Page Screenshot    02-message-column-visible.png
+    Click Element    ${MENU COLUMN MESSAGE}
+    Capture Page Screenshot    03-message-column-toggled.png
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
     [Teardown]    Clean Up After Working With File    Panel.ipynb
 
 *** Keywords ***

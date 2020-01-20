@@ -1,5 +1,6 @@
 *** Settings ***
-Suite Setup       Setup Suite For Screenshots    completion
+Suite Setup       Setup Suite For Screenshots    signature
+Force Tags        feature:signature
 Resource          ../Keywords.robot
 
 *** Variables ***
