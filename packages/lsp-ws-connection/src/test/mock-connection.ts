@@ -23,6 +23,7 @@ export class MockConnection implements ILspConnection {
 
   public sendInitialize = sinon.stub();
   public sendChange = sinon.stub();
+  public sendOpen = sinon.stub();
   public getHoverTooltip = sinon.stub();
   public getCompletion = sinon.stub();
   public getDetailedCompletion = sinon.stub();
@@ -47,7 +48,7 @@ export class MockConnection implements ILspConnection {
     this.signatureCharacters = ['('];
   }
 
-  public on(type: string, listener: (arg: any) => void) {
+  public on(type: string, listener: (...args: any) => void) {
     const listeners = this.listeners[type];
     if (!listeners) {
       this.listeners[type] = [];
@@ -55,7 +56,7 @@ export class MockConnection implements ILspConnection {
     this.listeners[type].push(listener);
   }
 
-  public off(type: string, listener: (arg: any) => void) {
+  public off(type: string, listener: (...args: any) => void) {
     const listeners = this.listeners[type];
     if (!listeners) {
       return;

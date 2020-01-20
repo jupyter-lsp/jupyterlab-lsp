@@ -11,6 +11,13 @@ interface IListeners {
   [type: string]: Listener[];
 }
 
+const mockInfo = {
+  uri: 'file://' + __dirname,
+  version: 0,
+  languageId: 'plaintext',
+  text: ''
+};
+
 // There is a library that can be used to mock WebSockets, but the API surface tested here is small
 // enough that it is not necessary to use the library. This mock is a simple EventEmitter
 class MockSocket implements EventTarget {
@@ -94,9 +101,7 @@ describe('LspWsConnection', () => {
     connection = new LspWsConnection({
       languageId: 'plaintext',
       rootUri: 'file://' + __dirname,
-      documentUri: 'file://' + __dirname,
-      serverUri,
-      documentText: () => ''
+      serverUri
     });
     mockSocket = new MockSocket('ws://localhost:8080');
   });
@@ -285,10 +290,13 @@ describe('LspWsConnection', () => {
 
       // 2. After receiving capabilities from the server, we will send a hover
       mockSocket.send.onSecondCall().callsFake(str => {
-        connection.getHoverTooltip({
-          line: 1,
-          ch: 0
-        });
+        connection.getHoverTooltip(
+          {
+            line: 1,
+            ch: 0
+          },
+          mockInfo
+        );
       });
     });
 
@@ -392,7 +400,8 @@ describe('LspWsConnection', () => {
               ch: 9
             },
             text: '.'
-          }
+          },
+          mockInfo
         );
       });
     });
@@ -492,7 +501,7 @@ describe('LspWsConnection', () => {
     connection.connect(mockSocket);
     connection.close();
 
-    connection.sendChange();
+    connection.sendChange(mockInfo);
     expect(mockSocket.send.callCount).equal(0);
   });
 });
