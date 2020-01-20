@@ -11,9 +11,7 @@ ${CM CURSORS}     css:.CodeMirror-cursors:not([style='visibility: hidden'])
 
 *** Test Cases ***
 Bash
-    [Documentation]    TODO: figure out why the first server is extra flaky
-    Wait Until Keyword Succeeds    6x    5s    Editor Shows Features for Language    Bash    example.sh    Diagnostics=Failed to parse expression
-    ...    Jump to Definition=fib
+    Editor Shows Features for Language    Bash    example.sh    Diagnostics=Failed to parse expression    Jump to Definition=fib
 
 CSS
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable-2')][contains(text(), '--some-var')])[last()]
