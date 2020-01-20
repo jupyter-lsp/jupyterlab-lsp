@@ -65,6 +65,10 @@ export interface ILspConnection {
       documentUri: string
     ) => void
   ): void;
+  on(
+    event: 'rename',
+    callback: (edit: lsProtocol.WorkspaceEdit | null) => void
+  ): void;
   on(event: 'error', callback: (error: any) => void): void;
   on(event: 'logging', callback: (log: any) => void): void;
 
