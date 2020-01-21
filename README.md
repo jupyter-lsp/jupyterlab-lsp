@@ -156,15 +156,28 @@ extension name, like this:
 jupyter labextension install @krassowski/jupyterlab-lsp@0.7.0-rc.0
 ```
 
-### Troubleshooting
+### Configuring the servers
 
-#### Rename fails with `IndexError`
+#### I want do hide specific diagnostics/inspections/warnings
 
-Question: using rename feature for Python does not work, the statusbar displays `Rename failed: Error: IndexError: list index out of range`
+We plan to provide a configuration GUI at some time, but in the meantime, you can use the instructions for the specific servers as described on their websites (see the table in [LANGUAGESERVERS.md](./LANGUAGESERVERS.md) for links).
 
-Answer: this is a pyls-specific error which happens when there is a syntax error and rope (the package used by pyls to perform edits) cannot parse the Python file.
+For example, the Python server that we support by default ([pyls](https://github.com/palantir/python-language-server)) has a [configuration section](https://github.com/palantir/python-language-server#configuration) in ther documentation which refers to the providers of specific features, including `pycodestyle` for inspections/diagnostics.
 
-Solution: Fix (or comment out) the fragments with syntax errors as indicated by diagnostics feature first, and try again.
+The exact configuration details will vary between operating systems (please see the [configuration section of pycodestyle documentation](https://pycodestyle.readthedocs.io/en/latest/intro.html#configuration)), but as an example, on Linux you would simply need to create a file called `~/.config/pycodestyle`, which may look like that:
+```
+[pycodestyle]
+ignore = E402, E703
+max-line-length = 120
+```
+
+In the example above:
+- ignoring E402 allows imports which are not on the very top of the file,
+- ignoring E703 allows terminating semicolon (useful for matplotlib plots),
+- the maximal allowed line length is increased to 120.
+
+Again, please do check the pycodestyle documentation for specific error codes, and check configuration of other feature providers and language servers as needed.
+
 
 ## Acknowledgements
 
