@@ -22,6 +22,9 @@ variables:
   THIRD_PARTY_LABEXTENSIONS: >-
     @krassowski/jupyterlab_go_to_definition
 
+  LINKED_EXTENSIONS: >-
+    packages/lsp-ws-connection
+
 jobs:
   - template: ci/job.lint.yml
   - template: ci/job.test.yml

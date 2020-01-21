@@ -20,6 +20,7 @@ parameters:
       spec: '>=3.8,<3.9.0a0'
       lab: '>=1.2.4,<1.3.0a0'
   env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
+  lab_link: jupyter labextension link --no-build $(LINKED_EXTENSIONS)
   lab_ext: jupyter labextension install --no-build $(THIRD_PARTY_LABEXTENSIONS) $(FIRST_PARTY_LABEXTENSIONS)
 
 jobs:
@@ -78,6 +79,9 @@ jobs:
 
               - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/utest.py --test-run-title="Pytest ${{ platform.name }}${{ python.name }}"
                 displayName: run python tests
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && ${{ parameters.lab_link }} || ${{ parameters.lab_link }} || ${{ parameters.lab_link }}
+                displayName: install support packages
 
               - script: ${{ platform.activate }} jupyterlab-lsp && ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }}
                 displayName: install labextensions
