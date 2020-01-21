@@ -173,6 +173,7 @@ max-line-length = 120
 ```
 
 In the example above:
+
 - ignoring E402 allows imports which are not on the very top of the file,
 - ignoring E703 allows terminating semicolon (useful for matplotlib plots),
 - the maximal allowed line length is increased to 120.
