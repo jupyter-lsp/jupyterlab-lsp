@@ -158,14 +158,15 @@ jupyter labextension install @krassowski/jupyterlab-lsp@0.7.0-rc.0
 
 ### Configuring the servers
 
-#### I want do hide specific diagnostics/inspections/warnings
-
 We plan to provide a configuration GUI at some time, but in the meantime, you can use the instructions for the specific servers as described on their websites (see the table in [LANGUAGESERVERS.md](./LANGUAGESERVERS.md) for links).
+
+#### I want do hide specific diagnostics/inspections/warnings
 
 For example, the Python server that we support by default ([pyls](https://github.com/palantir/python-language-server)) has a [configuration section](https://github.com/palantir/python-language-server#configuration) in ther documentation which refers to the providers of specific features, including `pycodestyle` for inspections/diagnostics.
 
 The exact configuration details will vary between operating systems (please see the [configuration section of pycodestyle documentation](https://pycodestyle.readthedocs.io/en/latest/intro.html#configuration)), but as an example, on Linux you would simply need to create a file called `~/.config/pycodestyle`, which may look like that:
-```
+
+```cfg
 [pycodestyle]
 ignore = E402, E703
 max-line-length = 120
@@ -176,8 +177,9 @@ In the example above:
 - ignoring E703 allows terminating semicolon (useful for matplotlib plots),
 - the maximal allowed line length is increased to 120.
 
-Again, please do check the pycodestyle documentation for specific error codes, and check configuration of other feature providers and language servers as needed.
+After changing the configuration you may need to restart the JupyterLab, and please be advised that the errors in configuration may prevent the servers from functioning properly.
 
+Again, please do check the pycodestyle documentation for specific error codes, and check the configuration of other feature providers and language servers as needed.
 
 ## Acknowledgements
 
