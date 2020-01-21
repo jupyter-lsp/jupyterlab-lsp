@@ -8,11 +8,13 @@ dependencies:
   # runtime dependencies
   - python {python}
   - jupyterlab {lab}
+  - importlib_metadata
   # build dependencies
   - nodejs
   # for python language server (and development)
   - flake8 >=3.5
   - python-language-server
+  - zipp
   # for R language server and kernel
   - r
   - r-irkernel

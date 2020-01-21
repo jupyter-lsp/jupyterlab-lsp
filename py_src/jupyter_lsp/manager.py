@@ -2,7 +2,7 @@
 """
 from typing import Dict, Text, Tuple
 
-import pkg_resources
+import entrypoints
 from notebook.transutils import _
 from traitlets import Bool, Dict as Dict_, Instance, List as List_, default
 
@@ -107,11 +107,13 @@ class LanguageServerManager(LanguageServerManagerAPI):
         for scope, trt_ep in scopes.items():
             listeners, entry_point = trt_ep
 
-            for ept in pkg_resources.iter_entry_points(entry_point):  # pragma: no cover
+            for ep_name, ept in entrypoints.get_group_named(
+                entry_point
+            ).items():  # pragma: no cover
                 try:
-                    listeners.append(entry_point.load())
+                    listeners.append(ept.load())
                 except Exception as err:
-                    self.log.warning("Failed to load entry point %s: %s", ept, err)
+                    self.log.warning("Failed to load entry point %s: %s", ep_name, err)
 
             for listener in listeners:
                 self.__class__.register_message_listener(scope=scope.value)(listener)
@@ -155,17 +157,17 @@ class LanguageServerManager(LanguageServerManagerAPI):
         entry_points = []
 
         try:
-            entry_points = list(pkg_resources.iter_entry_points(EP_SPEC_V1))
+            entry_points = entrypoints.get_group_named(EP_SPEC_V1)
         except Exception:  # pragma: no cover
             self.log.exception("Failed to load entry_points")
 
-        for ep in entry_points:
+        for ep_name, ep in entry_points.items():
             try:
                 spec_finder = ep.load()  # type: SpecMaker
             except Exception as err:  # pragma: no cover
                 self.log.warn(
                     _("Failed to load language server spec finder `{}`: \n{}").format(
-                        ep.name, err
+                        ep_name, err
                     )
                 )
                 continue

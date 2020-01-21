@@ -72,7 +72,7 @@ Close All Tabs
     Accept Default Dialog Option
 
 Try to Close All Tabs
-    Wait Until Keyword Succeeds   5x  50ms   Close All Tabs
+    Wait Until Keyword Succeeds    5x    50ms    Close All Tabs
 
 Reset Application State
     Try to Close All Tabs
