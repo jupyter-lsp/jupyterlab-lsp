@@ -273,7 +273,7 @@ export class LspWsConnection extends events.EventEmitter
     documentInfo: IDocumentInfo,
     emit = true
   ) {
-    if (!this.isReady) {
+    if (!(this.isReady && this.serverCapabilities?.hoverProvider)) {
       return;
     }
 
