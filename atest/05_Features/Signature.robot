@@ -9,7 +9,6 @@ ${SIGNATURE_BOX}    css:.lsp-signature-help
 *** Test Cases ***
 Triggers Signature Help After A Keystroke
     Setup Notebook    Python    Signature.ipynb
-    Wait Until Fully Initialized
     Enter Cell Editor    1    line=6
     Capture Page Screenshot    01-entered-cell.png
     Press Keys    None    (

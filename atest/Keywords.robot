@@ -184,7 +184,9 @@ Setup Notebook
     Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
     Try to Close All Tabs
     Open ${file} in ${MENU NOTEBOOK}
+    Wait Until Fully Initialized
     Capture Page Screenshot    00-opened.png
+    Capture Page Screenshot    01-initialized.png
 
 Open Diagnostics Panel
     Lab Command    Show Diagnostics Panel
@@ -215,7 +217,7 @@ Place Cursor In Cell Editor At
     Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
 
 Wait Until Fully Initialized
-    Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=35s
+    Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=60s
 
 Open Context Menu Over
     [Arguments]    ${sel}
