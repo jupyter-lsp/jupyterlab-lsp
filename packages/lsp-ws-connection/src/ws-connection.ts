@@ -464,27 +464,35 @@ export class LspWsConnection extends events.EventEmitter
    * Request a link to the type definition of the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  public getTypeDefinition(location: IPosition, documentInfo: IDocumentInfo) {
+  public async getTypeDefinition(
+    location: IPosition,
+    documentInfo: IDocumentInfo,
+    emit = true
+  ) {
     if (!this.isReady || !this.isTypeDefinitionSupported()) {
       return;
     }
 
-    this.connection
-      .sendRequest<Location | Location[] | LocationLink[]>(
-        'textDocument/typeDefinition',
-        {
-          textDocument: {
-            uri: documentInfo.uri
-          },
-          position: {
-            line: location.line,
-            character: location.ch
-          }
-        } as protocol.TextDocumentPositionParams
-      )
-      .then(result => {
-        this.emit('goTo', result);
-      });
+    const params: protocol.TextDocumentPositionParams = {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      }
+    };
+
+    const locations = await this.connection.sendRequest<AnyLocation>(
+      'textDocument/typeDefinition',
+      params
+    );
+
+    if (emit) {
+      this.emit('goTo', locations);
+    }
+
+    return locations;
   }
 
   /**
