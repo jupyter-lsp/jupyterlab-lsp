@@ -158,9 +158,9 @@ jupyter labextension install @krassowski/jupyterlab-lsp@0.7.0-rc.0
 
 ### Configuring the servers
 
-We plan to provide a configuration GUI at some time, but in the meantime, you can use the instructions for the specific servers as described on their websites (see the table in [LANGUAGESERVERS.md](./LANGUAGESERVERS.md) for links).
+We plan to provide a configuration GUI at some time ([#25](https://github.com/krassowski/jupyterlab-lsp/issues/25)), but in the meantime, you can use the instructions for the specific servers as described on their websites (see the table in [LANGUAGESERVERS.md](./LANGUAGESERVERS.md) for links).
 
-#### I want do hide specific diagnostics/inspections/warnings
+#### I want to hide specific diagnostics/inspections/warnings
 
 For example, the Python server that we support by default ([pyls](https://github.com/palantir/python-language-server)) has a [configuration section](https://github.com/palantir/python-language-server#configuration) in ther documentation which refers to the providers of specific features, including `pycodestyle` for inspections/diagnostics.
 
