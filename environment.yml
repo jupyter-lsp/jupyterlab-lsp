@@ -20,8 +20,6 @@ dependencies:
   - pylint
   - python-language-server
   - ruamel_yaml
-  - zipp
-  - importlib_metadata
   - pip: # not-yet-appearing-in-conda-forge
       - pyls-black
       - pyls-isort
