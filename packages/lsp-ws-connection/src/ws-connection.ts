@@ -12,7 +12,8 @@ import {
   IPosition,
   ITokenInfo,
   IDocumentInfo,
-  AnyLocation
+  AnyLocation,
+  AnyCompletion
 } from './types';
 
 /**
@@ -306,7 +307,7 @@ export class LspWsConnection extends events.EventEmitter
     triggerCharacter?: string,
     triggerKind?: protocol.CompletionTriggerKind
   ) {
-    if (!this.isConnected || !this.serverCapabilities?.completionProvider) {
+    if (!(this.isReady && this.serverCapabilities?.completionProvider)) {
       return;
     }
 
@@ -324,14 +325,17 @@ export class LspWsConnection extends events.EventEmitter
       }
     };
 
-    const items = await this.connection.sendRequest<
-      protocol.CompletionList | protocol.CompletionItem[]
-    >('textDocument/completion', params);
+    const items = await this.connection.sendRequest<AnyCompletion>(
+      'textDocument/completion',
+      params
+    );
+
+    const itemList = items && 'items' in items ? items.items : items;
 
     if (emit) {
-      this.emit('completion', items && 'items' in items ? items.items : items);
+      this.emit('completion', itemList);
     }
-    return items;
+    return itemList;
   }
 
   public getDetailedCompletion(completionItem: protocol.CompletionItem) {

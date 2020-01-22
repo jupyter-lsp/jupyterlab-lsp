@@ -24,6 +24,10 @@ export type AnyLocation =
   | lsProtocol.LocationLink[]
   | null;
 
+export type AnyCompletion =
+  | lsProtocol.CompletionList
+  | lsProtocol.CompletionItem[];
+
 type ConnectionEvent =
   | 'completion'
   | 'completionResolved'
