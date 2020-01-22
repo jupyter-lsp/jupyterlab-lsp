@@ -284,7 +284,7 @@ describe('LspWsConnection', () => {
 
       // 2. After receiving capabilities from the server, we will send a hover
       mockSocket.send.onSecondCall().callsFake(str => {
-        connection.getHoverTooltip(
+        void connection.getHoverTooltip(
           {
             line: 1,
             ch: 0

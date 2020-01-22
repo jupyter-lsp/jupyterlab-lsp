@@ -267,23 +267,35 @@ export class LspWsConnection extends events.EventEmitter
     );
   }
 
-  public getHoverTooltip(location: IPosition, documentInfo: IDocumentInfo) {
-    if (!this.isInitialized) {
+  public async getHoverTooltip(
+    location: IPosition,
+    documentInfo: IDocumentInfo,
+    emit = true
+  ) {
+    if (!this.isReady) {
       return;
     }
-    this.connection
-      .sendRequest<protocol.Hover>('textDocument/hover', {
-        textDocument: {
-          uri: documentInfo.uri
-        },
-        position: {
-          line: location.line,
-          character: location.ch
-        }
-      } as protocol.TextDocumentPositionParams)
-      .then(params => {
-        this.emit('hover', params, documentInfo.uri);
-      });
+
+    const params: protocol.TextDocumentPositionParams = {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      }
+    };
+
+    const hover = await this.connection.sendRequest<protocol.Hover>(
+      'textDocument/hover',
+      params
+    );
+
+    if (emit) {
+      this.emit('hover', hover, documentInfo.uri);
+    }
+
+    return hover;
   }
 
   public async getCompletion(
