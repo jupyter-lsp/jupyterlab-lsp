@@ -379,7 +379,7 @@ describe('LspWsConnection', () => {
 
       // 2. After receiving capabilities from the server, we will send a completion
       mockSocket.send.onSecondCall().callsFake(str => {
-        connection.getCompletion(
+        void connection.getCompletion(
           {
             line: 1,
             ch: 8

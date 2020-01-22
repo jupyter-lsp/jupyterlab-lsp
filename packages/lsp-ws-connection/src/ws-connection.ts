@@ -336,8 +336,12 @@ export class LspWsConnection extends events.EventEmitter
       });
   }
 
-  public getSignatureHelp(location: IPosition, documentInfo: IDocumentInfo) {
-    if (!this.isReady || !this.serverCapabilities?.signatureHelpProvider) {
+  public async getSignatureHelp(
+    location: IPosition,
+    documentInfo: IDocumentInfo,
+    emit = true
+  ) {
+    if (!(this.isReady && this.serverCapabilities?.signatureHelpProvider)) {
       return;
     }
 
@@ -352,19 +356,26 @@ export class LspWsConnection extends events.EventEmitter
       return;
     }
 
-    this.connection
-      .sendRequest<protocol.SignatureHelp>('textDocument/signatureHelp', {
-        textDocument: {
-          uri: documentInfo.uri
-        },
-        position: {
-          line: location.line,
-          character: location.ch
-        }
-      } as protocol.TextDocumentPositionParams)
-      .then(params => {
-        this.emit('signature', params);
-      });
+    const params: protocol.TextDocumentPositionParams = {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      }
+    };
+
+    const help = await this.connection.sendRequest<protocol.SignatureHelp>(
+      'textDocument/signatureHelp',
+      params
+    );
+
+    if (emit) {
+      this.emit('signature', help, documentInfo.uri);
+    }
+
+    return help;
   }
 
   /**
