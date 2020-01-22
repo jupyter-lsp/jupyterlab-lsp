@@ -1,5 +1,4 @@
 import * as lsProtocol from 'vscode-languageserver-protocol';
-import { Location, LocationLink } from 'vscode-languageserver-protocol';
 
 export interface IPosition {
   line: number;
@@ -18,6 +17,12 @@ export interface IDocumentInfo {
   text: string;
   languageId: string;
 }
+
+export type AnyLocation =
+  | lsProtocol.Location
+  | lsProtocol.Location[]
+  | lsProtocol.LocationLink[]
+  | null;
 
 type ConnectionEvent =
   | 'completion'
@@ -60,10 +65,7 @@ export interface ILspConnection {
   ): void;
   on(
     event: 'goTo',
-    callback: (
-      location: Location | Location[] | LocationLink[] | null,
-      documentUri: string
-    ) => void
+    callback: (location: AnyLocation, documentUri: string) => void
   ): void;
   on(
     event: 'rename',
@@ -103,6 +105,7 @@ export interface ILspConnection {
     location: IPosition,
     token: ITokenInfo,
     documentInfo: IDocumentInfo,
+    emit?: boolean,
     triggerCharacter?: string,
     triggerKind?: lsProtocol.CompletionTriggerKind
   ): void;

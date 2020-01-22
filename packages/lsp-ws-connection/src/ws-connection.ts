@@ -11,7 +11,8 @@ import {
   ILspOptions,
   IPosition,
   ITokenInfo,
-  IDocumentInfo
+  IDocumentInfo,
+  AnyLocation
 } from './types';
 
 /**
@@ -285,10 +286,11 @@ export class LspWsConnection extends events.EventEmitter
       });
   }
 
-  public getCompletion(
+  public async getCompletion(
     location: IPosition,
     token: ITokenInfo,
     documentInfo: IDocumentInfo,
+    emit = true,
     triggerCharacter?: string,
     triggerKind?: protocol.CompletionTriggerKind
   ) {
@@ -296,30 +298,28 @@ export class LspWsConnection extends events.EventEmitter
       return;
     }
 
-    this.connection
-      .sendRequest<protocol.CompletionList | protocol.CompletionItem[]>(
-        'textDocument/completion',
-        {
-          textDocument: {
-            uri: documentInfo.uri
-          },
-          position: {
-            line: location.line,
-            character: location.ch
-          },
-          context: {
-            triggerKind: triggerKind || protocol.CompletionTriggerKind.Invoked,
-            triggerCharacter
-          }
-        } as protocol.CompletionParams
-      )
-      .then(params => {
-        if (!params) {
-          this.emit('completion', params);
-          return;
-        }
-        this.emit('completion', 'items' in params ? params.items : params);
-      });
+    const params: protocol.CompletionParams = {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      },
+      context: {
+        triggerKind: triggerKind || protocol.CompletionTriggerKind.Invoked,
+        triggerCharacter
+      }
+    };
+
+    const items = await this.connection.sendRequest<
+      protocol.CompletionList | protocol.CompletionItem[]
+    >('textDocument/completion', params);
+
+    if (emit) {
+      this.emit('completion', items && 'items' in items ? items.items : items);
+    }
+    return items;
   }
 
   public getDetailedCompletion(completionItem: protocol.CompletionItem) {
@@ -402,27 +402,35 @@ export class LspWsConnection extends events.EventEmitter
    * Request a link to the definition of the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  public getDefinition(location: IPosition, documentInfo: IDocumentInfo) {
-    if (!this.isReady || !this.isDefinitionSupported()) {
+  public async getDefinition(
+    location: IPosition,
+    documentInfo: IDocumentInfo,
+    emit = true
+  ) {
+    if (!(this.isReady && this.isDefinitionSupported())) {
       return;
     }
 
-    this.connection
-      .sendRequest<Location | Location[] | LocationLink[]>(
-        'textDocument/definition',
-        {
-          textDocument: {
-            uri: documentInfo.uri
-          },
-          position: {
-            line: location.line,
-            character: location.ch
-          }
-        } as protocol.TextDocumentPositionParams
-      )
-      .then(result => {
-        this.emit('goTo', result, documentInfo.uri);
-      });
+    const params: protocol.TextDocumentPositionParams = {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      }
+    };
+
+    const targets = await this.connection.sendRequest<AnyLocation>(
+      'textDocument/definition',
+      params
+    );
+
+    if (emit) {
+      this.emit('goTo', targets, documentInfo.uri);
+    }
+
+    return targets;
   }
 
   /**
