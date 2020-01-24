@@ -1,0 +1,29 @@
+graph backend {
+    label="Front End as of 0.7.1"
+    fontname="sans-serif" fontcolor=grey
+    node[shape=none fontname="sans-serif"]
+    edge[fontname="sans-serif"]
+    subgraph cluster_io { label="IO"
+        Keyboard[label="The Keyboard"]
+        Mouse[label="The Mouse"]
+    }
+    subgraph cluster_server { label="Server"
+        RestAPI[label="The REST API"]
+        WebSockets
+    }
+    subgraph cluster_lab { label="JupyterLab"
+        WebSockets
+        ConnectionManagers
+        Connections
+        MessageConnections
+        CodeMirrorAdapters
+        WidgetAdapters
+        CodeMirrors
+        Features
+    }
+    Connections -- ConnectionManagers
+    CodeMirrors -- CodeMirrorAdapters -- WidgetAdapters -- {Features ConnectionManagers}
+    Features -- Connections -- RestAPI
+    Connections -- MessageConnections -- WebSockets
+    {Keyboard Mouse} -- CodeMirrors
+}
