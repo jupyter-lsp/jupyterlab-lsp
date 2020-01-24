@@ -1,0 +1,11 @@
+name: jupyterlab-lsp-docs
+
+channels:
+- conda-forge
+
+dependences:
+- nbsphinx
+- pandas
+- python-graphviz
+- recommonmark
+- sphinx

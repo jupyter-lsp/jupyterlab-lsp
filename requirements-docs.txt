@@ -1,0 +1,6 @@
+# development dependencies for jupyter_lsp for qa, with lab
+-r requirements.txt
+graphviz
+nbsphinx
+pandas
+recommonmark
