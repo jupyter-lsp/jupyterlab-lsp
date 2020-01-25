@@ -13,9 +13,9 @@ You can contribute to the project through:
     and its various distributions
     - these are great first issues, as you might not need to know any python or
       javascript
-- proposing parts of the architecture that can be [extended](./EXTENDING.md)
+- proposing parts of the architecture that can be [extended](./docs/EXTENDING.md)
 - improving [documentation](#Documentation)
-- tackling Big Issues from the [future roadmap](./ROADMAP.md)
+- tackling Big Issues from the [future roadmap](./docs/ROADMAP.md)
 - improving [testing](#Testing)
 - reviewing pull requests
 

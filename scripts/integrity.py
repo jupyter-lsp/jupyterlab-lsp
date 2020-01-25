@@ -21,13 +21,14 @@ except ImportError:
 
 ROOT = pathlib.Path.cwd()
 REQS = ROOT / "requirements"
+BINDER = ROOT / "binder"
 
 # docs
 MAIN_README = ROOT / "README.md"
 CHANGELOG = ROOT / "CHANGELOG.md"
 
 # dependencies
-ENV = yaml.safe_load((ROOT / "environment.yml").read_text())
+ENV = yaml.safe_load((BINDER / "environment.yml").read_text())
 LAB_SPEC = [
     d.split(" ", 1)[1]
     for d in ENV["dependencies"]
@@ -121,7 +122,7 @@ def test_ts_package_integrity(name, info, the_meta_package):
 
 
 @pytest.mark.parametrize(
-    "path", map(str, [REQS, "lab.txt", CI / "job.test.yml", MAIN_README])
+    "path", map(str, [REQS / "lab.txt", CI / "job.test.yml", MAIN_README])
 )
 def test_jlab_versions(path):
     """ is the version of jupyterlab consistent?
