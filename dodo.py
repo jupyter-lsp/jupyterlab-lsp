@@ -44,7 +44,10 @@ ALL_PY = [*PY_SRC, *PY_SCRIPTS, *PY_ATEST, PY_SETUP, DODO]
 
 def task_py_setup():
     def clean():
-        [shutil.rmtree(dr) for dr in [PY_EGGINFO, *PY_ROOT.rglob("__pycache__")]]
+        [
+            dr.exists() and shutil.rmtree(dr)
+            for dr in [PY_EGGINFO, *PY_ROOT.rglob("__pycache__")]
+        ]
 
     return {
         "file_dep": PY_META,
