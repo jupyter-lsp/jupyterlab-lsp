@@ -18,6 +18,8 @@ BUILD = ROOT / "build"
 DOCS = ROOT / "docs"
 PY_ROOT = ROOT / "py_src"
 PACKAGES = ROOT / "packages"
+REQS = ROOT / "requirements"
+BINDER = ROOT / "binder"
 
 # we're going to build here
 BUILD.exists() or BUILD.mkdir()
@@ -177,9 +179,21 @@ def task_robot_lint():
 # TODO: .prettierignore is complicated, need a better solution
 _PRETTIED = BUILD / "prettier.log"
 
+ALL_MD = [*ROOT.glob("*.md"), *DOCS.rglob("*.md")]
+ALL_JSON = [*ROOT.glob("*.json"), *PY_ROOT.rglob("*.json"), *PACKAGES.rglob("*.json")]
+ALL_TS = [*PACKAGES.rglob("*.ts"), *PACKAGES.rglob("*.tsx")]
+ALL_CSS = [*PACKAGES.rglob("*.css"), *DOCS.rglob("*.css")]
+ALL_PRETTIER = [*ALL_MD, *ALL_JSON, *ALL_TS, *ALL_CSS]
+ALL_YAML = [*ROOT.glob("*.yml"), *REQS.glob("*.yml"), *BINDER.glob("*.yml")]
+
 
 def task_prettier():
-    return {"targets": [_PRETTIED], "actions": [f"jlpm prettier > {_PRETTIED}"]}
+    return {
+        "file_dep": ALL_PRETTIER,
+        "targets": [_PRETTIED],
+        "actions": [f"jlpm prettier > {_PRETTIED}"],
+        "clean": True,
+    }
 
 
 # typescript-only concerns
