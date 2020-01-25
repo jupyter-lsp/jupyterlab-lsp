@@ -119,11 +119,17 @@ _ROBOTDRYRAN = BUILD / "robotdryrun.log"
 
 
 def task_robot_dryrun():
+    def clean():
+        [
+            shutil.rmtree(dr) if dr.is_dir() else dr.unlink()
+            for dr in [_ROBOTDRYRAN, *(ROOT / "atest" / "output").glob("dry_run_*")]
+        ]
+
     return {
         "file_dep": [_ROBOTIDIED, *ALL_ROBOT],
         "targets": [_ROBOTDRYRAN],
         "actions": [f"python scripts/atest.py --dryrun > {_ROBOTDRYRAN}"],
-        "clean": True,
+        "clean": [clean],
     }
 
 
