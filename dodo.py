@@ -20,6 +20,7 @@ PY_ROOT = ROOT / "py_src"
 PACKAGES = ROOT / "packages"
 REQS = ROOT / "requirements"
 BINDER = ROOT / "binder"
+CI = ROOT / "ci"
 
 # we're going to build here
 BUILD.exists() or BUILD.mkdir()
@@ -184,7 +185,12 @@ ALL_JSON = [*ROOT.glob("*.json"), *PY_ROOT.rglob("*.json"), *PACKAGES.rglob("*.j
 ALL_TS = [*PACKAGES.rglob("*.ts"), *PACKAGES.rglob("*.tsx")]
 ALL_CSS = [*PACKAGES.rglob("*.css"), *DOCS.rglob("*.css")]
 ALL_PRETTIER = [*ALL_MD, *ALL_JSON, *ALL_TS, *ALL_CSS]
-ALL_YAML = [*ROOT.glob("*.yml"), *REQS.glob("*.yml"), *BINDER.glob("*.yml")]
+ALL_YAML = [
+    *ROOT.glob("*.yml"),
+    *REQS.glob("*.yml"),
+    *BINDER.glob("*.yml"),
+    *CI.rglob("*.yml"),
+]
 
 
 def task_prettier():
@@ -207,6 +213,9 @@ def task_tslint():
         "actions": [f"jlpm tslint > {_TSLINTED}"],
         "clean": True,
     }
+
+
+# overall concerns
 
 
 # utilities
