@@ -11,6 +11,7 @@ dependencies:
   - notebook >=4.3.1
   # build dependencies
   - nodejs
+  - doit
   # for python language server (and development)
   - black
   - flake8 >=3.5

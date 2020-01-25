@@ -104,6 +104,12 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+
+# doit
+*.bak
+*.dat
+*.dir
+
 node_modules
 .yarn-packages
 *.tsbuildinfo
