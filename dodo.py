@@ -15,37 +15,18 @@ from pathlib import Path
 DODO = Path(__file__)
 ROOT = DODO.parent
 BUILD = ROOT / "build"
-
-PY_SRC = list((ROOT / "py_src").rglob("*.py"))
-PY_SCRIPTS = list((ROOT / "scripts").rglob("*.py"))
-PY_ATEST = list((ROOT / "atest").glob("*.py"))
-ALL_PY = [DODO, *PY_SRC, *PY_SCRIPTS, *PY_ATEST]
-
-ALL_ROBOT = list((ROOT / "atest").rglob("*.robot"))
-
-RFLINT_RULES = [
-    "LineTooLong:200",
-    "TooFewKeywordSteps:0",
-    "TooFewTestSteps:1",
-    "TooManyTestSteps:30",
-    "TooManyTestCases:13",
-]
-
-RFLINT_IGNORES = [
-    "RequireKeywordDocumentation",
-    "RequireSuiteDocumentation",
-    "RequireTestDocumentation",
-]
-
-RFLINT = sum(
-    [["--configure", rule] for rule in RFLINT_RULES]
-    + [["--ignore", rule] for rule in RFLINT_IGNORES],
-    [],
-)
+DOCS = ROOT / "docs"
+PY_ROOT = ROOT / "py_src"
+PACKAGES = ROOT / "packages"
 
 # we're going to build here
 BUILD.exists() or BUILD.mkdir()
 
+# python concerns
+PY_SRC = list(PY_ROOT.rglob("*.py"))
+PY_SCRIPTS = list((ROOT / "scripts").rglob("*.py"))
+PY_ATEST = list((ROOT / "atest").glob("*.py"))
+ALL_PY = [DODO, *PY_SRC, *PY_SCRIPTS, *PY_ATEST]
 
 # TODO: investigate better output mechanisms (reports)
 _ISORTED = BUILD / "isort.log"
@@ -103,6 +84,29 @@ def task_mypy():
     }
 
 
+# robot concerns
+ALL_ROBOT = list((ROOT / "atest").rglob("*.robot"))
+
+RFLINT_RULES = [
+    "LineTooLong:200",
+    "TooFewKeywordSteps:0",
+    "TooFewTestSteps:1",
+    "TooManyTestSteps:30",
+    "TooManyTestCases:13",
+]
+
+RFLINT_IGNORES = [
+    "RequireKeywordDocumentation",
+    "RequireSuiteDocumentation",
+    "RequireTestDocumentation",
+]
+
+RFLINT = sum(
+    [["--configure", rule] for rule in RFLINT_RULES]
+    + [["--ignore", rule] for rule in RFLINT_IGNORES],
+    [],
+)
+
 _ROBOTIDIED = BUILD / "robotidy.log"
 
 
@@ -122,7 +126,10 @@ def task_robot_dryrun():
     def clean():
         [
             shutil.rmtree(dr) if dr.is_dir() else dr.unlink()
-            for dr in [_ROBOTDRYRAN, *(ROOT / "atest" / "output").glob("dry_run_*")]
+            for dr in [
+                *([_ROBOTDRYRAN] if _ROBOTDRYRAN.exists() else []),
+                *(ROOT / "atest" / "output").glob("dry_run_*"),
+            ]
         ]
 
     return {
@@ -162,6 +169,28 @@ def task_robot_lint():
         "file_dep": [_ROBOTDRYRAN, *ALL_ROBOT],
         "targets": [_RFLINTED],
         "actions": [f"rflint {args} {_(ALL_ROBOT)} > {_RFLINTED}"],
+        "clean": True,
+    }
+
+
+# prettier concerns
+# TODO: .prettierignore is complicated, need a better solution
+_PRETTIED = BUILD / "prettier.log"
+
+
+def task_prettier():
+    return {"targets": [_PRETTIED], "actions": [f"jlpm prettier > {_PRETTIED}"]}
+
+
+# typescript-only concerns
+_TSLINTED = BUILD / "tslint.log"
+
+
+def task_tslint():
+    return {
+        "file_dep": [_PRETTIED],
+        "targets": [_TSLINTED],
+        "actions": [f"jlpm tslint > {_TSLINTED}"],
         "clean": True,
     }
 
