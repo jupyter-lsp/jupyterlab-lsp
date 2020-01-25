@@ -245,6 +245,10 @@ def task_prettier():
 
 
 # typescript-only concerns
+TS_WS = PACKAGES / "lsp-ws-connection"
+TS_META = PACKAGES / "metapackage"
+TS_LSP = PACKAGES / "jupyterlab-lsp"
+
 _TSLINTED = BUILD / "tslint.log"
 
 
@@ -253,6 +257,65 @@ def task_tslint():
         "file_dep": [_PRETTIED],
         "targets": [_TSLINTED],
         "actions": [f"jlpm tslint > {_TSLINTED}"],
+        "clean": True,
+    }
+
+
+_TSCHEMAED = BUILD / "ts_schema.log"
+DTS_SCHEMA = TS_LSP / "src" / "_schema.d.ts"
+
+
+def task_ts_schema():
+    return {
+        "file_dep": [*PY_JSON],
+        "targets": [_TSCHEMAED, DTS_SCHEMA],
+        "actions": [f"jlpm build:schema > {_TSCHEMAED}"],
+        "clean": True,
+    }
+
+
+_TSBUILT = BUILD / "tsc.log"
+
+
+def task_tsc():
+    libs = [TS_LSP / "lib", TS_WS / "lib", TS_META / "lib"]
+
+    def clean():
+        [shutil.rmtree(libs, ignore_errors=True) for dr in libs]
+        _TSBUILT.exists() and _TSBUILT.unlink()
+
+    return {
+        "file_dep": [_TSLINTED, _TSCHEMAED],
+        "targets": [_TSBUILT, *libs],
+        "actions": [f"jlpm build:meta > {_TSBUILT}"],
+        "clean": [clean],
+    }
+
+
+_WEBPACKED = BUILD / "lsp-ws-connection.webpack.log"
+
+
+def task_ws_webpack():
+    def clean():
+        shutil.rmtree(TS_WS / "dist", ignore_errors=True)
+        _WEBPACKED.exists() and _WEBPACKED.unlink()
+
+    return {
+        "file_dep": [_TSBUILT],
+        "targets": [_WEBPACKED, TS_WS / "dist"],
+        "actions": [f"jlpm build:ws > {_WEBPACKED}"],
+        "clean": [clean],
+    }
+
+
+_WSTESTED = BUILD / "lsp-ws-connection.test.log"
+
+
+def task_js_wstest():
+    return {
+        "file_dep": [_TSBUILT],
+        "targets": [_WSTESTED],
+        "actions": [f"jlpm test --scope lsp-ws-connection > {_WSTESTED}"],
         "clean": True,
     }
 
