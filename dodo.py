@@ -308,14 +308,26 @@ def task_ws_webpack():
     }
 
 
-_WSTESTED = BUILD / "lsp-ws-connection.test.log"
+WS_JUNIT = TS_LSP.glob("*/junit.xml")
 
 
-def task_js_wstest():
+def task_wstest():
     return {
         "file_dep": [_TSBUILT],
-        "targets": [_WSTESTED],
-        "actions": [f"jlpm test --scope lsp-ws-connection > {_WSTESTED}"],
+        "targets": [*WS_JUNIT],
+        "actions": [f"jlpm test --scope lsp-ws-connection"],
+        "clean": True,
+    }
+
+
+LSP_JUNIT = TS_LSP / "junit.xml"
+
+
+def task_lsptest():
+    return {
+        "file_dep": [_TSBUILT],
+        "targets": [LSP_JUNIT],
+        "actions": [f"jlpm test --scope @krassowski/jupyterlab-lsp"],
         "clean": True,
     }
 
