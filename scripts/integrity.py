@@ -20,6 +20,7 @@ except ImportError:
     import ruamel_yaml as yaml
 
 ROOT = pathlib.Path.cwd()
+REQS = ROOT / "requirements"
 
 # docs
 MAIN_README = ROOT / "README.md"
@@ -120,7 +121,7 @@ def test_ts_package_integrity(name, info, the_meta_package):
 
 
 @pytest.mark.parametrize(
-    "path", map(str, [ROOT / "requirements-lab.txt", CI / "job.test.yml", MAIN_README])
+    "path", map(str, [REQS, "lab.txt", CI / "job.test.yml", MAIN_README])
 )
 def test_jlab_versions(path):
     """ is the version of jupyterlab consistent?

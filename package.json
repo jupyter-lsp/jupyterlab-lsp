@@ -28,6 +28,9 @@
       "pre-commit": "precise-commits"
     }
   },
+  "prettier": {
+    "singleQuote": true
+  },
   "private": true,
   "scripts": {
     "bootstrap": "jlpm --no-optional --prefer-offline && lerna bootstrap && jlpm lint && jlpm clean && jlpm build",
@@ -44,8 +47,8 @@
     "prettier:check": "prettier --check '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
     "test": "lerna run --stream --concurrency=1 test",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
-    "tslint": "tslint --fix -c tslint.json --project tsconfigbase.json 'packages/**/*{.ts,.tsx}'",
-    "tslint:check": "tslint -c tslint.json --project tsconfigbase.json 'packages/**/*{.ts,.tsx}'"
+    "tslint": "tslint --fix -c ./packages/tslint.json --project ./packages/tsconfigbase.json 'packages/**/*{.ts,.tsx}'",
+    "tslint:check": "tslint -c ./packages/tslint.json --project ./packages/tsconfigbase.json 'packages/**/*{.ts,.tsx}'"
   },
   "workspaces": {
     "packages": [
