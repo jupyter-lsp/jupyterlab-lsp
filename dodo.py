@@ -112,19 +112,19 @@ def task_mypy():
     }
 
 
-_UTESTED = BUILD / "utest.log"
-_PYTEST_CACHE = ROOT / ".pytest_cache"
+COVERAGE = ROOT / ".coverage"
+PYTEST_CACHE = ROOT / ".pytest_cache"
 
 
 def task_utest():
     def clean():
-        shutil.rmtree(_PYTEST_CACHE, ignore_errors=True)
-        _UTESTED.exists() and _UTESTED.unlink()
+        shutil.rmtree(PYTEST_CACHE, ignore_errors=True)
+        COVERAGE.exists() and COVERAGE.unlink()
 
     return {
         "file_dep": [*PY_SRC, *PY_JSON, *PY_META],
-        "targets": [_UTESTED],
-        "actions": [f"python scripts/utest.py > {_UTESTED}"],
+        "targets": [COVERAGE, PYTEST_CACHE],
+        "actions": [f"python scripts/utest.py"],
         "clean": [clean],
     }
 
@@ -218,6 +218,25 @@ def task_robot_lint():
     }
 
 
+# js concerns
+PACKAGE_JSONS = [ROOT / "package.json", *PACKAGES.glob("*/package.json")]
+NODE_MODULES = ROOT / "node_modules"
+
+_JLPMED = BUILD / "jlpm.install.log"
+
+
+def task_jsdeps():
+    def clean():
+        shutil.rmtree(NODE_MODULES, ignore_errors=True)
+
+    return {
+        "file_dep": PACKAGE_JSONS,
+        "targets": [_JLPMED],
+        "actions": [f"jlpm --no-optional --prefer-offline > {_JLPMED}"],
+        "clean": [clean],
+    }
+
+
 # prettier concerns
 # TODO: .prettierignore is complicated, need a better solution
 _PRETTIED = BUILD / "prettier.log"
@@ -237,7 +256,7 @@ ALL_YAML = [
 
 def task_prettier():
     return {
-        "file_dep": ALL_PRETTIER,
+        "file_dep": [*ALL_PRETTIER, _JLPMED],
         "targets": [_PRETTIED],
         "actions": [f"jlpm prettier > {_PRETTIED}"],
         "clean": True,
@@ -267,7 +286,7 @@ DTS_SCHEMA = TS_LSP / "src" / "_schema.d.ts"
 
 def task_ts_schema():
     return {
-        "file_dep": [*PY_JSON],
+        "file_dep": [*PY_JSON, _JLPMED],
         "targets": [_TSCHEMAED, DTS_SCHEMA],
         "actions": [f"jlpm build:schema > {_TSCHEMAED}"],
         "clean": True,
