@@ -217,6 +217,17 @@ def task_tslint():
 
 # overall concerns
 
+_INTEGRATED = BUILD / "integrity.log"
+
+
+def task_integrity():
+    return {
+        "file_dep": [*ALL_YAML, *ALL_JSON, *ALL_TS, *ALL_PY, *ALL_MD],
+        "targets": [_INTEGRATED],
+        "actions": [f"python scripts/integrity.py > {_INTEGRATED}"],
+        "clean": True,
+    }
+
 
 # utilities
 
