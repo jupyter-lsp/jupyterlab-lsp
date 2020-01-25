@@ -8,30 +8,52 @@ To just run one task_<name> (and any requirements):
 
     doit <name>
 
+TODO:
+    - investigate better output mechanisms (reports)
 """
 import shutil
 from pathlib import Path
 
 DODO = Path(__file__)
 ROOT = DODO.parent
-BUILD = ROOT / "build"
-DOCS = ROOT / "docs"
-PY_ROOT = ROOT / "py_src"
-PACKAGES = ROOT / "packages"
-REQS = ROOT / "requirements"
+
+# base sources
+ATEST = ROOT / "atest"
 BINDER = ROOT / "binder"
 CI = ROOT / "ci"
+DOCS = ROOT / "docs"
+PACKAGES = ROOT / "packages"
+PY_ROOT = ROOT / "py_src"
+REQS = ROOT / "requirements"
+SCRIPTS = ROOT / "scripts"
 
 # we're going to build here
+BUILD = ROOT / "build"
 BUILD.exists() or BUILD.mkdir()
 
 # python concerns
-PY_SRC = list(PY_ROOT.rglob("*.py"))
-PY_SCRIPTS = list((ROOT / "scripts").rglob("*.py"))
-PY_ATEST = list((ROOT / "atest").glob("*.py"))
-ALL_PY = [DODO, *PY_SRC, *PY_SCRIPTS, *PY_ATEST]
+PY_SETUP = ROOT / "setup.py"
+PY_META = [ROOT / "setup.cfg", ROOT / "MANIFEST.in", PY_SETUP]
+PY_SRC = [*PY_ROOT.rglob("*.py")]
+PY_SCRIPTS = [*SCRIPTS.rglob("*.py")]
+PY_ATEST = [*ATEST.glob("*.py")]
+PY_JSON = [*PY_ROOT.rglob("*.json")]
+PY_EGGINFO = PY_ROOT / "jupyter_lsp.egg-info"
+ALL_PY = [*PY_SRC, *PY_SCRIPTS, *PY_ATEST, PY_SETUP, DODO]
 
-# TODO: investigate better output mechanisms (reports)
+
+def task_py_setup():
+    def clean():
+        [shutil.rmtree(dr) for dr in [PY_EGGINFO, *PY_ROOT.rglob("__pycache__")]]
+
+    return {
+        "file_dep": PY_META,
+        "targets": [PY_EGGINFO],
+        "actions": [f"python -m pip install -e . --ignore-installed --no-deps"],
+        "clean": [clean],
+    }
+
+
 _ISORTED = BUILD / "isort.log"
 
 
@@ -87,6 +109,23 @@ def task_mypy():
     }
 
 
+_UTESTED = BUILD / "utest.log"
+_PYTEST_CACHE = ROOT / ".pytest_cache"
+
+
+def task_utest():
+    def clean():
+        shutil.rmtree(_PYTEST_CACHE, ignore_errors=True)
+        _UTESTED.exists() and _UTESTED.unlink()
+
+    return {
+        "file_dep": [*PY_SRC, *PY_JSON, *PY_META],
+        "targets": [_UTESTED],
+        "actions": [f"python scripts/utest.py > {_UTESTED}"],
+        "clean": [clean],
+    }
+
+
 # robot concerns
 ALL_ROBOT = list((ROOT / "atest").rglob("*.robot"))
 
@@ -131,7 +170,7 @@ def task_robot_dryrun():
             shutil.rmtree(dr) if dr.is_dir() else dr.unlink()
             for dr in [
                 *([_ROBOTDRYRAN] if _ROBOTDRYRAN.exists() else []),
-                *(ROOT / "atest" / "output").glob("dry_run_*"),
+                *(ATEST / "output").glob("dry_run_*"),
             ]
         ]
 
@@ -181,7 +220,7 @@ def task_robot_lint():
 _PRETTIED = BUILD / "prettier.log"
 
 ALL_MD = [*ROOT.glob("*.md"), *DOCS.rglob("*.md")]
-ALL_JSON = [*ROOT.glob("*.json"), *PY_ROOT.rglob("*.json"), *PACKAGES.rglob("*.json")]
+ALL_JSON = [*ROOT.glob("*.json"), *PY_JSON, *PACKAGES.rglob("*.json")]
 ALL_TS = [*PACKAGES.rglob("*.ts"), *PACKAGES.rglob("*.tsx")]
 ALL_CSS = [*PACKAGES.rglob("*.css"), *DOCS.rglob("*.css")]
 ALL_PRETTIER = [*ALL_MD, *ALL_JSON, *ALL_TS, *ALL_CSS]
