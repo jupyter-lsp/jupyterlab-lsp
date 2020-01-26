@@ -60,7 +60,18 @@ def task_py_setup():
     return {
         "file_dep": PY_META,
         "targets": [PY_EGGINFO],
-        "actions": [f"python -m pip install -e . --ignore-installed --no-deps"],
+        "actions": [
+            [
+                "python",
+                "-m",
+                "pip",
+                "install",
+                "-e",
+                ".",
+                "--ignore-installed",
+                "--no-deps",
+            ]
+        ],
         "clean": [clean],
     }
 
@@ -73,7 +84,7 @@ def task_isort():
     return {
         "file_dep": ALL_PY,
         "targets": [_ISORTED],
-        "actions": [f"isort -rc {_(ALL_PY)}", _ISORTED.touch],
+        "actions": [["isort", "-rc", *ALL_PY], _ISORTED.touch],
         "clean": True,
     }
 
@@ -86,7 +97,7 @@ def task_black():
     return {
         "file_dep": [_ISORTED, *ALL_PY],
         "targets": [_BLACKENED],
-        "actions": [f"black {_(ALL_PY)}", _BLACKENED.touch],
+        "actions": [["black", *ALL_PY], _BLACKENED.touch],
         "clean": True,
     }
 
@@ -98,7 +109,7 @@ def task_flake8():
     return {
         "file_dep": [_BLACKENED, *ALL_PY],
         "targets": [_FLAKED],
-        "actions": [f"flake8 {_(ALL_PY)}", _FLAKED.touch],
+        "actions": [["flake8", *ALL_PY], _FLAKED.touch],
         "clean": True,
     }
 
@@ -115,7 +126,7 @@ def task_mypy():
     return {
         "file_dep": [_FLAKED, _BLACKENED, *PY_SRC],
         "targets": [_MYPYED],
-        "actions": [f"mypy {_(PY_SRC)}", _MYPYED.touch],
+        "actions": [["mypy", *PY_SRC], _MYPYED.touch],
         "clean": [clean],
     }
 
@@ -132,7 +143,7 @@ def task_utest():
     return {
         "file_dep": [*PY_SRC, *PY_JSON, *PY_META, _JLPMED, PY_EGG_PKG],
         "targets": [COVERAGE, PYTEST_CACHE],
-        "actions": [f"python scripts/utest.py"],
+        "actions": [["python", "scripts/utest.py"]],
         "clean": [clean],
     }
 
@@ -167,7 +178,10 @@ def task_robot_tidy():
     return {
         "file_dep": ALL_ROBOT,
         "targets": [_ROBOTIDIED],
-        "actions": [f"python -m robot.tidy --inplace {_(ALL_ROBOT)} > {_ROBOTIDIED}"],
+        "actions": [
+            ["python", "-m", "robot.tidy", "--inplace", *ALL_ROBOT],
+            _ROBOTIDIED.touch,
+        ],
         "clean": True,
     }
 
@@ -182,7 +196,7 @@ def task_robot_dryrun():
     return {
         "file_dep": [_ROBOTIDIED, *ALL_ROBOT],
         "targets": ROBOT_DRYRUN,
-        "actions": [f"python scripts/atest.py --dryrun --name 'Dry Run'"],
+        "actions": [["python", "scripts/atest.py", "--dryrun", "--name", "Dry Run"]],
         "clean": [clean],
     }
 
@@ -211,11 +225,10 @@ RFLINT = sum(
 
 
 def task_robot_lint():
-    args = " ".join(RFLINT)
     return {
         "file_dep": [*ROBOT_DRYRUN, *ALL_ROBOT],
         "targets": [_RFLINTED],
-        "actions": [f"rflint {args} {_(ALL_ROBOT)}", _RFLINTED.touch],
+        "actions": [["rflint", *RFLINT, *ALL_ROBOT], _RFLINTED.touch],
         "clean": True,
     }
 
@@ -235,7 +248,7 @@ def task_jsdeps():
     return {
         "file_dep": [*PACKAGE_JSONS],
         "targets": [_JLPMED],
-        "actions": [f"jlpm --no-optional --prefer-offline", _JLPMED.touch],
+        "actions": [["jlpm", "--no-optional", "--prefer-offline"], _JLPMED.touch],
         "clean": [clean],
     }
 
@@ -256,12 +269,26 @@ ALL_YAML = [
     *CI.rglob("*.yml"),
 ]
 
+_PRETTIER_NEEDED = BUILD / "prettier-different.log"
+
+
+def task_needs_prettier():
+    return {
+        "file_dep": [*ALL_PRETTIER, _JLPMED, DTS_SCHEMA],
+        "targets": [_PRETTIER_NEEDED],
+        "actions": [
+            ["jlpm", "--silent", "prettier", "--list-different"],
+            _PRETTIER_NEEDED.touch,
+        ],
+        "clean": True,
+    }
+
 
 def task_prettier():
     return {
-        "file_dep": [*ALL_PRETTIER, _JLPMED, DTS_SCHEMA],
+        "file_dep": [_PRETTIER_NEEDED],
         "targets": [_PRETTIED],
-        "actions": [f"jlpm prettier", _PRETTIED.touch],
+        "actions": [["jlpm", "prettier:fix"], _PRETTIED.touch],
         "clean": True,
         "verbosity": 2,
     }
@@ -279,7 +306,7 @@ def task_tslint():
     return {
         "file_dep": [_PRETTIED],
         "targets": [_TSLINTED],
-        "actions": [f"jlpm tslint", _TSLINTED.touch],
+        "actions": [["jlpm", "tslint:fix"], _TSLINTED.touch],
         "clean": True,
     }
 
@@ -291,7 +318,7 @@ def task_ts_schema():
     return {
         "file_dep": [*PY_JSON, _JLPMED],
         "targets": [DTS_SCHEMA],
-        "actions": [f"jlpm build:schema"],
+        "actions": [["jlpm", "build:schema"]],
         "clean": True,
     }
 
@@ -308,7 +335,7 @@ def task_tsc():
     return {
         "file_dep": [DTS_SCHEMA],
         "targets": [*libs],
-        "actions": [f"jlpm build:meta"],
+        "actions": [["jlpm", "build:meta"]],
         "clean": [clean],
     }
 
@@ -324,7 +351,7 @@ def task_ws_webpack():
     return {
         "file_dep": TS_BUILDINFO,
         "targets": [_WEBPACKED, TS_WS / "dist"],
-        "actions": [f"jlpm build:ws", _WEBPACKED.touch],
+        "actions": [["jlpm", "build:ws"], _WEBPACKED.touch],
         "clean": [clean],
     }
 
@@ -336,7 +363,7 @@ def task_wstest():
     return {
         "file_dep": TS_BUILDINFO,
         "targets": [*WS_JUNIT],
-        "actions": [f"jlpm test --scope lsp-ws-connection"],
+        "actions": [["jlpm", "test", "--scope", "lsp-ws-connection"]],
         "clean": True,
     }
 
@@ -348,7 +375,7 @@ def task_lsptest():
     return {
         "file_dep": TS_BUILDINFO,
         "targets": [LSP_JUNIT],
-        "actions": [f"jlpm test --scope @krassowski/jupyterlab-lsp"],
+        "actions": [["jlpm", "test", "--scope", "@krassowski/jupyterlab-lsp"]],
         "clean": True,
     }
 
@@ -376,7 +403,7 @@ def task_atest():
             _SERVEREXTENDED,
         ],
         "targets": [*ATEST_OUTPUTS],
-        "actions": [f"python scripts/atest.py"],
+        "actions": [["python", "scripts/atest.py"]],
         "clean": [clean],
         "verbosity": 2,
     }
@@ -386,7 +413,7 @@ def task_atest_combine():
     return {
         "file_dep": [*ATEST_OUTPUTS, *ROBOT_DRYRUN],
         "targets": ATEST_COMBINED,
-        "actions": [f"python scripts/combine.py"],
+        "actions": [["python", "scripts/combine.py"]],
         "clean": True,
         "verbosity": 2,
     }
@@ -402,7 +429,14 @@ def task_serverextension():
         "file_dep": [PY_EGG_PKG],
         "targets": [_SERVEREXTENDED],
         "actions": [
-            f"jupyter serverextension enable --sys-prefix --py jupyter_lsp",
+            [
+                "jupyter",
+                "serverextension",
+                "enable",
+                "--sys-prefix",
+                "--py",
+                "jupyter_lsp",
+            ],
             _SERVEREXTENDED.touch,
         ],
         "clean": True,
@@ -416,7 +450,7 @@ def task_lab_link():
     return {
         "file_dep": [_WEBPACKED],
         "targets": [_LABEXTENDED],
-        "actions": [f"jlpm lab:link", _LABEXTENDED.touch],
+        "actions": [["jlpm", "lab:link"], _LABEXTENDED.touch],
         "clean": True,
     }
 
@@ -429,7 +463,7 @@ def task_lab_build():
         "file_dep": [_LABEXTENDED],
         "targets": [_LABBUILT],
         "actions": [
-            f"jupyter lab build --dev-build=False --minimize=True",
+            ["jupyter", "lab", "build", "--dev-build=False", "--minimize=True"],
             _LABBUILT.touch,
         ],
         "clean": True,
@@ -445,7 +479,7 @@ def task_integrity():
     return {
         "file_dep": [*ALL_YAML, *ALL_JSON, *ALL_TS, *ALL_PY, *ALL_MD],
         "targets": [_INTEGRATED],
-        "actions": [f"python scripts/integrity.py", _INTEGRATED.touch],
+        "actions": [["python", "scripts/integrity.py"], _INTEGRATED.touch],
         "clean": True,
     }
 
@@ -454,7 +488,10 @@ def task_py_dist():
     return {
         "file_dep": [*PY_SRC, *PY_JSON, *PY_META, ROOT / "README.md"],
         "targets": [*PY_SDIST, *PY_WHEEL],
-        "actions": ["python setup.py sdist", "python setup.py bdist_wheel"],
+        "actions": [
+            ["python", "setup.py", "sdist"],
+            ["python", "setup.py", "bdist_wheel"],
+        ],
         "clean": True,
     }
 
@@ -463,15 +500,6 @@ def task_js_dist():
     return {
         "file_dep": [_WEBPACKED],
         "targets": [*PACKAGES.glob("*.tgz")],
-        "actions": ["jlpm bundle"],
+        "actions": [["jlpm", "bundle"]],
         "clean": True,
     }
-
-
-# utilities
-
-
-def _(paths):
-    """ utility to make paths string-friendly
-    """
-    return " ".join(sorted(map(str, paths)))

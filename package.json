@@ -43,12 +43,13 @@
     "clean": "lerna run --parallel clean",
     "lab:link": "lerna run lab:link",
     "lint:check": "jlpm prettier:check && jlpm tslint:check",
-    "lint": "jlpm prettier && jlpm tslint",
-    "prettier:check": "prettier --check '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
-    "test": "lerna run --stream --concurrency=1 test",
-    "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
-    "tslint": "tslint --fix -c ./packages/tslint.json --project ./packages/tsconfigbase.json 'packages/**/*{.ts,.tsx}'",
-    "tslint:check": "tslint -c ./packages/tslint.json --project ./packages/tsconfigbase.json 'packages/**/*{.ts,.tsx}'"
+    "lint": "jlpm prettier:fix && jlpm tslint:fix",
+    "prettier": "prettier '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
+    "prettier:check": "jlpm prettier --check",
+    "prettier:fix": "jlpm prettier --write",
+    "tslint:fix": "tslint --fix -c ./packages/tslint.json --project ./packages/tsconfigbase.json 'packages/**/*{.ts,.tsx}'",
+    "tslint:check": "tslint -c ./packages/tslint.json --project ./packages/tsconfigbase.json 'packages/**/*{.ts,.tsx}'",
+    "test": "lerna run --stream --concurrency=1 test"
   },
   "workspaces": {
     "packages": [
