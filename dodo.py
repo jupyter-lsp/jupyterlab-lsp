@@ -23,6 +23,7 @@ ROOT = DODO.parent
 ATEST = ROOT / "atest"
 BINDER = ROOT / "binder"
 CI = ROOT / "ci"
+DIST = ROOT / "dist"
 DOCS = ROOT / "docs"
 PACKAGES = ROOT / "packages"
 PY_ROOT = ROOT / "py_src"
@@ -44,8 +45,9 @@ PY_JSON = [*PY_ROOT.rglob("*.json")]
 PY_EGGINFO = PY_ROOT / "jupyter_lsp.egg-info"
 PY_EGG_PKG = PY_EGGINFO / "PKG-INFO"
 ALL_PY = [*PY_SRC, *PY_SCRIPTS, *PY_ATEST, PY_SETUP, DODO]
-PY_SDIST = ROOT / "build" / "*.tar.gz"
-PY_WHEEL = ROOT / "build" / "*.whl"
+
+PY_SDIST = [*DIST.glob("jupyer-lsp*.tar.gz")]
+PY_WHEEL = [*DIST.glob("jupyter_lsp*.whl")]
 
 
 def task_py_setup():
@@ -71,7 +73,7 @@ def task_isort():
     return {
         "file_dep": ALL_PY,
         "targets": [_ISORTED],
-        "actions": [f"isort -rc {_(ALL_PY)} > {_ISORTED}"],
+        "actions": [f"isort -rc {_(ALL_PY)}", _ISORTED.touch],
         "clean": True,
     }
 
@@ -84,7 +86,7 @@ def task_black():
     return {
         "file_dep": [_ISORTED, *ALL_PY],
         "targets": [_BLACKENED],
-        "actions": [f"black {_(ALL_PY)} > {_BLACKENED}"],
+        "actions": [f"black {_(ALL_PY)}", _BLACKENED.touch],
         "clean": True,
     }
 
@@ -96,7 +98,7 @@ def task_flake8():
     return {
         "file_dep": [_BLACKENED, *ALL_PY],
         "targets": [_FLAKED],
-        "actions": [f"flake8 {_(ALL_PY)} > {_FLAKED}"],
+        "actions": [f"flake8 {_(ALL_PY)}", _FLAKED.touch],
         "clean": True,
     }
 
@@ -113,7 +115,7 @@ def task_mypy():
     return {
         "file_dep": [_FLAKED, _BLACKENED, *PY_SRC],
         "targets": [_MYPYED],
-        "actions": [f"mypy {_(PY_SRC)} > {_MYPYED}"],
+        "actions": [f"mypy {_(PY_SRC)}", _MYPYED.touch],
         "clean": [clean],
     }
 
@@ -213,7 +215,7 @@ def task_robot_lint():
     return {
         "file_dep": [*ROBOT_DRYRUN, *ALL_ROBOT],
         "targets": [_RFLINTED],
-        "actions": [f"rflint {args} {_(ALL_ROBOT)} > {_RFLINTED}"],
+        "actions": [f"rflint {args} {_(ALL_ROBOT)}", _RFLINTED.touch],
         "clean": True,
     }
 
@@ -233,7 +235,7 @@ def task_jsdeps():
     return {
         "file_dep": [*PACKAGE_JSONS],
         "targets": [_JLPMED],
-        "actions": [f"jlpm --no-optional --prefer-offline > {_JLPMED}"],
+        "actions": [f"jlpm --no-optional --prefer-offline", _JLPMED.touch],
         "clean": [clean],
     }
 
@@ -259,8 +261,9 @@ def task_prettier():
     return {
         "file_dep": [*ALL_PRETTIER, _JLPMED, DTS_SCHEMA],
         "targets": [_PRETTIED],
-        "actions": [f"jlpm prettier > {_PRETTIED}"],
+        "actions": [f"jlpm prettier", _PRETTIED.touch],
         "clean": True,
+        "verbosity": 2,
     }
 
 
@@ -276,7 +279,7 @@ def task_tslint():
     return {
         "file_dep": [_PRETTIED],
         "targets": [_TSLINTED],
-        "actions": [f"jlpm tslint > {_TSLINTED}"],
+        "actions": [f"jlpm tslint", _TSLINTED.touch],
         "clean": True,
     }
 
@@ -321,7 +324,7 @@ def task_ws_webpack():
     return {
         "file_dep": TS_BUILDINFO,
         "targets": [_WEBPACKED, TS_WS / "dist"],
-        "actions": [f"jlpm build:ws > {_WEBPACKED}"],
+        "actions": [f"jlpm build:ws", _WEBPACKED.touch],
         "clean": [clean],
     }
 
@@ -375,6 +378,7 @@ def task_atest():
         "targets": [*ATEST_OUTPUTS],
         "actions": [f"python scripts/atest.py"],
         "clean": [clean],
+        "verbosity": 2,
     }
 
 
@@ -384,6 +388,7 @@ def task_atest_combine():
         "targets": ATEST_COMBINED,
         "actions": [f"python scripts/combine.py"],
         "clean": True,
+        "verbosity": 2,
     }
 
 
@@ -397,8 +402,8 @@ def task_serverextension():
         "file_dep": [PY_EGG_PKG],
         "targets": [_SERVEREXTENDED],
         "actions": [
-            f"jupyter serverextension enable --sys-prefix --py jupyter_lsp"
-            f" > {_SERVEREXTENDED}"
+            f"jupyter serverextension enable --sys-prefix --py jupyter_lsp",
+            _SERVEREXTENDED.touch,
         ],
         "clean": True,
     }
@@ -411,7 +416,7 @@ def task_lab_link():
     return {
         "file_dep": [_WEBPACKED],
         "targets": [_LABEXTENDED],
-        "actions": [f"jlpm lab:link > {_LABEXTENDED}"],
+        "actions": [f"jlpm lab:link", _LABEXTENDED.touch],
         "clean": True,
     }
 
@@ -424,7 +429,8 @@ def task_lab_build():
         "file_dep": [_LABEXTENDED],
         "targets": [_LABBUILT],
         "actions": [
-            f"jupyter lab build --dev-build=False --minimize=True > {_LABBUILT}"
+            f"jupyter lab build --dev-build=False --minimize=True",
+            _LABBUILT.touch,
         ],
         "clean": True,
     }
@@ -439,7 +445,7 @@ def task_integrity():
     return {
         "file_dep": [*ALL_YAML, *ALL_JSON, *ALL_TS, *ALL_PY, *ALL_MD],
         "targets": [_INTEGRATED],
-        "actions": [f"python scripts/integrity.py > {_INTEGRATED}"],
+        "actions": [f"python scripts/integrity.py", _INTEGRATED.touch],
         "clean": True,
     }
 
@@ -447,7 +453,7 @@ def task_integrity():
 def task_py_dist():
     return {
         "file_dep": [*PY_SRC, *PY_JSON, *PY_META, ROOT / "README.md"],
-        "targets": [PY_SDIST, PY_WHEEL],
+        "targets": [*PY_SDIST, *PY_WHEEL],
         "actions": ["python setup.py sdist", "python setup.py bdist_wheel"],
         "clean": True,
     }
