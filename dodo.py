@@ -340,19 +340,15 @@ def task_tsc():
     }
 
 
-_WEBPACKED = BUILD / "lsp-ws-connection.webpack.log"
+WS_DIST = [*(TS_WS / "dist").rglob("*.*")]
 
 
 def task_ws_webpack():
-    def clean():
-        shutil.rmtree(TS_WS / "dist", ignore_errors=True)
-        _WEBPACKED.exists() and _WEBPACKED.unlink()
-
     return {
         "file_dep": TS_BUILDINFO,
-        "targets": [_WEBPACKED, TS_WS / "dist"],
-        "actions": [["jlpm", "build:ws"], _WEBPACKED.touch],
-        "clean": [clean],
+        "targets": WS_DIST,
+        "actions": [["jlpm", "build:ws"]],
+        "clean": True,
     }
 
 
@@ -448,7 +444,7 @@ _LABEXTENDED = BUILD / "labextensions.log"
 
 def task_lab_link():
     return {
-        "file_dep": [_WEBPACKED],
+        "file_dep": WS_DIST,
         "targets": [_LABEXTENDED],
         "actions": [["jlpm", "lab:link"], _LABEXTENDED.touch],
         "clean": True,
@@ -498,7 +494,7 @@ def task_py_dist():
 
 def task_js_dist():
     return {
-        "file_dep": [_WEBPACKED],
+        "file_dep": WS_DIST,
         "targets": [*PACKAGES.glob("*.tgz")],
         "actions": [["jlpm", "bundle"]],
         "clean": True,
