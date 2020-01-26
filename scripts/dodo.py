@@ -17,6 +17,7 @@ import re
 import shutil
 import sys
 from pathlib import Path
+import subprocess
 
 DODO = Path(__file__)
 ROOT = DODO.parent.parent
@@ -56,7 +57,7 @@ PY_SDIST = [DIST / "jupyter-lsp-{}.tar.gz".format(PY_VERSION)]
 PY_WHEEL = [DIST / "jupyter_lsp-{}-py3-none-any.whl".format(PY_VERSION)]
 
 
-def task_py_setup():
+def task_bootstrap_py():
     """ do a local dev install of jupyter_lsp
     """
 
@@ -88,7 +89,7 @@ def task_py_setup():
 _ISORTED = BUILD / "isort.log"
 
 
-def task_isort():
+def task_format_isort():
     """ sort all imports
     """
     return {
@@ -102,7 +103,7 @@ def task_isort():
 _BLACKENED = BUILD / "black.log"
 
 
-def task_black():
+def task_format_black():
     """ blacken all python (except intentionally-broken things for test)
     """
     return {
@@ -116,7 +117,7 @@ def task_black():
 _FLAKED = BUILD / "flake8.log"
 
 
-def task_flake8():
+def task_lint_flake8():
     """ check python source for common typos
     """
 
@@ -132,7 +133,7 @@ _MYPYED = BUILD / "mypy.log"
 _MYPY_CACHE = ROOT / ".mypy_cache"
 
 
-def task_mypy():
+def task_lint_mypy():
     """ typecheck python source
     """
 
@@ -141,7 +142,7 @@ def task_mypy():
         _MYPYED.exists() and _MYPYED.unlink()
 
     return {
-        "file_dep": [_FLAKED, _BLACKENED, *PY_SRC],
+        "file_dep": [_FLAKED, *PY_SRC],
         "targets": [_MYPYED],
         "actions": [["mypy", *PY_SRC], _MYPYED.touch],
         "clean": [clean],
@@ -152,7 +153,7 @@ COVERAGE = ROOT / ".coverage"
 PYTEST_CACHE = ROOT / ".pytest_cache"
 
 
-def task_utest():
+def task_test_py():
     """ run backend unit tests
     """
 
@@ -194,7 +195,7 @@ RFLINT = sum(
 _ROBOTIDIED = BUILD / "robotidy.log"
 
 
-def task_robot_tidy():
+def task_format_robot():
     """ apply source formatting for robot
     """
     return {
@@ -216,7 +217,7 @@ ROBOT_DRYRUN = [
 ]
 
 
-def task_robot_dryrun():
+def task_check_robot():
     """ run through robot tests without actually doing anything
     """
 
@@ -258,7 +259,7 @@ RFLINT = sum(
 )
 
 
-def task_robot_lint():
+def task_lint_robot():
     """ apply robotframework-lint to all robot files
     """
     return {
@@ -276,8 +277,8 @@ NODE_MODULES = ROOT / "node_modules"
 _JLPMED = BUILD / "jlpm.install.log"
 
 
-def task_jsdeps():
-    """ install npm dependencies
+def task_bootstrap_js():
+    """ install js dependencies with yarn
     """
 
     def clean():
@@ -311,7 +312,7 @@ ALL_YAML = [
 _PRETTIER_NEEDED = BUILD / "prettier-different.log"
 
 
-def task_needs_prettier():
+def task_check_prettier():
     """ determine if prettier needs to be run
     """
     return {
@@ -325,7 +326,7 @@ def task_needs_prettier():
     }
 
 
-def task_prettier():
+def task_format_prettier():
     """ apply prettier to source files
     """
     return {
@@ -345,7 +346,7 @@ TS_LSP = PACKAGES / "jupyterlab-lsp"
 _TSLINTED = BUILD / "tslint.log"
 
 
-def task_tslint():
+def task_format_tslint():
     """ fix and lint typescript
     """
     return {
@@ -359,7 +360,7 @@ def task_tslint():
 DTS_SCHEMA = TS_LSP / "src" / "_schema.d.ts"
 
 
-def task_ts_schema():
+def task_build_schema():
     """ create typings for server schema
     """
     return {
@@ -377,7 +378,7 @@ TS_BUILDINFO = [
 ]
 
 
-def task_tsc():
+def task_build_tsc():
     """ transpile all typescript
     """
     libs = [TS_LSP / "lib", TS_WS / "lib", TS_META / "lib"]
@@ -396,7 +397,7 @@ def task_tsc():
 WS_DIST = [TS_WS / "dist" / "index.js"]
 
 
-def task_ws_webpack():
+def task_build_webpack():
     """ build the lsp-ws-connection webpack bundle
     """
 
@@ -414,7 +415,7 @@ def task_ws_webpack():
 WS_JUNIT = TS_WS / "junit.xml"
 
 
-def task_wstest():
+def task_test_ws():
     """ test lsp-ws-connection
     """
     return {
@@ -428,7 +429,7 @@ def task_wstest():
 LSP_JUNIT = TS_LSP / "junit.xml"
 
 
-def task_lsptest():
+def task_test_lsp():
     """ test jupyterlab-lsp
     """
 
@@ -452,7 +453,7 @@ ATEST_COMBINED = [ATEST_OUTPUT / "log.html", ATEST_OUTPUT / "report.html"]
 _ATESTED = BUILD / "atest.log"
 
 
-def task_atest():
+def task_test_browser():
     """ run browser-based acceptance tests
     """
 
@@ -469,7 +470,7 @@ def task_atest():
     }
 
 
-def task_atest_combine():
+def task_report_atest():
     """ combine all robot report outputs
     """
     return {
@@ -486,7 +487,7 @@ def task_atest_combine():
 _SERVEREXTENDED = BUILD / "serverextension.log"
 
 
-def task_serverextension():
+def task_bootstrap_serverextension():
     """ install the serverextension
     """
     return {
@@ -510,7 +511,7 @@ def task_serverextension():
 _LABLISTED = BUILD / "lab.list.log"
 
 
-def task_lab_list():
+def task_check_lab():
     """ list labextensiosn
     """
 
@@ -525,11 +526,11 @@ def task_lab_list():
 _LABEXTENDED = BUILD / "lab.linked.log"
 
 
-def task_lab_link():
+def task_bootstrap_lab():
     """ link all labextensions
     """
     return {
-        "file_dep": [*WS_DIST, *TS_BUILDINFO, _LABLISTED],
+        "file_dep": [_LABLISTED],
         "targets": [_LABEXTENDED],
         "actions": [["jlpm", "lab:link"]] + _lab_list(_LABEXTENDED),
         "clean": True,
@@ -539,9 +540,11 @@ def task_lab_link():
 _LABBUILT = BUILD / "lab.built.log"
 
 
-def task_lab_build():
+def task_build_lab():
     """ do a production build of jupyterlab
     """
+    def clean():
+        _LABBUILT.exists() and _LABBUILT.unlink()
 
     return {
         "file_dep": [_LABEXTENDED],
@@ -550,7 +553,7 @@ def task_lab_build():
             ["jupyter", "lab", "build", "--dev-build=False", "--minimize=True"],
         ]
         + _lab_list(_LABBUILT),
-        "clean": True,
+        "clean": [["jupyter", "lab", "clean"], clean],
     }
 
 
@@ -559,7 +562,7 @@ def task_lab_build():
 _INTEGRATED = BUILD / "integrity.log"
 
 
-def task_integrity():
+def task_check_integrity():
     """ check integrity of versions, etc.
     """
     return {
@@ -570,7 +573,7 @@ def task_integrity():
     }
 
 
-def task_py_dist():
+def task_dist_py():
     """ build pypi release assets
     """
 
@@ -605,7 +608,7 @@ JS_TARBALLS = [
 ]
 
 
-def task_js_dist():
+def task_dist_js():
     """ build npm release assets
     """
     return {
@@ -676,6 +679,25 @@ def task_ALL():
         "actions": [lambda: print("ok!")],
     }
 
+
+def task_WATCH():
+    """ watch the frontend
+    """
+    def watch():
+        jlpm = subprocess.Popen(["jlpm", "watch"])
+        lab = subprocess.Popen(["jupyter", "lab", "--no-browser", "--debug", "--watch"])
+
+        try:
+            jlpm.wait()
+            lab.wait()
+        except:
+            jlpm.terminate()
+            lab.terminate()
+
+    return {
+        "file_dep": [_LABBUILT, _SERVEREXTENDED],
+        "actions": [watch],
+    }
 
 # utilities
 

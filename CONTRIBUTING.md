@@ -28,64 +28,57 @@ Development requires:
 
 - `nodejs` 8 or later
 - `python` 3.5+
-- `jupyterlab` 1.1
+- `jupyterlab` 1.2.*
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
 for development.
 
 ```bash
-conda env update -n jupyterlab-lsp   # create a conda env
-source activate jupyterlab-lsp       # activate it
+conda env update -n jupyterlab-lsp --file binder/environment.yml   # create a conda env
+source activate jupyterlab-lsp                                     # activate it
 # or...
-pip install -r requirements/dev.txt  # in a virtualenv, probably
-                                     # ... and install nodejs, somehow
+# install nodejs, somehow
+pip install -r requirements/dev.txt                                # in a virtualenv, probably
 ```
 
-### The Easy Way
+### Using `doit`
 
-Once your environment is created and activated, on Linux/OSX you can run:
+Once your environment is created and activated, run:
 
 ```bash
-bash postBuild
+python scripts/dodo.py list
 ```
 
-This performs all of the basic setup steps, and is used for the binder demo.
-
-### The Hard Way
-
-Install `jupyter-lsp` from source in your virtual environment:
+To see all available tasks. The CAPITALIZED tasks are for convenience, while
+the remaining. For example,
 
 ```bash
-python -m pip install -e .
+python scripts/dodo.py LAB
 ```
 
-Enable the server extension:
+...performs all of the core setup steps, so you are ready to do some development.
+
+To reset to a (nearly) blank slate, use:
 
 ```bash
-jupyter serverextension enable --sys-prefix --py jupyter_lsp
+python scripts/dodo.py clean
 ```
 
-Install `npm` dependencies, build TypeScript packages, and link
-to JupyterLab for development:
-
-```bash
-jlpm
-jlpm build
-jlpm lab:link
-```
+This can help when encountering issues: troubleshooting sections below for more specifics.
 
 ## Frontend Development
 
-To rebuild the schemas, packages, and the JupyterLab app:
+Ensure the schemas, packages, and the JupyterLab app are up-to-date:
 
 ```bash
-jlpm build
-jupyter lab build
+python scripts/dodo.py LAB
 ```
 
 To watch the files and build continuously:
 
 ```bash
+python scripts/dodo.py WATCH
+# or, if you prefer separate streams...
 jlpm watch   # leave this running...
 jupyter lab --watch  # ...in another terminal
 ```
@@ -95,16 +88,16 @@ jupyter lab --watch  # ...in another terminal
 To check and fix code style:
 
 ```bash
-jlpm lint
+python scripts/dodo.py LINT
 ```
 
-To run test the suite (after running `jlpm build` or `watch`):
+To run all frontend test suites:
 
 ```bash
-jlpm test
+python scripts/dodo.py test_lsp
 ```
 
-To run tests matching specific phrase, forward `-t` argument over yarn and lerna to the test runners with two `--`:
+To re-run tests matching specific phrase, forward `-t` argument over `yarn` and `lerna` to `karma` and `jest` runners with two `--`:
 
 ```bash
 jlpm test -- -- -t match_phrase
@@ -115,7 +108,7 @@ jlpm test -- -- -t match_phrase
 ### Testing `jupyter-lsp`
 
 ```bash
-python scripts/utest.py
+python scripts/dodo.py test_py
 ```
 
 ## Browser-based Acceptance Tests
@@ -134,6 +127,8 @@ First, ensure you've prepared JupyterLab for `jupyterlab-lsp`
 
 Prepare the enviroment:
 
+> These are fairly heavy dependencies, not included by default
+
 ```bash
 conda env update -n jupyterlab-lsp --file requirements/atest.yml
 # or
@@ -144,7 +139,7 @@ apt-get install firefox-geckodriver    # ... e.g. on debian/ubuntu
 Run the tests:
 
 ```bash
-python scripts/atest.py
+python scripts/dodo.py test_browser
 ```
 
 The Robot Framework reports and screenshots will be in `atest/output`, with
@@ -233,6 +228,8 @@ python scripts/combine.py
   `jlpm watch`) ensure you have a "clean" lab (with production assets) with:
 
   ```bash
+  python scripts/dodo.py clean build_lab
+  # or
   jupyter lab clean
   jlpm build
   jlpm lab:link
@@ -254,13 +251,12 @@ cleaner commits, but are not enforced during CI tests (but are checked during li
 You can clean up your code, and check for using the project's style guide with:
 
 ```bash
-python scripts/lint.py
+python scripts/dodo.py LINT
 ```
 
 > TBD
 >
 > - hypothesis
-> - mypy
 
 ## Documentation
 
