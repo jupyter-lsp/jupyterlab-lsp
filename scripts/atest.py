@@ -24,12 +24,14 @@ OS_PY_ARGS = {
 
 
 def get_stem(attempt, extra_args):
+    name = f"{OS}{PY}"
     stem = "_".join([OS, PY, str(attempt)]).replace(".", "_").lower()
 
     if "--dryrun" in extra_args:
-        stem = f"dry_run_{stem}"
+        stem = "dry_run"
+        name = "Dry Run"
 
-    return stem
+    return name, stem
 
 
 def atest(attempt, extra_args):
@@ -37,7 +39,7 @@ def atest(attempt, extra_args):
     """
     extra_args += OS_PY_ARGS.get((OS, PY), [])
 
-    stem = get_stem(attempt, extra_args)
+    name, stem = get_stem(attempt, extra_args)
 
     if attempt != 1:
         previous = OUT / f"{get_stem(attempt - 1, extra_args)}.robot.xml"
@@ -48,7 +50,7 @@ def atest(attempt, extra_args):
 
     args = [
         "--name",
-        f"{OS}{PY}",
+        name,
         "--outputdir",
         out_dir,
         "--output",

@@ -32,7 +32,7 @@ module.exports = function(config) {
 
     junitReporter: {
       outputDir: '.',
-      outputFile: 'junit.xml'
+      outputFile: '../junit.xml'
     },
 
     webpack: {

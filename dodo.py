@@ -52,8 +52,8 @@ PY_VERSION = re.findall(
     r'= "(.*)"$', (PY_ROOT / "jupyter_lsp" / "_version.py").read_text()
 )[0]
 
-PY_SDIST = [DIST / "jupyer-lsp-{}.tar.gz".format(PY_VERSION)]
-PY_WHEEL = [DIST / "jupyter_lsp-{}-py3-non-any.whl".format(PY_VERSION)]
+PY_SDIST = [DIST / "jupyter-lsp-{}.tar.gz".format(PY_VERSION)]
+PY_WHEEL = [DIST / "jupyter_lsp-{}-py3-none-any.whl".format(PY_VERSION)]
 
 
 def task_py_setup():
@@ -65,7 +65,7 @@ def task_py_setup():
 
     return {
         "file_dep": PY_META,
-        "targets": [PY_EGGINFO],
+        "targets": [PY_EGG_PKG],
         "actions": [
             [
                 "python",
@@ -192,17 +192,26 @@ def task_robot_tidy():
     }
 
 
-ROBOT_DRYRUN = [*(ATEST / "output").glob("dry_run_*")]
+ROBOT_DRYRUN = [
+    ATEST / "output" / "dry_run.log.html",
+    ATEST / "output" / "dry_run.report.html",
+    ATEST / "output" / "dry_run.xunit.xml",
+    ATEST / "output" / "dry_run.robot.xml",
+]
 
 
 def task_robot_dryrun():
     def clean():
-        [shutil.rmtree(dr) if dr.is_dir() else dr.unlink() for dr in ROBOT_DRYRUN]
+        [
+            shutil.rmtree(dr) if dr.is_dir() else dr.unlink()
+            for dr in ROBOT_DRYRUN
+            if dr.exists()
+        ]
 
     return {
         "file_dep": [_ROBOTIDIED, *ALL_ROBOT],
-        "targets": ROBOT_DRYRUN,
-        "actions": [["python", "scripts/atest.py", "--dryrun", "--name", "Dry Run"]],
+        "targets": [*ROBOT_DRYRUN],
+        "actions": [["python", "scripts/atest.py", "--dryrun"]],
         "clean": [clean],
     }
 
@@ -400,15 +409,14 @@ ATEST_COMBINED = [ATEST_OUTPUT / "log.html", ATEST_OUTPUT / "report.html"]
 
 _ATESTED = BUILD / "atest.log"
 
+
 def task_atest():
     def clean():
         [shutil.rmtree(dr) if dr.is_dir() else dr.unlink() for dr in ATEST_OUTPUTS]
+        _ATESTED.exists() and _ATESTED.unlink()
 
     return {
-        "file_dep": [
-            _LABBUILT,
-            _SERVEREXTENDED,
-        ],
+        "file_dep": [_LABBUILT, _SERVEREXTENDED],
         "targets": [*ATEST_OUTPUTS, _ATESTED],
         "actions": [["python", "scripts/atest.py"], _ATESTED.touch],
         "clean": [clean],
@@ -418,7 +426,7 @@ def task_atest():
 
 def task_atest_combine():
     return {
-        "file_dep": [*ATEST_OUTPUTS, *ROBOT_DRYRUN],
+        "file_dep": [_ATESTED, *ROBOT_DRYRUN],
         "targets": [*ATEST_COMBINED],
         "actions": [["python", "scripts/combine.py"]],
         "clean": True,
@@ -444,7 +452,7 @@ def task_serverextension():
                 "--py",
                 "jupyter_lsp",
             ],
-            ["jupyter serverextension list > {}".format(_SERVEREXTENDED)],
+            "jupyter serverextension list > {}".format(_SERVEREXTENDED),
         ],
         "clean": True,
     }
@@ -508,26 +516,34 @@ def task_integrity():
 
 
 def task_py_dist():
+    lib = BUILD / "lib"
+    dists = [*PY_SDIST, *PY_WHEEL]
+    bdist = [*BUILD.glob("bdist.*")]
+
+    def clean():
+        [dist.exists() and dist.unlink() for dist in dists]
+        [dr.is_dir() and shutil.rmtree(dr) for dr in [lib, *bdist]]
+
     return {
         "file_dep": [*PY_SRC, *PY_JSON, *PY_META, ROOT / "README.md"],
-        "targets": [*PY_SDIST, *PY_WHEEL],
+        "targets": dists,
         "actions": [
             ["python", "setup.py", "sdist"],
             ["python", "setup.py", "bdist_wheel"],
         ],
-        "clean": True,
+        "clean": [clean],
     }
 
 
 JS_TARBALLS = [
     path.parent
     / "{}-{}.tgz".format(
-        path.parent.name.replace("@", "").replace("/", "-"), package["version"]
+        package["name"].replace("@", "").replace("/", "-"), package["version"]
     )
     for path, package in [
         (path, json.loads(path.read_text())) for path in PACKAGE_JSONS
     ]
-    if package.get("version") and not package.get("private")
+    if package.get("version") and "metapackage" not in package["name"]
 ]
 
 
@@ -539,20 +555,18 @@ def task_js_dist():
         "clean": True,
     }
 
+
 _RELEASABLE = BUILD / "releasable.log"
+
 
 def task_release():
     return {
-        "file_dep": [
-            _INTEGRATED,
-            *PY_SDIST,
-            *PY_WHEEL,
-            *JS_TARBALLS
-        ],
+        "file_dep": [_INTEGRATED, *PY_SDIST, *PY_WHEEL, *JS_TARBALLS],
         "targets": [_RELEASABLE],
-        "actions": [lambda x: print("release ok!"), _RELEASABLE.touch],
+        "actions": [lambda: print("release ok!"), _RELEASABLE.touch],
         "clean": True,
     }
+
 
 def task_all():
     return {
@@ -566,5 +580,5 @@ def task_all():
             COVERAGE,
             LSP_JUNIT,
         ],
-        "actions": [lambda x: print("ok!")]
+        "actions": [lambda: print("ok!")],
     }
