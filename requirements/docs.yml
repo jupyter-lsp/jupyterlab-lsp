@@ -11,5 +11,6 @@ dependences:
   - sphinx
   - sphinx_rtd_theme
   - sphinx-autobuild
-  - sphinx-autodoc-typehints
   - sphinx-copybutton
+  - pip:
+    - sphinx-markdown-tables

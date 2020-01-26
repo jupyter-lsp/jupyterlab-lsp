@@ -1,6 +1,6 @@
-# CHANGELOG
+## CHANGELOG
 
-## `@krassowski/jupyterlab-lsp 0.7.1`
+### `@krassowski/jupyterlab-lsp 0.7.1`
 
 - features
 
@@ -23,7 +23,7 @@
     [#164](https://github.com/krassowski/jupyterlab-lsp/pull/164)
     )
 
-## `lsp-ws-connection 0.3.1`
+### `lsp-ws-connection 0.3.1`
 
 - added `sendSaved()` method (textDocument/didSave) (
   [#147](https://github.com/krassowski/jupyterlab-lsp/pull/147)
@@ -32,7 +32,7 @@
   [#140](https://github.com/krassowski/jupyterlab-lsp/pull/140)
   )
 
-## `@krassowski/jupyterlab-lsp 0.7.0`
+### `@krassowski/jupyterlab-lsp 0.7.0`
 
 - features
 
@@ -99,7 +99,7 @@
     [#140](https://github.com/krassowski/jupyterlab-lsp/pull/140)
     )
 
-## `lsp-ws-connection 0.3.0`
+### `lsp-ws-connection 0.3.0`
 
 - infrastructure
   - brought into monorepo [#107](https://github.com/krassowski/jupyterlab-lsp/pull/107)
@@ -112,7 +112,7 @@
   - added initialization checks before executing sendChange to comply
     with LSP specs [#115](https://github.com/krassowski/jupyterlab-lsp/pull/115)
 
-## `jupyter-lsp 0.7.0b0`
+### `jupyter-lsp 0.7.0b0`
 
 - features
   - adds a language server status endpoint (
@@ -126,14 +126,14 @@
     [#100](https://github.com/krassowski/jupyterlab-lsp/pulls/100)
     )
 
-## `@krassowski/jupyterlab-lsp 0.6.1`
+### `@krassowski/jupyterlab-lsp 0.6.1`
 
 - features
   - adds an indicator to the statusbar
 - dependencies
   - removes unused npm dependencies
 
-## `@krassowski/jupyterlab-lsp 0.6.0`
+### `@krassowski/jupyterlab-lsp 0.6.0`
 
 - features
   - allows "rename" action in file editor
@@ -145,7 +145,7 @@
 - dependencies
   - requires `jupyter-lsp`
 
-## `jupyter-lsp 0.6.0b0`
+### `jupyter-lsp 0.6.0b0`
 
 - features
   - starts language servers on demand

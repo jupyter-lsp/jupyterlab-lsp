@@ -1,9 +1,9 @@
-# Roadmap
+## Roadmap
 
 > If a feature you need is not on the lists above, please feel free to suggest it
 > by opening a new [issue](https://github.com/krassowski/jupyterlab-lsp/issues).
 
-## Front End
+### Front End
 
 - improved code navigation when there are multiple jump targets
 - autocompleter with documentation and sorting based on LSP suggestions
@@ -15,7 +15,7 @@
 - gutter with linter results
 - use the kernel session for autocompletion in FileEditor if available (PR welcome)
 
-## Backend
+### Backend
 
 - release on `conda`
 - [#49](https://github.com/krassowski/jupyterlab-lsp/issues/49)

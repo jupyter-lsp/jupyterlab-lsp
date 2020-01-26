@@ -31,6 +31,7 @@ release = "0"
 extensions = [
     "recommonmark",
     "nbsphinx",
+    "sphinx_markdown_tables",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.coverage",
@@ -47,7 +48,7 @@ extensions = [
 
 templates_path = ["_templates"]
 
-source_suffix = ".rst"
+source_suffix = [".rst", ".md"]
 
 master_doc = "index"
 
@@ -90,3 +91,9 @@ html_context = {
     "github_version": "master",
     "conf_py_path": "/docs/",
 }
+
+
+def setup(app):
+    """ Runs before the "normal business" of sphinx. Don't go too crazy here.
+    """
+    app.add_css_file("css/custom.css")

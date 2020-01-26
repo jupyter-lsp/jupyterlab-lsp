@@ -1,6 +1,9 @@
 # development dependencies for jupyter_lsp for qa, with lab
--r requirements.txt
+-r dev.txt
 graphviz
 nbsphinx
-pandas
 recommonmark
+sphinx-autobuild
+sphinx-copybutton
+sphinx-markdown-tables
+sphinx-rtd-theme

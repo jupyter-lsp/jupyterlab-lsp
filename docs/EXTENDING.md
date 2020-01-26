@@ -1,21 +1,21 @@
-# Extend jupyterlab-lsp and jupyter-lsp
+## Extend jupyterlab-lsp and jupyter-lsp
 
-## jupyterlab-lsp
+### jupyterlab-lsp
 
 > At present, `jupyterlab-lsp` is still in very early development, and does not
 > expose any runtime extension points. The [roadmap](./ROADMAP.md) lists several
 > potential points of extension, but will require some refactoring to achieve.
 
-## jupyter-lsp
+### jupyter-lsp
 
-### Language Server Specs
+#### Language Server Specs
 
 Language Server Specs can be [configured](./LANGUAGESERVERS.ms) by Jupyter users,
 or distributed by third parties as python or JSON files. Since we'd like to see
 as many Language Servers work out of the box as possible, consider
 [contributing a spec](../CONTRIBUTING.md#specs), if it works well for you!
 
-### Message Listeners
+#### Message Listeners
 
 Message listeners may choose to receive LSP messages immediately after being
 received from the client (e.g. `jupyterlab-lsp`) or a language server. All
@@ -30,13 +30,13 @@ delivery of a message, a non-blocking technique like
 
 [add_callback]: https://www.tornadoweb.org/en/stable/ioloop.html#tornado.ioloop.IOLoop.add_callback
 
-#### Add a Listener with `entry_points`
+##### Add a Listener with `entry_points`
 
 Listeners can be added via [entry_points][] by a package installed in the same
 environment as `notebook`:
 
 ```toml
-# setup.cfg
+## setup.cfg
 
 [options.entry_points]
 jupyter_lsp_listener_all_v1 =
@@ -52,12 +52,12 @@ aside from logging in the event of an error on import.
 
 [entry_points]: https://packaging.python.org/specifications/entry-points/
 
-#### Add a Listener with Jupyter Configuration
+##### Add a Listener with Jupyter Configuration
 
 Listeners can be added via `traitlets` configuration, e.g.
 
 ```yaml
-# jupyter_notebook_config.jsons
+## jupyter_notebook_config.jsons
 {
   'LanguageServerManager':
     {
@@ -68,7 +68,7 @@ Listeners can be added via `traitlets` configuration, e.g.
 }
 ```
 
-#### Add a listener with the Python API
+##### Add a listener with the Python API
 
 `lsp_message_listener` can be used as a decorator, accessed as part of a
 `serverextension`.
@@ -90,7 +90,7 @@ def load_jupyter_server_extension(nbapp):
 
 `scope` is one of `client`, `server` or `all`, and is required.
 
-#### Listener options
+##### Listener options
 
 Fine-grained controls are available as part of the Python API. Pass these as
 named arguments to `lsp_message_listener`.
