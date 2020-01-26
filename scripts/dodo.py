@@ -15,9 +15,9 @@ import json
 import platform
 import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
-import subprocess
 
 DODO = Path(__file__)
 ROOT = DODO.parent.parent
@@ -319,7 +319,7 @@ def task_check_prettier():
         "file_dep": [*ALL_PRETTIER, _JLPMED, DTS_SCHEMA],
         "targets": [_PRETTIER_NEEDED],
         "actions": [
-            ["jlpm", "--silent", "prettier", "--list-different"],
+            "jlpm --silent prettier --list-different || echo 'ok'",
             _PRETTIER_NEEDED.touch,
         ],
         "clean": True,
@@ -543,6 +543,7 @@ _LABBUILT = BUILD / "lab.built.log"
 def task_build_lab():
     """ do a production build of jupyterlab
     """
+
     def clean():
         _LABBUILT.exists() and _LABBUILT.unlink()
 
@@ -683,6 +684,7 @@ def task_ALL():
 def task_WATCH():
     """ watch the frontend
     """
+
     def watch():
         jlpm = subprocess.Popen(["jlpm", "watch"])
         lab = subprocess.Popen(["jupyter", "lab", "--no-browser", "--debug", "--watch"])
@@ -690,7 +692,7 @@ def task_WATCH():
         try:
             jlpm.wait()
             lab.wait()
-        except:
+        except Exception:
             jlpm.terminate()
             lab.terminate()
 
@@ -698,6 +700,7 @@ def task_WATCH():
         "file_dep": [_LABBUILT, _SERVEREXTENDED],
         "actions": [watch],
     }
+
 
 # utilities
 
@@ -709,6 +712,7 @@ def _lab_list(output):
 
 
 # script entrypoint
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doit
+
     doit.run(globals())

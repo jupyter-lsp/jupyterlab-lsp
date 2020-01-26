@@ -28,7 +28,7 @@ Development requires:
 
 - `nodejs` 8 or later
 - `python` 3.5+
-- `jupyterlab` 1.2.*
+- `jupyterlab` 1.2.\*
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
 for development.

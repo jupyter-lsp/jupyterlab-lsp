@@ -32,9 +32,6 @@ jobs:
               - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/integrity.py
                 displayName: check integrity of package versions
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/lint.py
-                displayName: lint backend
-
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm || jlpm || jlpm
                 displayName: install npm dependencies
 
@@ -43,3 +40,6 @@ jobs:
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jlpm lint:check
                 displayName: lint frontend
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/dodo.py LINT
+                displayName: lint backend
