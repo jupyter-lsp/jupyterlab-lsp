@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 DODO = Path(__file__)
-ROOT = DODO.parent
+ROOT = DODO.parent.parent
 
 # base sources
 ATEST = ROOT / "atest"
@@ -684,3 +684,9 @@ def _lab_list(output):
     """ return an action that lists the current jupyterlab build state
     """
     return ["jupyter labextension list > {}".format(output)]
+
+
+# script entrypoint
+if __name__ == '__main__':
+    import doit
+    doit.run(globals())
