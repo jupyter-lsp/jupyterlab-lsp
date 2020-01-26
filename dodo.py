@@ -42,7 +42,10 @@ PY_SCRIPTS = [*SCRIPTS.rglob("*.py")]
 PY_ATEST = [*ATEST.glob("*.py")]
 PY_JSON = [*PY_ROOT.rglob("*.json")]
 PY_EGGINFO = PY_ROOT / "jupyter_lsp.egg-info"
+PY_EGG_PKG = PY_EGGINFO / "PKG-INFO"
 ALL_PY = [*PY_SRC, *PY_SCRIPTS, *PY_ATEST, PY_SETUP, DODO]
+PY_SDIST = ROOT / "build" / "*.tar.gz"
+PY_WHEEL = ROOT / "build" / "*.whl"
 
 
 def task_py_setup():
@@ -125,7 +128,7 @@ def task_utest():
         COVERAGE.exists() and COVERAGE.unlink()
 
     return {
-        "file_dep": [*PY_SRC, *PY_JSON, *PY_META, _JLPMED],
+        "file_dep": [*PY_SRC, *PY_JSON, *PY_META, _JLPMED, PY_EGG_PKG],
         "targets": [COVERAGE, PYTEST_CACHE],
         "actions": [f"python scripts/utest.py"],
         "clean": [clean],
@@ -167,25 +170,17 @@ def task_robot_tidy():
     }
 
 
-_ROBOTDRYRAN = BUILD / "robotdryrun.log"
+ROBOT_DRYRUN = [*(ATEST / "output").glob("dry_run_*")]
 
 
 def task_robot_dryrun():
     def clean():
-        [
-            shutil.rmtree(dr) if dr.is_dir() else dr.unlink()
-            for dr in [
-                *([_ROBOTDRYRAN] if _ROBOTDRYRAN.exists() else []),
-                *(ATEST / "output").glob("dry_run_*"),
-            ]
-        ]
+        [shutil.rmtree(dr) if dr.is_dir() else dr.unlink() for dr in ROBOT_DRYRUN]
 
     return {
         "file_dep": [_ROBOTIDIED, *ALL_ROBOT],
-        "targets": [_ROBOTDRYRAN],
-        "actions": [
-            f"python scripts/atest.py --dryrun --name 'Dry Run' > {_ROBOTDRYRAN}"
-        ],
+        "targets": ROBOT_DRYRUN,
+        "actions": [f"python scripts/atest.py --dryrun --name 'Dry Run'"],
         "clean": [clean],
     }
 
@@ -216,7 +211,7 @@ RFLINT = sum(
 def task_robot_lint():
     args = " ".join(RFLINT)
     return {
-        "file_dep": [_ROBOTDRYRAN, *ALL_ROBOT],
+        "file_dep": [*ROBOT_DRYRUN, *ALL_ROBOT],
         "targets": [_RFLINTED],
         "actions": [f"rflint {args} {_(ALL_ROBOT)} > {_RFLINTED}"],
         "clean": True,
@@ -286,20 +281,19 @@ def task_tslint():
     }
 
 
-_TSCHEMAED = BUILD / "ts_schema.log"
 DTS_SCHEMA = TS_LSP / "src" / "_schema.d.ts"
 
 
 def task_ts_schema():
     return {
         "file_dep": [*PY_JSON, _JLPMED],
-        "targets": [_TSCHEMAED, DTS_SCHEMA],
-        "actions": [f"jlpm build:schema > {_TSCHEMAED}"],
+        "targets": [DTS_SCHEMA],
+        "actions": [f"jlpm build:schema"],
         "clean": True,
     }
 
 
-_TSBUILT = BUILD / "tsc.log"
+TS_BUILDINFO = [*PACKAGES.glob("*/lib/.tsbuildinfo")]
 
 
 def task_tsc():
@@ -307,12 +301,11 @@ def task_tsc():
 
     def clean():
         [shutil.rmtree(libs, ignore_errors=True) for dr in libs]
-        _TSBUILT.exists() and _TSBUILT.unlink()
 
     return {
-        "file_dep": [_TSLINTED, _TSCHEMAED],
-        "targets": [_TSBUILT, *libs],
-        "actions": [f"jlpm build:meta > {_TSBUILT}"],
+        "file_dep": [DTS_SCHEMA],
+        "targets": [*libs],
+        "actions": [f"jlpm build:meta"],
         "clean": [clean],
     }
 
@@ -326,7 +319,7 @@ def task_ws_webpack():
         _WEBPACKED.exists() and _WEBPACKED.unlink()
 
     return {
-        "file_dep": [_TSBUILT],
+        "file_dep": TS_BUILDINFO,
         "targets": [_WEBPACKED, TS_WS / "dist"],
         "actions": [f"jlpm build:ws > {_WEBPACKED}"],
         "clean": [clean],
@@ -338,7 +331,7 @@ WS_JUNIT = TS_LSP.glob("*/junit.xml")
 
 def task_wstest():
     return {
-        "file_dep": [_TSBUILT],
+        "file_dep": TS_BUILDINFO,
         "targets": [*WS_JUNIT],
         "actions": [f"jlpm test --scope lsp-ws-connection"],
         "clean": True,
@@ -350,28 +343,15 @@ LSP_JUNIT = TS_LSP / "junit.xml"
 
 def task_lsptest():
     return {
-        "file_dep": [_TSBUILT],
+        "file_dep": TS_BUILDINFO,
         "targets": [LSP_JUNIT],
         "actions": [f"jlpm test --scope @krassowski/jupyterlab-lsp"],
         "clean": True,
     }
 
 
-# overall concerns
+# acceptance-testing concerns
 
-_INTEGRATED = BUILD / "integrity.log"
-
-
-def task_integrity():
-    return {
-        "file_dep": [*ALL_YAML, *ALL_JSON, *ALL_TS, *ALL_PY, *ALL_MD],
-        "targets": [_INTEGRATED],
-        "actions": [f"python scripts/integrity.py > {_INTEGRATED}"],
-        "clean": True,
-    }
-
-
-_ATESTED = BUILD / "atest.log"
 OS = platform.system()
 PY = "".join(map(str, sys.version_info[:2]))
 ATEST_OUTPUT = ATEST / "output"
@@ -381,20 +361,26 @@ ATEST_COMBINED = [ATEST_OUTPUT / "log.html", ATEST_OUTPUT / "report.html"]
 
 def task_atest():
     def clean():
-        _ATESTED.exists() and _ATESTED.unlink()
         [shutil.rmtree(dr) if dr.is_dir() else dr.unlink() for dr in ATEST_OUTPUTS]
 
     return {
-        "file_dep": [COVERAGE, *WS_JUNIT, LSP_JUNIT, _LABBUILT],
-        "targets": [_ATESTED],
-        "actions": [f"python scripts/atest.py", lambda: _ATESTED.touch()],
+        "file_dep": [
+            COVERAGE,
+            *WS_JUNIT,
+            LSP_JUNIT,
+            _LABBUILT,
+            _RFLINTED,
+            _SERVEREXTENDED,
+        ],
+        "targets": [*ATEST_OUTPUTS],
+        "actions": [f"python scripts/atest.py"],
         "clean": [clean],
     }
 
 
 def task_atest_combine():
     return {
-        "file_dep": [_ATESTED, _ROBOTDRYRAN],
+        "file_dep": [*ATEST_OUTPUTS, *ROBOT_DRYRUN],
         "targets": ATEST_COMBINED,
         "actions": [f"python scripts/combine.py"],
         "clean": True,
@@ -402,6 +388,21 @@ def task_atest_combine():
 
 
 # development concerns
+
+_SERVEREXTENDED = BUILD / "serverextension.log"
+
+
+def task_serverextension():
+    return {
+        "file_dep": [PY_EGG_PKG],
+        "targets": [_SERVEREXTENDED],
+        "actions": [
+            f"jupyter serverextension enable --sys-prefix --py jupyter_lsp"
+            f" > {_SERVEREXTENDED}"
+        ],
+        "clean": True,
+    }
+
 
 _LABEXTENDED = BUILD / "labextensions.log"
 
@@ -425,6 +426,38 @@ def task_lab_build():
         "actions": [
             f"jupyter lab build --dev-build=False --minimize=True > {_LABBUILT}"
         ],
+        "clean": True,
+    }
+
+
+# release concerns
+
+_INTEGRATED = BUILD / "integrity.log"
+
+
+def task_integrity():
+    return {
+        "file_dep": [*ALL_YAML, *ALL_JSON, *ALL_TS, *ALL_PY, *ALL_MD],
+        "targets": [_INTEGRATED],
+        "actions": [f"python scripts/integrity.py > {_INTEGRATED}"],
+        "clean": True,
+    }
+
+
+def task_py_dist():
+    return {
+        "file_dep": [*PY_SRC, *PY_JSON, *PY_META, ROOT / "README.md"],
+        "targets": [PY_SDIST, PY_WHEEL],
+        "actions": ["python setup.py sdist", "python setup.py bdist_wheel"],
+        "clean": True,
+    }
+
+
+def task_js_dist():
+    return {
+        "file_dep": [_WEBPACKED],
+        "targets": [*PACKAGES.glob("*.tgz")],
+        "actions": ["jlpm bundle"],
         "clean": True,
     }
 
