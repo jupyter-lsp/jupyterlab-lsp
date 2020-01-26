@@ -108,7 +108,7 @@ def task_mypy():
         _MYPYED.exists() and _MYPYED.unlink()
 
     return {
-        "file_dep": [_FLAKED, *PY_SRC],
+        "file_dep": [_FLAKED, _BLACKENED, *PY_SRC],
         "targets": [_MYPYED],
         "actions": [f"mypy {_(PY_SRC)} > {_MYPYED}"],
         "clean": [clean],
@@ -125,7 +125,7 @@ def task_utest():
         COVERAGE.exists() and COVERAGE.unlink()
 
     return {
-        "file_dep": [*PY_SRC, *PY_JSON, *PY_META],
+        "file_dep": [*PY_SRC, *PY_JSON, *PY_META, _JLPMED],
         "targets": [COVERAGE, PYTEST_CACHE],
         "actions": [f"python scripts/utest.py"],
         "clean": [clean],
@@ -183,7 +183,9 @@ def task_robot_dryrun():
     return {
         "file_dep": [_ROBOTIDIED, *ALL_ROBOT],
         "targets": [_ROBOTDRYRAN],
-        "actions": [f"python scripts/atest.py --dryrun > {_ROBOTDRYRAN}"],
+        "actions": [
+            f"python scripts/atest.py --dryrun --name 'Dry Run' > {_ROBOTDRYRAN}"
+        ],
         "clean": [clean],
     }
 
@@ -231,9 +233,10 @@ _JLPMED = BUILD / "jlpm.install.log"
 def task_jsdeps():
     def clean():
         shutil.rmtree(NODE_MODULES, ignore_errors=True)
+        _JLPMED.exists() and _JLPMED.unlink()
 
     return {
-        "file_dep": PACKAGE_JSONS,
+        "file_dep": [*PACKAGE_JSONS],
         "targets": [_JLPMED],
         "actions": [f"jlpm --no-optional --prefer-offline > {_JLPMED}"],
         "clean": [clean],
@@ -259,7 +262,7 @@ ALL_YAML = [
 
 def task_prettier():
     return {
-        "file_dep": [*ALL_PRETTIER, _JLPMED],
+        "file_dep": [*ALL_PRETTIER, _JLPMED, DTS_SCHEMA],
         "targets": [_PRETTIED],
         "actions": [f"jlpm prettier > {_PRETTIED}"],
         "clean": True,
@@ -375,16 +378,14 @@ ATEST_OUTPUT = ATEST / "output"
 ATEST_OUTPUTS = ATEST_OUTPUT.glob(f"{OS}_{PY}*".lower())
 ATEST_COMBINED = [ATEST_OUTPUT / "log.html", ATEST_OUTPUT / "report.html"]
 
+
 def task_atest():
     def clean():
         _ATESTED.exists() and _ATESTED.unlink()
-        [
-            shutil.rmtree(dr) if dr.is_dir() else dr.unlink()
-            for dr in ATEST_OUTPUTS
-        ]
+        [shutil.rmtree(dr) if dr.is_dir() else dr.unlink() for dr in ATEST_OUTPUTS]
 
     return {
-        "file_dep": [COVERAGE, *WS_JUNIT, LSP_JUNIT],
+        "file_dep": [COVERAGE, *WS_JUNIT, LSP_JUNIT, _LABBUILT],
         "targets": [_ATESTED],
         "actions": [f"python scripts/atest.py", lambda: _ATESTED.touch()],
         "clean": [clean],
@@ -393,10 +394,38 @@ def task_atest():
 
 def task_atest_combine():
     return {
-        "file_dep": [_ATESTED],
+        "file_dep": [_ATESTED, _ROBOTDRYRAN],
         "targets": ATEST_COMBINED,
         "actions": [f"python scripts/combine.py"],
-        "clean": True
+        "clean": True,
+    }
+
+
+# development concerns
+
+_LABEXTENDED = BUILD / "labextensions.log"
+
+
+def task_lab_link():
+    return {
+        "file_dep": [_WEBPACKED],
+        "targets": [_LABEXTENDED],
+        "actions": [f"jlpm lab:link > {_LABEXTENDED}"],
+        "clean": True,
+    }
+
+
+_LABBUILT = BUILD / "labbuilt.log"
+
+
+def task_lab_build():
+    return {
+        "file_dep": [_LABEXTENDED],
+        "targets": [_LABBUILT],
+        "actions": [
+            f"jupyter lab build --dev-build=False --minimize=True > {_LABBUILT}"
+        ],
+        "clean": True,
     }
 
 
