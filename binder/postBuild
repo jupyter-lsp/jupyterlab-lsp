@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-doit LAB
+python scripts/dodo.py LAB
