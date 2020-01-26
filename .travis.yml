@@ -17,7 +17,7 @@ matrix:
       language: shell
 
 before_install:
-  - python3 -m pip install -r requirements-utest.txt
+  - python3 -m pip install -r requirements/utest.txt
   - python3 -m pip freeze
   - python3 setup.py sdist
   - python3 setup.py bdist_wheel

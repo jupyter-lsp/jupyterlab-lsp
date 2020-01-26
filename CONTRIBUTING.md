@@ -13,9 +13,9 @@ You can contribute to the project through:
     and its various distributions
     - these are great first issues, as you might not need to know any python or
       javascript
-- proposing parts of the architecture that can be [extended](./EXTENDING.md)
+- proposing parts of the architecture that can be [extended](./docs/EXTENDING.md)
 - improving [documentation](#Documentation)
-- tackling Big Issues from the [future roadmap](./ROADMAP.md)
+- tackling Big Issues from the [future roadmap](./docs/ROADMAP.md)
 - improving [testing](#Testing)
 - reviewing pull requests
 
@@ -37,7 +37,7 @@ for development.
 conda env update -n jupyterlab-lsp   # create a conda env
 source activate jupyterlab-lsp       # activate it
 # or...
-pip install -r requirements-dev.txt  # in a virtualenv, probably
+pip install -r requirements/dev.txt  # in a virtualenv, probably
                                      # ... and install nodejs, somehow
 ```
 
@@ -135,9 +135,9 @@ First, ensure you've prepared JupyterLab for `jupyterlab-lsp`
 Prepare the enviroment:
 
 ```bash
-conda env update -n jupyterlab-lsp --file environment-atest.yml
+conda env update -n jupyterlab-lsp --file requirements/atest.yml
 # or
-pip install -r requirements-atest.txt  # ... and install geckodriver, somehow
+pip install -r requirements/atest.txt  # ... and install geckodriver, somehow
 apt-get install firefox-geckodriver    # ... e.g. on debian/ubuntu
 ```
 
