@@ -558,6 +558,8 @@ def task_js_dist():
 
 _RELEASABLE = BUILD / "releasable.log"
 
+# convenience tasks
+
 
 def task_release():
     return {
@@ -568,14 +570,37 @@ def task_release():
     }
 
 
+_LABBED = BUILD / "lab.log"
+
+
+def task_lab():
+    return {
+        "file_dep": [_SERVEREXTENDED, _LABBUILT],
+        "targets": [_LABBED],
+        "actions": [_LABBED.touch],
+        "clean": True,
+    }
+
+
+_LINTED = BUILD / "lint.log"
+
+
+def task_lint():
+
+    return {
+        "file_dep": [_MYPYED, _RFLINTED, _TSLINTED],
+        "targets": [_LINTED],
+        "actions": [_LINTED.touch],
+        "clean": True,
+    }
+
+
 def task_all():
     return {
         "file_dep": [
             _ATESTED,
-            _MYPYED,
             _RELEASABLE,
-            _RFLINTED,
-            _TSLINTED,
+            _LINTED,
             *ATEST_COMBINED,
             COVERAGE,
             LSP_JUNIT,
