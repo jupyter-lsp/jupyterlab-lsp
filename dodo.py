@@ -57,6 +57,9 @@ PY_WHEEL = [DIST / "jupyter_lsp-{}-py3-none-any.whl".format(PY_VERSION)]
 
 
 def task_py_setup():
+    """ do a local dev install of jupyter_lsp
+    """
+
     def clean():
         [
             dr.exists() and shutil.rmtree(dr)
@@ -86,7 +89,8 @@ _ISORTED = BUILD / "isort.log"
 
 
 def task_isort():
-    """"sort all imports"""
+    """ sort all imports
+    """
     return {
         "file_dep": ALL_PY,
         "targets": [_ISORTED],
@@ -99,7 +103,8 @@ _BLACKENED = BUILD / "black.log"
 
 
 def task_black():
-    """blacken all python (except intentionally-broken things for test)"""
+    """ blacken all python (except intentionally-broken things for test)
+    """
     return {
         "file_dep": [_ISORTED, *ALL_PY],
         "targets": [_BLACKENED],
@@ -112,6 +117,9 @@ _FLAKED = BUILD / "flake8.log"
 
 
 def task_flake8():
+    """ check python source for common typos
+    """
+
     return {
         "file_dep": [_BLACKENED, *ALL_PY],
         "targets": [_FLAKED],
@@ -125,6 +133,9 @@ _MYPY_CACHE = ROOT / ".mypy_cache"
 
 
 def task_mypy():
+    """ typecheck python source
+    """
+
     def clean():
         shutil.rmtree(_MYPY_CACHE, ignore_errors=True)
         _MYPYED.exists() and _MYPYED.unlink()
@@ -142,6 +153,9 @@ PYTEST_CACHE = ROOT / ".pytest_cache"
 
 
 def task_utest():
+    """ run backend unit tests
+    """
+
     def clean():
         shutil.rmtree(PYTEST_CACHE, ignore_errors=True)
         COVERAGE.exists() and COVERAGE.unlink()
@@ -181,6 +195,8 @@ _ROBOTIDIED = BUILD / "robotidy.log"
 
 
 def task_robot_tidy():
+    """ apply source formatting for robot
+    """
     return {
         "file_dep": ALL_ROBOT,
         "targets": [_ROBOTIDIED],
@@ -201,6 +217,9 @@ ROBOT_DRYRUN = [
 
 
 def task_robot_dryrun():
+    """ run through robot tests without actually doing anything
+    """
+
     def clean():
         [
             shutil.rmtree(dr) if dr.is_dir() else dr.unlink()
@@ -240,6 +259,8 @@ RFLINT = sum(
 
 
 def task_robot_lint():
+    """ apply robotframework-lint to all robot files
+    """
     return {
         "file_dep": [*ROBOT_DRYRUN, *ALL_ROBOT],
         "targets": [_RFLINTED],
@@ -256,6 +277,9 @@ _JLPMED = BUILD / "jlpm.install.log"
 
 
 def task_jsdeps():
+    """ install npm dependencies
+    """
+
     def clean():
         shutil.rmtree(NODE_MODULES, ignore_errors=True)
         _JLPMED.exists() and _JLPMED.unlink()
@@ -288,6 +312,8 @@ _PRETTIER_NEEDED = BUILD / "prettier-different.log"
 
 
 def task_needs_prettier():
+    """ determine if prettier needs to be run
+    """
     return {
         "file_dep": [*ALL_PRETTIER, _JLPMED, DTS_SCHEMA],
         "targets": [_PRETTIER_NEEDED],
@@ -300,6 +326,8 @@ def task_needs_prettier():
 
 
 def task_prettier():
+    """ apply prettier to source files
+    """
     return {
         "file_dep": [_PRETTIER_NEEDED],
         "targets": [_PRETTIED],
@@ -318,6 +346,8 @@ _TSLINTED = BUILD / "tslint.log"
 
 
 def task_tslint():
+    """ fix and lint typescript
+    """
     return {
         "file_dep": [_PRETTIED],
         "targets": [_TSLINTED],
@@ -330,6 +360,8 @@ DTS_SCHEMA = TS_LSP / "src" / "_schema.d.ts"
 
 
 def task_ts_schema():
+    """ create typings for server schema
+    """
     return {
         "file_dep": [*PY_JSON, _JLPMED],
         "targets": [DTS_SCHEMA],
@@ -346,6 +378,8 @@ TS_BUILDINFO = [
 
 
 def task_tsc():
+    """ transpile all typescript
+    """
     libs = [TS_LSP / "lib", TS_WS / "lib", TS_META / "lib"]
 
     def clean():
@@ -363,6 +397,9 @@ WS_DIST = [TS_WS / "dist" / "index.js"]
 
 
 def task_ws_webpack():
+    """ build the lsp-ws-connection webpack bundle
+    """
+
     def clean():
         shutil.rmtree(TS_WS / "dist", ignore_errors=True)
 
@@ -378,6 +415,8 @@ WS_JUNIT = TS_WS / "junit.xml"
 
 
 def task_wstest():
+    """ test lsp-ws-connection
+    """
     return {
         "file_dep": WS_DIST,
         "targets": [WS_JUNIT],
@@ -390,6 +429,9 @@ LSP_JUNIT = TS_LSP / "junit.xml"
 
 
 def task_lsptest():
+    """ test jupyterlab-lsp
+    """
+
     return {
         "file_dep": [WS_JUNIT],
         "targets": [LSP_JUNIT],
@@ -411,6 +453,9 @@ _ATESTED = BUILD / "atest.log"
 
 
 def task_atest():
+    """ run browser-based acceptance tests
+    """
+
     def clean():
         [shutil.rmtree(dr) if dr.is_dir() else dr.unlink() for dr in ATEST_OUTPUTS]
         _ATESTED.exists() and _ATESTED.unlink()
@@ -425,6 +470,8 @@ def task_atest():
 
 
 def task_atest_combine():
+    """ combine all robot report outputs
+    """
     return {
         "file_dep": [_ATESTED, *ROBOT_DRYRUN],
         "targets": [*ATEST_COMBINED],
@@ -440,6 +487,8 @@ _SERVEREXTENDED = BUILD / "serverextension.log"
 
 
 def task_serverextension():
+    """ install the serverextension
+    """
     return {
         "file_dep": [PY_EGG_PKG],
         "targets": [_SERVEREXTENDED],
@@ -461,11 +510,10 @@ def task_serverextension():
 _LABLISTED = BUILD / "lab.list.log"
 
 
-def _lab_list(output):
-    return ["jupyter labextension list > {}".format(output)]
-
-
 def task_lab_list():
+    """ list labextensiosn
+    """
+
     return {
         "file_dep": [*WS_DIST, *TS_BUILDINFO],
         "targets": [_LABLISTED],
@@ -478,6 +526,8 @@ _LABEXTENDED = BUILD / "lab.linked.log"
 
 
 def task_lab_link():
+    """ link all labextensions
+    """
     return {
         "file_dep": [*WS_DIST, *TS_BUILDINFO, _LABLISTED],
         "targets": [_LABEXTENDED],
@@ -490,6 +540,9 @@ _LABBUILT = BUILD / "lab.built.log"
 
 
 def task_lab_build():
+    """ do a production build of jupyterlab
+    """
+
     return {
         "file_dep": [_LABEXTENDED],
         "targets": [_LABBUILT],
@@ -507,6 +560,8 @@ _INTEGRATED = BUILD / "integrity.log"
 
 
 def task_integrity():
+    """ check integrity of versions, etc.
+    """
     return {
         "file_dep": [*ALL_YAML, *ALL_JSON, *ALL_TS, *ALL_PY, *ALL_MD],
         "targets": [_INTEGRATED],
@@ -516,6 +571,9 @@ def task_integrity():
 
 
 def task_py_dist():
+    """ build pypi release assets
+    """
+
     lib = BUILD / "lib"
     dists = [*PY_SDIST, *PY_WHEEL]
     bdist = [*BUILD.glob("bdist.*")]
@@ -548,6 +606,8 @@ JS_TARBALLS = [
 
 
 def task_js_dist():
+    """ build npm release assets
+    """
     return {
         "file_dep": WS_DIST,
         "targets": JS_TARBALLS,
@@ -561,7 +621,10 @@ _RELEASABLE = BUILD / "releasable.log"
 # convenience tasks
 
 
-def task_release():
+def task_RELEASE():
+    """ get a release ready
+    """
+
     return {
         "file_dep": [_INTEGRATED, *PY_SDIST, *PY_WHEEL, *JS_TARBALLS],
         "targets": [_RELEASABLE],
@@ -573,7 +636,9 @@ def task_release():
 _LABBED = BUILD / "lab.log"
 
 
-def task_lab():
+def task_LAB():
+    """ get a lab ready to run. good for development.
+    """
     return {
         "file_dep": [_SERVEREXTENDED, _LABBUILT],
         "targets": [_LABBED],
@@ -585,8 +650,9 @@ def task_lab():
 _LINTED = BUILD / "lint.log"
 
 
-def task_lint():
-
+def task_LINT():
+    """ lint everything. good before committing.
+    """
     return {
         "file_dep": [_MYPYED, _RFLINTED, _TSLINTED],
         "targets": [_LINTED],
@@ -595,7 +661,9 @@ def task_lint():
     }
 
 
-def task_all():
+def task_ALL():
+    """ run everything. good for reviewing.
+    """
     return {
         "file_dep": [
             _ATESTED,
@@ -607,3 +675,12 @@ def task_all():
         ],
         "actions": [lambda: print("ok!")],
     }
+
+
+# utilities
+
+
+def _lab_list(output):
+    """ return an action that lists the current jupyterlab build state
+    """
+    return ["jupyter labextension list > {}".format(output)]
