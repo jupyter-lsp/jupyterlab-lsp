@@ -4,11 +4,11 @@
 
 > _This project is still maturing, but you are welcome to check it out, leave feedback and/or a PR_
 
-Quick Links: **[Installation](#installation) | [Language Servers](./LANGUAGESERVERS.md) | [Updating](#updating) | [Changelog](./CHANGELOG.md) | [Roadmap](./ROADMAP.md) | [Contributing](./CONTRIBUTING.md) | [Extending](./EXTENDING.md)**
+Quick Links: **[Installation](#installation) | [Language Servers](./docs/LANGUAGESERVERS.md) | [Updating](#updating) | [Changelog](./CHANGELOG.md) | [Roadmap](./docs/ROADMAP.md) | [Contributing](./CONTRIBUTING.md) | [Extending](./docs/EXTENDING.md)**
 
 ## Features
 
-> Examples show Python code, but most features also work in R, bash, typescript and [many other languages](./LANGUAGESERVERS.md).
+> Examples show Python code, but most features also work in R, bash, typescript and [many other languages](./docs/LANGUAGESERVERS.md).
 
 ### Hover
 
@@ -113,7 +113,7 @@ For the current stable version:
    ```
 
    Please see our full list of
-   [supported language servers](./LANGUAGESERVERS.md)
+   [supported language servers](./docs/LANGUAGESERVERS.md)
    which includes installation hints for the common package managers (npm/pip/conda).
    In general, any LSP server from the
    [Microsoft list](https://microsoft.github.io/language-server-protocol/implementors/servers/)
@@ -158,7 +158,7 @@ jupyter labextension install @krassowski/jupyterlab-lsp@0.7.0-rc.0
 
 ### Configuring the servers
 
-We plan to provide a configuration GUI at some time ([#25](https://github.com/krassowski/jupyterlab-lsp/issues/25)), but in the meantime, you can use the instructions for the specific servers as described on their websites (see the table in [LANGUAGESERVERS.md](./LANGUAGESERVERS.md) for links).
+We plan to provide a configuration GUI at some time ([#25](https://github.com/krassowski/jupyterlab-lsp/issues/25)), but in the meantime, you can use the instructions for the specific servers as described on their websites (see the table in [LANGUAGESERVERS.md](./docs/LANGUAGESERVERS.md) for links).
 
 #### I want to hide specific diagnostics/inspections/warnings
 
