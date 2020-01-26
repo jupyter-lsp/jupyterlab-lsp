@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-python scripts/dodo.py LAB
+python scripts/dodo.py --verbosity 2 LAB
