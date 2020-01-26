@@ -1,8 +1,9 @@
 # development dependencies for jupyter_lsp for qa, with lab
 -r ./utest.txt
+doit
 pyls-black
 pyls-isort
 pyls-mypy
 pytest-cov
-ruamel.yaml
 robotframework-lint
+ruamel.yaml
