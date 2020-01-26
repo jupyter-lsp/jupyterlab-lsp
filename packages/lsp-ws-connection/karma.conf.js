@@ -31,6 +31,7 @@ module.exports = function(config) {
     },
 
     junitReporter: {
+      outputDir: '.',
       outputFile: 'junit.xml'
     },
 

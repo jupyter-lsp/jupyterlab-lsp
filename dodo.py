@@ -11,7 +11,9 @@ To just run one task_<name> (and any requirements):
 TODO:
     - investigate better output mechanisms (reports)
 """
+import json
 import platform
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -46,8 +48,12 @@ PY_EGGINFO = PY_ROOT / "jupyter_lsp.egg-info"
 PY_EGG_PKG = PY_EGGINFO / "PKG-INFO"
 ALL_PY = [*PY_SRC, *PY_SCRIPTS, *PY_ATEST, PY_SETUP, DODO]
 
-PY_SDIST = [*DIST.glob("jupyer-lsp*.tar.gz")]
-PY_WHEEL = [*DIST.glob("jupyter_lsp*.whl")]
+PY_VERSION = re.findall(
+    r'= "(.*)"$', (PY_ROOT / "jupyter_lsp" / "_version.py").read_text()
+)[0]
+
+PY_SDIST = [DIST / "jupyer-lsp-{}.tar.gz".format(PY_VERSION)]
+PY_WHEEL = [DIST / "jupyter_lsp-{}-py3-non-any.whl".format(PY_VERSION)]
 
 
 def task_py_setup():
@@ -323,7 +329,11 @@ def task_ts_schema():
     }
 
 
-TS_BUILDINFO = [*PACKAGES.glob("*/lib/.tsbuildinfo")]
+TS_BUILDINFO = [
+    p / "lib" / ".tsbuildinfo"
+    for p in PACKAGES.glob("*/")
+    if (p / "package.json").exists()
+]
 
 
 def task_tsc():
@@ -334,31 +344,34 @@ def task_tsc():
 
     return {
         "file_dep": [DTS_SCHEMA],
-        "targets": [*libs],
+        "targets": TS_BUILDINFO,
         "actions": [["jlpm", "build:meta"]],
         "clean": [clean],
     }
 
 
-WS_DIST = [*(TS_WS / "dist").rglob("*.*")]
+WS_DIST = [TS_WS / "dist" / "index.js"]
 
 
 def task_ws_webpack():
+    def clean():
+        shutil.rmtree(TS_WS / "dist", ignore_errors=True)
+
     return {
         "file_dep": TS_BUILDINFO,
         "targets": WS_DIST,
         "actions": [["jlpm", "build:ws"]],
-        "clean": True,
+        "clean": [clean],
     }
 
 
-WS_JUNIT = TS_LSP.glob("*/junit.xml")
+WS_JUNIT = TS_WS / "junit.xml"
 
 
 def task_wstest():
     return {
-        "file_dep": TS_BUILDINFO,
-        "targets": [*WS_JUNIT],
+        "file_dep": WS_DIST,
+        "targets": [WS_JUNIT],
         "actions": [["jlpm", "test", "--scope", "lsp-ws-connection"]],
         "clean": True,
     }
@@ -369,7 +382,7 @@ LSP_JUNIT = TS_LSP / "junit.xml"
 
 def task_lsptest():
     return {
-        "file_dep": TS_BUILDINFO,
+        "file_dep": [WS_JUNIT],
         "targets": [LSP_JUNIT],
         "actions": [["jlpm", "test", "--scope", "@krassowski/jupyterlab-lsp"]],
         "clean": True,
@@ -385,21 +398,19 @@ ATEST_OUTPUTS = ATEST_OUTPUT.glob(f"{OS}_{PY}*".lower())
 ATEST_COMBINED = [ATEST_OUTPUT / "log.html", ATEST_OUTPUT / "report.html"]
 
 
+_ATESTED = BUILD / "atest.log"
+
 def task_atest():
     def clean():
         [shutil.rmtree(dr) if dr.is_dir() else dr.unlink() for dr in ATEST_OUTPUTS]
 
     return {
         "file_dep": [
-            COVERAGE,
-            *WS_JUNIT,
-            LSP_JUNIT,
             _LABBUILT,
-            _RFLINTED,
             _SERVEREXTENDED,
         ],
-        "targets": [*ATEST_OUTPUTS],
-        "actions": [["python", "scripts/atest.py"]],
+        "targets": [*ATEST_OUTPUTS, _ATESTED],
+        "actions": [["python", "scripts/atest.py"], _ATESTED.touch],
         "clean": [clean],
         "verbosity": 2,
     }
@@ -408,7 +419,7 @@ def task_atest():
 def task_atest_combine():
     return {
         "file_dep": [*ATEST_OUTPUTS, *ROBOT_DRYRUN],
-        "targets": ATEST_COMBINED,
+        "targets": [*ATEST_COMBINED],
         "actions": [["python", "scripts/combine.py"]],
         "clean": True,
         "verbosity": 2,
@@ -433,25 +444,41 @@ def task_serverextension():
                 "--py",
                 "jupyter_lsp",
             ],
-            _SERVEREXTENDED.touch,
+            ["jupyter serverextension list > {}".format(_SERVEREXTENDED)],
         ],
         "clean": True,
     }
 
 
-_LABEXTENDED = BUILD / "labextensions.log"
+_LABLISTED = BUILD / "lab.list.log"
 
 
-def task_lab_link():
+def _lab_list(output):
+    return ["jupyter labextension list > {}".format(output)]
+
+
+def task_lab_list():
     return {
-        "file_dep": WS_DIST,
-        "targets": [_LABEXTENDED],
-        "actions": [["jlpm", "lab:link"], _LABEXTENDED.touch],
+        "file_dep": [*WS_DIST, *TS_BUILDINFO],
+        "targets": [_LABLISTED],
+        "actions": _lab_list(_LABLISTED),
         "clean": True,
     }
 
 
-_LABBUILT = BUILD / "labbuilt.log"
+_LABEXTENDED = BUILD / "lab.linked.log"
+
+
+def task_lab_link():
+    return {
+        "file_dep": [*WS_DIST, *TS_BUILDINFO, _LABLISTED],
+        "targets": [_LABEXTENDED],
+        "actions": [["jlpm", "lab:link"]] + _lab_list(_LABEXTENDED),
+        "clean": True,
+    }
+
+
+_LABBUILT = BUILD / "lab.built.log"
 
 
 def task_lab_build():
@@ -460,8 +487,8 @@ def task_lab_build():
         "targets": [_LABBUILT],
         "actions": [
             ["jupyter", "lab", "build", "--dev-build=False", "--minimize=True"],
-            _LABBUILT.touch,
-        ],
+        ]
+        + _lab_list(_LABBUILT),
         "clean": True,
     }
 
@@ -492,10 +519,52 @@ def task_py_dist():
     }
 
 
+JS_TARBALLS = [
+    path.parent
+    / "{}-{}.tgz".format(
+        path.parent.name.replace("@", "").replace("/", "-"), package["version"]
+    )
+    for path, package in [
+        (path, json.loads(path.read_text())) for path in PACKAGE_JSONS
+    ]
+    if package.get("version") and not package.get("private")
+]
+
+
 def task_js_dist():
     return {
         "file_dep": WS_DIST,
-        "targets": [*PACKAGES.glob("*.tgz")],
+        "targets": JS_TARBALLS,
         "actions": [["jlpm", "bundle"]],
         "clean": True,
+    }
+
+_RELEASABLE = BUILD / "releasable.log"
+
+def task_release():
+    return {
+        "file_dep": [
+            _INTEGRATED,
+            *PY_SDIST,
+            *PY_WHEEL,
+            *JS_TARBALLS
+        ],
+        "targets": [_RELEASABLE],
+        "actions": [lambda x: print("release ok!"), _RELEASABLE.touch],
+        "clean": True,
+    }
+
+def task_all():
+    return {
+        "file_dep": [
+            _ATESTED,
+            _MYPYED,
+            _RELEASABLE,
+            _RFLINTED,
+            _TSLINTED,
+            *ATEST_COMBINED,
+            COVERAGE,
+            LSP_JUNIT,
+        ],
+        "actions": [lambda x: print("ok!")]
     }
