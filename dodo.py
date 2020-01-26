@@ -11,7 +11,9 @@ To just run one task_<name> (and any requirements):
 TODO:
     - investigate better output mechanisms (reports)
 """
+import platform
 import shutil
+import sys
 from pathlib import Path
 
 DODO = Path(__file__)
@@ -28,6 +30,7 @@ REQS = ROOT / "requirements"
 SCRIPTS = ROOT / "scripts"
 
 # we're going to build here
+# TODO: make this a task?
 BUILD = ROOT / "build"
 BUILD.exists() or BUILD.mkdir()
 
@@ -362,6 +365,38 @@ def task_integrity():
         "targets": [_INTEGRATED],
         "actions": [f"python scripts/integrity.py > {_INTEGRATED}"],
         "clean": True,
+    }
+
+
+_ATESTED = BUILD / "atest.log"
+OS = platform.system()
+PY = "".join(map(str, sys.version_info[:2]))
+ATEST_OUTPUT = ATEST / "output"
+ATEST_OUTPUTS = ATEST_OUTPUT.glob(f"{OS}_{PY}*".lower())
+ATEST_COMBINED = [ATEST_OUTPUT / "log.html", ATEST_OUTPUT / "report.html"]
+
+def task_atest():
+    def clean():
+        _ATESTED.exists() and _ATESTED.unlink()
+        [
+            shutil.rmtree(dr) if dr.is_dir() else dr.unlink()
+            for dr in ATEST_OUTPUTS
+        ]
+
+    return {
+        "file_dep": [COVERAGE, *WS_JUNIT, LSP_JUNIT],
+        "targets": [_ATESTED],
+        "actions": [f"python scripts/atest.py", lambda: _ATESTED.touch()],
+        "clean": [clean],
+    }
+
+
+def task_atest_combine():
+    return {
+        "file_dep": [_ATESTED],
+        "targets": ATEST_COMBINED,
+        "actions": [f"python scripts/combine.py"],
+        "clean": True
     }
 
 
