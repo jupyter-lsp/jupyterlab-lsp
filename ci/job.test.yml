@@ -4,7 +4,7 @@ parameters:
       vmImage: ubuntu-16.04
       activate: source activate
     - name: MacOSX
-      vmImage: macos-10.13
+      vmImage: macos-10.14
       activate: source activate
     - name: Windows
       vmImage: vs2017-win2016
