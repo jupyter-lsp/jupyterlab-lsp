@@ -16,6 +16,8 @@ import {
   AnyCompletion
 } from './types';
 
+const DEBUG = 0;
+
 /**
  * Changes as compared to upstream:
  *  - markdown is preferred over plaintext
@@ -211,7 +213,7 @@ export class LspWsConnection extends events.EventEmitter
           this.onServerInitialized(params);
         },
         e => {
-          console.warn('lsp-ws-connection initialization failure', e);
+          DEBUG && console.warn('lsp-ws-connection initialization failure', e);
         }
       );
   }
