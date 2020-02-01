@@ -130,13 +130,21 @@ def setup_shadow_filesystem(virtual_documents_uri):
         text = extract_or_none(document, ["text"])
 
         if text is not None:
+            # didOpen and didSave may provide text within the document
             changes = [{"text": text}]
         else:
+            # didChange is the only one which can also provide it in params (as contentChanges)
+            if message["method"] != "textDocument/didChange":
+                return
+            if "contentChanges" not in message["params"]:
+                raise ShadowFilesystemError(
+                    "textDocument/didChange is missing contentChanges"
+                )
             changes = message["params"]["contentChanges"]
 
         if len(changes) > 1:
             manager.log.warn(  # pragma: no cover
-                "LSP warning: up to one change" " supported for textDocument/didChange"
+                "LSP warning: up to one change supported for textDocument/didChange"
             )
 
         for change in changes[:1]:
