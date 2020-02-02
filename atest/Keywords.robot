@@ -180,7 +180,7 @@ Clean Up After Working With File
 Setup Notebook
     [Arguments]    ${Language}    ${file}
     Set Tags    language:${Language.lower()}
-    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}notebook${/}${TEST NAME.replace(' ', '_)}
+    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}notebook${/}${TEST NAME.replace(' ', '_')}
     Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
     Try to Close All Tabs
     Open ${file} in ${MENU NOTEBOOK}
