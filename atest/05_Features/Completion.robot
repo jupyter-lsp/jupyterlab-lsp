@@ -110,11 +110,12 @@ Select Completer Suggestion
 
 Completer Should Suggest
     [Arguments]    ${text}
-    Page Should Contain Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
+    Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
+    Capture Page Screenshot   ${text.replace(' ', '_')}.png
 
 Completer Should Not Suggest
     [Arguments]    ${text}
-    Page Should Not Contain Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
+    Wait Until Page Does Not Contain Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
 
 Trigger Completer
     Press Keys    None    TAB
