@@ -184,8 +184,8 @@ Setup Notebook
     Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
     Try to Close All Tabs
     Open ${file} in ${MENU NOTEBOOK}
-    Wait Until Fully Initialized
     Capture Page Screenshot    00-opened.png
+    Wait Until Fully Initialized
     Capture Page Screenshot    01-initialized.png
 
 Open Diagnostics Panel
