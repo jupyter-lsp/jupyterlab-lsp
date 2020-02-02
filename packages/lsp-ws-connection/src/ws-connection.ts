@@ -218,7 +218,7 @@ export class LspWsConnection extends events.EventEmitter
       );
   }
 
-  public sendOpen(documentInfo: IDocumentInfo) {
+  sendOpen(documentInfo: IDocumentInfo) {
     const textDocumentMessage: protocol.DidOpenTextDocumentParams = {
       textDocument: {
         uri: documentInfo.uri,
