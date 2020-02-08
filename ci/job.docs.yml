@@ -7,7 +7,7 @@ parameters:
     - name: ThreeSeven
       spec: '>=3.7,<3.8.0a0'
   env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
-  env_lint: conda env update -n jupyterlab-lsp --file requirements/docs.yml --quiet
+  env_docs: conda env update -n jupyterlab-lsp --file requirements/docs.yml --quiet
 
 jobs:
   - ${{ each platform in parameters.platforms }}:
@@ -21,9 +21,12 @@ jobs:
                   name: ${{ platform.name }}
 
               - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" ">=1,<2"
-                displayName: base dependencies
+                displayName: generate env with python and lab version
 
               - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
+                displayName: base dependencies
+
+              - script: ${{ parameters.env_docs }} || ${{ parameters.env_docs }} || ${{ parameters.env_docs }}
                 displayName: docs dependencies
 
               - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/docs.py
