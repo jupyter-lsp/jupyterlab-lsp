@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 from subprocess import check_call
 
-
 ROOT = Path(__file__).parent.parent
 DOCS = ROOT / "docs"
 DOCS_BUILD = DOCS / "_build"

@@ -13,4 +13,4 @@ dependences:
   - sphinx-autobuild
   - sphinx-copybutton
   - pip:
-    - sphinx-markdown-tables
+      - sphinx-markdown-tables

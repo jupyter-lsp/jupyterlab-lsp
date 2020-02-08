@@ -1,7 +1,7 @@
 :root {
-    --code-bg: rgb(39, 40, 34);
-    --border-width: 1px;
-    --border-radius: 5px;
+  --code-bg: rgb(39, 40, 34);
+  --border-width: 1px;
+  --border-radius: 5px;
 }
 
 div.nbinput div.prompt,
@@ -10,7 +10,7 @@ div.nboutput div.prompt {
 }
 
 body div.nboutput.container div[class*='highlight'] {
-  background: var(--code-bg)  !important;
+  background: var(--code-bg) !important;
 }
 
 .rst-content div[class^='highlight'] {

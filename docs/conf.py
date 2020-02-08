@@ -2,10 +2,8 @@
 """
 # pylint: disable=invalid-name,redefined-builtin,import-error
 
-import os
 import pathlib
 import sys
-from subprocess import check_call
 
 import nbsphinx
 
@@ -19,7 +17,9 @@ nbsphinx.RST_TEMPLATE = nbsphinx.RST_TEMPLATE.replace(
 
 nbsphinx_prompt_width = "0"
 
-sys.path.insert(0, str((pathlib.Path.cwd().parent / "py_src" / "jupyter_lsp").resolve()))
+sys.path.insert(
+    0, str((pathlib.Path.cwd().parent / "py_src" / "jupyter_lsp").resolve())
+)
 
 project = "Jupyter[Lab] Language Server"
 copyright = "2020, Jupyter[Lab] Language Server Contributors"
