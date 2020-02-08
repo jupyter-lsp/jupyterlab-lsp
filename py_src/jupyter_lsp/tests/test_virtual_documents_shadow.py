@@ -60,6 +60,17 @@ def did_change(uri, changes: List):
     }
 
 
+def did_save_with_text(uri, text):
+    return {
+        "method": "textDocument/didSave",
+        "params": {"textDocument": {"uri": uri, "text": text}},
+    }
+
+
+def did_save_without_text(uri):
+    return {"method": "textDocument/didSave", "params": {"textDocument": {"uri": uri}}}
+
+
 @pytest.fixture
 def shadow_path(tmpdir):
     return str(tmpdir.mkdir(".virtual_documents"))
@@ -71,6 +82,7 @@ def shadow_path(tmpdir):
     [
         [did_open, "content\nof\nopened\nfile", "content\nof\nopened\nfile"],
         [did_change, [{"text": "content after change"}], "content after change"],
+        [did_save_with_text, "content at save", "content at save"],
     ],
 )
 async def test_shadow(shadow_path, message_func, content, expected_content):
@@ -89,6 +101,7 @@ async def test_shadow(shadow_path, message_func, content, expected_content):
 async def test_shadow_failures(shadow_path):
 
     shadow = setup_shadow_filesystem(Path(shadow_path).as_uri())
+    ok_file_uri = (Path(shadow_path) / "test.py").as_uri()
 
     def run_shadow(message):
         return shadow("client", message, ["python"], None)
@@ -110,3 +123,16 @@ async def test_shadow_failures(shadow_path):
     # should NOT intercept (nor shadow) files from location other than shadow_path
     result = await run_shadow(did_open("file:///other/path.py", "content"))
     assert result is None
+
+    # should fail silently on missing text in didSave
+    result = await run_shadow(did_save_without_text(ok_file_uri))
+    assert result is None
+
+    # should raise on missing changes in didChange
+    with pytest.raises(ShadowFilesystemError, match=".* is missing contentChanges"):
+        await run_shadow(
+            {
+                "method": "textDocument/didChange",
+                "params": {"textDocument": {"uri": ok_file_uri}},
+            }
+        )
