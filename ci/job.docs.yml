@@ -13,6 +13,8 @@ jobs:
   - ${{ each platform in parameters.platforms }}:
       - ${{ each python in parameters.pythons}}:
           - job: Docs
+            dependsOn:
+              - Lint
             pool:
               vmImage: ${{ platform.vmImage }}
             steps:
