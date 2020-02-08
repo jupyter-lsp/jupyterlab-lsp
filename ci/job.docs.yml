@@ -37,5 +37,5 @@ jobs:
               - task: PublishPipelineArtifact@0
                 displayName: publish docs
                 inputs:
-                  targetPath: docs/build
+                  targetPath: docs/_build
                   artifactName: Docs $(Build.BuildId)
