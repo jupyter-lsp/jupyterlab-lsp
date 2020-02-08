@@ -1,9 +1,9 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    completion
-Force Tags        feature:completion
-Resource          ../Keywords.robot
 Test Setup        Setup Notebook    Python    Completion.ipynb
 Test Teardown     Clean Up After Working With File    Completion.ipynb
+Force Tags        feature:completion
+Resource          ../Keywords.robot
 
 *** Variables ***
 ${COMPLETER_BOX}    css:.jp-Completer.jp-HoverBox
@@ -111,7 +111,7 @@ Select Completer Suggestion
 Completer Should Suggest
     [Arguments]    ${text}
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
-    Capture Page Screenshot   ${text.replace(' ', '_')}.png
+    Capture Page Screenshot    ${text.replace(' ', '_')}.png
 
 Completer Should Not Suggest
     [Arguments]    ${text}
