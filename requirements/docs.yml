@@ -2,8 +2,9 @@ name: jupyterlab-lsp-docs
 
 channels:
   - conda-forge
+  - defaults
 
-dependences:
+dependencies:
   - nbsphinx
   - pandas
   - python-graphviz

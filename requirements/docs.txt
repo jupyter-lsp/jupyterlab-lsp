@@ -1,8 +1,9 @@
-# development dependencies for jupyter_lsp for qa, with lab
+# development dependencies for jupyter_lsp for docs
 -r dev.txt
 graphviz
 nbsphinx
 recommonmark
+sphinx
 sphinx_autodoc_typehints
 sphinx-autobuild
 sphinx-copybutton
