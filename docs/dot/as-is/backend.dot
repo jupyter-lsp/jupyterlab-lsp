@@ -1,0 +1,47 @@
+graph backend {
+    label="Back End as of 0.7.0"
+    fontname="sans-serif"
+    node[shape=none fontname="sans-serif"]
+    edge[fontname="sans-serif"]
+    graph[fontcolor=grey]
+    subgraph cluster_browser {
+        label=Browser
+        Clients
+    }
+    subgraph cluster_notebook { label="Jupyter Server"
+        subgraph cluster_lsp { label="LSP ServerExtension"
+            Sessions
+            Manager[label="The\nLanguage\nServer\nManager"]
+            Handlers
+            WebSockets
+            SpecFinders
+            Specs
+            Listeners
+            RestAPI[label="The REST API"]
+        }
+        subgraph cluster_lab_ext { label="JupyterLab ServerExtension"
+            PageConfig[label="The Page Config"]
+        }
+    }
+    
+    subgraph cluster_files { label="Files"
+        RealFiles[label="Real Files"]
+        VirtualFiles[label="Virtual Files"]
+        subgraph cluster_config { label="Config"
+            subgraph cluster_jupyter_cfg { label="Jupyter Config Paths"
+                Traitlets
+            }
+            subgraph cluster_python_pkgs { label="Python Packages"
+                EntryPoints
+            }
+        }
+    }
+
+    LanguageServers[label="Language\nServers"]
+    Clients -- {RestAPI PageConfig} -- Manager
+    Clients -- WebSockets -- Handlers -- Sessions -- LanguageServers
+    {Manager Traitlets EntryPoints} -- SpecFinders -- Specs
+    Specs -- Sessions
+    Sessions -- Listeners -- VirtualFiles
+    LanguageServers -- {RealFiles VirtualFiles}
+}

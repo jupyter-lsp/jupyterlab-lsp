@@ -54,7 +54,13 @@ master_doc = "index"
 
 language = None
 
-exclude_patterns = [".ipynb_checkpoints", "**/.ipynb_checkpoints", "**/~.*"]
+exclude_patterns = [
+    ".ipynb_checkpoints/**",
+    "**/.ipynb_checkpoints/**",
+    "**/~.*",
+    "~.*",
+    "_build/**"
+]
 
 pygments_style = "monokai"
 
