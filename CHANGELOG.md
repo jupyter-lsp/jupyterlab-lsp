@@ -1,6 +1,13 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 0.7.1`
+## `jupyter-lsp 0.7.0`
+
+- bugfixes
+  - didSave no longer causes unwanted messages in logs (
+    [#187](https://github.com/krassowski/jupyterlab-lsp/pull/187)
+    )
+
+## `@krassowski/jupyterlab-lsp 0.7.1`
 
 - features
 
