@@ -1,9 +1,10 @@
 graph backend {
     label="Back End as of 0.7.0"
+    splines="line"
     fontname="sans-serif"
     node[shape=none fontname="sans-serif"]
     edge[fontname="sans-serif"]
-    graph[fontcolor=grey]
+    graph[fontcolor=grey color=grey]
     subgraph cluster_browser {
         label=Browser
         Clients

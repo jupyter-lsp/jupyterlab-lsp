@@ -59,7 +59,7 @@ exclude_patterns = [
     "**/.ipynb_checkpoints/**",
     "**/~.*",
     "~.*",
-    "_build/**"
+    "_build/**",
 ]
 
 pygments_style = "monokai"

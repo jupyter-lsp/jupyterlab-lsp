@@ -1,0 +1,36 @@
+parameters:
+  platforms:
+    - name: Linux
+      vmImage: ubuntu-16.04
+      activate: source activate
+  pythons:
+    - name: ThreeSeven
+      spec: '>=3.7,<3.8.0a0'
+  env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
+  env_lint: conda env update -n jupyterlab-lsp --file requirements/docs.yml --quiet
+
+jobs:
+  - ${{ each platform in parameters.platforms }}:
+      - ${{ each python in parameters.pythons}}:
+          - job: Lint
+            pool:
+              vmImage: ${{ platform.vmImage }}
+            steps:
+              - template: steps.conda.yml
+                parameters:
+                  name: ${{ platform.name }}
+
+              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" ">=1,<2"
+                displayName: base dependencies
+
+              - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
+                displayName: docs dependencies
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/docs.py
+                displayName: build docs
+
+              - task: PublishPipelineArtifact@0
+                displayName: publish docs
+                inputs:
+                  targetPath: docs/build
+                  artifactName: Docs $(Build.BuildId)

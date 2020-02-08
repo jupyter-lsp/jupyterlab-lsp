@@ -30,3 +30,7 @@ body div.nboutput.container div[class*='highlight'] pre {
   background-color: transparent !important;
   padding: 1em;
 }
+
+.wy-nav-content {
+  max-width: 100%;
+}

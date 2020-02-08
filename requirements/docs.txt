@@ -3,6 +3,7 @@
 graphviz
 nbsphinx
 recommonmark
+sphinx_autodoc_typehints
 sphinx-autobuild
 sphinx-copybutton
 sphinx-markdown-tables
