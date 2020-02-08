@@ -10,7 +10,7 @@
 
 #### Language Server Specs
 
-Language Server Specs can be [configured](./LANGUAGESERVERS.ms) by Jupyter users,
+Language Server Specs can be [configured](./LANGUAGESERVERS.md) by Jupyter users,
 or distributed by third parties as python or JSON files. Since we'd like to see
 as many Language Servers work out of the box as possible, consider
 [contributing a spec](../CONTRIBUTING.md#specs), if it works well for you!
