@@ -12,7 +12,7 @@ parameters:
 jobs:
   - ${{ each platform in parameters.platforms }}:
       - ${{ each python in parameters.pythons}}:
-          - job: Lint
+          - job: Docs
             pool:
               vmImage: ${{ platform.vmImage }}
             steps:
