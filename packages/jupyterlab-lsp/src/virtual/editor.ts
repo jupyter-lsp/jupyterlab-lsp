@@ -35,6 +35,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
    */
   has_cells: boolean;
   console: EditorLogConsole;
+  isDisposed = false;
 
   public constructor(
     protected language: () => string,
@@ -46,7 +47,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
   ) {
     this.create_virtual_document();
     this.documents_updated = new Signal<VirtualEditor, VirtualDocument>(this);
-    this.documents_updated.connect(this.on_updated.bind(this));
+    this.documents_updated.connect(this.on_updated, this);
     this.console = create_console('browser');
   }
 
@@ -60,6 +61,32 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
       this.file_extension(),
       this.has_lsp_supported_file
     );
+  }
+
+  dispose() {
+    if (this.isDisposed) {
+      return;
+    }
+
+    this.documents_updated.disconnect(this.on_updated, this);
+
+    for (let [[eventName], wrapped_handler] of this._event_wrappers.entries()) {
+      this.forEveryBlockEditor(cm_editor => {
+        cm_editor.off(eventName, wrapped_handler);
+      }, false);
+    }
+
+    this._event_wrappers.clear();
+
+    this.virtual_document.dispose();
+
+    // just to be sure
+    this.virtual_document = null;
+    this.overrides_registry = null;
+    this.foreign_code_extractors = null;
+    this.code_extractors = null;
+
+    this.isDisposed = true;
   }
 
   /**
@@ -93,7 +120,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
   private is_update_in_progress: boolean = false;
 
   private can_update() {
-    return !this.is_update_in_progress && !this.update_lock;
+    return !this.isDisposed && !this.is_update_in_progress && !this.update_lock;
   }
 
   private update_lock: boolean = false;
@@ -105,7 +132,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
    * @param fn - the callback to execute in update lock
    */
   public async with_update_lock(fn: Function) {
-    this.console.log('Will enter update lock with', fn);
+    // this.console.log('Will enter update lock with', fn);
     await until_ready(() => this.can_update(), 12, 10).then(() => {
       try {
         this.update_lock = true;
@@ -126,11 +153,18 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
       // defer the update by up to 50 ms (10 retrials * 5 ms break),
       // awaiting for the previous update to complete.
       await until_ready(() => this.can_update(), 10, 5).then(() => {
+        if (this.isDisposed || !this.virtual_document) {
+          resolve();
+        }
         try {
           this.is_update_in_progress = true;
           this.perform_documents_update();
-          this.documents_updated.emit(this.virtual_document);
-          this.virtual_document.maybe_emit_changed();
+
+          if (this.virtual_document) {
+            this.documents_updated.emit(this.virtual_document);
+            this.virtual_document.maybe_emit_changed();
+          }
+
           resolve();
         } catch (e) {
           this.console.warn('Documents update failed:', e);
@@ -177,10 +211,14 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
   }
 
   abstract forEveryBlockEditor(
-    callback: (cm_editor: CodeMirror.Editor) => void
+    callback: (cm_editor: CodeMirror.Editor) => void,
+    monitor_for_new_blocks?: boolean
   ): void;
 
-  private _event_wrappers = new Map<CodeMirrorHandler, WrappedHandler>();
+  private _event_wrappers = new Map<
+    [string, CodeMirrorHandler],
+    WrappedHandler
+  >();
 
   /**
    * Proxy the event handler binding to the CodeMirror editors,
@@ -199,7 +237,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
         );
       }
     };
-    this._event_wrappers.set(handler, wrapped_handler);
+    this._event_wrappers.set([eventName, handler], wrapped_handler);
 
     this.forEveryBlockEditor(cm_editor => {
       cm_editor.on(eventName, wrapped_handler);
@@ -207,7 +245,7 @@ export abstract class VirtualEditor implements CodeMirror.Editor {
   }
 
   off(eventName: string, handler: CodeMirrorHandler, ...args: any[]): void {
-    let wrapped_handler = this._event_wrappers.get(handler);
+    let wrapped_handler = this._event_wrappers.get([eventName, handler]);
 
     this.forEveryBlockEditor(cm_editor => {
       cm_editor.off(eventName, wrapped_handler);

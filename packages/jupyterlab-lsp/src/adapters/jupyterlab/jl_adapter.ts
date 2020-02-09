@@ -1,4 +1,3 @@
-import { PathExt } from '@jupyterlab/coreutils';
 import * as CodeMirror from 'codemirror';
 import { CodeMirrorAdapter } from '../codemirror/cm_adapter';
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -12,7 +11,7 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 import { FreeTooltip } from './components/free_tooltip';
 import { Widget } from '@phosphor/widgets';
 import { VirtualEditor } from '../../virtual/editor';
-import { VirtualDocument } from '../../virtual/document';
+import { VirtualDocument, IForeignContext } from '../../virtual/document';
 import { Signal } from '@phosphor/signaling';
 import { IEditorPosition, IRootPosition } from '../../positioning';
 import { LSPConnection } from '../../connection';
@@ -29,7 +28,8 @@ import { ICommandContext } from '../../command_manager';
 import { JSONObject } from '@phosphor/coreutils';
 import {
   DocumentConnectionManager,
-  IDocumentConnectionData
+  IDocumentConnectionData,
+  ISocketConnectionOptions
 } from '../../connection_manager';
 import { Rename } from '../codemirror/features/rename';
 
@@ -52,6 +52,8 @@ export interface IJupyterLabComponentsManager {
   ) => FreeTooltip;
   remove_tooltip: () => void;
   jumper: CodeJumper;
+  dispose(): void;
+  isDisposed: boolean;
 }
 
 export class StatusMessage {
@@ -75,15 +77,15 @@ export class StatusMessage {
   set(message: string, timeout?: number) {
     this.message = message;
     this.changed.emit('');
-    if (typeof timeout !== 'undefined' && timeout !== -1) {
-      setTimeout(this.cleanup.bind(this), timeout);
+    if (timeout == null && timeout !== -1) {
+      setTimeout(this.cleanup, timeout);
     }
   }
 
-  cleanup() {
+  cleanup = () => {
     this.message = '';
     this.changed.emit('');
-  }
+  };
 }
 
 /**
@@ -115,34 +117,82 @@ export abstract class JupyterLabWidgetAdapter
   private _tooltip: FreeTooltip;
   public connection_manager: DocumentConnectionManager;
   public status_message: StatusMessage;
+  public isDisposed = false;
 
   protected constructor(
     protected app: JupyterFrontEnd,
     protected widget: IDocumentWidget,
     protected rendermime_registry: IRenderMimeRegistry,
     invoke: string,
-    private server_root: string
+    connection_manager: DocumentConnectionManager
   ) {
-    this.status_message = new StatusMessage();
-    this.widget.context.pathChanged.connect(this.reload_connection.bind(this));
-    this.widget.context.saveState.connect(this.on_save_state.bind(this));
-    this.invoke_command = invoke;
     this.document_connected = new Signal(this);
+    this.invoke_command = invoke;
     this.adapters = new Map();
-    this.connection_manager = new DocumentConnectionManager();
-    this.connection_manager.closed.connect((manger, { virtual_document }) => {
-      console.log(
-        'LSP: connection closed, disconnecting adapter',
-        virtual_document.id_path
-      );
-      this.disconnect_adapter(virtual_document);
-    });
-    this.connection_manager.connected.connect((manager, data) => {
-      this.on_connected(data).catch(console.warn);
-    });
+    this.status_message = new StatusMessage();
+    this.connection_manager = connection_manager;
 
-    // register completion connectors
-    this.document_connected.connect(() => this.connect_completion());
+    // set up signal connections
+    this.widget.context.saveState.connect(this.on_save_state, this);
+    this.connection_manager.closed.connect(this.on_connection_closed, this);
+    this.document_connected.connect(this.connect_completion, this);
+    this.widget.disposed.connect(this.dispose, this);
+  }
+
+  on_connection_closed(
+    manager: DocumentConnectionManager,
+    { virtual_document }: IDocumentConnectionData
+  ) {
+    console.log(
+      'LSP: connection closed, disconnecting adapter',
+      virtual_document.id_path
+    );
+    if (virtual_document !== this.virtual_editor?.virtual_document) {
+      return;
+    }
+    this.dispose();
+  }
+
+  dispose() {
+    if (this.isDisposed) {
+      return;
+    }
+    if (this.virtual_editor?.virtual_document) {
+      this.disconnect_adapter(this.virtual_editor?.virtual_document);
+    }
+
+    this.widget.context.saveState.disconnect(this.on_save_state, this);
+    this.connection_manager.closed.disconnect(this.on_connection_closed, this);
+    this.document_connected.disconnect(this.connect_completion, this);
+    this.widget.disposed.disconnect(this.dispose, this);
+    this.widget.context.model.contentChanged.disconnect(
+      this.update_documents,
+      this
+    );
+    for (let adapter of this.adapters.values()) {
+      adapter.dispose();
+    }
+    this.adapters.clear();
+
+    this.connection_manager.disconnect_document_signals(
+      this.virtual_editor.virtual_document
+    );
+    this.virtual_editor.dispose();
+
+    this.current_completion_connector?.dispose();
+
+    // just to be sure
+    this.virtual_editor = null;
+    this.app = null;
+    this.widget = null;
+    this._tooltip = null;
+    this.connection_manager = null;
+    this.current_completion_connector = null;
+    this.rendermime_registry = null;
+    this.widget = null;
+
+    // actually disposed
+    this.isDisposed = true;
   }
 
   abstract virtual_editor: VirtualEditor;
@@ -175,22 +225,19 @@ export abstract class JupyterLabWidgetAdapter
 
   abstract get language_file_extension(): string;
 
-  get root_path() {
-    // TODO: serverRoot may need to be included for Hub or Windows, requires testing.
-    // let root = PageConfig.getOption('serverRoot');
-    return PathExt.dirname(this.document_path);
-  }
-
   // equivalent to triggering didClose and didOpen, as per syncing specification,
   // but also reloads the connection; used during file rename (or when it was moved)
   protected reload_connection() {
     // ignore premature calls (before the editor was initialized)
-    if (typeof this.virtual_editor === 'undefined') {
+    if (this.virtual_editor == null) {
       return;
     }
 
     // disconnect all existing connections (and dispose adapters)
-    this.connection_manager.close_all();
+    this.connection_manager.unregister_document(
+      this.virtual_editor.virtual_document
+    );
+
     // recreate virtual document using current path and language
     this.virtual_editor.create_virtual_document();
     // reconnect
@@ -201,13 +248,15 @@ export abstract class JupyterLabWidgetAdapter
 
   protected on_save_state(context: any, state: DocumentRegistry.SaveState) {
     // ignore premature calls (before the editor was initialized)
-    if (typeof this.virtual_editor === 'undefined') {
+    if (this.virtual_editor == null) {
       return;
     }
 
     if (state === 'completed') {
       for (let connection of this.connection_manager.connections.values()) {
-        connection.sendSaved();
+        connection.sendSaved(
+          this.virtual_editor.virtual_document.document_info
+        );
       }
     }
   }
@@ -229,6 +278,7 @@ export abstract class JupyterLabWidgetAdapter
     await this.virtual_editor.update_documents().then(() => {
       // refresh the document on the LSP server
       this.document_changed(virtual_document, virtual_document, true);
+
       console.log(
         'LSP: virtual document(s) for',
         this.document_path,
@@ -238,13 +288,40 @@ export abstract class JupyterLabWidgetAdapter
   }
 
   protected async connect_document(virtual_document: VirtualDocument) {
-    this.connection_manager.connect_document_signals(virtual_document);
-    virtual_document.changed.connect(this.document_changed.bind(this));
-    await this.connect(virtual_document).catch(console.warn);
+    virtual_document.changed.connect(this.document_changed, this);
 
-    virtual_document.foreign_document_opened.connect((host, context) => {
-      this.connect_document(context.foreign_document).catch(console.warn);
-    });
+    virtual_document.foreign_document_opened.connect(
+      this.on_foreign_document_opened,
+      this
+    );
+
+    await this.connect(virtual_document).catch(console.warn);
+  }
+
+  protected async on_foreign_document_opened(
+    host: VirtualDocument,
+    context: IForeignContext
+  ) {
+    const { foreign_document } = context;
+    this.connect_document(foreign_document).catch(console.warn);
+
+    foreign_document.foreign_document_closed.connect(
+      this.on_foreign_document_closed,
+      this
+    );
+  }
+
+  on_foreign_document_closed(host: VirtualDocument, context: IForeignContext) {
+    const { foreign_document } = context;
+    foreign_document.foreign_document_closed.disconnect(
+      this.on_foreign_document_closed,
+      this
+    );
+    foreign_document.foreign_document_opened.disconnect(
+      this.on_foreign_document_opened,
+      this
+    );
+    foreign_document.changed.disconnect(this.document_changed, this);
   }
 
   document_changed(
@@ -258,21 +335,24 @@ export abstract class JupyterLabWidgetAdapter
     );
     let adapter = this.adapters.get(virtual_document.id_path);
 
-    if (typeof connection === 'undefined') {
+    if (!connection?.isReady) {
       console.log('LSP: Skipping document update signal: connection not ready');
       return;
     }
-    if (typeof adapter === 'undefined') {
+    if (adapter == null) {
       console.log('LSP: Skipping document update signal: adapter not ready');
       return;
     }
 
-    console.log(
-      'LSP: virtual document',
-      virtual_document.id_path,
-      'has changed sending update'
+    // console.log(
+    //   'LSP: virtual document',
+    //   virtual_document.id_path,
+    //   'has changed sending update'
+    // );
+    connection.sendFullTextChange(
+      virtual_document.value,
+      virtual_document.document_info
     );
-    connection.sendFullTextChange(virtual_document.value);
     // the first change (initial) is not propagated to features,
     // as it has no associated CodeMirrorChange object
     if (!is_init) {
@@ -302,35 +382,30 @@ export abstract class JupyterLabWidgetAdapter
   private disconnect_adapter(virtual_document: VirtualDocument) {
     let adapter = this.adapters.get(virtual_document.id_path);
     this.adapters.delete(virtual_document.id_path);
-    if (typeof adapter !== 'undefined') {
-      adapter.remove();
+    if (adapter != null) {
+      adapter.dispose();
     }
   }
 
   public get_features(virtual_document: VirtualDocument) {
     let adapter = this.adapters.get(virtual_document.id_path);
-    return adapter.features;
+    return adapter?.features;
   }
 
   private async connect(virtual_document: VirtualDocument) {
     let language = virtual_document.language;
-    console.log(
-      `LSP: will connect using root path: ${this.root_path} and language: ${language}`
-    );
 
-    let options = {
+    console.log(`LSP: will connect using language: ${language}`);
+
+    let options: ISocketConnectionOptions = {
       virtual_document,
       language,
-      root_path: this.root_path,
-      server_root: this.server_root,
       document_path: this.document_path
     };
 
-    let connection = this.connection_manager.connect(options).catch(() => {
-      this.connection_manager
-        .retry_to_connect(options, 0.5)
-        .catch(console.warn);
-    });
+    let connection = await this.connection_manager.connect(options);
+
+    await this.on_connected({ virtual_document, connection });
 
     return {
       connection,
@@ -350,7 +425,8 @@ export abstract class JupyterLabWidgetAdapter
    */
   connect_contentChanged_signal() {
     this.widget.context.model.contentChanged.connect(
-      this.update_documents.bind(this)
+      this.update_documents,
+      this
     );
   }
 

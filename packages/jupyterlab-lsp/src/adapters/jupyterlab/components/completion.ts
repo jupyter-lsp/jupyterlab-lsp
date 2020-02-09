@@ -34,8 +34,9 @@ export class LSPConnector extends DataConnector<
   void,
   CompletionHandler.IRequest
 > {
-  private readonly _editor: CodeEditor.IEditor;
-  private readonly _connections: Map<VirtualDocument.id_path, LSPConnection>;
+  isDisposed = false;
+  private _editor: CodeEditor.IEditor;
+  private _connections: Map<VirtualDocument.id_path, LSPConnection>;
   private _context_connector: ContextConnector;
   private _kernel_connector: KernelConnector;
   private _kernel_and_context_connector: CompletionConnector;
@@ -67,11 +68,22 @@ export class LSPConnector extends DataConnector<
     this.options = options;
   }
 
+  dispose() {
+    if (this.isDisposed) {
+      return;
+    }
+    this._connections = null;
+    this.virtual_editor = null;
+    this._context_connector = null;
+    this._kernel_connector = null;
+    this._kernel_and_context_connector = null;
+    this.options = null;
+    this._editor = null;
+    this.isDisposed = true;
+  }
+
   protected get _has_kernel(): boolean {
-    return (
-      typeof this.options.session !== 'undefined' &&
-      this.options.session.kernel !== null
-    );
+    return this.options.session?.kernel != null;
   }
 
   protected get _kernel_language(): string {
@@ -95,7 +107,7 @@ export class LSPConnector extends DataConnector<
    *
    * @param request - The completion request text and details.
    */
-  fetch(
+  async fetch(
     request: CompletionHandler.IRequest
   ): Promise<CompletionHandler.IReply> {
     let editor = this._editor;
@@ -196,21 +208,18 @@ export class LSPConnector extends DataConnector<
 
     console.log('[LSP][Completer] Token:', token);
 
-    let completion_items: lsProtocol.CompletionItem[] = [];
-    await connection
-      .getCompletion(
-        cursor,
-        {
-          start,
-          end,
-          text: token.value
-        },
-        typed_character,
-        this.trigger_kind
-      )
-      .then(items => {
-        completion_items = items || [];
-      });
+    let completion_items = ((await connection.getCompletion(
+      cursor,
+      {
+        start,
+        end,
+        text: token.value
+      },
+      document.document_info,
+      false,
+      typed_character,
+      this.trigger_kind
+    )) || []) as lsProtocol.CompletionItem[];
 
     let prefix = token.value.slice(0, position_in_token + 1);
 
@@ -319,7 +328,7 @@ export class LSPConnector extends DataConnector<
     // TODO push the CompletionItem suggestion with proper sorting, this is a mess
     let priority_matches = new Set<string>();
 
-    if (typeof kernel.metadata._jupyter_types_experimental !== 'undefined') {
+    if (kernel.metadata._jupyter_types_experimental == null) {
       let kernel_types = kernel.metadata._jupyter_types_experimental as Array<
         IItemType
       >;

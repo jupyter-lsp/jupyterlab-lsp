@@ -14,6 +14,9 @@ import {
   IVirtualPosition
 } from '../positioning';
 import IRange = CodeEditor.IRange;
+import { IDocumentInfo } from 'lsp-ws-connection/src';
+
+import { DocumentConnectionManager } from '../connection_manager';
 
 type language = string;
 
@@ -49,7 +52,7 @@ interface ISourceLine {
   foreign_documents_map: Map<IRange, IVirtualDocumentBlock>;
 }
 
-interface IForeignContext {
+export interface IForeignContext {
   foreign_document: VirtualDocument;
   parent_host: VirtualDocument;
 }
@@ -84,6 +87,34 @@ export function is_within_range(
 }
 
 /**
+ * a virtual implementation of IDocumentInfo
+ */
+export class VirtualDocumentInfo implements IDocumentInfo {
+  private _document: VirtualDocument;
+  version = 0;
+
+  constructor(document: VirtualDocument) {
+    this._document = document;
+  }
+
+  get text() {
+    return this._document.value;
+  }
+
+  get uri() {
+    const uris = DocumentConnectionManager.solve_uris(
+      this._document,
+      this.languageId
+    );
+    return uris.document;
+  }
+
+  get languageId() {
+    return this._document.language;
+  }
+}
+
+/**
  * A notebook can hold one or more virtual documents; there is always one,
  * "root" document, corresponding to the language of the kernel. All other
  * virtual documents are extracted out of the notebook, based on magics,
@@ -107,6 +138,11 @@ export class VirtualDocument {
   public foreign_document_opened: Signal<VirtualDocument, IForeignContext>;
   public readonly instance_id: number;
   public standalone: boolean;
+  isDisposed = false;
+  /**
+   * the remote document uri, version and other server-related info
+   */
+  public document_info: IDocumentInfo;
   /**
    * Virtual lines keep all the lines present in the document AND extracted to the foreign document.
    */
@@ -145,7 +181,7 @@ export class VirtualDocument {
     standalone: boolean,
     public file_extension: string,
     public has_lsp_supported_file: boolean,
-    readonly parent?: VirtualDocument
+    public parent?: VirtualDocument
   ) {
     this.language = language;
     let overrides =
@@ -176,7 +212,41 @@ export class VirtualDocument {
     this.foreign_document_opened = new Signal(this);
     this.changed = new Signal(this);
     this.unused_documents = new Set();
+    this.document_info = new VirtualDocumentInfo(this);
     this.clear();
+  }
+
+  dispose() {
+    if (this.isDisposed) {
+      return;
+    }
+
+    this.parent = null;
+
+    for (const doc of this.foreign_documents.values()) {
+      doc.dispose();
+    }
+
+    this.close_all_foreign_documents();
+
+    // clear all the maps
+    this.foreign_documents.clear();
+    this.source_lines.clear();
+    this.unused_documents.clear();
+    this.unused_standalone_documents.clear();
+    this.virtual_lines.clear();
+
+    // just to be sure
+    this.cell_magics_overrides = null;
+    this.document_info = null;
+    this.foreign_extractors = null;
+    this.foreign_extractors_registry = null;
+    this.line_magics_overrides = null;
+    this.lines = null;
+    this.overrides_registry = null;
+
+    // actually disposed now
+    this.isDisposed = true;
   }
 
   /**
@@ -252,13 +322,14 @@ export class VirtualDocument {
       false,
       this
     );
-    this.foreign_document_opened.emit({
+    const context: IForeignContext = {
       foreign_document: document,
       parent_host: this
-    });
+    };
+    this.foreign_document_opened.emit(context);
     // pass through any future signals
-    document.foreign_document_closed.connect(this.forward_closed_signal);
-    document.foreign_document_opened.connect(this.forward_opened_signal);
+    document.foreign_document_closed.connect(this.forward_closed_signal, this);
+    document.foreign_document_opened.connect(this.forward_opened_signal, this);
 
     this.foreign_documents.set(document.virtual_id, document);
 
@@ -553,8 +624,14 @@ export class VirtualDocument {
     // and delete the documents within it
     document.close_all_foreign_documents();
 
-    document.foreign_document_closed.disconnect(this.forward_closed_signal);
-    document.foreign_document_opened.disconnect(this.forward_opened_signal);
+    document.foreign_document_closed.disconnect(
+      this.forward_closed_signal,
+      this
+    );
+    document.foreign_document_opened.disconnect(
+      this.forward_opened_signal,
+      this
+    );
   }
 
   close_all_foreign_documents() {
@@ -617,7 +694,7 @@ export class VirtualDocument {
   }
 
   get root(): VirtualDocument {
-    if (typeof this.parent === 'undefined') {
+    if (this.parent == null) {
       return this;
     }
     return this.parent.root;

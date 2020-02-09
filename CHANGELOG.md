@@ -1,5 +1,27 @@
 ## CHANGELOG
 
+## `@krassowski/jupyterlab-lsp 0.8.0` (unreleased)
+
+- features
+
+  - opens a maximum of one WebSocket per language server ([#165][])
+  - lazy-loads language server protocol machinery ([#165][])
+  - waits much longer for slow-starting language servers ([#165][])
+  - cleans up documents, handlers, events, and signals more aggressively ([#165][])
+  - ignores malformed diagnostic ranges, enabling markdown support ([#165][])
+  - passes tests on Python 3.8 on Windows ([#165][])
+
+## `lsp-ws-connection 0.4.0` (unreleased)
+
+- breaking changes
+
+  - no longer assumes one document per connection ([#165][])
+  - requires documents be opened explicitly ([#165][])
+  - use of the `eventEmitter` pattern mostly deprecated in favor of `Promise`s
+    ([#165][])
+
+[#165]: https://github.com/krassowski/jupyterlab-lsp/pull/165
+
 ## `jupyter-lsp 0.7.0`
 
 - bugfixes

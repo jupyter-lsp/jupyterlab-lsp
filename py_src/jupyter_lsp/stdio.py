@@ -118,8 +118,8 @@ class LspStdIoReader(LspStdIoBase):
                     if raw is None:  # pragma: no cover
                         self.log.warning(
                             "%s failed to read message of length %s",
-                            content_length,
                             self,
+                            content_length,
                         )
                         await self.sleep()
                         retries -= 1

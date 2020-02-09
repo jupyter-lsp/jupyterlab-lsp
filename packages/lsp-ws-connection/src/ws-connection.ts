@@ -6,7 +6,15 @@ import {
   registerServerCapability,
   unregisterServerCapability
 } from './server-capability-registration';
-import { ILspConnection, ILspOptions, IPosition, ITokenInfo } from './types';
+import {
+  ILspConnection,
+  ILspOptions,
+  IPosition,
+  ITokenInfo,
+  IDocumentInfo,
+  AnyLocation,
+  AnyCompletion
+} from './types';
 
 /**
  * Changes as compared to upstream:
@@ -23,12 +31,16 @@ export class LspWsConnection extends events.EventEmitter
   public documentInfo: ILspOptions;
   public serverCapabilities: protocol.ServerCapabilities;
   protected socket: WebSocket;
-  protected documentVersion = 0;
   protected connection: MessageConnection;
+  private rootUri: string;
 
   constructor(options: ILspOptions) {
     super();
-    this.documentInfo = options;
+    this.rootUri = options.rootUri;
+  }
+
+  get isReady() {
+    return this.isConnected && this.isInitialized;
   }
 
   /**
@@ -120,10 +132,6 @@ export class LspWsConnection extends events.EventEmitter
     this.socket.close();
   }
 
-  public getDocumentUri() {
-    return this.documentInfo.documentUri;
-  }
-
   /**
    * Initialization parameters to be sent to the language server.
    * Subclasses can overload this when adding more features.
@@ -184,7 +192,7 @@ export class LspWsConnection extends events.EventEmitter
       } as protocol.ClientCapabilities,
       initializationOptions: null,
       processId: null,
-      rootUri: this.documentInfo.rootUri,
+      rootUri: this.rootUri,
       workspaceFolders: null
     };
   }
@@ -208,38 +216,51 @@ export class LspWsConnection extends events.EventEmitter
       );
   }
 
-  public sendChange() {
-    if (!this.isConnected || !this.isInitialized) {
+  sendOpen(documentInfo: IDocumentInfo) {
+    const textDocumentMessage: protocol.DidOpenTextDocumentParams = {
+      textDocument: {
+        uri: documentInfo.uri,
+        languageId: documentInfo.languageId,
+        text: documentInfo.text,
+        version: documentInfo.version
+      } as protocol.TextDocumentItem
+    };
+    this.connection.sendNotification(
+      'textDocument/didOpen',
+      textDocumentMessage
+    );
+    this.sendChange(documentInfo);
+  }
+
+  public sendChange(documentInfo: IDocumentInfo) {
+    if (!this.isReady) {
       return;
     }
     const textDocumentChange: protocol.DidChangeTextDocumentParams = {
       textDocument: {
-        uri: this.documentInfo.documentUri,
-        version: this.documentVersion
+        uri: documentInfo.uri,
+        version: documentInfo.version
       } as protocol.VersionedTextDocumentIdentifier,
-      contentChanges: [
-        {
-          text: this.documentInfo.documentText()
-        }
-      ]
+      contentChanges: [{ text: documentInfo.text }]
     };
     this.connection.sendNotification(
       'textDocument/didChange',
       textDocumentChange
     );
-    this.documentVersion++;
+    documentInfo.version++;
   }
 
-  public sendSaved() {
-    if (!this.isConnected || !this.isInitialized) {
+  public sendSaved(documentInfo: IDocumentInfo) {
+    if (!this.isReady) {
       return;
     }
+
     const textDocumentChange: protocol.DidSaveTextDocumentParams = {
       textDocument: {
-        uri: this.documentInfo.documentUri,
-        version: this.documentVersion
+        uri: documentInfo.uri,
+        version: documentInfo.version
       } as protocol.VersionedTextDocumentIdentifier,
-      text: this.documentInfo.documentText()
+      text: documentInfo.text
     };
     this.connection.sendNotification(
       'textDocument/didSave',
@@ -247,63 +268,78 @@ export class LspWsConnection extends events.EventEmitter
     );
   }
 
-  public getHoverTooltip(location: IPosition) {
-    if (!this.isInitialized) {
+  public async getHoverTooltip(
+    location: IPosition,
+    documentInfo: IDocumentInfo,
+    emit = true
+  ) {
+    if (!(this.isReady && this.serverCapabilities?.hoverProvider)) {
       return;
     }
-    this.connection
-      .sendRequest<protocol.Hover>('textDocument/hover', {
-        textDocument: {
-          uri: this.documentInfo.documentUri
-        },
-        position: {
-          line: location.line,
-          character: location.ch
-        }
-      } as protocol.TextDocumentPositionParams)
-      .then(params => {
-        this.emit('hover', params);
-      });
+
+    const params: protocol.TextDocumentPositionParams = {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      }
+    };
+
+    const hover = await this.connection.sendRequest<protocol.Hover>(
+      'textDocument/hover',
+      params
+    );
+
+    if (emit) {
+      this.emit('hover', hover, documentInfo.uri);
+    }
+
+    return hover;
   }
 
-  public getCompletion(
+  public async getCompletion(
     location: IPosition,
     token: ITokenInfo,
+    documentInfo: IDocumentInfo,
+    emit = true,
     triggerCharacter?: string,
     triggerKind?: protocol.CompletionTriggerKind
   ) {
-    if (!this.isConnected || !this.serverCapabilities?.completionProvider) {
+    if (!(this.isReady && this.serverCapabilities?.completionProvider)) {
       return;
     }
 
-    this.connection
-      .sendRequest<protocol.CompletionList | protocol.CompletionItem[]>(
-        'textDocument/completion',
-        {
-          textDocument: {
-            uri: this.documentInfo.documentUri
-          },
-          position: {
-            line: location.line,
-            character: location.ch
-          },
-          context: {
-            triggerKind: triggerKind || protocol.CompletionTriggerKind.Invoked,
-            triggerCharacter
-          }
-        } as protocol.CompletionParams
-      )
-      .then(params => {
-        if (!params) {
-          this.emit('completion', params);
-          return;
-        }
-        this.emit('completion', 'items' in params ? params.items : params);
-      });
+    const params: protocol.CompletionParams = {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      },
+      context: {
+        triggerKind: triggerKind || protocol.CompletionTriggerKind.Invoked,
+        triggerCharacter
+      }
+    };
+
+    const items = await this.connection.sendRequest<AnyCompletion>(
+      'textDocument/completion',
+      params
+    );
+
+    const itemList = items && 'items' in items ? items.items : items;
+
+    if (emit) {
+      this.emit('completion', itemList);
+    }
+    return itemList;
   }
 
   public getDetailedCompletion(completionItem: protocol.CompletionItem) {
-    if (!this.isConnected) {
+    if (!this.isReady) {
       return;
     }
     this.connection
@@ -316,12 +352,16 @@ export class LspWsConnection extends events.EventEmitter
       });
   }
 
-  public getSignatureHelp(location: IPosition) {
-    if (!this.isConnected || !this.serverCapabilities?.signatureHelpProvider) {
+  public async getSignatureHelp(
+    location: IPosition,
+    documentInfo: IDocumentInfo,
+    emit = true
+  ) {
+    if (!(this.isReady && this.serverCapabilities?.signatureHelpProvider)) {
       return;
     }
 
-    const code = this.documentInfo.documentText();
+    const code = documentInfo.text;
     const lines = code.split('\n');
     const typedCharacter = lines[location.line][location.ch - 1];
 
@@ -332,110 +372,135 @@ export class LspWsConnection extends events.EventEmitter
       return;
     }
 
-    this.connection
-      .sendRequest<protocol.SignatureHelp>('textDocument/signatureHelp', {
-        textDocument: {
-          uri: this.documentInfo.documentUri
-        },
-        position: {
-          line: location.line,
-          character: location.ch
-        }
-      } as protocol.TextDocumentPositionParams)
-      .then(params => {
-        this.emit('signature', params);
-      });
+    const params: protocol.TextDocumentPositionParams = {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      }
+    };
+
+    const help = await this.connection.sendRequest<protocol.SignatureHelp>(
+      'textDocument/signatureHelp',
+      params
+    );
+
+    if (emit) {
+      this.emit('signature', help, documentInfo.uri);
+    }
+
+    return help;
   }
 
   /**
    * Request the locations of all matching document symbols
    */
-  public getDocumentHighlights(location: IPosition) {
-    if (
-      !this.isConnected ||
-      !this.serverCapabilities?.documentHighlightProvider
-    ) {
+  public async getDocumentHighlights(
+    location: IPosition,
+    documentInfo: IDocumentInfo,
+    emit = true
+  ) {
+    if (!this.isReady || !this.serverCapabilities?.documentHighlightProvider) {
       return;
     }
 
-    this.connection
-      .sendRequest<protocol.DocumentHighlight[]>(
-        'textDocument/documentHighlight',
-        {
-          textDocument: {
-            uri: this.documentInfo.documentUri
-          },
-          position: {
-            line: location.line,
-            character: location.ch
-          }
-        } as protocol.TextDocumentPositionParams
-      )
-      .then(params => {
-        this.emit('highlight', params);
-      });
+    const highlights = await this.connection.sendRequest<
+      protocol.DocumentHighlight[]
+    >('textDocument/documentHighlight', {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      }
+    } as protocol.TextDocumentPositionParams);
+
+    if (emit) {
+      this.emit('highlight', highlights, documentInfo.uri);
+    }
+
+    return highlights;
   }
 
   /**
    * Request a link to the definition of the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  public getDefinition(location: IPosition) {
-    if (!this.isConnected || !this.isDefinitionSupported()) {
+  public async getDefinition(
+    location: IPosition,
+    documentInfo: IDocumentInfo,
+    emit = true
+  ) {
+    if (!(this.isReady && this.isDefinitionSupported())) {
       return;
     }
 
-    this.connection
-      .sendRequest<Location | Location[] | LocationLink[]>(
-        'textDocument/definition',
-        {
-          textDocument: {
-            uri: this.documentInfo.documentUri
-          },
-          position: {
-            line: location.line,
-            character: location.ch
-          }
-        } as protocol.TextDocumentPositionParams
-      )
-      .then(result => {
-        this.emit('goTo', result);
-      });
+    const params: protocol.TextDocumentPositionParams = {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      }
+    };
+
+    const targets = await this.connection.sendRequest<AnyLocation>(
+      'textDocument/definition',
+      params
+    );
+
+    if (emit) {
+      this.emit('goTo', targets, documentInfo.uri);
+    }
+
+    return targets;
   }
 
   /**
    * Request a link to the type definition of the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  public getTypeDefinition(location: IPosition) {
-    if (!this.isConnected || !this.isTypeDefinitionSupported()) {
+  public async getTypeDefinition(
+    location: IPosition,
+    documentInfo: IDocumentInfo,
+    emit = true
+  ) {
+    if (!this.isReady || !this.isTypeDefinitionSupported()) {
       return;
     }
 
-    this.connection
-      .sendRequest<Location | Location[] | LocationLink[]>(
-        'textDocument/typeDefinition',
-        {
-          textDocument: {
-            uri: this.documentInfo.documentUri
-          },
-          position: {
-            line: location.line,
-            character: location.ch
-          }
-        } as protocol.TextDocumentPositionParams
-      )
-      .then(result => {
-        this.emit('goTo', result);
-      });
+    const params: protocol.TextDocumentPositionParams = {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      }
+    };
+
+    const locations = await this.connection.sendRequest<AnyLocation>(
+      'textDocument/typeDefinition',
+      params
+    );
+
+    if (emit) {
+      this.emit('goTo', locations);
+    }
+
+    return locations;
   }
 
   /**
    * Request a link to the implementation of the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  public getImplementation(location: IPosition) {
-    if (!this.isConnected || !this.isImplementationSupported()) {
+  public getImplementation(location: IPosition, documentInfo: IDocumentInfo) {
+    if (!this.isReady || !this.isImplementationSupported()) {
       return;
     }
 
@@ -444,7 +509,7 @@ export class LspWsConnection extends events.EventEmitter
         'textDocument/implementation',
         {
           textDocument: {
-            uri: this.documentInfo.documentUri
+            uri: documentInfo.uri
           },
           position: {
             line: location.line,
@@ -461,24 +526,38 @@ export class LspWsConnection extends events.EventEmitter
    * Request a link to all references to the current symbol. The results will not be displayed
    * unless they are within the same file URI
    */
-  public getReferences(location: IPosition) {
-    if (!this.isConnected || !this.isReferencesSupported()) {
+  public async getReferences(
+    location: IPosition,
+    documentInfo: IDocumentInfo,
+    emit = false
+  ) {
+    if (!this.isReady || !this.isReferencesSupported()) {
       return;
     }
 
-    this.connection
-      .sendRequest<Location[]>('textDocument/references', {
-        textDocument: {
-          uri: this.documentInfo.documentUri
-        },
-        position: {
-          line: location.line,
-          character: location.ch
-        }
-      } as protocol.ReferenceParams)
-      .then(result => {
-        this.emit('goTo', result);
-      });
+    const params: protocol.ReferenceParams = {
+      context: {
+        includeDeclaration: true
+      },
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      }
+    };
+
+    const locations = await this.connection.sendRequest<Location[]>(
+      'textDocument/references',
+      params
+    );
+
+    if (emit) {
+      this.emit('goTo', locations, documentInfo.uri);
+    }
+
+    return locations;
   }
 
   /**
@@ -528,23 +607,10 @@ export class LspWsConnection extends events.EventEmitter
   protected onServerInitialized(params: protocol.InitializeResult) {
     this.isInitialized = true;
     this.serverCapabilities = params.capabilities;
-    const textDocumentMessage: protocol.DidOpenTextDocumentParams = {
-      textDocument: {
-        uri: this.documentInfo.documentUri,
-        languageId: this.documentInfo.languageId,
-        text: this.documentInfo.documentText(),
-        version: this.documentVersion
-      } as protocol.TextDocumentItem
-    };
     this.connection.sendNotification('initialized');
     this.connection.sendNotification('workspace/didChangeConfiguration', {
       settings: {}
     });
-    this.connection.sendNotification(
-      'textDocument/didOpen',
-      textDocumentMessage
-    );
-    this.sendChange();
     this.emit('serverInitialized', this.serverCapabilities);
   }
 }

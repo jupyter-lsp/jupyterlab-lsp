@@ -84,13 +84,8 @@ export abstract class FeatureTestEnvironment
   public create_dummy_connection() {
     return new LSPConnection({
       languageId: this.language(),
-      serverUri: '',
-      documentUri: 'file://' + this.path(),
-      rootUri: '/',
-      documentText: () => {
-        this.virtual_editor.update_documents().catch(console.log);
-        return this.virtual_editor.virtual_document.value;
-      }
+      serverUri: 'ws://localhost:8080',
+      rootUri: 'file:///unit-test'
     });
   }
 
@@ -105,7 +100,11 @@ export abstract class FeatureTestEnvironment
       remove_tooltip: () => {
         // nothing yet
       },
-      jumper: null
+      jumper: null,
+      isDisposed: false,
+      dispose: () => {
+        // nothing yet
+      }
     };
   }
 

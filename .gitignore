@@ -115,4 +115,4 @@ coverage/
 .vscode/
 _schema.d.ts
 _build
-.virtual_documents
+.virtual_documents/

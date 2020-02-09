@@ -21,15 +21,15 @@ export class Hover extends CodeMirrorLSPFeature {
   protected hover_marker: CodeMirror.TextMarker;
   private virtual_position: IVirtualPosition;
 
-  private debounced_get_hover: Debouncer;
+  private debounced_get_hover: Debouncer<Promise<lsProtocol.Hover>>;
 
   register(): void {
-    this.wrapper_handlers.set('mousemove', this.handleMouseOver.bind(this));
+    this.wrapper_handlers.set('mousemove', this.handleMouseOver);
     this.wrapper_handlers.set(
       'mouseleave',
       // TODO: remove_tooltip() but allow the mouse to leave if it enters the tooltip
       //  (a bit tricky: normally we would just place the tooltip within, but it was designed to be attached to body)
-      this.remove_range_highlight.bind(this)
+      this.remove_range_highlight
     );
     // show hover after pressing the modifier key
     this.wrapper_handlers.set('keydown', (event: KeyboardEvent) => {
@@ -38,16 +38,28 @@ export class Hover extends CodeMirrorLSPFeature {
         this.hover_character === this.last_hover_character
       ) {
         this.show_next_tooltip = true;
-        this.handleHover(this.last_hover_response);
+        this.handleHover(
+          this.last_hover_response,
+          this.virtual_document.document_info.uri
+        );
       }
     });
-    this.connection_handlers.set('hover', this.handleHover.bind(this));
     // TODO: make the debounce rate configurable
-    this.debounced_get_hover = new Debouncer(() => {
-      this.connection.getHoverTooltip(this.virtual_position);
-    }, 50);
+    this.debounced_get_hover = new Debouncer<Promise<lsProtocol.Hover>>(
+      this.on_hover,
+      50
+    );
     super.register();
   }
+
+  on_hover = async () => {
+    const hover = await this.connection.getHoverTooltip(
+      this.virtual_position,
+      this.virtual_document.document_info,
+      false
+    );
+    return hover;
+  };
 
   protected static get_markup_for_hover(
     response: lsProtocol.Hover
@@ -83,7 +95,10 @@ export class Hover extends CodeMirrorLSPFeature {
     }
   }
 
-  public handleHover(response: lsProtocol.Hover) {
+  public handleHover = (response: lsProtocol.Hover, documentUri: string) => {
+    if (documentUri !== this.virtual_document.document_info.uri) {
+      return;
+    }
     this.hide_hover();
     this.last_hover_character = null;
     this.last_hover_response = null;
@@ -120,7 +135,7 @@ export class Hover extends CodeMirrorLSPFeature {
       cm_editor,
       editor_position
     );
-  }
+  };
 
   protected is_token_empty(token: CodeMirror.Token) {
     return token.string.length === 0;
@@ -132,7 +147,7 @@ export class Hover extends CodeMirrorLSPFeature {
     return target.closest('.CodeMirror-sizer') !== null;
   }
 
-  public _handleMouseOver(event: MouseEvent) {
+  public async _handleMouseOver(event: MouseEvent) {
     // currently the events are coming from notebook panel; ideally these would be connected to individual cells,
     // (only cells with code) instead, but this is more complex to implement right. In any case filtering
     // is needed to determine in hovered character belongs to this virtual document
@@ -141,7 +156,7 @@ export class Hover extends CodeMirrorLSPFeature {
 
     // happens because mousemove is attached to panel, not individual code cells,
     // and because some regions of the editor (between lines) have no characters
-    if (typeof root_position === 'undefined') {
+    if (root_position == null) {
       // this.remove_range_highlight();
       this.hover_character = null;
       return;
@@ -167,11 +182,12 @@ export class Hover extends CodeMirrorLSPFeature {
     if (!is_equal(root_position, this.hover_character)) {
       this.hover_character = root_position;
       this.virtual_position = virtual_position;
-      void this.debounced_get_hover.invoke();
+      const hover = await this.debounced_get_hover.invoke();
+      this.handleHover(hover, this.virtual_document.document_info.uri);
     }
   }
 
-  public handleMouseOver(event: MouseEvent) {
+  public handleMouseOver = (event: MouseEvent) => {
     // proceed when no hover modifier or hover modifier pressed
     this.show_next_tooltip =
       !hover_modifier || getModifierState(event, hover_modifier);
@@ -188,7 +204,7 @@ export class Hover extends CodeMirrorLSPFeature {
         throw e;
       }
     }
-  }
+  };
 
   protected editor_range_for_hover(range: lsProtocol.Range): IEditorRange {
     let character = this.hover_character;
@@ -229,17 +245,23 @@ export class Hover extends CodeMirrorLSPFeature {
     this.remove_range_highlight();
   }
 
-  protected remove_range_highlight() {
+  protected remove_range_highlight = () => {
     if (this.hover_marker) {
       this.hover_marker.clear();
       this.hover_marker = null;
     }
     this.last_hover_character = null;
-  }
+  };
 
   remove(): void {
     this.remove_range_highlight();
     this.debounced_get_hover.dispose();
     super.remove();
+
+    // just to be sure
+    this.debounced_get_hover = null;
+    this.remove_range_highlight = null;
+    this.handleHover = null;
+    this.on_hover = null;
   }
 }

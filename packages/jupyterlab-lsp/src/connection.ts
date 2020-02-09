@@ -6,10 +6,9 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 import {
   ILspOptions,
   IPosition,
-  ITokenInfo,
-  LspWsConnection
+  LspWsConnection,
+  IDocumentInfo
 } from 'lsp-ws-connection';
-import { CompletionTriggerKind } from './lsp';
 import { until_ready } from './utils';
 
 interface ILSPOptions extends ILspOptions {}
@@ -20,13 +19,14 @@ export class LSPConnection extends LspWsConnection {
   }
 
   public sendSelectiveChange(
-    changeEvent: lsProtocol.TextDocumentContentChangeEvent
+    changeEvent: lsProtocol.TextDocumentContentChangeEvent,
+    documentInfo: IDocumentInfo
   ) {
-    this._sendChange([changeEvent]);
+    this._sendChange([changeEvent], documentInfo);
   }
 
-  public sendFullTextChange(text: string): void {
-    this._sendChange([{ text }]);
+  public sendFullTextChange(text: string, documentInfo: IDocumentInfo): void {
+    this._sendChange([{ text }], documentInfo);
   }
 
   public isRenameSupported() {
@@ -35,34 +35,37 @@ export class LSPConnection extends LspWsConnection {
     );
   }
 
-  async rename(location: IPosition, newName: string): Promise<boolean> {
-    if (!this.isConnected || !this.isRenameSupported()) {
+  async rename(
+    location: IPosition,
+    documentInfo: IDocumentInfo,
+    newName: string,
+    emit = true
+  ): Promise<lsProtocol.WorkspaceEdit> {
+    if (!this.isReady || !this.isRenameSupported()) {
       return;
     }
 
-    return new Promise((resolve, reject) => {
-      this.connection
-        .sendRequest('textDocument/rename', {
-          textDocument: {
-            uri: this.documentInfo.documentUri
-          },
-          position: {
-            line: location.line,
-            character: location.ch
-          },
-          newName: newName
-        } as lsProtocol.RenameParams)
-        .then(
-          (result: lsProtocol.WorkspaceEdit | null) => {
-            this.emit('renamed', result);
-            resolve(true);
-          },
-          error => {
-            console.warn(error);
-            reject(error);
-          }
-        );
-    });
+    const params: lsProtocol.RenameParams = {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      },
+      newName
+    };
+
+    const edit: lsProtocol.WorkspaceEdit = await this.connection.sendRequest(
+      'textDocument/rename',
+      params
+    );
+
+    if (emit) {
+      this.emit('renamed', edit);
+    }
+
+    return edit;
   }
 
   public connect(socket: WebSocket): this {
@@ -95,15 +98,16 @@ export class LSPConnection extends LspWsConnection {
   }
 
   private _sendChange(
-    changeEvents: lsProtocol.TextDocumentContentChangeEvent[]
+    changeEvents: lsProtocol.TextDocumentContentChangeEvent[],
+    documentInfo: IDocumentInfo
   ) {
     if (!this.isConnected || !this.isInitialized) {
       return;
     }
     const textDocumentChange: lsProtocol.DidChangeTextDocumentParams = {
       textDocument: {
-        uri: this.documentInfo.documentUri,
-        version: this.documentVersion
+        uri: documentInfo.uri,
+        version: documentInfo.version
       } as lsProtocol.VersionedTextDocumentIdentifier,
       contentChanges: changeEvents
     };
@@ -111,52 +115,6 @@ export class LSPConnection extends LspWsConnection {
       'textDocument/didChange',
       textDocumentChange
     );
-    this.documentVersion++;
-  }
-
-  public async getCompletion(
-    location: IPosition,
-    token: ITokenInfo,
-    triggerCharacter: string,
-    triggerKind: CompletionTriggerKind
-  ): Promise<lsProtocol.CompletionItem[]> {
-    if (!this.isConnected) {
-      return;
-    }
-    if (
-      !(this.serverCapabilities && this.serverCapabilities.completionProvider)
-    ) {
-      return;
-    }
-
-    return new Promise<lsProtocol.CompletionItem[]>(resolve => {
-      this.connection
-        .sendRequest('textDocument/completion', {
-          textDocument: {
-            uri: this.documentInfo.documentUri
-          },
-          position: {
-            line: location.line,
-            character: location.ch
-          },
-          context: {
-            triggerKind: triggerKind,
-            triggerCharacter
-          }
-        } as lsProtocol.CompletionParams)
-        .then(
-          (
-            params:
-              | lsProtocol.CompletionList
-              | lsProtocol.CompletionItem[]
-              | null
-          ) => {
-            if (params) {
-              params = 'items' in params ? params.items : params;
-            }
-            resolve(params as lsProtocol.CompletionItem[]);
-          }
-        );
-    });
+    documentInfo.version++;
   }
 }
