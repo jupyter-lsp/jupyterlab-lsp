@@ -21,7 +21,7 @@ jobs:
                   name: ${{ platform.name }}
 
               - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" ">=1,<2"
-                displayName: base dependencies
+                displayName: generate env with python and lab version
 
               - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
                 displayName: testing dependencies

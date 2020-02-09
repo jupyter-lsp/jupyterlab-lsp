@@ -1,8 +1,8 @@
-# Releasing `jupyterlab-lsp` and `jupyter_lsp`
+## Releasing `jupyterlab-lsp` and `jupyter_lsp`
 
 Releases may require building both the python package and nodejs packages.
 
-## Updating Version Strings
+### Updating Version Strings
 
 Check the version strings across the various files:
 

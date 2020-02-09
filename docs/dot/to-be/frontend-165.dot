@@ -1,0 +1,64 @@
+graph backend {
+    label="Front End with One Socket Per Language (#165)"
+    splines="line"
+    compound=true
+    fontname="sans-serif" fontcolor=grey
+    node[shape=none fontname="sans-serif"]
+    edge[fontname="sans-serif"]
+    graph[fontcolor=grey color=grey]
+
+    subgraph cluster_io { label="IO"
+        Keyboard[label="The Keyboard"]
+        Mouse[label="The Mouse"]
+    }
+    subgraph cluster_server { label="Server"
+        RestAPI[label="The REST API"]
+        WebSocketHandlers
+    }
+    subgraph cluster_lab { label="JupyterLab"
+        Plugin
+        StatusBar
+        WidgetTrackers
+        DiagnosticPanel
+        ConnectionManager
+             
+        subgraph cluster_lang {label="Per Language"
+            Connection
+            MessageConnection
+            WebSocket
+        }
+        subgraph cluster_doc { label="Per Document"
+            Widget
+            CodeMirrors
+            subgraph cluster_doc_lsp { label="LSP Client"
+                WidgetAdapter
+                VirtualEditor
+                VirtualDocument
+                CodeMirrorAdapters
+                subgraph cluster_features { label="Features"
+                    Feature[style=invisible]
+                    Completion
+                    Diagnostics
+                    Highlight
+                    Hover
+                    Jump
+                    Rename
+                    Signature
+                }
+            }
+        }
+    }
+    
+    {Connection CodeMirrors VirtualDocument VirtualEditor} -- Feature[lhead=cluster_features];
+    Diagnostics -- DiagnosticPanel
+    Connection -- ConnectionManager
+    CodeMirrors -- CodeMirrorAdapters -- WidgetAdapter
+    WidgetAdapter -- VirtualEditor -- VirtualDocument
+    WidgetTrackers -- {Plugin -- Widget} 
+    StatusBar -- Connection
+    Widget -- WidgetAdapter -- Plugin -- StatusBar -- RestAPI
+    Widget -- CodeMirrors
+    Plugin -- ConnectionManager
+    Connection -- MessageConnection -- WebSocket -- WebSocketHandlers
+    {Keyboard Mouse} -- CodeMirrors
+}
