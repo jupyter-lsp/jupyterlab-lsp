@@ -2,7 +2,7 @@ import * as CodeMirror from 'codemirror';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import { Menu } from '@phosphor/widgets';
 import { PositionConverter } from '../../../converter';
-import { IVirtualPosition } from '../../../positioning';
+import { IVirtualPosition, IEditorPosition } from '../../../positioning';
 import { diagnosticSeverityNames } from '../../../lsp';
 import { DefaultMap } from '../../../utils';
 import { CodeMirrorLSPFeature, IFeatureCommand } from '../feature';
@@ -14,7 +14,6 @@ import {
   IEditorDiagnostic
 } from './diagnostics_listing';
 import { VirtualDocument } from '../../../virtual/document';
-import { DocumentConnectionManager } from '../../../connection_manager';
 import { VirtualEditor } from '../../../virtual/editor';
 
 // TODO: settings
@@ -60,7 +59,7 @@ class DiagnosticsPanel {
 }
 
 export const diagnostics_panel = new DiagnosticsPanel();
-export const diagnostics_databases = new Map<
+export const diagnostics_databases = new WeakMap<
   VirtualEditor,
   DiagnosticsDatabase
 >();
@@ -118,7 +117,6 @@ export class Diagnostics extends CodeMirrorLSPFeature {
         }
 
         if (!panel_widget.isAttached) {
-          console.warn(adapter.widget_id);
           app.shell.add(panel_widget, 'main', {
             ref: adapter.widget_id,
             mode: 'split-bottom'
@@ -133,14 +131,8 @@ export class Diagnostics extends CodeMirrorLSPFeature {
   ];
 
   register(): void {
-    this.connection_handlers.set(
-      'diagnostic',
-      this.handleDiagnostic.bind(this)
-    );
-    this.wrapper_handlers.set(
-      'focusin',
-      this.switchDiagnosticsPanelSource.bind(this)
-    );
+    this.connection_handlers.set('diagnostic', this.handleDiagnostic);
+    this.wrapper_handlers.set('focusin', this.switchDiagnosticsPanelSource);
     this.unique_editor_ids = new DefaultMap(() => this.unique_editor_ids.size);
     if (!diagnostics_databases.has(this.virtual_editor)) {
       diagnostics_databases.set(this.virtual_editor, new DiagnosticsDatabase());
@@ -162,7 +154,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
    */
   public diagnostics_db: DiagnosticsDatabase;
 
-  switchDiagnosticsPanelSource() {
+  switchDiagnosticsPanelSource = () => {
     if (
       diagnostics_panel.content.model.virtual_editor === this.virtual_editor
     ) {
@@ -171,7 +163,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
     diagnostics_panel.content.model.diagnostics = this.diagnostics_db;
     diagnostics_panel.content.model.virtual_editor = this.virtual_editor;
     diagnostics_panel.update();
-  }
+  };
 
   protected collapse_overlapping_diagnostics(
     diagnostics: lsProtocol.Diagnostic[]
@@ -222,19 +214,13 @@ export class Diagnostics extends CodeMirrorLSPFeature {
     return map;
   }
 
-  public handleDiagnostic(response: lsProtocol.PublishDiagnosticsParams) {
+  public handleDiagnostic = (response: lsProtocol.PublishDiagnosticsParams) => {
+    if (response.uri !== this.virtual_document.document_info.uri) {
+      return;
+    }
     /* TODO: gutters */
     try {
       let diagnostics_list: IEditorDiagnostic[] = [];
-
-      let my_uri = DocumentConnectionManager.solve_uris(
-        this.virtual_document,
-        ''
-      ).document;
-
-      if (response.uri !== my_uri) {
-        return;
-      }
 
       // Note: no deep equal for Sets or Maps in JS
       const markers_to_retain: Set<string> = new Set();
@@ -311,7 +297,16 @@ export class Diagnostics extends CodeMirrorLSPFeature {
           let cm_editor = document.get_editor_at_virtual_line(start);
 
           let start_in_editor = document.transform_virtual_to_editor(start);
-          let end_in_editor = document.transform_virtual_to_editor(end);
+          let end_in_editor: IEditorPosition;
+
+          // some servers return strange positions for ends
+          try {
+            end_in_editor = document.transform_virtual_to_editor(end);
+          } catch (err) {
+            console.warn('LSP: Malformed range for diagnostic', end);
+            end_in_editor = { ...start_in_editor, ch: start_in_editor.ch + 1 };
+          }
+
           let range_in_editor = {
             start: start_in_editor,
             end: end_in_editor
@@ -382,7 +377,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
     } catch (e) {
       console.warn(e);
     }
-  }
+  };
 
   protected remove_unused_diagnostic_markers(to_retain: Set<string>) {
     this.marked_diagnostics.forEach(
@@ -399,6 +394,16 @@ export class Diagnostics extends CodeMirrorLSPFeature {
     // remove all markers
     this.remove_unused_diagnostic_markers(new Set());
     this.diagnostics_db.clear();
+    diagnostics_databases.delete(this.virtual_editor);
+    this.unique_editor_ids.clear();
+
+    if (
+      diagnostics_panel.content.model.virtual_editor === this.virtual_editor
+    ) {
+      diagnostics_panel.content.model.virtual_editor = null;
+      diagnostics_panel.content.model.diagnostics = null;
+    }
+
     diagnostics_panel.update();
     super.remove();
   }
@@ -408,7 +413,7 @@ export function message_without_code(diagnostic: lsProtocol.Diagnostic) {
   let message = diagnostic.message;
   let code_str = '' + diagnostic.code;
   if (
-    typeof diagnostic.code !== 'undefined' &&
+    diagnostic.code != null &&
     diagnostic.code !== '' &&
     message.startsWith(code_str + '')
   ) {

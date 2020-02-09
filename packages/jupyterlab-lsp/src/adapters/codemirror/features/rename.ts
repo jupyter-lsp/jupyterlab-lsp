@@ -14,7 +14,7 @@ export class Rename extends CodeMirrorLSPFeature {
   static commands: Array<IFeatureCommand> = [
     {
       id: 'rename-symbol',
-      execute: ({
+      execute: async ({
         editor,
         connection,
         virtual_position,
@@ -22,8 +22,8 @@ export class Rename extends CodeMirrorLSPFeature {
         features
       }) => {
         let old_value = document.getTokenAt(virtual_position).string;
+        const rename_feature = features.get('Rename') as Rename;
         let handle_failure = (error: any) => {
-          let rename_feature = features.get('Rename') as Rename;
           let diagnostics_feature = features.get('Diagnostics') as Diagnostics;
 
           let status = ux_workaround_for_rope_limitation(
@@ -38,51 +38,60 @@ export class Rename extends CodeMirrorLSPFeature {
           rename_feature.status_message.set(status, 7.5 * 1000);
         };
 
-        InputDialog.getText({
+        const dialog_value = await InputDialog.getText({
           title: 'Rename to',
           text: old_value,
           okLabel: 'Rename'
-        })
-          .then(value => {
-            connection
-              .rename(virtual_position, value.value)
-              .catch(handle_failure);
-          })
-          .catch(handle_failure);
+        });
+
+        try {
+          const edit = await connection.rename(
+            virtual_position,
+            document.document_info,
+            dialog_value.value,
+            false
+          );
+          await rename_feature.handleRename(edit);
+        } catch (error) {
+          handle_failure(error);
+        }
       },
       is_enabled: ({ connection }) => connection.isRenameSupported(),
       label: 'Rename symbol'
     }
   ];
 
-  register(): void {
-    this.connection_handlers.set('renamed', this.handleRename.bind(this));
-    super.register();
-  }
+  async handleRename(workspaceEdit: lsProtocol.WorkspaceEdit) {
+    let outcome: IEditOutcome;
 
-  handleRename(workspaceEdit: lsProtocol.WorkspaceEdit) {
-    this.apply_edit(workspaceEdit)
-      .catch(error => {
-        this.status_message.set(`Rename failed: ${error}`);
-      })
-      .then((outcome: IEditOutcome) => {
-        let status: string;
+    try {
+      outcome = await this.apply_edit(workspaceEdit);
+    } catch (error) {
+      this.status_message.set(`Rename failed: ${error}`);
+      return outcome;
+    }
 
-        if (outcome.wasGranular) {
-          status = `Renamed a variable in ${outcome.appliedChanges} places`;
-        } else if (this.virtual_editor.has_cells) {
-          status = `Renamed a variable in ${outcome.modifiedCells} cells`;
-        } else {
-          status = `Renamed a variable`;
-        }
+    try {
+      let status: string;
 
-        if (outcome.errors.length !== 0) {
-          status += ` with errors: ${outcome.errors}`;
-        }
+      if (outcome.wasGranular) {
+        status = `Renamed a variable in ${outcome.appliedChanges} places`;
+      } else if (this.virtual_editor.has_cells) {
+        status = `Renamed a variable in ${outcome.modifiedCells} cells`;
+      } else {
+        status = `Renamed a variable`;
+      }
 
-        this.status_message.set(status, 5 * 1000);
-      })
-      .catch(console.warn);
+      if (outcome.errors.length !== 0) {
+        status += ` with errors: ${outcome.errors}`;
+      }
+
+      this.status_message.set(status, 5 * 1000);
+    } catch (error) {
+      console.warn(error);
+    }
+
+    return outcome;
   }
 }
 

@@ -66,8 +66,16 @@ Open JupyterLab
 Close JupyterLab
     Close All Browsers
 
-Reset Application State
+Close All Tabs
+    Accept Default Dialog Option
     Lab Command    Close All Tabs
+    Accept Default Dialog Option
+
+Try to Close All Tabs
+    Wait Until Keyword Succeeds    5x    50ms    Close All Tabs
+
+Reset Application State
+    Try to Close All Tabs
     Accept Default Dialog Option
     Ensure All Kernels Are Shut Down
     Lab Command    Reset Application State
@@ -172,11 +180,13 @@ Clean Up After Working With File
 Setup Notebook
     [Arguments]    ${Language}    ${file}
     Set Tags    language:${Language.lower()}
-    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}notebook${/}${file.lower()}
+    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}notebook${/}${TEST NAME.replace(' ', '_')}
     Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
-    Lab Command    Close All Tabs
+    Try to Close All Tabs
     Open ${file} in ${MENU NOTEBOOK}
     Capture Page Screenshot    00-opened.png
+    Wait Until Fully Initialized
+    Capture Page Screenshot    01-initialized.png
 
 Open Diagnostics Panel
     Lab Command    Show Diagnostics Panel
@@ -194,7 +204,7 @@ Wait For Dialog
     Wait Until Page Contains Element    ${DIALOG WINDOW}    timeout=180s
 
 Gently Reset Workspace
-    Lab Command    Close All Tabs
+    Try to Close All Tabs
 
 Enter Cell Editor
     [Arguments]    ${cell_nr}    ${line}=1
@@ -207,7 +217,7 @@ Place Cursor In Cell Editor At
     Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
 
 Wait Until Fully Initialized
-    Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=35s
+    Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=60s
 
 Open Context Menu Over
     [Arguments]    ${sel}

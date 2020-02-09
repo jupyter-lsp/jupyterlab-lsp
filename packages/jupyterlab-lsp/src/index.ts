@@ -33,7 +33,11 @@ import {
 import IPaths = JupyterFrontEnd.IPaths;
 import { IStatusBar } from '@jupyterlab/statusbar';
 import { LSPStatus } from './adapters/jupyterlab/components/statusbar';
-import { IDocumentWidget } from '@jupyterlab/docregistry/lib/registry';
+import {
+  IDocumentWidget,
+  DocumentRegistry
+} from '@jupyterlab/docregistry/lib/registry';
+import { DocumentConnectionManager } from './connection_manager';
 
 const lsp_commands: Array<IFeatureCommand> = [].concat(
   ...lsp_features.map(feature => feature.commands)
@@ -69,37 +73,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
     labShell: ILabShell,
     status_bar: IStatusBar
   ) => {
-    // temporary workaround for getting the absolute path
-    let server_root = paths.directories.serverRoot;
-    if (server_root.startsWith('~')) {
-      // try to guess the home location:
-      let user_settings = paths.directories.userSettings;
-      if (user_settings.startsWith('/home/')) {
-        server_root = server_root.replace(
-          '~',
-          user_settings.substring(0, user_settings.indexOf('/', 6))
-        );
-        console.log(
-          'Guessing Linux the server root using user settings path',
-          server_root
-        );
-      } else if (user_settings.startsWith('/Users/')) {
-        server_root = server_root.replace(
-          '~',
-          user_settings.substring(0, user_settings.indexOf('/', 7))
-        );
-        console.log(
-          'Guessing Mac the server root using user settings path',
-          server_root
-        );
-      } else {
-        console.warn(
-          'Unable to solve the absolute path: some LSP servers may not work correctly'
-        );
-      }
-    }
+    const connection_manager = new DocumentConnectionManager();
 
     const status_bar_item = new LSPStatus();
+    status_bar_item.model.connection_manager = connection_manager;
 
     labShell.currentChanged.connect(() => {
       const current = labShell.currentWidget;
@@ -134,15 +111,17 @@ const plugin: JupyterFrontEndPlugin<void> = {
       }
     );
 
-    fileEditorTracker.widgetUpdated.connect((sender, widget) => {
-      console.log(sender);
-      console.log(widget);
+    fileEditorTracker.widgetUpdated.connect((_sender, _widget) => {
+      console.log(_sender);
+      console.log(_widget);
       // TODO?
       // adapter.remove();
       // connection.close();
     });
 
-    fileEditorTracker.widgetAdded.connect((sender, widget) => {
+    const connect_file_editor = (
+      widget: IDocumentWidget<FileEditor, DocumentRegistry.IModel>
+    ) => {
       let fileEditor = widget.content;
 
       if (fileEditor.editor instanceof CodeMirrorEditor) {
@@ -153,10 +132,34 @@ const plugin: JupyterFrontEndPlugin<void> = {
           app,
           completion_manager,
           rendermime_registry,
-          server_root
+          connection_manager
         );
         file_editor_adapters.set(fileEditor.id, adapter);
+
+        const disconnect = () => {
+          file_editor_adapters.delete(fileEditor.id);
+          widget.disposed.disconnect(disconnect);
+          widget.context.pathChanged.disconnect(reconnect);
+          adapter.dispose();
+          if (status_bar_item.model.adapter === adapter) {
+            status_bar_item.model.adapter = null;
+          }
+        };
+
+        const reconnect = () => {
+          disconnect();
+          connect_file_editor(widget);
+        };
+
+        widget.disposed.connect(disconnect);
+        widget.context.pathChanged.connect(reconnect);
+
+        status_bar_item.model.adapter = adapter;
       }
+    };
+
+    fileEditorTracker.widgetAdded.connect((sender, widget) => {
+      connect_file_editor(widget);
     });
 
     let command_manager = new FileEditorCommandManager(
@@ -167,7 +170,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     );
     command_manager.add(lsp_commands);
 
-    notebookTracker.widgetAdded.connect((sender, widget) => {
+    const connect_notebook = (widget: NotebookPanel) => {
       // NOTE: assuming that the default cells content factory produces CodeMirror editors(!)
       let jumper = new NotebookJumper(widget, documentManager);
       let adapter = new NotebookAdapter(
@@ -176,9 +179,33 @@ const plugin: JupyterFrontEndPlugin<void> = {
         app,
         completion_manager,
         rendermime_registry,
-        server_root
+        connection_manager
       );
       notebook_adapters.set(widget.id, adapter);
+
+      const disconnect = () => {
+        notebook_adapters.delete(widget.id);
+        widget.disposed.disconnect(disconnect);
+        widget.context.pathChanged.disconnect(reconnect);
+        adapter.dispose();
+        if (status_bar_item.model.adapter === adapter) {
+          status_bar_item.model.adapter = null;
+        }
+      };
+
+      const reconnect = () => {
+        disconnect();
+        connect_notebook(widget);
+      };
+
+      widget.context.pathChanged.connect(reconnect);
+      widget.disposed.connect(disconnect);
+
+      status_bar_item.model.adapter = adapter;
+    };
+
+    notebookTracker.widgetAdded.connect(async (sender, widget) => {
+      connect_notebook(widget);
     });
 
     // position context menu entries after 10th but before 11th default entry

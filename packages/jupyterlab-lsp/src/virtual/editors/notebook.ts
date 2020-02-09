@@ -40,6 +40,9 @@ class DocDispatcher implements CodeMirror.Doc {
 
   getCursor(start?: string): CodeMirror.Position {
     let cell = this.virtual_editor.notebook.activeCell;
+    if (cell == null) {
+      return;
+    }
     let active_editor = cell.editor as CodeMirrorEditor;
     let cursor = active_editor.editor
       .getDoc()
@@ -52,6 +55,8 @@ export class VirtualEditorForNotebook extends VirtualEditor {
   cell_to_corresponding_source_line: Map<Cell, number>;
   cm_editor_to_cell: Map<CodeMirror.Editor, Cell>;
   has_cells = true;
+
+  private _proxy: VirtualEditorForNotebook;
 
   constructor(
     public notebook: Notebook,
@@ -75,7 +80,7 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     this.overrides_registry = overrides_registry;
     this.code_extractors = foreign_code_extractors;
     this.language = language;
-    let handler = {
+    this._proxy = new Proxy(this, {
       get: function(
         target: VirtualEditorForNotebook,
         prop: keyof CodeMirror.Editor,
@@ -90,8 +95,23 @@ export class VirtualEditorForNotebook extends VirtualEditor {
           return Reflect.get(target, prop, receiver);
         }
       }
-    };
-    return new Proxy(this, handler);
+    });
+    return this._proxy;
+  }
+
+  dispose() {
+    if (this.isDisposed) {
+      return;
+    }
+
+    this.cm_editor_to_cell.clear();
+    this.cell_to_corresponding_source_line.clear();
+
+    super.dispose();
+
+    // just to be sure
+    this.forEveryBlockEditor = null;
+    this._proxy = null;
   }
 
   transform_from_notebook_to_root(
@@ -283,6 +303,10 @@ export class VirtualEditorForNotebook extends VirtualEditor {
   }
 
   protected perform_documents_update(): void {
+    if (this.isDisposed) {
+      return;
+    }
+
     this.virtual_document.clear();
     this.cell_to_corresponding_source_line.clear();
     this.cm_editor_to_cell.clear();
@@ -351,6 +375,9 @@ export class VirtualEditorForNotebook extends VirtualEditor {
     }
     if (monitor_for_new_blocks) {
       this.notebook.activeCellChanged.connect((notebook, cell) => {
+        if (cell == null) {
+          return;
+        }
         let cm_editor = (cell.editor as CodeMirrorEditor).editor;
         if (!cells_with_handlers.has(cell) && cell.model.type === 'code') {
           callback(cm_editor);

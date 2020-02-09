@@ -10,6 +10,7 @@ import { ICompletionManager } from '@jupyterlab/completer';
 import { LSPConnector } from './components/completion';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { VirtualFileEditor } from '../../virtual/editors/file_editor';
+import { DocumentConnectionManager } from '../../connection_manager';
 
 export class FileEditorAdapter extends JupyterLabWidgetAdapter {
   editor: FileEditor;
@@ -48,14 +49,14 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
     app: JupyterFrontEnd,
     protected completion_manager: ICompletionManager,
     rendermime_registry: IRenderMimeRegistry,
-    server_root: string
+    connection_manager: DocumentConnectionManager
   ) {
     super(
       app,
       editor_widget,
       rendermime_registry,
       'completer:invoke-file',
-      server_root
+      connection_manager
     );
     this.jumper = jumper;
     this.editor = editor_widget.content;
@@ -73,9 +74,7 @@ export class FileEditorAdapter extends JupyterLabWidgetAdapter {
       console.warn
     );
 
-    this.editor.model.mimeTypeChanged.connect(
-      this.reload_connection.bind(this)
-    );
+    this.editor.model.mimeTypeChanged.connect(this.reload_connection, this);
   }
 
   connect_completion() {

@@ -148,6 +148,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
     for (let [event_name, handler] of this.wrapper_handlers) {
       this.wrapper.addEventListener(event_name, handler);
     }
+
     this.is_registered = true;
   }
 
@@ -170,14 +171,17 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
     for (let [event_name, handler] of this.editor_handlers) {
       this.virtual_editor.off(event_name, handler);
     }
+    this.editor_handlers.clear();
     // unregister connection handlers
     for (let [event_name, handler] of this.connection_handlers) {
       this.connection.off(event_name, handler);
     }
+    this.connection_handlers.clear();
     // unregister editor wrapper handlers
     for (let [event_name, handler] of this.wrapper_handlers) {
       this.wrapper.removeEventListener(event_name, handler);
     }
+    this.wrapper_handlers.clear();
   }
 
   afterChange(
@@ -194,7 +198,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
     let start = PositionConverter.lsp_to_cm(range.start) as IVirtualPosition;
     let end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
 
-    if (typeof cm_editor === 'undefined') {
+    if (cm_editor == null) {
       let start_in_root = this.transform_virtual_position_to_root_position(
         start
       );
@@ -278,7 +282,8 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
   protected async apply_edit(
     workspaceEdit: lsProtocol.WorkspaceEdit
   ): Promise<IEditOutcome> {
-    let current_uri = this.connection.getDocumentUri();
+    let current_uri = this.virtual_document.document_info.uri;
+
     // Specs: documentChanges are preferred over changes
     let changes = workspaceEdit.documentChanges
       ? workspaceEdit.documentChanges.map(
@@ -292,6 +297,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
 
     for (let change of changes) {
       let uri = change.textDocument.uri;
+
       if (
         decodeURI(uri) !== decodeURI(current_uri) &&
         decodeURI(uri) !== '/' + decodeURI(current_uri)

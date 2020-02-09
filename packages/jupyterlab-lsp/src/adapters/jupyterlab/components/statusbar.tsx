@@ -22,6 +22,7 @@ import { JupyterLabWidgetAdapter } from '../jl_adapter';
 import { collect_documents, VirtualDocument } from '../../../virtual/document';
 import { LSPConnection } from '../../../connection';
 import { PageConfig } from '@jupyterlab/coreutils';
+import { DocumentConnectionManager } from '../../../connection_manager';
 
 interface IServerStatusProps {
   server: SCHEMA.LanguageServerSession;
@@ -62,16 +63,13 @@ class CollapsibleList extends React.Component<
   constructor(props: any) {
     super(props);
     this.state = { isCollapsed: props.startCollapsed || false };
-
-    // This binding is necessary to make `this` work in the callback
-    this.handleClick = this.handleClick.bind(this);
   }
 
-  handleClick() {
+  handleClick = () => {
     this.setState(state => ({
       isCollapsed: !state.isCollapsed
     }));
-  }
+  };
 
   render() {
     return (
@@ -98,7 +96,7 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
     this.addClass('lsp-popover');
   }
   render() {
-    if (!this.model) {
+    if (!this.model?.connection_manager) {
       return null;
     }
     const servers_available = this.model.servers_available_not_in_use.map(
@@ -118,14 +116,14 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
         // TODO: stop button
         // TODO: add a config buttons next to the language header
         let list = documents.map((document, i) => {
-          let connection = this.model.adapter.connection_manager.connections.get(
+          let connection = this.model.connection_manager.connections.get(
             document.id_path
           );
 
           let status = '';
-          if (connection.isInitialized) {
+          if (connection?.isInitialized) {
             status = 'initialized';
-          } else if (connection.isConnected) {
+          } else if (connection?.isConnected) {
             status = 'connected';
           } else {
             status = 'not connected';
@@ -315,6 +313,7 @@ export namespace LSPStatus {
    */
   export class Model extends VDomModel {
     server_extension_status: SCHEMA.ServersResponse = null;
+    private _connection_manager: DocumentConnectionManager;
 
     constructor() {
       super();
@@ -366,8 +365,8 @@ export namespace LSPStatus {
       Map<string, VirtualDocument[]>
     > {
       let data = new Map();
-      if (!this.adapter) {
-        return new Map();
+      if (!this.adapter?.virtual_editor) {
+        return data;
       }
 
       let main_document = this.adapter.virtual_editor.virtual_document;
@@ -409,7 +408,7 @@ export namespace LSPStatus {
     }
 
     get detected_languages(): Set<string> {
-      if (!this.adapter) {
+      if (!this.adapter?.virtual_editor) {
         return new Set<string>();
       }
 
@@ -425,13 +424,12 @@ export namespace LSPStatus {
     }
 
     get status(): IStatus {
-      let connection_manager = this.adapter.connection_manager;
-      const detected_documents = connection_manager.documents;
+      const detected_documents = this._connection_manager.documents;
       let connected_documents = new Set<VirtualDocument>();
       let initialized_documents = new Set<VirtualDocument>();
 
       detected_documents.forEach((document, id_path) => {
-        let connection = connection_manager.connections.get(id_path);
+        let connection = this._connection_manager.connections.get(id_path);
         if (!connection) {
           return;
         }
@@ -447,7 +445,7 @@ export namespace LSPStatus {
       // there may be more open connections than documents if a document was recently closed
       // and the grace period has not passed yet
       let open_connections = new Array<LSPConnection>();
-      connection_manager.connections.forEach((connection, path) => {
+      this._connection_manager.connections.forEach((connection, path) => {
         if (connection.isConnected) {
           open_connections.push(connection);
         }
@@ -489,7 +487,7 @@ export namespace LSPStatus {
     }
 
     get feature_message(): string {
-      return this.adapter ? this.adapter.status_message.message : '';
+      return this.adapter?.status_message?.message || '';
     }
 
     get long_message(): string {
@@ -538,31 +536,44 @@ export namespace LSPStatus {
     }
 
     set adapter(adapter: JupyterLabWidgetAdapter | null) {
-      const oldAdapter = this._adapter;
-      if (oldAdapter !== null) {
-        oldAdapter.connection_manager.connected.disconnect(this._onChange);
-        oldAdapter.connection_manager.initialized.connect(this._onChange);
-        oldAdapter.connection_manager.disconnected.disconnect(this._onChange);
-        oldAdapter.connection_manager.closed.disconnect(this._onChange);
-        oldAdapter.connection_manager.documents_changed.disconnect(
-          this._onChange
-        );
-        oldAdapter.status_message.changed.connect(this._onChange);
+      if (this._adapter != null) {
+        this._adapter.status_message.changed.connect(this._onChange);
       }
 
-      let onChange = this._onChange.bind(this);
-      adapter.connection_manager.connected.connect(onChange);
-      adapter.connection_manager.initialized.connect(onChange);
-      adapter.connection_manager.disconnected.connect(onChange);
-      adapter.connection_manager.closed.connect(onChange);
-      adapter.connection_manager.documents_changed.connect(onChange);
-      adapter.status_message.changed.connect(onChange);
+      if (adapter != null) {
+        adapter.status_message.changed.connect(this._onChange);
+      }
+
       this._adapter = adapter;
     }
 
-    private _onChange() {
-      this.stateChanged.emit(void 0);
+    get connection_manager() {
+      return this._connection_manager;
     }
+
+    set connection_manager(connection_manager) {
+      if (this._connection_manager != null) {
+        this._connection_manager.connected.disconnect(this._onChange);
+        this._connection_manager.initialized.connect(this._onChange);
+        this._connection_manager.disconnected.disconnect(this._onChange);
+        this._connection_manager.closed.disconnect(this._onChange);
+        this._connection_manager.documents_changed.disconnect(this._onChange);
+      }
+
+      if (connection_manager != null) {
+        connection_manager.connected.connect(this._onChange);
+        connection_manager.initialized.connect(this._onChange);
+        connection_manager.disconnected.connect(this._onChange);
+        connection_manager.closed.connect(this._onChange);
+        connection_manager.documents_changed.connect(this._onChange);
+      }
+
+      this._connection_manager = connection_manager;
+    }
+
+    private _onChange = () => {
+      this.stateChanged.emit(void 0);
+    };
 
     private _adapter: JupyterLabWidgetAdapter | null = null;
   }

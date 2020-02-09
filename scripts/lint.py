@@ -10,7 +10,11 @@ FAIL = 1
 
 ROOT = Path(__file__).parent.parent
 
-PY_SRC = list((ROOT / "py_src").rglob("*.py"))
+PY_SRC = [
+    path
+    for path in (ROOT / "py_src").rglob("*.py")
+    if ".ipynb_checkpoints" not in str(path)
+]
 PY_SCRIPTS = list((ROOT / "scripts").rglob("*.py"))
 PY_DOCS = list((ROOT / "docs").rglob("*.py"))
 PY_ATEST = list((ROOT / "atest").glob("*.py"))

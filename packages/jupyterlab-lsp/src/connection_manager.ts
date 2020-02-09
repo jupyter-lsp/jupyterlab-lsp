@@ -1,28 +1,24 @@
-import { VirtualDocument } from './virtual/document';
+import { VirtualDocument, IForeignContext } from './virtual/document';
 import { LSPConnection } from './connection';
+
 import { Signal } from '@phosphor/signaling';
 import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import { sleep, until_ready } from './utils';
+
+// Name-only import so as to not trigger inclusion in main bundle
+import * as ConnectionModuleType from './connection';
 
 export interface IDocumentConnectionData {
   virtual_document: VirtualDocument;
   connection: LSPConnection;
 }
 
-interface ISocketConnectionOptions {
+export interface ISocketConnectionOptions {
   virtual_document: VirtualDocument;
   /**
    * The language identifier, corresponding to the API endpoint on the LSP proxy server.
    */
   language: string;
-  /**
-   * The root path in the JupyterLab (virtual) path space
-   */
-  root_path: string;
-  /**
-   * The real root path (on the server), if exposed by the server. If present, it has to be an absolute path.
-   */
-  server_root: string | null;
   /**
    * Path to the document in the JupyterLab space
    */
@@ -67,80 +63,154 @@ export class DocumentConnectionManager {
   }
 
   connect_document_signals(virtual_document: VirtualDocument) {
-    virtual_document.foreign_document_opened.connect((host, context) => {
-      console.log(
-        'LSP: Connecting foreign document: ',
-        context.foreign_document.id_path
-      );
-      this.connect_document_signals(context.foreign_document);
-    });
-    virtual_document.foreign_document_closed.connect(
-      (host, { foreign_document }) => {
-        this.connections.get(foreign_document.id_path).close();
-        this.connections.delete(foreign_document.id_path);
-        this.documents.delete(foreign_document.id_path);
-        this.documents_changed.emit(this.documents);
-      }
+    virtual_document.foreign_document_opened.connect(
+      this.on_foreign_document_opened,
+      this
     );
+
+    virtual_document.foreign_document_closed.connect(
+      this.on_foreign_document_closed,
+      this
+    );
+
     this.documents.set(virtual_document.id_path, virtual_document);
     this.documents_changed.emit(this.documents);
   }
 
-  private connect_socket(options: ISocketConnectionOptions): LSPConnection {
+  disconnect_document_signals(virtual_document: VirtualDocument, emit = true) {
+    virtual_document.foreign_document_opened.disconnect(
+      this.on_foreign_document_opened,
+      this
+    );
+
+    virtual_document.foreign_document_closed.disconnect(
+      this.on_foreign_document_closed,
+      this
+    );
+
+    this.documents.delete(virtual_document.id_path);
+    for (const foreign of virtual_document.foreign_documents.values()) {
+      this.disconnect_document_signals(foreign, false);
+    }
+
+    if (emit) {
+      this.documents_changed.emit(this.documents);
+    }
+  }
+
+  on_foreign_document_opened(_host: VirtualDocument, context: IForeignContext) {
+    console.log(
+      'LSP: ConnectionManager received foreign document: ',
+      context.foreign_document.id_path
+    );
+  }
+
+  on_foreign_document_closed(_host: VirtualDocument, context: IForeignContext) {
+    const { foreign_document } = context;
+    this.disconnect_document_signals(foreign_document);
+  }
+
+  private async connect_socket(
+    options: ISocketConnectionOptions
+  ): Promise<LSPConnection> {
+    console.log('LSP: Connection Socket', options);
     let { virtual_document, language } = options;
+
+    this.connect_document_signals(virtual_document);
 
     const uris = DocumentConnectionManager.solve_uris(
       virtual_document,
       language
     );
 
-    let socket = new WebSocket(uris.socket);
+    // lazily load 1) the underlying library (1.5mb) and/or 2) a live WebSocket-
+    // like connection: either already connected or potentiailly in the process
+    // of connecting.
+    const connection = await Private.connection(
+      language,
+      uris,
+      this.on_new_connection
+    );
 
-    let connection = new LSPConnection({
-      languageId: language,
-      serverUri: uris.server,
-      rootUri: uris.base,
-      documentUri: uris.document,
-      documentText: () => {
-        // NOTE: Update is async now and this is not really used, as an alternative method
-        // which is compatible with async is used.
-        // This should be only used in the initialization step.
-        // if (main_connection.isConnected) {
-        //  console.warn('documentText is deprecated for use in JupyterLab LSP');
-        // }
-        return virtual_document.value;
-      }
-    }).connect(socket);
+    // if connecting for the first time, all documents subsequent documents will
+    // be re-opened and synced
+    this.connections.set(virtual_document.id_path, connection);
 
+    if (connection.isReady) {
+      connection.sendOpen(virtual_document.document_info);
+    }
+
+    return connection;
+  }
+
+  /**
+   * Fired the first time a connection is opened. These _should_ be the only
+   * invocation of `.on` (once remaining LSPFeature.connection_handlers are made
+   * singletons).
+   */
+  on_new_connection = (connection: LSPConnection) => {
     connection.on('error', e => {
       console.warn(e);
       // TODO invalid now
       let error: Error = e.length && e.length >= 1 ? e[0] : new Error();
       // TODO: those codes may be specific to my proxy client, need to investigate
       if (error.message.indexOf('code = 1005') !== -1) {
-        console.warn('LSP: Connection failed for ' + virtual_document.id_path);
-        console.log('LSP: disconnecting ' + virtual_document.id_path);
-        this.closed.emit({ connection, virtual_document });
-        this.ignored_languages.add(virtual_document.language);
-        console.warn(
-          `Cancelling further attempts to connect ${virtual_document.id_path} and other documents for this language (no support from the server)`
-        );
+        console.warn(`LSP: Connection failed for ${connection}`);
+        this.forEachDocumentOfConnection(connection, virtual_document => {
+          console.warn('LSP: disconnecting ' + virtual_document.id_path);
+          this.closed.emit({ connection, virtual_document });
+          this.ignored_languages.add(virtual_document.language);
+
+          console.warn(
+            `Cancelling further attempts to connect ${virtual_document.id_path} and other documents for this language (no support from the server)`
+          );
+        });
       } else if (error.message.indexOf('code = 1006') !== -1) {
-        console.warn(
-          'LSP: Connection closed by the server ' + virtual_document.id_path
-        );
+        console.warn('LSP: Connection closed by the server ');
       } else {
-        console.error(
-          'LSP: Connection error of ' + virtual_document.id_path + ':',
-          e
-        );
+        console.error('LSP: Connection error:', e);
       }
     });
 
-    this.connections.set(virtual_document.id_path, connection);
-    return connection;
+    connection.on('serverInitialized', capabilities => {
+      this.forEachDocumentOfConnection(connection, virtual_document => {
+        connection.sendOpen(virtual_document.document_info);
+        // TODO: is this still neccessary, e.g. for status bar to update responsively?
+        this.initialized.emit({ connection, virtual_document });
+      });
+    });
+
+    connection.on('close', closed_manually => {
+      if (!closed_manually) {
+        console.warn('LSP: Connection unexpectedly disconnected');
+      } else {
+        console.warn('LSP: Connection closed');
+        this.forEachDocumentOfConnection(connection, virtual_document => {
+          this.closed.emit({ connection, virtual_document });
+        });
+      }
+    });
+  };
+
+  private forEachDocumentOfConnection(
+    connection: LSPConnection,
+    callback: (virtual_document: VirtualDocument) => void
+  ) {
+    for (const [
+      virtual_document_id_path,
+      a_connection
+    ] of this.connections.entries()) {
+      if (connection !== a_connection) {
+        continue;
+      }
+      callback(this.documents.get(virtual_document_id_path));
+    }
   }
 
+  /**
+   * TODO: presently no longer referenced. A failing connection would close
+   * the socket, triggering the language server on the other end to exit
+   */
   public async retry_to_connect(
     options: ISocketConnectionOptions,
     reconnect_delay: number,
@@ -161,8 +231,9 @@ export class DocumentConnectionManager {
           success = true;
         })
         .catch(e => {
-          console.log(e);
+          console.warn(e);
         });
+
       console.log(
         'LSP: will attempt to re-connect in ' + interval / 1000 + ' seconds'
       );
@@ -174,49 +245,30 @@ export class DocumentConnectionManager {
   }
 
   async connect(options: ISocketConnectionOptions) {
-    let connection = this.connect_socket(options);
-
-    connection.on('serverInitialized', capabilities => {
-      this.initialized.emit({ connection, virtual_document });
-    });
+    console.log('LSP: connection requested', options);
+    let connection = await this.connect_socket(options);
 
     let { virtual_document, document_path } = options;
 
-    await until_ready(
-      () => {
-        // @ts-ignore
-        return connection.isConnected;
-      },
-      50,
-      50
-    ).catch(() => {
-      throw Error('LSP: Connect timed out for ' + virtual_document.id_path);
-    });
-    console.log('LSP:', document_path, virtual_document.id_path, 'connected.');
-
-    connection.on('close', closed_manually => {
-      if (!closed_manually) {
-        console.warn('LSP: Connection unexpectedly disconnected');
-        this.retry_to_connect(options, 0.5).catch(console.warn);
-      } else {
-        console.warn('LSP: Connection closed');
-        this.closed.emit({ connection, virtual_document });
+    if (!connection.isReady) {
+      try {
+        await until_ready(() => connection.isReady, 200, 200);
+      } catch {
+        console.warn(`LSP: Connect timed out for ${virtual_document.id_path}`);
+        return;
       }
-    });
+    }
+
+    console.log('LSP:', document_path, virtual_document.id_path, 'connected.');
 
     this.connected.emit({ connection, virtual_document });
 
     return connection;
   }
 
-  public close_all() {
-    for (let [id_path, connection] of this.connections.entries()) {
-      let virtual_document = this.documents.get(id_path);
-      connection.close();
-      // TODO: close() should trigger the closed event, but it does not seem to work, hence manual trigger below:
-      this.closed.emit({ connection, virtual_document });
-    }
-    this.connections.clear();
+  public unregister_document(virtual_document: VirtualDocument) {
+    this.connections.delete(virtual_document.id_path);
+    this.documents_changed.emit(this.documents);
   }
 }
 
@@ -224,7 +276,7 @@ export namespace DocumentConnectionManager {
   export function solve_uris(
     virtual_document: VirtualDocument,
     language: string
-  ) {
+  ): IURIs {
     const wsBase = PageConfig.getBaseUrl().replace(/^http/, 'ws');
     const rootUri = PageConfig.getOption('rootUri');
     const virtualDocumentsUri = PageConfig.getOption('virtualDocumentsUri');
@@ -239,5 +291,58 @@ export namespace DocumentConnectionManager {
       server: URLExt.join('ws://jupyter-lsp', language),
       socket: URLExt.join(wsBase, 'lsp', language)
     };
+  }
+
+  export interface IURIs {
+    base: string;
+    document: string;
+    server: string;
+    socket: string;
+  }
+}
+
+/**
+ * Namespace primarily for language-keyed cache of LSPConnections
+ */
+namespace Private {
+  const _connections = new Map<string, LSPConnection>();
+  let _promise: Promise<typeof ConnectionModuleType>;
+
+  /**
+   * Return (or create and initialize) the WebSocket associated with the language
+   */
+  export async function connection(
+    language: string,
+    uris: DocumentConnectionManager.IURIs,
+    onCreate: (connection: LSPConnection) => void
+  ): Promise<LSPConnection> {
+    if (_promise == null) {
+      // TODO: consider lazy-loading _only_ the modules that _must_ be webpacked
+      // with custom shims, e.g. `fs`
+      _promise = import(
+        /* webpackChunkName: "jupyter-lsp-connection" */ './connection'
+      );
+    }
+
+    const { LSPConnection } = await _promise;
+    let connection = _connections.get(language);
+
+    if (connection == null) {
+      const socket = new WebSocket(uris.socket);
+      const connection = new LSPConnection({
+        languageId: language,
+        serverUri: uris.server,
+        rootUri: uris.base
+      });
+      // TODO: remove remaining unbounded users of connection.on
+      connection.setMaxListeners(999);
+      _connections.set(language, connection);
+      connection.connect(socket);
+      onCreate(connection);
+    }
+
+    connection = _connections.get(language);
+
+    return connection;
   }
 }
