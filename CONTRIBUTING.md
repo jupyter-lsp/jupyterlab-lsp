@@ -135,6 +135,21 @@ To watch documentation sources and build continuously:
 python scripts/docs.py --watch
 ```
 
+To check internal links in the docs after building:
+
+```bash
+python scripts/docs.py --check --local-only
+```
+
+To check internal _and_ external links in the docs after building:
+
+```bash
+python scripts/docs.py --check
+```
+
+> Note: you may get spurious failures due to rate limiting, especially in CI,
+> but it's good to test locally
+
 ### Browser-based Acceptance Tests
 
 The browser tests will launch JupyterLab on a random port and exercise the

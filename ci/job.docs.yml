@@ -40,5 +40,5 @@ jobs:
                   targetPath: docs/_build
                   artifactName: Docs $(Build.BuildId)
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/docs.py --check
-                displayName: check URLs in docs
+              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/docs.py --check --local-only
+                displayName: check local URLs in docs
