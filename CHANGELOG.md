@@ -159,6 +159,7 @@
 
 - features
   - adds an indicator to the statusbar
+  - and many other improvements, see the [release notes](https://github.com/krassowski/jupyterlab-lsp/releases/tag/v0.6.1)
 - dependencies
   - removes unused npm dependencies
 
@@ -166,7 +167,6 @@
 
 - features
   - allows "rename" action in file editor
-  - and many other improvements, see the [release notes](https://github.com/krassowski/jupyterlab-lsp/releases/tag/v0.6.0)
 - bugfixes
   - handles some non-standard diagnostic responses
 - testing
