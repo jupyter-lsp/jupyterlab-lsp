@@ -1,6 +1,6 @@
 # Contribute to jupyterlab-lsp and jupyter-lsp :heart:
 
-`jupyter-lsp` and `jupyterlab-lsp` are [open source](./LICENSE) software, and
+`jupyter-lsp` and `jupyterlab-lsp` are [open source][LICENSE] software, and
 all contributions conforming to good sense, good taste, and the
 [Jupyter Code of Conduct][code-of-conduct] are welcome, and will be reviewed
 by the contributors, time-permitting.
@@ -13,12 +13,15 @@ You can contribute to the project through:
     and its various distributions
     - these are great first issues, as you might not need to know any python or
       javascript
-- proposing parts of the architecture that can be [extended](./docs/EXTENDING.md)
+- proposing parts of the architecture that can be [extended][EXTENDING]
 - improving [documentation](#Documentation)
-- tackling Big Issues from the [future roadmap](./docs/ROADMAP.md)
+- tackling Big Issues from the [future roadmap][ROADMAP]
 - improving [testing](#Testing)
 - reviewing pull requests
 
+[LICENSE]: https://github.com/krassowski/jupyterlab-lsp/blob/master/LICENSE
+[EXTENDING]: ./docs/EXTENDING.md
+[ROADMAP]: ./docs/ROADMAP.md
 [jupyterlab-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
 [code-of-conduct]: https://github.com/jupyter/governance/blob/master/conduct/code_of_conduct.md
 
@@ -116,6 +119,20 @@ jlpm test -- -- -t match_phrase
 
 ```bash
 python scripts/utest.py
+```
+
+## Documentation
+
+To build the documentation:
+
+```bash
+python scripts/docs.py
+```
+
+To watch documentation sources and build continuously:
+
+```bash
+python scripts/docs.py --watch
 ```
 
 ## Browser-based Acceptance Tests
@@ -217,7 +234,7 @@ python scripts/combine.py
 
 - If you see the following error message:
 
-  ```
+  ```python
   Parent suite setup failed:
   TypeError: expected str, bytes or os.PathLike object, not NoneType
   ```
@@ -226,7 +243,9 @@ python scripts/combine.py
   in the search path).
 
 - If a test suite for a specific language fails it may indicate that you have no
-  appropriate server language installed (see [LANGUAGESERVERS.md](./LANGUAGESERVERS.md))
+  appropriate server language installed (see [LANGUAGESERVERS][])
+
+[LANGUAGESERVERS]: ./docs/LANGUAGESERVERS.md
 
 - If you are seeing errors like `Element is blocked by .jp-Dialog`, caused by
   the JupyterLab _Build suggested_ dialog, (likely if you have been using
@@ -257,18 +276,6 @@ You can clean up your code, and check for using the project's style guide with:
 python scripts/lint.py
 ```
 
-> TBD
->
-> - hypothesis
-> - mypy
-
-## Documentation
-
-> TBD
->
-> - sphinx
-> - one of the sphinx/ipynb connectors
-
 ### Specs
 
 It is convenient to collect common patterns for connecting to installed language
@@ -279,8 +286,10 @@ server it will always win vs an auto-configured one.
 
 #### Writing a spec
 
-> See the built-in [specs](./py_src/jupyter_lsp/specs) for implementations and some
-> [helpers](./py_src/jupyter_lsp/specs/utils.py).
+> See the built-in [specs][] for implementations and some [helpers][].
+
+[specs]: https://github.com/krassowski/jupyterlab-lsp/tree/master/py_src/jupyter_lsp/specs
+[helpers]: https://github.com/krassowski/jupyterlab-lsp/blob/master/py_src/jupyter_lsp/specs/utils.py
 
 A spec is a python function that accepts a single argument, the
 `LanguageServerManager`, and returns a dictionary of the form:
@@ -298,8 +307,9 @@ A spec is a python function that accepts a single argument, the
 The absolute minimum listing requires `argv` (a list of shell tokens to launch
 the server) and `languages` (which languages to respond to), but many number of
 other options to enrich the user experience are available in the
-[schema](./py_src/jupyter_lsp/schema/schema.json) and are exercised by the
-current `entry_points`-based [specs]().
+[schema][] and are exercised by the current `entry_points`-based [specs][].
+
+[schema]: https://github.com/krassowski/jupyterlab-lsp/blob/master/py_src/jupyter_lsp/schema/schema.json
 
 The spec should only be advertised if the command _could actually_ be run:
 
@@ -316,7 +326,9 @@ The spec should only be advertised if the command _could actually_ be run:
     guess at where a user's `nodejs` might be found
 - some language servers are hard to start purely from the command line
   - use a helper script to encapsulate some complexity.
-    - See the [r spec](./py_src/jupyter_lsp/specs/r_languageserver.py) for an example
+    - See the [r spec][] for an example
+
+[r spec]: https://github.com/krassowski/jupyterlab-lsp/blob/master/py_src/jupyter_lsp/specs/r_languageserver.py
 
 ##### Example: making a pip-installable `cool-language-server` spec
 

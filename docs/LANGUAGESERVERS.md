@@ -42,7 +42,7 @@ tested to work with `jupyter-lsp`.
 Don't see an implementation for the language server you need? You can
 [bring your own language server](#adding-custom-language-servers).
 
-> Please consider [contributing your language server spec](../../CONTRIBUTING.md#spec)
+> Please consider [contributing your language server spec](../Contributing.ipynb#spec)
 > to `jupyter-lsp`!
 
 ## Adding custom language servers
@@ -108,7 +108,7 @@ c.LanguageServerManager.language_servers = {
 
 `pip`-installable packages in the same environment as the Jupyter `notebook` server
 can be automatically detected as providing a language server spec. These are a
-little more involved: see [CONTRIBUTING](../../CONTRIBUTING.md).
+little more involved: see [CONTRIBUTING](./Contributing.ipynb).
 
 # Configuration Options
 

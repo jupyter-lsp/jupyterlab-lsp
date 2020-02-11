@@ -1,5 +1,5 @@
 graph backend {
-    label="Front End as of 0.7.1"
+    label="Front End"
     splines="line"
     compound=true
     fontname="sans-serif" fontcolor=grey
@@ -20,14 +20,17 @@ graph backend {
         StatusBar
         WidgetTrackers
         DiagnosticPanel
+        ConnectionManager
+             
+        subgraph cluster_lang {label="Per Language"
+            Connection
+            MessageConnection
+            WebSocket
+        }
         subgraph cluster_doc { label="Per Document"
             Widget
             CodeMirrors
             subgraph cluster_doc_lsp { label="LSP Client"
-                WebSocket
-                ConnectionManager
-                Connection
-                MessageConnection
                 WidgetAdapter
                 VirtualEditor
                 VirtualDocument
