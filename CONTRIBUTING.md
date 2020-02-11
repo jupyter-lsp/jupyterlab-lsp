@@ -1,4 +1,4 @@
-# Contribute to jupyterlab-lsp and jupyter-lsp :heart:
+## Contribute to jupyterlab-lsp and jupyter-lsp :heart:
 
 `jupyter-lsp` and `jupyterlab-lsp` are [open source][license] software, and
 all contributions conforming to good sense, good taste, and the
@@ -25,7 +25,7 @@ You can contribute to the project through:
 [jupyterlab-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
 [code-of-conduct]: https://github.com/jupyter/governance/blob/master/conduct/code_of_conduct.md
 
-## Set up the environment
+### Set up the environment
 
 Development requires:
 
@@ -44,7 +44,7 @@ pip install -r requirements/dev.txt  # in a virtualenv, probably
                                      # ... and install nodejs, somehow
 ```
 
-### The Easy Way
+#### The Easy Way
 
 Once your environment is created and activated, on Linux/OSX you can run:
 
@@ -54,7 +54,7 @@ bash postBuild
 
 This performs all of the basic setup steps, and is used for the binder demo.
 
-### The Hard Way
+#### The Hard Way
 
 Install `jupyter-lsp` from source in your virtual environment:
 
@@ -77,7 +77,7 @@ jlpm build
 jlpm lab:link
 ```
 
-## Frontend Development
+### Frontend Development
 
 To rebuild the schemas, packages, and the JupyterLab app:
 
@@ -113,15 +113,15 @@ To run tests matching specific phrase, forward `-t` argument over yarn and lerna
 jlpm test -- -- -t match_phrase
 ```
 
-## Server Development
+### Server Development
 
-### Testing `jupyter-lsp`
+#### Testing `jupyter-lsp`
 
 ```bash
 python scripts/utest.py
 ```
 
-## Documentation
+### Documentation
 
 To build the documentation:
 
@@ -135,7 +135,7 @@ To watch documentation sources and build continuously:
 python scripts/docs.py --watch
 ```
 
-## Browser-based Acceptance Tests
+### Browser-based Acceptance Tests
 
 The browser tests will launch JupyterLab on a random port and exercise the
 Language Server features with [Robot Framework][] and [SeleniumLibrary][]. It
