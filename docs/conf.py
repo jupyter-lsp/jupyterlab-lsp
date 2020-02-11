@@ -88,10 +88,10 @@ extlinks = {
     "gh": (f"{github_url}/%s", "GitHub: "),
 }
 
-html_show_sourcelink = True  # True will show link to source
+html_show_sourcelink = True
 
 html_context = {
-    "display_github": True,
+    "display_github": False,
     "github_user": github_repo_org,
     "github_repo": github_repo_name,
     "github_version": "master",
