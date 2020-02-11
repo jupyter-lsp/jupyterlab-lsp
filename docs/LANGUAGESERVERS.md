@@ -1,4 +1,4 @@
-# Language Servers
+## Language Servers
 
 `jupyter-lsp` does not come with any Language Servers! However, we will try to use
 them if they _are_ installed and we know about them (you can disable this behavior
@@ -42,12 +42,12 @@ tested to work with `jupyter-lsp`.
 Don't see an implementation for the language server you need? You can
 [bring your own language server](#adding-custom-language-servers).
 
-> Please consider [contributing your language server spec](../Contributing.ipynb#spec)
+> Please consider [contributing your language server spec](../Contributing.md)
 > to `jupyter-lsp`!
 
-## Adding custom language servers
+### Adding custom language servers
 
-### Jupyter config via `traitlets`
+#### Jupyter config via `traitlets`
 
 Like the Jupyter Notebook server, JupyterHub and other Jupyter interactive computing
 tools, `jupyter-lsp` can be configured via [Python or JSON files][notebook-config]
@@ -64,7 +64,9 @@ They will be merged from bottom to top, and the directory where you launch your
 minimum listing requires `argv` (a list of shell tokens to launch the server)
 and `languages` (which languages to respond to), but many number of other options
 to enrich the user experience are available in the
-[schema](./py_src/jupyter_lsp/schema/schema.json).
+[schema][].
+
+[schema]: https://github.com/krassowski/jupyterlab-lsp/blob/master/py_src/jupyter_lsp/schema/schema.json
 
 ```python
 # ./jupyter_notebook_config.json                 ---------- unique! -----------
@@ -104,24 +106,24 @@ c.LanguageServerManager.language_servers = {
 }
 ```
 
-### Python `entry_points`
+#### Python `entry_points`
 
 `pip`-installable packages in the same environment as the Jupyter `notebook` server
 can be automatically detected as providing a language server spec. These are a
-little more involved: see [CONTRIBUTING](./Contributing.ipynb).
+little more involved: see [CONTRIBUTING](Contributing.md).
 
-# Configuration Options
+### Configuration Options
 
 Like `language_servers`, these can be configured via `jupyter_notebook_config.json`
 (or .py) or via command line arguments to `jupyter notebook` or `jupyter lab`.
 
-## nodejs
+#### nodejs
 
 > default: autodetect
 
 A custom absolute path to your `nodejs` executable.
 
-## autodetect
+#### autodetect
 
 > default: True
 
@@ -129,7 +131,7 @@ A custom absolute path to your `nodejs` executable.
 User-configured `language_servers` of the same implementation will be preferred
 over `autodetect`ed ones.
 
-## node_roots
+#### node_roots
 
 > default: []
 
@@ -141,7 +143,7 @@ The order is, roughly:
 - wherever `conda` puts global node modules
 - wherever some other conventions put it
 
-## extra_node_roots
+#### extra_node_roots
 
 > default: []
 

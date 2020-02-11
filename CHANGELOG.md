@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-## `@krassowski/jupyterlab-lsp 0.8.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 0.8.0` (unreleased)
 
 - features
 
@@ -11,7 +11,7 @@
   - ignores malformed diagnostic ranges, enabling markdown support ([#165][])
   - passes tests on Python 3.8 on Windows ([#165][])
 
-## `lsp-ws-connection 0.4.0` (unreleased)
+### `lsp-ws-connection 0.4.0` (unreleased)
 
 - breaking changes
 
@@ -22,14 +22,14 @@
 
 [#165]: https://github.com/krassowski/jupyterlab-lsp/pull/165
 
-## `jupyter-lsp 0.7.0`
+### `jupyter-lsp 0.7.0`
 
 - bugfixes
   - didSave no longer causes unwanted messages in logs (
     [#187](https://github.com/krassowski/jupyterlab-lsp/pull/187)
     )
 
-## `@krassowski/jupyterlab-lsp 0.7.1`
+### `@krassowski/jupyterlab-lsp 0.7.1`
 
 - features
 
