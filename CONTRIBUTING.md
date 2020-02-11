@@ -1,6 +1,6 @@
 # Contribute to jupyterlab-lsp and jupyter-lsp :heart:
 
-`jupyter-lsp` and `jupyterlab-lsp` are [open source][LICENSE] software, and
+`jupyter-lsp` and `jupyterlab-lsp` are [open source][license] software, and
 all contributions conforming to good sense, good taste, and the
 [Jupyter Code of Conduct][code-of-conduct] are welcome, and will be reviewed
 by the contributors, time-permitting.
@@ -13,15 +13,15 @@ You can contribute to the project through:
     and its various distributions
     - these are great first issues, as you might not need to know any python or
       javascript
-- proposing parts of the architecture that can be [extended][EXTENDING]
+- proposing parts of the architecture that can be [extended][extending]
 - improving [documentation](#Documentation)
-- tackling Big Issues from the [future roadmap][ROADMAP]
+- tackling Big Issues from the [future roadmap][roadmap]
 - improving [testing](#Testing)
 - reviewing pull requests
 
-[LICENSE]: https://github.com/krassowski/jupyterlab-lsp/blob/master/LICENSE
-[EXTENDING]: ./docs/EXTENDING.md
-[ROADMAP]: ./docs/ROADMAP.md
+[license]: https://github.com/krassowski/jupyterlab-lsp/blob/master/LICENSE
+[extending]: ./docs/EXTENDING.md
+[roadmap]: ./docs/ROADMAP.md
 [jupyterlab-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
 [code-of-conduct]: https://github.com/jupyter/governance/blob/master/conduct/code_of_conduct.md
 
@@ -245,7 +245,7 @@ python scripts/combine.py
 - If a test suite for a specific language fails it may indicate that you have no
   appropriate server language installed (see [LANGUAGESERVERS][])
 
-[LANGUAGESERVERS]: ./docs/LANGUAGESERVERS.md
+[languageservers]: ./docs/LANGUAGESERVERS.md
 
 - If you are seeing errors like `Element is blocked by .jp-Dialog`, caused by
   the JupyterLab _Build suggested_ dialog, (likely if you have been using
