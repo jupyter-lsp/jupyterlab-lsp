@@ -207,7 +207,7 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
 
         if found is None:  # pragma: no cover
             self.log.debug(
-                "%s not found in node_modules of %s", pathlib.Path(path_frag), all_roots
+                "{} not found in node_modules of {}".format(pathlib.Path(*path_frag), all_roots)
             )
 
         return found

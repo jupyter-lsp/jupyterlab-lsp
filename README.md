@@ -4,11 +4,11 @@
 
 > _This project is still maturing, but you are welcome to check it out, leave feedback and/or a PR_
 
-Quick Links: **[Installation](#installation) | [Language Servers](./docs/LANGUAGESERVERS.md) | [Updating](#updating) | [Changelog](./CHANGELOG.md) | [Roadmap](./docs/ROADMAP.md) | [Contributing](./CONTRIBUTING.md) | [Extending](./docs/EXTENDING.md)**
+Quick Links: **[Installation](./Installation.ipynb) | [Configuring](./docs/Configuring.ipynb) | [Updating](#updating) | [Changelog](./CHANGELOG.md) | [Roadmap](./docs/Roadmap.ipynb) | [Contributing](./CONTRIBUTING.md) | [Extending](./docs/Extending.ipynb)**
 
 ## Features
 
-> Examples show Python code, but most features also work in R, bash, typescript and [many other languages](./docs/LANGUAGESERVERS.md).
+> Examples show Python code, but most features also work in R, bash, typescript, and [many other languages](./docs/Language Servers.ipynb).
 
 ### Hover
 

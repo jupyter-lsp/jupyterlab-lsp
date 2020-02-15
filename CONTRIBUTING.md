@@ -20,8 +20,8 @@ You can contribute to the project through:
 - reviewing pull requests
 
 [license]: https://github.com/krassowski/jupyterlab-lsp/blob/master/LICENSE
-[extending]: ./docs/EXTENDING.md
-[roadmap]: ./docs/ROADMAP.md
+[extending]: ./docs/Extending.ipynb
+[roadmap]: ./docs/Roadmap.ipynb
 [jupyterlab-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
 [code-of-conduct]: https://github.com/jupyter/governance/blob/master/conduct/code_of_conduct.md
 
