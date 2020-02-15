@@ -36,7 +36,7 @@
     {% endblock %}
     {% block breadcrumbs_aside %}
       <li class="wy-breadcrumbs-aside">
-        {% if hasdoc(pagename) and pagename not in ["search", "genindex"] %}
+        {% if hasdoc(pagename) and pagename not in hide_github_pagenames %}
             {% if display_github %}
             {% if check_meta and 'github_url' in meta %}
               <!-- User defined GitHub URL -->

@@ -92,6 +92,8 @@ html_show_sourcelink = True
 
 html_context = {
     "display_github": True,
+    # these automatically-generated pages will create broken links
+    "hide_github_pagenames": ["search", "genindex"],
     "github_user": github_repo_org,
     "github_repo": github_repo_name,
     "github_version": "master",
