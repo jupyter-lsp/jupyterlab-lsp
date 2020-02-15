@@ -1,7 +1,7 @@
 """ A configurable frontend for stdio-based Language Servers
 """
-from typing import Dict, Text, Tuple
 import traceback
+from typing import Dict, Text, Tuple
 
 import entrypoints
 from notebook.transutils import _
