@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
-from traitlets import Bunch, Instance, Set, UseEnum, observe
+from traitlets import Bunch, Instance, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
 
 from . import stdio
@@ -26,6 +26,7 @@ class LanguageServerSession(LoggingConfigurable):
     """ Manage a session for a connection to a language server
     """
 
+    language_server = Unicode(help="the language server implementation name")
     spec = Schema(LANGUAGE_SERVER_SPEC)
 
     # run-time specifics
@@ -60,9 +61,9 @@ class LanguageServerSession(LoggingConfigurable):
         atexit.register(self.stop)
 
     def __repr__(self):  # pragma: no cover
-        return "<LanguageServerSession(languages={languages}, argv={argv})>".format(
-            **self.spec
-        )
+        return (
+            "<LanguageServerSession(" "language_server={language_server}, argv={argv})>"
+        ).format(language_server=self.language_server, **self.spec)
 
     def to_json(self):
         return dict(

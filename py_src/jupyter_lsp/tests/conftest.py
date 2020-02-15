@@ -12,31 +12,25 @@ from jupyter_lsp import LanguageServerManager
 from jupyter_lsp.handlers import LanguageServersHandler, LanguageServerWebSocketHandler
 
 # these should always be available in a test environment ()
-KNOWN_LANGUAGES = [
-    "bash",
-    "css",
-    "dockerfile",
-    "html",
-    "ipythongfm",
-    "javascript",
-    "json",
-    "jsx",
-    "less",
-    "markdown",
-    "python",
-    "scss",
-    "typescript-jsx",
-    "typescript",
-    "yaml",
+KNOWN_SERVERS = [
+    "bash-language-server",
+    "vscode-css-languageserver-bin",
+    "dockerfile-language-server-nodejs",
+    "vscode-html-languageserver-bin",
+    "unified-language-server",
+    "javascript-typescript-langserver",
+    "vscode-json-languageserver-bin",
+    "pyls",
+    "yaml-language-server",
 ]
 
-CMD_BASED_LANGUAGES = {"Rscript": ["r"]}
+CMD_BASED_SERVERS = {"Rscript": ["r-languageserver"]}
 
-KNOWN_LANGUAGES += sum(
-    [langs for cmd, langs in CMD_BASED_LANGUAGES.items() if shutil.which(cmd)], []
+KNOWN_SERVERS += sum(
+    [langs for cmd, langs in CMD_BASED_SERVERS.items() if shutil.which(cmd)], []
 )
 
-KNOWN_UNKNOWN_LANGUAGES = ["cobol"]
+KNOWN_UNKNOWN_SERVERS = ["foo-language-server"]
 
 
 @fixture
@@ -44,13 +38,13 @@ def manager() -> LanguageServerManager:
     return LanguageServerManager()
 
 
-@fixture(params=sorted(KNOWN_LANGUAGES))
-def known_language(request):
+@fixture(params=sorted(KNOWN_SERVERS))
+def known_server(request):
     return request.param
 
 
-@fixture(params=sorted(KNOWN_UNKNOWN_LANGUAGES))
-def known_unknown_language(request):
+@fixture(params=sorted(KNOWN_UNKNOWN_SERVERS))
+def known_unknown_server(request):
     return request.param
 
 

@@ -43,7 +43,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
     sessions = Dict_(
         trait=Instance(LanguageServerSession),
         default_value={},
-        help="sessions keyed by languages served",
+        help="sessions keyed by language server name",
     )  # type: Dict[Tuple[Text], LanguageServerSession]
 
     all_listeners = List_(trait=LoadableCallable).tag(config=True)
@@ -80,18 +80,16 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
         # coalesce the servers, allowing a user to opt-out by specifying `[]`
         self.language_servers = {
-            key: spec
-            for key, spec in language_servers.items()
-            if spec.get("argv") and spec.get("languages")
+            key: spec for key, spec in language_servers.items() if spec.get("argv")
         }
 
     def init_sessions(self):
         """ create, but do not initialize all sessions
         """
         sessions = {}
-        for spec in self.language_servers.values():
-            sessions[tuple(sorted(spec["languages"]))] = LanguageServerSession(
-                spec=spec, parent=self
+        for language_server, spec in self.language_servers.items():
+            sessions[language_server] = LanguageServerSession(
+                language_server=language_server, spec=spec, parent=self
             )
         self.sessions = sessions
 
@@ -121,37 +119,59 @@ class LanguageServerManager(LanguageServerManagerAPI):
     def subscribe(self, handler):
         """ subscribe a handler to session, or sta
         """
-        sessions = []
-        for languages, candidate_session in self.sessions.items():
-            if handler.language in languages:
-                sessions.append(candidate_session)
+        session = self.sessions.get(handler.language_server)
 
-        if sessions:
-            for session in sessions:
-                session.handlers = set([handler]) | session.handlers
+        if session is None:
+            self.log.error(
+                "[{}] no session: handler subscription failed".format(
+                    handler.language_server
+                )
+            )
+            return
+
+        session.handlers = set([handler]) | session.handlers
 
     async def on_client_message(self, message, handler):
-        await self.wait_for_listeners(MessageScope.CLIENT, message, [handler.language])
+        await self.wait_for_listeners(
+            MessageScope.CLIENT, message, handler.language_server
+        )
+        session = self.sessions.get(handler.language_server)
 
-        for session in self.sessions_for_handler(handler):
-            session.write(message)
+        if session is None:
+            self.log.error(
+                "[{}] no session: client message dropped".format(
+                    handler.language_server
+                )
+            )
+            return
+
+        session.write(message)
 
     async def on_server_message(self, message, session):
-        await self.wait_for_listeners(
-            MessageScope.SERVER, message, session.spec["languages"]
-        )
+        language_servers = [
+            ls_key for ls_key, sess in self.sessions.items() if sess == session
+        ]
+
+        for language_servers in language_servers:
+            await self.wait_for_listeners(
+                MessageScope.SERVER, message, language_servers
+            )
 
         for handler in session.handlers:
             handler.write_message(message)
 
     def unsubscribe(self, handler):
-        for session in self.sessions_for_handler(handler):
-            session.handlers = [h for h in session.handlers if h != handler]
+        session = self.sessions.get(handler.language_server)
 
-    def sessions_for_handler(self, handler):
-        for session in self.sessions.values():
-            if handler in session.handlers:
-                yield session
+        if session is None:
+            self.log.error(
+                "[{}] no session: handler unsubscription failed".format(
+                    handler.language_server
+                )
+            )
+            return
+
+        session.handlers = [h for h in session.handlers if h != handler]
 
     def _autodetect_language_servers(self):
         entry_points = []

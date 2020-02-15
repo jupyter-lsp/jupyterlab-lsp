@@ -35,7 +35,7 @@ if TYPE_CHECKING:  # pragma: no cover
             self,
             scope: Text,
             message: LanguageServerMessage,
-            languages: List[Text],
+            language_server: Text,
             manager: "HasListeners",
         ) -> Awaitable[None]:
             ...
@@ -66,31 +66,34 @@ class MessageListener(object):
     """
 
     listener = None  # type: HandlerListenerCallback
-    language = None  # type: Optional[Pattern[Text]]
+    language_server = None  # type: Optional[Pattern[Text]]
     method = None  # type: Optional[Pattern[Text]]
 
     def __init__(
         self,
         listener: "HandlerListenerCallback",
-        language: Optional[Text],
+        language_server: Optional[Text],
         method: Optional[Text],
     ):
         self.listener = listener
-        self.language = re.compile(language) if language else None
+        self.language_server = re.compile(language_server) if language_server else None
         self.method = re.compile(method) if method else None
 
     async def __call__(
         self,
         scope: Text,
         message: LanguageServerMessage,
-        languages: List[Text],
+        language_server: Text,
         manager: "HasListeners",
     ) -> None:
         """ actually dispatch the message to the listener and capture any errors
         """
         try:
             await self.listener(
-                scope=scope, message=message, languages=languages, manager=manager
+                scope=scope,
+                message=message,
+                language_server=language_server,
+                manager=manager,
             )
         except Exception:  # pragma: no cover
             manager.log.warn(
@@ -100,7 +103,7 @@ class MessageListener(object):
                 exc_info=True,
             )
 
-    def wants(self, message: LanguageServerMessage, languages: List[Text]):
+    def wants(self, message: LanguageServerMessage, language_server: Text):
         """ whether this listener wants a particular message
 
             `method` is currently the only message content discriminator, but not
@@ -111,9 +114,9 @@ class MessageListener(object):
 
             if method is None or re.match(self.method, method) is None:
                 return False
-
-        return self.language is None or any(
-            [re.match(self.language, lang) is not None for lang in languages]
+        print("WANTS", self.language_server, language_server)
+        return self.language_server is None or re.match(
+            self.language_server, language_server
         )
 
     def __repr__(self):
@@ -121,7 +124,7 @@ class MessageListener(object):
             "<MessageListener"
             " listener={self.listener},"
             " method={self.method},"
-            " language={self.language}>"
+            " language_server={self.language_server}>"
         ).format(self=self)
 
 
@@ -134,7 +137,10 @@ class HasListeners:
 
     @classmethod
     def register_message_listener(
-        cls, scope: Text, language: Optional[Text] = None, method: Optional[Text] = None
+        cls,
+        scope: Text,
+        language_server: Optional[Text] = None,
+        method: Optional[Text] = None,
     ):
         """ register a listener for language server protocol messages
         """
@@ -142,7 +148,9 @@ class HasListeners:
         def inner(listener: "HandlerListenerCallback") -> "HandlerListenerCallback":
             cls.unregister_message_listener(listener)
             cls._listeners[scope].append(
-                MessageListener(listener=listener, language=language, method=method)
+                MessageListener(
+                    listener=listener, language_server=language_server, method=method
+                )
             )
             return listener
 
@@ -160,7 +168,7 @@ class HasListeners:
             ]
 
     async def wait_for_listeners(
-        self, scope: MessageScope, message_str: Text, languages: List[Text]
+        self, scope: MessageScope, message_str: Text, language_server: Text
     ) -> None:
         scope_val = str(scope.value)
         listeners = self._listeners[scope_val] + self._listeners[MessageScope.ALL.value]
@@ -169,9 +177,14 @@ class HasListeners:
             message = json.loads(message_str)
 
             futures = [
-                listener(scope_val, message=message, languages=languages, manager=self)
+                listener(
+                    scope_val,
+                    message=message,
+                    language_server=language_server,
+                    manager=self,
+                )
                 for listener in listeners
-                if listener.wants(message, languages)
+                if listener.wants(message, language_server)
             ]
 
             if futures:

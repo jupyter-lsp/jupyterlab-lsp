@@ -21,20 +21,20 @@ class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, BaseHandl
     """ Setup tornado websocket to route to language server sessions
     """
 
-    language = None  # type: Optional[Text]
+    language_server = None  # type: Optional[Text]
 
-    def open(self, language):
-        self.language = language
+    def open(self, language_server):
+        self.language_server = language_server
         self.manager.subscribe(self)
-        self.log.debug("[{}] Opened a handler".format(self.language))
+        self.log.debug("[{}] Opened a handler".format(self.language_server))
 
     async def on_message(self, message):
-        self.log.debug("[{}] Handling a message".format(self.language))
+        self.log.debug("[{}] Handling a message".format(self.language_server))
         await self.manager.on_client_message(message, self)
 
     def on_close(self):
         self.manager.unsubscribe(self)
-        self.log.debug("[{}] Closed a handler".format(self.language))
+        self.log.debug("[{}] Closed a handler".format(self.language_server))
 
 
 class LanguageServersHandler(BaseHandler):
@@ -52,11 +52,11 @@ class LanguageServersHandler(BaseHandler):
         """ finish with the JSON representations of the sessions
         """
         response = {
-            "version": 1,
-            "sessions": sorted(
-                [session.to_json() for session in self.manager.sessions.values()],
-                key=lambda session: session["spec"]["languages"],
-            ),
+            "version": 2,
+            "sessions": {
+                language_server: session.to_json()
+                for language_server, session in self.manager.sessions.items()
+            },
         }
 
         errors = list(self.validator.iter_errors(response))
@@ -71,14 +71,18 @@ def add_handlers(nbapp):
     """ Add Language Server routes to the notebook server web application
     """
     lsp_url = ujoin(nbapp.base_url, "lsp")
-    re_langs = "(?P<language>.*)"
+    re_langservers = "(?P<language_server>.*)"
 
     opts = {"manager": nbapp.language_server_manager}
 
     nbapp.web_app.add_handlers(
         ".*",
         [
-            (lsp_url, LanguageServersHandler, opts),
-            (ujoin(lsp_url, re_langs), LanguageServerWebSocketHandler, opts),
+            (ujoin(lsp_url, "status"), LanguageServersHandler, opts),
+            (
+                ujoin(lsp_url, "ws", re_langservers),
+                LanguageServerWebSocketHandler,
+                opts,
+            ),
         ],
     )

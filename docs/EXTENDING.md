@@ -82,9 +82,9 @@ from jupyter_lsp import lsp_message_listener
 def load_jupyter_server_extension(nbapp):
 
     @lsp_message_listener("all")
-    async def my_listener(scope, message, languages, manager):
-        print("received a {} {} message about {}".format(
-          scope, message["method"], languages
+    async def my_listener(scope, message, language_server, manager):
+        print("received a {} {} message from {}".format(
+          scope, message["method"], language_server
         ))
 ```
 
@@ -95,5 +95,5 @@ def load_jupyter_server_extension(nbapp):
 Fine-grained controls are available as part of the Python API. Pass these as
 named arguments to `lsp_message_listener`.
 
-- `languages`: a regular expression of languages
+- `language_server`: a regular expression of language servers
 - `method`: a regular expression of LSP JSON-RPC method names

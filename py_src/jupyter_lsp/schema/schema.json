@@ -8,7 +8,7 @@
     },
     "current-version": {
       "description": "which version of the spec this implements",
-      "enum": [1],
+      "enum": [2],
       "title": "Spec Schema Version",
       "type": "number"
     },
@@ -163,11 +163,16 @@
     "servers-response": {
       "properties": {
         "sessions": {
-          "description": "a list of servers that are, could be, or were running",
-          "items": {
+          "description": "named server sessions that are, could be, or were running",
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/definitions/session"
+            }
+          },
+          "additionalProperties": {
             "$ref": "#/definitions/session"
           },
-          "type": "array"
+          "type": "object"
         },
         "version": {
           "$ref": "#/definitions/current-version"
