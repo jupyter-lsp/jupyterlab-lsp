@@ -30,9 +30,12 @@ def nblint():
         nb_text = nb_path.read_text()
         nb_node = nbformat.reads(nb_text, 4)
         changes = 0
+        has_empty = 0
         for cell in nb_node.cells:
             cell_type = cell["cell_type"]
             source = "".join(cell["source"])
+            if not source.strip():
+                has_empty += 1
             if cell_type == "markdown":
                 prettier = subprocess.Popen(
                     [
@@ -63,6 +66,13 @@ def nblint():
                 if new != source:
                     cell["source"] = new.splitlines(True)
                     changes += 1
+
+        if has_empty:
+            changes += 1
+            nb_node.cells = [
+                cell for cell in nb_node.cells if "".join(cell["source"]).strip()
+            ]
+
         if changes:
             with nb_path.open("w") as fpt:
                 nbformat.write(nb_node, fpt)
