@@ -31,10 +31,10 @@ jobs:
               - script: ${{ parameters.env_docs }} || ${{ parameters.env_docs }} || ${{ parameters.env_docs }}
                 displayName: docs dependencies
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm || jlpm || jlpm
+              - script: ${{ platform.activate }} jupyterlab-lsp &&  jlpm || jlpm || jlpm
                 displayName: install npm dependencies (for language servers)
 
-              - script: ${{ platform.activate }} python -m pip install -e . --no-deps --ignore-installed
+              - script: ${{ platform.activate }} jupyterlab-lsp && sspython -m pip install -e . --no-deps --ignore-installed
                 displayName: dev install python (for introspection)
 
               - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/docs.py
