@@ -260,7 +260,7 @@ python scripts/combine.py
 - If a test suite for a specific language fails it may indicate that you have no
   appropriate server language installed (see [LANGUAGESERVERS][])
 
-[languageservers]: ./docs/LANGUAGESERVERS.md
+[languageservers]: ./docs/Language%20Servers.ipynb
 
 - If you are seeing errors like `Element is blocked by .jp-Dialog`, caused by
   the JupyterLab _Build suggested_ dialog, (likely if you have been using
