@@ -114,7 +114,6 @@ class MessageListener(object):
 
             if method is None or re.match(self.method, method) is None:
                 return False
-        print("WANTS", self.language_server, language_server)
         return self.language_server is None or re.match(
             self.language_server, language_server
         )

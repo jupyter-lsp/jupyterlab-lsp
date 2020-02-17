@@ -163,22 +163,25 @@
     "servers-response": {
       "properties": {
         "sessions": {
-          "description": "named server sessions that are, could be, or were running",
-          "patternProperties": {
-            ".*": {
-              "$ref": "#/definitions/session"
-            }
-          },
-          "additionalProperties": {
-            "$ref": "#/definitions/session"
-          },
-          "type": "object"
+          "$ref": "#/definitions/sessions"
         },
         "version": {
           "$ref": "#/definitions/current-version"
         }
       },
       "required": ["sessions", "version"],
+      "type": "object"
+    },
+    "sessions": {
+      "description": "named server sessions that are, could be, or were running",
+      "patternProperties": {
+        ".*": {
+          "$ref": "#/definitions/session"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/session"
+      },
       "type": "object"
     },
     "session": {
