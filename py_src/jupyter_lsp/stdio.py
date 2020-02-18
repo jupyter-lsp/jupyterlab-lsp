@@ -94,7 +94,7 @@ class LspStdIoReader(LspStdIoBase):
                 else:
                     self.wake()
 
-                IOLoop.current().add_callback(self.queue.put, message)
+                IOLoop.current().add_callback(self.queue.put_nowait, message)
             except Exception:  # pragma: no cover
                 self.log.exception("%s couldn't enqueue message: %s", self, message)
                 await self.sleep()
