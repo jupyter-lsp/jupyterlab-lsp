@@ -11,11 +11,14 @@ Parts of this code are derived from:
 import asyncio
 import io
 import os
+from concurrent.futures import ThreadPoolExecutor
 from typing import Text
 
+from tornado.concurrent import run_on_executor
+from tornado.gen import convert_yielded
 from tornado.httputil import HTTPHeaders
-from tornado.queues import Queue
 from tornado.ioloop import IOLoop
+from tornado.queues import Queue
 from traitlets import Float, Instance, default
 from traitlets.config import LoggingConfigurable
 
@@ -26,6 +29,8 @@ class LspStdIoBase(LoggingConfigurable):
     """ Non-blocking, queued base for communicating with stdio Language Servers
     """
 
+    executor = None
+
     stream = Instance(io.BufferedIOBase, help="the stream to read/write")
     queue = Instance(Queue, help="queue to get/put")
 
@@ -35,6 +40,7 @@ class LspStdIoBase(LoggingConfigurable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.log.debug("%s initialized", self)
+        self.executor = ThreadPoolExecutor(max_workers=1)
 
     def close(self):
         self.stream.close()
@@ -99,12 +105,12 @@ class LspStdIoReader(LspStdIoBase):
         message = ""
         headers = HTTPHeaders()
 
-        line = self._readline()
+        line = await convert_yielded(self._readline())
 
         if line:
             while line and line.strip():
                 headers.parse_line(line)
-                line = self._readline()
+                line = await convert_yielded(self._readline())
 
             content_length = int(headers.get("content-length", "0"))
 
@@ -130,6 +136,7 @@ class LspStdIoReader(LspStdIoBase):
 
         return message
 
+    @run_on_executor
     def _readline(self) -> Text:
         """ Read a line (or immediately return None)
         """
@@ -143,7 +150,7 @@ class LspStdIoWriter(LspStdIoBase):
     """ Language Server stdio Writer
     """
 
-    async def write(self):
+    async def write(self) -> None:
         """ Write to a Language Server until it closes
         """
         while not self.stream.closed:
@@ -151,9 +158,13 @@ class LspStdIoWriter(LspStdIoBase):
             try:
                 body = message.encode("utf-8")
                 response = "Content-Length: {}\r\n\r\n{}".format(len(body), message)
-                self.stream.write(response.encode("utf-8"))
-                self.stream.flush()
+                await convert_yielded(self._write_one(response.encode("utf-8")))
             except Exception:  # pragma: no cover
                 self.log.exception("s couldn't write message: %s", self, response)
             finally:
                 self.queue.task_done()
+
+    @run_on_executor
+    def _write_one(self, message) -> None:
+        self.stream.write(message)
+        self.stream.flush()

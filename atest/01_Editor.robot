@@ -19,7 +19,8 @@ CSS
 
 Docker
     ${def} =    Set Variable    xpath://span[contains(@class, 'cm-string')][contains(text(), 'PLANET')]
-    Wait Until Keyword Succeeds  3x  100ms  Editor Shows Features for Language    Docker    Dockerfile    Diagnostics=Instruction has no arguments    Jump to Definition=${def}    Rename=${def}
+    Wait Until Keyword Succeeds    3x    100ms    Editor Shows Features for Language    Docker    Dockerfile    Diagnostics=Instruction has no arguments
+    ...    Jump to Definition=${def}    Rename=${def}
 
 JS
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
