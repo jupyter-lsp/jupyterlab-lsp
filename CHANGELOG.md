@@ -4,7 +4,7 @@
 
 - features
 
-  - opens a maximum of one WebSocket per language server ([#165][])
+  - opens a maximum of one WebSocket per language server ([#165][], [#199][])
   - lazy-loads language server protocol machinery ([#165][])
   - waits much longer for slow-starting language servers ([#165][])
   - cleans up documents, handlers, events, and signals more aggressively ([#165][])
@@ -21,6 +21,15 @@
     ([#165][])
 
 [#165]: https://github.com/krassowski/jupyterlab-lsp/pull/165
+
+## `jupyter-lsp 0.8.0` (unreleased)
+
+- breaking changes
+
+  - websockets are now serviced by implementation key, rather than language ([#199][])
+  - introduces schema version `2`, reporting status by server ([#199][])
+
+[#199]: https://github.com/krassowski/jupyterlab-lsp/pull/199
 
 ## `jupyter-lsp 0.7.0`
 
