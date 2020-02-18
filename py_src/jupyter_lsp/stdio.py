@@ -15,6 +15,7 @@ from typing import Text
 
 from tornado.httputil import HTTPHeaders
 from tornado.queues import Queue
+from tornado.ioloop import IOLoop
 from traitlets import Float, Instance, default
 from traitlets.config import LoggingConfigurable
 
@@ -87,7 +88,7 @@ class LspStdIoReader(LspStdIoBase):
                 else:
                     self.wake()
 
-                await self.queue.put(message)
+                IOLoop.current().add_callback(self.queue.put, message)
             except Exception:  # pragma: no cover
                 self.log.exception("%s couldn't enqueue message: %s", self, message)
                 await self.sleep()
