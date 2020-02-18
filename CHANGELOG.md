@@ -26,8 +26,9 @@
 
 - breaking changes
 
-  - websockets are now serviced by implementation key, rather than language ([#199][])
-  - introduces schema version `2`, reporting status by server ([#199][])
+  - websockets are now serviced by implementation key, rather than language
+    under `lsp/ws/<server key>` ([#199][])
+  - introduces schema version `2`, reporting status by server at `lsp/status` ([#199][])
 
 [#199]: https://github.com/krassowski/jupyterlab-lsp/pull/199
 
