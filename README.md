@@ -4,7 +4,7 @@
 
 > _This project is still maturing, but you are welcome to check it out, leave feedback and/or a PR_
 
-Quick Links: **[Installation](./Installation.ipynb) | [Configuring](./docs/Configuring.ipynb) | [Updating](#updating) | [Changelog](./CHANGELOG.md) | [Roadmap](./docs/Roadmap.ipynb) | [Contributing](./CONTRIBUTING.md) | [Extending](./docs/Extending.ipynb)**
+Quick Links: **[Installation](#installation) | [Configuring](./docs/Configuring.ipynb) | [Updating](#updating) | [Changelog](./CHANGELOG.md) | [Roadmap](./docs/Roadmap.ipynb) | [Contributing](./CONTRIBUTING.md) | [Extending](./docs/Extending.ipynb)**
 
 ## Features
 
@@ -78,12 +78,34 @@ Either:
 
 - JupyterLab >=1.1.4,<1.2
 - JupyterLab >=1.2.4,<1.3.0a0
+
+And:
+
 - Python 3.5+
 - nodejs 8+
 
 ## Installation
 
-For the current stable version:
+> For more extensive installation instructions, see the [documentation](./docs/Installation.ipynb).
+
+For the current stable version, the following steps are recommended.
+Use of a python `virtualenv` or a conda env is also recommended.
+
+1. install python 3
+
+   ```bash
+   conda install -c conda-forge python=3
+   # or
+   conda install -c conda-forge jupyterlab=1.2
+   ```
+
+1. install JupyterLab
+
+   ```bash
+   conda install -c conda-forge jupyterlab=1.2
+   # or
+   pip install jupyterlab=1.2
+   ```
 
 1. install the server extension:
 
@@ -91,13 +113,25 @@ For the current stable version:
    pip install --pre jupyter-lsp
    ```
 
-2. install the frontend extension:
+1. install `nodejs`
+
+   ```bash
+   conda install -c conda-forge nodejs
+   # or one of the following, as an administrator
+   choco install nodejs            # Windows with Chocolatey
+   sudo apt-get install nodejs     # Debian/Ubuntu
+   sudo brew install nodejs        # MacOS with Homebrew
+   sudo dnf install nodejs         # Fedora
+   sudo yum install nodejs         # RHEL/CentOS
+   ```
+
+1. install the frontend extension:
 
    ```bash
    jupyter labextension install @krassowski/jupyterlab-lsp
    ```
 
-3. install LSP servers for languages of your choice; for example, for Python
+1. install LSP servers for languages of your choice; for example, for Python
    ([pyls](https://github.com/palantir/python-language-server)) and
    R ([languageserver](https://github.com/REditorSupport/languageserver)) servers:
 
@@ -122,7 +156,7 @@ For the current stable version:
    Note: it may be worth visiting the repository of each server you install as
    many provide additional configuration options.
 
-4. (Optional, Linux/OSX-only) to enable opening files outside of the root
+1. (Optional, Linux/OSX-only) to enable opening files outside of the root
    directory (the place where you start JupyterLab), create `.lsp_symlink` and
    symlink your `/home`, or any other location which includes the files that you
    wish to make possible to open in there:
