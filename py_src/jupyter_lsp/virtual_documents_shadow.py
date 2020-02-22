@@ -1,9 +1,16 @@
 # flake8: noqa: W503
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from shutil import rmtree
 
+from tornado.concurrent import run_on_executor
+from tornado.gen import convert_yielded
+
 from .manager import lsp_message_listener
 from .paths import file_uri_to_path
+
+# TODO: make configurable
+MAX_WORKERS = 4
 
 
 def extract_or_none(obj, path):
@@ -16,11 +23,19 @@ def extract_or_none(obj, path):
 
 
 class EditableFile:
+    executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+
     def __init__(self, path):
         # Python 3.5 relict:
         self.path = Path(path) if isinstance(path, str) else path
-        self.lines = self.read_lines()
 
+    async def read(self):
+        self.lines = await convert_yielded(self.read_lines())
+
+    async def write(self):
+        return await convert_yielded(self.write_lines())
+
+    @run_on_executor
     def read_lines(self):
         # empty string required by the assumptions of the gluing algorithm
         lines = [""]
@@ -29,6 +44,11 @@ class EditableFile:
         except FileNotFoundError:
             pass
         return lines
+
+    @run_on_executor
+    def write_lines(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text("\n".join(self.lines))
 
     @staticmethod
     def trim(lines: list, character: int, side: int):
@@ -62,10 +82,6 @@ class EditableFile:
             + self.join(inner, after, needs_glue_right)
             + after[1 if needs_glue_right else None :]
         ) or [""]
-
-    def write(self):
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text("\n".join(self.lines))
 
     @property
     def full_range(self):
@@ -125,7 +141,9 @@ def setup_shadow_filesystem(virtual_documents_uri):
             return
 
         path = file_uri_to_path(uri)
-        file = EditableFile(path)
+        editable_file = EditableFile(path)
+
+        await editable_file.read()
 
         text = extract_or_none(document, ["text"])
 
@@ -148,10 +166,10 @@ def setup_shadow_filesystem(virtual_documents_uri):
             )
 
         for change in changes[:1]:
-            change_range = change.get("range", file.full_range)
-            file.apply_change(change["text"], **change_range)
+            change_range = change.get("range", editable_file.full_range)
+            editable_file.apply_change(change["text"], **change_range)
 
-        file.write()
+        await editable_file.write()
 
         return path
 

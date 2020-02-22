@@ -11,32 +11,46 @@ from ..virtual_documents_shadow import (
 )
 
 
-def test_read(tmp_path):
+@pytest.mark.asyncio
+async def test_read(tmp_path):
     path = tmp_path / "existing.py"
     path.write_text("a\ntest")
-    file = EditableFile(path)
-    assert file.lines == ["a", "test"]
 
+    editable_file = EditableFile(path)
+
+    await editable_file.read()
+
+    assert editable_file.lines == ["a", "test"]
+
+
+@pytest.mark.asyncio
+async def test_read_missing(tmp_path):
     path = tmp_path / "missing.py"
-    file = EditableFile(path)
-    assert file.lines == [""]
+    missing_file = EditableFile(path)
+
+    await missing_file.read()
+
+    assert missing_file.lines == [""]
 
 
-def test_apply_change(tmp_path):
+@pytest.mark.asyncio
+async def test_apply_change(tmp_path):
     # inserting text
     path = tmp_path / "test.py"
-    file = EditableFile(path)
-    file.apply_change("new\ntext", **file.full_range)
-    assert file.lines == ["new", "text"]
+    editable_file = EditableFile(path)
+    await editable_file.read()
+
+    editable_file.apply_change("new\ntext", **editable_file.full_range)
+    assert editable_file.lines == ["new", "text"]
 
     # modifying a range
-    file.apply_change(
+    editable_file.apply_change(
         "ves", start={"line": 1, "character": 0}, end={"line": 1, "character": 3}
     )
-    assert file.lines == ["new", "vest"]
+    assert editable_file.lines == ["new", "vest"]
 
-    file.apply_change("", **file.full_range)
-    assert file.lines == [""]
+    editable_file.apply_change("", **editable_file.full_range)
+    assert editable_file.lines == [""]
 
 
 def test_extract_or_none():
