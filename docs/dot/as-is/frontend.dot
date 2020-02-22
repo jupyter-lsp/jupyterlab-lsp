@@ -16,12 +16,15 @@ graph backend {
         WebSocketHandlers
     }
     subgraph cluster_lab { label="JupyterLab"
-        Plugin
-        StatusBar
+        subgraph cluster_singletons { label="Singletons"
+            Plugin
+            StatusBarItem
+            DiagnosticPanel
+            ConnectionManager
+            LanguageServerManager
+        }
         WidgetTrackers
-        DiagnosticPanel
-        ConnectionManager
-             
+        
         subgraph cluster_lang {label="Per Language"
             Connection
             MessageConnection
@@ -51,14 +54,14 @@ graph backend {
     
     {Connection CodeMirrors VirtualDocument VirtualEditor} -- Feature[lhead=cluster_features];
     Diagnostics -- DiagnosticPanel
-    Connection -- ConnectionManager
+    Connection -- ConnectionManager -- LanguageServerManager -- RestAPI
     CodeMirrors -- CodeMirrorAdapters -- WidgetAdapter
     WidgetAdapter -- VirtualEditor -- VirtualDocument
     WidgetTrackers -- {Plugin -- Widget} 
-    StatusBar -- Connection
-    Widget -- WidgetAdapter -- Plugin -- StatusBar -- RestAPI
+    StatusBarItem -- Connection
+    Widget -- WidgetAdapter -- Plugin -- StatusBarItem -- LanguageServerManager
     Widget -- CodeMirrors
-    Plugin -- ConnectionManager
+    Plugin -- {ConnectionManager LanguageServerManager}
     Connection -- MessageConnection -- WebSocket -- WebSocketHandlers
     {Keyboard Mouse} -- CodeMirrors
 }
