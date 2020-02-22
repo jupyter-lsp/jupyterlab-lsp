@@ -30,6 +30,9 @@
     under `lsp/ws/<server key>` ([#199][])
   - introduces schema version `2`, reporting status by server at `lsp/status` ([#199][])
 
+- bugfixes:
+  - handles language server reading/writing and shadow file operations in threads ([#199][])
+
 [#199]: https://github.com/krassowski/jupyterlab-lsp/pull/199
 
 ### `jupyter-lsp 0.7.0`
