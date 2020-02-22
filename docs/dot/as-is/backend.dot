@@ -4,19 +4,32 @@ graph backend {
     fontname="sans-serif"
     node[shape=none fontname="sans-serif"]
     edge[fontname="sans-serif"]
-    subgraph cluster_browser {
     graph[fontcolor=grey color=grey]
+
+    subgraph cluster_browser {
         label=Browser
         Clients
     }
+    
     subgraph cluster_notebook { label="Jupyter Server"
         subgraph cluster_lsp { label="LSP ServerExtension"
-            Sessions
             Manager[label="The\nLanguage\nServer\nManager"]
-            Handlers
+            Handlers    
             WebSockets
             SpecFinders
-            Specs
+            subgraph cluster_lsp { label="Per Language Server"
+                Spec
+                Session
+                subgraph cluster_read_thread { label="Reader Thread"
+                    Reader
+                }
+                subgraph cluster_write_thread { label="Writer Thread"
+                    Writer
+                }
+                subgraph cluster_ls_process { label="Subprocess"
+                    LanguageServer[label="Language\nServer"]
+                }
+            }
             Listeners
             RestAPI[label="The REST API"]
         }
@@ -37,12 +50,13 @@ graph backend {
             }
         }
     }
-
-    LanguageServers[label="Language\nServers"]
+    
     Clients -- {RestAPI PageConfig} -- Manager
-    Clients -- WebSockets -- Handlers -- Sessions -- LanguageServers
-    {Manager Traitlets EntryPoints} -- SpecFinders -- Specs
-    Specs -- Sessions
-    Sessions -- Listeners -- VirtualFiles
-    LanguageServers -- {RealFiles VirtualFiles}
+    Clients -- WebSockets -- Handlers -- Manager
+    Session -- {Reader Writer} -- LanguageServer
+    {Manager Traitlets EntryPoints} -- SpecFinders 
+    Manager -- {Spec Session}
+    Spec -- Session
+    Session -- Listeners -- VirtualFiles
+    LanguageServer -- {RealFiles VirtualFiles}
 }
