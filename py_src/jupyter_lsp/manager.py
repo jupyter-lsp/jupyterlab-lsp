@@ -1,5 +1,6 @@
 """ A configurable frontend for stdio-based Language Servers
 """
+import traceback
 from typing import Dict, Text, Tuple
 
 import entrypoints
@@ -181,6 +182,8 @@ class LanguageServerManager(LanguageServerManagerAPI):
                         "`{}`:\n{}"
                     ).format(ep.name, err)
                 )
+                traceback.print_exc()
+
                 continue
 
             errors = list(LANGUAGE_SERVER_SPEC_MAP.iter_errors(specs))

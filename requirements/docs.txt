@@ -2,6 +2,7 @@
 -r dev.txt
 graphviz
 nbsphinx
+pytest-check-links
 recommonmark
 sphinx
 sphinx_autodoc_typehints

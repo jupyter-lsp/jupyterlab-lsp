@@ -14,8 +14,8 @@ class VSCodeJSONLanguageServer(NodeModuleSpec):
             issues="https://github.com/vscode-langservers/{}/issues".format(key),
         ),
         install=dict(
-            npm="npm install {}".format(key),
-            yarn="yarn add {}".format(key),
-            jupyter="jupyter labextension link {}".format(key),
+            npm="npm install --save-dev {}".format(key),
+            yarn="yarn add --dev {}".format(key),
+            jlpm="jlpm add --dev {}".format(key),
         ),
     )

@@ -31,6 +31,12 @@ jobs:
               - script: ${{ parameters.env_docs }} || ${{ parameters.env_docs }} || ${{ parameters.env_docs }}
                 displayName: docs dependencies
 
+              - script: ${{ platform.activate }} jupyterlab-lsp &&  jlpm || jlpm || jlpm
+                displayName: install npm dependencies (for language servers)
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && python -m pip install -e . --no-deps --ignore-installed
+                displayName: dev install python (for introspection)
+
               - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/docs.py
                 displayName: build docs
 
@@ -39,3 +45,6 @@ jobs:
                 inputs:
                   targetPath: docs/_build
                   artifactName: Docs $(Build.BuildId)
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/docs.py --check --local-only
+                displayName: check local URLs in docs

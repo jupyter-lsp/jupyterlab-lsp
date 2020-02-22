@@ -1,11 +1,11 @@
 graph backend {
-    label="Back End as of 0.7.0"
+    label="Back End"
     splines="line"
     fontname="sans-serif"
     node[shape=none fontname="sans-serif"]
     edge[fontname="sans-serif"]
-    graph[fontcolor=grey color=grey]
     subgraph cluster_browser {
+    graph[fontcolor=grey color=grey]
         label=Browser
         Clients
     }
@@ -24,7 +24,7 @@ graph backend {
             PageConfig[label="The Page Config"]
         }
     }
-    
+
     subgraph cluster_files { label="Files"
         RealFiles[label="Real Files"]
         VirtualFiles[label="Virtual Files"]

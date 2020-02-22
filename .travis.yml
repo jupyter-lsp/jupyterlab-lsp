@@ -11,7 +11,7 @@ matrix:
     - python: '3.5'
     - python: '3.6'
     - python: '3.7'
-    - python: '3.8-dev'
+    - python: '3.8'
     - os: osx
       osx_image: xcode11
       language: shell
