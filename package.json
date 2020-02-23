@@ -3,7 +3,7 @@
   },
   "devDependencies": {
     "bash-language-server": "^1.6.1",
-    "dockerfile-language-server-nodejs": "^0.0.21",
+    "dockerfile-language-server-nodejs": "^0.0.22",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.1.0",
     "eslint-plugin-prettier": "^3.0.1",
