@@ -31,7 +31,7 @@ jobs:
               - script: ${{ parameters.env_docs }} || ${{ parameters.env_docs }} || ${{ parameters.env_docs }}
                 displayName: docs dependencies
 
-              - script: ${{ platform.activate }} && conda uninstall -y pytest-cov
+              - script: ${{ platform.activate }} jupyterlab-lsp && conda uninstall -y pytest-cov
                 displayName: remove coverage to prevent warning
 
               - script: ${{ platform.activate }} jupyterlab-lsp &&  jlpm || jlpm || jlpm
