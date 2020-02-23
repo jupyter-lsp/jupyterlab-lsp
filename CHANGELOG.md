@@ -11,6 +11,12 @@
   - ignores malformed diagnostic ranges, enabling markdown support ([#165][])
   - passes tests on Python 3.8 on Windows ([#165][])
 
+- bug fixes
+
+  - reports files are open only after installing all handlers to avoid missing messages ([#201][])
+
+[#201]: https://github.com/krassowski/jupyterlab-lsp/issues/201
+
 ### `lsp-ws-connection 0.4.0` (unreleased)
 
 - breaking changes
