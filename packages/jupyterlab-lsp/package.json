@@ -19,9 +19,7 @@
   "license": "BSD-3-Clause",
   "author": "Michał Krassowski",
   "files": [
-    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
-    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
-    "schema/*.json"
+    "{lib,style,schema,src}/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css,json,ts,tsx}"
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
