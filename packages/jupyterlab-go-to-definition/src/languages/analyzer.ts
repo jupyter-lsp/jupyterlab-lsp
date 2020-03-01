@@ -181,7 +181,7 @@ export abstract class LanguageAnalyzer {
     originToken: CodeEditor.IToken
   ): boolean {
     // Find tokens between token.offset and otherToken.offset.
-    let tokensSet = new Set();
+    let tokensSet = new Set<CodeEditor.IToken>();
 
     for (
       let offset = testedToken.offset + 1;

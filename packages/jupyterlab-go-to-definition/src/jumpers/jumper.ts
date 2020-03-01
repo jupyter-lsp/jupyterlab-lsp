@@ -324,13 +324,8 @@ export abstract class CodeJumper {
     callback: (msg: KernelMessage.IIOPubMessage) => any
   ) {
     let request = { code: code, stop_on_error: false, silent: true };
-    kernel.ready.then(() => {
-      let future = kernel.requestExecute(request);
-
-      future.onIOPub = callback;
-
-      return future.done;
-    });
+    let future = kernel.requestExecute(request);
+    future.onIOPub = callback;
   }
 
   protected jump_to_cross_file_reference(
