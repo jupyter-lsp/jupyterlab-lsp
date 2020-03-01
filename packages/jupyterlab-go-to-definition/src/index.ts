@@ -1,24 +1,32 @@
-import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
-import { ICommandPalette } from "@jupyterlab/apputils";
-import { INotebookTracker } from "@jupyterlab/notebook";
+import {
+  JupyterFrontEnd,
+  JupyterFrontEndPlugin
+} from '@jupyterlab/application';
+import { ICommandPalette } from '@jupyterlab/apputils';
+import { INotebookTracker } from '@jupyterlab/notebook';
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { IEditorTracker } from '@jupyterlab/fileeditor';
 import { ISettingRegistry } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 
-import { FileEditorJumper } from "./jumpers/fileeditor";
-import { NotebookJumper } from "./jumpers/notebook";
+import { FileEditorJumper } from './jumpers/fileeditor';
+import { NotebookJumper } from './jumpers/notebook';
 
-import { CodeMirrorExtension } from "./editors/codemirror";
-import { KeyModifier } from "./editors/editor";
-
+import { CodeMirrorExtension } from './editors/codemirror';
+import { KeyModifier } from './editors/editor';
 
 /**
  * The plugin registration information.
  */
 const plugin: JupyterFrontEndPlugin<void> = {
   id: '@krassowski/jupyterlab_go_to_definition:plugin',
-  requires: [IEditorTracker, INotebookTracker, ISettingRegistry, ICommandPalette, IDocumentManager],
+  requires: [
+    IEditorTracker,
+    INotebookTracker,
+    ISettingRegistry,
+    ICommandPalette,
+    IDocumentManager
+  ],
   activate: (
     app: JupyterFrontEnd,
     fileEditorTracker: IEditorTracker,
@@ -27,15 +35,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
     palette: ICommandPalette,
     documentManager: IDocumentManager
   ) => {
-
     CodeMirrorExtension.configure();
 
     fileEditorTracker.widgetAdded.connect((sender, widget) => {
-
       let fileEditor = widget.content;
 
       if (fileEditor.editor instanceof CodeMirrorEditor) {
-
         let jumper = new FileEditorJumper(widget, documentManager);
         let extension = new CodeMirrorExtension(fileEditor.editor, jumper);
 
@@ -44,7 +49,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
 
     notebookTracker.widgetAdded.connect((sender, widget) => {
-
       // btw: notebookTracker.currentWidget.content === notebook
       let jumper = new NotebookJumper(widget, documentManager);
       let notebook = widget.content;
@@ -57,33 +61,30 @@ const plugin: JupyterFrontEndPlugin<void> = {
       // more reasonable thing would be to create a PR with .onAddCell
       setTimeout(() => {
         // now (notebook.widgets.length is likely > 1)
-        notebook.widgets.every((cell) => {
-
+        notebook.widgets.every(cell => {
           let codemirror_editor = cell.editor as CodeMirrorEditor;
           let extension = new CodeMirrorExtension(codemirror_editor, jumper);
 
           extension.connect();
 
-          return true
+          return true;
         });
       }, 2000);
 
       // for that cells which will be added later:
       notebook.activeCellChanged.connect((notebook, cell) => {
-        if(cell === undefined)
-          return;
+        if (cell === undefined) return;
 
         let codemirror_editor = cell.editor as CodeMirrorEditor;
         let extension = new CodeMirrorExtension(codemirror_editor, jumper);
 
         extension.connect();
       });
-
     });
 
     function updateOptions(settings: ISettingRegistry.ISettings): void {
       let options = settings.composite;
-      Object.keys(options).forEach((key) => {
+      Object.keys(options).forEach(key => {
         if (key === 'modifier') {
           let modifier = options[key] as KeyModifier;
           CodeMirrorExtension.modifierKey = modifier;
@@ -108,20 +109,31 @@ const plugin: JupyterFrontEndPlugin<void> = {
       jumpNotebook: 'go-to-definition:notebook',
       jumpFileEditor: 'go-to-definition:file-editor',
       jumpBackNotebook: 'go-to-definition:notebook-back',
-      jumpBackFileEditor: 'go-to-definition:file-editor-back',
+      jumpBackFileEditor: 'go-to-definition:file-editor-back'
     };
 
     // Add the command to the palette.
-    palette.addItem({ command: cmdIds.jumpNotebook, category: 'Notebook Cell Operations' });
-    palette.addItem({ command: cmdIds.jumpBackNotebook, category: 'Notebook Cell Operations' });
-    palette.addItem({ command: cmdIds.jumpFileEditor, category: 'Text Editor' });
-    palette.addItem({ command: cmdIds.jumpBackFileEditor, category: 'Text Editor' });
+    palette.addItem({
+      command: cmdIds.jumpNotebook,
+      category: 'Notebook Cell Operations'
+    });
+    palette.addItem({
+      command: cmdIds.jumpBackNotebook,
+      category: 'Notebook Cell Operations'
+    });
+    palette.addItem({
+      command: cmdIds.jumpFileEditor,
+      category: 'Text Editor'
+    });
+    palette.addItem({
+      command: cmdIds.jumpBackFileEditor,
+      category: 'Text Editor'
+    });
 
     function isEnabled(tracker: any) {
       return (): boolean =>
-        tracker.currentWidget !== null
-        &&
-        tracker.currentWidget === app.shell.currentWidget
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget;
     }
 
     app.commands.addCommand(cmdIds.jumpNotebook, {
@@ -137,7 +149,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
         let position = editor.getCursorPosition();
         let token = editor.getTokenForPosition(position);
 
-        jumper.jump_to_definition({token, origin: null}, notebook.activeCellIndex)
+        jumper.jump_to_definition(
+          { token, origin: null },
+          notebook.activeCellIndex
+        );
       },
       isEnabled: isEnabled(notebookTracker)
     });
@@ -165,7 +180,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
         let position = editor.getCursorPosition();
         let token = editor.getTokenForPosition(position);
 
-        jumper.jump_to_definition({token, origin: null})
+        jumper.jump_to_definition({ token, origin: null });
       },
       isEnabled: isEnabled(fileEditorTracker)
     });
@@ -176,7 +191,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
         let fileEditorWidget = fileEditorTracker.currentWidget;
 
         let jumper = new FileEditorJumper(fileEditorWidget, documentManager);
-        jumper.jump_back()
+        jumper.jump_back();
       },
       isEnabled: isEnabled(fileEditorTracker)
     });
@@ -201,16 +216,13 @@ const plugin: JupyterFrontEndPlugin<void> = {
         selector: '.jp-FileEditor',
         keys: ['Alt O'],
         command: cmdIds.jumpBackFileEditor
-      },
+      }
     ];
 
-
     bindings.map(binding => app.commands.addKeyBinding(binding));
-
   },
   autoStart: true
 };
-
 
 /**
  * Export the plugin as default.

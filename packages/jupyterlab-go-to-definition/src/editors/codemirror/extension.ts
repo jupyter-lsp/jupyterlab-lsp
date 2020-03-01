@@ -1,13 +1,11 @@
-import CodeMirror from "codemirror";
+import CodeMirror from 'codemirror';
 
-import { CodeMirrorEditor } from "@jupyterlab/codemirror";
-import { CodeJumper } from "../../jumpers/jumper";
-import { IEditorExtension, KeyModifier } from "../editor";
-import { CodeMirrorTokensProvider } from "./tokens";
-
+import { CodeMirrorEditor } from '@jupyterlab/codemirror';
+import { CodeJumper } from '../../jumpers/jumper';
+import { IEditorExtension, KeyModifier } from '../editor';
+import { CodeMirrorTokensProvider } from './tokens';
 
 const HANDLERS_ON = '_go_to_are_handlers_on';
-
 
 function getModifierState(event: MouseEvent, modifierKey: string): boolean {
   // Note: Safari does not support getModifierState on MouseEvent, see:
@@ -17,7 +15,7 @@ function getModifierState(event: MouseEvent, modifierKey: string): boolean {
   // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/getModifierState
 
   if (event.getModifierState !== undefined) {
-    return event.getModifierState(modifierKey)
+    return event.getModifierState(modifierKey);
   }
 
   switch (modifierKey) {
@@ -32,10 +30,8 @@ function getModifierState(event: MouseEvent, modifierKey: string): boolean {
   }
 }
 
-
-
-export class CodeMirrorExtension extends CodeMirrorTokensProvider implements IEditorExtension {
-
+export class CodeMirrorExtension extends CodeMirrorTokensProvider
+  implements IEditorExtension {
   jumper: CodeJumper;
   static modifierKey: KeyModifier;
 
@@ -47,12 +43,10 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider implements IEd
   static configure() {
     // this option is used as a flag to determine if an instance of CodeMirror
     // has been assigned with a handler
-    CodeMirror.defineOption(HANDLERS_ON, false, () => {
-    });
+    CodeMirror.defineOption(HANDLERS_ON, false, () => {});
   }
 
   connect() {
-
     let editor = this.editor.editor;
 
     if (editor.getOption(HANDLERS_ON)) {
@@ -68,9 +62,11 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider implements IEd
       (editor: CodeMirror.Editor, event: MouseEvent) => {
         //codemirror_editor.addKeydownHandler()
         let target = event.target as HTMLElement;
-        const {button} = event;
-        if (button === 0 && getModifierState(event, CodeMirrorExtension.modifierKey as string)) {
-
+        const { button } = event;
+        if (
+          button === 0 &&
+          getModifierState(event, CodeMirrorExtension.modifierKey as string)
+        ) {
           const classes = ['cm-variable', 'cm-property'];
 
           if (classes.indexOf(target.className) !== -1) {
@@ -106,28 +102,31 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider implements IEd
 
     let cellTokens = this.editor.getTokens();
 
-    let typeFilterOn = (
-      target.className.includes('cm-variable')
-      ||
-      target.className.includes('cm-property')
-    );
+    let typeFilterOn =
+      target.className.includes('cm-variable') ||
+      target.className.includes('cm-property');
 
-    let lookupType = (
-      target.className.indexOf('cm-variable') !== -1
-        ? 'variable'
-        : 'property'
-    );
+    let lookupType =
+      target.className.indexOf('cm-variable') !== -1 ? 'variable' : 'property';
 
     let classFilter = 'cm-' + lookupType;
 
-    let usagesBeforeTarget = CodeMirrorExtension._countUsagesBefore(lookupName, target, classFilter, typeFilterOn);
+    let usagesBeforeTarget = CodeMirrorExtension._countUsagesBefore(
+      lookupName,
+      target,
+      classFilter,
+      typeFilterOn
+    );
 
     // select relevant token
     let token = null;
     let matchedTokensCount = 0;
     for (let j = 0; j < cellTokens.length; j++) {
       let testedToken = cellTokens[j];
-      if (testedToken.value === lookupName && (!typeFilterOn || lookupType === testedToken.type)) {
+      if (
+        testedToken.value === lookupName &&
+        (!typeFilterOn || lookupType === testedToken.type)
+      ) {
         matchedTokensCount += 1;
         if (matchedTokensCount - 1 === usagesBeforeTarget) {
           token = testedToken;
@@ -152,8 +151,12 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider implements IEd
     return token;
   }
 
-  static _countUsagesBefore(lookupName: string, target: Node, classFilter: string, classFilterOn: boolean) {
-
+  static _countUsagesBefore(
+    lookupName: string,
+    target: Node,
+    classFilter: string,
+    classFilterOn: boolean
+  ) {
     // count tokens with same value that occur before
     // (not all the tokens - to reduce the hurdle of
     // mapping DOM into tokens)
@@ -166,20 +169,19 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider implements IEd
     let max_iter = 10000;
 
     function stop_condition(node: Node) {
-      return !node || (node.nodeType == 1 && (node as HTMLElement).className.includes('CodeMirror-lines'))
+      return (
+        !node ||
+        (node.nodeType == 1 &&
+          (node as HTMLElement).className.includes('CodeMirror-lines'))
+      );
     }
 
     while (!stop_condition(sibling) && !sibling.isEqualNode(root) && max_iter) {
-
       if (
         sibling.textContent === lookupName &&
-        (
-          !classFilterOn ||
-          (
-            sibling.nodeType === 1 &&
-            (sibling as HTMLElement).className.includes(classFilter)
-          )
-        )
+        (!classFilterOn ||
+          (sibling.nodeType === 1 &&
+            (sibling as HTMLElement).className.includes(classFilter)))
       ) {
         usagesBeforeTarget += 1;
       }
@@ -187,7 +189,7 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider implements IEd
       let nextSibling = sibling.previousSibling;
 
       while (nextSibling == null) {
-        while(!sibling.previousSibling) {
+        while (!sibling.previousSibling) {
           sibling = sibling.parentNode;
           if (stop_condition(sibling)) {
             return usagesBeforeTarget;

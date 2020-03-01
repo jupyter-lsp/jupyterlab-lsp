@@ -1,11 +1,14 @@
-import { CodeEditor } from "@jupyterlab/codeeditor";
-import { LanguageWithOptionalSemicolons, TokenContext } from "./analyzer";
+import { CodeEditor } from '@jupyterlab/codeeditor';
+import { LanguageWithOptionalSemicolons, TokenContext } from './analyzer';
 import IToken = CodeEditor.IToken;
-import { PathExt } from "@jupyterlab/coreutils";
+import { PathExt } from '@jupyterlab/coreutils';
 
-
-function evaluateSkippingBrackets(tokens: ReadonlyArray<IToken>, indexShift: number, callback: Function, allowNegativeBrackets=false){
-
+function evaluateSkippingBrackets(
+  tokens: ReadonlyArray<IToken>,
+  indexShift: number,
+  callback: Function,
+  allowNegativeBrackets = false
+) {
   // here `nextToken` is any token, not necessarily a meaningful one
   let nextToken = tokens[indexShift];
 
@@ -23,23 +26,23 @@ function evaluateSkippingBrackets(tokens: ReadonlyArray<IToken>, indexShift: num
       // ignoring new-lines (when within brackets)
     } else if (openingBrackets.includes(nextToken.value)) {
       openedBrackets += 1;
-    } else if (closingBrackets.includes(nextToken.value) && (allowNegativeBrackets || openedBrackets > 0)) {
+    } else if (
+      closingBrackets.includes(nextToken.value) &&
+      (allowNegativeBrackets || openedBrackets > 0)
+    ) {
       openedBrackets -= 1;
     } else if (nextToken.value === ' ' || nextToken.value === '\t') {
       // ignoring whitespaces
     } else {
       let result = callback(nextToken, indexShift);
-      if (result !== undefined)
-        return result;
+      if (result !== undefined) return result;
     }
     indexShift += 1;
     nextToken = tokens[indexShift];
   }
 
   return false;
-
 }
-
 
 const python_setup = `
 import json
@@ -83,9 +86,7 @@ def jupyter_lab_consumable_path(path):
     }
 `;
 
-
 export class PythonAnalyzer extends LanguageWithOptionalSemicolons {
-
   // idea for improvement:
   //  rename Analyzer to RuleTester, define class Rule, make Rule instances take a callback on init,
   //  possibly add a string with rule's name (it could be displayed as "defined in >for< loop, line 9",
@@ -105,13 +106,12 @@ export class PythonAnalyzer extends LanguageWithOptionalSemicolons {
   isStandaloneAssignment(siblings: TokenContext) {
     let { next } = siblings;
 
-    return next.exists && this.isAssignment(next)
+    return next.exists && this.isAssignment(next);
   }
 
-  _is_magic_switch(candidate: TokenContext, key: string, max_args=20) {
-
+  _is_magic_switch(candidate: TokenContext, key: string, max_args = 20) {
     while (max_args && candidate.exists) {
-      if(candidate.value === key && candidate.simple_previous === '-') {
+      if (candidate.value === key && candidate.simple_previous === '-') {
         break;
       }
       candidate = candidate.previous;
@@ -121,21 +121,25 @@ export class PythonAnalyzer extends LanguageWithOptionalSemicolons {
     let is_switch = max_args !== 0;
 
     return {
-      'is_switch': is_switch,
-      'switch': is_switch ? candidate : null
+      is_switch: is_switch,
+      switch: is_switch ? candidate : null
     };
   }
 
-  _is_magic_export(context: TokenContext, magic: string, export_arg: string, nargs: number = 1) {
+  _is_magic_export(
+    context: TokenContext,
+    magic: string,
+    export_arg: string,
+    nargs: number = 1
+  ) {
     let { previous } = context;
 
     let switch_test = this._is_magic_switch(previous, export_arg, nargs);
-    if (!switch_test.is_switch)
-      return false;
+    if (!switch_test.is_switch) return false;
 
     let magic_token = switch_test.switch.previous.previous;
     let percent = magic_token.simple_previous;
-    return magic_token.value === magic && percent === '%'
+    return magic_token.value === magic && percent === '%';
   }
 
   // IPython %store -r magic:
@@ -155,11 +159,10 @@ export class PythonAnalyzer extends LanguageWithOptionalSemicolons {
       previous.exists &&
       previous.type === 'keyword' &&
       previous.value === 'import'
-    )
+    );
   }
 
   isCrossFileReference(context: TokenContext): boolean {
-
     // from a import b; from a.b import c
 
     let previous = context.previous;
@@ -170,22 +173,20 @@ export class PythonAnalyzer extends LanguageWithOptionalSemicolons {
 
     if (
       previous.exists &&
-        previous.type == 'keyword' &&
-        previous.value == 'from' &&
+      previous.type == 'keyword' &&
+      previous.value == 'from' &&
       next.exists &&
-        next.type === 'keyword' &&
-        next.value === 'import'
+      next.type === 'keyword' &&
+      next.value === 'import'
     )
       return true;
-
 
     // import x, import a.b
 
     let before_previous = previous.previous.previous;
 
     if (
-      this.isImport(previous.next)
-      &&
+      this.isImport(previous.next) &&
       !(
         before_previous.exists &&
         before_previous.type === 'keyword' &&
@@ -199,7 +200,7 @@ export class PythonAnalyzer extends LanguageWithOptionalSemicolons {
 
   supportsKernel = true;
 
-  _breadcrumbs(context: TokenContext, allow_import_dots_upfront=false) {
+  _breadcrumbs(context: TokenContext, allow_import_dots_upfront = false) {
     let { previous, token } = context;
 
     let parts: string[] = [];
@@ -214,10 +215,10 @@ export class PythonAnalyzer extends LanguageWithOptionalSemicolons {
     if (allow_import_dots_upfront) {
       // relative imports
       if (previous.simple_previous === '.') {
-        parts.push('')
+        parts.push('');
       }
       if (previous.simple_previous === '..') {
-        parts.push('.')
+        parts.push('.');
       }
     }
 
@@ -225,20 +226,21 @@ export class PythonAnalyzer extends LanguageWithOptionalSemicolons {
 
     parts.push(token.value);
 
-    return parts
+    return parts;
   }
 
   _imports_breadcrumbs(context: TokenContext) {
-    return this._breadcrumbs(context, true)
+    return this._breadcrumbs(context, true);
   }
-
 
   definitionLocationQuery(context: TokenContext) {
     let parts = this._breadcrumbs(context);
-    let value  = parts.join('.');
+    let value = parts.join('.');
 
-    if(/^[a-zA-Z_.]+$/.test(value)) {
-      return python_setup + `
+    if (/^[a-zA-Z_.]+$/.test(value)) {
+      return (
+        python_setup +
+        `
 
 def _extract_object(breadcrumbs, available_objects):
     obj = available_objects[breadcrumbs[0]]
@@ -282,22 +284,25 @@ def _locate_definition(name):
         **jupyter_lab_consumable_path(path)
     } 
 
-print(json.dumps(_locate_definition('` + value + `')), end='')
+print(json.dumps(_locate_definition('` +
+        value +
+        `')), end='')
 `
-
+      );
     }
   }
 
   referencePathQuery(context: TokenContext) {
-
     let parts = this._imports_breadcrumbs(context);
-    let value  = parts.join('.');
+    let value = parts.join('.');
 
     // TODO: recognize Python version and return no query (or another Python2-compatible query)
 
-    if(/^[a-zA-Z_.]+$/.test(value)) {
+    if (/^[a-zA-Z_.]+$/.test(value)) {
       // just in case to prevent arbitrary execution
-      return python_setup + `
+      return (
+        python_setup +
+        `
 def _get_path(value):
     """Returns (path, is_sym_link) tuple"""
     from importlib.util import find_spec
@@ -306,15 +311,18 @@ def _get_path(value):
 
     return jupyter_lab_consumable_path(path)
 
-print(json.dumps(_get_path('` + value + `')), end='')
+print(json.dumps(_get_path('` +
+        value +
+        `')), end='')
 `
+      );
     }
   }
 
   guessReferencePath(context: TokenContext) {
     let parts = this._imports_breadcrumbs(context);
     let prefix = parts.join('/');
-    return [prefix + '.py', PathExt.join(prefix, '__init__.py')]
+    return [prefix + '.py', PathExt.join(prefix, '__init__.py')];
   }
 
   // Matching `as`:
@@ -322,10 +330,8 @@ print(json.dumps(_get_path('` + value + `')), end='')
   isWithStatement(context: TokenContext) {
     let { previous } = context;
     return (
-      previous.exists &&
-      previous.type === 'keyword' &&
-      previous.value === 'as'
-    )
+      previous.exists && previous.type === 'keyword' && previous.value === 'as'
+    );
   }
 
   // Matching `for` loop and comprehensions:
@@ -338,7 +344,7 @@ print(json.dumps(_get_path('` + value + `')), end='')
       next.exists &&
       next.type === 'keyword' &&
       next.value === 'in'
-    )
+    );
   }
 
   isTupleUnpacking(context: TokenContext) {
@@ -351,28 +357,32 @@ print(json.dumps(_get_path('` + value + `')), end='')
     // or an opening bracket (for simplicity brackets can be ignored).
     let commaExpected = true;
 
-    return evaluateSkippingBrackets(tokens, index + 1, (nextToken: IToken, indexShift: number) => {
+    return evaluateSkippingBrackets(
+      tokens,
+      index + 1,
+      (nextToken: IToken, indexShift: number) => {
+        if (nextToken.type === 'operator' && nextToken.value === '=') {
+          let lastToken: IToken;
 
-      if (nextToken.type === 'operator' && nextToken.value === '=') {
+          evaluateSkippingBrackets(
+            tokens,
+            indexShift + 1,
+            (nextToken: IToken) => {
+              lastToken = nextToken;
+            }
+          );
 
-        let lastToken: IToken;
+          // return true unless in a function call
+          if (!lastToken || lastToken.value !== ')') return true;
+        }
 
-        evaluateSkippingBrackets(tokens, indexShift + 1, (nextToken: IToken) => {
-          lastToken = nextToken
-        });
+        if (commaExpected && nextToken.value !== ',') {
+          return false;
+        }
 
-        // return true unless in a function call
-        if ((!lastToken || lastToken.value !== ')'))
-          return true;
-
-      }
-
-      if (commaExpected && nextToken.value !== ',') {
-        return false
-      }
-
-      commaExpected = !commaExpected;
-    }, true);
-
+        commaExpected = !commaExpected;
+      },
+      true
+    );
   }
 }

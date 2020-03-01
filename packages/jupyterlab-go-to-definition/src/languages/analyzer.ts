@@ -1,13 +1,10 @@
-import { CodeEditor } from "@jupyterlab/codeeditor";
-import { ITokensProvider } from "../editors/editor";
-
+import { CodeEditor } from '@jupyterlab/codeeditor';
+import { ITokensProvider } from '../editors/editor';
 
 export type RuleFunction = (context: TokenContext) => boolean;
 export type QueryFunction = (context: TokenContext) => string[];
 
-
 export class TokenContext implements CodeEditor.IToken {
-
   // ReadonlyArray ?
   tokens: Array<CodeEditor.IToken>;
 
@@ -17,46 +14,66 @@ export class TokenContext implements CodeEditor.IToken {
 
   index: number;
 
-  constructor(token: CodeEditor.IToken, tokens: Array<CodeEditor.IToken>, index: number) {
+  constructor(
+    token: CodeEditor.IToken,
+    tokens: Array<CodeEditor.IToken>,
+    index: number
+  ) {
     this.token = token;
     this.index = index;
     this.tokens = tokens;
   }
 
   get simple_next() {
-    return this.index + 1 < this.tokens.length ? this.tokens[this.index + 1].value : null
+    return this.index + 1 < this.tokens.length
+      ? this.tokens[this.index + 1].value
+      : null;
   }
 
   get simple_previous() {
-    return this.index - 1 >= 0 ? this.tokens[this.index - 1].value : null
+    return this.index - 1 >= 0 ? this.tokens[this.index - 1].value : null;
   }
 
   get previous() {
-    if(!this._previous) {
-      let {token, index} = _closestMeaningfulTokenWithIndex(this.index, this.tokens, -1);
+    if (!this._previous) {
+      let { token, index } = _closestMeaningfulTokenWithIndex(
+        this.index,
+        this.tokens,
+        -1
+      );
       // TODO: null!!
-      this._previous = new TokenContext(token, this.tokens, index)
+      this._previous = new TokenContext(token, this.tokens, index);
     }
     return this._previous;
   }
 
   get next() {
-    if(!this._next) {
-      let {token, index} = _closestMeaningfulTokenWithIndex(this.index, this.tokens, +1);
-      this._next = new TokenContext(token, this.tokens, index)
+    if (!this._next) {
+      let { token, index } = _closestMeaningfulTokenWithIndex(
+        this.index,
+        this.tokens,
+        +1
+      );
+      this._next = new TokenContext(token, this.tokens, index);
     }
     return this._next;
   }
 
-  get value() { return this.token ? this.token.value : undefined; }
-  get type() { return this.token.type; }
-  get offset() { return this.token.offset; }
-  get exists() { return !!this.token }
+  get value() {
+    return this.token ? this.token.value : undefined;
+  }
+  get type() {
+    return this.token.type;
+  }
+  get offset() {
+    return this.token.offset;
+  }
+  get exists() {
+    return !!this.token;
+  }
 }
 
-
 export abstract class LanguageAnalyzer {
-
   tokens: Array<CodeEditor.IToken>;
   tokensProvider: ITokensProvider;
   supportsKernel = false;
@@ -85,7 +102,7 @@ export abstract class LanguageAnalyzer {
   }
 
   definitionLocationQuery(context: TokenContext) {
-    return ''
+    return '';
   }
 
   _maybe_setup_tokens() {
@@ -96,13 +113,16 @@ export abstract class LanguageAnalyzer {
 
   _get_token_index(token: CodeEditor.IToken) {
     this._maybe_setup_tokens();
-    return this.tokens.findIndex(t => (t.value == token.value && t.offset == token.offset && t.type == token.type))
+    return this.tokens.findIndex(
+      t =>
+        t.value == token.value &&
+        t.offset == token.offset &&
+        t.type == token.type
+    );
   }
 
   isDefinition(token: CodeEditor.IToken, i: number) {
-
     if (token.type === 'variable') {
-
       let token_context = new TokenContext(token, this.tokens, i);
 
       let isVariableDefinition: RuleFunction;
@@ -134,9 +154,9 @@ export abstract class LanguageAnalyzer {
   getDefinitions(variable: string) {
     this.tokens = this.tokensProvider.getTokens();
 
-    return Array.from(this.tokens)
-    .filter(
-      (token, i) => this.nameMatches(variable, token) && this.isDefinition(token, i)
+    return Array.from(this.tokens).filter(
+      (token, i) =>
+        this.nameMatches(variable, token) && this.isDefinition(token, i)
     );
   }
 
@@ -183,8 +203,8 @@ export abstract class LanguageAnalyzer {
       return false;
     }
 
-    let firstAssignment = assignments.sort(
-      (a, b) => (a.offset > b.offset ? 1 : -1)
+    let firstAssignment = assignments.sort((a, b) =>
+      a.offset > b.offset ? 1 : -1
     )[0];
 
     // Select terminating tokens:
@@ -201,12 +221,12 @@ export abstract class LanguageAnalyzer {
     return false;
   }
 
-  abstract _selectTerminatingTokens(tokens: Array<CodeEditor.IToken>): Array<CodeEditor.IToken>
+  abstract _selectTerminatingTokens(
+    tokens: Array<CodeEditor.IToken>
+  ): Array<CodeEditor.IToken>;
 }
 
-
 export abstract class LanguageWithOptionalSemicolons extends LanguageAnalyzer {
-
   _selectTerminatingTokens(tokens: Array<CodeEditor.IToken>) {
     // terminating tokens are:
     // semicolons and new lines (which are locally outside of brackets)
@@ -258,10 +278,9 @@ export abstract class LanguageWithOptionalSemicolons extends LanguageAnalyzer {
   }
 }
 
-
 interface TokenWithIndex {
-  index: number,
-  token: CodeEditor.IToken
+  index: number;
+  token: CodeEditor.IToken;
 }
 
 export function _closestMeaningfulTokenWithIndex(
@@ -273,12 +292,12 @@ export function _closestMeaningfulTokenWithIndex(
   while (nextMeaningfulToken == null) {
     tokenIndex += direction;
     if (tokenIndex < 0 || tokenIndex >= tokens.length) {
-      return {index: null, token: null};
+      return { index: null, token: null };
     }
     let nextToken = tokens[tokenIndex];
     if (nextToken.type !== '') {
       nextMeaningfulToken = nextToken;
     }
   }
-  return {index: tokenIndex, token: nextMeaningfulToken};
+  return { index: tokenIndex, token: nextMeaningfulToken };
 }

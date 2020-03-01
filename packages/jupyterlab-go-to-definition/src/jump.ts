@@ -1,5 +1,4 @@
-import { CodeEditor } from "@jupyterlab/codeeditor";
-
+import { CodeEditor } from '@jupyterlab/codeeditor';
 
 export interface IJump {
   /**
@@ -18,7 +17,6 @@ export interface IJump {
   mouseEvent?: MouseEvent;
 }
 
-
 export interface IJumpPosition {
   /**
    * The token of origin (variable/function usage).
@@ -29,7 +27,6 @@ export interface IJumpPosition {
    */
   index?: number;
 }
-
 
 export interface IGlobalJump {
   /**
