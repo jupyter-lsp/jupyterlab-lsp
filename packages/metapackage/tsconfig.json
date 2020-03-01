@@ -6,5 +6,16 @@
     "types": ["jest"],
     "tsBuildInfoFile": "lib/.tsbuildinfo"
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "references": [
+    {
+      "path": "../jupyterlab-lsp"
+    },
+    {
+      "path": "../lsp-ws-connection"
+    },
+    {
+      "path": "../jupyterlab-go-to-definition"
+    }
+  ]
 }
