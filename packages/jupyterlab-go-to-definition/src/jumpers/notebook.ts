@@ -27,7 +27,7 @@ export class NotebookJumper extends CodeJumper {
   }
 
   get kernel(): Kernel.IKernelConnection {
-    return this.widget.context.sessionContext.session.kernel;
+    return this.widget.context.sessionContext.session?.kernel;
   }
 
   get cwd() {
