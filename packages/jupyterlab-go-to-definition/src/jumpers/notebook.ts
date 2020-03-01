@@ -1,5 +1,5 @@
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
-import { nbformat } from '@jupyterlab/coreutils';
+import * as nbformat from '@jupyterlab/nbformat';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 
 import { CodeJumper, jumpers } from './jumper';
