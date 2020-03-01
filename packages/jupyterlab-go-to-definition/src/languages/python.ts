@@ -35,7 +35,9 @@ function evaluateSkippingBrackets(
       // ignoring whitespaces
     } else {
       let result = callback(nextToken, indexShift);
-      if (result !== undefined) return result;
+      if (result !== undefined) {
+        return result;
+      }
     }
     indexShift += 1;
     nextToken = tokens[indexShift];
@@ -135,7 +137,9 @@ export class PythonAnalyzer extends LanguageWithOptionalSemicolons {
     let { previous } = context;
 
     let switch_test = this._is_magic_switch(previous, export_arg, nargs);
-    if (!switch_test.is_switch) return false;
+    if (!switch_test.is_switch) {
+      return false;
+    }
 
     let magic_token = switch_test.switch.previous.previous;
     let percent = magic_token.simple_previous;
@@ -173,13 +177,14 @@ export class PythonAnalyzer extends LanguageWithOptionalSemicolons {
 
     if (
       previous.exists &&
-      previous.type == 'keyword' &&
-      previous.value == 'from' &&
+      previous.type === 'keyword' &&
+      previous.value === 'from' &&
       next.exists &&
       next.type === 'keyword' &&
       next.value === 'import'
-    )
+    ) {
       return true;
+    }
 
     // import x, import a.b
 
@@ -192,8 +197,9 @@ export class PythonAnalyzer extends LanguageWithOptionalSemicolons {
         before_previous.type === 'keyword' &&
         before_previous.value === 'from'
       )
-    )
+    ) {
       return true;
+    }
 
     return false;
   }
@@ -282,7 +288,7 @@ def _locate_definition(name):
         'input_number': input_number,
         'column': len(source[0]) - len(source[0].lstrip()),
         **jupyter_lab_consumable_path(path)
-    } 
+    }
 
 print(json.dumps(_locate_definition('` +
         value +
@@ -373,7 +379,9 @@ print(json.dumps(_get_path('` +
           );
 
           // return true unless in a function call
-          if (!lastToken || lastToken.value !== ')') return true;
+          if (!lastToken || lastToken.value !== ')') {
+            return true;
+          }
         }
 
         if (commaExpected && nextToken.value !== ',') {

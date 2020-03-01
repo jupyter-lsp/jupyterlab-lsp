@@ -143,7 +143,9 @@ export class NotebookJumper extends CodeJumper {
 
   jump_back() {
     let previous_position = this.history.recollect();
-    if (previous_position) this.jump(previous_position);
+    if (previous_position) {
+      this.jump(previous_position);
+    }
   }
 
   getOffset(position: CodeEditor.IPosition, cell: number = 0) {

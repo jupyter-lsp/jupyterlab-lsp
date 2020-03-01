@@ -9,7 +9,7 @@ export function matchToken(
   tokenType = 'variable'
 ): CodeEditor.IToken {
   let matchedTokens = tokens.filter(
-    token => token.value == tokenName && token.type == tokenType
+    token => token.value === tokenName && token.type === tokenType
   );
   return matchedTokens[tokenOccurrence - 1];
 }
@@ -41,7 +41,9 @@ export class Jumper extends CodeJumper {
     this.editor.setSelection({ start: position, end: position });
   }
 
-  jump(position: IJumpPosition): void {}
+  jump(position: IJumpPosition): void {
+    // nothing here yet
+  }
   getOffset(position: CodeEditor.IPosition, cell?: number): number {
     return 0;
   }

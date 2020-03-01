@@ -59,8 +59,9 @@ y = a`;
 
       let node = editor.host;
 
-      while (node.className !== 'cm-variable')
+      while (node.className !== 'cm-variable') {
         node = node.lastElementChild as HTMLElement;
+      }
 
       // sanity checks
       expect(node.innerHTML).to.be.equal('a');

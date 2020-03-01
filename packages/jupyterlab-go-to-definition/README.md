@@ -18,12 +18,14 @@ Support for other languages is possible (PRs welcome).
 #### Jumping to definitions in other files
 
 Python:
- - alt-click on the name of a module in Python (e.g. `from x.y import z` - alt-click on `x` or `z`) (new in v0.5)
- - alt-click on a class, function or method imported from any module (except for builtin modules written in C as such do not have a corresponding Python source file) **in a notebook with active Python 3 kernel** (new in v0.6)
+
+- alt-click on the name of a module in Python (e.g. `from x.y import z` - alt-click on `x` or `z`) (new in v0.5)
+- alt-click on a class, function or method imported from any module (except for builtin modules written in C as such do not have a corresponding Python source file) **in a notebook with active Python 3 kernel** (new in v0.6)
 
 R (new in v0.5):
- - alt-click on `source` function (e.g. alt-clicking on `source` in `source('test.R')` will open `test.R` file)
- - alt-click on `.from` of `import::here(x, y, .from='some_file.R')`
+
+- alt-click on `source` function (e.g. alt-clicking on `source` in `source('test.R')` will open `test.R` file)
+- alt-click on `.from` of `import::here(x, y, .from='some_file.R')`
 
 Background: there are two ways to solve the definitions location: static analysis and inspection performed in the kernel. The latter is more accurate, although it currently only works in notebooks (not in the file editor). For the implementation overview, please see [the design page](https://github.com/krassowski/jupyterlab-go-to-definition/wiki). In order to jump to a file outside of the JupyterLab project directory (e.g. the built-in Python libraries) a [symlink-based workaround is required](https://github.com/krassowski/jupyterlab-go-to-definition#symlink-workaround-jump-to-any-file-outside-of-the-project-root).
 
@@ -39,7 +41,7 @@ Safari users: Safari does not implement `MouseEvent.getModifierState` (see [#3](
 
 ## Prerequisites
 
-* JupyterLab 1.0+
+- JupyterLab 1.0+
 
 ## Installation
 
@@ -82,22 +84,22 @@ Support for new languages should be provided by implementation of abstract `Lang
 
 Each new language class needs to be included in `chooseLanguageAnalyzer` function and the developer needs to verify if `setLanguageFromMime` in `fileeditor.ts` will be able to recognize the language properly.
 
-
-
 ## Symlink workaround (jump to any file outside of the project root)
 
 JupyterLab attempts to protect users from accessing system files by restricting the accessible files to those within the directory it was started in (so called project root). If you wish to jump to files outside of the project root, you cold use a symlink workaround as follows:
-  1. create `.jupyter_symlinks` in the top directory of your JupyterLab project, and
-  2. symlink your `home`, `usr`, or any other location which includes the files that you wish to make possible to open in there. The Linux following commands demonstrate the idea:
 
-  ```bash
-  mkdir .jupyter_symlinks
-  cd .jupyter_symlinks
-  ln -s /home home
-  ln -s /usr usr
-  ```
+1. create `.jupyter_symlinks` in the top directory of your JupyterLab project, and
+2. symlink your `home`, `usr`, or any other location which includes the files that you wish to make possible to open in there. The Linux following commands demonstrate the idea:
+
+```bash
+mkdir .jupyter_symlinks
+cd .jupyter_symlinks
+ln -s /home home
+ln -s /usr usr
+```
 
 ### Which directories to symlink?
+
 To find out which paths you need to symlink for Python you could run `python3 -v` which will list where are the specific built-in modules imported from. Look out for lines like these:
 
 ```python

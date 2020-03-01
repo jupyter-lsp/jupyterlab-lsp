@@ -24,7 +24,7 @@ export class RAnalyzer extends LanguageWithOptionalSemicolons {
       (next.exists && this.isAssignment(next)) ||
       // rightwards assignments:
       (previous.exists &&
-        previous.type == 'operator arrow' &&
+        previous.type === 'operator arrow' &&
         (previous.value === '->' || previous.value === '->>'))
     );
   }
@@ -37,19 +37,21 @@ export class RAnalyzer extends LanguageWithOptionalSemicolons {
       previous.exists &&
       previous.type === 'variable' &&
       (previous.value === 'library' || previous.value === 'require')
-    )
+    ) {
       return true;
+    }
 
     previous = this.traverse_left(previous, ', ');
 
     if (
       previous.exists &&
-      previous.value == 'here' &&
-      previous.type == 'variable' &&
-      previous.previous.value == '::' &&
+      previous.value === 'here' &&
+      previous.type === 'variable' &&
+      previous.previous.value === '::' &&
       previous.previous.previous.value === 'import'
-    )
+    ) {
       return true;
+    }
 
     return false;
   }
@@ -69,7 +71,9 @@ export class RAnalyzer extends LanguageWithOptionalSemicolons {
 
   guessReferencePath(context: TokenContext) {
     let { next } = context;
-    if (context.value == 'source') return [next.next.value.slice(0, -1)];
+    if (context.value === 'source') {
+      return [next.next.value.slice(0, -1)];
+    }
 
     // TODO for now only works when alt-clicking on ".from"
     // ideally clicking on the file name would be preferred
@@ -82,15 +86,18 @@ export class RAnalyzer extends LanguageWithOptionalSemicolons {
     let { next } = context;
 
     if (
-      context.type == 'variable' &&
-      context.value == 'source' &&
+      context.type === 'variable' &&
+      context.value === 'source' &&
       next.exists &&
       (next.value === "'" || next.value === '"') &&
       next.next.exists
-    )
+    ) {
       return true;
+    }
 
-    if (this.isImport(context.previous)) return true;
+    if (this.isImport(context.previous)) {
+      return true;
+    }
 
     return false;
   }

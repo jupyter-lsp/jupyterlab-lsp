@@ -115,9 +115,9 @@ export abstract class LanguageAnalyzer {
     this._maybe_setup_tokens();
     return this.tokens.findIndex(
       t =>
-        t.value == token.value &&
-        t.offset == token.offset &&
-        t.type == token.type
+        t.value === token.value &&
+        t.offset === token.offset &&
+        t.type === token.type
     );
   }
 
@@ -278,7 +278,7 @@ export abstract class LanguageWithOptionalSemicolons extends LanguageAnalyzer {
   }
 }
 
-interface TokenWithIndex {
+interface ITokenWithIndex {
   index: number;
   token: CodeEditor.IToken;
 }
@@ -287,7 +287,7 @@ export function _closestMeaningfulTokenWithIndex(
   tokenIndex: number,
   tokens: Array<CodeEditor.IToken>,
   direction: number
-): TokenWithIndex {
+): ITokenWithIndex {
   let nextMeaningfulToken = null;
   while (nextMeaningfulToken == null) {
     tokenIndex += direction;

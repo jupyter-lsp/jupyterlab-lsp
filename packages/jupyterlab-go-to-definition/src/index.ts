@@ -73,7 +73,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
       // for that cells which will be added later:
       notebook.activeCellChanged.connect((notebook, cell) => {
-        if (cell === undefined) return;
+        if (cell === undefined) {
+          return;
+        }
 
         let codemirror_editor = cell.editor as CodeMirrorEditor;
         let extension = new CodeMirrorExtension(codemirror_editor, jumper);

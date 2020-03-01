@@ -27,6 +27,8 @@ function getModifierState(event: MouseEvent, modifierKey: string): boolean {
       return event.ctrlKey;
     case 'Meta':
       return event.metaKey;
+    default:
+      console.warn(`unknown modified key ${modifierKey}`);
   }
 }
 
@@ -43,7 +45,9 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider
   static configure() {
     // this option is used as a flag to determine if an instance of CodeMirror
     // has been assigned with a handler
-    CodeMirror.defineOption(HANDLERS_ON, false, () => {});
+    CodeMirror.defineOption(HANDLERS_ON, false, () => {
+      // nothing here yet
+    });
   }
 
   connect() {
@@ -60,7 +64,7 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider
       editor,
       'mousedown',
       (editor: CodeMirror.Editor, event: MouseEvent) => {
-        //codemirror_editor.addKeydownHandler()
+        // codemirror_editor.addKeydownHandler()
         let target = event.target as HTMLElement;
         const { button } = event;
         if (
@@ -171,7 +175,7 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider
     function stop_condition(node: Node) {
       return (
         !node ||
-        (node.nodeType == 1 &&
+        (node.nodeType === 1 &&
           (node as HTMLElement).className.includes('CodeMirror-lines'))
       );
     }
@@ -196,7 +200,7 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider
           }
         }
         sibling = sibling.previousSibling;
-        while (sibling.lastChild && sibling.textContent != lookupName) {
+        while (sibling.lastChild && sibling.textContent !== lookupName) {
           sibling = sibling.lastChild;
         }
         nextSibling = sibling;

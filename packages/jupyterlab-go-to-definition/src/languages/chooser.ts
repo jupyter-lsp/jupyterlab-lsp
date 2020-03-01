@@ -5,13 +5,13 @@ import { LanguageAnalyzer } from './analyzer';
 import { PythonAnalyzer } from './python';
 import { RAnalyzer } from './r';
 
-export interface LanguageAnalyzerConstructor {
+export interface ILanguageAnalyzerConstructor {
   new (editor: IEditorExtension): LanguageAnalyzer;
 }
 
 export function chooseLanguageAnalyzer(
   language: string
-): LanguageAnalyzerConstructor {
+): ILanguageAnalyzerConstructor {
   switch (language) {
     case 'python': {
       return PythonAnalyzer;

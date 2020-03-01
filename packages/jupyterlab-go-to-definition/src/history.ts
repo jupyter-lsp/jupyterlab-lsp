@@ -14,11 +14,11 @@ export class JumpHistory {
 
   ensure_history_is_ready() {
     if (this.jump_history === undefined) {
-      if (this.model_db.has(DB_ENTRY))
+      if (this.model_db.has(DB_ENTRY)) {
         this.jump_history = this.model_db.get(
           DB_ENTRY
         ) as IObservableUndoableList<JSONValue>;
-      else {
+      } else {
         this.jump_history = this.model_db.createList(DB_ENTRY);
       }
     }
@@ -31,7 +31,9 @@ export class JumpHistory {
 
   recollect(): IJumpPosition {
     this.ensure_history_is_ready();
-    if (this.jump_history.length == 0) return;
+    if (this.jump_history.length === 0) {
+      return;
+    }
     let last_position = this.jump_history.get(this.jump_history.length - 1);
     // being lazy here - undo addition instead of removal ;)
     this.jump_history.undo();
