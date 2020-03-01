@@ -55,7 +55,7 @@
     "@jupyterlab/fileeditor": "~2.0.0",
     "@jupyterlab/notebook": "~2.0.0",
     "@jupyterlab/rendermime": "~2.0.0",
-    "@jupyterlab/services": "^~5.0.0",
+    "@jupyterlab/services": "~5.0.0",
     "@jupyterlab/statusbar": "~2.0.0",
     "@jupyterlab/testutils": "~2.0.0",
     "@jupyterlab/tooltip": "~2.0.0",
