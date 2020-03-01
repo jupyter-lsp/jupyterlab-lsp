@@ -76,8 +76,7 @@ Open it searching for "Show diagnostics panel" in JupyterLab commands palette or
 
 Either:
 
-- JupyterLab >=1.1.4,<1.2
-- JupyterLab >=1.2.4,<1.3.0a0
+- JupyterLab >=2,<2.1
 
 And:
 
@@ -95,16 +94,14 @@ Use of a python `virtualenv` or a conda env is also recommended.
 
    ```bash
    conda install -c conda-forge python=3
-   # or
-   conda install -c conda-forge jupyterlab=1.2
    ```
 
 1. install JupyterLab
 
    ```bash
-   conda install -c conda-forge jupyterlab=1.2
+   conda install -c conda-forge 'jupyterlab>=2,<2.1.0a0'
    # or
-   pip install jupyterlab=1.2
+   pip install 'jupyterlab>=2,<2.1.0a0'
    ```
 
 1. install the server extension:
