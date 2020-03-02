@@ -28,7 +28,6 @@
     "clean": "rimraf lib",
     "lab:link": "jupyter labextension link . --no-build",
     "prepare": "npm run clean && npm run build",
-    "watch": "tsc -w",
     "test": "jlpm jest --coverage --coverageReporters=cobertura --coverageReporters=html --coverageReporters=text-summary"
   },
   "peerDependencies": {
@@ -71,7 +70,7 @@
     "jest-junit": "^8.0.0",
     "rimraf": "^2.6.1",
     "ts-jest": "^24.0.2",
-    "typescript": "~3.4.5",
+    "typescript": "~3.7.2",
     "@babel/preset-env": "^7.4.3"
   },
   "jupyterlab": {
