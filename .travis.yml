@@ -7,9 +7,11 @@ cache:
     - $HOME/.cache/pip
 
 env:
-  - TRAVIS_NVM_VERSION=0.35.2
-  - TRAVIS_NODE_VERSION=10
-  - TRAVIS_NODE_VERSION=13
+  global:
+    - TRAVIS_NVM_VERSION=0.35.2
+  jobs:
+    - TRAVIS_NODE_VERSION=10
+    - TRAVIS_NODE_VERSION=13
 
 matrix:
   include:
