@@ -1,4 +1,6 @@
-language: python
+language: node_js
+node_js:
+  - 10
 
 cache:
   directories:
@@ -34,8 +36,3 @@ script:
   - python3 -m jupyter serverextension list
   - python3 -m jupyter serverextension list | grep jupyter_lsp
   - python3 scripts/utest.py
-
-addons:
-  apt:
-    packages:
-      - nodejs
