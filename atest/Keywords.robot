@@ -59,7 +59,7 @@ Open JupyterLab
     ${firefox} =    Which    firefox
     ${geckodriver} =    Which    geckodriver
     Create WebDriver    Firefox    executable_path=${geckodriver}    firefox_binary=${firefox}    service_log_path=${OUTPUT DIR}${/}geckodriver.log
-    Wait Until Keyword Succeeds    20x    3s    Go To    ${URL}lab?token=${TOKEN}
+    Wait Until Keyword Succeeds    20x    3s    Go To    ${URL}lab?reset&token=${TOKEN}
     Set Window Size    1024    768
     Wait For Splash
 
@@ -145,11 +145,17 @@ Ensure File Browser is Open
     ${els} =    Get WebElements    ${sel}
     Run Keyword If    ${els.__len__()}    Click Element    ${sel}
 
-Rename Jupyter File
-    [Arguments]    ${old}    ${new}
+Open Context Menu for File
+    [Arguments]    ${file}
     Ensure File Browser is Open
     Click Element    css:button[title="Refresh File List"]
-    Open Context Menu    //span[@class='jp-DirListing-itemText']\[text() = '${old}']
+    ${selector} =    Set Variable    xpath://span[@class='jp-DirListing-itemText']\[text() = '${file}']
+    Wait Until Page Contains Element    ${selector}
+    Open Context Menu    ${selector}
+
+Rename Jupyter File
+    [Arguments]    ${old}    ${new}
+    Open Context Menu for File    ${old}
     Mouse Over    ${MENU RENAME}
     Click Element    ${MENU RENAME}
     Press Keys    None    CTRL+a
@@ -164,9 +170,7 @@ Input Into Dialog
     Click Element    ${DIALOG ACCEPT}
 
 Open ${file} in ${editor}
-    Ensure File Browser is Open
-    Click Element    css:button[title="Refresh File List"]
-    Open Context Menu    css:.jp-DirListing-item[title="${file}"]
+    Open Context Menu for File    ${file}
     Mouse Over    ${MENU OPEN WITH}
     Wait Until Page Contains Element    ${editor}
     Mouse Over    ${editor}
