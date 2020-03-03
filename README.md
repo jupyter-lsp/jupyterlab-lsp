@@ -81,7 +81,7 @@ Either:
 And:
 
 - Python 3.5+
-- nodejs 8+
+- nodejs 10+
 
 ## Installation
 
