@@ -1,4 +1,4 @@
-language: node_js
+language: python
 
 cache:
   directories:
