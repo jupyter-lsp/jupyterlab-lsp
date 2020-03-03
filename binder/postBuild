@@ -17,7 +17,7 @@ jlpm lab:link && jupyter labextension list
 jupyter labextension list
 
 # actually build
-jupyter lab build --debug
+jupyter lab build --debug --dev-build=False --minimize=True
 
 # list extensions again
 jupyter labextension list
