@@ -19,7 +19,7 @@ variables:
 
   FIRST_PARTY_LABEXTENSIONS: >-
     packages/jupyterlab-lsp/krassowski-jupyterlab-lsp-$(JS_JLLSP_VERSION).tgz
-    packages/jupyterlab-lsp/krassowski-jupyterlab-go-to-definition-$(JS_JLG2D_VERSION).tgz
+    packages/jupyterlab-go-to-definition/krassowski-jupyterlab_go_to_definition-$(JS_JLG2D_VERSION).tgz
 
   LINKED_EXTENSIONS: >-
     packages/lsp-ws-connection

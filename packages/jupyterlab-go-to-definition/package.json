@@ -23,11 +23,10 @@
     "url": "https://github.com/krassowski/jupyterlab-go-to-definition.git"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -b",
     "bundle": "npm pack .",
     "clean": "rimraf lib",
     "lab:link": "jupyter labextension link . --no-build",
-    "prepare": "npm run clean && npm run build",
     "test": "jlpm jest --coverage --coverageReporters=cobertura --coverageReporters=html --coverageReporters=text-summary"
   },
   "peerDependencies": {
