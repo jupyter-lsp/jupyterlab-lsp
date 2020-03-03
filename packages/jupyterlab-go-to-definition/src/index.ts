@@ -134,7 +134,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     function isEnabled(tracker: any) {
       return (): boolean =>
-        tracker.currentWidget !== null &&
+        tracker.currentWidget != null &&
         tracker.currentWidget === app.shell.currentWidget;
     }
 
