@@ -141,7 +141,7 @@ Open With JupyterLab Menu
     END
 
 Ensure File Browser is Open
-    ${sel} =    Set Variable    css:.p-TabBar-tab[data-id="filebrowser"]:not(.p-mod-current)
+    ${sel} =    Set Variable    css:.lm-TabBar-tab[data-id="filebrowser"]:not(.lm-mod-current)
     ${els} =    Get WebElements    ${sel}
     Run Keyword If    ${els.__len__()}    Click Element    ${sel}
 

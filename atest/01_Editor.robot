@@ -4,8 +4,8 @@ Force Tags        ui:editor
 Resource          Keywords.robot
 
 *** Variables ***
-${MENU EDITOR}    xpath://div[contains(@class, 'p-Menu-itemLabel')][contains(., "Editor")]
-${MENU JUMP}      xpath://div[contains(@class, 'p-Menu-itemLabel')][contains(text(), "Jump to definition")]
+${MENU EDITOR}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(., "Editor")]
+${MENU JUMP}      xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Jump to definition")]
 ${CM CURSOR}      css:.CodeMirror-cursor
 ${CM CURSORS}     css:.CodeMirror-cursors:not([style='visibility: hidden'])
 
