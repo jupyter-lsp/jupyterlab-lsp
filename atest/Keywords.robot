@@ -18,13 +18,10 @@ Setup Server and Browser
     ${home} =    Set Variable    ${OUTPUT DIR}${/}home
     ${root} =    Normalize Path    ${OUTPUT DIR}${/}..${/}..${/}..
     Create Directory    ${home}
-    ${WORKSPACES DIR} =    Set Variable    ${OUTPUT DIR}${/}workspaces
     Initialize User Settings
-    ${app args} =    Set Variable    --no-browser --debug --NotebookApp.base_url\='${BASE}' --port\=${PORT} --NotebookApp.token\='${token}'
-    ${path args} =    Set Variable    --LabApp.user_settings_dir='${SETTINGS DIR.replace('\\', '\\\\')}' --LabApp.workspaces_dir\='${WORKSPACES DIR.replace('\\', '\\\\')}'
-    ${ext args} =    Set Variable    --LanguageServerManager.extra_node_roots\="['${root.replace('\\', '\\\\')}']"
+    ${cmd} =    Create Lab Launch Command    ${root}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots
-    ${server} =    Start Process    jupyter-lab ${app args} ${path args} ${ext args}    shell=yes    env:HOME=${home}    cwd=${home}    stdout=${OUTPUT DIR}${/}lab.log
+    ${server} =    Start Process    ${cmd}    shell=yes    env:HOME=${home}    cwd=${home}    stdout=${OUTPUT DIR}${/}lab.log
     ...    stderr=STDOUT
     Set Global Variable    ${SERVER}    ${server}
     Open JupyterLab
@@ -32,6 +29,16 @@ Setup Server and Browser
     ${config} =    Evaluate    __import__("json").loads("""${script}""")
     Set Global Variable    ${PAGE CONFIG}    ${config}
     Set Global Variable    ${LAB VERSION}    ${config["appVersion"]}
+
+Create Lab Launch Command
+    [Arguments]    ${root}
+    ${WORKSPACES DIR} =    Set Variable    ${OUTPUT DIR}${/}workspaces
+    ${app args} =    Set Variable    --no-browser --debug --NotebookApp.base_url\='${BASE}' --port\=${PORT} --NotebookApp.token\='${TOKEN}'
+    ${path args} =    Set Variable    --LabApp.user_settings_dir='${SETTINGS DIR.replace('\\', '\\\\')}' --LabApp.workspaces_dir\='${WORKSPACES DIR.replace('\\', '\\\\')}'
+    ${ext args} =    Set Variable    --LanguageServerManager.extra_node_roots\="['${root.replace('\\', '\\\\')}']"
+    ${build args} =    Set Variable    --LabApp.tornado_settings\='{"page_config_data": {"buildCheck": 0, "buildAvailable": 0}}'
+    ${cmd} =    Set Variable    jupyter-lab ${app args} ${path args} ${ext args} ${build args}
+    [Return]    ${cmd}
 
 Setup Suite For Screenshots
     [Arguments]    ${folder}
