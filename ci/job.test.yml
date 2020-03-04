@@ -38,7 +38,7 @@ jobs:
                 parameters:
                   name: ${{ platform.name }}
 
-              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" "${{ python.lab }}" "{{ python.nodejs }}"
+              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" "${{ python.lab }}" "${{ python.nodejs }}"
                 displayName: generate env with python and lab version
 
               - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
