@@ -18,6 +18,7 @@ Setup Server and Browser
     ${home} =    Set Variable    ${OUTPUT DIR}${/}home
     ${root} =    Normalize Path    ${OUTPUT DIR}${/}..${/}..${/}..
     Create Directory    ${home}
+    Create Notebok Server Config    ${home}
     Initialize User Settings
     ${cmd} =    Create Lab Launch Command    ${root}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots
@@ -32,13 +33,18 @@ Setup Server and Browser
 
 Create Lab Launch Command
     [Arguments]    ${root}
+    [Documentation]    Create a JupyterLab CLI shell string, escaping for traitlets
     ${WORKSPACES DIR} =    Set Variable    ${OUTPUT DIR}${/}workspaces
     ${app args} =    Set Variable    --no-browser --debug --NotebookApp.base_url\='${BASE}' --port\=${PORT} --NotebookApp.token\='${TOKEN}'
     ${path args} =    Set Variable    --LabApp.user_settings_dir='${SETTINGS DIR.replace('\\', '\\\\')}' --LabApp.workspaces_dir\='${WORKSPACES DIR.replace('\\', '\\\\')}'
     ${ext args} =    Set Variable    --LanguageServerManager.extra_node_roots\="['${root.replace('\\', '\\\\')}']"
-    ${build args} =    Set Variable    --LabApp.tornado_settings\='{"page_config_data": {"buildCheck": 0, "buildAvailable": 0}}'
-    ${cmd} =    Set Variable    jupyter-lab ${app args} ${path args} ${ext args} ${build args}
+    ${cmd} =    Set Variable    jupyter-lab ${app args} ${path args} ${ext args}
     [Return]    ${cmd}
+
+Create Notebok Server Config
+    [Arguments]    ${home}
+    [Documentation]    Copies in notebook server config file to disables npm/build checks
+    Copy File    ${FIXTURES}${/}${NBSERVER CONF}    ${home}${/}${NBSERVER CONF}
 
 Setup Suite For Screenshots
     [Arguments]    ${folder}
