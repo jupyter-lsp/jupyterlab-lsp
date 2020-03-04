@@ -9,16 +9,17 @@ cache:
 env:
   global:
     - TRAVIS_NVM_VERSION=0.35.2
-  jobs:
-    - TRAVIS_NODE_VERSION=10
-    - TRAVIS_NODE_VERSION=13
 
 matrix:
   include:
     - python: '3.5'
+      env: TRAVIS_NODE_VERSION=10
     - python: '3.8'
+      env: TRAVIS_NODE_VERSION=12
     - python: '3.9-dev'
+      env: TRAVIS_NODE_VERSION=13
     - os: osx
+      env: TRAVIS_NODE_VERSION=12
       osx_image: xcode11
       language: shell
 
