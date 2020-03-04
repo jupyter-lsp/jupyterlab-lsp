@@ -16,6 +16,7 @@ env:
 matrix:
   include:
     - python: '3.5'
+    - python: '3.8'
     - python: '3.9-dev'
     - os: osx
       osx_image: xcode11
