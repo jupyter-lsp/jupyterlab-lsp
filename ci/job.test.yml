@@ -39,7 +39,7 @@ jobs:
                   name: ${{ platform.name }}
 
               - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" "${{ python.lab }}" "${{ python.nodejs }}"
-                displayName: generate env with python and lab version
+                displayName: generate env with python, lab, and nodejs version
 
               - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
                 displayName: update conda environment with test dependencies
