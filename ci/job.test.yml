@@ -13,15 +13,15 @@ parameters:
     - name: ThreeSix
       spec: '>=3.6,<3.7.0a0'
       lab: '>=2,<2.1.0a0'
-      nodejs: '10'
+      nodejs: '>=10,<11.0.0.a0'
     - name: ThreeSeven
       spec: '>=3.7,<3.8.0a0'
       lab: '>=2,<2.1.0a0'
-      nodejs: '12'
+      nodejs: '>=12,<13.0.0a0'
     - name: ThreeEight
       spec: '>=3.8,<3.9.0a0'
       lab: '>=2,<2.1.0a0'
-      nodejs: '13'
+      nodejs: '>=13,<14.0.0a0'
   env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
   lab_link: jupyter labextension link --debug --no-build $(LINKED_EXTENSIONS)
   lab_ext: jupyter labextension install --debug --no-build $(FIRST_PARTY_LABEXTENSIONS)
