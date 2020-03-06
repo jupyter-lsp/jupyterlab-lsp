@@ -29,9 +29,9 @@ You can contribute to the project through:
 
 Development requires:
 
-- `nodejs` 8 or later
+- `nodejs` 10+
 - `python` 3.5+
-- `jupyterlab` 1.1
+- `jupyterlab` 2
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
 for development.
