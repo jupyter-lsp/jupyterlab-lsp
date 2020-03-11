@@ -187,7 +187,7 @@ Use `install` command (update does not seem to work) appending `@<0.x.y.rc-z>` t
 extension name, like this:
 
 ```bash
-jupyter labextension install @krassowski/jupyterlab-lsp@0.7.0-rc.0
+jupyter labextension install @krassowski/jupyterlab-lsp@0.8.0-rc.0
 ```
 
 ### Configuring the servers
