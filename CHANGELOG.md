@@ -10,6 +10,9 @@
   - cleans up documents, handlers, events, and signals more aggressively ([#165][])
   - ignores malformed diagnostic ranges, enabling markdown support ([#165][])
   - passes tests on Python 3.8 on Windows ([#165][])
+  - improves support for rpy2 magic cells with parameters (
+    [#206](https://github.com/krassowski/jupyterlab-lsp/pull/206)
+    )
 
 - bug fixes
 
