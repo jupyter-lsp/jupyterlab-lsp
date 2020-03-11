@@ -6,7 +6,7 @@ about: Announce that you're going to do some work
 <!--
 Welcome! Before creating a new issue:
 * Search for relevant issues
-* Look at ROADMAP.md to make sure we don't already want the same thing
+* Look at docs/Roadmap.ipynb to make sure we don't already want the same thing
 * Follow the issue reporting guidelines:
 https://jupyterlab.readthedocs.io/en/latest/getting_started/issue.html
 -->

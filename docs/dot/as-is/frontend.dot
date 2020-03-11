@@ -1,0 +1,67 @@
+graph backend {
+    label="Front End"
+    splines="line"
+    compound=true
+    fontname="sans-serif" fontcolor=grey
+    node[shape=none fontname="sans-serif"]
+    edge[fontname="sans-serif"]
+    graph[fontcolor=grey color=grey]
+
+    subgraph cluster_io { label="IO"
+        Keyboard[label="The Keyboard"]
+        Mouse[label="The Mouse"]
+    }
+    subgraph cluster_server { label="Server"
+        RestAPI[label="The REST API"]
+        WebSocketHandlers
+    }
+    subgraph cluster_lab { label="JupyterLab"
+        subgraph cluster_singletons { label="Singletons"
+            Plugin
+            StatusBarItem
+            DiagnosticPanel
+            ConnectionManager
+            LanguageServerManager
+        }
+        WidgetTrackers
+        
+        subgraph cluster_lang {label="Per Language"
+            Connection
+            MessageConnection
+            WebSocket
+        }
+        subgraph cluster_doc { label="Per Document"
+            Widget
+            CodeMirrors
+            subgraph cluster_doc_lsp { label="LSP Client"
+                WidgetAdapter
+                VirtualEditor
+                VirtualDocument
+                CodeMirrorAdapters
+                subgraph cluster_features { label="Features"
+                    Feature[style=invisible]
+                    Completion
+                    Diagnostics
+                    Highlight
+                    Hover
+                    Jump
+                    Rename
+                    Signature
+                }
+            }
+        }
+    }
+    
+    {Connection CodeMirrors VirtualDocument VirtualEditor} -- Feature[lhead=cluster_features];
+    Diagnostics -- DiagnosticPanel
+    Connection -- ConnectionManager -- LanguageServerManager -- RestAPI
+    CodeMirrors -- CodeMirrorAdapters -- WidgetAdapter
+    WidgetAdapter -- VirtualEditor -- VirtualDocument
+    WidgetTrackers -- {Plugin -- Widget} 
+    StatusBarItem -- Connection
+    Widget -- WidgetAdapter -- Plugin -- StatusBarItem -- LanguageServerManager
+    Widget -- CodeMirrors
+    Plugin -- {ConnectionManager LanguageServerManager}
+    Connection -- MessageConnection -- WebSocket -- WebSocketHandlers
+    {Keyboard Mouse} -- CodeMirrors
+}

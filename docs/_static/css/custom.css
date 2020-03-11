@@ -1,0 +1,36 @@
+:root {
+  --code-bg: rgb(39, 40, 34);
+  --border-width: 1px;
+  --border-radius: 5px;
+}
+
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+  display: none;
+}
+
+body div.nboutput.container div[class*='highlight'] {
+  background: var(--code-bg) !important;
+}
+
+.rst-content div[class^='highlight'] {
+  border-radius: var(--border-radius);
+}
+
+body div.nboutput.container div[class*='highlight'] {
+  margin-bottom: 1em;
+}
+
+body div.nboutput.container div[class*='highlight'] div[class*='highlight'] {
+  margin: 0;
+  padding: 0;
+}
+
+body div.nboutput.container div[class*='highlight'] pre {
+  background-color: transparent !important;
+  padding: 1em;
+}
+
+.wy-nav-content {
+  max-width: 100%;
+}

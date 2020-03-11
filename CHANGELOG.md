@@ -1,10 +1,10 @@
-# CHANGELOG
+## CHANGELOG
 
-## `@krassowski/jupyterlab-lsp 0.8.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 0.8.0` (unreleased)
 
 - features
 
-  - opens a maximum of one WebSocket per language server ([#165][])
+  - opens a maximum of one WebSocket per language server ([#165][], [#199][])
   - lazy-loads language server protocol machinery ([#165][])
   - waits much longer for slow-starting language servers ([#165][])
   - cleans up documents, handlers, events, and signals more aggressively ([#165][])
@@ -14,7 +14,13 @@
     [#206](https://github.com/krassowski/jupyterlab-lsp/pull/206)
     )
 
-## `lsp-ws-connection 0.4.0` (unreleased)
+- bug fixes
+
+  - reports files are open only after installing all handlers to avoid missing messages ([#201][])
+
+[#201]: https://github.com/krassowski/jupyterlab-lsp/issues/201
+
+### `lsp-ws-connection 0.4.0` (unreleased)
 
 - breaking changes
 
@@ -25,14 +31,27 @@
 
 [#165]: https://github.com/krassowski/jupyterlab-lsp/pull/165
 
-## `jupyter-lsp 0.7.0`
+### `jupyter-lsp 0.8.0` (unreleased)
+
+- breaking changes
+
+  - websockets are now serviced by implementation key, rather than language
+    under `lsp/ws/<server key>` ([#199][])
+  - introduces schema version `2`, reporting status by server at `lsp/status` ([#199][])
+
+- bugfixes:
+  - handles language server reading/writing and shadow file operations in threads ([#199][])
+
+[#199]: https://github.com/krassowski/jupyterlab-lsp/pull/199
+
+### `jupyter-lsp 0.7.0`
 
 - bugfixes
   - didSave no longer causes unwanted messages in logs (
     [#187](https://github.com/krassowski/jupyterlab-lsp/pull/187)
     )
 
-## `@krassowski/jupyterlab-lsp 0.7.1`
+### `@krassowski/jupyterlab-lsp 0.7.1`
 
 - features
 
@@ -55,7 +74,7 @@
     [#164](https://github.com/krassowski/jupyterlab-lsp/pull/164)
     )
 
-## `lsp-ws-connection 0.3.1`
+### `lsp-ws-connection 0.3.1`
 
 - added `sendSaved()` method (textDocument/didSave) (
   [#147](https://github.com/krassowski/jupyterlab-lsp/pull/147)
@@ -64,7 +83,7 @@
   [#140](https://github.com/krassowski/jupyterlab-lsp/pull/140)
   )
 
-## `@krassowski/jupyterlab-lsp 0.7.0`
+### `@krassowski/jupyterlab-lsp 0.7.0`
 
 - features
 
@@ -131,7 +150,7 @@
     [#140](https://github.com/krassowski/jupyterlab-lsp/pull/140)
     )
 
-## `lsp-ws-connection 0.3.0`
+### `lsp-ws-connection 0.3.0`
 
 - infrastructure
   - brought into monorepo [#107](https://github.com/krassowski/jupyterlab-lsp/pull/107)
@@ -144,7 +163,7 @@
   - added initialization checks before executing sendChange to comply
     with LSP specs [#115](https://github.com/krassowski/jupyterlab-lsp/pull/115)
 
-## `jupyter-lsp 0.7.0b0`
+### `jupyter-lsp 0.7.0b0`
 
 - features
   - adds a language server status endpoint (
@@ -158,18 +177,18 @@
     [#100](https://github.com/krassowski/jupyterlab-lsp/pulls/100)
     )
 
-## `@krassowski/jupyterlab-lsp 0.6.1`
+### `@krassowski/jupyterlab-lsp 0.6.1`
 
 - features
   - adds an indicator to the statusbar
+  - and many other improvements, see the [release notes](https://github.com/krassowski/jupyterlab-lsp/releases/tag/v0.6.1)
 - dependencies
   - removes unused npm dependencies
 
-## `@krassowski/jupyterlab-lsp 0.6.0`
+### `@krassowski/jupyterlab-lsp 0.6.0`
 
 - features
   - allows "rename" action in file editor
-  - and many other improvements, see the [release notes](https://github.com/krassowski/jupyterlab-lsp/releases/tag/v0.6.0)
 - bugfixes
   - handles some non-standard diagnostic responses
 - testing
@@ -177,7 +196,7 @@
 - dependencies
   - requires `jupyter-lsp`
 
-## `jupyter-lsp 0.6.0b0`
+### `jupyter-lsp 0.6.0b0`
 
 - features
   - starts language servers on demand

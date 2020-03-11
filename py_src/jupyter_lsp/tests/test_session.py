@@ -5,7 +5,7 @@ import pytest
 from ..schema import SERVERS_RESPONSE
 
 
-def assert_status_set(handler, expected_statuses, language=None):
+def assert_status_set(handler, expected_statuses, language_server=None):
     handler.get()
     payload = handler._payload
 
@@ -13,16 +13,16 @@ def assert_status_set(handler, expected_statuses, language=None):
     assert not errors
 
     statuses = {
-        s["status"]
-        for s in payload["sessions"]
-        if language is None or language in s["spec"]["languages"]
+        session["status"]
+        for session_server, session in payload["sessions"].items()
+        if language_server is None or language_server == session_server
     }
-    assert statuses == expected_statuses
+    assert statuses == expected_statuses, payload
 
 
 @pytest.mark.asyncio
-async def test_start_known(known_language, handlers, jsonrpc_init_msg):
-    """ will a process start for a known language if a handler starts?
+async def test_start_known(known_server, handlers, jsonrpc_init_msg):
+    """ will a process start for a known server if a handler starts?
     """
     handler, ws_handler = handlers
     manager = handler.manager
@@ -31,12 +31,11 @@ async def test_start_known(known_language, handlers, jsonrpc_init_msg):
 
     assert_status_set(handler, {"not_started"})
 
-    ws_handler.open(known_language)
-    sessions = list(manager.sessions_for_handler(ws_handler))
-    session = sessions[0]
+    ws_handler.open(known_server)
+    session = manager.sessions[ws_handler.language_server]
     assert session.process is not None
 
-    assert_status_set(handler, {"started"}, known_language)
+    assert_status_set(handler, {"started"}, known_server)
 
     await ws_handler.on_message(jsonrpc_init_msg)
 
@@ -46,17 +45,16 @@ async def test_start_known(known_language, handlers, jsonrpc_init_msg):
     finally:
         ws_handler.on_close()
 
-    assert not list(manager.sessions_for_handler(ws_handler))
     assert not session.handlers
     assert not session.process
 
-    assert_status_set(handler, {"stopped"}, known_language)
+    assert_status_set(handler, {"stopped"}, known_server)
     assert_status_set(handler, {"stopped", "not_started"})
 
 
 @pytest.mark.asyncio
-async def test_start_unknown(known_unknown_language, handlers, jsonrpc_init_msg):
-    """ will a process not start for an unknown if a handler starts?
+async def test_start_unknown(known_unknown_server, handlers, jsonrpc_init_msg):
+    """ will a process not start for an unknown server if a handler starts?
     """
     handler, ws_handler = handlers
     manager = handler.manager
@@ -64,8 +62,7 @@ async def test_start_unknown(known_unknown_language, handlers, jsonrpc_init_msg)
 
     assert_status_set(handler, {"not_started"})
 
-    ws_handler.open(known_unknown_language)
-    assert not list(manager.sessions_for_handler(ws_handler))
+    ws_handler.open(known_unknown_server)
 
     assert_status_set(handler, {"not_started"})
 
@@ -73,5 +70,5 @@ async def test_start_unknown(known_unknown_language, handlers, jsonrpc_init_msg)
     assert_status_set(handler, {"not_started"})
     ws_handler.on_close()
 
-    assert not list(manager.sessions_for_handler(ws_handler))
+    assert not manager.sessions.get(ws_handler.language_server)
     assert_status_set(handler, {"not_started"})

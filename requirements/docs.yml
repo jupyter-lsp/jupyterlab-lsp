@@ -1,0 +1,21 @@
+name: jupyterlab-lsp-docs
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - nbsphinx
+  - pandas
+  - pip
+  - pytest
+  - python-graphviz
+  - recommonmark
+  - sphinx
+  - sphinx_rtd_theme
+  - sphinx-autobuild
+  - sphinx-autodoc-typehints
+  - sphinx-copybutton
+  - pip:
+      - pytest-check-links
+      - sphinx-markdown-tables
