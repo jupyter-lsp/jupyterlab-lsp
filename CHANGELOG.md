@@ -12,7 +12,7 @@
 
   - supports JupyterLab 2.0
 
-### `@krassowski/jupyterlab-lsp 0.8.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 0.8.0` (2020-03-12)
 
 - features
 
@@ -22,6 +22,9 @@
   - cleans up documents, handlers, events, and signals more aggressively ([#165][])
   - ignores malformed diagnostic ranges, enabling markdown support ([#165][])
   - passes tests on Python 3.8 on Windows ([#165][])
+  - improves support for rpy2 magic cells with parameters (
+    [#206](https://github.com/krassowski/jupyterlab-lsp/pull/206)
+    )
 
 - bug fixes
 
@@ -29,7 +32,7 @@
 
 [#201]: https://github.com/krassowski/jupyterlab-lsp/issues/201
 
-### `lsp-ws-connection 0.4.0` (unreleased)
+### `lsp-ws-connection 0.4.0` (2020-03-12)
 
 - breaking changes
 
@@ -40,7 +43,7 @@
 
 [#165]: https://github.com/krassowski/jupyterlab-lsp/pull/165
 
-### `jupyter-lsp 0.8.0` (unreleased)
+### `jupyter-lsp 0.8.0` (2020-03-12)
 
 - breaking changes
 

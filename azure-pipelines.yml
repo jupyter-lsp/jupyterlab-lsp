@@ -13,7 +13,7 @@ variables:
   ATEST_RETRIES: 3
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
-  PY_JLSP_VERSION: 0.7.0
+  PY_JLSP_VERSION: 0.8.0
   JS_JLLSP_VERSION: 1.0.0
   JS_JLG2D_VERSION: 1.0.0
 
