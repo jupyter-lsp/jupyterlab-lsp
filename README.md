@@ -8,7 +8,7 @@ Quick Links: **[Installation](#installation) | [Configuring](./docs/Configuring.
 
 ## Features
 
-> Examples show Python code, but most features also work in R, bash, typescript, and [many other languages](./docs/Language Servers.ipynb).
+> Examples show Python code, but most features also work in R, bash, typescript, and [many other languages](./docs/Language%20Servers.ipynb).
 
 ### Hover
 
