@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 0.8.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 0.8.0` (2020-03-12)
 
 - features
 
@@ -20,7 +20,7 @@
 
 [#201]: https://github.com/krassowski/jupyterlab-lsp/issues/201
 
-### `lsp-ws-connection 0.4.0` (unreleased)
+### `lsp-ws-connection 0.4.0` (2020-03-12)
 
 - breaking changes
 
@@ -31,7 +31,7 @@
 
 [#165]: https://github.com/krassowski/jupyterlab-lsp/pull/165
 
-### `jupyter-lsp 0.8.0` (unreleased)
+### `jupyter-lsp 0.8.0` (2020-03-12)
 
 - breaking changes
 
