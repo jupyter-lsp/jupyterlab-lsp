@@ -110,7 +110,7 @@ Use of a python `virtualenv` or a conda env is also recommended.
 1. install the server extension:
 
    ```bash
-   pip install --pre jupyter-lsp
+   pip install jupyter-lsp
    ```
 
 1. install `nodejs`
