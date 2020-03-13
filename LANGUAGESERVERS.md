@@ -1,1 +1,1 @@
-This file has moved to [docs/Language Servers.ipynb](./docs/Language%20Servers.ipynb) and [docs/Configuring.ipynb](./docs/Configuring.ipynb).
+This file has moved to the documentation: [Language Servers](https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html) and [Configuring](https://jlsptest.readthedocs.io/en/latest/Configuring.html) sections.
