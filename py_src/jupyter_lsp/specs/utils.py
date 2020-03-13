@@ -12,6 +12,9 @@ from ..types import (
 # helper scripts for known tricky language servers
 HELPERS = Path(__file__).parent / "helpers"
 
+# when building docs, let all specs go through
+BUILDING_DOCS = os.environ.get("JUPYTER_LSP_BUILDING_DOCS") is not None
+
 
 class SpecBase:
     """ Base for a spec finder that returns a spec for starting a language server
@@ -41,7 +44,7 @@ class ShellSpec(SpecBase):
             if cmd:
                 break
 
-        if not cmd:  # pragma: no cover
+        if not (cmd or BUILDING_DOCS):  # pragma: no cover
             return {}
 
         return {
@@ -65,7 +68,7 @@ class NodeModuleSpec(SpecBase):
     def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
         node_module = mgr.find_node_module(self.node_module, *self.script)
 
-        if not node_module:  # pragma: no cover
+        if not (node_module or BUILDING_DOCS):  # pragma: no cover
             return {}
 
         return {
