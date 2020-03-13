@@ -151,7 +151,7 @@ def test_changelog_versions(pkg, version):
 
 @pytest.mark.parametrize(
     "pkg,sep,version,expected",
-    [[PY_NAME, "=", PY_VERSION, 2], [MAIN_NAME, "@", MAIN_EXT_VERSION, 2]],
+    [[PY_NAME, "=", PY_VERSION, 3], [MAIN_NAME, "@", MAIN_EXT_VERSION, 3]],
 )
 def test_installation_versions(the_installation_notebook, pkg, sep, version, expected):
     assert the_installation_notebook.count(f"{pkg}{sep}{version}") == expected
