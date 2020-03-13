@@ -13,7 +13,7 @@ dependencies:
       - nbsphinx >=0.5.0,<0.5.1a0
       - pandas
       - pytest-check-links
-      - python-language-server
+      - python-language-server <0.31.7a0
       - recommonmark
       - sphinx
       - sphinx_rtd_theme

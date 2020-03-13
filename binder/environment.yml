@@ -18,7 +18,7 @@ dependencies:
   - mypy
   - pip
   - pylint
-  - python-language-server
+  - python-language-server <0.31.7a0
   - ruamel_yaml
   - pip: # not-yet-appearing-in-conda-forge
       - pyls-black

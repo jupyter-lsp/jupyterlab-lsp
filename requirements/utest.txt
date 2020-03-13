@@ -5,4 +5,4 @@ pytest-asyncio
 pytest-cov
 pytest-flake8
 pytest-runner
-python-language-server
+python-language-server <0.31.7a0
