@@ -16,7 +16,7 @@ You can contribute to the project through:
 - proposing parts of the architecture that can be [extended][extending]
 - improving [documentation](#Documentation)
 - tackling Big Issues from the [future roadmap][roadmap]
-- improving [testing](#Testing)
+- improving testing
 - reviewing pull requests
 
 [license]: https://github.com/krassowski/jupyterlab-lsp/blob/master/LICENSE
@@ -164,7 +164,7 @@ is recommended to peruse the [Robot Framework User's Guide][rfug] (and the exist
 First, ensure you've prepared JupyterLab for `jupyterlab-lsp`
 [frontend](#frontend-development) and [server](#server-development) development.
 
-Prepare the enviroment:
+Prepare the environment:
 
 ```bash
 conda env update -n jupyterlab-lsp --file requirements/atest.yml
