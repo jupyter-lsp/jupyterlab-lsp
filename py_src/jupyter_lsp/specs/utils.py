@@ -45,7 +45,10 @@ class ShellSpec(SpecBase):
             if cmd:
                 break
 
-        if not (cmd or BUILDING_DOCS):  # pragma: no cover
+        if not cmd and BUILDING_DOCS:   # pragma: no cover
+            cmd = self.cmd
+
+        if not cmd:  # pragma: no cover
             return {}
 
         return {
@@ -69,7 +72,7 @@ class NodeModuleSpec(SpecBase):
     def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
         node_module = mgr.find_node_module(self.node_module, *self.script)
 
-        if not (node_module or BUILDING_DOCS):  # pragma: no cover
+        if not node_module:  # pragma: no cover
             return {}
 
         return {
