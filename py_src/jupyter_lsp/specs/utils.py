@@ -1,3 +1,4 @@
+import os
 import shutil
 from pathlib import Path
 from typing import List, Text
@@ -11,6 +12,9 @@ from ..types import (
 
 # helper scripts for known tricky language servers
 HELPERS = Path(__file__).parent / "helpers"
+
+# when building docs, let all specs go through
+BUILDING_DOCS = os.environ.get("JUPYTER_LSP_BUILDING_DOCS") is not None
 
 
 class SpecBase:
@@ -40,6 +44,9 @@ class ShellSpec(SpecBase):
             cmd = shutil.which(self.cmd + ext)
             if cmd:
                 break
+
+        if not cmd and BUILDING_DOCS:  # pragma: no cover
+            cmd = self.cmd
 
         if not cmd:  # pragma: no cover
             return {}

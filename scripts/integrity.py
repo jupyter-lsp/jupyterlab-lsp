@@ -58,6 +58,7 @@ PY_VERSION = re.findall(r'= "(.*)"$', (_VERSION_PY).read_text())[0]
 PIPE_FILE = ROOT / "azure-pipelines.yml"
 PIPELINES = yaml.safe_load(PIPE_FILE.read_text())
 PIPE_VARS = PIPELINES["variables"]
+DOCS = ROOT / "docs"
 
 CI = ROOT / "ci"
 
@@ -78,6 +79,13 @@ def the_meta_package():
         json.loads((meta_path / "tsconfig.json").read_text()),
         (meta_path / "src" / "index.ts").read_text(),
     )
+
+
+@pytest.fixture(scope="module")
+def the_installation_notebook():
+    """ loads up the installation notebook
+    """
+    return (DOCS / "Installation.ipynb").read_text()
 
 
 @pytest.mark.parametrize(
@@ -139,6 +147,14 @@ def test_changelog_versions(pkg, version):
     """ are the current versions represented in the changelog?
     """
     assert "## `{} {}`".format(pkg, version) in CHANGELOG.read_text()
+
+
+@pytest.mark.parametrize(
+    "pkg,sep,version,expected",
+    [[PY_NAME, "=", PY_VERSION, 3], [MAIN_NAME, "@", MAIN_EXT_VERSION, 3]],
+)
+def test_installation_versions(the_installation_notebook, pkg, sep, version, expected):
+    assert the_installation_notebook.count(f"{pkg}{sep}{version}") == expected
 
 
 def check_integrity():
