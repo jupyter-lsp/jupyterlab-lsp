@@ -8,7 +8,7 @@ Quick Links: **[Installation](#installation) | [Configuring](./docs/Configuring.
 
 ## Features
 
-> Examples show Python code, but most features also work in R, bash, typescript, and [many other languages](https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html).
+> Examples show Python code, but most features also work in R, bash, typescript, and [many other languages][language-servers].
 
 ### Hover
 
@@ -86,7 +86,7 @@ And:
 
 ## Installation
 
-> For more extensive installation instructions, see the [documentation](./docs/Installation.ipynb).
+> For more extensive installation instructions, see the [documentation][installation-documentation].
 
 For the current stable version, the following steps are recommended.
 Use of a python `virtualenv` or a conda env is also recommended.
@@ -147,7 +147,7 @@ Use of a python `virtualenv` or a conda env is also recommended.
    ```
 
    Please see our full list of
-   [supported language servers](./docs/LANGUAGESERVERS.md)
+   [supported language servers][language-servers]
    which includes installation hints for the common package managers (npm/pip/conda).
    In general, any LSP server from the
    [Microsoft list](https://microsoft.github.io/language-server-protocol/implementors/servers/)
@@ -192,7 +192,7 @@ jupyter labextension install @krassowski/jupyterlab-lsp@0.7.0-rc.0
 
 ### Configuring the servers
 
-We plan to provide a configuration GUI at some time ([#25](https://github.com/krassowski/jupyterlab-lsp/issues/25)), but in the meantime, you can use the instructions for the specific servers as described on their websites (see the table in [LANGUAGESERVERS.md](./docs/LANGUAGESERVERS.md) for links).
+We plan to provide a configuration GUI at some time ([#25](https://github.com/krassowski/jupyterlab-lsp/issues/25)), but in the meantime, you can use the instructions for the specific servers as described on their websites (see the [table of language servers][language-servers] for links).
 
 #### I want to hide specific diagnostics/inspections/warnings
 
@@ -220,3 +220,6 @@ Again, please do check the pycodestyle documentation for specific error codes, a
 
 This would not be possible without the fantastic initial work at
 [wylieconlon/lsp-editor-adapter](https://github.com/wylieconlon/lsp-editor-adapter).
+
+[language-servers]: https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html
+[installation-documentation]: https://jupyterlab-lsp.readthedocs.io/en/latest/Installation.html
