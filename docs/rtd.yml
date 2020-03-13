@@ -1,0 +1,21 @@
+# minimal possible conda env for modern nodejs
+name: jupyterlab-lsp-docs
+
+dependencies:
+  - nodejs
+  - pip
+  - python >=3.8,<3.9.0a0
+  - pip:
+      - -e ..
+      - graphviz
+      - importlib_metadata
+      - jupyterlab >=2,<2.1.0a0
+      - nbsphinx >=0.5.0,<0.5.1a0
+      - pytest-check-links
+      - recommonmark
+      - sphinx
+      - sphinx_rtd_theme
+      - sphinx-autodoc-typehints
+      - sphinx-copybutton
+      - sphinx-markdown-tables
+      - pandas
