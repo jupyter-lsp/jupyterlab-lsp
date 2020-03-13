@@ -4,7 +4,7 @@
 
 import pathlib
 import sys
-
+import subprocess
 import nbsphinx
 
 HERE = pathlib.Path(__file__).parent
@@ -105,3 +105,4 @@ def setup(app):
     """ Runs before the "normal business" of sphinx. Don't go too crazy here.
     """
     app.add_css_file("css/custom.css")
+    subprocess.Popen(["jlpm", "--ignore-optional"])
