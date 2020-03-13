@@ -3,8 +3,9 @@
 # pylint: disable=invalid-name,redefined-builtin,import-error
 
 import pathlib
-import sys
 import subprocess
+import sys
+
 import nbsphinx
 
 HERE = pathlib.Path(__file__).parent
