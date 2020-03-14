@@ -1,12 +1,12 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 1.0.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 1.0.0` (2020-03-14)
 
 - features
 
   - supports JupyterLab 2.0
 
-### `@krassowski/jupyterlab_go_to_definition 1.0.0` (unreleased)
+### `@krassowski/jupyterlab_go_to_definition 1.0.0` (2020-03-14)
 
 - features
 
