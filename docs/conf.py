@@ -3,6 +3,7 @@
 # pylint: disable=invalid-name,redefined-builtin,import-error
 
 import pathlib
+import subprocess
 import sys
 
 import nbsphinx
@@ -105,3 +106,4 @@ def setup(app):
     """ Runs before the "normal business" of sphinx. Don't go too crazy here.
     """
     app.add_css_file("css/custom.css")
+    subprocess.check_call(["jlpm", "--ignore-optional"])
