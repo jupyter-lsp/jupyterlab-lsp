@@ -69,7 +69,7 @@ async def test_start_unknown(known_unknown_server, handlers, jsonrpc_init_msg):
 
     await ws_handler.on_message(jsonrpc_init_msg)
     assert_status_set(handler, {"not_started"})
-    await ws_handler.on_close()
+    ws_handler.on_close()
 
     await ws_handler.delete(known_unknown_server)
 
