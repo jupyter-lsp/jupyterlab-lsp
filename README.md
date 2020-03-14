@@ -125,7 +125,8 @@ Use of a python `virtualenv` or a conda env is also recommended.
 1. install the frontend extension:
 
    ```bash
-   jupyter labextension install @krassowski/jupyterlab-lsp
+   jupyter labextension install @krassowski/jupyterlab-lsp           # for JupyterLab 2.x
+   # jupyter labextension install @krassowski/jupyterlab-lsp@0.8.0   # for JupyterLab 1.x
    ```
 
 1. install LSP servers for languages of your choice; for example, for Python
