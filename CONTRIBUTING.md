@@ -49,7 +49,7 @@ pip install -r requirements/dev.txt  # in a virtualenv, probably
 Once your environment is created and activated, on Linux/OSX you can run:
 
 ```bash
-bash postBuild
+bash binder/postBuild
 ```
 
 This performs all of the basic setup steps, and is used for the binder demo.
