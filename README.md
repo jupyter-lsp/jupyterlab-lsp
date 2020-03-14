@@ -150,8 +150,12 @@ Use of a python `virtualenv` or a conda env is also recommended.
    [Microsoft list](https://microsoft.github.io/language-server-protocol/implementors/servers/)
    should work after [some additional configuration](./CONTRIBUTING.md#specs).
 
-   Note: it may be worth visiting the repository of each server you install as
+   Note: it is worth visiting the repository of each server you install as
    many provide additional configuration options.
+
+   Note on pyls (python-language-server) issues: pyls is known to require specific
+   versions of some dependencies such as [ujson <= 1.35](https://github.com/krassowski/jupyterlab-lsp/issues/203#issuecomment-599039556), [jedi == 0.15.2 and parso == 0.5.2](https://github.com/krassowski/jupyterlab-lsp/issues/200#issuecomment-599039353). If you experience any issues with LSP functions in Python,
+   please check if you have the right version using `pip freeze` command.
 
 1. (Optional, Linux/OSX-only) to enable opening files outside of the root
    directory (the place where you start JupyterLab), create `.lsp_symlink` and
@@ -193,7 +197,7 @@ We plan to provide a configuration GUI at some time ([#25](https://github.com/kr
 
 #### I want to hide specific diagnostics/inspections/warnings
 
-For example, the Python server that we support by default ([pyls](https://github.com/palantir/python-language-server)) has a [configuration section](https://github.com/palantir/python-language-server#configuration) in ther documentation which refers to the providers of specific features, including `pycodestyle` for inspections/diagnostics.
+For example, the Python server that we support by default ([pyls](https://github.com/palantir/python-language-server)) has a [configuration section](https://github.com/palantir/python-language-server#configuration) in their documentation which refers to the providers of specific features, including `pycodestyle` for inspections/diagnostics.
 
 The exact configuration details will vary between operating systems (please see the [configuration section of pycodestyle documentation](https://pycodestyle.readthedocs.io/en/latest/intro.html#configuration)), but as an example, on Linux you would simply need to create a file called `~/.config/pycodestyle`, which may look like that:
 
