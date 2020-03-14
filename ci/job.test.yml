@@ -78,11 +78,10 @@ jobs:
 
               - ${{ each js_package in parameters.js_cov_packages }}:
                   - task: PublishCodeCoverageResults@1
+                    displayName: 'publish ${{ js_package }} coverage'
                     inputs:
                       codeCoverageTool: Cobertura
                       summaryFileLocation: 'packages/${{ js_package }}/coverage/cobertura-coverage.xml'
-                      reportDirectory: 'packages/${{ js_package }}/coverage'
-                      additionalCodeCoverageFiles: 'packages/${{ js_package }}/coverage/**/*.*'
                     condition: always()
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jupyter serverextension list
