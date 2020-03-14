@@ -117,6 +117,23 @@ class LanguageServerManager(LanguageServerManagerAPI):
             for listener in listeners:
                 self.__class__.register_message_listener(scope=scope.value)(listener)
 
+    async def stop_session(self, language_server):
+        session = self.sessions.get(language_server)
+
+        if session is None:
+            self.log.error(
+                "[{}] no session: session delete failed".format(language_server)
+            )
+            return f"{language_server} session is not open"
+
+        self.log.warning(f"[{language_server}] closing handlers")
+        [handler.close() for handler in session.handlers]
+        self.log.warning(f"[{language_server}] stopping reader, writer, and process")
+        await session.stop()
+        self.log.warning(f"[{language_server}] clearing handlers")
+        session.handlers = []
+        return None
+
     def subscribe(self, handler):
         """ subscribe a handler to session, or sta
         """

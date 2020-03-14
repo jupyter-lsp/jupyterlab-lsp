@@ -3,7 +3,7 @@ import { LSPConnection } from './connection';
 
 import { Signal } from '@lumino/signaling';
 import { PageConfig, URLExt } from '@jupyterlab/coreutils';
-import { sleep, until_ready } from './utils';
+import { until_ready } from './utils';
 
 // Name-only import so as to not trigger inclusion in main bundle
 import * as ConnectionModuleType from './connection';
@@ -51,12 +51,10 @@ export class DocumentConnectionManager {
     Map<VirtualDocument.id_path, VirtualDocument>
   >;
   language_server_manager: ILanguageServerManager;
-  private ignored_languages: Set<string>;
 
   constructor(options: DocumentConnectionManager.IOptions) {
     this.connections = new Map();
     this.documents = new Map();
-    this.ignored_languages = new Set();
     this.connected = new Signal(this);
     this.initialized = new Signal(this);
     this.disconnected = new Signal(this);
@@ -164,11 +162,6 @@ export class DocumentConnectionManager {
         this.forEachDocumentOfConnection(connection, virtual_document => {
           console.warn('LSP: disconnecting ' + virtual_document.id_path);
           this.closed.emit({ connection, virtual_document });
-          this.ignored_languages.add(virtual_document.language);
-
-          console.warn(
-            `Cancelling further attempts to connect ${virtual_document.id_path} and other documents for this language (no support from the server)`
-          );
         });
       } else if (error.message.indexOf('code = 1006') !== -1) {
         console.warn('LSP: Connection closed by the server ');
@@ -208,43 +201,6 @@ export class DocumentConnectionManager {
         continue;
       }
       callback(this.documents.get(virtual_document_id_path));
-    }
-  }
-
-  /**
-   * TODO: presently no longer referenced. A failing connection would close
-   * the socket, triggering the language server on the other end to exit
-   */
-  public async retry_to_connect(
-    options: ISocketConnectionOptions,
-    reconnect_delay: number,
-    retrials_left = -1
-  ) {
-    let { virtual_document } = options;
-
-    if (this.ignored_languages.has(virtual_document.language)) {
-      return;
-    }
-
-    let interval = reconnect_delay * 1000;
-    let success = false;
-
-    while (retrials_left !== 0 && !success) {
-      await this.connect(options)
-        .then(() => {
-          success = true;
-        })
-        .catch(e => {
-          console.warn(e);
-        });
-
-      console.log(
-        'LSP: will attempt to re-connect in ' + interval / 1000 + ' seconds'
-      );
-      await sleep(interval);
-
-      // gradually increase the time delay, up to 5 sec
-      interval = interval < 5 * 1000 ? interval + 500 : interval;
     }
   }
 
@@ -361,6 +317,10 @@ namespace Private {
         languageId: language,
         serverUri: uris.server,
         rootUri: uris.base
+      });
+      connection.on('close', () => {
+        _connections.delete(language_server_id);
+        connection.close();
       });
       // TODO: remove remaining unbounded users of connection.on
       connection.setMaxListeners(999);

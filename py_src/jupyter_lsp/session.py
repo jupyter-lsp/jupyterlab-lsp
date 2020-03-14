@@ -59,7 +59,10 @@ class LanguageServerSession(LoggingConfigurable):
         """ set up the required traitlets and exit behavior for a session
         """
         super().__init__(*args, **kwargs)
-        atexit.register(self.stop)
+        atexit.register(self.schedule_stop)
+
+    def schedule_stop(self):  # pragma: no cover
+        IOLoop.current().add_callback(self.stop)
 
     def __repr__(self):  # pragma: no cover
         return (
@@ -82,7 +85,6 @@ class LanguageServerSession(LoggingConfigurable):
     def initialize(self):
         """ (re)initialize a language server session
         """
-        self.stop()
         self.status = SessionStatus.STARTING
         self.init_queues()
         self.init_process()
@@ -97,21 +99,21 @@ class LanguageServerSession(LoggingConfigurable):
 
         self.status = SessionStatus.STARTED
 
-    def stop(self):
+    async def stop(self):
         """ clean up all of the state of the session
         """
 
         self.status = SessionStatus.STOPPING
 
+        if self.reader:
+            await self.reader.close()
+            self.reader = None
+        if self.writer:
+            await self.writer.close()
+            self.writer = None
         if self.process:
             self.process.terminate()
             self.process = None
-        if self.reader:
-            self.reader.close()
-            self.reader = None
-        if self.writer:
-            self.writer.close()
-            self.writer = None
 
         if self._tasks:
             [task.cancel() for task in self._tasks]
@@ -125,7 +127,7 @@ class LanguageServerSession(LoggingConfigurable):
         if change["new"] and not self.process:
             self.initialize()
         elif not change["new"] and self.process:
-            self.stop()
+            IOLoop.current().add_callback(self.stop)
 
     def write(self, message):
         """ wrapper around the write queue to keep it mostly internal

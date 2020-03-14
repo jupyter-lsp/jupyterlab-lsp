@@ -42,6 +42,7 @@ class LspStdIoBase(LoggingConfigurable):
         self.log.debug("%s initialized", self)
         self.executor = ThreadPoolExecutor(max_workers=1)
 
+    @run_on_executor
     def close(self):
         self.stream.close()
         self.log.debug("%s closed", self)

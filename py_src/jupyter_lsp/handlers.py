@@ -23,6 +23,12 @@ class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, BaseHandl
 
     language_server = None  # type: Optional[Text]
 
+    async def delete(self, language_server):
+        reason = await self.manager.stop_session(language_server)
+
+        if reason is not None:
+            self.set_status(400, reason)
+
     def open(self, language_server):
         self.language_server = language_server
         self.manager.subscribe(self)

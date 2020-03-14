@@ -130,6 +130,8 @@ export class LspWsConnection extends events.EventEmitter
       this.connection.dispose();
     }
     this.socket.close();
+    this.isConnected = this.isInitialized = false;
+    this.serverCapabilities = null;
   }
 
   /**

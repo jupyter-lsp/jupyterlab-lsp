@@ -46,6 +46,7 @@ async def test_start_known(known_server, handlers, jsonrpc_init_msg):
         ws_handler.on_close()
 
     assert not session.handlers
+    await ws_handler.delete(known_server)
     assert not session.process
 
     assert_status_set(handler, {"stopped"}, known_server)
@@ -68,7 +69,9 @@ async def test_start_unknown(known_unknown_server, handlers, jsonrpc_init_msg):
 
     await ws_handler.on_message(jsonrpc_init_msg)
     assert_status_set(handler, {"not_started"})
-    ws_handler.on_close()
+    await ws_handler.on_close()
+
+    await ws_handler.delete(known_unknown_server)
 
     assert not manager.sessions.get(ws_handler.language_server)
     assert_status_set(handler, {"not_started"})
