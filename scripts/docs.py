@@ -19,6 +19,7 @@ junit_family = xunit2
 
 filterwarnings =
     ignore::PendingDeprecationWarning
+    ignore::DeprecationWarning
 """
 
 
