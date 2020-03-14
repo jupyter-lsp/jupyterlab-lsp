@@ -124,13 +124,15 @@ class LanguageServerManager(LanguageServerManagerAPI):
             self.log.error(
                 "[{}] no session: session delete failed".format(language_server)
             )
-            return f"{language_server} session is not open"
+            return "{} session is not open".format(language_server)
 
-        self.log.warning(f"[{language_server}] closing handlers")
+        self.log.warning("[{}] closing handlers".format(language_server))
         [handler.close() for handler in session.handlers]
-        self.log.warning(f"[{language_server}] stopping reader, writer, and process")
+        self.log.warning(
+            "[{}] stopping reader, writer, and process".format(language_server)
+        )
         await session.stop()
-        self.log.warning(f"[{language_server}] clearing handlers")
+        self.log.warning("[{}] clearing handlers".format(language_server))
         session.handlers = []
         return None
 
