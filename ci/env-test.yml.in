@@ -12,7 +12,8 @@ dependencies:
   - nodejs
   # for python language server (and development)
   - flake8 >=3.5
-  - python-language-server <0.31.7a0
+  - python-language-server
+  - ujson <=1.35
   # for R language server and kernel
   - r
   - r-irkernel
