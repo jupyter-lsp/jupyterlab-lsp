@@ -16,7 +16,7 @@ You can contribute to the project through:
 - proposing parts of the architecture that can be [extended][extending]
 - improving [documentation](#Documentation)
 - tackling Big Issues from the [future roadmap][roadmap]
-- improving [testing](#Testing)
+- improving testing
 - reviewing pull requests
 
 [license]: https://github.com/krassowski/jupyterlab-lsp/blob/master/LICENSE
@@ -29,9 +29,9 @@ You can contribute to the project through:
 
 Development requires:
 
-- `nodejs` 8 or later
+- `nodejs` 10+
 - `python` 3.5+
-- `jupyterlab` 1.1
+- `jupyterlab` 2
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
 for development.
@@ -164,7 +164,7 @@ is recommended to peruse the [Robot Framework User's Guide][rfug] (and the exist
 First, ensure you've prepared JupyterLab for `jupyterlab-lsp`
 [frontend](#frontend-development) and [server](#server-development) development.
 
-Prepare the enviroment:
+Prepare the environment:
 
 ```bash
 conda env update -n jupyterlab-lsp --file requirements/atest.yml
@@ -260,7 +260,7 @@ python scripts/combine.py
 - If a test suite for a specific language fails it may indicate that you have no
   appropriate server language installed (see [LANGUAGESERVERS][])
 
-[languageservers]: ./docs/Language%20Servers.ipynb
+[languageservers]: https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html
 
 - If you are seeing errors like `Element is blocked by .jp-Dialog`, caused by
   the JupyterLab _Build suggested_ dialog, (likely if you have been using

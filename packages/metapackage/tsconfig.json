@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "lib",
     "rootDir": "src",
+    "types": ["jest"],
     "tsBuildInfoFile": "lib/.tsbuildinfo"
   },
   "include": ["src/**/*"],
@@ -12,6 +13,9 @@
     },
     {
       "path": "../lsp-ws-connection"
+    },
+    {
+      "path": "../jupyterlab-go-to-definition"
     }
   ]
 }

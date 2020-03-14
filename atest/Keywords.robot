@@ -18,13 +18,11 @@ Setup Server and Browser
     ${home} =    Set Variable    ${OUTPUT DIR}${/}home
     ${root} =    Normalize Path    ${OUTPUT DIR}${/}..${/}..${/}..
     Create Directory    ${home}
-    ${WORKSPACES DIR} =    Set Variable    ${OUTPUT DIR}${/}workspaces
+    Create Notebok Server Config    ${home}
     Initialize User Settings
-    ${app args} =    Set Variable    --no-browser --debug --NotebookApp.base_url\='${BASE}' --port\=${PORT} --NotebookApp.token\='${token}'
-    ${path args} =    Set Variable    --LabApp.user_settings_dir='${SETTINGS DIR.replace('\\', '\\\\')}' --LabApp.workspaces_dir\='${WORKSPACES DIR.replace('\\', '\\\\')}'
-    ${ext args} =    Set Variable    --LanguageServerManager.extra_node_roots\="['${root.replace('\\', '\\\\')}']"
+    ${cmd} =    Create Lab Launch Command    ${root}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots
-    ${server} =    Start Process    jupyter-lab ${app args} ${path args} ${ext args}    shell=yes    env:HOME=${home}    cwd=${home}    stdout=${OUTPUT DIR}${/}lab.log
+    ${server} =    Start Process    ${cmd}    shell=yes    env:HOME=${home}    cwd=${home}    stdout=${OUTPUT DIR}${/}lab.log
     ...    stderr=STDOUT
     Set Global Variable    ${SERVER}    ${server}
     Open JupyterLab
@@ -32,6 +30,21 @@ Setup Server and Browser
     ${config} =    Evaluate    __import__("json").loads("""${script}""")
     Set Global Variable    ${PAGE CONFIG}    ${config}
     Set Global Variable    ${LAB VERSION}    ${config["appVersion"]}
+
+Create Lab Launch Command
+    [Arguments]    ${root}
+    [Documentation]    Create a JupyterLab CLI shell string, escaping for traitlets
+    ${WORKSPACES DIR} =    Set Variable    ${OUTPUT DIR}${/}workspaces
+    ${app args} =    Set Variable    --no-browser --debug --NotebookApp.base_url\='${BASE}' --port\=${PORT} --NotebookApp.token\='${TOKEN}'
+    ${path args} =    Set Variable    --LabApp.user_settings_dir='${SETTINGS DIR.replace('\\', '\\\\')}' --LabApp.workspaces_dir\='${WORKSPACES DIR.replace('\\', '\\\\')}'
+    ${ext args} =    Set Variable    --LanguageServerManager.extra_node_roots\="['${root.replace('\\', '\\\\')}']"
+    ${cmd} =    Set Variable    jupyter-lab ${app args} ${path args} ${ext args}
+    [Return]    ${cmd}
+
+Create Notebok Server Config
+    [Arguments]    ${home}
+    [Documentation]    Copies in notebook server config file to disables npm/build checks
+    Copy File    ${FIXTURES}${/}${NBSERVER CONF}    ${home}${/}${NBSERVER CONF}
 
 Setup Suite For Screenshots
     [Arguments]    ${folder}
@@ -59,7 +72,7 @@ Open JupyterLab
     ${firefox} =    Which    firefox
     ${geckodriver} =    Which    geckodriver
     Create WebDriver    Firefox    executable_path=${geckodriver}    firefox_binary=${firefox}    service_log_path=${OUTPUT DIR}${/}geckodriver.log
-    Wait Until Keyword Succeeds    20x    3s    Go To    ${URL}lab?token=${TOKEN}
+    Wait Until Keyword Succeeds    20x    3s    Go To    ${URL}lab?reset&token=${TOKEN}
     Set Window Size    1024    768
     Wait For Splash
 
@@ -141,15 +154,21 @@ Open With JupyterLab Menu
     END
 
 Ensure File Browser is Open
-    ${sel} =    Set Variable    css:.p-TabBar-tab[data-id="filebrowser"]:not(.p-mod-current)
+    ${sel} =    Set Variable    css:.lm-TabBar-tab[data-id="filebrowser"]:not(.lm-mod-current)
     ${els} =    Get WebElements    ${sel}
     Run Keyword If    ${els.__len__()}    Click Element    ${sel}
 
-Rename Jupyter File
-    [Arguments]    ${old}    ${new}
+Open Context Menu for File
+    [Arguments]    ${file}
     Ensure File Browser is Open
     Click Element    css:button[title="Refresh File List"]
-    Open Context Menu    //span[@class='jp-DirListing-itemText']\[text() = '${old}']
+    ${selector} =    Set Variable    xpath://span[@class='jp-DirListing-itemText']\[text() = '${file}']
+    Wait Until Page Contains Element    ${selector}
+    Open Context Menu    ${selector}
+
+Rename Jupyter File
+    [Arguments]    ${old}    ${new}
+    Open Context Menu for File    ${old}
     Mouse Over    ${MENU RENAME}
     Click Element    ${MENU RENAME}
     Press Keys    None    CTRL+a
@@ -164,9 +183,7 @@ Input Into Dialog
     Click Element    ${DIALOG ACCEPT}
 
 Open ${file} in ${editor}
-    Ensure File Browser is Open
-    Click Element    css:button[title="Refresh File List"]
-    Open Context Menu    css:.jp-DirListing-item[title="${file}"]
+    Open Context Menu for File    ${file}
     Mouse Over    ${MENU OPEN WITH}
     Wait Until Page Contains Element    ${editor}
     Mouse Over    ${editor}

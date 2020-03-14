@@ -44,10 +44,14 @@ PACKAGES = {
         for path in ROOT.glob("packages/*/package.json")
     ]
 }
-MAIN_NAME = "{}/jupyterlab-lsp".format(NPM_NS)
+
 META_NAME = "{}/jupyterlab-lsp-metapackage".format(NPM_NS)
 
-MAIN_EXT_VERSION = PACKAGES[MAIN_NAME][1]["version"]
+JS_LSP_NAME = "{}/jupyterlab-lsp".format(NPM_NS)
+JS_LSP_VERSION = PACKAGES[JS_LSP_NAME][1]["version"]
+
+JS_G2D_NAME = "{}/jupyterlab_go_to_definition".format(NPM_NS)
+JS_G2D_VERSION = PACKAGES[JS_G2D_NAME][1]["version"]
 
 # py stuff
 PY_NAME = "jupyter-lsp"
@@ -58,6 +62,7 @@ PY_VERSION = re.findall(r'= "(.*)"$', (_VERSION_PY).read_text())[0]
 PIPE_FILE = ROOT / "azure-pipelines.yml"
 PIPELINES = yaml.safe_load(PIPE_FILE.read_text())
 PIPE_VARS = PIPELINES["variables"]
+DOCS = ROOT / "docs"
 
 CI = ROOT / "ci"
 
@@ -80,9 +85,20 @@ def the_meta_package():
     )
 
 
+@pytest.fixture(scope="module")
+def the_installation_notebook():
+    """ loads up the installation notebook
+    """
+    return (DOCS / "Installation.ipynb").read_text()
+
+
 @pytest.mark.parametrize(
     "name,version",
-    [["PY_JLSP_VERSION", PY_VERSION], ["JS_JLLSP_VERSION", MAIN_EXT_VERSION]],
+    [
+        ["PY_JLSP_VERSION", PY_VERSION],
+        ["JS_JLLSP_VERSION", JS_LSP_VERSION],
+        ["JS_JLG2D_VERSION", JS_G2D_VERSION],
+    ],
 )
 def test_ci_variables(name, version):
     """ Are the CI version variables consistent?
@@ -133,12 +149,25 @@ def test_jlab_versions(path):
 
 
 @pytest.mark.parametrize(
-    "pkg,version", [[PY_NAME, PY_VERSION], [MAIN_NAME, MAIN_EXT_VERSION]]
+    "pkg,version",
+    [
+        [PY_NAME, PY_VERSION],
+        [JS_LSP_NAME, JS_LSP_VERSION],
+        [JS_G2D_NAME, JS_G2D_VERSION],
+    ],
 )
 def test_changelog_versions(pkg, version):
     """ are the current versions represented in the changelog?
     """
     assert "## `{} {}`".format(pkg, version) in CHANGELOG.read_text()
+
+
+@pytest.mark.parametrize(
+    "pkg,sep,version,expected",
+    [[PY_NAME, "=", PY_VERSION, 3], [JS_LSP_NAME, "@", JS_LSP_VERSION, 3]],
+)
+def test_installation_versions(the_installation_notebook, pkg, sep, version, expected):
+    assert the_installation_notebook.count(f"{pkg}{sep}{version}") == expected
 
 
 def check_integrity():

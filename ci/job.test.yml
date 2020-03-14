@@ -12,16 +12,23 @@ parameters:
   pythons:
     - name: ThreeSix
       spec: '>=3.6,<3.7.0a0'
-      lab: '>=1.1,<1.2.0a0'
+      lab: '>=2,<2.1.0a0'
+      nodejs: '>=10,<11.0.0.a0'
     - name: ThreeSeven
       spec: '>=3.7,<3.8.0a0'
-      lab: '>=1.2.4,<1.3.0a0'
+      lab: '>=2,<2.1.0a0'
+      nodejs: '>=12,<13.0.0a0'
     - name: ThreeEight
       spec: '>=3.8,<3.9.0a0'
-      lab: '>=1.2.4,<1.3.0a0'
+      lab: '>=2,<2.1.0a0'
+      nodejs: '>=13,<14.0.0a0'
+  js_cov_packages:
+    - jupyterlab-go-to-definition
+    - jupyterlab-lsp
   env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
-  lab_link: jupyter labextension link --no-build $(LINKED_EXTENSIONS)
-  lab_ext: jupyter labextension install --no-build $(THIRD_PARTY_LABEXTENSIONS) $(FIRST_PARTY_LABEXTENSIONS)
+  lab_link: jupyter labextension link --debug --no-build $(LINKED_EXTENSIONS)
+  lab_ext: jupyter labextension install --debug --no-build $(FIRST_PARTY_LABEXTENSIONS)
+  lab_build: jupyter lab build --debug --dev-build=False --minimize=True
 
 jobs:
   - ${{ each platform in parameters.platforms }}:
@@ -34,8 +41,8 @@ jobs:
                 parameters:
                   name: ${{ platform.name }}
 
-              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" "${{ python.lab }}"
-                displayName: generate env with python and lab version
+              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" "${{ python.lab }}" "${{ python.nodejs }}"
+                displayName: generate env with python, lab, and nodejs version
 
               - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
                 displayName: update conda environment with test dependencies
@@ -69,10 +76,13 @@ jobs:
                   mergeTestResults: true
                 condition: always()
 
-              - task: PublishCodeCoverageResults@1
-                inputs:
-                  codeCoverageTool: Cobertura
-                  summaryFileLocation: 'packages/**/coverage/cobertura-coverage.xml'
+              - ${{ each js_package in parameters.js_cov_packages }}:
+                  - task: PublishCodeCoverageResults@1
+                    displayName: 'publish ${{ js_package }} coverage'
+                    inputs:
+                      codeCoverageTool: Cobertura
+                      summaryFileLocation: 'packages/${{ js_package }}/coverage/cobertura-coverage.xml'
+                    condition: always()
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jupyter serverextension list
                 displayName: list server extensions
@@ -86,11 +96,14 @@ jobs:
               - script: ${{ platform.activate }} jupyterlab-lsp && ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }}
                 displayName: install labextensions
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter lab build --dev-mode=False --minimize=True || jupyter lab build --debug --dev-mode=False --minimize=True || jupyter lab build --debug
+              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter labextension list
+                displayName: list labextensions before build
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && ${{ parameters.lab_build }} || ${{ parameters.lab_build }} || ${{ parameters.lab_build }}
                 displayName: build lab
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jupyter labextension list
-                displayName: list labextensions
+                displayName: list labextensions after build
 
               - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/atest.py
                 displayName: run browser tests

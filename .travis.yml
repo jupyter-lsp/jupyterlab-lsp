@@ -6,17 +6,26 @@ cache:
     - $HOME/.cache/yarn
     - $HOME/.cache/pip
 
+env:
+  global:
+    - TRAVIS_NVM_VERSION=0.35.2
+
 matrix:
   include:
     - python: '3.5'
-    - python: '3.6'
-    - python: '3.7'
+      env: TRAVIS_NODE_VERSION=10
     - python: '3.8'
+      env: TRAVIS_NODE_VERSION=12
+    - python: '3.9-dev'
+      env: TRAVIS_NODE_VERSION=13
     - os: osx
+      env: TRAVIS_NODE_VERSION=12
       osx_image: xcode11
       language: shell
 
 before_install:
+  - wget -qO- https://raw.githubusercontent.com/creationix/nvm/v${TRAVIS_NVM_VERSION}/install.sh | bash
+  - source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
   - python3 -m pip install -r requirements/utest.txt
   - python3 -m pip freeze
   - python3 setup.py sdist
@@ -34,8 +43,3 @@ script:
   - python3 -m jupyter serverextension list
   - python3 -m jupyter serverextension list | grep jupyter_lsp
   - python3 scripts/utest.py
-
-addons:
-  apt:
-    packages:
-      - nodejs

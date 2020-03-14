@@ -13,9 +13,11 @@ jlpm bootstrap
 # link all pieces to lab (no build)
 jlpm lab:link && jupyter labextension list
 
-# TODO: should this move into the monorepo?
-# link third party extensions
-jupyter labextension install @krassowski/jupyterlab_go_to_definition --no-build
+# list extensions before build
+jupyter labextension list
 
 # actually build
-jupyter lab build --dev-build=False --minimize=True && jupyter labextension list
+jupyter lab build --debug --dev-build=False --minimize=True
+
+# list extensions again
+jupyter labextension list
