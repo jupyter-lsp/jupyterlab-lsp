@@ -5,7 +5,7 @@ import {
 import { CellMagicsMap, LineMagicsMap } from '../magics/maps';
 import { IOverridesRegistry } from '../magics/overrides';
 import { DefaultMap } from '../utils';
-import { Signal } from '@phosphor/signaling';
+import { Signal } from '@lumino/signaling';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import * as CodeMirror from 'codemirror';
 import {
@@ -338,6 +338,11 @@ export class VirtualDocument {
 
   document_at_source_position(position: ISourcePosition): VirtualDocument {
     let source_line = this.source_lines.get(position.line);
+
+    if (source_line == null) {
+      return this;
+    }
+
     let source_position_ce: CodeEditor.IPosition = {
       line: source_line.editor_line,
       column: position.ch
@@ -485,7 +490,7 @@ export class VirtualDocument {
             result.virtual_shift
           );
         }
-        if (result.host_code !== null) {
+        if (result.host_code != null) {
           kept_cell_code += result.host_code;
         }
       }
@@ -503,7 +508,7 @@ export class VirtualDocument {
     let cell_override = this.cell_magics_overrides.reverse.override_for(
       raw_code
     );
-    if (cell_override !== null) {
+    if (cell_override != null) {
       return cell_override;
     } else {
       let lines = this.line_magics_overrides.reverse_replace_all(
@@ -530,7 +535,7 @@ export class VirtualDocument {
 
     // cell magics are replaced if requested and matched
     let cell_override = this.cell_magics_overrides.override_for(cell_code);
-    if (cell_override !== null) {
+    if (cell_override != null) {
       lines = cell_override.split('\n');
       skip_inspect = lines.map(l => [this.id_path]);
     } else {

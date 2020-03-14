@@ -7,7 +7,7 @@ import {
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import * as CodeMirror from 'codemirror';
 import { CodeMirrorLSPFeature, IEditorRange } from '../feature';
-import { Debouncer } from '@jupyterlab/coreutils';
+import { Debouncer } from '@lumino/polling';
 
 export type KeyModifier = 'Alt' | 'Control' | 'Shift' | 'Meta' | 'AltGraph';
 const hover_modifier: KeyModifier = 'Control';
@@ -144,7 +144,7 @@ export class Hover extends CodeMirrorLSPFeature {
 
   protected is_event_inside_visible(event: MouseEvent) {
     let target = event.target as HTMLElement;
-    return target.closest('.CodeMirror-sizer') !== null;
+    return target.closest('.CodeMirror-sizer') != null;
   }
 
   public async _handleMouseOver(event: MouseEvent) {

@@ -1,0 +1,13 @@
+{
+  "title": "Go-to-definition",
+  "description": "Go-to-definition extension settings.",
+  "additionalProperties": false,
+  "properties": {
+    "modifier": {
+      "type": "string",
+      "title": "Key modifier used with mouse click",
+      "default": "Alt"
+    }
+  },
+  "type": "object"
+}

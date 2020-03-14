@@ -1,6 +1,6 @@
 import * as CodeMirror from 'codemirror';
 import * as lsProtocol from 'vscode-languageserver-protocol';
-import { Menu } from '@phosphor/widgets';
+import { Menu } from '@lumino/widgets';
 import { PositionConverter } from '../../../converter';
 import { IVirtualPosition, IEditorPosition } from '../../../positioning';
 import { diagnosticSeverityNames } from '../../../lsp';
@@ -25,7 +25,7 @@ class DiagnosticsPanel {
   is_registered = false;
 
   get widget() {
-    if (this._widget == null || this._widget.content.model === null) {
+    if (this._widget == null || this._widget.content.model == null) {
       if (this._widget && !this._widget.isDisposed) {
         this._widget.dispose();
       }
@@ -218,6 +218,11 @@ export class Diagnostics extends CodeMirrorLSPFeature {
     if (response.uri !== this.virtual_document.document_info.uri) {
       return;
     }
+
+    if (this.virtual_document.last_virtual_line === 0) {
+      return;
+    }
+
     /* TODO: gutters */
     try {
       let diagnostics_list: IEditorDiagnostic[] = [];

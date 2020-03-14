@@ -1,5 +1,17 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 1.0.0` (unreleased)
+
+- features
+
+  - supports JupyterLab 2.0
+
+### `@krassowski/jupyterlab_go_to_definition 1.0.0` (unreleased)
+
+- features
+
+  - supports JupyterLab 2.0
+
 ### `@krassowski/jupyterlab-lsp 0.8.0` (2020-03-12)
 
 - features

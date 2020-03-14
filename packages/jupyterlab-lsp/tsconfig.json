@@ -9,6 +9,9 @@
   "include": ["src/**/*"],
   "references": [
     {
+      "path": "../jupyterlab-go-to-definition"
+    },
+    {
       "path": "../lsp-ws-connection"
     }
   ]
