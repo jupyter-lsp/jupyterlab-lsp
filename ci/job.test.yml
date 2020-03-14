@@ -22,6 +22,9 @@ parameters:
       spec: '>=3.8,<3.9.0a0'
       lab: '>=2,<2.1.0a0'
       nodejs: '>=13,<14.0.0a0'
+  js_cov_packages:
+    - jupyterlab-go-to-definition
+    - jupyterlab-lsp
   env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
   lab_link: jupyter labextension link --debug --no-build $(LINKED_EXTENSIONS)
   lab_ext: jupyter labextension install --debug --no-build $(FIRST_PARTY_LABEXTENSIONS)
@@ -73,10 +76,14 @@ jobs:
                   mergeTestResults: true
                 condition: always()
 
-              - task: PublishCodeCoverageResults@1
-                inputs:
-                  codeCoverageTool: Cobertura
-                  summaryFileLocation: 'packages/**/coverage/cobertura-coverage.xml'
+              - ${{ each js_package in parameters.js_cov_packages }}:
+                  - task: PublishCodeCoverageResults@1
+                    inputs:
+                      codeCoverageTool: Cobertura
+                      summaryFileLocation: 'packages/${{ js_package }}/coverage/cobertura-coverage.xml'
+                      reportDirectory: 'packages/${{ js_package }}/coverage'
+                      additionalCodeCoverageFiles: 'packages/${{ js_package }}/coverage/**/*.*'
+                    condition: always()
 
               - script: ${{ platform.activate }} jupyterlab-lsp && jupyter serverextension list
                 displayName: list server extensions
