@@ -1,6 +1,6 @@
 '''Fibonacci accumulation'''
 
-from itertools import  (accumulate, chain)
+from itertools import  (accumulate, chain); accumulate
 
 
 # fibs :: Integer :: [Integer]

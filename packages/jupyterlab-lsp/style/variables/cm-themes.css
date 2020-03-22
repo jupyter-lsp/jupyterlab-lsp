@@ -2,6 +2,8 @@
   --jp-editor-mirror-lsp-highlight-background-color: rgba(144, 199, 255, 0.2);
 }
 
+/* ... so many other themes ... */
+
 .cm-s-zenburn {
   --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.2);
 }
