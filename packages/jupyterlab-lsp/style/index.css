@@ -39,8 +39,6 @@
   background-color: var(--jp-layout-color2);
 }
 
-/* fuzzy matches (not exact symbol matches) */
-.cm-lsp-highlight-Text {
-  background-color: #ddeeee;
-  box-shadow: 0 0 3px 3px #ddeeee;
+.CodeMirror-activeline .cm-lsp-highlight {
+  outline: 1px dotted var(--jp-layout-color3);
 }
