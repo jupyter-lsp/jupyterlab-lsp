@@ -1,0 +1,7 @@
+.cm-s-abcdef {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(144, 199, 255, 0.2);
+}
+
+.cm-s-zenburn {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.2);
+}

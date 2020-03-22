@@ -1,0 +1,64 @@
+@import url('./variables/base.css');
+@import url('./variables/cm-themes.css');
+@import url('./variables/jupyterlab-dark.css');
+@import url('./variables/jupyterlab-light.css');
+
+.cm-lsp-diagnostic {
+  text-decoration-line: underline;
+  /* For Chrome */
+  text-decoration-skip-ink: none;
+}
+
+.cm-lsp-diagnostic-Error {
+  /*
+    "wavy" would be ideal, but there seems to be a bug in Chrome which makes it
+    fail to render the last character see:
+    https://stackoverflow.com/questions/57559588/how-to-make-the-wavy-underline-extend-cover-all-the-characters-in-chrome
+    an alternative would be to use background image trick to simulate the underline
+  */
+
+  text-decoration-style: var(
+    --jp-editor-mirror-lsp-diagnostic-decoration-style
+  );
+  text-decoration-color: var(
+    --jp-editor-mirror-lsp-diagnostic-error-decoration-color
+  );
+}
+
+.cm-lsp-diagnostic-Warning {
+  text-decoration-style: var(
+    --jp-editor-mirror-lsp-diagnostic-decoration-style
+  );
+  text-decoration-color: var(
+    --jp-editor-mirror-lsp-diagnostic-warning-decoration-color
+  );
+}
+
+.cm-lsp-diagnostic-Information {
+  text-decoration-style: var(
+    --jp-editor-mirror-lsp-diagnostic-decoration-style
+  );
+  text-decoration-color: var(
+    --jp-editor-mirror-lsp-diagnostic-information-decoration-color
+  );
+}
+
+.cm-lsp-diagnostic-Hint {
+  text-decoration-style: var(
+    --jp-editor-mirror-lsp-diagnostic-decoration-style
+  );
+  text-decoration-color: var(
+    --jp-editor-mirror-lsp-diagnostic-hint-decoration-color
+  );
+}
+
+/* hover */
+.cm-lsp-hover-available {
+  text-decoration: var(--jp-editor-mirror-lsp-hover-decoration-style);
+  text-decoration-color: var(--jp-editor-mirror-lsp-hover-decoration-color);
+}
+
+/* highlight */
+.cm-lsp-highlight {
+  background-color: var(--jp-editor-mirror-lsp-highlight-background-color);
+}
