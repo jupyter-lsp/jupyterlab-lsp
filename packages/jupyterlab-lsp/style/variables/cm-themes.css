@@ -10,7 +10,7 @@
   --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
 }
 
-.cm-s-codemirror {
+.cm-s-default {
   --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
 }
 
@@ -19,7 +19,7 @@
 }
 
 .cm-s-material {
-  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 255, 58, 0.2);
 }
 
 .cm-s-mbo {
@@ -31,14 +31,14 @@
 }
 
 .cm-s-mdn-like {
-  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.1);
 }
 
 .cm-s-seti {
   --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
 }
 
-.cm-s-solarized-dark {
+.cm-s-solarized {
   --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
 }
 
