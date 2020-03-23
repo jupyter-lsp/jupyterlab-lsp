@@ -3,15 +3,15 @@
 }
 
 .cm-s-base16-dark {
-  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.2);
 }
 
 .cm-s-base16-light {
-  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.1);
 }
 
 .cm-s-default {
-  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.1);
 }
 
 .cm-s-hopscotch {
@@ -23,11 +23,11 @@
 }
 
 .cm-s-mbo {
-  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.2);
 }
 
 .cm-s-material {
-  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.2);
 }
 
 .cm-s-mdn-like {
@@ -35,7 +35,7 @@
 }
 
 .cm-s-seti {
-  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.2);
 }
 
 .cm-s-solarized {
@@ -47,11 +47,11 @@
 }
 
 .cm-s-the-matrix {
-  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.2);
 }
 
 .cm-s-xq-light {
-  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.1);
 }
 
 .cm-s-zenburn {
