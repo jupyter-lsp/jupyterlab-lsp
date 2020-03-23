@@ -39,11 +39,7 @@
 }
 
 .cm-s-solarized {
-  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
-}
-
-.cm-s-solarized-light {
-  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.2);
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.1);
 }
 
 .cm-s-the-matrix {
