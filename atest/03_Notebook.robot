@@ -15,7 +15,7 @@ Python
 Foregin Extractors
     Setup Notebook    Python    Foreign extractors.ipynb
     # if mypy and pyflakes will fight over `(N|n)ame 'valid'`, just hope for the best
-    @{diagnostics} =    Create List    Failed to parse expression    ame 'valid'    Trailing whitespace is superfluous. (lintr)
+    @{diagnostics} =    Create List    Failed to parse expression    ame 'valid'    Trailing whitespace is superfluous.
     FOR    ${diagnostic}    IN    @{diagnostics}
         Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*\="${diagnostic}"]    timeout=35s
         Capture Page Screenshot    0x-${diagnostic}.png
