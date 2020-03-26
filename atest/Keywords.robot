@@ -158,6 +158,11 @@ Ensure File Browser is Open
     ${els} =    Get WebElements    ${sel}
     Run Keyword If    ${els.__len__()}    Click Element    ${sel}
 
+Ensure Sidebar Is Closed
+    [Arguments]    ${side}=left
+    ${els} =    Get WebElements    css:#jp-${side}-stack
+    Run Keyword If    ${els.__len__()}    Click Element    css:.jp-mod-${side} .lm-TabBar-tab.lm-mod-current
+
 Open Context Menu for File
     [Arguments]    ${file}
     Ensure File Browser is Open
@@ -195,15 +200,15 @@ Clean Up After Working With File
     Reset Application State
 
 Setup Notebook
-    [Arguments]    ${Language}    ${file}
+    [Arguments]    ${Language}    ${file}    ${isolated}=${True}
     Set Tags    language:${Language.lower()}
-    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}notebook${/}${TEST NAME.replace(' ', '_')}
+    Run Keyword If    ${isolated}    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}notebook${/}${TEST NAME.replace(' ', '_')}
     Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
-    Try to Close All Tabs
+    Run Keyword If    ${isolated}    Try to Close All Tabs
     Open ${file} in ${MENU NOTEBOOK}
-    Capture Page Screenshot    00-opened.png
+    Capture Page Screenshot    00-notebook-opened.png
     Wait Until Fully Initialized
-    Capture Page Screenshot    01-initialized.png
+    Capture Page Screenshot    01-notebook-initialized.png
 
 Open Diagnostics Panel
     Lab Command    Show Diagnostics Panel

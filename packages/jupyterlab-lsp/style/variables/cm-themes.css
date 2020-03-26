@@ -43,7 +43,7 @@
 }
 
 .cm-s-the-matrix {
-  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.2);
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.1);
 }
 
 .cm-s-xq-light {

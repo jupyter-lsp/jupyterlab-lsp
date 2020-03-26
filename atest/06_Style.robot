@@ -17,7 +17,7 @@ Dark
 
 *** Keywords ***
 Screenshot Editor Themes with Lab Theme
-    [Arguments]    ${lab theme}    ${file}=example.py
+    [Arguments]    ${lab theme}    ${file}=style.py    ${notebook}=Diagnostic.ipynb
     ${norm lab theme} =    Set Variable    ${lab theme.lower().replace(" ", "-")}
     Set Tags    theme:lab:${norm lab theme}
     Set Screenshot Directory    ${OUTPUT DIR}${/}style${/}${norm lab theme}
@@ -25,8 +25,13 @@ Screenshot Editor Themes with Lab Theme
     Run Keyword If    "${THEME NAMES}" == ""    Wait Until Keyword Succeeds    3x    1s    Get Theme Names
     Lab Command    Use ${lab theme} Theme
     Try to Close All Tabs
+    Setup Notebook    python    ${notebook}    isolated=${False}
     Open ${file} in ${MENU EDITOR}
-    Capture Page Screenshot    00-opened.png
+    Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., '${file}')]    -400    400
+    Ensure Sidebar Is Closed
+    Click Element   ${JLAB XP DOCK TAB}\[contains(., '${file}')]
+    Click the second Accumulate in Notebook
+    Capture Page Screenshot    00-notebook.png
     FOR    ${editor theme}    IN    @{THEME NAMES}
         Capture Theme Screenshot    ${editor theme}
     END
@@ -37,11 +42,11 @@ Capture Theme Screenshot
     Change Editor Theme    ${editor theme}
     Wait Until Fully Initialized
     Wait Until Page Contains Element    css:.cm-lsp-diagnostic    timeout=20s
-    Click the second Accumulate
-    Capture Page Screenshot    ${editor theme.replace(' ', '-')}.png
+    Click the second Accumulate in FileEditor
+    Capture Page Screenshot    01-editor-${editor theme.replace(' ', '-')}.png
 
-Click the second Accumulate
-    Click Element    xpath://span[text()\='accumulate'][2]
+Click the second Accumulate in ${editor}
+    Click Element    //div[contains(@class, 'jp-${editor}')]//div[contains(@class,'CodeMirror')]//span[text() = 'accumulate']
 
 Change Editor Theme
     [Arguments]    ${editor theme}

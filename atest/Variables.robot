@@ -11,6 +11,7 @@ ${CMD PALETTE ITEM ACTIVE}    css:#command-palette .lm-CommandPalette-item.lm-mo
 ${JLAB XP TOP}    //div[@id='jp-top-panel']
 ${JLAB XP MENU ITEM LABEL}    //div[@class='lm-Menu-itemLabel']
 ${JLAB XP MENU LABEL}    //div[@class='lm-MenuBar-itemLabel']
+${JLAB XP DOCK TAB}    xpath://div[contains(@class, 'lm-DockPanel-tabBar')]//li[contains(@class, 'lm-TabBar-tab')]
 ${JLAB CSS VERSION}    css:.jp-About-version
 ${CSS DIALOG OK}    css:.jp-Dialog .jp-mod-accept
 ${MENU OPEN WITH}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Open With")]
