@@ -29,7 +29,7 @@ Screenshot Editor Themes with Lab Theme
     Open ${file} in ${MENU EDITOR}
     Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., '${file}')]    -400    400
     Ensure Sidebar Is Closed
-    Click Element   ${JLAB XP DOCK TAB}\[contains(., '${file}')]
+    Click Element    ${JLAB XP DOCK TAB}\[contains(., '${file}')]
     Click the second Accumulate in Notebook
     Capture Page Screenshot    00-notebook.png
     FOR    ${editor theme}    IN    @{THEME NAMES}
