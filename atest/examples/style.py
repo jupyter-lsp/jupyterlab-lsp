@@ -1,6 +1,13 @@
-# style testing
+# one `warning`, shows active line token highlighting
 from itertools import accumulate; accumulate
+
+# an extra token for highlighting
 accumulate
-foo = 1
+
+# one `error`, one `warning`
 foo + foo               
-foo - "12333"
+
+# one `error`
+XXXXXXXXXXXXXX
+
+# TODO: `hint`, `info`
