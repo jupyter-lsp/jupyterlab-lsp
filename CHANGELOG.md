@@ -1,5 +1,14 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 1.0.1` (unreleased)
+
+- bug fixes
+
+  - fixes currently-highlighted token in dark editor themes against light lab theme
+    (and vice versa) ([#195][])
+
+[#195]: https://github.com/krassowski/jupyterlab-lsp/issues/195
+
 ### `@krassowski/jupyterlab-lsp 1.0.0` (2020-03-14)
 
 - features

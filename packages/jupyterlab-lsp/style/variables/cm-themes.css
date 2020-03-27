@@ -1,0 +1,55 @@
+.cm-s-abcdef {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(144, 199, 255, 0.2);
+}
+
+.cm-s-base16-dark {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.2);
+}
+
+.cm-s-base16-light {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(186, 192, 161, 0.1);
+}
+
+.cm-s-default {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.1);
+}
+
+.cm-s-hopscotch {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(207, 18, 255, 0.2);
+}
+
+.cm-s-material {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 255, 58, 0.2);
+}
+
+.cm-s-mbo {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.2);
+}
+
+.cm-s-material {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.2);
+}
+
+.cm-s-mdn-like {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.1);
+}
+
+.cm-s-seti {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.2);
+}
+
+.cm-s-solarized {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.1);
+}
+
+.cm-s-the-matrix {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.1);
+}
+
+.cm-s-xq-light {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.1);
+}
+
+.cm-s-zenburn {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(239, 231, 171, 0.2);
+}

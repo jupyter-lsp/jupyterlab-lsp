@@ -1,0 +1,3 @@
+body[data-jp-theme-light='true'] .cm-s-jupyter {
+  --jp-editor-mirror-lsp-highlight-background-color: rgba(18, 69, 255, 0.1);
+}

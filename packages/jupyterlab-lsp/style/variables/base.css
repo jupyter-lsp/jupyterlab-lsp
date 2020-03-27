@@ -1,0 +1,21 @@
+:root {
+  /* highlight */
+  --jp-editor-mirror-lsp-highlight-background-color: var(--jp-layout-color2);
+  /* diagnostics */
+  --jp-editor-mirror-lsp-diagnostic-decoration-style: dashed;
+  --jp-editor-mirror-lsp-diagnostic-error-decoration-color: var(
+    --jp-error-color1
+  );
+  --jp-editor-mirror-lsp-diagnostic-warning-decoration-color: var(
+    --jp-warn-color1
+  );
+  --jp-editor-mirror-lsp-diagnostic-information-decoration-color: var(
+    --jp-info-color1
+  );
+  --jp-editor-mirror-lsp-diagnostic-hint-decoration-color: var(
+    --jp-success-color1
+  );
+  /* hover */
+  --jp-editor-mirror-lsp-hover-decoration-style: dotted;
+  --jp-editor-mirror-lsp-hover-decoration-color: var(--jp-brand-color1);
+}
