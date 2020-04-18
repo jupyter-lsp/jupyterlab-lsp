@@ -22,6 +22,8 @@ matrix:
       env: TRAVIS_NODE_VERSION=12
       osx_image: xcode11
       language: shell
+  allow_failures:
+    - os: osx
 
 before_install:
   - wget -qO- https://raw.githubusercontent.com/creationix/nvm/v${TRAVIS_NVM_VERSION}/install.sh | bash
