@@ -246,3 +246,29 @@ Open Context Menu Over
     Wait Until Keyword Succeeds    10 x    0.1 s    Mouse Over    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
+
+Prepare File for Editing
+    [Arguments]    ${Language}  ${Screenshots}   ${file}
+    Set Tags    language:${Language.lower()}
+    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}${Screenshots}${/}${Language.lower()}
+    Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
+    Try to Close All Tabs
+    Open ${file} in ${MENU EDITOR}
+    Capture Page Screenshot    00-opened.png
+
+Open in Advanced Settings
+    [Arguments]    ${plugin id}
+    Lab Command    Advanced Settings Editor
+    ${sel} =    Set Variable    css:[data-id="${plugin id}"]
+    Wait Until Page Contains Element    ${sel}
+    Click Element    ${sel}
+    Wait Until Page Contains    System Defaults
+
+Set Editor Content
+    [Arguments]    ${text}   ${css}=${EMPTY}
+    Execute JavaScript    return document.querySelector('${css} .CodeMirror').CodeMirror.setValue(`${text}`)
+
+Get Editor Content
+    [Arguments]   ${css}=${EMPTY}
+    ${content} =    Execute JavaScript    return document.querySelector('${css} .CodeMirror').CodeMirror.getValue()
+    [Return]    ${content}
