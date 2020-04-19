@@ -31,11 +31,9 @@ ${MENU SETTINGS}    xpath://div[contains(@class, 'lm-MenuBar-itemLabel')][contai
 ${MENU EDITOR THEME}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Text Editor Theme")]
 ${CM CURSOR}      css:.CodeMirror-cursor
 ${CM CURSORS}     css:.CodeMirror-cursors:not([style='visibility: hidden'])
-
 # settings
 ${LSP PLUGIN ID}    @krassowski/jupyterlab-lsp:plugin
-${LSP PLUGIN SETTINGS FILE}  @krassowski${/}jupyterlab-lsp${/}plugin.jupyterlab-settings
-${CSS USER SETTINGS}   .jp-SettingsRawEditor-user
-
+${LSP PLUGIN SETTINGS FILE}    @krassowski${/}jupyterlab-lsp${/}plugin.jupyterlab-settings
+${CSS USER SETTINGS}    .jp-SettingsRawEditor-user
 # diagnostics
-${CSS DIAGNOSTIC}   css:.cm-lsp-diagnostic
+${CSS DIAGNOSTIC}    css:.cm-lsp-diagnostic

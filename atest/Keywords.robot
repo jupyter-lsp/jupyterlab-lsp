@@ -251,7 +251,7 @@ Open Context Menu Over
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
 
 Prepare File for Editing
-    [Arguments]    ${Language}  ${Screenshots}   ${file}
+    [Arguments]    ${Language}    ${Screenshots}    ${file}
     Set Tags    language:${Language.lower()}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}${Screenshots}${/}${Language.lower()}
     Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
@@ -268,10 +268,10 @@ Open in Advanced Settings
     Wait Until Page Contains    System Defaults
 
 Set Editor Content
-    [Arguments]    ${text}   ${css}=${EMPTY}
+    [Arguments]    ${text}    ${css}=${EMPTY}
     Execute JavaScript    return document.querySelector('${css} .CodeMirror').CodeMirror.setValue(`${text}`)
 
 Get Editor Content
-    [Arguments]   ${css}=${EMPTY}
+    [Arguments]    ${css}=${EMPTY}
     ${content} =    Execute JavaScript    return document.querySelector('${css} .CodeMirror').CodeMirror.getValue()
     [Return]    ${content}

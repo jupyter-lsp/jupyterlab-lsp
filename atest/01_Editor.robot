@@ -58,7 +58,7 @@ YAML
 *** Keywords ***
 Editor Shows Features for Language
     [Arguments]    ${Language}    ${file}    &{features}
-    Prepare File for Editing  ${Language}  editor   ${file}
+    Prepare File for Editing    ${Language}    editor    ${file}
     FOR    ${f}    IN    @{features}
         Run Keyword If    "${f}" == "Diagnostics"    Editor Should Show Diagnostics    ${features["${f}"]}
         ...    ELSE IF    "${f}" == "Jump to Definition"    Editor Should Jump To Definition    ${features["${f}"]}
