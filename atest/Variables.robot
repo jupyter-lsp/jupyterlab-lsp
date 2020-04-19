@@ -34,6 +34,7 @@ ${CM CURSORS}     css:.CodeMirror-cursors:not([style='visibility: hidden'])
 
 # settings
 ${LSP PLUGIN ID}    @krassowski/jupyterlab-lsp:plugin
+${LSP PLUGIN SETTINGS FILE}  @krassowski${/}jupyterlab-lsp${/}plugin.jupyterlab-settings
 ${CSS USER SETTINGS}   .jp-SettingsRawEditor-user
 
 # diagnostics

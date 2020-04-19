@@ -55,6 +55,9 @@ Initialize User Settings
     Set Suite Variable    ${SETTINGS DIR}    ${OUTPUT DIR}${/}user-settings    children=${True}
     Create File    ${SETTINGS DIR}${/}@jupyterlab${/}codemirror-extension${/}commands.jupyterlab-settings    {"styleActiveLine": true}
 
+Reset Plugin Settings
+    Create File    ${SETTINGS DIR}${/}${LSP PLUGIN SETTINGS FILE}    {}
+
 Tear Down Everything
     Close All Browsers
     Evaluate    __import__("urllib.request").request.urlopen("${URL}api/shutdown?token=${TOKEN}", data=[])
