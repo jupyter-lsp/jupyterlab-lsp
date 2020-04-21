@@ -268,6 +268,20 @@ export class LspWsConnection extends events.EventEmitter
     );
   }
 
+  public sendConfigurationChange(
+    options?: any
+  ) {
+    console.log(`Updated server configuration: ${JSON.stringify(options)}`)
+    if (!this.isReady) {
+      return;
+    }
+
+    this.connection.sendNotification(
+      'workspace/didChangeConfiguration',
+      options
+    )
+  }
+
   public async getHoverTooltip(
     location: IPosition,
     documentInfo: IDocumentInfo,
@@ -605,6 +619,7 @@ export class LspWsConnection extends events.EventEmitter
   }
 
   protected onServerInitialized(params: protocol.InitializeResult) {
+    console.log("MODIFIED SERVER INIT 4", params)
     this.isInitialized = true;
     this.serverCapabilities = params.capabilities;
     this.connection.sendNotification('initialized');
