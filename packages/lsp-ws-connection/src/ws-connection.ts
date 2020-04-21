@@ -270,17 +270,19 @@ export class LspWsConnection extends events.EventEmitter
 
   public sendConfigurationChange(
     //TODO: define types for server configurations
-    options: any
+    settings: any
   ) {
-    console.log(`Updated server configuration: ${JSON.stringify(options)}`)
+    console.log(
+      `Updated server configuration: ${JSON.stringify(settings)}`
+    );
     if (!this.isReady) {
       return;
     }
 
     this.connection.sendNotification(
       'workspace/didChangeConfiguration',
-      options
-    )
+      settings
+    );
   }
 
   public async getHoverTooltip(

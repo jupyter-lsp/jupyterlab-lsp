@@ -25,8 +25,8 @@
       "type": "object",
       "default": {},
       "properties": {
-        "config": {
-          "title": "Language Server Configuration",
+        "settings": {
+          "title": "Language Server Settings",
           "description": "Configuration to be sent to language server over LSP when initialized: see the specific language server's documentation for more",
           "type": "object",
           "default": {}
@@ -37,22 +37,30 @@
   "jupyter.lab.shortcuts": [
     {
       "command": "lsp:jump-to-definition-notebook",
-      "keys": ["Accel B"],
+      "keys": [
+        "Accel B"
+      ],
       "selector": ".jp-Notebook .jp-CodeCell"
     },
     {
       "command": "lsp:jump-to-definition-file_editor",
-      "keys": ["Accel B"],
+      "keys": [
+        "Accel B"
+      ],
       "selector": ".jp-FileEditor"
     },
     {
       "command": "lsp:rename-symbol-notebook",
-      "keys": ["F2"],
+      "keys": [
+        "F2"
+      ],
       "selector": ".jp-Notebook .jp-CodeCell"
     },
     {
       "command": "lsp:rename-symbol-file_editor'",
-      "keys": ["F2"],
+      "keys": [
+        "F2"
+      ],
       "selector": ".jp-FileEditor"
     }
   ]
