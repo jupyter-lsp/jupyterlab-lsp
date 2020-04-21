@@ -269,7 +269,8 @@ export class LspWsConnection extends events.EventEmitter
   }
 
   public sendConfigurationChange(
-    options?: any
+    //TODO: define types for server configurations
+    options: any
   ) {
     console.log(`Updated server configuration: ${JSON.stringify(options)}`)
     if (!this.isReady) {
@@ -619,7 +620,6 @@ export class LspWsConnection extends events.EventEmitter
   }
 
   protected onServerInitialized(params: protocol.InitializeResult) {
-    console.log("MODIFIED SERVER INIT 4", params)
     this.isInitialized = true;
     this.serverCapabilities = params.capabilities;
     this.connection.sendNotification('initialized');
