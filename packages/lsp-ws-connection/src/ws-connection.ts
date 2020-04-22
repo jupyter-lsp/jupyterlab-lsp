@@ -269,12 +269,10 @@ export class LspWsConnection extends events.EventEmitter
   }
 
   public sendConfigurationChange(
-    //TODO: define types for server configurations
+    // TODO: define types for server configurations
     settings: any
   ) {
-    console.log(
-      `Updated server configuration: ${JSON.stringify(settings)}`
-    );
+    console.log(`Updated server configuration: ${JSON.stringify(settings)}`);
     if (!this.isReady) {
       return;
     }
