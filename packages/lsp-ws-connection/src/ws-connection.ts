@@ -271,7 +271,6 @@ export class LspWsConnection extends events.EventEmitter
   public sendConfigurationChange(
     settings: protocol.DidChangeConfigurationParams
   ) {
-    console.log(`Updated server configuration: ${JSON.stringify(settings)}`);
     if (!this.isReady) {
       return;
     }
