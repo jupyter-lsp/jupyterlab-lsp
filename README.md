@@ -108,6 +108,7 @@ Use of a python `virtualenv` or a conda env is also recommended.
 
    ```bash
    pip install jupyter-lsp
+   jupyter serverextension enable --py jupyter_lsp
    ```
 
 1. install `nodejs`
