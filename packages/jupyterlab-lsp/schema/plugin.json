@@ -24,12 +24,12 @@
       "description": "Client and server configurations for a single language server",
       "type": "object",
       "default": {},
-      "properties": {
-        "settings": {
-          "title": "Language Server Settings",
-          "description": "Configuration to be sent to language server over LSP when initialized: see the specific language server's documentation for more",
-          "type": "object",
-          "default": {}
+      "patternProperties": {
+        "^.*$": {
+          "anyOf": [
+            {"type": "string"},
+            {"type": "boolean"}
+          ]
         }
       }
     }

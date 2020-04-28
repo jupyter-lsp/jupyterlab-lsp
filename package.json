@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "lodash": "^4.17.15"
   },
   "devDependencies": {
     "bash-language-server": "^1.6.1",
@@ -12,10 +13,10 @@
     "lerna": "^3.13.2",
     "precise-commits": "^1.0.2",
     "prettier": "^1.19.1",
+    "tslint": "^5.15.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.0.1",
     "tslint-react": "^4.0.0",
-    "tslint": "^5.15.0",
     "typescript": "~3.7.2",
     "unified-language-server": "^0.3.0",
     "vscode-css-languageserver-bin": "^1.4.0",
