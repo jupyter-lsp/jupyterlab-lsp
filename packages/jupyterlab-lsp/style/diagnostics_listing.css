@@ -57,24 +57,25 @@
   background: var(--jp-layout-color2);
 }
 
-.lsp-sort-caret {
+.lsp-sorted-header {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.lsp-sort-icon {
+  top: -3px;
+  left: 3px;
+  position: relative;
   height: 16px;
   width: 16px;
-  background-size: 18px;
-  background-image: 18px;
-  background-repeat: no-repeat;
-  background-position: center;
-  display: inline-block;
-  position: relative;
-  top: 3px;
+  display: block;
+  margin-left: auto;
 }
 
-.lsp-sorted .lsp-caret {
-  background-image: var(--jp-icon-caretup);
-  margin-top: -4px;
-  left: 3px;
-}
-
-.lsp-sorted.lsp-descending .lsp-caret {
-  background-image: var(--jp-icon-caretdown);
+.lsp-sort-icon svg {
+  width: 20px;
+  display: inline;
+  height: auto;
 }
