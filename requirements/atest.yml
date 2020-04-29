@@ -6,5 +6,6 @@ channels:
 
 dependencies:
   - robotframework-seleniumlibrary
+  - robotframework <3.2
   - firefox
   - geckodriver
