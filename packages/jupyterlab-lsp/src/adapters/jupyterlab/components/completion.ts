@@ -110,13 +110,27 @@ export class LSPConnector extends DataConnector<
   async fetch(
     request: CompletionHandler.IRequest
   ): Promise<CompletionHandler.IReply> {
+    // TODO: storing trigger_kind in the class instance (while it obviously should be passed as an argument to fetch)
+    //   is evil and it should be removed in the closest refactor. We probably just need to create a custom command
+    //   so that the trigger_kind can be passed from JupyterLabWidgetAdapter.invoke_completer()
+    //   and set trigger_kind as an optional argument of fetch() (empty means Invoke for compat with core invocations)
+
     let editor = this._editor;
 
     const cursor = editor.getCursorPosition();
     const token = editor.getTokenForPosition(cursor);
 
-    if (this.suppress_auto_invoke_in.indexOf(token.type) !== -1) {
-      console.log('Suppressing completer auto-invoke in', token.type);
+    if (
+      this.trigger_kind === CompletionTriggerKind.TriggerCharacter &&
+      this.suppress_auto_invoke_in.indexOf(token.type) !== -1
+    ) {
+      console.log(
+        'Suppressing completer auto-invoke in',
+        token.type,
+        this.trigger_kind
+      );
+      // return to the default trigger kind if it was changed
+      this.trigger_kind = CompletionTriggerKind.Invoked;
       return;
     }
 
@@ -145,6 +159,8 @@ export class LSPConnector extends DataConnector<
       cursor_in_root
     );
 
+    let result: Promise<CompletionHandler.IReply>;
+
     try {
       if (this._kernel_connector && this._has_kernel) {
         // TODO: this would be awesome if we could connect to rpy2 for R suggestions in Python,
@@ -154,7 +170,7 @@ export class LSPConnector extends DataConnector<
         const kernelLanguage = await this._kernel_language();
 
         if (document.language === kernelLanguage) {
-          return Promise.all([
+          result = Promise.all([
             this._kernel_connector.fetch(request),
             this.hint(
               token,
@@ -169,24 +185,32 @@ export class LSPConnector extends DataConnector<
             this.merge_replies(kernel, lsp, this._editor)
           );
         }
+      } else {
+        result = this.hint(
+          token,
+          typed_character,
+          virtual_start,
+          virtual_end,
+          virtual_cursor,
+          document,
+          position_in_token
+        ).catch(e => {
+          console.warn('LSP: hint failed', e);
+          return this.fallback_connector.fetch(request);
+        });
       }
-
-      return this.hint(
-        token,
-        typed_character,
-        virtual_start,
-        virtual_end,
-        virtual_cursor,
-        document,
-        position_in_token
-      ).catch(e => {
-        console.warn('LSP: hint failed', e);
-        return this.fallback_connector.fetch(request);
-      });
     } catch (e) {
       console.warn('LSP: kernel completions failed', e);
-      return this.fallback_connector.fetch(request);
+      result = this.fallback_connector.fetch(request);
     }
+
+    // wait so we can discard the trigger kind
+    await result;
+
+    // return to the default trigger kind if it was changed
+    this.trigger_kind = CompletionTriggerKind.Invoked;
+
+    return result;
   }
 
   async hint(
@@ -291,6 +315,24 @@ export class LSPConnector extends DataConnector<
     if (kernel.matches.length === 0) {
       return lsp;
     } else if (lsp.matches.length === 0) {
+      // workaround for unwanted auto-completion of path (directories/files) when using trigger character
+      // see https://github.com/krassowski/jupyterlab-lsp/issues/241
+      // this is because JupyterLab will autocomplete if given only one option
+      // (which is desired if coming from user invocation, but annoying if as a result of a trigger character)
+      if (this.trigger_kind === CompletionTriggerKind.TriggerCharacter) {
+        // the path matches come from the kernel, not from the LSP
+        if (kernel.matches.length === 1) {
+          // this is a nasty trick ;) making the completer think that there are more than
+          // two matches disables the auto-completion; for a permanent solution we would
+          // want to set a flag in the response (which requires a PR upstream)
+          let matches = kernel.matches.slice();
+          matches.push(matches[0] + '.');
+          return {
+            ...kernel,
+            matches: matches
+          };
+        }
+      }
       return kernel;
     }
     console.log('[LSP][Completer] Merging completions:', lsp, kernel);
@@ -367,14 +409,8 @@ export class LSPConnector extends DataConnector<
     };
   }
 
-  with_trigger_kind(kind: CompletionTriggerKind, fn: Function) {
-    try {
-      this.trigger_kind = kind;
-      return fn();
-    } finally {
-      // Return to the default state
-      this.trigger_kind = CompletionTriggerKind.Invoked;
-    }
+  set_trigger_kind_for_next_invocation(kind: CompletionTriggerKind) {
+    this.trigger_kind = kind;
   }
 }
 

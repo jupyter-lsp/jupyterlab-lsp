@@ -264,9 +264,10 @@ export abstract class JupyterLabWidgetAdapter
   abstract find_ce_editor(cm_editor: CodeMirror.Editor): CodeEditor.IEditor;
 
   invoke_completer(kind: CompletionTriggerKind) {
-    this.current_completion_connector.with_trigger_kind(kind, () => {
-      return this.app.commands.execute(this.invoke_command);
-    });
+    this.current_completion_connector.set_trigger_kind_for_next_invocation(
+      kind
+    );
+    this.app.commands.execute(this.invoke_command).catch(console.warn);
   }
 
   protected async on_connected(data: IDocumentConnectionData) {

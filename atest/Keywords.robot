@@ -195,17 +195,20 @@ Open ${file} in ${editor}
     Click Element    ${editor}
 
 Clean Up After Working With File
-    [Arguments]    ${file}
-    Remove File    ${OUTPUT DIR}${/}home${/}${file}
+    [Arguments]    ${file}    ${subdirectory}=.
+    Remove File    ${OUTPUT DIR}${/}home${/}${subdirectory}${/}${file}
+    Run Keyword If    "${subdirectory}" != "."    Remove Directory    ${OUTPUT DIR}${/}home${/}${subdirectory}${/}.ipynb_checkpoints    Recursive
+    Run Keyword If    "${subdirectory}" != "."    Remove Directory    ${OUTPUT DIR}${/}home${/}${subdirectory}    recursive=False
     Reset Application State
 
 Setup Notebook
-    [Arguments]    ${Language}    ${file}    ${isolated}=${True}
+    [Arguments]    ${Language}    ${file}    ${isolated}=${True}    ${subdirectory}=.
     Set Tags    language:${Language.lower()}
     Run Keyword If    ${isolated}    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}notebook${/}${TEST NAME.replace(' ', '_')}
-    Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
+    Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${subdirectory}${/}${file}
     Run Keyword If    ${isolated}    Try to Close All Tabs
-    Open ${file} in ${MENU NOTEBOOK}
+    Lab Command    Open from Path
+    Input Into Dialog    ${subdirectory}${/}${file}
     Capture Page Screenshot    00-notebook-opened.png
     Wait Until Fully Initialized
     Capture Page Screenshot    01-notebook-initialized.png

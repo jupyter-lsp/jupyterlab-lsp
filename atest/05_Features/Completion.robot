@@ -1,7 +1,7 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    completion
-Test Setup        Setup Notebook    Python    Completion.ipynb
-Test Teardown     Clean Up After Working With File    Completion.ipynb
+Test Setup        Setup Notebook    Python    Completion.ipynb    subdirectory=isolated_subdirectory
+Test Teardown     Clean Up After Working With File    Completion.ipynb    subdirectory=isolated_subdirectory
 Force Tags        feature:completion
 Resource          ../Keywords.robot
 
@@ -91,6 +91,33 @@ Triggers Completer On Dot
     Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=35s
     Completer Should Suggest    append
 
+Path elements should not be auto-inserted
+    # For more details see: https://github.com/krassowski/jupyterlab-lsp/issues/241
+    # `[.]` should not auto-expand to `.ipynb_checkpoints/`
+    ${dir}    Set Variable    ${OUTPUT DIR}${/}home${/}isolated_subdirectory
+    Directory Should Exist    ${dir}${/}.ipynb_checkpoints
+    ${count} =    Count Items In Directory    ${dir}    pattern=.*
+    Should Be Equal As Integers    ${count}    1
+    Place Cursor In Cell Editor At    17    line=1    character=1
+    Press Keys    None    .
+    Completer Should Suggest    .ipynb_checkpoints/
+    # the current workaround - while fallible - adds a second, generally useless suggestion at the end,
+    # in order to prevent the auto-completion
+    Completer Should Suggest    .ipynb_checkpoints/.
+
+Auto-completion should not happen inside of strings and comments
+    Place Cursor In Cell Editor At    19    line=1    character=5
+    Press Keys    None    .
+    Sleep    1s
+    Press Keys    None    ;
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    19    'list.;'
+    Wait Until Page Does Not Contain    ${COMPLETER_BOX}
+
+User-invoked completion should be possible inside of strings and comments
+    Place Cursor In Cell Editor At    21    line=1    character=6
+    Trigger Completer
+    Completer Should Show Up
+
 *** Keywords ***
 Get Cell Editor Content
     [Arguments]    ${cell_nr}
@@ -107,6 +134,9 @@ Select Completer Suggestion
     ${suggestion} =    Set Variable    css:.jp-Completer-item[data-value="${text}"]
     Mouse Over    ${suggestion}
     Click Element    ${suggestion} code
+
+Completer Should Show Up
+    Wait Until Page Contains Element    ${COMPLETER_BOX}
 
 Completer Should Suggest
     [Arguments]    ${text}
