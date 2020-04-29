@@ -1,7 +1,5 @@
 {
-  "dependencies": {
-    "lodash": "^4.17.15"
-  },
+  "dependencies": {},
   "devDependencies": {
     "bash-language-server": "^1.6.1",
     "dockerfile-language-server-nodejs": "^0.0.22",
