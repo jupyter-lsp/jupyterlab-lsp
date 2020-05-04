@@ -31,6 +31,9 @@ Pyls Configuration
     Capture Page Screenshot    03-schema-diagnostic-found.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}
 
+# # # # # # # # # # # # 
+# YAML schema functionality won't be available until yaml-language-server v0.7.3
+# # # # # # # # # # # # 
 # YAML Schema
 #     ${file} =    Set Variable    composer-schema.yaml
 #     Prepare File for Editing    YAML    config    ${file}
