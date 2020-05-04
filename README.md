@@ -194,11 +194,62 @@ jupyter labextension install @krassowski/jupyterlab-lsp@0.7.0-rc.0
 
 ### Configuring the servers
 
-We plan to provide a configuration GUI at some time ([#25](https://github.com/krassowski/jupyterlab-lsp/issues/25)), but in the meantime, you can use the instructions for the specific servers as described on their websites (see the [table of language servers][language-servers] for links).
+Server configurations can be edited using the Advanced Settings editor in JupyterLab (_Settings > Advanced Settings Editor_). For settings specific to each server, please see the [table of language servers][language-servers]. Example settings might include:
 
-#### I want to hide specific diagnostics/inspections/warnings
+```json
+{
+    "language_servers": {
+        "pyls": {
+            "serverSettings": {
+                "pyls.plugins.pydocstyle.enabled": true,
+                "pyls.plugins.pyflakes.enabled": false,
+                "pyls.plugins.flake8.enabled": true
+            }
+        },
+        "r-languageserver": {
+            "serverSettings": {
+                "r.lsp.debug": false,
+                "r.lsp.diagnostics": false
+            }
+        },
+        "yaml-language-server": {
+            "serverSettings": {
+                "yaml.schemas": {
+                    "http://json.schemastore.org/composer": "/*"
+                }
+            }
+        }
+    },
+}
+```
+The `serverSettings` key specifies the configurations sent to the language servers. These can be written using stringified dot accessors like above (in the VSCode style), or as nested JSON objects, e.g.:
+```json
+{
+   "language_servers": {
+      "pyls": {
+         "serverSettings": {
+            "pyls": {
+               "plugins": {
+                  "pydocstyle": {
+                     "enabled": true
+                  },
+                  "pyflakes": {
+                     "enabled": false
+                  },
+                  "flake8": {
+                     "enabled": true
+                  }
+               }
+            }
+         }
+      }
+   }
+}
+```
 
-For example, the Python server that we support by default ([pyls](https://github.com/palantir/python-language-server)) has a [configuration section](https://github.com/palantir/python-language-server#configuration) in their documentation which refers to the providers of specific features, including `pycodestyle` for inspections/diagnostics.
+#### Other configuration methods
+
+Some language servers, such as `pyls`, provide other configuration methods _in addition_ to language-server configuration messages (accessed using the Advanced Settings Editor). For example, `pyls` allows users to configure the server using a local configuration file. You can change the inspection/diagnostics for server plugins like `pycodestyle` there.
 
 The exact configuration details will vary between operating systems (please see the [configuration section of pycodestyle documentation](https://pycodestyle.readthedocs.io/en/latest/intro.html#configuration)), but as an example, on Linux you would simply need to create a file called `~/.config/pycodestyle`, which may look like that:
 
