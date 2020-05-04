@@ -5,12 +5,12 @@ Force Tags        feature:config
 Resource          ../Keywords.robot
 
 *** Variables ***
-${CONFIG PYLS}    {"language_servers": {"pyls": {"plugins": {"flake8": {"enabled": true},"pyflakes": {"enabled": false}}}}}
+${CONFIG PYLS}    {"language_servers": {"pyls": {"serverSettings": {"pyls": {"plugins": {"flake8": {"enabled": true},"pyflakes": {"enabled": false}}}}}}}
 # pyflakes is enabled by default, but flake8 is not
 ${PYFLAKES DIAGNOSTIC}    ${CSS DIAGNOSTIC}-Error[title="undefined name 'foo' (pyflakes)"]
 ${FLAKE8 DIAGNOSTIC}    ${CSS DIAGNOSTIC}-Error[title="undefined name 'foo' (flake8)"]
 
-${CONFIG YAML SCHEMA}    {"language_servers": {"yaml-language-server": {"config": {"yaml.schemas": {"http://json.schemastore.org/composer": "*"}}}}}
+${CONFIG YAML SCHEMA}    {"language_servers": {"yaml-language-server": {"serverSettings": {"yaml.schemas": {"http://json.schemastore.org/composer": "*"}}}}}
 ${YAML DIAGNOSTIC}    ${CSS DIAGNOSTIC}-Error[title="duplicate key"]
 # TODO: fix this for the actual schema error to expect
 ${SCHEMA DIAGNOSTIC}    ${CSS DIAGNOSTIC}-Error[title="TODO: schema error here"]
