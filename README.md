@@ -198,52 +198,54 @@ Server configurations can be edited using the Advanced Settings editor in Jupyte
 
 ```json
 {
-    "language_servers": {
-        "pyls": {
-            "serverSettings": {
-                "pyls.plugins.pydocstyle.enabled": true,
-                "pyls.plugins.pyflakes.enabled": false,
-                "pyls.plugins.flake8.enabled": true
-            }
-        },
-        "r-languageserver": {
-            "serverSettings": {
-                "r.lsp.debug": false,
-                "r.lsp.diagnostics": false
-            }
-        },
-        "yaml-language-server": {
-            "serverSettings": {
-                "yaml.schemas": {
-                    "http://json.schemastore.org/composer": "/*"
-                }
-            }
-        }
+  "language_servers": {
+    "pyls": {
+      "serverSettings": {
+        "pyls.plugins.pydocstyle.enabled": true,
+        "pyls.plugins.pyflakes.enabled": false,
+        "pyls.plugins.flake8.enabled": true
+      }
     },
+    "r-languageserver": {
+      "serverSettings": {
+        "r.lsp.debug": false,
+        "r.lsp.diagnostics": false
+      }
+    },
+    "yaml-language-server": {
+      "serverSettings": {
+        "yaml.schemas": {
+          "http://json.schemastore.org/composer": "/*"
+        }
+      }
+    }
+  }
 }
 ```
+
 The `serverSettings` key specifies the configurations sent to the language servers. These can be written using stringified dot accessors like above (in the VSCode style), or as nested JSON objects, e.g.:
+
 ```json
 {
-   "language_servers": {
-      "pyls": {
-         "serverSettings": {
-            "pyls": {
-               "plugins": {
-                  "pydocstyle": {
-                     "enabled": true
-                  },
-                  "pyflakes": {
-                     "enabled": false
-                  },
-                  "flake8": {
-                     "enabled": true
-                  }
-               }
+  "language_servers": {
+    "pyls": {
+      "serverSettings": {
+        "pyls": {
+          "plugins": {
+            "pydocstyle": {
+              "enabled": true
+            },
+            "pyflakes": {
+              "enabled": false
+            },
+            "flake8": {
+              "enabled": true
             }
-         }
+          }
+        }
       }
-   }
+    }
+  }
 }
 ```
 
