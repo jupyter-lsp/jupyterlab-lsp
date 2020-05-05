@@ -21,7 +21,9 @@ Pyls Configuration
     Prepare File for Editing    PYTHON    config    ${file}
     Open in Advanced Settings    ${LSP PLUGIN ID}
     Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., '${file}')]    0    100
-    Capture Page Screenshot    01-file-and-settings.png
+    Open Diagnostics Panel
+    Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., 'Diagnostics Panel')]    600    -200
+    Capture Page Screenshot    01-diagnostics-and-settings.png
     Wait Until Page Contains Element    ${PYFLAKES DIAGNOSTIC}    timeout=20s
     Page Should Not Contain    ${FLAKE8 DIAGNOSTIC}
     Set Editor Content    ${CONFIG PYLS}    ${CSS USER SETTINGS}
@@ -39,7 +41,9 @@ Pyls Configuration
 #     Prepare File for Editing    YAML    config    ${file}
 #     Open in Advanced Settings    ${LSP PLUGIN ID}
 #     Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., '${file}')]    0    100
-#     Capture Page Screenshot    01-file-and-settings.png
+#     Open Diagnostics Panel
+#     Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., 'Diagnostics Panel')]    600    -200
+#     Capture Page Screenshot    01-diagnostics-and-settings.png
 #     Wait Until Page Contains Element    ${YAML DIAGNOSTIC}    timeout=20s
 #     Page Should Not Contain    ${SCHEMA DIAGNOSTIC}
 #     Set Editor Content    ${CONFIG YAML SCHEMA}    ${CSS USER SETTINGS}
