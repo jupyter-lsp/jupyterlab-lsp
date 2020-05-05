@@ -37,8 +37,22 @@ https://jupyterlab.readthedocs.io/en/latest/getting_started/issue.html
 - Operating System and version:
 - Browser and version:
 - JupyterLab version:
-- `jupyter-lsp` version:
-- `@krassowski/jupyterlab-lsp` version:
+
+<details><summary>Required: installed server extensions</summary>
+<pre>
+Paste the output from running `jupyter serverextension list` from the command line here.
+You may want to sanitize the paths in the output.
+</pre>
+</details>
+
+<details><summary>Required: installed lab extensions</summary>
+<pre>
+Paste the output from running `jupyter labextension list` from the command line here.
+You may want to sanitize the paths in the output.
+</pre>
+</details>
+
+<!--The more contet you provide, the more we can help!-->
 
 <details><summary>Troubleshoot Output</summary>
 <pre>
