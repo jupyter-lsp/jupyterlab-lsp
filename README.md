@@ -211,13 +211,6 @@ Server configurations can be edited using the Advanced Settings editor in Jupyte
         "r.lsp.debug": false,
         "r.lsp.diagnostics": false
       }
-    },
-    "yaml-language-server": {
-      "serverSettings": {
-        "yaml.schemas": {
-          "http://json.schemastore.org/composer": "/*"
-        }
-      }
     }
   }
 }
