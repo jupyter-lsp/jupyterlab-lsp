@@ -2,7 +2,7 @@
 Documentation     Configuration of language servers
 Suite Setup       Setup Suite For Screenshots    config
 Force Tags        feature:config
-Resource          ../Keywords.robot
+Resource          ./Keywords.robot
 
 *** Variables ***
 ${CONFIG PYLS}    {"language_servers": {"pyls": {"serverSettings": {"pyls": {"plugins": {"flake8": {"enabled": true},"pyflakes": {"enabled": false}}}}}}}
