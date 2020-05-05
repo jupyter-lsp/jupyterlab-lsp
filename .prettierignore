@@ -9,7 +9,6 @@
 **/lib
 **/node_modules
 **/package.json
-**/plugin.json
 **/static
 atest
 coverage
