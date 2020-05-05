@@ -22,12 +22,12 @@ Pyls Configuration
     Open in Advanced Settings    ${LSP PLUGIN ID}
     Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., '${file}')]    0    100
     Capture Page Screenshot    01-file-and-settings.png
-    Wait Until Page Contains Element    ${PYFLAKES DIAGNOSTIC}    timeout=60s
+    Wait Until Page Contains Element    ${PYFLAKES DIAGNOSTIC}    timeout=20s
     Page Should Not Contain    ${FLAKE8 DIAGNOSTIC}
     Set Editor Content    ${CONFIG PYLS}    ${CSS USER SETTINGS}
     Click Element    css:button[title\='Save User Settings']
     Capture Page Screenshot    02-settings-changed.png
-    Wait Until Page Contains Element    ${FLAKE8 DIAGNOSTIC}    timeout=60s
+    Wait Until Page Contains Element    ${FLAKE8 DIAGNOSTIC}    timeout=20s
     Capture Page Screenshot    03-schema-diagnostic-found.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}
 
