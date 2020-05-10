@@ -16,15 +16,6 @@ nbsphinx.RST_TEMPLATE = nbsphinx.RST_TEMPLATE.replace(
     """{% block input -%}""" """{% if not cell.metadata.get("hide_input", False) -%}""",
 ).replace("""{% endblock input %}""", """{%- endif -%}{%- endblock input %}""")
 
-nbsphinx_prolog = """
-.. raw:: html
-    <style>
-        .nbinput .prompt,
-        .nboutput .prompt {
-            display: none;
-        }
-    </style>
-"""
 
 sys.path.insert(
     0, str((pathlib.Path.cwd().parent / "py_src" / "jupyter_lsp").resolve())
