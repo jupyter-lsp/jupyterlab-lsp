@@ -18,17 +18,22 @@ ${FLAKE8 DIAGNOSTIC}    ${CSS DIAGNOSTIC}-Warning[title="undefined name 'foo' (f
 *** Test Cases ***
 Pyls Configuration
     ${file} =    Set Variable    style.py
+    ${tab} =    Set Variable    ${JLAB XP DOCK TAB}\[contains(., '${file}')]
     Prepare File for Editing    PYTHON    config    ${file}
     Open in Advanced Settings    ${LSP PLUGIN ID}
-    Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., '${file}')]    0    100
+    Drag and Drop By Offset    ${tab}    0    100
+    Wait Until Fully Initialized
     Open Diagnostics Panel
     Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., 'Diagnostics Panel')]    600    -200
+    Ensure Sidebar Is Closed
     Capture Page Screenshot    01-diagnostics-and-settings.png
     # Diagnostic panel should show pyflakes diagnostics, but no flake8
     Wait Until Page Contains Element    ${PYFLAKES DIAGNOSTIC}    timeout=60s
     Page Should Not Contain    ${FLAKE8 DIAGNOSTIC}
     Set Editor Content    ${CONFIG PYLS}    ${CSS USER SETTINGS}
     Click Element    css:button[title\='Save User Settings']
+    Drag and Drop By Offset    ${tab}    0    100
+    Lab Command    Save Python File
     Capture Page Screenshot    02-settings-changed.png
     # After updating settings, we should see flake8 but no pyflakes
     Wait Until Page Contains Element    ${FLAKE8 DIAGNOSTIC}    timeout=60s
@@ -36,9 +41,9 @@ Pyls Configuration
     Capture Page Screenshot    03-schema-diagnostic-found.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}
 
-# # # # # # # # # # # # 
+# # # # # # # # # # # #
 # YAML schema functionality won't be available until yaml-language-server v0.7.3
-# # # # # # # # # # # # 
+# # # # # # # # # # # #
 # YAML Schema
 #     ${file} =    Set Variable    composer-schema.yaml
 #     Prepare File for Editing    YAML    config    ${file}
