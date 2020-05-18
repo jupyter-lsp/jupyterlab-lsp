@@ -10,8 +10,8 @@ ${CONFIG PYLS}    {"language_servers": {"pyls": {"serverSettings": {"pyls": {"pl
 ${PYFLAKES DIAGNOSTIC}    ${CSS DIAGNOSTIC}-Error[title="undefined name 'foo' (pyflakes)"]
 ${FLAKE8 DIAGNOSTIC}    ${CSS DIAGNOSTIC}-Warning[title="undefined name 'foo' (flake8)"]
 
+# Sets expectation that all YAML files (wildcard *) adhere to Composer spec
 ${CONFIG YAML SCHEMA}    {"language_servers": {"yaml-language-server": {"serverSettings": {"yaml.schemas": {"http://json.schemastore.org/composer": "*"}}}}}
-${YAML DIAGNOSTIC}    ${CSS DIAGNOSTIC}-Error[title="duplicate key"]
 # Composer YAML files don't allow a "greetings" key
 ${SCHEMA DIAGNOSTIC}    ${CSS DIAGNOSTIC}-Error[title="Property greetings is not allowed."]
 
@@ -38,7 +38,7 @@ Pyls Configuration
     # After updating settings, we should see flake8 but no pyflakes
     Wait Until Page Contains Element    ${FLAKE8 DIAGNOSTIC}    timeout=60s
     Page Should Not Contain    ${PYFLAKES DIAGNOSTIC}
-    Capture Page Screenshot    03-schema-diagnostic-found.png
+    Capture Page Screenshot    03-flake8-diagnostic-found.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}
 
 YAML Schema
@@ -50,16 +50,14 @@ YAML Schema
     Wait Until Fully Initialized
     Open Diagnostics Panel
     Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., 'Diagnostics Panel')]    600    -200
-    Ensure Sidebar Is Closed
     Capture Page Screenshot    01-diagnostics-and-settings.png
     # Diagnostic panel shouldn't show "Property ... is not allowed"
-    Wait Until Page Contains Element    ${YAML DIAGNOSTIC}    timeout=20s
     Page Should Not Contain    ${SCHEMA DIAGNOSTIC}
     Set Editor Content    ${CONFIG YAML SCHEMA}    ${CSS USER SETTINGS}
     Click Element    css:button[title\='Save User Settings']
     Capture Page Screenshot    02-settings-changed.png
     # Now show the Composer YAML error
-    Wait Until Page Contains Element    ${SCHEMA DIAGNOSTIC}    timeout=20s
+    Wait Until Page Contains Element    ${SCHEMA DIAGNOSTIC}    timeout=60s
     Capture Page Screenshot    03-schema-diagnostic-found.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}
 
