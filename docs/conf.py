@@ -16,7 +16,6 @@ nbsphinx.RST_TEMPLATE = nbsphinx.RST_TEMPLATE.replace(
     """{% block input -%}""" """{% if not cell.metadata.get("hide_input", False) -%}""",
 ).replace("""{% endblock input %}""", """{%- endif -%}{%- endblock input %}""")
 
-nbsphinx_prompt_width = "0"
 
 sys.path.insert(
     0, str((pathlib.Path.cwd().parent / "py_src" / "jupyter_lsp").resolve())
@@ -27,7 +26,7 @@ copyright = "2020, Jupyter[Lab] Language Server Contributors"
 author = "Jupyter[Lab] Language Server Contributors"
 
 version = "0.7.0"
-release = "0"
+release = ""
 
 extensions = [
     "recommonmark",
