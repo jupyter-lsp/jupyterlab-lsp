@@ -34,3 +34,8 @@ body div.nboutput.container div[class*='highlight'] pre {
 .wy-nav-content {
   max-width: 100%;
 }
+
+.nbinput .prompt,
+.nboutput .prompt {
+  display: none;
+}
