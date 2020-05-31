@@ -23,7 +23,7 @@ export namespace ILanguageServerManager {
   export interface IOptions {
     settings?: ServerConnection.ISettings;
     baseUrl?: string;
-    serviceManager: ServiceManager
+    serviceManager: ServiceManager;
   }
   export interface IGetServerIdOptions {
     language?: TLanguageId;
