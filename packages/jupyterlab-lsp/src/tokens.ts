@@ -1,5 +1,5 @@
 import { ISignal } from '@lumino/signaling';
-import { ServerConnection } from '@jupyterlab/services';
+import { ServerConnection, ServiceManager } from '@jupyterlab/services';
 
 import * as SCHEMA from './_schema';
 
@@ -23,6 +23,7 @@ export namespace ILanguageServerManager {
   export interface IOptions {
     settings?: ServerConnection.ISettings;
     baseUrl?: string;
+    serviceManager: ServiceManager
   }
   export interface IGetServerIdOptions {
     language?: TLanguageId;

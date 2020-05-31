@@ -75,7 +75,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
     labShell: ILabShell,
     status_bar: IStatusBar
   ) => {
-    const language_server_manager = new LanguageServerManager({});
+    const language_server_manager = new LanguageServerManager({
+      serviceManager: app.serviceManager
+    });
     const connection_manager = new DocumentConnectionManager({
       language_server_manager
     });

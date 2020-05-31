@@ -5,6 +5,7 @@ from typing import Dict, Text, Tuple
 
 import entrypoints
 from notebook.transutils import _
+from tornado.gen import maybe_future
 from traitlets import Bool, Dict as Dict_, Instance, List as List_, default
 
 from .constants import (
@@ -159,7 +160,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
             )
 
         for handler in session.handlers:
-            handler.write_message(message)
+            await maybe_future(handler.write_message(message))
 
     def unsubscribe(self, handler):
         session = self.sessions.get(handler.language_server)
