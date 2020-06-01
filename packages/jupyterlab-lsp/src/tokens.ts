@@ -8,13 +8,14 @@ export type TLanguageId = string;
 
 export type TSessionMap = Map<TLanguageServerId, SCHEMA.LanguageServerSession>;
 
+export type TCommMap = Map<TLanguageServerId, any>;
+
 export interface ILanguageServerManager {
   sessionsChanged: ISignal<ILanguageServerManager, void>;
   sessions: TSessionMap;
   getServerId(
     options: ILanguageServerManager.IGetServerIdOptions
   ): TLanguageServerId;
-  fetchSessions(): Promise<void>;
   statusUrl: string;
 }
 

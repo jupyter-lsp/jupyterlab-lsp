@@ -32,17 +32,7 @@ interface IFeatureTestEnvironment {
   dispose(): void;
 }
 
-export class MockLanguageServerManager extends LanguageServerManager {
-  async fetchSessions() {
-    this._sessions = new Map();
-    this._sessions.set('pyls', {
-      spec: {
-        languages: ['python']
-      }
-    } as any);
-    this._sessionsChanged.emit(void 0);
-  }
-}
+export class MockLanguageServerManager extends LanguageServerManager {}
 
 export abstract class FeatureTestEnvironment
   implements IFeatureTestEnvironment {
@@ -146,7 +136,10 @@ export class FileEditorFeatureTestEnvironment extends FeatureTestEnvironment {
       model
     });
 
-    this.language_server_manager = new MockLanguageServerManager({});
+    this.language_server_manager = new MockLanguageServerManager({
+      // NB: FIX
+      serviceManager: null
+    });
     this.connection_manager = new DocumentConnectionManager({
       language_server_manager: this.language_server_manager
     });

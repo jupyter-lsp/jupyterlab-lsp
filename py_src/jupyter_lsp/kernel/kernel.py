@@ -56,8 +56,8 @@ class CommHandler:
             self.subscribed = True
         await self.manager.on_client_message(message, self)
 
-    def write_message(self, message):
-        self.comm.send(message)
+    def write_message(self, message: str):
+        self.comm.send(json.loads(message))
 
 
 class LanguageServerKernel(IPythonKernel):
@@ -100,7 +100,10 @@ class LanguageServerKernel(IPythonKernel):
         self.log.error("comm for %s", language_server)
         comm = Comm(
             target_name=SERVER_COMM_TARGET,
-            data={'language_server': language_server},
+            metadata={
+                "language_server": language_server,
+                "session": session.to_json()
+            },
         )
         self._lsp_comms[language_server] = CommHandler(
             language_server=language_server,

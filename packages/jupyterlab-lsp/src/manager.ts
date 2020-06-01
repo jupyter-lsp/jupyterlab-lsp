@@ -2,12 +2,12 @@ import { Signal } from '@lumino/signaling';
 
 import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import {
-  ServerConnection,
+  // ServerConnection,
   ServiceManager,
   KernelMessage
 } from '@jupyterlab/services';
 
-import { ILanguageServerManager, TSessionMap } from './tokens';
+import { ILanguageServerManager, TSessionMap, TCommMap } from './tokens';
 import * as SCHEMA from './_schema';
 import { ISessionConnection } from '@jupyterlab/services/lib/session/session';
 import { IComm } from '@jupyterlab/services/lib/kernel/kernel';
@@ -21,16 +21,16 @@ export class LanguageServerManager implements ILanguageServerManager {
     void
   >(this);
   protected _sessions: TSessionMap = new Map();
-  private _settings: ServerConnection.ISettings;
+  protected _comms: TCommMap = new Map();
+  // private _settings: ServerConnection.ISettings;
   private _baseUrl: string;
   private _serviceManager: ServiceManager;
   private _kernelSessionConnection: ISessionConnection;
 
   constructor(options: ILanguageServerManager.IOptions) {
-    this._settings = options.settings || ServerConnection.makeSettings();
+    // this._settings = options.settings || ServerConnection.makeSettings();
     this._baseUrl = options.baseUrl || PageConfig.getBaseUrl();
     this._serviceManager = options.serviceManager;
-    this.fetchSessions().catch(console.warn);
     this.initKernel().catch(console.warn);
   }
 
@@ -58,45 +58,6 @@ export class LanguageServerManager implements ILanguageServerManager {
     return null;
   }
 
-  async fetchSessions() {
-    let response = await ServerConnection.makeRequest(
-      this.statusUrl,
-      { method: 'GET' },
-      this._settings
-    );
-
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-
-    let sessions: SCHEMA.Sessions;
-
-    try {
-      sessions = (await response.json()).sessions;
-    } catch (err) {
-      console.warn(err);
-      return;
-    }
-
-    for (const key of Object.keys(sessions)) {
-      if (this._sessions.has(key)) {
-        Object.assign(this._sessions.get(key), sessions[key]);
-      } else {
-        this._sessions.set(key, sessions[key]);
-      }
-    }
-
-    const oldKeys = this._sessions.keys();
-
-    for (const oldKey in oldKeys) {
-      if (!sessions[oldKey]) {
-        this._sessions.delete(oldKey);
-      }
-    }
-
-    this._sessionsChanged.emit(void 0);
-  }
-
   /**
    * Register a new kernel
    */
@@ -109,9 +70,8 @@ export class LanguageServerManager implements ILanguageServerManager {
     }
 
     if (newValue) {
-      newValue.registerCommTarget(
-        SERVER_COMM_TARGET,
-        this._handleServerCommOpen
+      newValue.registerCommTarget(SERVER_COMM_TARGET, (comm, msg) =>
+        this._handleServerCommOpen(comm, msg)
       );
       console.warn('server comm registered');
     }
@@ -119,6 +79,17 @@ export class LanguageServerManager implements ILanguageServerManager {
 
   _handleServerCommOpen(comm: IComm, msg: KernelMessage.ICommOpenMsg) {
     console.warn('server comm openened', comm, msg);
+    const { metadata } = msg;
+    const language_server = `${metadata.language_server}`;
+    this._comms.set(language_server, comm);
+    comm.onMsg = msg => {
+      console.log('msg', comm, msg.content.data);
+    };
+    this._sessions.set(
+      language_server,
+      (metadata.session as any) as SCHEMA.LanguageServerSession
+    );
+    this._sessionsChanged.emit(void 0);
   }
 
   async initKernel() {
@@ -155,14 +126,10 @@ export class LanguageServerManager implements ILanguageServerManager {
       console.log('we got a control message', controlComm, msg);
     };
 
-    const opened = controlComm.open({ 1: 2 }, { 3: 4 });
+    const opened = controlComm.open({});
     await opened.done;
 
-    const future = controlComm.send({ foo: 'bar' }, { baz: 'boo' });
-    await future.done;
-
     console.warn('sent a control message');
-
-    // console.warn('comm', comm, future);
+    console.log(this._comms);
   }
 }
