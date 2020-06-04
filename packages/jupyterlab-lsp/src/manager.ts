@@ -51,8 +51,8 @@ export class LanguageServerManager implements ILanguageServerManager {
     return this._sessions;
   }
 
-  async getComm(language_server: TLanguageServerId): Promise<IComm> {
-    return this._comms.get(language_server);
+  async getComm(language_server_id: TLanguageServerId): Promise<IComm> {
+    return this._comms.get(language_server_id);
   }
 
   getServerId(options: ILanguageServerManager.IGetServerIdOptions) {

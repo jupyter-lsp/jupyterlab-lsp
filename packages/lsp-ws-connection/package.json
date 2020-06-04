@@ -10,7 +10,6 @@
   ],
   "types": "lib/index.d.ts",
   "scripts": {
-    "lab:link": "jupyter labextension link . --no-build",
     "build": "webpack",
     "test": "karma start",
     "test-dev": "karma start --browsers Chrome --singleRun false --timeout 30000 --autoWatch",

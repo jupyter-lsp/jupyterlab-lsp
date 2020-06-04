@@ -1,17 +1,15 @@
 import { VirtualDocument, IForeignContext } from './virtual/document';
-import { LSPConnection } from './connection';
 
 import { Signal } from '@lumino/signaling';
 import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import { sleep, until_ready } from './utils';
 
-// Name-only import so as to not trigger inclusion in main bundle
-import * as ConnectionModuleType from './connection';
 import {
   TLanguageServerId,
   ILanguageServerManager,
   ILSPConnection
 } from './tokens';
+import { CommConnection } from './comm/connection';
 
 export interface IDocumentConnectionData {
   virtual_document: VirtualDocument;
@@ -157,29 +155,30 @@ export class DocumentConnectionManager {
    * invocation of `.on` (once remaining LSPFeature.connection_handlers are made
    * singletons).
    */
-  on_new_connection = (connection: LSPConnection) => {
-    connection.on('error', e => {
-      console.warn(e);
-      // TODO invalid now
-      let error: Error = e.length && e.length >= 1 ? e[0] : new Error();
-      // TODO: those codes may be specific to my proxy client, need to investigate
-      if (error.message.indexOf('code = 1005') !== -1) {
-        console.warn(`LSP: Connection failed for ${connection}`);
-        this.forEachDocumentOfConnection(connection, virtual_document => {
-          console.warn('LSP: disconnecting ' + virtual_document.id_path);
-          this.closed.emit({ connection, virtual_document });
-          this.ignored_languages.add(virtual_document.language);
+  on_new_connection = (connection: ILSPConnection) => {
+    // nb: investigate failure modes
+    // connection.on('error', e => {
+    //   console.warn(e);
+    //   // TODO invalid now
+    //   let error: Error = e.length && e.length >= 1 ? e[0] : new Error();
+    //   // TODO: those codes may be specific to my proxy client, need to investigate
+    //   if (error.message.indexOf('code = 1005') !== -1) {
+    //     console.warn(`LSP: Connection failed for ${connection}`);
+    //     this.forEachDocumentOfConnection(connection, virtual_document => {
+    //       console.warn('LSP: disconnecting ' + virtual_document.id_path);
+    //       this.closed.emit({ connection, virtual_document });
+    //       this.ignored_languages.add(virtual_document.language);
 
-          console.warn(
-            `Cancelling further attempts to connect ${virtual_document.id_path} and other documents for this language (no support from the server)`
-          );
-        });
-      } else if (error.message.indexOf('code = 1006') !== -1) {
-        console.warn('LSP: Connection closed by the server ');
-      } else {
-        console.error('LSP: Connection error:', e);
-      }
-    });
+    //       console.warn(
+    //         `Cancelling further attempts to connect ${virtual_document.id_path} and other documents for this language (no support from the server)`
+    //       );
+    //     });
+    //   } else if (error.message.indexOf('code = 1006') !== -1) {
+    //     console.warn('LSP: Connection closed by the server ');
+    //   } else {
+    //     console.error('LSP: Connection error:', e);
+    //   }
+    // });
 
     connection.on('serverInitialized', capabilities => {
       this.forEachDocumentOfConnection(connection, virtual_document => {
@@ -327,7 +326,6 @@ export namespace DocumentConnectionManager {
  */
 namespace Private {
   const _connections: Map<TLanguageServerId, ILSPConnection> = new Map();
-  let _promise: Promise<typeof ConnectionModuleType>;
   let _language_server_manager: ILanguageServerManager;
 
   export function getLanguageServerManager() {
@@ -346,30 +344,27 @@ namespace Private {
     language: string,
     language_server_id: TLanguageServerId,
     uris: DocumentConnectionManager.IURIs,
-    onCreate: (connection: LSPConnection) => void
+    onCreate: (connection: ILSPConnection) => void
   ): Promise<ILSPConnection> {
-    if (_promise == null) {
-      // TODO: consider lazy-loading _only_ the modules that _must_ be webpacked
-      // with custom shims, e.g. `fs`
-      _promise = import(
-        /* webpackChunkName: "jupyter-lsp-connection" */ './connection'
-      );
-    }
+    // if (_promise == null) {
+    //   // TODO: consider lazy-loading _only_ the modules that _must_ be webpacked
+    //   // with custom shims, e.g. `fs`
+    //   _promise = import(
+    //     /* webpackChunkName: "jupyter-lsp-connection" */ './connection'
+    //   );
+    // }
 
-    const { LSPConnection } = await _promise;
+    // const { LSPConnection } = await _promise;
+    const comm = await _language_server_manager.getComm(language_server_id);
     let connection = _connections.get(language_server_id);
 
     if (connection == null) {
-      const socket = new WebSocket(uris.socket);
-      const connection = new LSPConnection({
-        languageId: language,
-        serverUri: uris.server,
-        rootUri: uris.base
-      });
+      // const socket = new WebSocket(uris.socket);
+      const connection = new CommConnection({ comm, rootUri: uris.base });
       // TODO: remove remaining unbounded users of connection.on
-      connection.setMaxListeners(999);
+      // connection.setMaxListeners(999);
       _connections.set(language_server_id, connection);
-      await connection.connect(socket);
+      await connection.connect(null);
       onCreate(connection);
     }
 

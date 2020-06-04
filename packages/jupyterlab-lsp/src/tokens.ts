@@ -4,6 +4,7 @@ import * as LSP from 'vscode-languageserver-protocol';
 
 import * as SCHEMA from './_schema';
 import { CommLSP } from './comm/lsp';
+import { IComm } from '@jupyterlab/services/lib/kernel/kernel';
 
 export type TLanguageServerId = string;
 export type TLanguageId = string;
@@ -18,6 +19,7 @@ export interface ILanguageServerManager {
   getServerId(
     options: ILanguageServerManager.IGetServerIdOptions
   ): TLanguageServerId;
+  getComm(languageServerId: TLanguageServerId): Promise<IComm>;
   statusUrl: string;
 }
 
