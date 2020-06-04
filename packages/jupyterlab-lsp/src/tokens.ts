@@ -1,7 +1,9 @@
 import { ISignal } from '@lumino/signaling';
 import { ServerConnection, ServiceManager } from '@jupyterlab/services';
+import * as LSP from 'vscode-languageserver-protocol';
 
 import * as SCHEMA from './_schema';
+import { CommLSP } from './comm/lsp';
 
 export type TLanguageServerId = string;
 export type TLanguageId = string;
@@ -29,5 +31,125 @@ export namespace ILanguageServerManager {
   export interface IGetServerIdOptions {
     language?: TLanguageId;
     mimeType?: string;
+  }
+}
+
+/** Compatibility layer with previous bespoke WebSocket connection. */
+export interface ILSPConnection {
+  isReady: boolean;
+  isConnected: boolean;
+  isInitialized: boolean;
+
+  isRenameSupported(): boolean;
+  isReferencesSupported(): boolean;
+  isTypeDefinitionSupported(): boolean;
+  isDefinitionSupported(): boolean;
+
+  sendOpenWhenReady(documentInfo: ILSPConnection.IDocumentInfo): void;
+  sendOpen(documentInfo: ILSPConnection.IDocumentInfo): void;
+  sendChange(documentInfo: ILSPConnection.IDocumentInfo): void;
+  sendFullTextChange(
+    text: string,
+    documentInfo: ILSPConnection.IDocumentInfo
+  ): void;
+  sendSelectiveChange(
+    changeEvent: LSP.TextDocumentContentChangeEvent,
+    documentInfo: ILSPConnection.IDocumentInfo
+  ): void;
+  sendSaved(documentInfo: ILSPConnection.IDocumentInfo): void;
+  rename(
+    location: ILSPConnection.IPosition,
+    documentInfo: ILSPConnection.IDocumentInfo,
+    newName: string,
+    emit: false
+  ): Promise<LSP.WorkspaceEdit>;
+  connect(socket: WebSocket): ILSPConnection;
+  close(): void;
+  on<
+    T extends keyof ILSPConnection.IEventSignalArgs,
+    U extends ILSPConnection.IEventSignalArgs,
+    V extends (args: U) => void
+  >(
+    evt: T,
+    listener: V
+  ): void;
+
+  off<
+    T extends keyof ILSPConnection.IEventSignalArgs,
+    U extends ILSPConnection.IEventSignalArgs,
+    V extends (args: U) => void
+  >(
+    evt: T,
+    listener: V
+  ): void;
+  getLanguageCompletionCharacters(): string[];
+  getLanguageSignatureCharacters(): string[];
+  getDocumentHighlights(
+    location: ILSPConnection.IPosition,
+    documentInfo: ILSPConnection.IDocumentInfo,
+    emit: false
+  ): Promise<LSP.DocumentHighlight[]>;
+  getHoverTooltip(
+    location: ILSPConnection.IPosition,
+    documentInfo: ILSPConnection.IDocumentInfo,
+    emit: false
+  ): Promise<LSP.Hover>;
+  getSignatureHelp(
+    location: ILSPConnection.IPosition,
+    documentInfo: ILSPConnection.IDocumentInfo,
+    emit: false
+  ): Promise<LSP.SignatureHelp>;
+  getCompletion(
+    location: ILSPConnection.IPosition,
+    token: ILSPConnection.ITokenInfo,
+    documentInfo: ILSPConnection.IDocumentInfo,
+    emit: false,
+    triggerCharacter?: string,
+    triggerKind?: LSP.CompletionTriggerKind
+  ): Promise<LSP.CompletionList | LSP.CompletionItem[]>;
+  getReferences(
+    location: ILSPConnection.IPosition,
+    documentInfo: ILSPConnection.IDocumentInfo,
+    emit?: false
+  ): Promise<LSP.Location[]>;
+  getTypeDefinition(
+    location: ILSPConnection.IPosition,
+    documentInfo: ILSPConnection.IDocumentInfo,
+    emit?: false
+  ): Promise<CommLSP.TAnyLocation>;
+  getDefinition(
+    location: ILSPConnection.IPosition,
+    documentInfo: ILSPConnection.IDocumentInfo,
+    emit?: false
+  ): Promise<CommLSP.TAnyLocation>;
+}
+
+export namespace ILSPConnection {
+  export namespace Events {
+    export const ON_CLOSE = 'close';
+    export const ON_DIAGNOSTIC = 'diagnostic';
+  }
+
+  export interface IEventSignalArgs {
+    [Events.ON_CLOSE]: boolean;
+    [Events.ON_DIAGNOSTIC]: LSP.PublishDiagnosticsParams;
+  }
+
+  export interface IPosition {
+    line: number;
+    ch: number;
+  }
+
+  export interface ITokenInfo {
+    start: IPosition;
+    end: IPosition;
+    text: string;
+  }
+
+  export interface IDocumentInfo {
+    uri: string;
+    version: number;
+    text: string;
+    languageId: string;
   }
 }

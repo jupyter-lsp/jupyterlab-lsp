@@ -1,6 +1,5 @@
 import { VirtualDocument } from '../../virtual/document';
 import { CodeMirrorHandler, VirtualEditor } from '../../virtual/editor';
-import { LSPConnection } from '../../connection';
 import {
   IEditorPosition,
   IRootPosition,
@@ -19,6 +18,7 @@ import { PositionConverter } from '../../converter';
 import * as CodeMirror from 'codemirror';
 import { ICommandContext } from '../../command_manager';
 import { DefaultMap } from '../../utils';
+import { ILSPConnection } from '../../tokens';
 
 export enum CommandEntryPoint {
   CellContextMenu,
@@ -71,7 +71,7 @@ export interface ILSPFeature {
 
   virtual_editor: VirtualEditor;
   virtual_document: VirtualDocument;
-  connection: LSPConnection;
+  connection: ILSPConnection;
   jupyterlab_components: IJupyterLabComponentsManager;
   /**
    * Connect event handlers to the editor, virtual document and connection(s)
@@ -115,14 +115,17 @@ export interface IEditOutcome {
 export abstract class CodeMirrorLSPFeature implements ILSPFeature {
   public is_registered: boolean;
   protected readonly editor_handlers: Map<string, CodeMirrorHandler>;
-  protected readonly connection_handlers: Map<string, any>;
+  protected readonly connection_handlers: Map<
+    keyof ILSPConnection.IEventSignalArgs,
+    any
+  >;
   protected readonly wrapper_handlers: Map<keyof HTMLElementEventMap, any>;
   protected wrapper: HTMLElement;
 
   constructor(
     public virtual_editor: VirtualEditor,
     public virtual_document: VirtualDocument,
-    public connection: LSPConnection,
+    public connection: ILSPConnection,
     public jupyterlab_components: IJupyterLabComponentsManager,
     public status_message: StatusMessage
   ) {

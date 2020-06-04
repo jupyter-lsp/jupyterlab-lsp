@@ -18,8 +18,8 @@ import {
   IRootPosition,
   IVirtualPosition
 } from '../../../positioning';
-import { LSPConnection } from '../../../connection';
 import { Session } from '@jupyterlab/services';
+import { ILSPConnection } from '../../../tokens';
 
 /*
 Feedback: anchor - not clear from docs
@@ -36,7 +36,7 @@ export class LSPConnector extends DataConnector<
 > {
   isDisposed = false;
   private _editor: CodeEditor.IEditor;
-  private _connections: Map<VirtualDocument.id_path, LSPConnection>;
+  private _connections: Map<VirtualDocument.id_path, ILSPConnection>;
   private _context_connector: ContextConnector;
   private _kernel_connector: KernelConnector;
   private _kernel_and_context_connector: CompletionConnector;
@@ -394,7 +394,7 @@ export namespace LSPConnector {
     /**
      * The connections to be used by the LSP connector.
      */
-    connections: Map<VirtualDocument.id_path, LSPConnection>;
+    connections: Map<VirtualDocument.id_path, ILSPConnection>;
 
     session?: Session.ISessionConnection;
   }

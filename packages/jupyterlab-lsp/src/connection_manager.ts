@@ -7,11 +7,15 @@ import { sleep, until_ready } from './utils';
 
 // Name-only import so as to not trigger inclusion in main bundle
 import * as ConnectionModuleType from './connection';
-import { TLanguageServerId, ILanguageServerManager } from './tokens';
+import {
+  TLanguageServerId,
+  ILanguageServerManager,
+  ILSPConnection
+} from './tokens';
 
 export interface IDocumentConnectionData {
   virtual_document: VirtualDocument;
-  connection: LSPConnection;
+  connection: ILSPConnection;
 }
 
 export interface ISocketConnectionOptions {
@@ -31,7 +35,7 @@ export interface ISocketConnectionOptions {
  * (see JupyterLabWidgetAdapter), keeping the virtual document spaces separate if a file is opened twice.
  */
 export class DocumentConnectionManager {
-  connections: Map<VirtualDocument.id_path, LSPConnection>;
+  connections: Map<VirtualDocument.id_path, ILSPConnection>;
   documents: Map<VirtualDocument.id_path, VirtualDocument>;
   initialized: Signal<DocumentConnectionManager, IDocumentConnectionData>;
   connected: Signal<DocumentConnectionManager, IDocumentConnectionData>;
@@ -116,7 +120,7 @@ export class DocumentConnectionManager {
 
   private async connect_socket(
     options: ISocketConnectionOptions
-  ): Promise<LSPConnection> {
+  ): Promise<ILSPConnection> {
     console.log('LSP: Connection Socket', options);
     let { virtual_document, language } = options;
 
@@ -197,7 +201,7 @@ export class DocumentConnectionManager {
   };
 
   private forEachDocumentOfConnection(
-    connection: LSPConnection,
+    connection: ILSPConnection,
     callback: (virtual_document: VirtualDocument) => void
   ) {
     for (const [
@@ -322,7 +326,7 @@ export namespace DocumentConnectionManager {
  * Namespace primarily for language-keyed cache of LSPConnections
  */
 namespace Private {
-  const _connections: Map<TLanguageServerId, LSPConnection> = new Map();
+  const _connections: Map<TLanguageServerId, ILSPConnection> = new Map();
   let _promise: Promise<typeof ConnectionModuleType>;
   let _language_server_manager: ILanguageServerManager;
 
@@ -343,7 +347,7 @@ namespace Private {
     language_server_id: TLanguageServerId,
     uris: DocumentConnectionManager.IURIs,
     onCreate: (connection: LSPConnection) => void
-  ): Promise<LSPConnection> {
+  ): Promise<ILSPConnection> {
     if (_promise == null) {
       // TODO: consider lazy-loading _only_ the modules that _must_ be webpacked
       // with custom shims, e.g. `fs`

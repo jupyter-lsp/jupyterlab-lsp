@@ -11,7 +11,7 @@ import { FileEditorAdapter } from './adapters/jupyterlab/file_editor';
 import { NotebookAdapter } from './adapters/jupyterlab/notebook';
 import { INotebookTracker } from '@jupyterlab/notebook';
 import { VirtualDocument } from './virtual/document';
-import { LSPConnection } from './connection';
+import { ILSPConnection } from './tokens';
 import {
   IEditorPosition,
   IRootPosition,
@@ -250,7 +250,7 @@ export class FileEditorCommandManager extends ContextCommandManager {
 export interface ICommandContext {
   app: JupyterFrontEnd;
   document: VirtualDocument;
-  connection: LSPConnection;
+  connection: ILSPConnection;
   virtual_position: IVirtualPosition;
   root_position: IRootPosition;
   features: Map<string, ILSPFeature>;

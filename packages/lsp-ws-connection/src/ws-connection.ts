@@ -548,7 +548,7 @@ export class LspWsConnection extends events.EventEmitter
       }
     };
 
-    const locations = await this.connection.sendRequest<Location[]>(
+    const locations = await this.connection.sendRequest<protocol.Location[]>(
       'textDocument/references',
       params
     );

@@ -8,6 +8,8 @@ import { CommRPC } from './json-rpc';
  * Language Server.
  */
 export class CommLSP extends CommRPC {
+  capabilities: CommLSP.TCapabilityMap = new Map();
+
   /**
    * Request immediate method execution on the Language Server, not waiting for
    * a response.
@@ -118,9 +120,34 @@ export namespace CommLSP {
   export const RENAME = 'textDocument/rename';
   export const DOCUMENT_SYMBOL = 'textDocument/documentSymbol';
 
-  /** Server request params */
+  /** Server requests */
   export const REGISTER_CAPABILITY = 'client/registerCapability';
   export const UNREGISTER_CAPABILITY = 'client/unregisterCapability';
+
+  /** Client notifications */
+  export const DID_OPEN = 'textDocument/didOpen';
+  export const DID_CHANGE = 'textDocument/didChange';
+  export const DID_SAVE = 'textDocument/didSave';
+
+  export namespace Capabilities {
+    export const SERVER_RENAME_PROVIDER = ['renameProvider'];
+    export const COMPLETION_TRIGGER_CHARACTERS = [
+      'completionProvider',
+      'triggerCharacters'
+    ];
+    export const SIGNATURE_HELP_TRIGGER_CHARACTERS = [
+      'signatureHelpProvider',
+      'triggerCharacters'
+    ];
+    export const COMPLETION_PROVIDER = ['completionProvider'];
+    export const SIGNATURE_HELP_PROVIDER = ['signatureHelpProvider'];
+    export const HOVER_PROVIDER = ['hoverProvider'];
+    export const REFERENCES_PROVIDER = ['referencesProvider'];
+    export const TYPE_DEFINITION_PROVIDER = ['typeDefinitionProvider'];
+    export const DEFINITION_PROVIDER = ['definitionProvider'];
+  }
+
+  export type TCapabilityMap = Map<string[], any>;
 
   export type TAnyCompletion = LSP.CompletionList | LSP.CompletionItem[] | null;
 
@@ -147,6 +174,9 @@ export namespace CommLSP {
 
   export interface IClientNotifyParams {
     [INITIALIZED]: LSP.InitializedParams;
+    [DID_OPEN]: LSP.DidOpenTextDocumentParams;
+    [DID_CHANGE]: LSP.DidChangeTextDocumentParams;
+    [DID_SAVE]: LSP.DidSaveTextDocumentParams;
   }
 
   export interface IClientRequestParams {

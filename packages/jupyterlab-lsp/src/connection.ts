@@ -10,10 +10,11 @@ import {
   IDocumentInfo
 } from 'lsp-ws-connection';
 import { until_ready } from './utils';
+import { ILSPConnection } from './tokens';
 
 interface ILSPOptions extends ILspOptions {}
 
-export class LSPConnection extends LspWsConnection {
+export class LSPConnection extends LspWsConnection implements ILSPConnection {
   protected documentsToOpen: IDocumentInfo[];
 
   constructor(options: ILSPOptions) {

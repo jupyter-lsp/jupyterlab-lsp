@@ -25,7 +25,7 @@ import {
 } from '@jupyterlab/ui-components';
 import { JupyterLabWidgetAdapter } from '../jl_adapter';
 import { collect_documents, VirtualDocument } from '../../../virtual/document';
-import { LSPConnection } from '../../../connection';
+import { ILSPConnection } from '../../../tokens';
 import { DocumentConnectionManager } from '../../../connection_manager';
 import { ILanguageServerManager } from '../../../tokens';
 
@@ -281,7 +281,7 @@ type StatusCode = 'waiting' | 'initializing' | 'initialized' | 'connecting';
 export interface IStatus {
   connected_documents: Set<VirtualDocument>;
   initialized_documents: Set<VirtualDocument>;
-  open_connections: Array<LSPConnection>;
+  open_connections: Array<ILSPConnection>;
   detected_documents: Set<VirtualDocument>;
   status: StatusCode;
 }
@@ -426,7 +426,7 @@ export namespace LSPStatus {
 
       // there may be more open connections than documents if a document was recently closed
       // and the grace period has not passed yet
-      let open_connections = new Array<LSPConnection>();
+      let open_connections = new Array<ILSPConnection>();
       this._connection_manager.connections.forEach((connection, path) => {
         if (connection.isConnected) {
           open_connections.push(connection);
