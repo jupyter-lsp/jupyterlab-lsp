@@ -46,7 +46,7 @@ export class LspWsConnection extends events.EventEmitter
   /**
    * Initialize a connection over a web socket that speaks the LSP protocol
    */
-  public connect(socket: WebSocket): this {
+  public async connect(socket: WebSocket): Promise<void> {
     this.socket = socket;
 
     listen({
@@ -57,7 +57,6 @@ export class LspWsConnection extends events.EventEmitter
         this.isConnected = true;
 
         this.connection = connection;
-        this.sendInitialize();
 
         this.connection.onNotification(
           'textDocument/publishDiagnostics',
@@ -119,10 +118,10 @@ export class LspWsConnection extends events.EventEmitter
         this.connection.onClose(() => {
           this.isConnected = false;
         });
+
+        this.sendInitialize().catch(err => console.warn(err));
       }
     });
-
-    return this;
   }
 
   public close() {
@@ -197,7 +196,7 @@ export class LspWsConnection extends events.EventEmitter
     };
   }
 
-  public sendInitialize() {
+  public async sendInitialize() {
     if (!this.isConnected) {
       return;
     }
@@ -207,8 +206,8 @@ export class LspWsConnection extends events.EventEmitter
     this.connection
       .sendRequest<protocol.InitializeResult>('initialize', message)
       .then(
-        params => {
-          this.onServerInitialized(params);
+        result => {
+          this.onServerInitialized(result);
         },
         e => {
           console.warn('lsp-ws-connection initialization failure', e);

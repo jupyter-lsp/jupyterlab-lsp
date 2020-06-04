@@ -369,7 +369,7 @@ namespace Private {
       // TODO: remove remaining unbounded users of connection.on
       connection.setMaxListeners(999);
       _connections.set(language_server_id, connection);
-      connection.connect(socket);
+      await connection.connect(socket);
       onCreate(connection);
     }
 

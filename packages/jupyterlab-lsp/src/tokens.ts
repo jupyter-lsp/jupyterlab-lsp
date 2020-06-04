@@ -39,11 +39,36 @@ export interface ILSPConnection {
   isReady: boolean;
   isConnected: boolean;
   isInitialized: boolean;
+  serverCapabilities: LSP.ServerCapabilities;
 
+  // legacy capabilities api
   isRenameSupported(): boolean;
   isReferencesSupported(): boolean;
   isTypeDefinitionSupported(): boolean;
   isDefinitionSupported(): boolean;
+
+  // legacy connection API
+  connect(socket: WebSocket): Promise<void>;
+  close(): void;
+
+  // legacy event api
+  on<
+    T extends keyof ILSPConnection.IEventSignalArgs,
+    U extends ILSPConnection.IEventSignalArgs,
+    V extends (args: U) => void
+  >(
+    evt: T,
+    listener: V
+  ): void;
+
+  off<
+    T extends keyof ILSPConnection.IEventSignalArgs,
+    U extends ILSPConnection.IEventSignalArgs,
+    V extends (args: U) => void
+  >(
+    evt: T,
+    listener: V
+  ): void;
 
   sendOpenWhenReady(documentInfo: ILSPConnection.IDocumentInfo): void;
   sendOpen(documentInfo: ILSPConnection.IDocumentInfo): void;
@@ -63,25 +88,6 @@ export interface ILSPConnection {
     newName: string,
     emit: false
   ): Promise<LSP.WorkspaceEdit>;
-  connect(socket: WebSocket): ILSPConnection;
-  close(): void;
-  on<
-    T extends keyof ILSPConnection.IEventSignalArgs,
-    U extends ILSPConnection.IEventSignalArgs,
-    V extends (args: U) => void
-  >(
-    evt: T,
-    listener: V
-  ): void;
-
-  off<
-    T extends keyof ILSPConnection.IEventSignalArgs,
-    U extends ILSPConnection.IEventSignalArgs,
-    V extends (args: U) => void
-  >(
-    evt: T,
-    listener: V
-  ): void;
   getLanguageCompletionCharacters(): string[];
   getLanguageSignatureCharacters(): string[];
   getDocumentHighlights(
@@ -125,14 +131,18 @@ export interface ILSPConnection {
 }
 
 export namespace ILSPConnection {
-  export namespace Events {
+  export namespace LegacyEvents {
     export const ON_CLOSE = 'close';
     export const ON_DIAGNOSTIC = 'diagnostic';
+    export const ON_LOGGING = 'logging';
+    export const ON_INITIALIZED = 'serverInitialized';
   }
 
   export interface IEventSignalArgs {
-    [Events.ON_CLOSE]: boolean;
-    [Events.ON_DIAGNOSTIC]: LSP.PublishDiagnosticsParams;
+    [LegacyEvents.ON_CLOSE]: boolean;
+    [LegacyEvents.ON_DIAGNOSTIC]: LSP.PublishDiagnosticsParams;
+    [LegacyEvents.ON_LOGGING]: LSP.ShowMessageParams | LSP.MessageActionItem;
+    [LegacyEvents.ON_INITIALIZED]: LSP.ServerCapabilities;
   }
 
   export interface IPosition {

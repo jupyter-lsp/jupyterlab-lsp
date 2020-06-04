@@ -87,8 +87,8 @@ export class LSPConnection extends LspWsConnection implements ILSPConnection {
     return edit;
   }
 
-  public connect(socket: WebSocket): this {
-    super.connect(socket);
+  public async connect(socket: WebSocket): Promise<void> {
+    await super.connect(socket);
 
     until_ready(() => {
       return this.isConnected;
@@ -102,7 +102,6 @@ export class LSPConnection extends LspWsConnection implements ILSPConnection {
       .catch(() => {
         console.error('Could not connect onClose signal');
       });
-    return this;
   }
 
   private closing_manually = false;

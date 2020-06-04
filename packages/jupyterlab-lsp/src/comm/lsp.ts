@@ -8,7 +8,8 @@ import { CommRPC } from './json-rpc';
  * Language Server.
  */
 export class CommLSP extends CommRPC {
-  capabilities: CommLSP.TCapabilityMap = new Map();
+  // TODO: figure out a more robust way to do this
+  // capabilities: CommLSP.TCapabilityMap = new Map();
 
   /**
    * Request immediate method execution on the Language Server, not waiting for
@@ -57,38 +58,6 @@ export class CommLSP extends CommRPC {
   >(method: T, handler: W): W | null {
     return this.addHandler(method, handler) as W;
   }
-
-  // nb: test something like this
-  async bar() {
-    this.onRequest(CommLSP.REGISTER_CAPABILITY, {
-      onMsg: async params => {
-        console.log(params);
-        return {
-          id: 'foo',
-          method: 'baz',
-          registerOptions: { boo: true }
-        };
-      }
-    });
-
-    this.onNotification(CommLSP.PUBLISH_DIAGNOSTICS, {
-      onMsg: async params => {
-        console.log(params);
-      }
-    });
-
-    const baz = await this.notify(CommLSP.INITIALIZED, {});
-    console.log(baz);
-
-    const boo = await this.request(CommLSP.HOVER, {
-      textDocument: { uri: 'http' },
-      position: {
-        line: 0,
-        character: 0
-      }
-    });
-    console.log(boo);
-  }
 }
 
 /**
@@ -115,6 +84,7 @@ export namespace CommLSP {
   export const PUBLISH_DIAGNOSTICS = 'textDocument/publishDiagnostics';
   export const REFERENCES = 'textDocument/references';
   export const SHOW_MESSAGE = 'window/showMessage';
+  export const SHOW_MESSAGE_REQUEST = 'window/showMessageRequest';
   export const SIGNATURE_HELP = 'textDocument/signatureHelp';
   export const TYPE_DEFINITION = 'textDocument/typeDefinition';
   export const RENAME = 'textDocument/rename';
@@ -128,26 +98,7 @@ export namespace CommLSP {
   export const DID_OPEN = 'textDocument/didOpen';
   export const DID_CHANGE = 'textDocument/didChange';
   export const DID_SAVE = 'textDocument/didSave';
-
-  export namespace Capabilities {
-    export const SERVER_RENAME_PROVIDER = ['renameProvider'];
-    export const COMPLETION_TRIGGER_CHARACTERS = [
-      'completionProvider',
-      'triggerCharacters'
-    ];
-    export const SIGNATURE_HELP_TRIGGER_CHARACTERS = [
-      'signatureHelpProvider',
-      'triggerCharacters'
-    ];
-    export const COMPLETION_PROVIDER = ['completionProvider'];
-    export const SIGNATURE_HELP_PROVIDER = ['signatureHelpProvider'];
-    export const HOVER_PROVIDER = ['hoverProvider'];
-    export const REFERENCES_PROVIDER = ['referencesProvider'];
-    export const TYPE_DEFINITION_PROVIDER = ['typeDefinitionProvider'];
-    export const DEFINITION_PROVIDER = ['definitionProvider'];
-  }
-
-  export type TCapabilityMap = Map<string[], any>;
+  export const DID_CHANGE_CONFIGURATION = 'workspace/didChangeConfiguration';
 
   export type TAnyCompletion = LSP.CompletionList | LSP.CompletionItem[] | null;
 
@@ -165,11 +116,13 @@ export namespace CommLSP {
   export interface IServerRequestParams {
     [REGISTER_CAPABILITY]: LSP.RegistrationParams;
     [UNREGISTER_CAPABILITY]: LSP.UnregistrationParams;
+    [SHOW_MESSAGE_REQUEST]: LSP.ShowMessageRequestParams;
   }
 
   export interface IServerResult {
-    [REGISTER_CAPABILITY]: LSP.Registration;
-    [UNREGISTER_CAPABILITY]: LSP.Unregistration;
+    [REGISTER_CAPABILITY]: void;
+    [UNREGISTER_CAPABILITY]: void;
+    [SHOW_MESSAGE_REQUEST]: LSP.MessageActionItem | null;
   }
 
   export interface IClientNotifyParams {
@@ -177,6 +130,7 @@ export namespace CommLSP {
     [DID_OPEN]: LSP.DidOpenTextDocumentParams;
     [DID_CHANGE]: LSP.DidChangeTextDocumentParams;
     [DID_SAVE]: LSP.DidSaveTextDocumentParams;
+    [DID_CHANGE_CONFIGURATION]: LSP.DidChangeConfigurationParams;
   }
 
   export interface IClientRequestParams {

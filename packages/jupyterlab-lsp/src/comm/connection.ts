@@ -4,13 +4,19 @@ import { ILSPConnection } from '../tokens';
 import { CommLSP } from './lsp';
 import { ICommRPC } from '.';
 import { Signal } from '@lumino/signaling';
+import {
+  registerServerCapability,
+  unregisterServerCapability
+} from './server-capability-registration';
 
 export class CommConnection extends CommLSP implements ILSPConnection {
   protected _isConnected = false;
   protected _isInitialized = false;
+  public serverCapabilities: LSP.ServerCapabilities;
 
   protected documentsToOpen: ILSPConnection.IDocumentInfo[];
 
+  private _rootUri: string;
   private _signals: Map<
     keyof ILSPConnection.IEventSignalArgs,
     Signal<
@@ -23,10 +29,27 @@ export class CommConnection extends CommLSP implements ILSPConnection {
 
   private closingManually = false;
 
-  constructor(options: ICommRPC.IOptions) {
+  constructor(options: CommConnection.IOptions) {
     super(options);
-    this._signals = new Map();
-    this._signals.set(ILSPConnection.Events.ON_CLOSE, new Signal(this));
+    this._rootUri = options.rootUri;
+    this.initSignals();
+    this.initHandlers();
+  }
+
+  get rootUri() {
+    return this._rootUri;
+  }
+
+  get isReady() {
+    return this._isConnected && this._isInitialized;
+  }
+
+  get isConnected() {
+    return this._isConnected;
+  }
+
+  get isInitialized() {
+    return this._isInitialized;
   }
 
   on<
@@ -49,33 +72,214 @@ export class CommConnection extends CommLSP implements ILSPConnection {
     this._listeners.delete([evt, listener]);
   }
 
-  get isReady() {
-    return this._isConnected && this._isInitialized;
+  close() {
+    try {
+      this.closingManually = true;
+    } catch (e) {
+      this.closingManually = false;
+    }
   }
 
-  get isConnected() {
-    return this._isConnected;
+  protected initSignals() {
+    this._signals = new Map([
+      [ILSPConnection.LegacyEvents.ON_CLOSE, new Signal(this)],
+      [ILSPConnection.LegacyEvents.ON_DIAGNOSTIC, new Signal(this)],
+      [ILSPConnection.LegacyEvents.ON_LOGGING, new Signal(this)],
+      [ILSPConnection.LegacyEvents.ON_INITIALIZED, new Signal(this)]
+    ]);
   }
 
-  get isInitialized() {
-    return this._isInitialized;
+  protected initHandlers() {
+    // logging
+    this.onNotification(CommLSP.SHOW_MESSAGE, {
+      onMsg: async params => {
+        this._signals.get(ILSPConnection.LegacyEvents.ON_LOGGING).emit(params);
+      }
+    });
+
+    this.onRequest(CommLSP.SHOW_MESSAGE_REQUEST, {
+      onMsg: async params => {
+        this._signals.get(ILSPConnection.LegacyEvents.ON_LOGGING).emit(params);
+        // nb: this seems important
+        return null;
+      }
+    });
+
+    // diagnostics
+    this.onNotification(CommLSP.PUBLISH_DIAGNOSTICS, {
+      onMsg: async params => {
+        this._signals
+          .get(ILSPConnection.LegacyEvents.ON_DIAGNOSTIC)
+          .emit(params);
+      }
+    });
+
+    // capabilities
+    this.onRequest(CommLSP.REGISTER_CAPABILITY, {
+      onMsg: async params => {
+        for (const registration of params.registrations) {
+          this.serverCapabilities = registerServerCapability(
+            this.serverCapabilities,
+            registration
+          );
+        }
+      }
+    });
+
+    this.onRequest(CommLSP.UNREGISTER_CAPABILITY, {
+      onMsg: async params => {
+        for (const registration of params.unregisterations) {
+          this.serverCapabilities = unregisterServerCapability(
+            this.serverCapabilities,
+            registration
+          );
+        }
+      }
+    });
   }
 
+  async connect(socket?: WebSocket): Promise<void> {
+    this.comm.onClose = () => {
+      this._isConnected = false;
+      this._signals
+        .get(ILSPConnection.LegacyEvents.ON_CLOSE)
+        .emit(this.closingManually);
+    };
+
+    this._isConnected = true;
+
+    await this.initialize();
+  }
+
+  /**
+   * Initialization parameters to be sent to the language server.
+   * Subclasses can overload this when adding more features.
+   */
+  protected initializeParams(): LSP.InitializeParams {
+    return {
+      capabilities: {
+        textDocument: {
+          hover: {
+            dynamicRegistration: true,
+            contentFormat: ['markdown', 'plaintext']
+          },
+          synchronization: {
+            dynamicRegistration: true,
+            willSave: false,
+            didSave: true,
+            willSaveWaitUntil: false
+          },
+          completion: {
+            dynamicRegistration: true,
+            completionItem: {
+              snippetSupport: false,
+              commitCharactersSupport: true,
+              documentationFormat: ['markdown', 'plaintext'],
+              deprecatedSupport: false,
+              preselectSupport: false
+            },
+            contextSupport: false
+          },
+          signatureHelp: {
+            dynamicRegistration: true,
+            signatureInformation: {
+              documentationFormat: ['markdown', 'plaintext']
+            }
+          },
+          declaration: {
+            dynamicRegistration: true,
+            linkSupport: true
+          },
+          definition: {
+            dynamicRegistration: true,
+            linkSupport: true
+          },
+          typeDefinition: {
+            dynamicRegistration: true,
+            linkSupport: true
+          },
+          implementation: {
+            dynamicRegistration: true,
+            linkSupport: true
+          }
+        } as LSP.ClientCapabilities,
+        workspace: {
+          didChangeConfiguration: {
+            dynamicRegistration: true
+          }
+        } as LSP.WorkspaceClientCapabilities
+      } as LSP.ClientCapabilities,
+      initializationOptions: null,
+      processId: null,
+      rootUri: this._rootUri,
+      workspaceFolders: null
+    };
+  }
+
+  async initialize(): Promise<void> {
+    if (!this.isConnected) {
+      return;
+    }
+
+    const { capabilities } = await this.request(
+      CommLSP.INITIALIZE,
+      this.initializeParams()
+    );
+
+    this.serverCapabilities = capabilities;
+    this.notify(CommLSP.INITIALIZED, null).catch(err => console.warn(err));
+    this.notify(CommLSP.DID_CHANGE_CONFIGURATION, { settings: {} }).catch(err =>
+      console.warn(err)
+    );
+
+    while (this.documentsToOpen.length) {
+      this.sendOpen(this.documentsToOpen.pop());
+    }
+
+    this._signals
+      .get(ILSPConnection.LegacyEvents.ON_INITIALIZED)
+      .emit(this.serverCapabilities);
+  }
+
+  // capabilities
   isRenameSupported() {
     // nb: populate capabilities
-    return this.capabilities.has(CommLSP.Capabilities.SERVER_RENAME_PROVIDER);
+    // return this.capabilities.has(CommLSP.Capabilities.SERVER_RENAME_PROVIDER);
+    return !!this.serverCapabilities?.renameProvider;
   }
 
   isReferencesSupported() {
-    return this.capabilities.has(CommLSP.Capabilities.REFERENCES_PROVIDER);
+    return !!this.serverCapabilities?.referencesProvider;
   }
 
   isTypeDefinitionSupported() {
-    return this.capabilities.has(CommLSP.Capabilities.TYPE_DEFINITION_PROVIDER);
+    return !!this.serverCapabilities?.typeDefinitionProvider;
   }
 
   isDefinitionSupported() {
-    return this.capabilities.has(CommLSP.Capabilities.DEFINITION_PROVIDER);
+    return !!this.serverCapabilities?.definitionProvider;
+  }
+
+  isHoverSupported() {
+    return !!this.serverCapabilities?.hoverProvider;
+  }
+
+  isSignatureHelpSupported() {
+    return !!this.serverCapabilities?.signatureHelpProvider;
+  }
+
+  isCompletionSupported() {
+    return !!this.serverCapabilities?.completionProvider;
+  }
+
+  getLanguageCompletionCharacters() {
+    return this.serverCapabilities?.completionProvider?.triggerCharacters || [];
+  }
+
+  getLanguageSignatureCharacters() {
+    return (
+      this.serverCapabilities?.signatureHelpProvider?.triggerCharacters || []
+    );
   }
 
   sendOpenWhenReady(documentInfo: ILSPConnection.IDocumentInfo) {
@@ -147,53 +351,6 @@ export class CommConnection extends CommLSP implements ILSPConnection {
     });
   }
 
-  protected onServerInitialized(params: LSP.InitializeResult) {
-    // super.onServerInitialized(params);
-    while (this.documentsToOpen.length) {
-      this.sendOpen(this.documentsToOpen.pop());
-    }
-  }
-
-  connect(socket?: WebSocket): ILSPConnection {
-    // nb: look into this
-    // super.connect(socket);
-
-    this.comm.onClose = () => {
-      this._isConnected = false;
-      this._signals
-        .get(ILSPConnection.Events.ON_CLOSE)
-        .emit(this.closingManually);
-    };
-    return this;
-  }
-
-  close() {
-    try {
-      this.closingManually = true;
-      // nb: look into this
-      // super.close();
-    } catch (e) {
-      this.closingManually = false;
-    }
-  }
-
-  // methods from ws-connection
-  getLanguageCompletionCharacters() {
-    return (
-      this.capabilities.get(
-        CommLSP.Capabilities.COMPLETION_TRIGGER_CHARACTERS
-      ) || []
-    );
-  }
-
-  getLanguageSignatureCharacters() {
-    return (
-      this.capabilities.get(
-        CommLSP.Capabilities.SIGNATURE_HELP_TRIGGER_CHARACTERS
-      ) || []
-    );
-  }
-
   async getDocumentHighlights(
     location: ILSPConnection.IPosition,
     documentInfo: ILSPConnection.IDocumentInfo,
@@ -219,10 +376,7 @@ export class CommConnection extends CommLSP implements ILSPConnection {
     documentInfo: ILSPConnection.IDocumentInfo,
     emit?: false
   ) {
-    if (
-      !this.isReady &&
-      !this.capabilities.has(CommLSP.Capabilities.HOVER_PROVIDER)
-    ) {
+    if (!this.isReady && !this.isHoverSupported()) {
       return;
     }
     return await this.request(CommLSP.HOVER, {
@@ -241,12 +395,7 @@ export class CommConnection extends CommLSP implements ILSPConnection {
     documentInfo: ILSPConnection.IDocumentInfo,
     emit?: false
   ): Promise<LSP.SignatureHelp> {
-    if (
-      !(
-        this.isReady &&
-        this.capabilities.get(CommLSP.Capabilities.SIGNATURE_HELP_PROVIDER)
-      )
-    ) {
+    if (!(this.isReady && this.isSignatureHelpSupported())) {
       return;
     }
 
@@ -279,12 +428,7 @@ export class CommConnection extends CommLSP implements ILSPConnection {
     triggerCharacter?: string,
     triggerKind?: LSP.CompletionTriggerKind
   ) {
-    if (
-      !(
-        this.isReady &&
-        this.capabilities.get(CommLSP.Capabilities.SIGNATURE_HELP_PROVIDER)
-      )
-    ) {
+    if (!(this.isReady && this.isCompletionSupported())) {
       return;
     }
 
@@ -401,5 +545,11 @@ export class CommConnection extends CommLSP implements ILSPConnection {
       contentChanges: changeEvents
     }).catch(err => console.warn(err));
     documentInfo.version++;
+  }
+}
+
+export namespace CommConnection {
+  export interface IOptions extends ICommRPC.IOptions {
+    rootUri: string;
   }
 }

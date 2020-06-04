@@ -173,7 +173,7 @@ describe('LspWsConnection', () => {
       }, 0);
     });
 
-    connection.connect(mockSocket);
+    connection.connect(mockSocket).catch(err => console.warn(err));
     mockSocket.dispatchEvent(new Event('open'));
 
     // Send the messages
@@ -228,7 +228,7 @@ describe('LspWsConnection', () => {
         }, 0);
       });
 
-      connection.connect(mockSocket);
+      connection.connect(mockSocket).catch(err => console.warn(err));
       mockSocket.dispatchEvent(new Event('open'));
     });
 
@@ -258,7 +258,7 @@ describe('LspWsConnection', () => {
         });
       });
 
-      connection.connect(mockSocket);
+      connection.connect(mockSocket).catch(err => console.warn(err));
       mockSocket.dispatchEvent(new Event('open'));
     });
   });
@@ -308,7 +308,7 @@ describe('LspWsConnection', () => {
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
       });
 
-      connection.connect(mockSocket);
+      connection.connect(mockSocket).catch(err => console.warn(err));
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('hover', response => {
@@ -345,7 +345,7 @@ describe('LspWsConnection', () => {
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
       });
 
-      connection.connect(mockSocket);
+      connection.connect(mockSocket).catch(err => console.warn(err));
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('hover', response => {
@@ -414,7 +414,7 @@ describe('LspWsConnection', () => {
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
       });
 
-      connection.connect(mockSocket);
+      connection.connect(mockSocket).catch(err => console.warn(err));
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('completion', response => {
@@ -449,7 +449,7 @@ describe('LspWsConnection', () => {
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
       });
 
-      connection.connect(mockSocket);
+      connection.connect(mockSocket).catch(err => console.warn(err));
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('completion', response => {
@@ -481,7 +481,7 @@ describe('LspWsConnection', () => {
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
       });
 
-      connection.connect(mockSocket);
+      connection.connect(mockSocket).catch(err => console.warn(err));
       mockSocket.dispatchEvent(new Event('open'));
 
       connection.on('completion', response => {
@@ -492,7 +492,7 @@ describe('LspWsConnection', () => {
   });
 
   it('closes the socket connection and stops sending messages', () => {
-    connection.connect(mockSocket);
+    connection.connect(mockSocket).catch(err => console.warn(err));
     connection.close();
 
     connection.sendChange(mockInfo);
