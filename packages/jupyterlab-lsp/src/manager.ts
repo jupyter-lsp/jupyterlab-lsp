@@ -7,7 +7,12 @@ import {
   KernelMessage
 } from '@jupyterlab/services';
 
-import { ILanguageServerManager, TSessionMap, TCommMap } from './tokens';
+import {
+  ILanguageServerManager,
+  TSessionMap,
+  TCommMap,
+  TLanguageServerId
+} from './tokens';
 import * as SCHEMA from './_schema';
 import { ISessionConnection } from '@jupyterlab/services/lib/session/session';
 import { IComm } from '@jupyterlab/services/lib/kernel/kernel';
@@ -46,6 +51,10 @@ export class LanguageServerManager implements ILanguageServerManager {
     return this._sessions;
   }
 
+  async getComm(language_server: TLanguageServerId): Promise<IComm> {
+    return this._comms.get(language_server);
+  }
+
   getServerId(options: ILanguageServerManager.IGetServerIdOptions) {
     // most things speak language
     for (const [key, session] of this._sessions.entries()) {
@@ -70,14 +79,16 @@ export class LanguageServerManager implements ILanguageServerManager {
     }
 
     if (newValue) {
-      newValue.registerCommTarget(SERVER_COMM_TARGET, (comm, msg) =>
-        this._handleServerCommOpen(comm, msg)
+      newValue.registerCommTarget(
+        SERVER_COMM_TARGET,
+        async (comm, msg) => await this._handleServerCommOpen(comm, msg)
       );
+
       console.warn('server comm registered');
     }
   }
 
-  _handleServerCommOpen(comm: IComm, msg: KernelMessage.ICommOpenMsg) {
+  async _handleServerCommOpen(comm: IComm, msg: KernelMessage.ICommOpenMsg) {
     console.warn('server comm openened', comm, msg);
     const { metadata } = msg;
     const language_server = `${metadata.language_server}`;
@@ -90,6 +101,12 @@ export class LanguageServerManager implements ILanguageServerManager {
       (metadata.session as any) as SCHEMA.LanguageServerSession
     );
     this._sessionsChanged.emit(void 0);
+    // nb: put this in connection manager?
+    const { CommLSP } = await import(
+      /* webpackChunkName: "jupyter-lsp-comms" */ './comm/lsp'
+    );
+    const lspComm = new CommLSP({ comm });
+    console.warn(lspComm);
   }
 
   async initKernel() {
