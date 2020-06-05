@@ -4,7 +4,7 @@ import * as protocol from 'vscode-languageserver-protocol';
 import { ConsoleLogger, listen, MessageConnection } from 'vscode-ws-jsonrpc';
 import {
   registerServerCapability,
-  unregisterServerCapability
+  unregisterServerCapability,
 } from './server-capability-registration';
 import {
   ILspConnection,
@@ -13,7 +13,7 @@ import {
   ITokenInfo,
   IDocumentInfo,
   AnyLocation,
-  AnyCompletion
+  AnyCompletion,
 } from './types';
 
 /**
@@ -111,7 +111,7 @@ export class LspWsConnection extends events.EventEmitter
           }
         );
 
-        this.connection.onError(e => {
+        this.connection.onError((e) => {
           this.emit('error', e);
         });
 
@@ -119,8 +119,8 @@ export class LspWsConnection extends events.EventEmitter
           this.isConnected = false;
         });
 
-        this.sendInitialize().catch(err => console.warn(err));
-      }
+        this.sendInitialize().catch((err) => console.warn(err));
+      },
     });
   }
 
@@ -141,13 +141,13 @@ export class LspWsConnection extends events.EventEmitter
         textDocument: {
           hover: {
             dynamicRegistration: true,
-            contentFormat: ['markdown', 'plaintext']
+            contentFormat: ['markdown', 'plaintext'],
           },
           synchronization: {
             dynamicRegistration: true,
             willSave: false,
             didSave: true,
-            willSaveWaitUntil: false
+            willSaveWaitUntil: false,
           },
           completion: {
             dynamicRegistration: true,
@@ -156,43 +156,43 @@ export class LspWsConnection extends events.EventEmitter
               commitCharactersSupport: true,
               documentationFormat: ['markdown', 'plaintext'],
               deprecatedSupport: false,
-              preselectSupport: false
+              preselectSupport: false,
             },
-            contextSupport: false
+            contextSupport: false,
           },
           signatureHelp: {
             dynamicRegistration: true,
             signatureInformation: {
-              documentationFormat: ['markdown', 'plaintext']
-            }
+              documentationFormat: ['markdown', 'plaintext'],
+            },
           },
           declaration: {
             dynamicRegistration: true,
-            linkSupport: true
+            linkSupport: true,
           },
           definition: {
             dynamicRegistration: true,
-            linkSupport: true
+            linkSupport: true,
           },
           typeDefinition: {
             dynamicRegistration: true,
-            linkSupport: true
+            linkSupport: true,
           },
           implementation: {
             dynamicRegistration: true,
-            linkSupport: true
-          }
+            linkSupport: true,
+          },
         } as protocol.ClientCapabilities,
         workspace: {
           didChangeConfiguration: {
-            dynamicRegistration: true
-          }
-        } as protocol.WorkspaceClientCapabilities
+            dynamicRegistration: true,
+          },
+        } as protocol.WorkspaceClientCapabilities,
       } as protocol.ClientCapabilities,
       initializationOptions: null,
       processId: null,
       rootUri: this.rootUri,
-      workspaceFolders: null
+      workspaceFolders: null,
     };
   }
 
@@ -206,10 +206,10 @@ export class LspWsConnection extends events.EventEmitter
     this.connection
       .sendRequest<protocol.InitializeResult>('initialize', message)
       .then(
-        result => {
+        (result) => {
           this.onServerInitialized(result);
         },
-        e => {
+        (e) => {
           console.warn('lsp-ws-connection initialization failure', e);
         }
       );
@@ -221,8 +221,8 @@ export class LspWsConnection extends events.EventEmitter
         uri: documentInfo.uri,
         languageId: documentInfo.languageId,
         text: documentInfo.text,
-        version: documentInfo.version
-      } as protocol.TextDocumentItem
+        version: documentInfo.version,
+      } as protocol.TextDocumentItem,
     };
     this.connection.sendNotification(
       'textDocument/didOpen',
@@ -238,9 +238,9 @@ export class LspWsConnection extends events.EventEmitter
     const textDocumentChange: protocol.DidChangeTextDocumentParams = {
       textDocument: {
         uri: documentInfo.uri,
-        version: documentInfo.version
+        version: documentInfo.version,
       } as protocol.VersionedTextDocumentIdentifier,
-      contentChanges: [{ text: documentInfo.text }]
+      contentChanges: [{ text: documentInfo.text }],
     };
     this.connection.sendNotification(
       'textDocument/didChange',
@@ -257,9 +257,9 @@ export class LspWsConnection extends events.EventEmitter
     const textDocumentChange: protocol.DidSaveTextDocumentParams = {
       textDocument: {
         uri: documentInfo.uri,
-        version: documentInfo.version
+        version: documentInfo.version,
       } as protocol.VersionedTextDocumentIdentifier,
-      text: documentInfo.text
+      text: documentInfo.text,
     };
     this.connection.sendNotification(
       'textDocument/didSave',
@@ -278,12 +278,12 @@ export class LspWsConnection extends events.EventEmitter
 
     const params: protocol.TextDocumentPositionParams = {
       textDocument: {
-        uri: documentInfo.uri
+        uri: documentInfo.uri,
       },
       position: {
         line: location.line,
-        character: location.ch
-      }
+        character: location.ch,
+      },
     };
 
     const hover = await this.connection.sendRequest<protocol.Hover>(
@@ -312,16 +312,16 @@ export class LspWsConnection extends events.EventEmitter
 
     const params: protocol.CompletionParams = {
       textDocument: {
-        uri: documentInfo.uri
+        uri: documentInfo.uri,
       },
       position: {
         line: location.line,
-        character: location.ch
+        character: location.ch,
       },
       context: {
         triggerKind: triggerKind || protocol.CompletionTriggerKind.Invoked,
-        triggerCharacter
-      }
+        triggerCharacter,
+      },
     };
 
     const items = await this.connection.sendRequest<AnyCompletion>(
@@ -346,7 +346,7 @@ export class LspWsConnection extends events.EventEmitter
         'completionItem/resolve',
         completionItem
       )
-      .then(result => {
+      .then((result) => {
         this.emit('completionResolved', result);
       });
   }
@@ -373,12 +373,12 @@ export class LspWsConnection extends events.EventEmitter
 
     const params: protocol.TextDocumentPositionParams = {
       textDocument: {
-        uri: documentInfo.uri
+        uri: documentInfo.uri,
       },
       position: {
         line: location.line,
-        character: location.ch
-      }
+        character: location.ch,
+      },
     };
 
     const help = await this.connection.sendRequest<protocol.SignatureHelp>(
@@ -409,12 +409,12 @@ export class LspWsConnection extends events.EventEmitter
       protocol.DocumentHighlight[]
     >('textDocument/documentHighlight', {
       textDocument: {
-        uri: documentInfo.uri
+        uri: documentInfo.uri,
       },
       position: {
         line: location.line,
-        character: location.ch
-      }
+        character: location.ch,
+      },
     } as protocol.TextDocumentPositionParams);
 
     if (emit) {
@@ -439,12 +439,12 @@ export class LspWsConnection extends events.EventEmitter
 
     const params: protocol.TextDocumentPositionParams = {
       textDocument: {
-        uri: documentInfo.uri
+        uri: documentInfo.uri,
       },
       position: {
         line: location.line,
-        character: location.ch
-      }
+        character: location.ch,
+      },
     };
 
     const targets = await this.connection.sendRequest<AnyLocation>(
@@ -474,12 +474,12 @@ export class LspWsConnection extends events.EventEmitter
 
     const params: protocol.TextDocumentPositionParams = {
       textDocument: {
-        uri: documentInfo.uri
+        uri: documentInfo.uri,
       },
       position: {
         line: location.line,
-        character: location.ch
-      }
+        character: location.ch,
+      },
     };
 
     const locations = await this.connection.sendRequest<AnyLocation>(
@@ -508,15 +508,15 @@ export class LspWsConnection extends events.EventEmitter
         'textDocument/implementation',
         {
           textDocument: {
-            uri: documentInfo.uri
+            uri: documentInfo.uri,
           },
           position: {
             line: location.line,
-            character: location.ch
-          }
+            character: location.ch,
+          },
         } as protocol.TextDocumentPositionParams
       )
-      .then(result => {
+      .then((result) => {
         this.emit('goTo', result);
       });
   }
@@ -536,15 +536,15 @@ export class LspWsConnection extends events.EventEmitter
 
     const params: protocol.ReferenceParams = {
       context: {
-        includeDeclaration: true
+        includeDeclaration: true,
       },
       textDocument: {
-        uri: documentInfo.uri
+        uri: documentInfo.uri,
       },
       position: {
         line: location.line,
-        character: location.ch
-      }
+        character: location.ch,
+      },
     };
 
     const locations = await this.connection.sendRequest<protocol.Location[]>(
@@ -608,7 +608,7 @@ export class LspWsConnection extends events.EventEmitter
     this.serverCapabilities = params.capabilities;
     this.connection.sendNotification('initialized');
     this.connection.sendNotification('workspace/didChangeConfiguration', {
-      settings: {}
+      settings: {},
     });
     this.emit('serverInitialized', this.serverCapabilities);
   }

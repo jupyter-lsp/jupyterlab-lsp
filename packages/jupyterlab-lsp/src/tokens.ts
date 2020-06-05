@@ -1,6 +1,6 @@
 import { ISignal } from '@lumino/signaling';
 import { ServerConnection, ServiceManager } from '@jupyterlab/services';
-import * as LSP from 'vscode-languageserver-protocol';
+import * as LSP from './comm/lsp-types';
 
 import * as SCHEMA from './_schema';
 import { CommLSP } from './comm/lsp';

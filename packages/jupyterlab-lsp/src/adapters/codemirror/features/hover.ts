@@ -2,9 +2,10 @@ import { getModifierState } from '../../../utils';
 import {
   IRootPosition,
   is_equal,
-  IVirtualPosition
+  IVirtualPosition,
 } from '../../../positioning';
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import * as LSP from '../../../comm/lsp-types';
+
 import * as CodeMirror from 'codemirror';
 import { CodeMirrorLSPFeature, IEditorRange } from '../feature';
 import { Debouncer } from '@lumino/polling';
@@ -15,13 +16,13 @@ const hover_modifier: KeyModifier = 'Control';
 export class Hover extends CodeMirrorLSPFeature {
   name = 'Hover';
   protected hover_character: IRootPosition;
-  private last_hover_response: lsProtocol.Hover;
+  private last_hover_response: LSP.Hover;
   private show_next_tooltip: boolean;
   private last_hover_character: CodeMirror.Position;
   protected hover_marker: CodeMirror.TextMarker;
   private virtual_position: IVirtualPosition;
 
-  private debounced_get_hover: Debouncer<Promise<lsProtocol.Hover>>;
+  private debounced_get_hover: Debouncer<Promise<LSP.Hover>>;
 
   register(): void {
     this.wrapper_handlers.set('mousemove', this.handleMouseOver);
@@ -45,7 +46,7 @@ export class Hover extends CodeMirrorLSPFeature {
       }
     });
     // TODO: make the debounce rate configurable
-    this.debounced_get_hover = new Debouncer<Promise<lsProtocol.Hover>>(
+    this.debounced_get_hover = new Debouncer<Promise<LSP.Hover>>(
       this.on_hover,
       50
     );
@@ -62,8 +63,8 @@ export class Hover extends CodeMirrorLSPFeature {
   };
 
   protected static get_markup_for_hover(
-    response: lsProtocol.Hover
-  ): lsProtocol.MarkupContent {
+    response: LSP.Hover
+  ): LSP.MarkupContent {
     let contents = response.contents;
 
     // this causes the webpack to fail "Module not found: Error: Can't resolve 'net'" for some reason
@@ -71,11 +72,11 @@ export class Hover extends CodeMirrorLSPFeature {
     ///  contents = [contents];
 
     if (typeof contents === 'string') {
-      contents = [contents as lsProtocol.MarkedString];
+      contents = [contents as LSP.MarkedString];
     }
 
     if (!Array.isArray(contents)) {
-      return contents as lsProtocol.MarkupContent;
+      return contents as LSP.MarkupContent;
     }
 
     // now we have MarkedString
@@ -85,17 +86,17 @@ export class Hover extends CodeMirrorLSPFeature {
       // coerce to MarkedString  object
       return {
         kind: 'plaintext',
-        value: content
+        value: content,
       };
     } else {
       return {
         kind: 'markdown',
-        value: '```' + content.language + '\n' + content.value + '```'
+        value: '```' + content.language + '\n' + content.value + '```',
       };
     }
   }
 
-  public handleHover = (response: lsProtocol.Hover, documentUri: string) => {
+  public handleHover = (response: LSP.Hover, documentUri: string) => {
     if (documentUri !== this.virtual_document.document_info.uri) {
       return;
     }
@@ -206,7 +207,7 @@ export class Hover extends CodeMirrorLSPFeature {
     }
   };
 
-  protected editor_range_for_hover(range: lsProtocol.Range): IEditorRange {
+  protected editor_range_for_hover(range: LSP.Range): IEditorRange {
     let character = this.hover_character;
     // NOTE: foreign document ranges are checked before the request is sent,
     // no need to to this again here.
@@ -225,17 +226,17 @@ export class Hover extends CodeMirrorLSPFeature {
 
       let start_in_root = {
         line: character.line,
-        ch: token.start
+        ch: token.start,
       } as IRootPosition;
       let end_in_root = {
         line: character.line,
-        ch: token.end
+        ch: token.end,
       } as IRootPosition;
 
       return {
         start: this.virtual_editor.root_position_to_editor(start_in_root),
         end: this.virtual_editor.root_position_to_editor(end_in_root),
-        editor: cm_editor
+        editor: cm_editor,
       };
     }
   }

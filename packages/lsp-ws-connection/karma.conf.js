@@ -1,18 +1,18 @@
 process.env.CHROME_BIN = require('puppeteer').executablePath();
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
     basePath: '',
 
     files: [
       // The entry files are processed by webpack
-      'lib/test/**/*.test.js'
+      'lib/test/**/*.test.js',
     ],
 
     browsers: ['ChromeHeadless'],
 
     mime: {
-      'text/x-typescript': ['ts', 'tsx']
+      'text/x-typescript': ['ts', 'tsx'],
     },
 
     module: 'commonjs',
@@ -27,22 +27,22 @@ module.exports = function(config) {
 
     preprocessors: {
       '**/*!(.d).ts': 'webpack',
-      '**/*!(.d).js': 'webpack'
+      '**/*!(.d).js': 'webpack',
     },
 
     junitReporter: {
-      outputFile: 'junit.xml'
+      outputFile: 'junit.xml',
     },
 
     webpack: {
       mode: 'development',
       resolve: {
-        extensions: ['.tsx', '.ts', '.js']
+        extensions: ['.tsx', '.ts', '.js'],
       },
       target: 'web',
       node: {
-        net: 'mock'
-      }
-    }
+        net: 'mock',
+      },
+    },
   });
 };

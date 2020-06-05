@@ -81,7 +81,7 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider
             this.jumper.jump_to_definition({
               token: token,
               mouseEvent: event,
-              origin: target
+              origin: target,
             });
           }
           event.preventDefault();
@@ -148,7 +148,7 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider
       token = {
         value: lookupName,
         offset: 0, // dummy offset
-        type: lookupType
+        type: lookupType,
       };
     }
 
@@ -203,7 +203,7 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider
         while (sibling.lastChild && sibling.textContent !== lookupName) {
           sibling = sibling.lastChild;
         }
-        nextSibling = sibling;
+        nextSibling = sibling as any;
       }
       sibling = nextSibling;
 

@@ -4,16 +4,17 @@ import {
   IEditorPosition,
   IRootPosition,
   IVirtualPosition,
-  offset_at_position
+  offset_at_position,
 } from '../../positioning';
 import {
   IJupyterLabComponentsManager,
-  StatusMessage
+  StatusMessage,
 } from '../jupyterlab/jl_adapter';
 /// <reference path="../../../node_modules/@types/events/index.d.ts"/>
 // this appears to break when @types/node is around
 // import { Listener } from 'events';
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import * as LSP from '../../comm/lsp-types';
+
 import { PositionConverter } from '../../converter';
 import * as CodeMirror from 'codemirror';
 import { ICommandContext } from '../../command_manager';
@@ -22,18 +23,18 @@ import { ILSPConnection } from '../../tokens';
 
 export enum CommandEntryPoint {
   CellContextMenu,
-  FileEditorContextMenu
+  FileEditorContextMenu,
 }
 
 function toDocumentChanges(changes: {
-  [uri: string]: lsProtocol.TextEdit[];
-}): lsProtocol.TextDocumentEdit[] {
+  [uri: string]: LSP.TextEdit[];
+}): LSP.TextDocumentEdit[] {
   let documentChanges = [];
   for (let uri of Object.keys(changes)) {
     documentChanges.push({
       textDocument: { uri },
-      edits: changes[uri]
-    } as lsProtocol.TextDocumentEdit);
+      edits: changes[uri],
+    } as LSP.TextDocumentEdit);
   }
   return documentChanges;
 }
@@ -97,7 +98,7 @@ export interface IEditorRange {
   editor: CodeMirror.Editor;
 }
 
-function offset_from_lsp(position: lsProtocol.Position, lines: string[]) {
+function offset_from_lsp(position: LSP.Position, lines: string[]) {
   return offset_at_position(PositionConverter.lsp_to_ce(position), lines);
 }
 
@@ -195,7 +196,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
   }
 
   protected range_to_editor_range(
-    range: lsProtocol.Range,
+    range: LSP.Range,
     cm_editor?: CodeMirror.Editor
   ): IEditorRange {
     let start = PositionConverter.lsp_to_cm(range.start) as IVirtualPosition;
@@ -213,7 +214,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
     return {
       start: this.virtual_document.transform_virtual_to_editor(start),
       end: this.virtual_document.transform_virtual_to_editor(end),
-      editor: cm_editor
+      editor: cm_editor,
     };
   }
 
@@ -221,7 +222,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
     return this.virtual_editor.coordsChar(
       {
         left: event.clientX,
-        top: event.clientY
+        top: event.clientY,
       },
       'window'
     ) as IRootPosition;
@@ -271,7 +272,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
   /**
    * Does the edit cover the entire document?
    */
-  protected is_whole_document_edit(edit: lsProtocol.TextEdit) {
+  protected is_whole_document_edit(edit: LSP.TextEdit) {
     let value = this.virtual_document.value;
     let lines = value.split('\n');
     let range = edit.range;
@@ -283,14 +284,14 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
   }
 
   protected async apply_edit(
-    workspaceEdit: lsProtocol.WorkspaceEdit
+    workspaceEdit: LSP.WorkspaceEdit
   ): Promise<IEditOutcome> {
     let current_uri = this.virtual_document.document_info.uri;
 
     // Specs: documentChanges are preferred over changes
     let changes = workspaceEdit.documentChanges
       ? workspaceEdit.documentChanges.map(
-          change => change as lsProtocol.TextDocumentEdit
+          (change) => change as LSP.TextDocumentEdit
         )
       : toDocumentChanges(workspaceEdit.changes);
     let applied_changes = null;
@@ -317,7 +318,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
           change.edits.length === 1 &&
           this.is_whole_document_edit(change.edits[0]);
 
-        let edit: lsProtocol.TextEdit;
+        let edit: LSP.TextEdit;
 
         if (!is_whole_document_edit) {
           applied_changes = 0;
@@ -325,7 +326,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
           // TODO: make sure that it was not changed since the request was sent (using the returned document version)
           let lines = value.split('\n');
 
-          let edits_by_offset = new Map<number, lsProtocol.TextEdit>();
+          let edits_by_offset = new Map<number, LSP.TextEdit>();
           for (let e of change.edits) {
             let offset = offset_from_lsp(e.range.start, lines);
             if (edits_by_offset.has(offset)) {
@@ -376,10 +377,10 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
               start: { line: 0, character: 0 },
               end: {
                 line: lines.length - 1,
-                character: lines[lines.length - 1].length
-              }
+                character: lines[lines.length - 1].length,
+              },
             },
-            newText: new_text
+            newText: new_text,
           };
           console.assert(this.is_whole_document_edit(edit));
         } else {
@@ -392,7 +393,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
       appliedChanges: applied_changes,
       modifiedCells: edited_cells,
       wasGranular: !is_whole_document_edit,
-      errors: errors
+      errors: errors,
     };
   }
 
@@ -447,7 +448,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
       { line: 0, ch: 0 },
       {
         line: fragment_end.line - fragment_start.line + 1,
-        ch: 0
+        ch: 0,
       }
     );
 
@@ -465,7 +466,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
     return 1;
   }
 
-  protected apply_single_edit(edit: lsProtocol.TextEdit): number {
+  protected apply_single_edit(edit: LSP.TextEdit): number {
     let document = this.virtual_document;
     let applied_changes = 0;
     let start = PositionConverter.lsp_to_cm(edit.range.start);
@@ -488,7 +489,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
         line++;
         let editor = document.get_editor_at_virtual_line({
           line: line,
-          ch: 0
+          ch: 0,
         } as IVirtualPosition);
 
         if (editor === last_editor) {
@@ -507,11 +508,11 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
           recently_replaced = true;
           fragment_start = {
             line: line,
-            ch: 0
+            ch: 0,
           };
           fragment_end = {
             line: line,
-            ch: 0
+            ch: 0,
           };
           last_editor = editor;
         }

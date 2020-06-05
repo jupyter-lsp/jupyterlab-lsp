@@ -1,5 +1,6 @@
 import * as CodeMirror from 'codemirror';
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import * as LSP from '../../../comm/lsp-types';
+
 import { Menu } from '@lumino/widgets';
 import { PositionConverter } from '../../../converter';
 import { IVirtualPosition, IEditorPosition } from '../../../positioning';
@@ -12,7 +13,7 @@ import {
   DiagnosticsDatabase,
   DiagnosticsListing,
   IEditorDiagnostic,
-  diagnosticsIcon
+  diagnosticsIcon,
 } from './diagnostics_listing';
 import { VirtualDocument } from '../../../virtual/document';
 import { VirtualEditor } from '../../../virtual/editor';
@@ -92,28 +93,28 @@ export class Diagnostics extends CodeMirrorLSPFeature {
         if (!diagnostics_panel.is_registered) {
           let columns_menu = new Menu({ commands: app.commands });
           app.commands.addCommand(CMD_COLUMN_VISIBILITY, {
-            execute: args => {
+            execute: (args) => {
               let column = get_column(args['name'] as string);
               column.is_visible = !column.is_visible;
               panel_widget.update();
             },
-            label: args => args['name'] as string,
-            isToggled: args => {
+            label: (args) => args['name'] as string,
+            isToggled: (args) => {
               let column = get_column(args['name'] as string);
               return column.is_visible;
-            }
+            },
           });
           columns_menu.title.label = 'Panel columns';
           for (let column of panel_widget.content.columns) {
             columns_menu.addItem({
               command: CMD_COLUMN_VISIBILITY,
-              args: { name: column.name }
+              args: { name: column.name },
             });
           }
           app.contextMenu.addItem({
             selector: '.' + DIAGNOSTICS_LISTING_CLASS + ' th',
             submenu: columns_menu,
-            type: 'submenu'
+            type: 'submenu',
           });
           diagnostics_panel.is_registered = true;
         }
@@ -121,15 +122,15 @@ export class Diagnostics extends CodeMirrorLSPFeature {
         if (!panel_widget.isAttached) {
           app.shell.add(panel_widget, 'main', {
             ref: adapter.widget_id,
-            mode: 'split-bottom'
+            mode: 'split-bottom',
           });
         }
         app.shell.activateById(panel_widget.id);
       },
       is_enabled: () => true,
       label: 'Show diagnostics panel',
-      rank: 10
-    }
+      rank: 10,
+    },
   ];
 
   register(): void {
@@ -168,8 +169,8 @@ export class Diagnostics extends CodeMirrorLSPFeature {
   };
 
   protected collapse_overlapping_diagnostics(
-    diagnostics: lsProtocol.Diagnostic[]
-  ): Map<lsProtocol.Range, lsProtocol.Diagnostic[]> {
+    diagnostics: LSP.Diagnostic[]
+  ): Map<LSP.Range, LSP.Diagnostic[]> {
     // because Range is not a primitive type, the equality of the objects having
     // the same parameters won't be compared (thus considered equal) in Map.
 
@@ -177,10 +178,10 @@ export class Diagnostics extends CodeMirrorLSPFeature {
     // an alternative would be using nested [start line][start character][end line][end character] structure,
     // which would increase the code complexity, but reduce memory use and may be slightly faster.
     type RangeID = string;
-    const range_id_to_range = new Map<RangeID, lsProtocol.Range>();
-    const range_id_to_diagnostics = new Map<RangeID, lsProtocol.Diagnostic[]>();
+    const range_id_to_range = new Map<RangeID, LSP.Range>();
+    const range_id_to_diagnostics = new Map<RangeID, LSP.Diagnostic[]>();
 
-    function get_range_id(range: lsProtocol.Range): RangeID {
+    function get_range_id(range: LSP.Range): RangeID {
       return (
         range.start.line +
         ',' +
@@ -192,7 +193,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
       );
     }
 
-    diagnostics.forEach((diagnostic: lsProtocol.Diagnostic) => {
+    diagnostics.forEach((diagnostic: LSP.Diagnostic) => {
       let range = diagnostic.range;
       let range_id = get_range_id(range);
       range_id_to_range.set(range_id, range);
@@ -204,10 +205,10 @@ export class Diagnostics extends CodeMirrorLSPFeature {
       }
     });
 
-    let map = new Map<lsProtocol.Range, lsProtocol.Diagnostic[]>();
+    let map = new Map<LSP.Range, LSP.Diagnostic[]>();
 
     range_id_to_diagnostics.forEach(
-      (range_diagnostics: lsProtocol.Diagnostic[], range_id: RangeID) => {
+      (range_diagnostics: LSP.Diagnostic[], range_id: RangeID) => {
         let range = range_id_to_range.get(range_id);
         map.set(range, range_diagnostics);
       }
@@ -216,7 +217,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
     return map;
   }
 
-  public handleDiagnostic = (response: lsProtocol.PublishDiagnosticsParams) => {
+  public handleDiagnostic = (response: LSP.PublishDiagnosticsParams) => {
     if (response.uri !== this.virtual_document.document_info.uri) {
       return;
     }
@@ -241,7 +242,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
       );
 
       diagnostics_by_range.forEach(
-        (diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
+        (diagnostics: LSP.Diagnostic[], range: LSP.Range) => {
           const start = PositionConverter.lsp_to_cm(
             range.start
           ) as IVirtualPosition;
@@ -296,7 +297,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
           }
 
           let highest_severity_code = diagnostics
-            .map(diagnostic => diagnostic.severity || default_severity)
+            .map((diagnostic) => diagnostic.severity || default_severity)
             .sort()[0];
 
           const severity = diagnosticSeverityNames[highest_severity_code];
@@ -316,7 +317,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
 
           let range_in_editor = {
             start: start_in_editor,
-            end: end_in_editor
+            end: end_in_editor,
           };
           // what a pity there is no hash in the standard library...
           // we could use this: https://stackoverflow.com/a/7616484 though it may not be worth it:
@@ -327,25 +328,25 @@ export class Diagnostics extends CodeMirrorLSPFeature {
           // obviously, the hash would prevent recovery of info from the key.
           let diagnostic_hash = JSON.stringify({
             // diagnostics without ranges
-            diagnostics: diagnostics.map(diagnostic => [
+            diagnostics: diagnostics.map((diagnostic) => [
               diagnostic.severity,
               diagnostic.message,
               diagnostic.code,
               diagnostic.source,
-              diagnostic.relatedInformation
+              diagnostic.relatedInformation,
             ]),
             // the apparent marker position will change in the notebook with every line change for each marker
             // after the (inserted/removed) line - but such markers should not be invalidated,
             // i.e. the invalidation should be performed in the cell space, not in the notebook coordinate space,
             // thus we transform the coordinates and keep the cell id in the hash
             range: range_in_editor,
-            editor: this.unique_editor_ids.get(cm_editor)
+            editor: this.unique_editor_ids.get(cm_editor),
           });
           for (let diagnostic of diagnostics) {
             diagnostics_list.push({
               diagnostic,
               editor: cm_editor,
-              range: range_in_editor
+              range: range_in_editor,
             });
           }
 
@@ -354,9 +355,9 @@ export class Diagnostics extends CodeMirrorLSPFeature {
           if (!this.marked_diagnostics.has(diagnostic_hash)) {
             let options: CodeMirror.TextMarkerOptions = {
               title: diagnostics
-                .map(d => d.message + (d.source ? ' (' + d.source + ')' : ''))
+                .map((d) => d.message + (d.source ? ' (' + d.source + ')' : ''))
                 .join('\n'),
-              className: 'cm-lsp-diagnostic cm-lsp-diagnostic-' + severity
+              className: 'cm-lsp-diagnostic cm-lsp-diagnostic-' + severity,
             };
             let marker;
             try {
@@ -416,7 +417,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
   }
 }
 
-export function message_without_code(diagnostic: lsProtocol.Diagnostic) {
+export function message_without_code(diagnostic: LSP.Diagnostic) {
   let message = diagnostic.message;
   let code_str = '' + diagnostic.code;
   if (

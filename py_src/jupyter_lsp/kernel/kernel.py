@@ -7,11 +7,12 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, List, Text
 
+import traitlets
 from ipykernel.ipkernel import IPythonKernel
 from ipykernel.kernelapp import IPKernelApp
-from ipykernel.comm import Comm
 
 from .._version import __version__
+from .manager import CommLanguageServerManager
 
 __all__ = ["LanguageServerKernel"]
 
@@ -25,39 +26,6 @@ LANGUAGE_INFO = {
     "file_extension": ".py",
 }
 
-CONTROL_COMM_TARGET = "jupyter.lsp.control"
-SERVER_COMM_TARGET = "jupyter.lsp.server"
-
-from ..manager import LanguageServerManager
-
-
-class CommHandler:
-    """ imitates the websocket handler
-    """
-
-    comm = None
-    subscribed = None
-
-    def __init__(self, language_server, comm, manager):
-        self.language_server = language_server
-        self.comm = comm
-        self.manager = manager
-        self.subscribed = False
-        comm.on_msg(self.on_message)
-
-    @property
-    def log(self):
-        return self.manager.log
-
-    async def on_message(self, message):
-        self.log.debug("[{}] Handling a message".format(self.language_server))
-        if not self.subscribed:
-            self.manager.subscribe(self)
-            self.subscribed = True
-        await self.manager.on_client_message(message, self)
-
-    def write_message(self, message: str):
-        self.comm.send(json.loads(message))
 
 
 class LanguageServerKernel(IPythonKernel):
@@ -74,42 +42,17 @@ class LanguageServerKernel(IPythonKernel):
         {"text": "Language Server Protocol", "url": "https://microsoft.github.io/language-server-protocol/"},
     ]
 
+    language_server_manager = traitlets.Instance(CommLanguageServerManager)
+
+    @traitlets.default("language_server_manager")
+    def _default_language_server_manager(self):
+        manager = CommLanguageServerManager(parent=self)
+        return manager
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._lsp_comms = {}
-        self.init_lsp_comm()
-        self.init_lsp_manager()
-
-    def init_lsp_manager(self):
-        self.lsp_manager = LanguageServerManager(parent=self)
-        self.lsp_manager.initialize()
-
-    def init_lsp_comm(self):
-        self.comm_manager.register_target(CONTROL_COMM_TARGET, self.on_lsp_comm_opened)
-        self.log.error('comm target registered')
-
-    def on_lsp_comm_opened(self, comm, comm_msg):
-        self.log.error('comm received %s: %s', comm, comm_msg)
-        self.init_server_comms()
-
-    def init_server_comms(self):
-        for language_server, session in self.lsp_manager.sessions.items():
-            self.make_server_comm(language_server, session)
-
-    def make_server_comm(self, language_server, session):
-        self.log.error("comm for %s", language_server)
-        comm = Comm(
-            target_name=SERVER_COMM_TARGET,
-            metadata={
-                "language_server": language_server,
-                "session": session.to_json()
-            },
-        )
-        self._lsp_comms[language_server] = CommHandler(
-            language_server=language_server,
-            comm=comm,
-            manager=self.lsp_manager
-        )
+        self.log.error("Initializing Language Server Manager...")
+        self.language_server_manager.initialize()
 
 
 def launch():

@@ -1,5 +1,6 @@
 import * as CodeMirror from 'codemirror';
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import * as LSP from '../../../comm/lsp-types';
+
 import { documentHighlightKindNames } from '../../../lsp';
 import { VirtualDocument } from '../../../virtual/document';
 import { IRootPosition } from '../../../positioning';
@@ -15,15 +16,15 @@ export class Highlights extends CodeMirrorLSPFeature {
       execute: ({ connection, virtual_position, document }) =>
         connection.getReferences(virtual_position, document.document_info),
       is_enabled: ({ connection }) => connection.isReferencesSupported(),
-      label: 'Highlight references'
+      label: 'Highlight references',
     },
     {
       id: 'highlight-type-definition',
       execute: ({ connection, virtual_position, document }) =>
         connection.getTypeDefinition(virtual_position, document.document_info),
       is_enabled: ({ connection }) => connection.isTypeDefinitionSupported(),
-      label: 'Highlight type definition'
-    }
+      label: 'Highlight type definition',
+    },
   ];
 
   register(): void {
@@ -46,7 +47,7 @@ export class Highlights extends CodeMirrorLSPFeature {
   }
 
   protected handleHighlight = (
-    items: lsProtocol.DocumentHighlight[],
+    items: LSP.DocumentHighlight[],
     documentUri: string
   ) => {
     if (documentUri !== this.virtual_document.document_info.uri) {

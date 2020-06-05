@@ -37,7 +37,7 @@ function _findCell(notebook: Notebook, node: HTMLElement): number {
     if (node.classList.contains(NB_CELL_CLASS)) {
       let i = ArrayExt.findFirstIndex(
         notebook.widgets,
-        widget => widget.node === node
+        (widget) => widget.node === node
       );
       if (i !== -1) {
         return i;

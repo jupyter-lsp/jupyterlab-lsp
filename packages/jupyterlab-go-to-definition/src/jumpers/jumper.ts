@@ -39,7 +39,7 @@ const cell_magic_lang_to_tokenizer: any = {
   js: 'javascript',
   svg: 'application/xml',
   html: 'text/html',
-  latex: 'text/x-stex'
+  latex: 'text/x-stex',
   // not working as for now:
   // 'ruby': 'text/x-ruby',
   // require additional logic/scripting:
@@ -55,7 +55,7 @@ const movement_keys = [
   'Home',
   'End',
   'PageUp',
-  'PageDown'
+  'PageDown',
 ];
 
 const modifiers = ['Alt', 'AltGraph', 'Control', 'Shift'];
@@ -73,7 +73,7 @@ const system_keys = [
   'F10',
   'F11',
   'F12',
-  'ContextMenu'
+  'ContextMenu',
 ];
 
 export abstract class CodeJumper {
@@ -140,7 +140,7 @@ export abstract class CodeJumper {
         let filtered = in_earlier_cell
           ? definitions // all are in an earlier cell
           : definitions.filter(
-              otherToken => otherToken.offset < originToken.offset
+              (otherToken) => otherToken.offset < originToken.offset
             ); // all are in same cell
 
         // but ignore ones that are part of the same assignment expression,
@@ -149,7 +149,7 @@ export abstract class CodeJumper {
         // >>> a = a + 1
         // clicking on the last 'a' should jump to the first line,
         // and not to beginning of the second line.
-        filtered = filtered.filter(otherToken => {
+        filtered = filtered.filter((otherToken) => {
           // If otherToken is in previous cell, we don't need to worry.
           if (i < stopIndex) {
             return true;
@@ -173,7 +173,7 @@ export abstract class CodeJumper {
     }
     return {
       token: definitionToken,
-      cellIndex: definitionIndex
+      cellIndex: definitionIndex,
     };
   }
 
@@ -238,12 +238,12 @@ export abstract class CodeJumper {
                   'do you really wish to edit it?',
                 buttons: [
                   Dialog.cancelButton({ label: 'Cancel' }),
-                  Dialog.warnButton({ label: 'Edit anyway' })
-                ]
+                  Dialog.warnButton({ label: 'Edit anyway' }),
+                ],
               });
 
               dialog_promise
-                .then(result => {
+                .then((result) => {
                   if (result.button.accept) {
                     disposable.dispose();
                   }
@@ -285,7 +285,7 @@ export abstract class CodeJumper {
               editor_index: input_number,
               line: line_number,
               column: column,
-              uri: path
+              uri: path,
             },
             is_symlink
           );
@@ -335,7 +335,7 @@ export abstract class CodeJumper {
     let potential_paths = cell_of_origin_analyzer.guessReferencePath(context);
     if (this.cwd) {
       let prefixed_with_cwd = potential_paths.map(
-        path => this.cwd + '/' + path
+        (path) => this.cwd + '/' + path
       );
       potential_paths = prefixed_with_cwd.concat(potential_paths);
     }
@@ -346,7 +346,7 @@ export abstract class CodeJumper {
       this.queryKernel(
         code,
         this.kernel,
-        msg => this.handle_path_from_kernel(msg, potential_paths) // TODO: extract fallback?
+        (msg) => this.handle_path_from_kernel(msg, potential_paths) // TODO: extract fallback?
       );
     } else {
       // TODO: extract fallback?
@@ -392,7 +392,7 @@ export abstract class CodeJumper {
     let code = cell_of_origin_analyzer.definitionLocationQuery(context);
 
     if (cell_of_origin_analyzer.supportsKernel && this.kernel && code) {
-      this.queryKernel(code, this.kernel, msg =>
+      this.queryKernel(code, this.kernel, (msg) =>
         this.handle_kernel_inspect(msg, fallback)
       );
     } else {

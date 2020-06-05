@@ -39,6 +39,7 @@ export class CommRPC implements ICommRPC {
     this._comm = comm;
 
     if (this._comm) {
+      console.warn('installing handleMessage', this._comm);
       this._comm.onMsg = this.handleMessage.bind(this);
     }
     this._commChanged.emit(void 0);
@@ -60,15 +61,23 @@ export class CommRPC implements ICommRPC {
     options?: ICommRPC.ICommunicateOptions
   ): Promise<T> {
     const id = this.getNextId();
-    let promise: Promise<T>;
-    if (options?.noWait === true) {
-      const delegate = new PromiseDelegate<T>();
+    const delegate = new PromiseDelegate<T>();
+    const noWait = options?.noWait === true;
+
+    if (!noWait) {
       this._responsePromises.set(id, delegate);
-      promise = delegate.promise;
     }
-    // nb: just dropping the future on the ground
-    this.comm.send({ jsonrpc: this._jsonrpc, id, method, params });
-    return promise;
+
+    const msg = { jsonrpc: this._jsonrpc, id, method, params };
+
+    console.warn('sending', this.comm.commId, msg);
+    this.comm.send(msg, null, null, true);
+
+    if (noWait) {
+      delegate.resolve(null);
+    }
+
+    return delegate.promise;
   }
 
   addHandler(
@@ -108,6 +117,7 @@ export class CommRPC implements ICommRPC {
    * Resolve a previously-requested method, or notify on the appropriate signal
    */
   protected handleMessage(msg: ICommRPC.IIRPCCommMsg) {
+    console.warn('handle msg', msg);
     const { result, id, params, method } = msg.content
       .data as ICommRPC.TRPCData;
 
@@ -127,17 +137,17 @@ export class CommRPC implements ICommRPC {
       if (handler != null) {
         handler
           .onMsg(params)
-          .then(result => {
+          .then((result) => {
             if (result != null) {
               this.comm.send({ jsonrpc: this._jsonrpc, id, result });
             }
           })
-          .catch(error => {
+          .catch((error) => {
             if (error?.rpcError) {
               this.comm.send({
                 jsonrpc: this._jsonrpc,
                 id,
-                error: error.rpcError
+                error: error.rpcError,
               });
             } else {
               throw error;

@@ -6,7 +6,7 @@ const reuseFromUpstream = [
   'moduleNameMapper',
   'reporters',
   'setupFiles',
-  'setupFilesAfterEnv'
+  'setupFilesAfterEnv',
 ];
 
 let local = {
@@ -15,9 +15,9 @@ let local = {
   transform: {
     '\\.(ts|tsx)?$': 'ts-jest',
     '\\.(js|jsx)?$': './transform.js',
-    '\\.svg$': 'jest-raw-loader'
+    '\\.svg$': 'jest-raw-loader',
   },
-  transformIgnorePatterns: ['/node_modules/(?!(@jupyterlab/.*)/)']
+  transformIgnorePatterns: ['/node_modules/(?!(@jupyterlab/.*)/)'],
 };
 
 for (option of reuseFromUpstream) {

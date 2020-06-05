@@ -1,4 +1,4 @@
-import * as LSP from 'vscode-languageserver-protocol';
+import * as LSP from './lsp-types';
 
 import { ICommRPC } from '.';
 import { CommRPC } from './json-rpc';

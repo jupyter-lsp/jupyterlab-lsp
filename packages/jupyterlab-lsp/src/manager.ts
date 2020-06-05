@@ -4,21 +4,21 @@ import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import {
   // ServerConnection,
   ServiceManager,
-  KernelMessage
+  KernelMessage,
 } from '@jupyterlab/services';
 
 import {
   ILanguageServerManager,
   TSessionMap,
   TCommMap,
-  TLanguageServerId
+  TLanguageServerId,
 } from './tokens';
 import * as SCHEMA from './_schema';
 import { ISessionConnection } from '@jupyterlab/services/lib/session/session';
 import { IComm } from '@jupyterlab/services/lib/kernel/kernel';
 
 const CONTROL_COMM_TARGET = 'jupyter.lsp.control';
-const SERVER_COMM_TARGET = 'jupyter.lsp.server';
+const LANGUAGE_SERVER_COMM_TARGET = 'jupyter.lsp.language_server';
 
 export class LanguageServerManager implements ILanguageServerManager {
   protected _sessionsChanged: Signal<ILanguageServerManager, void> = new Signal<
@@ -26,14 +26,13 @@ export class LanguageServerManager implements ILanguageServerManager {
     void
   >(this);
   protected _sessions: TSessionMap = new Map();
+  protected _controlComm: IComm;
   protected _comms: TCommMap = new Map();
-  // private _settings: ServerConnection.ISettings;
   private _baseUrl: string;
   private _serviceManager: ServiceManager;
   private _kernelSessionConnection: ISessionConnection;
 
   constructor(options: ILanguageServerManager.IOptions) {
-    // this._settings = options.settings || ServerConnection.makeSettings();
     this._baseUrl = options.baseUrl || PageConfig.getBaseUrl();
     this._serviceManager = options.serviceManager;
     this.initKernel().catch(console.warn);
@@ -52,7 +51,16 @@ export class LanguageServerManager implements ILanguageServerManager {
   }
 
   async getComm(language_server_id: TLanguageServerId): Promise<IComm> {
-    return this._comms.get(language_server_id);
+    let comm = this._comms.get(language_server_id);
+
+    if (comm != null) {
+      return comm;
+    }
+
+    // nb: check sessions first?
+    comm = await this.makeLanguageServerComm(language_server_id);
+    this._comms.set(language_server_id, comm);
+    return comm;
   }
 
   getServerId(options: ILanguageServerManager.IGetServerIdOptions) {
@@ -70,43 +78,61 @@ export class LanguageServerManager implements ILanguageServerManager {
   /**
    * Register a new kernel
    */
-  protected _handleKernelChanged({
+  protected async _handleKernelChanged({
     oldValue,
-    newValue
-  }: ISessionConnection.IKernelChangedArgs): void {
-    if (oldValue) {
-      oldValue.removeCommTarget(SERVER_COMM_TARGET, this._handleServerCommOpen);
+    newValue,
+  }: ISessionConnection.IKernelChangedArgs): Promise<void> {
+    if (this._controlComm) {
+      this._controlComm = null;
     }
 
-    if (newValue) {
-      newValue.registerCommTarget(
-        SERVER_COMM_TARGET,
-        async (comm, msg) => await this._handleServerCommOpen(comm, msg)
-      );
-
-      console.warn('server comm registered');
+    if (newValue == null) {
+      return;
     }
+
+    this._controlComm = await this.makeControlComm();
   }
 
-  async _handleServerCommOpen(comm: IComm, msg: KernelMessage.ICommOpenMsg) {
-    console.warn('server comm openened', comm, msg);
-    const { metadata } = msg;
-    const language_server = `${metadata.language_server}`;
-    this._comms.set(language_server, comm);
-    comm.onMsg = msg => {
-      console.log('msg', comm, msg.content.data);
-    };
-    this._sessions.set(
-      language_server,
-      (metadata.session as any) as SCHEMA.LanguageServerSession
+  protected async makeControlComm() {
+    const comm = this._kernelSessionConnection.kernel.createComm(
+      CONTROL_COMM_TARGET
     );
+
+    comm.onMsg = this.onControlCommMsg.bind(this);
+
+    // nb: do something here? negotiate schema version?
+    comm.open({});
+    console.warn('control comm opened', comm);
+    // nb: should we await something?
+    return comm;
+  }
+
+  async onControlCommMsg(msg: KernelMessage.ICommMsgMsg) {
+    console.warn('got control message', this._controlComm, msg);
+
+    const { sessions } = msg.content.data as SCHEMA.ServersResponse;
+    this._sessions = new Map(Object.entries(sessions));
     this._sessionsChanged.emit(void 0);
-    // nb: put this in connection manager?
-    const { CommLSP } = await import(
-      /* webpackChunkName: "jupyter-lsp-comms" */ './comm/lsp'
+    console.warn(this._sessions);
+  }
+
+  protected async makeLanguageServerComm(
+    language_server_id: TLanguageServerId
+  ) {
+    const comm = this._kernelSessionConnection.kernel.createComm(
+      LANGUAGE_SERVER_COMM_TARGET
     );
-    const lspComm = new CommLSP({ comm });
-    console.warn(lspComm);
+
+    this._comms.set(language_server_id, comm);
+
+    comm.onMsg = (msg) => {
+      console.warn('unitialized comm', comm, msg.content.data);
+    };
+
+    comm.open({}, { language_server: language_server_id });
+
+    console.warn('opened comm for', language_server_id);
+    return comm;
   }
 
   async initKernel() {
@@ -121,32 +147,20 @@ export class LanguageServerManager implements ILanguageServerManager {
         path: '/',
         type: '',
         name: 'language-server',
-        kernel: { name: 'jupyter-lsp-kernel' }
+        kernel: { name: 'jupyter-lsp-kernel' },
       }
     ));
 
-    session.kernelChanged.connect((sender, args) => {
-      this._handleKernelChanged(args);
+    session.kernelChanged.connect(async (sender, args) => {
+      await this._handleKernelChanged(args);
     });
 
     const { kernel } = session;
 
-    this._handleKernelChanged({
+    await this._handleKernelChanged({
       name: 'kernel',
       oldValue: null,
-      newValue: kernel
+      newValue: kernel,
     });
-
-    const controlComm = session.kernel.createComm(CONTROL_COMM_TARGET);
-
-    controlComm.onMsg = (msg: KernelMessage.ICommMsgMsg) => {
-      console.log('we got a control message', controlComm, msg);
-    };
-
-    const opened = controlComm.open({});
-    await opened.done;
-
-    console.warn('sent a control message');
-    console.log(this._comms);
   }
 }

@@ -7,7 +7,7 @@ import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import * as LSP from '../../comm/lsp-types';
 import { FreeTooltip } from './components/free_tooltip';
 import { Widget } from '@lumino/widgets';
 import { VirtualEditor } from '../../virtual/editor';
@@ -29,7 +29,7 @@ import { JSONObject } from '@lumino/coreutils';
 import {
   DocumentConnectionManager,
   IDocumentConnectionData,
-  ISocketConnectionOptions
+  ISocketConnectionOptions,
 } from '../../connection_manager';
 import { Rename } from '../codemirror/features/rename';
 
@@ -40,13 +40,13 @@ export const lsp_features: Array<ILSPFeatureConstructor> = [
   Hover,
   Signature,
   JumpToDefinition,
-  Rename
+  Rename,
 ];
 
 export interface IJupyterLabComponentsManager {
   invoke_completer: (kind: CompletionTriggerKind) => void;
   create_tooltip: (
-    markup: lsProtocol.MarkupContent,
+    markup: LSP.MarkupContent,
     cm_editor: CodeMirror.Editor,
     position: IEditorPosition
   ) => FreeTooltip;
@@ -95,7 +95,7 @@ const mime_type_language_map: JSONObject = {
   'text/x-rsrc': 'r',
   'text/x-r-source': 'r',
   // currently there are no LSP servers for IPython we are aware of
-  'text/x-ipython': 'python'
+  'text/x-ipython': 'python',
 };
 
 /**
@@ -434,7 +434,7 @@ export abstract class JupyterLabWidgetAdapter
     let options: ISocketConnectionOptions = {
       virtual_document,
       language,
-      document_path: this.document_path
+      document_path: this.document_path,
     };
 
     let connection = await this.connection_manager.connect(options);
@@ -443,7 +443,7 @@ export abstract class JupyterLabWidgetAdapter
 
     return {
       connection,
-      virtual_document
+      virtual_document,
     };
   }
 
@@ -494,10 +494,7 @@ export abstract class JupyterLabWidgetAdapter
 
   update_documents(_slot: any) {
     // update the virtual documents (sending the updates to LSP is out of scope here)
-    this.virtual_editor
-      .update_documents()
-      .then()
-      .catch(console.warn);
+    this.virtual_editor.update_documents().then().catch(console.warn);
   }
 
   get_position_from_context_menu(): IRootPosition {
@@ -523,7 +520,7 @@ export abstract class JupyterLabWidgetAdapter
     return this.virtual_editor.coordsChar(
       {
         left: left,
-        top: top
+        top: top,
       },
       'window'
     ) as IRootPosition;
@@ -542,7 +539,7 @@ export abstract class JupyterLabWidgetAdapter
       features: this.get_features(document),
       editor: this.virtual_editor,
       app: this.app,
-      adapter: this
+      adapter: this,
     };
   }
 
@@ -552,7 +549,7 @@ export abstract class JupyterLabWidgetAdapter
   }
 
   public create_tooltip(
-    markup: lsProtocol.MarkupContent,
+    markup: LSP.MarkupContent,
     cm_editor: CodeMirror.Editor,
     position: IEditorPosition
   ): FreeTooltip {
@@ -567,7 +564,7 @@ export abstract class JupyterLabWidgetAdapter
       editor: this.find_ce_editor(cm_editor),
       rendermime: this.rendermime_registry,
       position: PositionConverter.cm_to_ce(position),
-      moveToLineEnd: false
+      moveToLineEnd: false,
     });
     Widget.attach(tooltip, document.body);
     this._tooltip = tooltip;

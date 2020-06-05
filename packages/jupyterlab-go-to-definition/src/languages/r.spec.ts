@@ -22,7 +22,7 @@ describe('RAnalyzer', () => {
   ) {
     let tokens = tokensProvider.getTokens();
     let matchedTokens = tokens.filter(
-      token => token.value === tokenName && token.type === tokenType
+      (token) => token.value === tokenName && token.type === tokenType
     );
     let token = matchedTokens[tokenOccurrence - 1];
     let tokenId = tokens.indexOf(token);
@@ -108,7 +108,7 @@ describe('RAnalyzer', () => {
         .true;
 
       expect(analyzer.guessReferencePath(tokenNeighbourhood('.from'))).to.eql([
-        'other_resources.R'
+        'other_resources.R',
       ]);
     });
   });

@@ -1,4 +1,5 @@
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import * as LSP from '../../../comm/lsp-types';
+
 import { IRootPosition } from '../../../positioning';
 import * as CodeMirror from 'codemirror';
 import { CodeMirrorLSPFeature } from '../feature';
@@ -9,19 +10,19 @@ export class Signature extends CodeMirrorLSPFeature {
   protected _signatureCharacters: string[];
 
   protected get_markup_for_signature_help(
-    response: lsProtocol.SignatureHelp,
+    response: LSP.SignatureHelp,
     language: string
-  ): lsProtocol.MarkupContent {
+  ): LSP.MarkupContent {
     let signatures = new Array<string>();
 
-    response.signatures.forEach(item => {
+    response.signatures.forEach((item) => {
       let markdown = this.markdown_from_signature(item, language);
       signatures.push(markdown);
     });
 
     return {
       kind: 'markdown',
-      value: signatures.join('\n\n')
+      value: signatures.join('\n\n'),
     };
   }
 
@@ -31,7 +32,7 @@ export class Signature extends CodeMirrorLSPFeature {
    * them to return markdown instead.
    */
   private markdown_from_signature(
-    item: lsProtocol.SignatureInformation,
+    item: LSP.SignatureInformation,
     language: string
   ): string {
     let markdown = '```' + language + '\n' + item.label + '\n```';
@@ -80,7 +81,7 @@ export class Signature extends CodeMirrorLSPFeature {
     return markdown;
   }
 
-  private handleSignature(response: lsProtocol.SignatureHelp) {
+  private handleSignature(response: LSP.SignatureHelp) {
     this.jupyterlab_components.remove_tooltip();
 
     this.virtual_editor.console.log('Signature received', response);
@@ -142,7 +143,7 @@ export class Signature extends CodeMirrorLSPFeature {
         this.virtual_document.document_info,
         false
       )
-      .then(help => this.handleSignature(help))
+      .then((help) => this.handleSignature(help))
       .catch(console.warn);
   }
 }
