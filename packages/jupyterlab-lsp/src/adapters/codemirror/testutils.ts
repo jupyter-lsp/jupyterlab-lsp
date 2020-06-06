@@ -27,6 +27,7 @@ import { DocumentConnectionManager } from '../../connection_manager';
 import { ILSPConnection } from '../../tokens';
 import { CommLSPConnection } from '../../comm/connection';
 import { CommHandler } from '@jupyterlab/services/lib/kernel/comm';
+import { ServiceManager } from '@jupyterlab/services';
 
 interface IFeatureTestEnvironment {
   host: HTMLElement;
@@ -35,6 +36,7 @@ interface IFeatureTestEnvironment {
   dispose(): void;
 }
 
+export class MockServiceManager extends ServiceManager {}
 export class MockComm extends CommHandler {}
 export class MockLanguageServerManager extends LanguageServerManager {}
 
@@ -89,7 +91,7 @@ export abstract class FeatureTestEnvironment
     feature.is_registered = false;
   }
 
-  public create_dummy_connection(comm?: any) {
+  public create_dummy_connection(comm?: CommHandler) {
     if (comm == null) {
       comm = new MockComm('mock-target', UUID.uuid4(), null, () => {
         // empty dispose
@@ -143,7 +145,7 @@ export class FileEditorFeatureTestEnvironment extends FeatureTestEnvironment {
 
     this.language_server_manager = new MockLanguageServerManager({
       // NB: FIX
-      serviceManager: null,
+      serviceManager: new MockServiceManager(),
     });
     this.connection_manager = new DocumentConnectionManager({
       language_server_manager: this.language_server_manager,

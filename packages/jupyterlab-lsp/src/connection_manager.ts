@@ -288,7 +288,6 @@ export namespace DocumentConnectionManager {
     virtual_document: VirtualDocument,
     language: string
   ): IURIs {
-    const wsBase = PageConfig.getBaseUrl().replace(/^http/, 'ws');
     const rootUri = PageConfig.getOption('rootUri');
     const virtualDocumentsUri = PageConfig.getOption('virtualDocumentsUri');
 
@@ -296,33 +295,20 @@ export namespace DocumentConnectionManager {
       ? rootUri
       : virtualDocumentsUri;
 
-    const language_server_id = Private.getLanguageServerManager().getServerId({
-      language,
-    });
-
     return {
       base: baseUri,
       document: URLExt.join(baseUri, virtual_document.uri),
-      server: URLExt.join('ws://jupyter-lsp', language),
-      socket: URLExt.join(
-        wsBase,
-        ILanguageServerManager.URL_NS,
-        'ws',
-        language_server_id
-      ),
     };
   }
 
   export interface IURIs {
     base: string;
     document: string;
-    server: string;
-    socket: string;
   }
 }
 
 /**
- * Namespace primarily for language-keyed cache of LSPConnections
+ * Namespace primarily for language-keyed cache of `ILSPConnection`s
  */
 namespace Private {
   const _connections: Map<TLanguageServerId, ILSPConnection> = new Map();
