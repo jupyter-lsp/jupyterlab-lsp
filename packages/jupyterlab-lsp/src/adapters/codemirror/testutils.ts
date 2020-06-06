@@ -143,9 +143,10 @@ export class FileEditorFeatureTestEnvironment extends FeatureTestEnvironment {
       model,
     });
 
+    const serviceManager = new MockServiceManager();
+
     this.language_server_manager = new MockLanguageServerManager({
-      // NB: FIX
-      serviceManager: new MockServiceManager(),
+      serviceManager,
     });
     this.connection_manager = new DocumentConnectionManager({
       language_server_manager: this.language_server_manager,
