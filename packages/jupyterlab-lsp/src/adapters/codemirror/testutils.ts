@@ -1,10 +1,10 @@
+import { UUID } from '@lumino/coreutils';
 import {
   CodeMirrorEditor,
   CodeMirrorEditorFactory,
 } from '@jupyterlab/codemirror';
 import { VirtualEditor } from '../../virtual/editor';
 import { CodeMirrorLSPFeature, ILSPFeatureConstructor } from './feature';
-import { LSPConnection } from '../../connection';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { VirtualFileEditor } from '../../virtual/editors/file_editor';
 import { FreeTooltip } from '../jupyterlab/components/free_tooltip';
@@ -24,6 +24,9 @@ import { CodeMirrorAdapter } from './cm_adapter';
 import { VirtualDocument } from '../../virtual/document';
 import { LanguageServerManager } from '../../manager';
 import { DocumentConnectionManager } from '../../connection_manager';
+import { ILSPConnection } from '../../tokens';
+import { CommLSPConnection } from '../../comm/connection';
+import { CommHandler } from '@jupyterlab/services/lib/kernel/comm';
 
 interface IFeatureTestEnvironment {
   host: HTMLElement;
@@ -32,13 +35,14 @@ interface IFeatureTestEnvironment {
   dispose(): void;
 }
 
+export class MockComm extends CommHandler {}
 export class MockLanguageServerManager extends LanguageServerManager {}
 
 export abstract class FeatureTestEnvironment
   implements IFeatureTestEnvironment {
   host: HTMLElement;
   virtual_editor: VirtualEditor;
-  private connections: Map<CodeMirrorLSPFeature, LSPConnection>;
+  private connections: Map<CodeMirrorLSPFeature, ILSPConnection>;
 
   protected constructor(
     public language: () => string,
@@ -85,12 +89,13 @@ export abstract class FeatureTestEnvironment
     feature.is_registered = false;
   }
 
-  public create_dummy_connection() {
-    return new LSPConnection({
-      languageId: this.language(),
-      serverUri: 'ws://localhost:8080',
-      rootUri: 'file:///unit-test',
-    });
+  public create_dummy_connection(comm?: any) {
+    if (comm == null) {
+      comm = new MockComm('mock-target', UUID.uuid4(), null, () => {
+        // empty dispose
+      });
+    }
+    return new CommLSPConnection({ comm, rootUri: 'file:///unit-test' });
   }
 
   public create_dummy_components(): IJupyterLabComponentsManager {

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { CodeMirrorAdapter } from './cm_adapter';
-import { LSPConnection } from '../../connection';
+
 import {
   IJupyterLabComponentsManager,
   StatusMessage,
@@ -9,6 +9,7 @@ import { IRootPosition } from '../../positioning';
 import * as CodeMirror from 'codemirror';
 import { CodeMirrorLSPFeature } from './feature';
 import { FileEditorFeatureTestEnvironment } from './testutils';
+import { ILSPConnection } from '../../tokens';
 
 describe('CodeMirrorAdapter', () => {
   let env: FileEditorFeatureTestEnvironment;
@@ -18,7 +19,7 @@ describe('CodeMirrorAdapter', () => {
 
   describe('Works with VirtualFileEditor', () => {
     let dummy_components_manager: IJupyterLabComponentsManager;
-    let connection: LSPConnection;
+    let connection: ILSPConnection;
 
     it('updates on change', async () => {
       class UpdateReceivingFeature extends CodeMirrorLSPFeature {

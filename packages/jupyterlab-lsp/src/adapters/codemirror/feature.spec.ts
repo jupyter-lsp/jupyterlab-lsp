@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { CodeMirrorAdapter } from './cm_adapter';
-import { LSPConnection } from '../../connection';
+// import { LSPConnection } from '../../connection';
 import {
   IJupyterLabComponentsManager,
   StatusMessage,
@@ -22,6 +22,7 @@ import { language_specific_overrides } from '../../magics/defaults';
 import { foreign_code_extractors } from '../../extractors/defaults';
 import { NotebookModel } from '@jupyterlab/notebook';
 import { PageConfig } from '@jupyterlab/coreutils';
+import { ILSPConnection } from '../../tokens';
 
 const js_fib_code = `function fib(n) {
   return n<2?n:fib(n-1)+fib(n-2);
@@ -104,7 +105,7 @@ describe('Feature', () => {
         return this.apply_edit(workspaceEdit);
       }
     }
-    let connection: LSPConnection;
+    let connection: ILSPConnection;
 
     let dummy_components_manager: IJupyterLabComponentsManager;
 
