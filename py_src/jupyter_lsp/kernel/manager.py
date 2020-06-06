@@ -38,14 +38,11 @@ class CommLanguageServerManager(LanguageServerManager):
     def _load_extra_config(self):
         """ imitate legacy behavior of being able to load from notebook server config
         """
-        from_config = (
-            self.config_manager.get("jupyter_notebook_config").get(
-                "LanguageServerManager"
-            )
-            or {}
+        from_config = self.config_manager.get("jupyter_notebook_config").get(
+            "LanguageServerManager"
         )
         traits = self.trait_names()
-        for key, value in from_config.items():
+        for key, value in (from_config or {}).items(): # pragma: no cover
             if key in traits:
                 setattr(self, key, value)
 
