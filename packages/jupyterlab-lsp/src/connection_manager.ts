@@ -346,23 +346,11 @@ namespace Private {
     uris: DocumentConnectionManager.IURIs,
     onCreate: (connection: ILSPConnection) => void
   ): Promise<ILSPConnection> {
-    // if (_promise == null) {
-    //   // TODO: consider lazy-loading _only_ the modules that _must_ be webpacked
-    //   // with custom shims, e.g. `fs`
-    //   _promise = import(
-    //     /* webpackChunkName: "jupyter-lsp-connection" */ './connection'
-    //   );
-    // }
-
-    // const { LSPConnection } = await _promise;
     const comm = await _language_server_manager.getComm(language_server_id);
     let connection = _connections.get(language_server_id);
 
     if (connection == null) {
-      // const socket = new WebSocket(uris.socket);
       const connection = new CommLSPConnection({ comm, rootUri: uris.base });
-      // TODO: remove remaining unbounded users of connection.on
-      // connection.setMaxListeners(999);
       _connections.set(language_server_id, connection);
       await connection.connect(null);
       onCreate(connection);

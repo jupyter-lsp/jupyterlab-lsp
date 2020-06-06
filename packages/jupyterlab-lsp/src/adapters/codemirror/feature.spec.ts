@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { CodeMirrorAdapter } from './cm_adapter';
-// import { LSPConnection } from '../../connection';
 import {
   IJupyterLabComponentsManager,
   StatusMessage,
