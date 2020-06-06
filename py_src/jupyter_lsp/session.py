@@ -10,7 +10,6 @@ from datetime import datetime, timezone
 
 from tornado.ioloop import IOLoop
 from tornado.queues import Queue
-from tornado.websocket import WebSocketHandler
 from traitlets import Bunch, Instance, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
 

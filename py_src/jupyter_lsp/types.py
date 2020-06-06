@@ -267,7 +267,7 @@ class LangaugeServerClientAPI:
     """ A base class for a connection to a Language Server Protocol Client
     """
 
-    language_server = None  # type: str
+    language_server = None  # type: Optional[Text]
     manager = None  # type: LanguageServerManagerAPI
     log = None  # type: logging.Logger
 

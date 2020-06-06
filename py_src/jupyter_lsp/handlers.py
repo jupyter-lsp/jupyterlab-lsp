@@ -6,9 +6,9 @@ from notebook.base.handlers import IPythonHandler
 from notebook.base.zmqhandlers import WebSocketHandler, WebSocketMixin
 from notebook.utils import url_path_join as ujoin
 
-from .types import LangaugeServerClientAPI
 from .manager import LanguageServerManager
 from .schema import SERVERS_RESPONSE
+from .types import LangaugeServerClientAPI
 
 
 class BaseHandler(IPythonHandler):

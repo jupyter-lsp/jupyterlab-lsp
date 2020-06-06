@@ -1,5 +1,6 @@
 import json
 
+from ipykernel.comm import Comm
 from tornado.ioloop import IOLoop
 
 from ..types import LangaugeServerClientAPI
@@ -9,8 +10,8 @@ class CommHandler(LangaugeServerClientAPI):
     """ Jupyter Kernel Comm-based transport that imitates the tornado websocket handler
     """
 
-    comm = None
-    subscribed = None
+    comm = None  # type: Comm
+    subscribed = False
 
     def __init__(self, language_server, comm, manager):
         self.language_server = language_server
