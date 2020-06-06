@@ -27,7 +27,6 @@ LANGUAGE_INFO = {
 }
 
 
-
 class LanguageServerKernel(IPythonKernel):
     """ A Jupyter Kernel for the Language Server Protocol
     """
@@ -39,7 +38,10 @@ class LanguageServerKernel(IPythonKernel):
     language_info = LANGUAGE_INFO  # type: Dict
     banner = "Jupyter Language Server Kernel ".format(__version__)  # type: Text
     help_links = [
-        {"text": "Language Server Protocol", "url": "https://microsoft.github.io/language-server-protocol/"},
+        {
+            "text": "Language Server Protocol",
+            "url": "https://microsoft.github.io/language-server-protocol/",
+        },
     ]
 
     language_server_manager = traitlets.Instance(CommLanguageServerManager)
@@ -59,7 +61,6 @@ def launch():
     """ The main kernel entrypoint which uses the App singleton
     """
     IPKernelApp.launch_instance(kernel_class=LanguageServerKernel)
-
 
 
 if __name__ == "__main__":

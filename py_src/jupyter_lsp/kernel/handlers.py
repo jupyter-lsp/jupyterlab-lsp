@@ -1,5 +1,7 @@
 import json
+
 from tornado.ioloop import IOLoop
+
 
 class CommHandler:
     """ Jupyter Kernel Comm-based transport that imitates the tornado websocket handler
@@ -30,9 +32,13 @@ class CommHandler:
         if not self.subscribed:
             self.manager.subscribe(self)
             self.subscribed = True
-        await self.manager.on_client_message(json.dumps(message["content"]["data"]), self)
+        await self.manager.on_client_message(
+            json.dumps(message["content"]["data"]), self
+        )
         self.log.error("[{}] Finished handling message".format(self.language_server))
 
     def write_message(self, message: str):
-        self.log.error("[{}] Sending a message: {}".format(self.language_server, message))
+        self.log.error(
+            "[{}] Sending a message: {}".format(self.language_server, message)
+        )
         self.comm.send(json.loads(message))

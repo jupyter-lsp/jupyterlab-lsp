@@ -16,13 +16,15 @@ from jupyter_client.kernelspec import KernelSpecManager
 
 pjoin = os.path.join
 
-KERNEL_NAME = 'jupyter-lsp-kernel'
+KERNEL_NAME = "jupyter-lsp-kernel"
 
 # path to kernelspec resources
-RESOURCES = pjoin(os.path.dirname(__file__), 'resources')
+RESOURCES = pjoin(os.path.dirname(__file__), "resources")
 
 
-def make_ipkernel_cmd(mod='jupyter_lsp.kernel', executable=None, extra_arguments=None, **kw):
+def make_ipkernel_cmd(
+    mod="jupyter_lsp.kernel", executable=None, extra_arguments=None, **kw
+):
     """Build Popen command list for launching an IPython kernel.
     Parameters
     ----------
@@ -39,7 +41,7 @@ def make_ipkernel_cmd(mod='jupyter_lsp.kernel', executable=None, extra_arguments
     if executable is None:
         executable = sys.executable
     extra_arguments = extra_arguments or []
-    arguments = [executable, '-m', mod, '-f', '{connection_file}']
+    arguments = [executable, "-m", mod, "-f", "{connection_file}"]
     arguments.extend(extra_arguments)
 
     return arguments
@@ -48,9 +50,9 @@ def make_ipkernel_cmd(mod='jupyter_lsp.kernel', executable=None, extra_arguments
 def get_kernel_dict(extra_arguments=None):
     """Construct dict for kernel.json"""
     return {
-        'argv': make_ipkernel_cmd(extra_arguments=extra_arguments),
-        'display_name': 'Language Server',
-        'language': 'lsp',
+        "argv": make_ipkernel_cmd(extra_arguments=extra_arguments),
+        "display_name": "Language Server",
+        "language": "lsp",
     }
 
 
@@ -63,7 +65,7 @@ def write_kernel_spec(path=None, overrides=None, extra_arguments=None):
     The path to the kernelspec is always returned.
     """
     if path is None:
-        path = os.path.join(tempfile.mkdtemp(suffix='_kernels'), KERNEL_NAME)
+        path = os.path.join(tempfile.mkdtemp(suffix="_kernels"), KERNEL_NAME)
 
     # stage resources
     shutil.copytree(RESOURCES, path)
@@ -72,7 +74,7 @@ def write_kernel_spec(path=None, overrides=None, extra_arguments=None):
 
     if overrides:
         kernel_dict.update(overrides)
-    with open(pjoin(path, 'kernel.json'), 'w') as f:
+    with open(pjoin(path, "kernel.json"), "w") as f:
         json.dump(kernel_dict, f, indent=1)
 
     return path
@@ -84,7 +86,7 @@ def install(
     kernel_name=KERNEL_NAME,
     display_name=None,
     prefix=None,
-    profile=None
+    profile=None,
 ):
     """Install the Language Server kernelspec for Jupyter
 
@@ -125,12 +127,13 @@ def install(
         extra_arguments = ["--profile", profile]
         if not display_name:
             # add the profile to the default display name
-            overrides["display_name"] = 'Language Server [profile=%s]' % (profile)
+            overrides["display_name"] = "Language Server [profile=%s]" % (profile)
     else:
         extra_arguments = None
     path = write_kernel_spec(overrides=overrides, extra_arguments=extra_arguments)
     dest = kernel_spec_manager.install_kernel_spec(
-        path, kernel_name=kernel_name, user=user, prefix=prefix)
+        path, kernel_name=kernel_name, user=user, prefix=prefix
+    )
     # cleanup afterward
     shutil.rmtree(path)
     return dest

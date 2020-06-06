@@ -7,7 +7,7 @@ import {
   ILspOptions,
   IPosition,
   LspWsConnection,
-  IDocumentInfo
+  IDocumentInfo,
 } from 'lsp-ws-connection';
 import { until_ready } from './utils';
 import { ILSPConnection } from './tokens';
@@ -66,13 +66,13 @@ export class LSPConnection extends LspWsConnection implements ILSPConnection {
 
     const params: lsProtocol.RenameParams = {
       textDocument: {
-        uri: documentInfo.uri
+        uri: documentInfo.uri,
       },
       position: {
         line: location.line,
-        character: location.ch
+        character: location.ch,
       },
-      newName
+      newName,
     };
 
     const edit: lsProtocol.WorkspaceEdit = await this.connection.sendRequest(
@@ -125,9 +125,9 @@ export class LSPConnection extends LspWsConnection implements ILSPConnection {
     const textDocumentChange: lsProtocol.DidChangeTextDocumentParams = {
       textDocument: {
         uri: documentInfo.uri,
-        version: documentInfo.version
+        version: documentInfo.version,
       } as lsProtocol.VersionedTextDocumentIdentifier,
-      contentChanges: changeEvents
+      contentChanges: changeEvents,
     };
     this.connection.sendNotification(
       'textDocument/didChange',

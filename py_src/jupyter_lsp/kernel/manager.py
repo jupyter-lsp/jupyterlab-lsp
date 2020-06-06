@@ -29,9 +29,17 @@ class CommLanguageServerManager(LanguageServerManager):
         self.init_comm_targets()
 
     def init_comm_targets(self):
-        self.comm_manager.register_target(self.CONTROL_COMM_TARGET, self.on_control_comm_opened)
-        self.comm_manager.register_target(self.LANGUAGE_SERVER_COMM_TARGET, self.on_language_server_comm_opened)
-        self.log.error("comm targets registered: {}".format([self.CONTROL_COMM_TARGET, self.LANGUAGE_SERVER_COMM_TARGET]))
+        self.comm_manager.register_target(
+            self.CONTROL_COMM_TARGET, self.on_control_comm_opened
+        )
+        self.comm_manager.register_target(
+            self.LANGUAGE_SERVER_COMM_TARGET, self.on_language_server_comm_opened
+        )
+        self.log.error(
+            "comm targets registered: {}".format(
+                [self.CONTROL_COMM_TARGET, self.LANGUAGE_SERVER_COMM_TARGET]
+            )
+        )
 
     def on_control_comm_opened(self, comm, comm_msg):
         self.log.error("[{}] control comm opened: {}".format(comm, comm_msg))
@@ -59,7 +67,5 @@ class CommLanguageServerManager(LanguageServerManager):
         language_server = comm_msg["metadata"]["language_server"]
 
         self._lsp_comms[language_server] = CommHandler(
-            language_server=language_server,
-            comm=comm,
-            manager=self
+            language_server=language_server, comm=comm, manager=self
         )

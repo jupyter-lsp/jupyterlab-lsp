@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from tornado.ioloop import IOLoop
 from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
-from traitlets import Bunch, Instance, Set, Unicode, UseEnum, observe, Any
+from traitlets import Any, Bunch, Instance, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
 
 from . import stdio
@@ -43,7 +43,7 @@ class LanguageServerSession(LoggingConfigurable):
         Queue, help="a queue for string message to the server", allow_none=True
     )
     handlers = Set(
-        trait=Any(), # Instance(WebSocketHandler),
+        trait=Any(),  # Instance(WebSocketHandler),
         default_value=[],
         help="the currently subscribed websockets",
     )
