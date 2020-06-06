@@ -1,3 +1,9 @@
+import os
+
+from jupyter_core.paths import jupyter_config_path
+from notebook.services.config import ConfigManager
+from traitlets import Instance, default
+
 from ..manager import LanguageServerManager
 from ..schema import SERVERS_RESPONSE
 from .handlers import CommHandler
@@ -7,6 +13,12 @@ class CommLanguageServerManager(LanguageServerManager):
     CONTROL_COMM_TARGET = "jupyter.lsp.control"
     LANGUAGE_SERVER_COMM_TARGET = "jupyter.lsp.language_server"
 
+    config_manager = Instance(ConfigManager)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._load_extra_config()
+
     @property
     def log(self):
         return self.parent.log
@@ -14,6 +26,28 @@ class CommLanguageServerManager(LanguageServerManager):
     @property
     def comm_manager(self):
         return self.parent.comm_manager
+
+    @default("config_manager")
+    def _default_config_manager(self):
+        """ load merged config from more jupyter_notebook_config.d files
+            re-uses notebook loading machinery to look through more locations
+        """
+        manager = ConfigManager(read_config_path=jupyter_config_path() + [os.getcwd()])
+        return manager
+
+    def _load_extra_config(self):
+        """ imitate legacy behavior of being able to load from notebook server config
+        """
+        from_config = (
+            self.config_manager.get("jupyter_notebook_config").get(
+                "LanguageServerManager"
+            )
+            or {}
+        )
+        traits = self.trait_names()
+        for key, value in from_config.items():
+            if key in traits:
+                setattr(self, key, value)
 
     def initialize(self, *args, **kwargs):
         super().initialize(*args, **kwargs)
