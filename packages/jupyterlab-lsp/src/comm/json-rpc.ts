@@ -70,7 +70,6 @@ export class CommRPC implements ICommRPC {
 
     const msg = { jsonrpc: this._jsonrpc, id, method, params };
 
-    console.warn('sending', this.comm.commId, msg);
     this.comm.send(msg, null, null, true);
 
     if (noWait) {
@@ -117,7 +116,6 @@ export class CommRPC implements ICommRPC {
    * Resolve a previously-requested method, or notify on the appropriate signal
    */
   protected handleMessage(msg: ICommRPC.IIRPCCommMsg) {
-    console.warn('handle msg', msg);
     const { result, id, params, method } = msg.content
       .data as ICommRPC.TRPCData;
 
@@ -156,7 +154,5 @@ export class CommRPC implements ICommRPC {
         return;
       }
     }
-
-    console.warn('unhandled message', method);
   }
 }
