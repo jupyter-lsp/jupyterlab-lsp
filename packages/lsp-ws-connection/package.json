@@ -10,9 +10,6 @@
   ],
   "types": "lib/index.d.ts",
   "scripts": {
-    "test": "karma start",
-    "test-dev": "karma start --browsers Chrome --singleRun false --timeout 30000 --autoWatch",
-    "bundle": "npm pack .",
     "clean": "rimraf lib dist"
   },
   "author": "Wylie Conlon",
