@@ -1,11 +1,8 @@
 """ A Jupyter Kernel wrapper for your language servers
 """
 import json
-import re
-import uuid
-from collections import OrderedDict
 from pathlib import Path
-from typing import Dict, List, Text
+from typing import Dict, Text
 
 import traitlets
 from ipykernel.ipkernel import IPythonKernel
@@ -36,7 +33,7 @@ class LanguageServerKernel(IPythonKernel):
     language = LANGUAGE_INFO["language"]  # type: Text
     language_version = LANGUAGE_INFO["version"]  # type: Text
     language_info = LANGUAGE_INFO  # type: Dict
-    banner = "Jupyter Language Server Kernel ".format(__version__)  # type: Text
+    banner = "Jupyter Language Server Kernel {}".format(__version__)  # type: Text
     help_links = [
         {
             "text": "Language Server Protocol",

@@ -2,8 +2,10 @@ import json
 
 from tornado.ioloop import IOLoop
 
+from ..types import LangaugeServerClientAPI
 
-class CommHandler:
+
+class CommHandler(LangaugeServerClientAPI):
     """ Jupyter Kernel Comm-based transport that imitates the tornado websocket handler
     """
 

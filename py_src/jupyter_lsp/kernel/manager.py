@@ -1,5 +1,4 @@
 import traitlets
-from ipykernel.comm import Comm
 
 from ..manager import LanguageServerManager
 from ..schema import SERVERS_RESPONSE

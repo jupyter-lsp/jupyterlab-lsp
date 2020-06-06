@@ -6,6 +6,7 @@ from notebook.base.handlers import IPythonHandler
 from notebook.base.zmqhandlers import WebSocketHandler, WebSocketMixin
 from notebook.utils import url_path_join as ujoin
 
+from .types import LangaugeServerClientAPI
 from .manager import LanguageServerManager
 from .schema import SERVERS_RESPONSE
 
@@ -17,7 +18,9 @@ class BaseHandler(IPythonHandler):
         self.manager = manager
 
 
-class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, BaseHandler):
+class LanguageServerWebSocketHandler(
+    WebSocketMixin, WebSocketHandler, BaseHandler, LangaugeServerClientAPI
+):
     """ Setup tornado websocket to route to language server sessions
     """
 

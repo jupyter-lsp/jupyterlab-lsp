@@ -5,7 +5,6 @@
 
 """
 
-import errno
 import json
 import os
 import shutil
@@ -100,14 +99,16 @@ def install(
         Whether to do a user-only install, or system-wide.
     kernel_name: str, optional
         Specify a name for the kernelspec.
-        This is needed for having multiple IPython kernels for different environments.
+        This is needed for having multiple IPython kernels for different
+        environments.
     display_name: str, optional
         Specify the display name for the kernelspec
     profile: str, optional
         Specify a custom profile to be loaded by the kernel.
     prefix: str, optional
         Specify an install prefix for the kernelspec.
-        This is needed to install into a non-default location, such as a conda/virtual-env.
+        This is needed to install into a non-default location, such as a
+        conda/virtual-env.
     Returns
     -------
 

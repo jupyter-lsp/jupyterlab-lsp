@@ -3,6 +3,7 @@
 import asyncio
 import enum
 import json
+import logging
 import pathlib
 import re
 import shutil
@@ -260,6 +261,21 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
         roots += [pathlib.Path(sys.prefix)]
 
         return roots
+
+
+class LangaugeServerClientAPI:
+    """ A base class for a connection to a Language Server Protocol Client
+    """
+
+    language_server = None  # type: str
+    manager = None  # type: LanguageServerManagerAPI
+    log = None  # type: logging.Logger
+
+    async def on_message(self, message) -> None:
+        raise NotImplementedError()
+
+    def write_message(self, message) -> None:
+        raise NotImplementedError()
 
 
 # Gotta be down here so it can by typed... really should have a IL
