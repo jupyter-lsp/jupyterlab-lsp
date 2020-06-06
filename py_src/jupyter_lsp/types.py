@@ -271,10 +271,13 @@ class LangaugeServerClientAPI:
     manager = None  # type: LanguageServerManagerAPI
     log = None  # type: logging.Logger
 
-    async def on_message(self, message) -> None:
+    async def on_message(self, message) -> None:  # pragma: no cover
         raise NotImplementedError()
 
-    def write_message(self, message) -> None:
+    def write_message(self, message) -> None:  # pragma: no cover
+        raise NotImplementedError()
+
+    def open(language_server) -> None:  # pragma: no cover
         raise NotImplementedError()
 
 

@@ -1,6 +1,7 @@
 """ A Jupyter Kernel wrapper for your language servers
 """
 import json
+import logging
 from pathlib import Path
 from typing import Dict, Text
 
@@ -50,15 +51,17 @@ class LanguageServerKernel(IPythonKernel):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        if self.log is None:
+            self.log = logging.getLogger(__name__)
         self.log.error("Initializing Language Server Manager...")
         self.language_server_manager.initialize()
 
 
-def launch():
+def launch():  # pragma: no cover
     """ The main kernel entrypoint which uses the App singleton
     """
     IPKernelApp.launch_instance(kernel_class=LanguageServerKernel)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     launch()

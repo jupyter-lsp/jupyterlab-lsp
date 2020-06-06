@@ -1,5 +1,3 @@
-import traitlets
-
 from ..manager import LanguageServerManager
 from ..schema import SERVERS_RESPONSE
 from .handlers import CommHandler
@@ -8,12 +6,6 @@ from .handlers import CommHandler
 class CommLanguageServerManager(LanguageServerManager):
     CONTROL_COMM_TARGET = "jupyter.lsp.control"
     LANGUAGE_SERVER_COMM_TARGET = "jupyter.lsp.language_server"
-
-    _lsp_comms = traitlets.Dict()
-
-    @traitlets.default("_lsp_comms")
-    def _default_lsp_comms(self):
-        return {}
 
     @property
     def log(self):
@@ -34,16 +26,9 @@ class CommLanguageServerManager(LanguageServerManager):
         self.comm_manager.register_target(
             self.LANGUAGE_SERVER_COMM_TARGET, self.on_language_server_comm_opened
         )
-        self.log.error(
-            "comm targets registered: {}".format(
-                [self.CONTROL_COMM_TARGET, self.LANGUAGE_SERVER_COMM_TARGET]
-            )
-        )
 
     def on_control_comm_opened(self, comm, comm_msg):
-        self.log.error("[{}] control comm opened: {}".format(comm, comm_msg))
         self.send_status(comm)
-        # nb: when should we update?
 
     def send_status(self, comm):
         response = {
@@ -62,9 +47,9 @@ class CommLanguageServerManager(LanguageServerManager):
         comm.send(response)
 
     def on_language_server_comm_opened(self, comm, comm_msg):
-        self.log.error("[{}] language server comm requested: {}".format(comm, comm_msg))
         language_server = comm_msg["metadata"]["language_server"]
 
-        self._lsp_comms[language_server] = CommHandler(
-            language_server=language_server, comm=comm, manager=self
-        )
+        handler = CommHandler()
+        handler.comm = comm
+        handler.initialize(self)
+        handler.open(language_server)

@@ -3,8 +3,7 @@
     it may be neccessary to make a ilsp_kernel_launcher.py because of PYTHONPATH
     madness
 """
-# pragma: no cover
-from .kernel import launch
+from .kernel import launch  # pragma: no cover
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     launch()

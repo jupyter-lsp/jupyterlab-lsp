@@ -11,37 +11,39 @@ class CommHandler(LangaugeServerClientAPI):
     """
 
     comm = None  # type: Comm
-    subscribed = False
 
-    def __init__(self, language_server, comm, manager):
-        self.language_server = language_server
-        self.comm = comm
+    def initialize(self, manager):
         self.manager = manager
-        self.subscribed = False
-        comm.on_msg(self.on_message_sync)
-        self.log.error("[{}] on_msg installed".format(self.language_server))
+        self.comm.on_msg(self.on_message_sync)
+
+    def open(self, language_server):
+        self.language_server = language_server
+        self.manager.subscribe(self)
+        self.log.debug("[{}] Opened a handler".format(self.language_server))
+
+    def on_close(self):
+        self.manager.unsubscribe(self)
+        self.log.debug("[{}] Closed a handler".format(self.language_server))
 
     @property
     def log(self):
         return self.manager.log
 
-    def on_message_sync(self, message):
+    def on_message_sync(self, message):  # pragma: no cover
         """ shim to put the message handler on the event loop
         """
         IOLoop.current().add_callback(self.on_message, message)
 
     async def on_message(self, message):
-        self.log.error("[{}] Got a message".format(self.language_server))
-        if not self.subscribed:
-            self.manager.subscribe(self)
-            self.subscribed = True
-        await self.manager.on_client_message(
-            json.dumps(message["content"]["data"]), self
-        )
-        self.log.error("[{}] Finished handling message".format(self.language_server))
+        self.log.debug("[{}] Got a message".format(self.language_server))
 
-    def write_message(self, message: str):
-        self.log.error(
-            "[{}] Sending a message: {}".format(self.language_server, message)
-        )
+        # nb: deal with legacy json for now
+        message_data = message
+        if isinstance(message, dict):  # pragma: no cover
+            message_data = json.dumps(message["content"]["data"])
+
+        await self.manager.on_client_message(message_data, self)
+        self.log.debug("[{}] Finished handling message".format(self.language_server))
+
+    def write_message(self, message: str):  # pragma: no cover
         self.comm.send(json.loads(message))

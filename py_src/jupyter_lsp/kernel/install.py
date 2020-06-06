@@ -16,19 +16,17 @@ from jupyter_client.kernelspec import KernelSpecManager
 pjoin = os.path.join
 
 KERNEL_NAME = "jupyter-lsp-kernel"
-DISPLAY_NAME = "ILSP"
+DISPLAY_NAME = "Language Server Protocol"
 
 # path to kernelspec resources
 RESOURCES = pjoin(os.path.dirname(__file__), "resources")
 
 
-def make_ilsp_cmd(
-    mod="jupyter_lsp.kernel", executable=None, extra_arguments=None, **kw
-):
-    """Build Popen command list for launching an ILSP kernel.
+def make_lsp_cmd(mod="jupyter_lsp.kernel", executable=None, extra_arguments=None, **kw):
+    """Build Popen command list for launching an Language Server Protocol kernel.
     Parameters
     ----------
-    mod : str, optional (default 'ilsp')
+    mod : str, optional (default 'jupyter_lsp.kernel')
         A string of a module whose __main__ starts an Language Server kernel
     executable : str, optional (default sys.executable)
         The Python executable to use for the kernel process.
@@ -50,7 +48,7 @@ def make_ilsp_cmd(
 def get_kernel_dict(extra_arguments=None):
     """Construct dict for kernel.json"""
     return {
-        "argv": make_ilsp_cmd(extra_arguments=extra_arguments),
+        "argv": make_lsp_cmd(extra_arguments=extra_arguments),
         "display_name": DISPLAY_NAME,
         "language": "lsp",
     }
