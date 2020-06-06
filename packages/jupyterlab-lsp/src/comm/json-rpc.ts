@@ -39,7 +39,6 @@ export class CommRPC implements ICommRPC {
     this._comm = comm;
 
     if (this._comm) {
-      console.warn('installing handleMessage', this._comm);
       this._comm.onMsg = this.handleMessage.bind(this);
     }
     this._commChanged.emit(void 0);
