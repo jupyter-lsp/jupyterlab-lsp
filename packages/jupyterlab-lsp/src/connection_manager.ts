@@ -9,7 +9,7 @@ import {
   ILanguageServerManager,
   ILSPConnection,
 } from './tokens';
-import { CommConnection } from './comm/connection';
+import { CommLSPConnection } from './comm/connection';
 
 export interface IDocumentConnectionData {
   virtual_document: VirtualDocument;
@@ -360,7 +360,7 @@ namespace Private {
 
     if (connection == null) {
       // const socket = new WebSocket(uris.socket);
-      const connection = new CommConnection({ comm, rootUri: uris.base });
+      const connection = new CommLSPConnection({ comm, rootUri: uris.base });
       // TODO: remove remaining unbounded users of connection.on
       // connection.setMaxListeners(999);
       _connections.set(language_server_id, connection);

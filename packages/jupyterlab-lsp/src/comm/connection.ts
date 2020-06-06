@@ -9,7 +9,7 @@ import {
   unregisterServerCapability,
 } from './server-capability-registration';
 
-export class CommConnection extends CommLSP implements ILSPConnection {
+export class CommLSPConnection extends CommLSP implements ILSPConnection {
   protected _isConnected = false;
   protected _isInitialized = false;
   public serverCapabilities: LSP.ServerCapabilities;
@@ -29,7 +29,7 @@ export class CommConnection extends CommLSP implements ILSPConnection {
 
   private closingManually = false;
 
-  constructor(options: CommConnection.IOptions) {
+  constructor(options: CommLSPConnection.IOptions) {
     super(options);
     this._rootUri = options.rootUri;
     this.initSignals();
@@ -554,7 +554,7 @@ export class CommConnection extends CommLSP implements ILSPConnection {
   }
 }
 
-export namespace CommConnection {
+export namespace CommLSPConnection {
   export interface IOptions extends ICommRPC.IOptions {
     rootUri: string;
   }
