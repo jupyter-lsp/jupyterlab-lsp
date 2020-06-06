@@ -16,18 +16,19 @@ from jupyter_client.kernelspec import KernelSpecManager
 pjoin = os.path.join
 
 KERNEL_NAME = "jupyter-lsp-kernel"
+DISPLAY_NAME = "ILSP"
 
 # path to kernelspec resources
 RESOURCES = pjoin(os.path.dirname(__file__), "resources")
 
 
-def make_ipkernel_cmd(
+def make_ilsp_cmd(
     mod="jupyter_lsp.kernel", executable=None, extra_arguments=None, **kw
 ):
-    """Build Popen command list for launching an IPython kernel.
+    """Build Popen command list for launching an ILSP kernel.
     Parameters
     ----------
-    mod : str, optional (default 'ipykernel')
+    mod : str, optional (default 'ilsp')
         A string of a module whose __main__ starts an Language Server kernel
     executable : str, optional (default sys.executable)
         The Python executable to use for the kernel process.
@@ -49,8 +50,8 @@ def make_ipkernel_cmd(
 def get_kernel_dict(extra_arguments=None):
     """Construct dict for kernel.json"""
     return {
-        "argv": make_ipkernel_cmd(extra_arguments=extra_arguments),
-        "display_name": "Language Server",
+        "argv": make_ilsp_cmd(extra_arguments=extra_arguments),
+        "display_name": DISPLAY_NAME,
         "language": "lsp",
     }
 
@@ -85,7 +86,6 @@ def install(
     kernel_name=KERNEL_NAME,
     display_name=None,
     prefix=None,
-    profile=None,
 ):
     """Install the Language Server kernelspec for Jupyter
 
@@ -114,6 +114,7 @@ def install(
 
     The path where the kernelspec was installed.
     """
+    extra_arguments = None
     if kernel_spec_manager is None:
         kernel_spec_manager = KernelSpecManager()
 
@@ -124,11 +125,6 @@ def install(
     overrides = {}
     if display_name:
         overrides["display_name"] = display_name
-    if profile:
-        extra_arguments = ["--profile", profile]
-        if not display_name:
-            # add the profile to the default display name
-            overrides["display_name"] = "Language Server [profile=%s]" % (profile)
     else:
         extra_arguments = None
     path = write_kernel_spec(overrides=overrides, extra_arguments=extra_arguments)
