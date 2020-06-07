@@ -42,6 +42,7 @@ before_script:
 
 script:
   - jlpm test
-  - python3 -m jupyter kernelspec list
-  - python3 -m jupyter kernelspec list | grep jupyter-lsp-kernel
   - python3 scripts/utest.py
+  - python3 -m jupyter kernelspec list
+  - python3 -m jupyter lsp kernelspec install
+  - python3 -m jupyter kernelspec list | grep jupyter-lsp-kernel
