@@ -4,6 +4,7 @@ Library           SeleniumLibrary
 Library           OperatingSystem
 Library           Process
 Library           String
+Library           Collections
 Library           ./ports.py
 
 *** Keywords ***
@@ -44,7 +45,12 @@ Create Lab Launch Command
 Create Notebok Server Config
     [Arguments]    ${home}
     [Documentation]    Copies in notebook server config file to disables npm/build checks
-    Copy File    ${FIXTURES}${/}${NBSERVER CONF}    ${home}${/}${NBSERVER CONF}
+    ${json} =    Get File    ${FIXTURES}${/}${NBSERVER CONF}
+    ${conf} =    Evaluate    __import__("json").loads('''${json}''')
+    ${lsm} =    Evaluate    dict(extra_node_roots=['''${ROOT}'''])
+    Set To Dictionary    ${conf}    LanguageServerManager=${lsm}
+    ${json} =    Evaluate    __import__("json").dumps(${conf})
+    Create File    ${home}${/}${NBSERVER CONF}    ${json}
 
 Setup Suite For Screenshots
     [Arguments]    ${folder}
