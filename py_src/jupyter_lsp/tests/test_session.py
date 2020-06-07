@@ -59,8 +59,7 @@ async def test_start_unknown(known_unknown_server, lsp_handler, jsonrpc_init_msg
 
 # utilities
 def assert_status_set(manager, expected_statuses, language_server=None):
-    handler.get()
-    payload = handler._payload
+    payload = manager.get_status_response()
 
     errors = list(SERVERS_RESPONSE.iter_errors(payload))
     assert not errors
