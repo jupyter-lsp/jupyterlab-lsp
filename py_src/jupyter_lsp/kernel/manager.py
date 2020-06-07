@@ -1,6 +1,7 @@
 import os
 
 from jupyter_core.paths import jupyter_config_path
+# this is the last remaining import of notebook... would be lovely to remove
 from notebook.services.config import ConfigManager
 from traitlets import Instance, Unicode, default
 

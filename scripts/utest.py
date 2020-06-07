@@ -9,7 +9,8 @@ OS = platform.system()
 PY = "".join(map(str, sys.version_info[:2]))
 
 OS_PY_ARGS = {
-    # notebook and ipykernel releases do not yet support python 3.8 on windows
+    # e.g. for a while, notebook and ipykernel releases did not yet support
+    # python 3.8 on windows
     # ("Windows", "38"): ["-k", "not serverextension"]
 }
 

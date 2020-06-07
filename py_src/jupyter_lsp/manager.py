@@ -4,7 +4,6 @@ import traceback
 from typing import Dict, Text, Tuple
 
 import entrypoints
-from notebook.transutils import _
 from tornado.gen import maybe_future
 from traitlets import Bool, Dict as Dict_, Instance, List as List_, default
 
@@ -31,13 +30,13 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
     language_servers = Schema(
         validator=LANGUAGE_SERVER_SPEC_MAP,
-        help=_("a dict of language server specs, keyed by implementation"),
+        help="a dict of language server specs, keyed by implementation",
     ).tag(
         config=True
     )  # type: KeyedLanguageServerSpecs
 
     autodetect = Bool(
-        True, help=_("try to find known language servers in sys.prefix (and elsewhere)")
+        True, help="try to find known language servers in sys.prefix (and elsewhere)"
     ).tag(
         config=True
     )  # type: bool
@@ -188,7 +187,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
                 spec_finder = ep.load()  # type: SpecMaker
             except Exception as err:  # pragma: no cover
                 self.log.warn(
-                    _("Failed to load language server spec finder `{}`: \n{}").format(
+                    "Failed to load language server spec finder `{}`: \n{}".format(
                         ep_name, err
                     )
                 )
@@ -198,7 +197,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
                 specs = spec_finder(self)
             except Exception as err:  # pragma: no cover
                 self.log.warning(
-                    _(
+                    (
                         "Failed to fetch commands from language server spec finder"
                         "`{}`:\n{}"
                     ).format(ep.name, err)
@@ -211,7 +210,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
             if errors:  # pragma: no cover
                 self.log.warning(
-                    _(
+                    (
                         "Failed to validate commands from language server spec finder"
                         "`{}`:\n{}"
                     ).format(ep.name, errors)

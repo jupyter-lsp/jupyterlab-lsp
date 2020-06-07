@@ -62,10 +62,10 @@ Install `jupyter-lsp` from source in your virtual environment:
 python -m pip install -e .
 ```
 
-Enable the server extension:
+Install the Language Server Kernel spec:
 
 ```bash
-jupyter serverextension enable --sys-prefix --py jupyter_lsp
+jupyter lsp kernselspec install --sys-prefix
 ```
 
 Install `npm` dependencies, build TypeScript packages, and link

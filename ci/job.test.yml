@@ -84,8 +84,14 @@ jobs:
                       summaryFileLocation: 'packages/${{ js_package }}/coverage/cobertura-coverage.xml'
                     condition: always()
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter serverextension list
-                displayName: list server extensions
+              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter kernelspec list
+                displayName: list kernels
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter lsp kernelspec install
+                displayName: install kernel
+
+              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter kernelspec list
+                displayName: list kernels (again)
 
               - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/utest.py --test-run-title="Pytest ${{ platform.name }}${{ python.name }}"
                 displayName: run python tests

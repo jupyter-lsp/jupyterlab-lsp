@@ -20,7 +20,6 @@ from typing import (
     Text,
 )
 
-from notebook.transutils import _
 from traitlets import Instance, List as List_, Unicode, default
 from traitlets.config import LoggingConfigurable
 
@@ -195,14 +194,14 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
     """ Public API that can be used for python-based spec finders and listeners
     """
 
-    nodejs = Unicode(help=_("path to nodejs executable")).tag(config=True)
+    nodejs = Unicode(help=("path to nodejs executable")).tag(config=True)
 
-    node_roots = List_([], help=_("absolute paths in which to seek node_modules")).tag(
+    node_roots = List_([], help=("absolute paths in which to seek node_modules")).tag(
         config=True
     )
 
     extra_node_roots = List_(
-        [], help=_("additional absolute paths to seek node_modules first")
+        [], help=("additional absolute paths to seek node_modules first")
     ).tag(config=True)
 
     def find_node_module(self, *path_frag):

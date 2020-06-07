@@ -3,7 +3,6 @@ import pathlib
 import shutil
 from typing import Any, Text
 
-from notebook.notebookapp import NotebookApp
 from pytest import fixture
 from tornado.queues import Queue
 
@@ -37,7 +36,7 @@ KNOWN_SERVERS += sum(
 KNOWN_UNKNOWN_SERVERS = ["foo-language-server"]
 
 
-@fixture(params=[LanguageServerManager, CommLanguageServerManager])
+@fixture(params=[CommLanguageServerManager])
 def manager(request) -> LanguageServerManagerAPI:
     kwargs = {}  # type: Any
     if request.param == CommLanguageServerManager:
@@ -87,11 +86,6 @@ def jsonrpc_init_msg():
             },
         }
     )
-
-
-@fixture
-def app():
-    return MockNotebookApp()
 
 
 @fixture
