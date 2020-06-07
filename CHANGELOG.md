@@ -1,6 +1,5 @@
 ## CHANGELOG
 
-
 ### `@krassowski/jupyterlab-lsp 2.0.0` (unreleased)
 
 - features
@@ -14,7 +13,6 @@
     - `krassowski/lsp-ws-connection`
     - `event-emitter`
     - `vscode-language-server-protocol` and friends
-
 
 ### `jupyter-lsp 1.0.0` (unreleased)
 
