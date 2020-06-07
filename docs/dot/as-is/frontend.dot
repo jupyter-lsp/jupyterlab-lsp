@@ -12,8 +12,7 @@ graph backend {
         Mouse[label="The Mouse"]
     }
     subgraph cluster_server { label="Server"
-        RestAPI[label="The REST API"]
-        WebSocketHandlers
+        LanguageServerKernel[label="The Language Server Kernel"]
     }
     subgraph cluster_lab { label="JupyterLab"
         subgraph cluster_singletons { label="Singletons"
@@ -22,13 +21,13 @@ graph backend {
             DiagnosticPanel
             ConnectionManager
             LanguageServerManager
+            ControlComm
         }
         WidgetTrackers
-        
+
         subgraph cluster_lang {label="Per Language"
             Connection
-            MessageConnection
-            WebSocket
+            LanguageServerComm
         }
         subgraph cluster_doc { label="Per Document"
             Widget
@@ -51,17 +50,17 @@ graph backend {
             }
         }
     }
-    
+
     {Connection CodeMirrors VirtualDocument VirtualEditor} -- Feature[lhead=cluster_features];
     Diagnostics -- DiagnosticPanel
-    Connection -- ConnectionManager -- LanguageServerManager -- RestAPI
+    Connection -- ConnectionManager -- LanguageServerManager -- ControlComm -- LanguageServerKernel
     CodeMirrors -- CodeMirrorAdapters -- WidgetAdapter
     WidgetAdapter -- VirtualEditor -- VirtualDocument
-    WidgetTrackers -- {Plugin -- Widget} 
+    WidgetTrackers -- {Plugin -- Widget}
     StatusBarItem -- Connection
     Widget -- WidgetAdapter -- Plugin -- StatusBarItem -- LanguageServerManager
     Widget -- CodeMirrors
     Plugin -- {ConnectionManager LanguageServerManager}
-    Connection -- MessageConnection -- WebSocket -- WebSocketHandlers
+    Connection -- LanguageServerComm -- LanguageServerKernel
     {Keyboard Mouse} -- CodeMirrors
 }
