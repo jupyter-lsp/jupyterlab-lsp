@@ -252,3 +252,9 @@ Open Context Menu Over
     Wait Until Keyword Succeeds    10 x    0.1 s    Mouse Over    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
+
+Switch Kernel
+    [Arguments]    ${kernel name}
+    Click Element    css:.jp-Toolbar-kernelName
+    Select From List By Label    css:.jp-Dialog select    ${kernel name}
+    Click Element    css:.jp-mod-accept
