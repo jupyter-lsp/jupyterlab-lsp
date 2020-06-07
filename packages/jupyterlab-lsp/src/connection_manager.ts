@@ -1,7 +1,7 @@
 import { VirtualDocument, IForeignContext } from './virtual/document';
 
 import { Signal } from '@lumino/signaling';
-import { PageConfig, URLExt } from '@jupyterlab/coreutils';
+import { URLExt } from '@jupyterlab/coreutils';
 import { sleep, until_ready } from './utils';
 
 import {
@@ -288,8 +288,9 @@ export namespace DocumentConnectionManager {
     virtual_document: VirtualDocument,
     language: string
   ): IURIs {
-    const rootUri = PageConfig.getOption('rootUri');
-    const virtualDocumentsUri = PageConfig.getOption('virtualDocumentsUri');
+    const manager = Private.getLanguageServerManager();
+    const rootUri = manager.getRootUri();
+    const virtualDocumentsUri = manager.getVirtualDocumentsUri();
 
     const baseUri = virtual_document.has_lsp_supported_file
       ? rootUri

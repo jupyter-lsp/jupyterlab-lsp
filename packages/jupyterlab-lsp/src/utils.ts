@@ -1,5 +1,3 @@
-import { PageConfig } from '@jupyterlab/coreutils';
-
 const RE_PATH_ANCHOR = /^file:\/\/([^\/]+|\/[A-Z]:)/;
 
 export async function sleep(timeout: number) {
@@ -88,10 +86,6 @@ export class DefaultMap<K, V> extends Map<K, V> {
   }
 }
 
-export function server_root_uri() {
-  return PageConfig.getOption('rootUri');
-}
-
 /**
  * compare two URIs, discounting:
  * - drive capitalization
@@ -120,8 +114,7 @@ export function normalize_win_path(uri: string) {
   return uri.replace(RE_PATH_ANCHOR, (it) => it.toLowerCase());
 }
 
-export function uri_to_contents_path(child: string, parent?: string) {
-  parent = parent || server_root_uri();
+export function uri_to_contents_path(child: string, parent: string) {
   if (parent == null) {
     return null;
   }

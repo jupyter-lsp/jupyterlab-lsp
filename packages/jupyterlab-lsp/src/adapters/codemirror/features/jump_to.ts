@@ -103,7 +103,7 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
       console.log('Jump target (source location):', source_position_ce);
 
       // can it be resolved vs our guessed server root?
-      const contents_path = uri_to_contents_path(uri);
+      const contents_path = uri_to_contents_path(uri, this.connection.rootUri);
 
       if (contents_path) {
         uri = contents_path;

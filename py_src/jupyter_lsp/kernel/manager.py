@@ -2,10 +2,12 @@ import os
 
 from jupyter_core.paths import jupyter_config_path
 from notebook.services.config import ConfigManager
-from traitlets import Instance, default
+from traitlets import Instance, Unicode, default
 
 from ..manager import LanguageServerManager
+from ..paths import normalized_uri
 from ..schema import SERVERS_RESPONSE
+from ..virtual_documents_shadow import setup_shadow_filesystem
 from .handlers import CommHandler
 
 
@@ -14,6 +16,8 @@ class CommLanguageServerManager(LanguageServerManager):
     LANGUAGE_SERVER_COMM_TARGET = "jupyter.lsp.language_server"
 
     config_manager = Instance(ConfigManager)
+    root_uri = Unicode()
+    virtual_documents_uri = Unicode()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -26,6 +30,14 @@ class CommLanguageServerManager(LanguageServerManager):
     @property
     def comm_manager(self):
         return self.parent.comm_manager
+
+    @default("root_uri")
+    def _default_root_uri(self):
+        return normalized_uri(os.getcwd())
+
+    @default("virtual_documents_uri")
+    def _default_virtual_docs_uri(self):
+        return self.root_uri + "/.virtual_documents"
 
     @default("config_manager")
     def _default_config_manager(self):
@@ -47,6 +59,8 @@ class CommLanguageServerManager(LanguageServerManager):
                 setattr(self, key, value)
 
     def initialize(self, *args, **kwargs):
+        # this uses the decorator which changes the LanguageServerManager singleton
+        setup_shadow_filesystem(virtual_documents_uri=self.virtual_documents_uri)
         super().initialize(*args, **kwargs)
         self.init_comm_targets()
 
@@ -67,6 +81,10 @@ class CommLanguageServerManager(LanguageServerManager):
             "sessions": {
                 language_server: session.to_json()
                 for language_server, session in self.sessions.items()
+            },
+            "uris": {
+                "root": self.root_uri,
+                "virtual_documents": self.virtual_documents_uri,
             },
         }
 

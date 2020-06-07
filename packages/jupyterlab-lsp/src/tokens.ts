@@ -1,5 +1,5 @@
 import { ISignal } from '@lumino/signaling';
-import { ServerConnection, ServiceManager } from '@jupyterlab/services';
+import { ServiceManager } from '@jupyterlab/services';
 import * as LSP from './comm/lsp-types';
 
 import * as SCHEMA from './_schema';
@@ -20,14 +20,14 @@ export interface ILanguageServerManager {
     options: ILanguageServerManager.IGetServerIdOptions
   ): Promise<TLanguageServerId>;
   getComm(languageServerId: TLanguageServerId): Promise<IComm>;
-  statusUrl: string;
+  getRootUri(): string;
+  getVirtualDocumentsUri(): string;
+  kernelReady: Promise<void>;
 }
 
 export namespace ILanguageServerManager {
   export const URL_NS = 'lsp';
   export interface IOptions {
-    settings?: ServerConnection.ISettings;
-    baseUrl?: string;
     serviceManager: ServiceManager;
   }
   export interface IGetServerIdOptions {
@@ -42,6 +42,7 @@ export interface ILSPConnection {
   isConnected: boolean;
   isInitialized: boolean;
   serverCapabilities: LSP.ServerCapabilities;
+  rootUri: string;
 
   // legacy capabilities api
   isRenameSupported(): boolean;

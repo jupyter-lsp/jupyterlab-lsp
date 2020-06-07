@@ -127,9 +127,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
       // connection.close();
     });
 
-    const connect_file_editor = (
+    const connect_file_editor = async (
       widget: IDocumentWidget<FileEditor, DocumentRegistry.IModel>
     ) => {
+      await language_server_manager.kernelReady;
+
       let fileEditor = widget.content;
 
       if (fileEditor.editor instanceof CodeMirrorEditor) {
@@ -154,9 +156,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
           }
         };
 
-        const reconnect = () => {
+        const reconnect = async () => {
           disconnect();
-          connect_file_editor(widget);
+          await connect_file_editor(widget);
         };
 
         widget.disposed.connect(disconnect);
@@ -166,8 +168,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
       }
     };
 
-    fileEditorTracker.widgetAdded.connect((sender, widget) => {
-      connect_file_editor(widget);
+    fileEditorTracker.widgetAdded.connect(async (sender, widget) => {
+      await connect_file_editor(widget);
     });
 
     let command_manager = new FileEditorCommandManager(
@@ -178,7 +180,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
     );
     command_manager.add(lsp_commands);
 
-    const connect_notebook = (widget: NotebookPanel) => {
+    const connect_notebook = async (widget: NotebookPanel) => {
+      await language_server_manager.kernelReady;
+
       // NOTE: assuming that the default cells content factory produces CodeMirror editors(!)
       let jumper = new NotebookJumper(widget, documentManager);
       let adapter = new NotebookAdapter(
@@ -201,9 +205,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
         }
       };
 
-      const reconnect = () => {
+      const reconnect = async () => {
         disconnect();
-        connect_notebook(widget);
+        await connect_notebook(widget);
       };
 
       widget.context.pathChanged.connect(reconnect);
@@ -213,7 +217,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     };
 
     notebookTracker.widgetAdded.connect(async (sender, widget) => {
-      connect_notebook(widget);
+      await connect_notebook(widget);
     });
 
     // position context menu entries after 10th but before 11th default entry

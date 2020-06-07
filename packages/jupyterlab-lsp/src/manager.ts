@@ -1,7 +1,6 @@
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 
-import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import {
   // ServerConnection,
   ServiceManager,
@@ -29,19 +28,15 @@ export class LanguageServerManager implements ILanguageServerManager {
   protected _sessions: TSessionMap = new Map();
   protected _controlComm: IComm;
   protected _comms: TCommMap = new Map();
-  private _baseUrl: string;
   private _serviceManager: ServiceManager;
   private _kernelSessionConnection: ISessionConnection;
   private _kernelReady = new PromiseDelegate<void>();
+  private _rootUri: string;
+  private _virtualDocumentUri: string;
 
   constructor(options: ILanguageServerManager.IOptions) {
-    this._baseUrl = options.baseUrl || PageConfig.getBaseUrl();
     this._serviceManager = options.serviceManager;
     this.initKernel().catch(console.warn);
-  }
-
-  get statusUrl() {
-    return URLExt.join(this._baseUrl, ILanguageServerManager.URL_NS, 'status');
   }
 
   get sessionsChanged() {
@@ -50,6 +45,10 @@ export class LanguageServerManager implements ILanguageServerManager {
 
   get sessions(): TSessionMap {
     return this._sessions;
+  }
+
+  get kernelReady() {
+    return this._kernelReady.promise;
   }
 
   async getComm(language_server_id: TLanguageServerId): Promise<IComm> {
@@ -77,6 +76,14 @@ export class LanguageServerManager implements ILanguageServerManager {
       }
     }
     return null;
+  }
+
+  getRootUri() {
+    return this._rootUri;
+  }
+
+  getVirtualDocumentsUri() {
+    return this._virtualDocumentUri;
   }
 
   /**
@@ -114,7 +121,9 @@ export class LanguageServerManager implements ILanguageServerManager {
   async onControlCommMsg(msg: KernelMessage.ICommMsgMsg) {
     console.warn('got control message', this._controlComm, msg);
 
-    const { sessions } = msg.content.data as SCHEMA.ServersResponse;
+    const { sessions, uris } = msg.content.data as SCHEMA.ServersResponse;
+    this._rootUri = uris.root;
+    this._virtualDocumentUri = uris.virtual_documents;
     this._sessions = new Map(Object.entries(sessions));
     this._sessionsChanged.emit(void 0);
     this._kernelReady.resolve(void 0);

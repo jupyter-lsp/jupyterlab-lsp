@@ -8,7 +8,7 @@
     },
     "current-version": {
       "description": "which version of the spec this implements",
-      "enum": [2],
+      "enum": [3],
       "title": "Spec Schema Version",
       "type": "number"
     },
@@ -164,6 +164,12 @@
       "properties": {
         "sessions": {
           "$ref": "#/definitions/sessions"
+        },
+        "uris": {
+          "properties": {
+            "root": { "type": "string", "format": "uri" },
+            "virtual_documents": { "type": "string", "format": "uri" }
+          }
         },
         "version": {
           "$ref": "#/definitions/current-version"

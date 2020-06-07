@@ -7,7 +7,6 @@ import {
   IVirtualPosition,
 } from '../positioning';
 import * as CodeMirror from 'codemirror';
-import { PageConfig } from '@jupyterlab/coreutils';
 import { DocumentConnectionManager } from '../connection_manager';
 import { MockLanguageServerManager } from '../adapters/codemirror/testutils';
 
@@ -54,12 +53,6 @@ describe('VirtualEditor', () => {
     file_extension: 'R',
   });
 
-  PageConfig.setOption('rootUri', '/home/username/project');
-  PageConfig.setOption(
-    'virtualDocumentsUri',
-    '/home/username/project/.virtual_documents'
-  );
-
   const LANGSERVER_MANAGER = new MockLanguageServerManager({
     serviceManager: null,
   });
@@ -84,8 +77,9 @@ describe('VirtualEditor', () => {
 
   describe('#has_lsp_supported', () => {
     it('gets passed on to the virtual document & used for connection uri base', () => {
-      const rootUri = PageConfig.getOption('rootUri');
-      const virtualDocumentsUri = PageConfig.getOption('virtualDocumentsUri');
+      const rootUri = 'file:///home/username/project';
+      const virtualDocumentsUri =
+        'file:///home/username/project/.virtual_documents';
       expect(rootUri).to.be.not.equal(virtualDocumentsUri);
 
       let document = editor.virtual_document;

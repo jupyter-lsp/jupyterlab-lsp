@@ -20,7 +20,6 @@ import * as nbformat from '@jupyterlab/nbformat';
 import { language_specific_overrides } from '../../magics/defaults';
 import { foreign_code_extractors } from '../../extractors/defaults';
 import { NotebookModel } from '@jupyterlab/notebook';
-import { PageConfig } from '@jupyterlab/coreutils';
 import { ILSPConnection } from '../../tokens';
 
 const js_fib_code = `function fib(n) {
@@ -95,8 +94,6 @@ const js_partial_edits = [
 ];
 
 describe('Feature', () => {
-  PageConfig.setOption('rootUri', 'file://');
-
   describe('apply_edit()', () => {
     class EditApplyingFeature extends CodeMirrorLSPFeature {
       name = 'EditApplyingFeature';

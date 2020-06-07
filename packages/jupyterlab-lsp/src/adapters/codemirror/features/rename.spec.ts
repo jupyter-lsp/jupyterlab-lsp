@@ -1,8 +1,7 @@
 import { expect } from 'chai';
 import { Rename } from './rename';
 import { FileEditorFeatureTestEnvironment } from '../testutils';
-import * as lsProtocol from 'vscode-languageserver-protocol';
-import { PageConfig } from '@jupyterlab/coreutils';
+import * as LSP from '../../../comm/lsp-types';
 
 describe('Rename', () => {
   let env: FileEditorFeatureTestEnvironment;
@@ -15,8 +14,6 @@ describe('Rename', () => {
 
     beforeEach(() => (feature = env.init_feature(Rename)));
     afterEach(() => env.dispose_feature(feature));
-
-    PageConfig.setOption('rootUri', 'file://');
 
     it('renders inspections', async () => {
       env.ce_editor.model.value.text = 'x = 1\n';
@@ -32,7 +29,7 @@ describe('Rename', () => {
                 end: { line: 2, character: 0 },
               },
               newText: 'y = 1\n',
-            } as lsProtocol.TextEdit,
+            } as LSP.TextEdit,
           ],
         },
       });

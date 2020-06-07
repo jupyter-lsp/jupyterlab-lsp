@@ -7,7 +7,7 @@ from notebook.base.zmqhandlers import WebSocketHandler, WebSocketMixin
 from notebook.utils import url_path_join as ujoin
 
 from .manager import LanguageServerManager
-from .schema import SERVERS_RESPONSE
+from .schema import SERVERS_RESPONSE, SPEC_VERSION
 from .types import LangaugeServerClientAPI
 
 
@@ -55,7 +55,7 @@ class LanguageServersHandler(BaseHandler):
         """ finish with the JSON representations of the sessions
         """
         response = {
-            "version": 2,
+            "version": SPEC_VERSION,
             "sessions": {
                 language_server: session.to_json()
                 for language_server, session in self.manager.sessions.items()
