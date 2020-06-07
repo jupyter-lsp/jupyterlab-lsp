@@ -32,7 +32,7 @@ export class LanguageServerManager implements ILanguageServerManager {
   private _kernelSessionConnection: ISessionConnection;
   private _kernelReady = new PromiseDelegate<void>();
   private _rootUri: string;
-  private _virtualDocumentUri: string;
+  private _virtualDocumentsUri: string;
 
   constructor(options: ILanguageServerManager.IOptions) {
     this._serviceManager = options.serviceManager;
@@ -83,7 +83,7 @@ export class LanguageServerManager implements ILanguageServerManager {
   }
 
   getVirtualDocumentsUri() {
-    return this._virtualDocumentUri;
+    return this._virtualDocumentsUri;
   }
 
   /**
@@ -123,7 +123,7 @@ export class LanguageServerManager implements ILanguageServerManager {
 
     const { sessions, uris } = msg.content.data as SCHEMA.ServersResponse;
     this._rootUri = uris.root;
-    this._virtualDocumentUri = uris.virtual_documents;
+    this._virtualDocumentsUri = uris.virtual_documents;
     this._sessions = new Map(Object.entries(sessions));
     this._sessionsChanged.emit(void 0);
     this._kernelReady.resolve(void 0);

@@ -139,7 +139,8 @@ describe('Feature', () => {
 
       beforeEach(() => {
         environment = new FileEditorFeatureTestEnvironment();
-        connection = environment.create_dummy_connection();
+        (environment.language_server_manager as any)._rootUri = 'file://';
+        connection = environment.create_dummy_connection(null, 'file://');
 
         feature = init_feature(environment);
         adapter = init_adapter(environment, feature);

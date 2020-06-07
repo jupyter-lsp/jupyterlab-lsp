@@ -91,13 +91,16 @@ export abstract class FeatureTestEnvironment
     feature.is_registered = false;
   }
 
-  public create_dummy_connection(comm?: CommHandler) {
+  public create_dummy_connection(comm?: CommHandler, rootUri?: string) {
     if (comm == null) {
       comm = new MockComm('mock-target', UUID.uuid4(), null, () => {
         // empty dispose
       });
     }
-    return new CommLSPConnection({ comm, rootUri: 'file:///unit-test' });
+    return new CommLSPConnection({
+      comm,
+      rootUri: rootUri || 'file:///unit-test',
+    });
   }
 
   public create_dummy_components(): IJupyterLabComponentsManager {
