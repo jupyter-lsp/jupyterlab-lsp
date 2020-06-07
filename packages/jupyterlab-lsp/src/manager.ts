@@ -1,3 +1,4 @@
+import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 
 import { PageConfig, URLExt } from '@jupyterlab/coreutils';
@@ -31,6 +32,7 @@ export class LanguageServerManager implements ILanguageServerManager {
   private _baseUrl: string;
   private _serviceManager: ServiceManager;
   private _kernelSessionConnection: ISessionConnection;
+  private _kernelReady = new PromiseDelegate<void>();
 
   constructor(options: ILanguageServerManager.IOptions) {
     this._baseUrl = options.baseUrl || PageConfig.getBaseUrl();
@@ -63,7 +65,9 @@ export class LanguageServerManager implements ILanguageServerManager {
     return comm;
   }
 
-  getServerId(options: ILanguageServerManager.IGetServerIdOptions) {
+  async getServerId(options: ILanguageServerManager.IGetServerIdOptions) {
+    await this._kernelReady.promise;
+
     // most things speak language
     for (const [key, session] of this._sessions.entries()) {
       if (options.language) {
@@ -113,12 +117,14 @@ export class LanguageServerManager implements ILanguageServerManager {
     const { sessions } = msg.content.data as SCHEMA.ServersResponse;
     this._sessions = new Map(Object.entries(sessions));
     this._sessionsChanged.emit(void 0);
-    console.warn(this._sessions);
+    this._kernelReady.resolve(void 0);
   }
 
   protected async makeLanguageServerComm(
     language_server_id: TLanguageServerId
   ) {
+    await this._kernelReady.promise;
+
     const comm = this._kernelSessionConnection.kernel.createComm(
       LANGUAGE_SERVER_COMM_TARGET
     );

@@ -18,7 +18,7 @@ export interface ILanguageServerManager {
   sessions: TSessionMap;
   getServerId(
     options: ILanguageServerManager.IGetServerIdOptions
-  ): TLanguageServerId;
+  ): Promise<TLanguageServerId>;
   getComm(languageServerId: TLanguageServerId): Promise<IComm>;
   statusUrl: string;
 }

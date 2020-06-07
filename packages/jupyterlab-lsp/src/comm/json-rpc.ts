@@ -59,15 +59,15 @@ export class CommRPC implements ICommRPC {
     params: ICommRPC.TRPCParams,
     options?: ICommRPC.ICommunicateOptions
   ): Promise<T> {
-    const id = this.getNextId();
     const delegate = new PromiseDelegate<T>();
     const noWait = options?.noWait === true;
 
-    if (!noWait) {
-      this._responsePromises.set(id, delegate);
-    }
+    let msg: any = { jsonrpc: this._jsonrpc, method, params };
 
-    const msg = { jsonrpc: this._jsonrpc, id, method, params };
+    if (!noWait) {
+      msg.id = this.getNextId();
+      this._responsePromises.set(msg.id, delegate);
+    }
 
     this.comm.send(msg, null, null, true);
 
@@ -115,8 +115,12 @@ export class CommRPC implements ICommRPC {
    * Resolve a previously-requested method, or notify on the appropriate signal
    */
   protected handleMessage(msg: ICommRPC.IIRPCCommMsg) {
-    const { result, id, params, method } = msg.content
+    const { result, id, params, method, error } = msg.content
       .data as ICommRPC.TRPCData;
+
+    if (error) {
+      console.warn(error);
+    }
 
     if (result != null) {
       const promise = this._responsePromises.get(id);

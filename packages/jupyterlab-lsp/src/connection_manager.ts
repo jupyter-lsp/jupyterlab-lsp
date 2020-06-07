@@ -129,7 +129,7 @@ export class DocumentConnectionManager {
       language
     );
 
-    const language_server_id = this.language_server_manager.getServerId({
+    const language_server_id = await this.language_server_manager.getServerId({
       language,
     });
 
