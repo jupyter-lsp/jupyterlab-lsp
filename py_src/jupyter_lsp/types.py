@@ -204,7 +204,7 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
         [], help=("additional absolute paths to seek node_modules first")
     ).tag(config=True)
 
-    def get_status_response(self):
+    def get_status_response(self): # pragma: no cover
         raise NotImplementedError()
 
     def find_node_module(self, *path_frag):
