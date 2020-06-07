@@ -2,6 +2,7 @@
 """
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Dict, Text
 
@@ -10,6 +11,8 @@ from ipykernel.ipkernel import IPythonKernel
 from ipykernel.kernelapp import IPKernelApp
 
 from .._version import __version__
+from ..paths import normalized_uri
+from ..virtual_documents_shadow import setup_shadow_filesystem
 from .manager import CommLanguageServerManager
 
 __all__ = ["LanguageServerKernel"]
@@ -40,6 +43,10 @@ class LanguageServerKernel(IPythonKernel):
             "text": "Language Server Protocol",
             "url": "https://microsoft.github.io/language-server-protocol/",
         },
+        {
+            "text": "Jupyter LSP Documentation",
+            "url": "https://jupyterlab-lsp.readthedocs.io",
+        },
     ]
 
     language_server_manager = traitlets.Instance(CommLanguageServerManager)
@@ -53,8 +60,12 @@ class LanguageServerKernel(IPythonKernel):
         super().__init__(**kwargs)
         if self.log is None:
             self.log = logging.getLogger(__name__)
-        self.log.error("Initializing Language Server Manager...")
+        self.log.info("Initializing Language Server Manager...")
         self.language_server_manager.initialize()
+
+        root_uri = normalized_uri(os.getcwd())
+        virtual_documents_uri = root_uri + "/.virtual_documents"
+        setup_shadow_filesystem(virtual_documents_uri=virtual_documents_uri)
 
 
 def launch():  # pragma: no cover

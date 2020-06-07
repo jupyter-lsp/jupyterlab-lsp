@@ -7,7 +7,8 @@ import traitlets
 from .handlers import add_handlers
 from .manager import LanguageServerManager
 from .paths import normalized_uri
-from .virtual_documents_shadow import setup_shadow_filesystem
+
+# from .virtual_documents_shadow import setup_shadow_filesystem
 
 
 def load_jupyter_server_extension(nbapp):
@@ -45,4 +46,4 @@ def load_jupyter_server_extension(nbapp):
         )
     )
 
-    setup_shadow_filesystem(virtual_documents_uri=virtual_documents_uri)
+    # setup_shadow_filesystem(virtual_documents_uri=virtual_documents_uri)

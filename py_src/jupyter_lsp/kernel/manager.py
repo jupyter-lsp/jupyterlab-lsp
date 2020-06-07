@@ -42,7 +42,7 @@ class CommLanguageServerManager(LanguageServerManager):
             "LanguageServerManager"
         )
         traits = self.trait_names()
-        for key, value in (from_config or {}).items(): # pragma: no cover
+        for key, value in (from_config or {}).items():  # pragma: no cover
             if key in traits:
                 setattr(self, key, value)
 
