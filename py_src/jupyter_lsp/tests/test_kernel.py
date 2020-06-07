@@ -32,9 +32,8 @@ def test_kernel_install(
 
 
 @pytest.mark.asyncio
-def test_kernel_manager_control_comm(handlers, mock_comm):
-    handler, ws_handler = handlers
-    manager = handler.manager
+def test_kernel_manager_control_comm(lsp_handler, mock_comm):
+    manager = lsp_handler.manager
     if not isinstance(manager, CommLanguageServerManager):
         return
     manager.initialize()
@@ -43,9 +42,8 @@ def test_kernel_manager_control_comm(handlers, mock_comm):
 
 
 @pytest.mark.asyncio
-def test_kernel_manager_server_comm(handlers, mock_comm):
-    handler, ws_handler = handlers
-    manager = handler.manager
+def test_kernel_manager_server_comm(lsp_handler, mock_comm):
+    manager = lsp_handler.manager
     if not isinstance(manager, CommLanguageServerManager):
         return
     manager.initialize()

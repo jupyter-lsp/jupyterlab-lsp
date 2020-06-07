@@ -10,20 +10,18 @@ from jupyter_lsp import lsp_message_listener
 
 @pytest.mark.parametrize("bad_string", ["not-a-function", "jupyter_lsp.__version__"])
 @pytest.mark.asyncio
-async def test_listener_bad_traitlets(bad_string, handlers):
-    handler, ws_handler = handlers
-    manager = handler.manager
+async def test_listener_bad_traitlets(bad_string, lsp_handler):
+    manager = lsp_handler.manager
 
     with pytest.raises(traitlets.TraitError):
         manager.all_listeners = [bad_string]
 
 
 @pytest.mark.asyncio
-async def test_listeners(known_server, handlers, jsonrpc_init_msg):
+async def test_listeners(known_server, lsp_handler, jsonrpc_init_msg):
     """ will some listeners listen?
     """
-    handler, ws_handler = handlers
-    manager = handler.manager
+    manager = lsp_handler.manager
 
     manager.all_listeners = ["jupyter_lsp.tests.listener.dummy_listener"]
 
@@ -80,9 +78,9 @@ async def test_listeners(known_server, handlers, jsonrpc_init_msg):
     assert len(manager._listeners["client"]) == 2
     assert len(manager._listeners["all"]) == 2
 
-    ws_handler.open(known_server)
+    lsp_handler.open(known_server)
 
-    await ws_handler.on_message(jsonrpc_init_msg)
+    await lsp_handler.on_message(jsonrpc_init_msg)
 
     results = await asyncio.wait_for(
         asyncio.gather(
@@ -96,7 +94,7 @@ async def test_listeners(known_server, handlers, jsonrpc_init_msg):
     )
     assert all([isinstance(res, dict) for res in results])
 
-    ws_handler.on_close()
+    lsp_handler.on_close()
 
     handler_listened.task_done()
     server_listened.task_done()

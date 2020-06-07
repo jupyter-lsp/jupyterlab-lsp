@@ -8,7 +8,6 @@ from tornado.queues import Queue
 
 # local imports
 from jupyter_lsp import LanguageServerManager
-from jupyter_lsp.handlers import LanguageServersHandler, LanguageServerWebSocketHandler
 from jupyter_lsp.kernel.handlers import CommHandler
 from jupyter_lsp.kernel.kernel import LanguageServerKernel
 from jupyter_lsp.kernel.manager import CommLanguageServerManager
@@ -56,18 +55,12 @@ def known_unknown_server(request):
 
 
 @fixture
-def handlers(manager):
-    if isinstance(manager, CommLanguageServerManager):
-        ws_handler = MockCommHandler()
-        ws_handler.comm = MockComm()
-    else:
-        ws_handler = MockWebsocketHandler()
-    ws_handler.initialize(manager)
-
-    handler = MockHandler()
+def lsp_handler(manager):
+    handler = MockCommHandler()
+    handler.comm = MockComm()
     handler.initialize(manager)
 
-    return handler, ws_handler
+    return handler
 
 
 @fixture
@@ -106,26 +99,7 @@ class MockClientMixin:
         self._messages_wrote.put_nowait(message)
 
 
-class MockWebsocketHandler(MockClientMixin, LanguageServerWebSocketHandler):
-    def __init__(self):
-        pass
-
-
 class MockCommHandler(MockClientMixin, CommHandler):
-    pass
-
-
-class MockHandler(LanguageServersHandler):
-    _payload = None
-
-    def __init__(self):
-        pass
-
-    def finish(self, payload):
-        self._payload = payload
-
-
-class MockNotebookApp(NotebookApp):
     pass
 
 

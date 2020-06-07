@@ -204,6 +204,9 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
         [], help=("additional absolute paths to seek node_modules first")
     ).tag(config=True)
 
+    def get_status_response(self):
+        raise NotImplementedError()
+
     def find_node_module(self, *path_frag):
         """ look through the node_module roots to find the given node module
         """
@@ -236,7 +239,7 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
     def _default_node_roots(self):
         """ get the "usual suspects" for where `node_modules` may be found
 
-        - where this was launch (usually the same as NotebookApp.notebook_dir)
+        - where the parent was launched
         - the JupyterLab staging folder (if available)
         - wherever conda puts it
         - wherever some other conventions put it

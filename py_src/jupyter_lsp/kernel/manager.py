@@ -1,13 +1,14 @@
 import os
 
 from jupyter_core.paths import jupyter_config_path
+
 # this is the last remaining import of notebook... would be lovely to remove
 from notebook.services.config import ConfigManager
 from traitlets import Instance, Unicode, default
 
 from ..manager import LanguageServerManager
 from ..paths import normalized_uri
-from ..schema import SERVERS_RESPONSE
+from ..schema import SERVERS_RESPONSE, SPEC_VERSION
 from ..virtual_documents_shadow import setup_shadow_filesystem
 from .handlers import CommHandler
 
@@ -76,9 +77,9 @@ class CommLanguageServerManager(LanguageServerManager):
     def on_control_comm_opened(self, comm, comm_msg):
         self.send_status(comm)
 
-    def send_status(self, comm):
+    def get_status_response():
         response = {
-            "version": 2,
+            "version": SPEC_VERSION,
             "sessions": {
                 language_server: session.to_json()
                 for language_server, session in self.sessions.items()
@@ -94,7 +95,10 @@ class CommLanguageServerManager(LanguageServerManager):
         if errors:  # pragma: no cover
             self.log.warn("{} validation errors: {}", len(errors), errors)
 
-        comm.send(response)
+        return response
+
+    def send_status(self, comm):
+        comm.send(self.get_status_response())
 
     def on_language_server_comm_opened(self, comm, comm_msg):
         language_server = comm_msg["metadata"]["language_server"]
