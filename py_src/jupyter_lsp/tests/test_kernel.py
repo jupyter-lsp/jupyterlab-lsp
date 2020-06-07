@@ -3,7 +3,6 @@ import json
 import pytest
 
 from jupyter_lsp.kernel.install import DISPLAY_NAME, KERNEL_NAME
-from jupyter_lsp.kernel.manager import CommLanguageServerManager
 from jupyter_lsp.lspapp import LSPKernelSpecInstallApp
 
 CUSTOM_NAME = "custom-ilsp-2"
@@ -34,8 +33,6 @@ def test_kernel_install(
 @pytest.mark.asyncio
 def test_kernel_manager_control_comm(lsp_handler, mock_comm):
     manager = lsp_handler.manager
-    if not isinstance(manager, CommLanguageServerManager):
-        return
     manager.initialize()
     manager.on_control_comm_opened(mock_comm, None)
     assert mock_comm._sent
@@ -44,8 +41,6 @@ def test_kernel_manager_control_comm(lsp_handler, mock_comm):
 @pytest.mark.asyncio
 def test_kernel_manager_server_comm(lsp_handler, mock_comm):
     manager = lsp_handler.manager
-    if not isinstance(manager, CommLanguageServerManager):
-        return
     manager.initialize()
     manager.on_language_server_comm_opened(
         mock_comm, dict(metadata=dict(language_server="pyls"))
