@@ -13,13 +13,13 @@ async def test_start_known(known_server, lsp_handler, jsonrpc_init_msg):
 
     manager.initialize()
 
-    assert_status_set(handler, {"not_started"})
+    assert_status_set(manager, {"not_started"})
 
     lsp_handler.open(known_server)
     session = manager.sessions[lsp_handler.language_server]
     assert session.process is not None
 
-    assert_status_set(handler, {"started"}, known_server)
+    assert_status_set(manager, {"started"}, known_server)
 
     await lsp_handler.on_message(jsonrpc_init_msg)
 
@@ -32,8 +32,8 @@ async def test_start_known(known_server, lsp_handler, jsonrpc_init_msg):
     assert not session.handlers
     assert not session.process
 
-    assert_status_set(handler, {"stopped"}, known_server)
-    assert_status_set(handler, {"stopped", "not_started"})
+    assert_status_set(manager, {"stopped"}, known_server)
+    assert_status_set(manager, {"stopped", "not_started"})
 
 
 @pytest.mark.asyncio

@@ -7,7 +7,6 @@ from pytest import fixture
 from tornado.queues import Queue
 
 # local imports
-from jupyter_lsp import LanguageServerManager
 from jupyter_lsp.kernel.handlers import CommHandler
 from jupyter_lsp.kernel.kernel import LanguageServerKernel
 from jupyter_lsp.kernel.manager import CommLanguageServerManager

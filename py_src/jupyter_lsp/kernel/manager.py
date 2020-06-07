@@ -77,7 +77,7 @@ class CommLanguageServerManager(LanguageServerManager):
     def on_control_comm_opened(self, comm, comm_msg):
         self.send_status(comm)
 
-    def get_status_response():
+    def get_status_response(self):
         response = {
             "version": SPEC_VERSION,
             "sessions": {
