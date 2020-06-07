@@ -1,5 +1,35 @@
 ## CHANGELOG
 
+
+### `@krassowski/jupyterlab-lsp 2.0.0` (unreleased)
+
+- features
+
+  - replaces use of custom WebSockets and REST API with Jupyter Kernel Comms
+  - substantially reduced total install size (1.5mb -> ???kb)
+
+- dependencies
+
+  - removes run-time dependencies
+    - `krassowski/lsp-ws-connection`
+    - `event-emitter`
+    - `vscode-language-server-protocol` and friends
+
+
+### `jupyter-lsp 1.0.0` (unreleased)
+
+- features
+
+  - replaces the former server extension with a Language Server Kernel
+  - adds `jupyter lsp` CLI target for
+    - installing the kernelspec
+
+### `@krassowski/jupyterlab_go_to_definition 2.0.0` (unreleased)
+
+- dependencies
+
+  - supports JupyterLab 2.0
+
 ### `@krassowski/jupyterlab-lsp 1.0.1` (unreleased)
 
 - bug fixes

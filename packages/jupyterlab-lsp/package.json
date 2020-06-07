@@ -1,6 +1,6 @@
 {
   "name": "@krassowski/jupyterlab-lsp",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Language Server Protocol integration for JupyterLab",
   "keywords": [
     "jupyter",
@@ -36,7 +36,7 @@
     "test": "jlpm jest --coverage --coverageReporters=cobertura --coverageReporters=html --coverageReporters=text-summary"
   },
   "dependencies": {
-    "@krassowski/jupyterlab_go_to_definition": "~1.0.0"
+    "@krassowski/jupyterlab_go_to_definition": "~2.0.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.4.3",

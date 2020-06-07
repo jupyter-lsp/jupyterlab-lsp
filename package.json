@@ -37,7 +37,6 @@
     "build": "jlpm build:schema && jlpm build:meta && jlpm build:ws",
     "build:schema": "lerna run build:schema --stream",
     "build:meta": "lerna run build --stream --scope @krassowski/jupyterlab-lsp-metapackage",
-    "build:ws": "lerna run build --stream --scope lsp-ws-connection",
     "watch": "lerna run --parallel watch",
     "bundle": "lerna run --parallel bundle",
     "clean": "lerna run --parallel clean",

@@ -1,6 +1,6 @@
 {
   "name": "@krassowski/jupyterlab_go_to_definition",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Jump to definition of a variable or function in JupyterLab",
   "keywords": [
     "jupyter",
