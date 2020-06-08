@@ -20,7 +20,7 @@ def test_kernel_install(
     kernel_name, display_name, expect_kernel_name, expect_display_name, tmp_path
 ):
     app = LSPKernelSpecInstallApp(
-        prefix=tmp_path, kernel_name=kernel_name, display_name=display_name
+        prefix=str(tmp_path), kernel_name=kernel_name, display_name=display_name
     )
     app.start()
     spec = tmp_path / "share/jupyter/kernels/{}/kernel.json".format(expect_kernel_name)

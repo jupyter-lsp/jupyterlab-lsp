@@ -1,16 +1,14 @@
 import sys
-from pathlib import Path
 from typing import Any
 
-from traitlets import Bool, Instance, Unicode, Union
+from traitlets import Bool, Unicode
 from traitlets.config import Application
 
 
 class LSPKernelSpecInstallApp(Application):
     description = """Install the kernelspec"""
 
-    prefix = Union(
-        [Unicode(), Instance(Path)],
+    prefix = Unicode(
         default_value=None,
         help="Install into given path prefix",
         config=True,
