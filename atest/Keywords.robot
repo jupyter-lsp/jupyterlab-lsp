@@ -6,6 +6,7 @@ Library           Process
 Library           String
 Library           Collections
 Library           ./ports.py
+Library           ./config.py
 
 *** Keywords ***
 Setup Server and Browser
@@ -19,7 +20,7 @@ Setup Server and Browser
     ${home} =    Set Variable    ${OUTPUT DIR}${/}home
     ${root} =    Normalize Path    ${OUTPUT DIR}${/}..${/}..${/}..
     Create Directory    ${home}
-    Create Notebok Server Config    ${home}
+    Initialize Server Config    ${home}    ${root}
     Initialize User Settings
     ${cmd} =    Create Lab Launch Command    ${root}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots
@@ -41,17 +42,6 @@ Create Lab Launch Command
     ${ext args} =    Set Variable    --LanguageServerManager.extra_node_roots\="['${root.replace('\\', '\\\\')}']"
     ${cmd} =    Set Variable    jupyter-lab ${app args} ${path args} ${ext args}
     [Return]    ${cmd}
-
-Create Notebok Server Config
-    [Arguments]    ${home}
-    [Documentation]    Copies in notebook server config file to disables npm/build checks
-    ${json} =    Get File    ${FIXTURES}${/}${NBSERVER CONF}
-    ${conf} =    Evaluate    __import__("json").loads('''${json}''')
-    ${norm root} =    Normalize Path    ${ROOT}
-    ${lsm} =    Evaluate    dict(extra_node_roots=['''${norm root}'''])
-    Set To Dictionary    ${conf}    LanguageServerManager=${lsm}
-    ${json} =    Evaluate    __import__("json").dumps(${conf})
-    Create File    ${home}${/}${NBSERVER CONF}    ${json}
 
 Setup Suite For Screenshots
     [Arguments]    ${folder}
