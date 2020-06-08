@@ -47,7 +47,8 @@ Create Notebok Server Config
     [Documentation]    Copies in notebook server config file to disables npm/build checks
     ${json} =    Get File    ${FIXTURES}${/}${NBSERVER CONF}
     ${conf} =    Evaluate    __import__("json").loads('''${json}''')
-    ${lsm} =    Evaluate    dict(extra_node_roots=['''${ROOT}'''])
+    ${norm root} =    Normalize Path    ${ROOT}
+    ${lsm} =    Evaluate    dict(extra_node_roots=['''${norm root}'''])
     Set To Dictionary    ${conf}    LanguageServerManager=${lsm}
     ${json} =    Evaluate    __import__("json").dumps(${conf})
     Create File    ${home}${/}${NBSERVER CONF}    ${json}
@@ -245,7 +246,7 @@ Place Cursor In Cell Editor At
     Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
 
 Wait Until Fully Initialized
-    Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=60s
+    Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=30s
 
 Open Context Menu Over
     [Arguments]    ${sel}
