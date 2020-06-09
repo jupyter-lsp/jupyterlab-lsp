@@ -154,7 +154,7 @@ export class LanguageServerManager implements ILanguageServerManager {
     await this._kernelReady.promise;
 
     const session = this._sessions.get(language_server_id);
-    let commId = session.comm_ids?.length ? session.comm_ids[0] : null;
+    let commId = session.comm_ids.length ? session.comm_ids[0] : null;
 
     const comm = this.kernel.createComm(
       LANGUAGE_SERVER_COMM_TARGET,
