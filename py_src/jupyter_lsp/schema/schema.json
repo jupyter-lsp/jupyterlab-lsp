@@ -203,7 +203,7 @@
         },
         "last_handler_message_at": {
           "$ref": "#/definitions/nullable-date-time",
-          "description": "date-time of last seen message from a WebSocket handler"
+          "description": "date-time of last seen message from a handler"
         },
         "last_server_message_at": {
           "$ref": "#/definitions/nullable-date-time",
@@ -219,7 +219,7 @@
         }
       },
       "required": [
-        "handler_count",
+        "comm_ids",
         "status",
         "last_server_message_at",
         "last_handler_message_at",
