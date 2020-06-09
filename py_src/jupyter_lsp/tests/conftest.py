@@ -1,6 +1,7 @@
 import json
 import pathlib
 import shutil
+import uuid
 from typing import Any, Text
 
 from pytest import fixture
@@ -107,6 +108,9 @@ class MockKernel(LanguageServerKernel):
 
 
 class MockComm:
+    def __init__(self):
+        self.comm_id = str(uuid.uuid4())
+
     def on_msg(self, fn):
         self._fn = fn
 

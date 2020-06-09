@@ -12,7 +12,6 @@ jlpm bootstrap
 
 # link all pieces to lab (no build)
 jlpm lab:link
-jupyter labextension install --no-build jupyterlab-kernelspy
 
 # list extensions before build
 jupyter labextension list

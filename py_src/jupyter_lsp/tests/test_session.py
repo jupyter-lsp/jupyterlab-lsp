@@ -62,7 +62,7 @@ def assert_status_set(manager, expected_statuses, language_server=None):
     payload = manager.get_status_response()
 
     errors = list(SERVERS_RESPONSE.iter_errors(payload))
-    assert not errors
+    assert not errors, [err.path for err in errors]
 
     statuses = {
         session["status"]
