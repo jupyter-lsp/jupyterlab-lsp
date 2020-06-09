@@ -75,7 +75,12 @@ class CommLanguageServerManager(LanguageServerManager):
         )
 
     def on_control_comm_opened(self, comm, comm_msg):
-        self.send_status(comm)
+        def on_msg(comm_msg):
+            # nb: other message types, a la stop from #255
+            self.send_status(comm)
+
+        comm.on_msg(on_msg)
+        on_msg(comm_msg)
 
     def get_status_response(self):
         response = {

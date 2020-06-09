@@ -194,11 +194,12 @@
       "additionalProperties": false,
       "description": "a language server session",
       "properties": {
-        "handler_count": {
-          "description": "the count of currently-connected WebSocket handlers",
-          "minValue": 0,
-          "title": "handler count",
-          "type": "integer"
+        "comm_ids": {
+          "description": "the currently-connected comms",
+          "items": {
+            "type": "string"
+          },
+          "title": "comm ids"
         },
         "last_handler_message_at": {
           "$ref": "#/definitions/nullable-date-time",

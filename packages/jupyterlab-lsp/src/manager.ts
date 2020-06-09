@@ -51,6 +51,10 @@ export class LanguageServerManager implements ILanguageServerManager {
     return this._kernelReady.promise;
   }
 
+  protected get kernel() {
+    return this._kernelSessionConnection.kernel;
+  }
+
   async getComm(language_server_id: TLanguageServerId): Promise<IComm> {
     let comm = this._comms.get(language_server_id);
 
@@ -59,7 +63,7 @@ export class LanguageServerManager implements ILanguageServerManager {
     }
 
     // nb: check sessions first?
-    comm = await this.makeLanguageServerComm(language_server_id);
+    comm = await this.getLanguageServerComm(language_server_id);
     this._comms.set(language_server_id, comm);
     return comm;
   }
@@ -101,26 +105,43 @@ export class LanguageServerManager implements ILanguageServerManager {
       return;
     }
 
-    this._controlComm = await this.makeControlComm();
+    this._controlComm = await this.getControlComm();
   }
 
-  protected async makeControlComm() {
-    const comm = this._kernelSessionConnection.kernel.createComm(
-      CONTROL_COMM_TARGET
+  /**
+   * Get (or create) the control comm
+   */
+  protected async getControlComm() {
+    const commInfo = await this.kernel.requestCommInfo({
+      target_name: CONTROL_COMM_TARGET,
+    });
+
+    let commId: string;
+
+    if (commInfo.content.status === 'ok') {
+      const commIds = Object.keys(commInfo.content.comms);
+      commId = commIds.length ? commIds[0] : null;
+    }
+
+    const comm = this.kernel.createComm(
+      CONTROL_COMM_TARGET,
+      ...(commId == null ? [] : [commId])
     );
 
     comm.onMsg = this.onControlCommMsg.bind(this);
 
-    // nb: do something here? negotiate schema version?
-    comm.open({});
-    console.warn('control comm opened', comm);
+    if (commId == null) {
+      // nb: do something here? negotiate schema version?
+      comm.open({});
+    } else {
+      comm.send({});
+    }
+
     // nb: should we await something?
     return comm;
   }
 
-  async onControlCommMsg(msg: KernelMessage.ICommMsgMsg) {
-    console.warn('got control message', this._controlComm, msg);
-
+  protected async onControlCommMsg(msg: KernelMessage.ICommMsgMsg) {
     const { sessions, uris } = msg.content.data as SCHEMA.ServersResponse;
     this._rootUri = uris.root;
     this._virtualDocumentsUri = uris.virtual_documents;
@@ -129,13 +150,15 @@ export class LanguageServerManager implements ILanguageServerManager {
     this._kernelReady.resolve(void 0);
   }
 
-  protected async makeLanguageServerComm(
-    language_server_id: TLanguageServerId
-  ) {
+  protected async getLanguageServerComm(language_server_id: TLanguageServerId) {
     await this._kernelReady.promise;
 
-    const comm = this._kernelSessionConnection.kernel.createComm(
-      LANGUAGE_SERVER_COMM_TARGET
+    const session = this._sessions.get(language_server_id);
+    let commId = session.comm_ids?.length ? session.comm_ids[0] : null;
+
+    const comm = this.kernel.createComm(
+      LANGUAGE_SERVER_COMM_TARGET,
+      ...(commId == null ? [] : [commId])
     );
 
     this._comms.set(language_server_id, comm);
@@ -144,9 +167,10 @@ export class LanguageServerManager implements ILanguageServerManager {
       console.warn('unitialized comm', comm, msg.content.data);
     };
 
-    comm.open({}, { language_server: language_server_id });
+    if (commId == null) {
+      comm.open({}, { language_server: language_server_id });
+    }
 
-    console.warn('opened comm for', language_server_id);
     return comm;
   }
 

@@ -67,7 +67,7 @@ class LanguageServerSession(LoggingConfigurable):
 
     def to_json(self):
         return dict(
-            handler_count=len(self.handlers),
+            comm_ids=[handler.comm.comm_id for handler in self.handlers],
             status=self.status.value,
             last_server_message_at=self.last_server_message_at.isoformat()
             if self.last_server_message_at

@@ -125,7 +125,13 @@ export class CommRPC implements ICommRPC {
     if (result != null) {
       const promise = this._responsePromises.get(id);
       if (promise == null) {
-        console.warn('unexpected comm response', result, id, params);
+        console.warn(
+          'unexpected comm response',
+          result,
+          id,
+          params,
+          this.comm.commId
+        );
         return;
       }
       promise.resolve(result);
