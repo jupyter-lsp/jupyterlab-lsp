@@ -190,7 +190,7 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider
         usagesBeforeTarget += 1;
       }
 
-      let nextSibling = sibling.previousSibling;
+      let nextSibling = sibling.previousSibling as Node;
 
       while (nextSibling == null) {
         while (!sibling.previousSibling) {
