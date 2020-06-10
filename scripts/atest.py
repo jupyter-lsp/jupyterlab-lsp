@@ -22,6 +22,12 @@ OS_PY_ARGS = {
     # ("Windows", "38"): ["--include", "not-supported", "--runemptysuite"]
 }
 
+NON_CRITICAL = [
+    # TODO: restore when yaml-language-server supports both config and...
+    # everything else: https://github.com/krassowski/jupyterlab-lsp/pull/245
+    ["language:yaml", "feature:config"]
+]
+
 
 def get_stem(attempt, extra_args):
     stem = "_".join([OS, PY, str(attempt)]).replace(".", "_").lower()
@@ -38,6 +44,9 @@ def atest(attempt, extra_args):
     extra_args += OS_PY_ARGS.get((OS, PY), [])
 
     stem = get_stem(attempt, extra_args)
+
+    for non_critical in NON_CRITICAL:
+        extra_args += ["--noncritical", "AND".join(non_critical)]
 
     if attempt != 1:
         previous = OUT / f"{get_stem(attempt - 1, extra_args)}.robot.xml"
@@ -57,6 +66,7 @@ def atest(attempt, extra_args):
         OUT / f"{stem}.log.html",
         "--report",
         OUT / f"{stem}.report.html",
+        "--xunitskipnoncritical",
         "--xunit",
         OUT / f"{stem}.xunit.xml",
         "--variable",
