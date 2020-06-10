@@ -9,7 +9,7 @@ export function matchToken(
   tokenType = 'variable'
 ): CodeEditor.IToken {
   let matchedTokens = tokens.filter(
-    token => token.value === tokenName && token.type === tokenType
+    (token) => token.value === tokenName && token.type === tokenType
   );
   return matchedTokens[tokenOccurrence - 1];
 }

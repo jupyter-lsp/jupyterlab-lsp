@@ -3,7 +3,7 @@ const path = require('path');
 module.exports = {
   mode: 'production',
   entry: {
-    index: './lib/index.js'
+    index: './lib/index.js',
   },
   devtool: 'sourcemap',
   module: {
@@ -13,22 +13,22 @@ module.exports = {
         use: ['source-map-loader'],
         enforce: 'pre',
         // eslint-disable-next-line no-undef
-        exclude: /node_modules/
+        exclude: /node_modules/,
       },
-      { test: /\.js.map$/, use: 'file-loader' }
-    ]
+      { test: /\.js.map$/, use: 'file-loader' },
+    ],
   },
   resolve: {
-    extensions: ['.js']
+    extensions: ['.js'],
   },
   target: 'web',
   node: {
-    net: 'mock'
+    net: 'mock',
   },
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
     library: 'lsp-ws-connection',
-    libraryTarget: 'umd'
-  }
+    libraryTarget: 'umd',
+  },
 };

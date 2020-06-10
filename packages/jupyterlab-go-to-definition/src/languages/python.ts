@@ -101,7 +101,7 @@ export class PythonAnalyzer extends LanguageWithOptionalSemicolons {
     this.isForLoopOrComprehension,
     this.isTupleUnpacking,
     this.isStoreMagic,
-    this.isRMagicOutput
+    this.isRMagicOutput,
   ];
 
   // Matching standalone variable assignment:
@@ -124,7 +124,7 @@ export class PythonAnalyzer extends LanguageWithOptionalSemicolons {
 
     return {
       is_switch: is_switch,
-      switch: is_switch ? candidate : null
+      switch: is_switch ? candidate : null,
     };
   }
 

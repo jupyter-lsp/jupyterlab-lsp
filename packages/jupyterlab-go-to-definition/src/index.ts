@@ -1,6 +1,6 @@
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
 import { INotebookTracker } from '@jupyterlab/notebook';
@@ -25,7 +25,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     INotebookTracker,
     ISettingRegistry,
     ICommandPalette,
-    IDocumentManager
+    IDocumentManager,
   ],
   activate: (
     app: JupyterFrontEnd,
@@ -61,7 +61,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       // more reasonable thing would be to create a PR with .onAddCell
       setTimeout(() => {
         // now (notebook.widgets.length is likely > 1)
-        notebook.widgets.every(cell => {
+        notebook.widgets.every((cell) => {
           let codemirror_editor = cell.editor as CodeMirrorEditor;
           let extension = new CodeMirrorExtension(codemirror_editor, jumper);
 
@@ -86,7 +86,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     function updateOptions(settings: ISettingRegistry.ISettings): void {
       let options = settings.composite;
-      Object.keys(options).forEach(key => {
+      Object.keys(options).forEach((key) => {
         if (key === 'modifier') {
           let modifier = options[key] as KeyModifier;
           CodeMirrorExtension.modifierKey = modifier;
@@ -96,7 +96,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     settingRegistry
       .load(plugin.id)
-      .then(settings => {
+      .then((settings) => {
         updateOptions(settings);
         settings.changed.connect(() => {
           updateOptions(settings);
@@ -111,25 +111,25 @@ const plugin: JupyterFrontEndPlugin<void> = {
       jumpNotebook: 'go-to-definition:notebook',
       jumpFileEditor: 'go-to-definition:file-editor',
       jumpBackNotebook: 'go-to-definition:notebook-back',
-      jumpBackFileEditor: 'go-to-definition:file-editor-back'
+      jumpBackFileEditor: 'go-to-definition:file-editor-back',
     };
 
     // Add the command to the palette.
     palette.addItem({
       command: cmdIds.jumpNotebook,
-      category: 'Notebook Cell Operations'
+      category: 'Notebook Cell Operations',
     });
     palette.addItem({
       command: cmdIds.jumpBackNotebook,
-      category: 'Notebook Cell Operations'
+      category: 'Notebook Cell Operations',
     });
     palette.addItem({
       command: cmdIds.jumpFileEditor,
-      category: 'Text Editor'
+      category: 'Text Editor',
     });
     palette.addItem({
       command: cmdIds.jumpBackFileEditor,
-      category: 'Text Editor'
+      category: 'Text Editor',
     });
 
     function isEnabled(tracker: any) {
@@ -156,7 +156,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
           notebook.activeCellIndex
         );
       },
-      isEnabled: isEnabled(notebookTracker)
+      isEnabled: isEnabled(notebookTracker),
     });
 
     app.commands.addCommand(cmdIds.jumpBackNotebook, {
@@ -167,7 +167,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
         let jumper = new NotebookJumper(notebook_widget, documentManager);
         jumper.jump_back();
       },
-      isEnabled: isEnabled(notebookTracker)
+      isEnabled: isEnabled(notebookTracker),
     });
 
     app.commands.addCommand(cmdIds.jumpFileEditor, {
@@ -184,7 +184,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
         jumper.jump_to_definition({ token, origin: null });
       },
-      isEnabled: isEnabled(fileEditorTracker)
+      isEnabled: isEnabled(fileEditorTracker),
     });
 
     app.commands.addCommand(cmdIds.jumpBackFileEditor, {
@@ -195,35 +195,35 @@ const plugin: JupyterFrontEndPlugin<void> = {
         let jumper = new FileEditorJumper(fileEditorWidget, documentManager);
         jumper.jump_back();
       },
-      isEnabled: isEnabled(fileEditorTracker)
+      isEnabled: isEnabled(fileEditorTracker),
     });
 
     const bindings = [
       {
         selector: '.jp-Notebook.jp-mod-editMode',
         keys: ['Ctrl Alt B'],
-        command: cmdIds.jumpNotebook
+        command: cmdIds.jumpNotebook,
       },
       {
         selector: '.jp-Notebook',
         keys: ['Alt O'],
-        command: cmdIds.jumpBackNotebook
+        command: cmdIds.jumpBackNotebook,
       },
       {
         selector: '.jp-FileEditor',
         keys: ['Ctrl Alt B'],
-        command: cmdIds.jumpFileEditor
+        command: cmdIds.jumpFileEditor,
       },
       {
         selector: '.jp-FileEditor',
         keys: ['Alt O'],
-        command: cmdIds.jumpBackFileEditor
-      }
+        command: cmdIds.jumpBackFileEditor,
+      },
     ];
 
-    bindings.map(binding => app.commands.addKeyBinding(binding));
+    bindings.map((binding) => app.commands.addKeyBinding(binding));
   },
-  autoStart: true
+  autoStart: true,
 };
 
 /**
