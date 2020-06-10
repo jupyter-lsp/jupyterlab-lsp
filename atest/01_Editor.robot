@@ -32,6 +32,9 @@ Less
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable-2')][contains(text(), '@width')])[last()]
     Editor Shows Features for Language    Less    example.less    Diagnostics=Do not use empty rulesets    Jump to Definition=${def}
 
+Markdown
+    Editor Shows Features for Language    Markdown    example.md    Diagnostics=`Color` is misspelt
+
 Python
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
     Editor Shows Features for Language    Python    example.py    Diagnostics=multiple spaces after keyword    Jump to Definition=${def}    Rename=${def}

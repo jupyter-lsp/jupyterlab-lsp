@@ -5,19 +5,26 @@ Force Tags        feature:config
 Resource          ./Keywords.robot
 
 *** Test Cases ***
-Pyls Configuration
+Python
     [Documentation]    pyflakes is enabled by default, but flake8 is not
     Settings Should Change Editor Diagnostics    Python    style.py    pyls
     ...    {"pyls": {"plugins": {"flake8": {"enabled": true},"pyflakes": {"enabled": false}}}}
     ...    undefined name 'foo' (pyflakes)
     ...    undefined name 'foo' (flake8)
 
-YAML Schema
+YAML
     [Documentation]    EXPECT FAIL Composer YAML files don't allow a "greetings" key
     Settings Should Change Editor Diagnostics    YAML    example.yaml    yaml-language-server
     ...    {"yaml.schemas": {"http://json.schemastore.org/composer": "*"}}
     ...    duplicate key
     ...    Property greetings is not allowed.
+
+Markdown
+    [Documentation]    different englishes spell colou?r differently
+    Settings Should Change Editor Diagnostics    Markdown    example.md    unified-language-server
+    ...    {"unified-language-server":{"remark-parse":{"plugins":[["#remark-retext","#parse-latin"],["#retext-spell","#dictionary-en"]]}}}
+    ...    `Color` is misspelt
+    ...    `Colour` is misspelt
 
 *** Keywords ***
 Clean Up After Working with File and Settings
@@ -27,8 +34,8 @@ Clean Up After Working with File and Settings
 
 Settings Should Change Editor Diagnostics
     [Arguments]    ${language}    ${file}    ${server}    ${settings}    ${before}    ${after}
-    ${before diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title="${before}"]
-    ${after diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title="${after}"]
+    ${before diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title^="${before}"]
+    ${after diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title^="${after}"]
     ${tab} =    Set Variable    ${JLAB XP DOCK TAB}\[contains(., '${file}')]
     ${close icon} =    Set Variable    *[contains(@class, 'm-TabBar-tabCloseIcon')]
     Prepare File for Editing    ${language}    config    ${file}

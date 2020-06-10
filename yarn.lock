@@ -4396,6 +4396,11 @@ dictionary-en-gb@^2.0.0:
   resolved "https://registry.yarnpkg.com/dictionary-en-gb/-/dictionary-en-gb-2.2.1.tgz#8ef21b484b0ce89cdebd60c1b2b65f56df9a475f"
   integrity sha512-kYhSoaD9yOaq/h14DyT/+hyjs5X96kFdnlmy582wr+hCOIRuv1hqAe9gWM+oUQAA1+MH8fAKzyAsTxS8ps/qsg==
 
+dictionary-en@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/dictionary-en/-/dictionary-en-3.0.0.tgz#c6cdb8cabbde09bd6a4a9349586548e58afff042"
+  integrity sha512-GHD7vLcjd3oB878zQ86iDhJLgrylt8U5H0+s8IBIMDW7EXQ+uRoDh27NawU/HMyc5amYaaoLQawwhAJX+TDQaw==
+
 diff-match-patch@^1.0.0:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/diff-match-patch/-/diff-match-patch-1.0.4.tgz#6ac4b55237463761c4daf0dc603eb869124744b1"
