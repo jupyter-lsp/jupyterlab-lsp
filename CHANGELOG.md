@@ -6,8 +6,10 @@
 
   - fixes currently-highlighted token in dark editor themes against light lab theme
     (and vice versa) ([#195][])
+  - restores sorting order-indicating caret icons in diagnostics panel table ([#261][])
 
 [#195]: https://github.com/krassowski/jupyterlab-lsp/issues/195
+[#261]: https://github.com/krassowski/jupyterlab-lsp/issues/261
 
 ### `@krassowski/jupyterlab-lsp 1.0.0` (2020-03-14)
 
