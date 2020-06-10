@@ -30,4 +30,4 @@ dependencies:
   - firefox
   - geckodriver
   - robotframework-seleniumlibrary
-  - robotframework <3.2
+  - robotframework >=3.2

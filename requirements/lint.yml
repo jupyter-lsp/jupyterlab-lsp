@@ -9,4 +9,4 @@ dependencies:
   - isort
   - mypy
   - robotframework-lint
-  - robotframework <3.2
+  - robotframework >=3.2
