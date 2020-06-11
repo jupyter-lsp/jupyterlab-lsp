@@ -13,7 +13,7 @@ import {
 /// <reference path="../../../node_modules/@types/events/index.d.ts"/>
 // this appears to break when @types/node is around
 // import { Listener } from 'events';
-import * as LSP from '../../comm/lsp-types';
+import * as LSP from '../../lsp';
 
 import { PositionConverter } from '../../converter';
 import * as CodeMirror from 'codemirror';

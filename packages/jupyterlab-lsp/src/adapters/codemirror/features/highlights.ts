@@ -1,5 +1,5 @@
 import * as CodeMirror from 'codemirror';
-import * as LSP from '../../../comm/lsp-types';
+import * as LSP from '../../../lsp';
 
 import { documentHighlightKindNames } from '../../../lsp';
 import { VirtualDocument } from '../../../virtual/document';

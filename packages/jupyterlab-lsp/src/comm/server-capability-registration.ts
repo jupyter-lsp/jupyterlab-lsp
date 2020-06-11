@@ -1,8 +1,4 @@
-import {
-  Registration,
-  ServerCapabilities,
-  Unregistration,
-} from '../comm/lsp-types';
+import { Registration, ServerCapabilities, Unregistration } from '../lsp';
 
 interface IFlexibleServerCapabilities extends ServerCapabilities {
   [key: string]: any;

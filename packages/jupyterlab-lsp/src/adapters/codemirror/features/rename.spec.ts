@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { Rename } from './rename';
 import { FileEditorFeatureTestEnvironment } from '../testutils';
-import * as LSP from '../../../comm/lsp-types';
+import * as LSP from '../../../lsp';
 
 describe('Rename', () => {
   let env: FileEditorFeatureTestEnvironment;

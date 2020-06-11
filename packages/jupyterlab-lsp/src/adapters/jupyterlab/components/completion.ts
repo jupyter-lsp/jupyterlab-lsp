@@ -8,7 +8,7 @@ import {
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { completionItemKindNames, CompletionTriggerKind } from '../../../lsp';
-import * as LSP from '../../../comm/lsp-types';
+import * as LSP from '../../../lsp';
 import { PositionConverter } from '../../../converter';
 import { VirtualDocument } from '../../../virtual/document';
 import { VirtualEditor } from '../../../virtual/editor';

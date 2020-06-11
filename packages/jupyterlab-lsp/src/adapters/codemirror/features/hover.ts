@@ -4,7 +4,7 @@ import {
   is_equal,
   IVirtualPosition,
 } from '../../../positioning';
-import * as LSP from '../../../comm/lsp-types';
+import * as LSP from '../../../lsp';
 
 import * as CodeMirror from 'codemirror';
 import { CodeMirrorLSPFeature, IEditorRange } from '../feature';

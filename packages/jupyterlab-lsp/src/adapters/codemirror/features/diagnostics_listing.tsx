@@ -1,7 +1,7 @@
 import React, { ReactElement } from 'react';
 import { VDomModel, VDomRenderer } from '@jupyterlab/apputils';
 import { caretDownIcon, caretUpIcon, LabIcon } from '@jupyterlab/ui-components';
-import * as LSP from '../../../comm/lsp-types';
+import * as LSP from '../../../lsp';
 
 import * as CodeMirror from 'codemirror';
 import { IEditorPosition } from '../../../positioning';

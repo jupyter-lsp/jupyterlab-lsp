@@ -1,4 +1,4 @@
-import * as LSP from '../../../comm/lsp-types';
+import * as LSP from '../../../lsp';
 
 import { IRootPosition } from '../../../positioning';
 import * as CodeMirror from 'codemirror';

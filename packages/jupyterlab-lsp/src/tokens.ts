@@ -1,9 +1,8 @@
 import { ISignal } from '@lumino/signaling';
 import { ServiceManager } from '@jupyterlab/services';
-import * as LSP from './comm/lsp-types';
+import * as LSP from './lsp';
 
 import * as SCHEMA from './_schema';
-import { CommLSP } from './comm/lsp';
 import { IComm } from '@jupyterlab/services/lib/kernel/kernel';
 
 export type TLanguageServerId = string;
@@ -125,12 +124,12 @@ export interface ILSPConnection {
     location: ILSPConnection.IPosition,
     documentInfo: ILSPConnection.IDocumentInfo,
     emit?: false
-  ): Promise<CommLSP.TAnyLocation>;
+  ): Promise<LSP.TAnyLocation>;
   getDefinition(
     location: ILSPConnection.IPosition,
     documentInfo: ILSPConnection.IDocumentInfo,
     emit?: false
-  ): Promise<CommLSP.TAnyLocation>;
+  ): Promise<LSP.TAnyLocation>;
 }
 
 export namespace ILSPConnection {

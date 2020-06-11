@@ -1,8 +1,9 @@
-import { CodeMirrorLSPFeature, IFeatureCommand } from '../feature';
 import { PositionConverter } from '../../../converter';
 import { IVirtualPosition } from '../../../positioning';
 import { uri_to_contents_path, uris_equal } from '../../../utils';
-import { CommLSP } from '../../../comm/lsp';
+import * as LSP from '../../../lsp';
+
+import { CodeMirrorLSPFeature, IFeatureCommand } from '../feature';
 
 export class JumpToDefinition extends CodeMirrorLSPFeature {
   name = 'JumpToDefinition';
@@ -29,7 +30,7 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
     return this.jupyterlab_components.jumper;
   }
 
-  get_uri_and_range(location_or_locations: CommLSP.TAnyLocation) {
+  get_uri_and_range(location_or_locations: LSP.TAnyLocation) {
     if (location_or_locations == null) {
       console.log('No jump targets found');
       return;
@@ -64,7 +65,7 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
   }
 
   async handle_jump(
-    location_or_locations: CommLSP.TAnyLocation,
+    location_or_locations: LSP.TAnyLocation,
     document_uri: string
   ) {
     const target_info = this.get_uri_and_range(location_or_locations);

@@ -7,7 +7,7 @@ import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 
-import * as LSP from '../../comm/lsp-types';
+import * as LSP from '../../lsp';
 import { FreeTooltip } from './components/free_tooltip';
 import { Widget } from '@lumino/widgets';
 import { VirtualEditor } from '../../virtual/editor';
