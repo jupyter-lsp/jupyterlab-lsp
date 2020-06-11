@@ -165,12 +165,9 @@ export namespace CompletionTriggerKind {
 export type CompletionTriggerKind = 1 | 2 | 3;
 
 /**
- * Magic strings are reproduced here because a non-typing import of
+ * Method strings are reproduced here because a non-typing import of
  * `vscode-languageserver-protocol` is ridiculously expensive
- *
- * This seems to be LSP 3.15
  */
-
 export namespace Method {
   /** Server notifications */
   export const PUBLISH_DIAGNOSTICS = 'textDocument/publishDiagnostics';

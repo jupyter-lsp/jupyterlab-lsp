@@ -231,7 +231,9 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
     this.serverCapabilities = capabilities;
 
-    await this.notify(LSP.Method.INITIALIZED, null).catch((err) => console.warn(err));
+    await this.notify(LSP.Method.INITIALIZED, null).catch((err) =>
+      console.warn(err)
+    );
 
     this._isInitialized = true;
 
