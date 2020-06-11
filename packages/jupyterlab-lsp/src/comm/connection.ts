@@ -316,8 +316,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
   async rename(
     location: ILSPConnection.IPosition,
     documentInfo: ILSPConnection.IDocumentInfo,
-    newName: string,
-    emit?: false
+    newName: string
   ): Promise<LSP.WorkspaceEdit> {
     if (!this.isReady || !this.provides(LSP.Provider.RENAME)) {
       return;
@@ -336,8 +335,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
   async getDocumentHighlights(
     location: ILSPConnection.IPosition,
-    documentInfo: ILSPConnection.IDocumentInfo,
-    emit?: false
+    documentInfo: ILSPConnection.IDocumentInfo
   ) {
     if (!this.isReady) {
       return;
@@ -356,8 +354,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
   async getHoverTooltip(
     location: ILSPConnection.IPosition,
-    documentInfo: ILSPConnection.IDocumentInfo,
-    emit?: false
+    documentInfo: ILSPConnection.IDocumentInfo
   ) {
     if (!this.isReady && !this.provides(LSP.Provider.HOVER)) {
       return;
@@ -375,8 +372,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
   async getSignatureHelp(
     location: ILSPConnection.IPosition,
-    documentInfo: ILSPConnection.IDocumentInfo,
-    emit?: false
+    documentInfo: ILSPConnection.IDocumentInfo
   ): Promise<LSP.SignatureHelp> {
     if (!(this.isReady && this.provides(LSP.Provider.SIGNATURE_HELP))) {
       return;
@@ -407,7 +403,6 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     location: ILSPConnection.IPosition,
     token: ILSPConnection.ITokenInfo,
     documentInfo: ILSPConnection.IDocumentInfo,
-    emit: false,
     triggerCharacter?: string,
     triggerKind?: LSP.CompletionTriggerKind
   ) {
@@ -437,8 +432,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
   public async getReferences(
     location: ILSPConnection.IPosition,
-    documentInfo: ILSPConnection.IDocumentInfo,
-    emit?: false
+    documentInfo: ILSPConnection.IDocumentInfo
   ) {
     if (!this.isReady || !this.provides(LSP.Provider.REFERENCES)) {
       return;
@@ -474,8 +468,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
   async getTypeDefinition(
     location: ILSPConnection.IPosition,
-    documentInfo: ILSPConnection.IDocumentInfo,
-    emit?: false
+    documentInfo: ILSPConnection.IDocumentInfo
   ) {
     if (!this.isReady || !this.provides(LSP.Provider.TYPE_DEFINITION)) {
       return;
@@ -494,8 +487,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
   public async getDefinition(
     location: ILSPConnection.IPosition,
-    documentInfo: ILSPConnection.IDocumentInfo,
-    emit?: false
+    documentInfo: ILSPConnection.IDocumentInfo
   ) {
     if (!(this.isReady && this.provides(LSP.Provider.DEFINITION))) {
       return;

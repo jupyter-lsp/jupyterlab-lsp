@@ -85,48 +85,40 @@ export interface ILSPConnection {
   rename(
     location: ILSPConnection.IPosition,
     documentInfo: ILSPConnection.IDocumentInfo,
-    newName: string,
-    emit: false
+    newName: string
   ): Promise<LSP.WorkspaceEdit>;
   getLanguageCompletionCharacters(): string[];
   getLanguageSignatureCharacters(): string[];
   getDocumentHighlights(
     location: ILSPConnection.IPosition,
-    documentInfo: ILSPConnection.IDocumentInfo,
-    emit: false
+    documentInfo: ILSPConnection.IDocumentInfo
   ): Promise<LSP.DocumentHighlight[]>;
   getHoverTooltip(
     location: ILSPConnection.IPosition,
-    documentInfo: ILSPConnection.IDocumentInfo,
-    emit: false
+    documentInfo: ILSPConnection.IDocumentInfo
   ): Promise<LSP.Hover>;
   getSignatureHelp(
     location: ILSPConnection.IPosition,
-    documentInfo: ILSPConnection.IDocumentInfo,
-    emit: false
+    documentInfo: ILSPConnection.IDocumentInfo
   ): Promise<LSP.SignatureHelp>;
   getCompletion(
     location: ILSPConnection.IPosition,
     token: ILSPConnection.ITokenInfo,
     documentInfo: ILSPConnection.IDocumentInfo,
-    emit: false,
     triggerCharacter?: string,
     triggerKind?: LSP.CompletionTriggerKind
   ): Promise<LSP.CompletionList | LSP.CompletionItem[]>;
   getReferences(
     location: ILSPConnection.IPosition,
-    documentInfo: ILSPConnection.IDocumentInfo,
-    emit?: false
+    documentInfo: ILSPConnection.IDocumentInfo
   ): Promise<LSP.Location[]>;
   getTypeDefinition(
     location: ILSPConnection.IPosition,
-    documentInfo: ILSPConnection.IDocumentInfo,
-    emit?: false
+    documentInfo: ILSPConnection.IDocumentInfo
   ): Promise<LSP.TAnyLocation>;
   getDefinition(
     location: ILSPConnection.IPosition,
-    documentInfo: ILSPConnection.IDocumentInfo,
-    emit?: false
+    documentInfo: ILSPConnection.IDocumentInfo
   ): Promise<LSP.TAnyLocation>;
 }
 

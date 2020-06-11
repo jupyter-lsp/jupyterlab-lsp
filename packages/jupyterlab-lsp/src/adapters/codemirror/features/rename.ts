@@ -49,8 +49,7 @@ export class Rename extends CodeMirrorLSPFeature {
           const edit = await connection.rename(
             virtual_position,
             document.document_info,
-            dialog_value.value,
-            false
+            dialog_value.value
           );
           await rename_feature.handleRename(edit);
         } catch (error) {

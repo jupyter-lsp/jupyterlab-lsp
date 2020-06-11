@@ -216,7 +216,6 @@ export class LSPConnector extends DataConnector<
         text: token.value,
       },
       document.document_info,
-      false,
       typed_character,
       this.trigger_kind
     )) || []) as LSP.CompletionItem[];

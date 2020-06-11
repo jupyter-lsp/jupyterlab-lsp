@@ -16,8 +16,7 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
         ) as JumpToDefinition;
         const targets = await connection.getDefinition(
           virtual_position,
-          document.document_info,
-          false
+          document.document_info
         );
         await jump_feature.handle_jump(targets, document.document_info.uri);
       },

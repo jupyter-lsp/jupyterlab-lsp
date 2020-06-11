@@ -108,8 +108,7 @@ export class Highlights extends CodeMirrorLSPFeature {
       );
       const highlights = await this.connection.getDocumentHighlights(
         virtual_position,
-        this.virtual_document.document_info,
-        false
+        this.virtual_document.document_info
       );
       if (!this.virtual_document.isDisposed) {
         this.handleHighlight(

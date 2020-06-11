@@ -56,8 +56,7 @@ export class Hover extends CodeMirrorLSPFeature {
   on_hover = async () => {
     const hover = await this.connection.getHoverTooltip(
       this.virtual_position,
-      this.virtual_document.document_info,
-      false
+      this.virtual_document.document_info
     );
     return hover;
   };

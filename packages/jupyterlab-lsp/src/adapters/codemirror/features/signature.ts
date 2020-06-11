@@ -138,11 +138,7 @@ export class Signature extends CodeMirrorLSPFeature {
     );
 
     this.connection
-      .getSignatureHelp(
-        virtual_position,
-        this.virtual_document.document_info,
-        false
-      )
+      .getSignatureHelp(virtual_position, this.virtual_document.document_info)
       .then((help) => this.handleSignature(help))
       .catch(console.warn);
   }
