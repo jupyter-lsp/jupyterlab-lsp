@@ -57,7 +57,7 @@ export class Rename extends CodeMirrorLSPFeature {
           handle_failure(error);
         }
       },
-      is_enabled: ({ connection }) => connection.isRenameSupported(),
+      is_enabled: ({ connection }) => connection.provides(LSP.Provider.RENAME),
       label: 'Rename symbol',
     },
   ];

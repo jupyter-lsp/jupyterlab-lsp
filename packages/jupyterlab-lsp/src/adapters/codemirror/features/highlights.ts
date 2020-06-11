@@ -15,14 +15,16 @@ export class Highlights extends CodeMirrorLSPFeature {
       id: 'highlight-references',
       execute: ({ connection, virtual_position, document }) =>
         connection.getReferences(virtual_position, document.document_info),
-      is_enabled: ({ connection }) => connection.isReferencesSupported(),
+      is_enabled: ({ connection }) =>
+        connection.provides(LSP.Provider.REFERENCES),
       label: 'Highlight references',
     },
     {
       id: 'highlight-type-definition',
       execute: ({ connection, virtual_position, document }) =>
         connection.getTypeDefinition(virtual_position, document.document_info),
-      is_enabled: ({ connection }) => connection.isTypeDefinitionSupported(),
+      is_enabled: ({ connection }) =>
+        connection.provides(LSP.Provider.TYPE_DEFINITION),
       label: 'Highlight type definition',
     },
   ];

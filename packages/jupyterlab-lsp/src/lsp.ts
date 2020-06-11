@@ -200,6 +200,34 @@ export namespace Method {
   export const TYPE_DEFINITION = 'textDocument/typeDefinition';
 }
 
+/* keys of ServerCapabilities as constants */
+export const Provider: { [key: string]: keyof ServerCapabilities } = {
+  TEXT_DOCUMENT_SYNC: 'textDocumentSync',
+  COMPLETION: 'completionProvider',
+  HOVER: 'hoverProvider',
+  SIGNATURE_HELP: 'signatureHelpProvider',
+  DECLARATION: 'declarationProvider',
+  DEFINITION: 'definitionProvider',
+  TYPE_DEFINITION: 'typeDefinitionProvider',
+  IMPLEMENTATION: 'implementationProvider',
+  REFERENCES: 'referencesProvider',
+  DOCUMENT_HIGHLIGHT: 'documentHighlightProvider',
+  DOCUMENT_SYMBOL: 'documentSymbolProvider',
+  CODE_ACTION: 'codeActionProvider',
+  CODE_LENS: 'codeLensProvider',
+  DOCUMENT_LINK: 'documentLinkProvider',
+  COLOR: 'colorProvider',
+  DOCUMENT_FORMATTING: 'documentFormattingProvider',
+  DOCUMENT_RANGE_FORMATTING: 'documentRangeFormattingProvider',
+  DOCUMENT_ON_TYPE_FORMATTING: 'documentOnTypeFormattingProvider',
+  RENAME: 'renameProvider',
+  FOLDING_RANGE: 'foldingRangeProvider',
+  EXECUTE_COMMAND: 'executeCommandProvider',
+  SELECTION_RANGE: 'selectionRangeProvider',
+  WORKSPACE_SYMBOL: 'workspaceSymbolProvider',
+  WORKSPACE: 'workspace',
+};
+
 /** compound types for some responses */
 export type TAnyCompletion = CompletionList | CompletionItem[] | null;
 

@@ -21,7 +21,8 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
         );
         await jump_feature.handle_jump(targets, document.document_info.uri);
       },
-      is_enabled: ({ connection }) => connection.isDefinitionSupported(),
+      is_enabled: ({ connection }) =>
+        connection.provides(LSP.Provider.DEFINITION),
       label: 'Jump to definition',
     },
   ];

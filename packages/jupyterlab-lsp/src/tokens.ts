@@ -43,11 +43,8 @@ export interface ILSPConnection {
   serverCapabilities: LSP.ServerCapabilities;
   rootUri: string;
 
-  // legacy capabilities api
-  isRenameSupported(): boolean;
-  isReferencesSupported(): boolean;
-  isTypeDefinitionSupported(): boolean;
-  isDefinitionSupported(): boolean;
+  /** Does the language server support a given provider? */
+  provides(provider: keyof LSP.ServerCapabilities): boolean;
 
   // legacy connection API
   connect(): Promise<void>;
@@ -72,6 +69,7 @@ export interface ILSPConnection {
     listener: V
   ): void;
 
+  /* legacy method api */
   sendOpenWhenReady(documentInfo: ILSPConnection.IDocumentInfo): void;
   sendOpen(documentInfo: ILSPConnection.IDocumentInfo): void;
   sendChange(documentInfo: ILSPConnection.IDocumentInfo): void;

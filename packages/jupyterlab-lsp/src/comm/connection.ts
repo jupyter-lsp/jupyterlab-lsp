@@ -251,34 +251,8 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
   }
 
   // capabilities
-  isRenameSupported() {
-    // nb: populate capabilities
-    // return this.capabilities.has(LSP.Capabilities.SERVER_RENAME_PROVIDER);
-    return !!this.serverCapabilities?.renameProvider;
-  }
-
-  isReferencesSupported() {
-    return !!this.serverCapabilities?.referencesProvider;
-  }
-
-  isTypeDefinitionSupported() {
-    return !!this.serverCapabilities?.typeDefinitionProvider;
-  }
-
-  isDefinitionSupported() {
-    return !!this.serverCapabilities?.definitionProvider;
-  }
-
-  isHoverSupported() {
-    return !!this.serverCapabilities?.hoverProvider;
-  }
-
-  isSignatureHelpSupported() {
-    return !!this.serverCapabilities?.signatureHelpProvider;
-  }
-
-  isCompletionSupported() {
-    return !!this.serverCapabilities?.completionProvider;
+  provides(provider: keyof LSP.ServerCapabilities): boolean {
+    return !!(this.serverCapabilities && this.serverCapabilities[provider]);
   }
 
   getLanguageCompletionCharacters() {
@@ -345,7 +319,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     newName: string,
     emit?: false
   ): Promise<LSP.WorkspaceEdit> {
-    if (!this.isReady || !this.isRenameSupported()) {
+    if (!this.isReady || !this.provides(LSP.Provider.RENAME)) {
       return;
     }
     return await this.request(LSP.Method.RENAME, {
@@ -385,7 +359,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     documentInfo: ILSPConnection.IDocumentInfo,
     emit?: false
   ) {
-    if (!this.isReady && !this.isHoverSupported()) {
+    if (!this.isReady && !this.provides(LSP.Provider.HOVER)) {
       return;
     }
     return await this.request(LSP.Method.HOVER, {
@@ -404,7 +378,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     documentInfo: ILSPConnection.IDocumentInfo,
     emit?: false
   ): Promise<LSP.SignatureHelp> {
-    if (!(this.isReady && this.isSignatureHelpSupported())) {
+    if (!(this.isReady && this.provides(LSP.Provider.SIGNATURE_HELP))) {
       return;
     }
 
@@ -437,7 +411,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     triggerCharacter?: string,
     triggerKind?: LSP.CompletionTriggerKind
   ) {
-    if (!(this.isReady && this.isCompletionSupported())) {
+    if (!(this.isReady && this.provides(LSP.Provider.COMPLETION))) {
       return;
     }
 
@@ -466,7 +440,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     documentInfo: ILSPConnection.IDocumentInfo,
     emit?: false
   ) {
-    if (!this.isReady || !this.isReferencesSupported()) {
+    if (!this.isReady || !this.provides(LSP.Provider.REFERENCES)) {
       return;
     }
 
@@ -503,7 +477,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     documentInfo: ILSPConnection.IDocumentInfo,
     emit?: false
   ) {
-    if (!this.isReady || !this.isTypeDefinitionSupported()) {
+    if (!this.isReady || !this.provides(LSP.Provider.TYPE_DEFINITION)) {
       return;
     }
 
@@ -523,7 +497,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     documentInfo: ILSPConnection.IDocumentInfo,
     emit?: false
   ) {
-    if (!(this.isReady && this.isDefinitionSupported())) {
+    if (!(this.isReady && this.provides(LSP.Provider.DEFINITION))) {
       return;
     }
 
