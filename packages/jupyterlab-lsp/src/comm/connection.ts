@@ -92,13 +92,13 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
   protected initHandlers() {
     // logging
-    this.onNotification(LSP.SHOW_MESSAGE, {
+    this.onNotification(LSP.Method.SHOW_MESSAGE, {
       onMsg: async (params) => {
         this._signals.get(ILSPConnection.LegacyEvents.ON_LOGGING).emit(params);
       },
     });
 
-    this.onRequest(LSP.SHOW_MESSAGE_REQUEST, {
+    this.onRequest(LSP.Method.SHOW_MESSAGE_REQUEST, {
       onMsg: async (params) => {
         this._signals.get(ILSPConnection.LegacyEvents.ON_LOGGING).emit(params);
         // nb: this seems important
@@ -107,7 +107,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     });
 
     // diagnostics
-    this.onNotification(LSP.PUBLISH_DIAGNOSTICS, {
+    this.onNotification(LSP.Method.PUBLISH_DIAGNOSTICS, {
       onMsg: async (params) => {
         this._signals
           .get(ILSPConnection.LegacyEvents.ON_DIAGNOSTIC)
@@ -116,7 +116,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     });
 
     // capabilities
-    this.onRequest(LSP.REGISTER_CAPABILITY, {
+    this.onRequest(LSP.Method.REGISTER_CAPABILITY, {
       onMsg: async (params) => {
         for (const registration of params.registrations) {
           this.serverCapabilities = registerServerCapability(
@@ -127,7 +127,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
       },
     });
 
-    this.onRequest(LSP.UNREGISTER_CAPABILITY, {
+    this.onRequest(LSP.Method.UNREGISTER_CAPABILITY, {
       onMsg: async (params) => {
         for (const registration of params.unregisterations) {
           this.serverCapabilities = unregisterServerCapability(
@@ -223,7 +223,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     }
 
     const initialized = await this.request(
-      LSP.INITIALIZE,
+      LSP.Method.INITIALIZE,
       this.initializeParams()
     );
 
@@ -231,11 +231,11 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
     this.serverCapabilities = capabilities;
 
-    await this.notify(LSP.INITIALIZED, null).catch((err) => console.warn(err));
+    await this.notify(LSP.Method.INITIALIZED, null).catch((err) => console.warn(err));
 
     this._isInitialized = true;
 
-    await this.notify(LSP.DID_CHANGE_CONFIGURATION, {
+    await this.notify(LSP.Method.DID_CHANGE_CONFIGURATION, {
       settings: {},
     }).catch((err) => console.warn(err));
 
@@ -298,7 +298,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
   }
 
   sendOpen(documentInfo: ILSPConnection.IDocumentInfo) {
-    this.notify(LSP.DID_OPEN, {
+    this.notify(LSP.Method.DID_OPEN, {
       textDocument: {
         uri: documentInfo.uri,
         languageId: documentInfo.languageId,
@@ -313,7 +313,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     if (!this.isReady) {
       return;
     }
-    this.notify(LSP.DID_CHANGE, {
+    this.notify(LSP.Method.DID_CHANGE, {
       textDocument: {
         uri: documentInfo.uri,
         version: documentInfo.version,
@@ -346,7 +346,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     if (!this.isReady || !this.isRenameSupported()) {
       return;
     }
-    return await this.request(LSP.RENAME, {
+    return await this.request(LSP.Method.RENAME, {
       textDocument: {
         uri: documentInfo.uri,
       },
@@ -367,7 +367,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
       return;
     }
 
-    return await this.request(LSP.DOCUMENT_HIGHLIGHT, {
+    return await this.request(LSP.Method.DOCUMENT_HIGHLIGHT, {
       textDocument: {
         uri: documentInfo.uri,
       },
@@ -386,7 +386,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     if (!this.isReady && !this.isHoverSupported()) {
       return;
     }
-    return await this.request(LSP.HOVER, {
+    return await this.request(LSP.Method.HOVER, {
       textDocument: {
         uri: documentInfo.uri,
       },
@@ -416,7 +416,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
       return;
     }
 
-    return await this.request(LSP.SIGNATURE_HELP, {
+    return await this.request(LSP.Method.SIGNATURE_HELP, {
       textDocument: {
         uri: documentInfo.uri,
       },
@@ -439,7 +439,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
       return;
     }
 
-    const items = await this.request(LSP.COMPLETION, {
+    const items = await this.request(LSP.Method.COMPLETION, {
       textDocument: {
         uri: documentInfo.uri,
       },
@@ -468,7 +468,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
       return;
     }
 
-    return this.request(LSP.REFERENCES, {
+    return this.request(LSP.Method.REFERENCES, {
       context: {
         includeDeclaration: true,
       },
@@ -487,7 +487,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
       return;
     }
 
-    this.notify(LSP.DID_SAVE, {
+    this.notify(LSP.Method.DID_SAVE, {
       textDocument: {
         uri: documentInfo.uri,
         version: documentInfo.version,
@@ -505,7 +505,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
       return;
     }
 
-    return await this.request(LSP.TYPE_DEFINITION, {
+    return await this.request(LSP.Method.TYPE_DEFINITION, {
       textDocument: {
         uri: documentInfo.uri,
       },
@@ -525,7 +525,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
       return;
     }
 
-    return this.request(LSP.DEFINITION, {
+    return this.request(LSP.Method.DEFINITION, {
       textDocument: {
         uri: documentInfo.uri,
       },
@@ -544,7 +544,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     if (!this.isReady) {
       return;
     }
-    this.notify(LSP.DID_CHANGE, {
+    this.notify(LSP.Method.DID_CHANGE, {
       textDocument: {
         uri: documentInfo.uri,
         version: documentInfo.version,
