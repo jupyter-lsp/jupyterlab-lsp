@@ -139,7 +139,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     });
   }
 
-  async connect(socket?: WebSocket): Promise<void> {
+  async connect(): Promise<void> {
     this.comm.onClose = () => {
       this._isConnected = false;
       this._signals

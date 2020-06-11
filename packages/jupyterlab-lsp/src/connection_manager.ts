@@ -339,7 +339,7 @@ namespace Private {
     if (connection == null) {
       const connection = new CommLSPConnection({ comm, rootUri: uris.base });
       _connections.set(language_server_id, connection);
-      await connection.connect(null);
+      await connection.connect();
       onCreate(connection);
     }
 

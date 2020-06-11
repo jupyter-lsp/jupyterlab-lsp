@@ -50,7 +50,7 @@ export interface ILSPConnection {
   isDefinitionSupported(): boolean;
 
   // legacy connection API
-  connect(socket: WebSocket): Promise<void>;
+  connect(): Promise<void>;
   close(): void;
 
   // legacy event api
