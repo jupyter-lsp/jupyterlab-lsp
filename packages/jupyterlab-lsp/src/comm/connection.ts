@@ -321,7 +321,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     documentInfo: ILSPConnection.IDocumentInfo,
     newName: string
   ): Promise<LSP.WorkspaceEdit> {
-    if (this.provides(LSP.Provider.RENAME)) {
+    if (!this.provides(LSP.Provider.RENAME)) {
       return;
     }
     return await this.request(LSP.Method.RENAME, {
