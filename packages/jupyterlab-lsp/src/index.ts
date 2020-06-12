@@ -130,7 +130,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     const connect_file_editor = async (
       widget: IDocumentWidget<FileEditor, DocumentRegistry.IModel>
     ) => {
-      await language_server_manager.kernelReady;
+      await language_server_manager.ready;
 
       let fileEditor = widget.content;
 
@@ -181,7 +181,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     command_manager.add(lsp_commands);
 
     const connect_notebook = async (widget: NotebookPanel) => {
-      await language_server_manager.kernelReady;
+      await language_server_manager.ready;
 
       // NOTE: assuming that the default cells content factory produces CodeMirror editors(!)
       let jumper = new NotebookJumper(widget, documentManager);

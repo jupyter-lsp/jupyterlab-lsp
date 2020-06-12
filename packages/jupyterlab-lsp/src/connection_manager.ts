@@ -333,11 +333,17 @@ namespace Private {
     uris: DocumentConnectionManager.IURIs,
     onCreate: (connection: ILSPConnection) => void
   ): Promise<ILSPConnection> {
-    const comm = await _language_server_manager.getComm(language_server_id);
     let connection = _connections.get(language_server_id);
 
     if (connection == null) {
+      const comm = await _language_server_manager.getComm(language_server_id);
       const connection = new CommLSPConnection({ comm, rootUri: uris.base });
+      connection.commDisposed.connect(async (connection: CommLSPConnection) => {
+        connection.comm = await _language_server_manager.getComm(
+          language_server_id
+        );
+        await connection.connect();
+      });
       _connections.set(language_server_id, connection);
       await connection.connect();
       onCreate(connection);

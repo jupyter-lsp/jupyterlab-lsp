@@ -15,9 +15,12 @@ export class CommRPC implements ICommRPC {
   protected _nextId = 0;
   protected _jsonrpc: string;
   protected _handlers: ICommRPC.TMethodHandlers = new Map();
+  protected _commDisposed: Signal<ICommRPC, void>;
+  protected _commRequested: PromiseDelegate<void>;
 
   constructor(options: ICommRPC.IOptions) {
     this._commChanged = new Signal(this);
+    this._commDisposed = new Signal(this);
     this._jsonrpc = options.jsonrpc || DEFAULT_JSONRPC;
     if (options.handlers) {
       for (const [method, handler] of options.handlers.entries()) {
@@ -42,13 +45,23 @@ export class CommRPC implements ICommRPC {
       this._comm.onMsg = this.handleMessage.bind(this);
     }
     this._commChanged.emit(void 0);
+    if (this._commRequested != null) {
+      this._commRequested.resolve(void 0);
+    }
   }
 
   /**
-   * A signal for when the underlying comm changes
+   * Signals when the underlying comm changes
    */
   get commChanged() {
     return this._commChanged;
+  }
+
+  /**
+   * Signals when the underlying comm is found to be disposed
+   */
+  get commDisposed() {
+    return this._commDisposed;
   }
 
   /**
@@ -67,6 +80,15 @@ export class CommRPC implements ICommRPC {
     if (!noWait) {
       msg.id = this.getNextId();
       this._responsePromises.set(msg.id, delegate);
+    }
+
+    if (this.comm.isDisposed) {
+      if (this._commRequested == null) {
+        this._commRequested = new PromiseDelegate();
+        this._commDisposed.emit(void 0);
+      }
+      await this._commRequested.promise;
+      this._commRequested = null;
     }
 
     this.comm.send(msg, null, null, true);

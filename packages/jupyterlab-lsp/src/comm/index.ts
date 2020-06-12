@@ -4,7 +4,9 @@ import { ICommMsgMsg } from '@jupyterlab/services/lib/kernel/messages';
 import { JSONObject, PromiseDelegate, JSONValue } from '@lumino/coreutils';
 
 export interface ICommRPC {
-  comm: IComm;
+  comm: ICommRPC.IRPCComm;
+  commDisposed: ISignal<ICommRPC, void>;
+
   communicate<T extends ICommRPC.TRPCResult | null>(
     method: string,
     request: ICommRPC.TRPCParams,

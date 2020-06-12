@@ -252,7 +252,10 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
   // capabilities
   provides(provider: keyof LSP.ServerCapabilities): boolean {
-    return !!(this.serverCapabilities && this.serverCapabilities[provider]);
+    return (
+      this.isReady &&
+      !!(this.serverCapabilities && this.serverCapabilities[provider])
+    );
   }
 
   getLanguageCompletionCharacters() {
@@ -318,7 +321,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     documentInfo: ILSPConnection.IDocumentInfo,
     newName: string
   ): Promise<LSP.WorkspaceEdit> {
-    if (!this.isReady || !this.provides(LSP.Provider.RENAME)) {
+    if (this.provides(LSP.Provider.RENAME)) {
       return;
     }
     return await this.request(LSP.Method.RENAME, {
@@ -356,7 +359,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     location: ILSPConnection.IPosition,
     documentInfo: ILSPConnection.IDocumentInfo
   ) {
-    if (!this.isReady && !this.provides(LSP.Provider.HOVER)) {
+    if (!this.provides(LSP.Provider.HOVER)) {
       return;
     }
     return await this.request(LSP.Method.HOVER, {
@@ -374,7 +377,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     location: ILSPConnection.IPosition,
     documentInfo: ILSPConnection.IDocumentInfo
   ): Promise<LSP.SignatureHelp> {
-    if (!(this.isReady && this.provides(LSP.Provider.SIGNATURE_HELP))) {
+    if (!this.provides(LSP.Provider.SIGNATURE_HELP)) {
       return;
     }
 
@@ -406,7 +409,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     triggerCharacter?: string,
     triggerKind?: LSP.CompletionTriggerKind
   ) {
-    if (!(this.isReady && this.provides(LSP.Provider.COMPLETION))) {
+    if (!this.provides(LSP.Provider.COMPLETION)) {
       return;
     }
 
@@ -434,7 +437,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     location: ILSPConnection.IPosition,
     documentInfo: ILSPConnection.IDocumentInfo
   ) {
-    if (!this.isReady || !this.provides(LSP.Provider.REFERENCES)) {
+    if (!this.provides(LSP.Provider.REFERENCES)) {
       return;
     }
 
@@ -470,7 +473,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     location: ILSPConnection.IPosition,
     documentInfo: ILSPConnection.IDocumentInfo
   ) {
-    if (!this.isReady || !this.provides(LSP.Provider.TYPE_DEFINITION)) {
+    if (!this.provides(LSP.Provider.TYPE_DEFINITION)) {
       return;
     }
 
@@ -489,7 +492,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     location: ILSPConnection.IPosition,
     documentInfo: ILSPConnection.IDocumentInfo
   ) {
-    if (!(this.isReady && this.provides(LSP.Provider.DEFINITION))) {
+    if (!this.provides(LSP.Provider.DEFINITION)) {
       return;
     }
 

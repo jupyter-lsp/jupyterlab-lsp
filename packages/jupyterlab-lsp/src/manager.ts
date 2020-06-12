@@ -36,7 +36,7 @@ export class LanguageServerManager implements ILanguageServerManager {
 
   constructor(options: ILanguageServerManager.IOptions) {
     this._serviceManager = options.serviceManager;
-    this.initKernel().catch(console.warn);
+    this.initKernel().catch(console.error);
   }
 
   get sessionsChanged() {
@@ -47,16 +47,25 @@ export class LanguageServerManager implements ILanguageServerManager {
     return this._sessions;
   }
 
-  get kernelReady() {
+  get ready() {
     return this._kernelReady.promise;
   }
 
-  protected get kernel() {
+  protected async ensureKernel() {
+    if (this._kernelSessionConnection.kernel == null) {
+      await this.initKernel();
+      await this._kernelReady.promise;
+    }
     return this._kernelSessionConnection.kernel;
   }
 
   async getComm(language_server_id: TLanguageServerId): Promise<IComm> {
     let comm = this._comms.get(language_server_id);
+
+    if (comm?.isDisposed) {
+      this._comms.delete(language_server_id);
+      comm = null;
+    }
 
     if (comm != null) {
       return comm;
@@ -112,7 +121,8 @@ export class LanguageServerManager implements ILanguageServerManager {
    * Get (or create) the control comm
    */
   protected async getControlComm() {
-    const commInfo = await this.kernel.requestCommInfo({
+    const kernel = await this.ensureKernel();
+    const commInfo = await kernel.requestCommInfo({
       target_name: CONTROL_COMM_TARGET,
     });
 
@@ -123,7 +133,7 @@ export class LanguageServerManager implements ILanguageServerManager {
       commId = commIds.length ? commIds[0] : null;
     }
 
-    const comm = this.kernel.createComm(
+    const comm = kernel.createComm(
       CONTROL_COMM_TARGET,
       ...(commId == null ? [] : [commId])
     );
@@ -151,12 +161,12 @@ export class LanguageServerManager implements ILanguageServerManager {
   }
 
   protected async getLanguageServerComm(language_server_id: TLanguageServerId) {
-    await this._kernelReady.promise;
+    const kernel = await this.ensureKernel();
 
     const session = this._sessions.get(language_server_id);
     let commId = session.comm_ids.length ? session.comm_ids[0] : null;
 
-    const comm = this.kernel.createComm(
+    const comm = kernel.createComm(
       LANGUAGE_SERVER_COMM_TARGET,
       ...(commId == null ? [] : [commId])
     );

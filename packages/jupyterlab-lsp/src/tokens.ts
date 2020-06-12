@@ -10,7 +10,7 @@ export type TLanguageId = string;
 
 export type TSessionMap = Map<TLanguageServerId, SCHEMA.LanguageServerSession>;
 
-export type TCommMap = Map<TLanguageServerId, any>;
+export type TCommMap = Map<TLanguageServerId, IComm>;
 
 export interface ILanguageServerManager {
   sessionsChanged: ISignal<ILanguageServerManager, void>;
@@ -21,7 +21,6 @@ export interface ILanguageServerManager {
   getComm(languageServerId: TLanguageServerId): Promise<IComm>;
   getRootUri(): string;
   getVirtualDocumentsUri(): string;
-  kernelReady: Promise<void>;
 }
 
 export namespace ILanguageServerManager {
