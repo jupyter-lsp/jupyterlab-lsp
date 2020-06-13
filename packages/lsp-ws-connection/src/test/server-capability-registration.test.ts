@@ -48,7 +48,7 @@ describe('ServerCapabilities client registration', () => {
   };
 
   it('registers server capabilities', () => {
-    Object.keys(serverCapabilities).forEach((capability) => {
+    Object.keys(serverCapabilities).forEach(capability => {
       const capabilityOptions = (serverCapabilities as any)[capability];
       const registration = {
         id: 'id',
@@ -77,7 +77,7 @@ describe('ServerCapabilities client registration', () => {
   });
 
   it('unregisters server capabilities', () => {
-    Object.keys(serverCapabilities).forEach((capability) => {
+    Object.keys(serverCapabilities).forEach(capability => {
       const unregistration = {
         id: 'some id',
         method: getMethodFromCapability(capability)

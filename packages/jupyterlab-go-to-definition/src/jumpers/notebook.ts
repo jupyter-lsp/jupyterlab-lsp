@@ -35,7 +35,7 @@ export class NotebookJumper extends CodeJumper {
   }
 
   get editors() {
-    return this.notebook.widgets.map((cell) => cell.editor);
+    return this.notebook.widgets.map(cell => cell.editor);
   }
 
   get language() {

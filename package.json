@@ -29,6 +29,7 @@
     }
   },
   "prettier": {
+    "arrowParens": "avoid",
     "singleQuote": true,
     "trailingComma": "none"
   },

@@ -114,7 +114,7 @@ export abstract class LanguageAnalyzer {
   _get_token_index(token: CodeEditor.IToken) {
     this._maybe_setup_tokens();
     return this.tokens.findIndex(
-      (t) =>
+      t =>
         t.value === token.value &&
         t.offset === token.offset &&
         t.type === token.type
@@ -211,7 +211,7 @@ export abstract class LanguageAnalyzer {
     let terminatingTokens = this._selectTerminatingTokens(tokensBetween);
 
     let terminatorsAfterAssignment = terminatingTokens.filter(
-      (token) => token.offset > firstAssignment.offset
+      token => token.offset > firstAssignment.offset
     );
 
     if (!terminatorsAfterAssignment.length) {

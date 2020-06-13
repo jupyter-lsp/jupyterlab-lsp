@@ -61,7 +61,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       // more reasonable thing would be to create a PR with .onAddCell
       setTimeout(() => {
         // now (notebook.widgets.length is likely > 1)
-        notebook.widgets.every((cell) => {
+        notebook.widgets.every(cell => {
           let codemirror_editor = cell.editor as CodeMirrorEditor;
           let extension = new CodeMirrorExtension(codemirror_editor, jumper);
 
@@ -86,7 +86,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     function updateOptions(settings: ISettingRegistry.ISettings): void {
       let options = settings.composite;
-      Object.keys(options).forEach((key) => {
+      Object.keys(options).forEach(key => {
         if (key === 'modifier') {
           let modifier = options[key] as KeyModifier;
           CodeMirrorExtension.modifierKey = modifier;
@@ -96,7 +96,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     settingRegistry
       .load(plugin.id)
-      .then((settings) => {
+      .then(settings => {
         updateOptions(settings);
         settings.changed.connect(() => {
           updateOptions(settings);
@@ -221,7 +221,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       }
     ];
 
-    bindings.map((binding) => app.commands.addKeyBinding(binding));
+    bindings.map(binding => app.commands.addKeyBinding(binding));
   },
   autoStart: true
 };

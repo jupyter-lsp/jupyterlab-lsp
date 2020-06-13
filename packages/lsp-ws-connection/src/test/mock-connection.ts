@@ -18,7 +18,7 @@ export class MockConnection implements ILspConnection {
     if (!listeners) {
       return false;
     }
-    listeners.forEach((listener) => listener.call(null, event.data));
+    listeners.forEach(listener => listener.call(null, event.data));
   };
 
   public sendInitialize = sinon.stub();
@@ -62,7 +62,7 @@ export class MockConnection implements ILspConnection {
       return;
     }
 
-    const index = listeners.findIndex((l) => l === listener);
+    const index = listeners.findIndex(l => l === listener);
     if (index > -1) {
       this.listeners[type].splice(index);
     }

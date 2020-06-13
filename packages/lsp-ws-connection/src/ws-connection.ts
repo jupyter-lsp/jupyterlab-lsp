@@ -112,7 +112,7 @@ export class LspWsConnection extends events.EventEmitter
           }
         );
 
-        this.connection.onError((e) => {
+        this.connection.onError(e => {
           this.emit('error', e);
         });
 
@@ -207,10 +207,10 @@ export class LspWsConnection extends events.EventEmitter
     this.connection
       .sendRequest<protocol.InitializeResult>('initialize', message)
       .then(
-        (params) => {
+        params => {
           this.onServerInitialized(params);
         },
-        (e) => {
+        e => {
           console.warn('lsp-ws-connection initialization failure', e);
         }
       );
@@ -347,7 +347,7 @@ export class LspWsConnection extends events.EventEmitter
         'completionItem/resolve',
         completionItem
       )
-      .then((result) => {
+      .then(result => {
         this.emit('completionResolved', result);
       });
   }
@@ -517,7 +517,7 @@ export class LspWsConnection extends events.EventEmitter
           }
         } as protocol.TextDocumentPositionParams
       )
-      .then((result) => {
+      .then(result => {
         this.emit('goTo', result);
       });
   }
