@@ -57,13 +57,12 @@ module.exports = {
     'no-useless-escape': 'off',
     'prefer-const': 'off',
     // deviations from jupyterlab, should probably be fixed
-    'jest/valid-expect': 'off',
-    'jest/no-test-callback': 'off',
-    '@typescript-eslint/ban-ts-ignore': 'off',
-    'react/display-name': 'off',
-    'prefer-spread': 'off',
     '@typescript-eslint/triple-slash-reference': 'off',
-    'no-async-promise-executor': 'off'
+    'jest/no-test-callback': 'off',
+    'jest/valid-expect': 'off',
+    'no-async-promise-executor': 'off',
+    'prefer-spread': 'off',
+    'react/display-name': 'off'
   },
   settings: {
     react: {
