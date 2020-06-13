@@ -15,7 +15,7 @@ const mockInfo = {
   uri: 'file://' + __dirname,
   version: 0,
   languageId: 'plaintext',
-  text: '',
+  text: ''
 };
 
 // There is a library that can be used to mock WebSockets, but the API surface tested here is small
@@ -101,7 +101,7 @@ describe('LspWsConnection', () => {
     connection = new LspWsConnection({
       languageId: 'plaintext',
       rootUri: 'file://' + __dirname,
-      serverUri,
+      serverUri
     });
     mockSocket = new MockSocket('ws://localhost:8080');
   });
@@ -127,12 +127,12 @@ describe('LspWsConnection', () => {
             documentHighlightProvider: true,
             documentRangeFormattingProvider: false,
             documentLinkProvider: {
-              resolveProvider: false,
+              resolveProvider: false
             },
             documentSymbolProvider: true,
             definitionProvider: true,
             signatureHelpProvider: {
-              triggerCharacters: ['('],
+              triggerCharacters: ['(']
             },
             typeDefinitionProvider: true,
             referencesProvider: true,
@@ -141,15 +141,15 @@ describe('LspWsConnection', () => {
             workspaceSymbolProvider: true,
             completionProvider: {
               resolveProvider: true,
-              triggerCharacters: ['.'],
+              triggerCharacters: ['.']
             },
             codeActionProvider: true,
             renameProvider: true,
             executeCommandProvider: {
-              commands: [],
-            },
-          },
-        } as lsProtocol.InitializeResult,
+              commands: []
+            }
+          }
+        } as lsProtocol.InitializeResult
       });
 
       mockSocket.dispatchEvent(new MessageEvent('message', { data }));
@@ -191,9 +191,9 @@ describe('LspWsConnection', () => {
           id: 0,
           result: {
             capabilities: {
-              definitionProvider: true,
-            },
-          } as lsProtocol.InitializeResult,
+              definitionProvider: true
+            }
+          } as lsProtocol.InitializeResult
         });
 
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
@@ -213,10 +213,10 @@ describe('LspWsConnection', () => {
             registrations: [
               {
                 id: 'id',
-                method: 'textDocument/implementation',
-              } as lsProtocol.Registration,
-            ],
-          } as lsProtocol.RegistrationParams,
+                method: 'textDocument/implementation'
+              } as lsProtocol.Registration
+            ]
+          } as lsProtocol.RegistrationParams
         });
 
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
@@ -244,10 +244,10 @@ describe('LspWsConnection', () => {
             unregisterations: [
               {
                 id: 'id',
-                method: 'textDocument/definition',
-              },
-            ],
-          } as lsProtocol.UnregistrationParams,
+                method: 'textDocument/definition'
+              }
+            ]
+          } as lsProtocol.UnregistrationParams
         });
 
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
@@ -274,9 +274,9 @@ describe('LspWsConnection', () => {
           id: 0,
           result: {
             capabilities: {
-              hoverProvider: true,
-            },
-          } as lsProtocol.InitializeResult,
+              hoverProvider: true
+            }
+          } as lsProtocol.InitializeResult
         });
 
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
@@ -287,7 +287,7 @@ describe('LspWsConnection', () => {
         void connection.getHoverTooltip(
           {
             line: 1,
-            ch: 0,
+            ch: 0
           },
           mockInfo
         );
@@ -302,7 +302,7 @@ describe('LspWsConnection', () => {
         const data = JSON.stringify({
           jsonrpc: '2.0',
           id: message.id,
-          result: null,
+          result: null
         });
 
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
@@ -323,13 +323,13 @@ describe('LspWsConnection', () => {
         range: {
           start: {
             line: 1,
-            character: 0,
+            character: 0
           },
           end: {
             line: 2,
-            character: 0,
-          },
-        },
+            character: 0
+          }
+        }
       } as lsProtocol.Hover;
 
       // 3. Fake a server response for the hover
@@ -339,7 +339,7 @@ describe('LspWsConnection', () => {
         const data = JSON.stringify({
           jsonrpc: '2.0',
           id: message.id,
-          result: hoverResponse,
+          result: hoverResponse
         });
 
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
@@ -368,10 +368,10 @@ describe('LspWsConnection', () => {
             capabilities: {
               completionProvider: {
                 triggerCharacters: ['.'],
-                resolveProvider: false,
-              },
-            },
-          } as lsProtocol.InitializeResult,
+                resolveProvider: false
+              }
+            }
+          } as lsProtocol.InitializeResult
         });
 
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
@@ -382,18 +382,18 @@ describe('LspWsConnection', () => {
         void connection.getCompletion(
           {
             line: 1,
-            ch: 8,
+            ch: 8
           },
           {
             start: {
               line: 1,
-              ch: 8,
+              ch: 8
             },
             end: {
               line: 1,
-              ch: 9,
+              ch: 9
             },
-            text: '.',
+            text: '.'
           },
           mockInfo
         );
@@ -408,7 +408,7 @@ describe('LspWsConnection', () => {
         const data = JSON.stringify({
           jsonrpc: '2.0',
           id: message.id,
-          result: null,
+          result: null
         });
 
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
@@ -428,12 +428,12 @@ describe('LspWsConnection', () => {
         isIncomplete: false,
         items: [
           {
-            label: 'log',
+            label: 'log'
           },
           {
-            label: 'info',
-          },
-        ],
+            label: 'info'
+          }
+        ]
       } as lsProtocol.CompletionList;
 
       // 3. Fake a server response for the hover
@@ -443,7 +443,7 @@ describe('LspWsConnection', () => {
         const data = JSON.stringify({
           jsonrpc: '2.0',
           id: message.id,
-          result: completionResponse,
+          result: completionResponse
         });
 
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));
@@ -461,11 +461,11 @@ describe('LspWsConnection', () => {
     it('emits a completion event of CompletionItem[]', (done) => {
       const completion = [
         {
-          label: 'log',
+          label: 'log'
         },
         {
-          label: 'info',
-        },
+          label: 'info'
+        }
       ] as lsProtocol.CompletionItem[];
 
       // 3. Fake a server response for the hover
@@ -475,7 +475,7 @@ describe('LspWsConnection', () => {
         const data = JSON.stringify({
           jsonrpc: '2.0',
           id: message.id,
-          result: completion,
+          result: completion
         });
 
         mockSocket.dispatchEvent(new MessageEvent('message', { data }));

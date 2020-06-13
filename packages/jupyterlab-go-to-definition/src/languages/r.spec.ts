@@ -108,7 +108,7 @@ describe('RAnalyzer', () => {
         .true;
 
       expect(analyzer.guessReferencePath(tokenNeighbourhood('.from'))).to.eql([
-        'other_resources.R',
+        'other_resources.R'
       ]);
     });
   });

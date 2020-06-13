@@ -39,7 +39,7 @@ const cell_magic_lang_to_tokenizer: any = {
   js: 'javascript',
   svg: 'application/xml',
   html: 'text/html',
-  latex: 'text/x-stex',
+  latex: 'text/x-stex'
   // not working as for now:
   // 'ruby': 'text/x-ruby',
   // require additional logic/scripting:
@@ -55,7 +55,7 @@ const movement_keys = [
   'Home',
   'End',
   'PageUp',
-  'PageDown',
+  'PageDown'
 ];
 
 const modifiers = ['Alt', 'AltGraph', 'Control', 'Shift'];
@@ -73,7 +73,7 @@ const system_keys = [
   'F10',
   'F11',
   'F12',
-  'ContextMenu',
+  'ContextMenu'
 ];
 
 export abstract class CodeJumper {
@@ -173,7 +173,7 @@ export abstract class CodeJumper {
     }
     return {
       token: definitionToken,
-      cellIndex: definitionIndex,
+      cellIndex: definitionIndex
     };
   }
 
@@ -238,8 +238,8 @@ export abstract class CodeJumper {
                   'do you really wish to edit it?',
                 buttons: [
                   Dialog.cancelButton({ label: 'Cancel' }),
-                  Dialog.warnButton({ label: 'Edit anyway' }),
-                ],
+                  Dialog.warnButton({ label: 'Edit anyway' })
+                ]
               });
 
               dialog_promise
@@ -285,7 +285,7 @@ export abstract class CodeJumper {
               editor_index: input_number,
               line: line_number,
               column: column,
-              uri: path,
+              uri: path
             },
             is_symlink
           );

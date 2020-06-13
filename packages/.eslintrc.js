@@ -4,7 +4,7 @@ module.exports = {
     es6: true,
     commonjs: true,
     node: true,
-    'jest/globals': true,
+    'jest/globals': true
   },
   root: true,
   extends: [
@@ -13,18 +13,18 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'prettier/@typescript-eslint',
     'plugin:react/recommended',
-    'plugin:jest/recommended',
+    'plugin:jest/recommended'
   ],
   ignorePatterns: [
     '**/node_modules/**/*',
     '**/lib/**/*',
     '**/_*.ts',
     '**/_*.d.ts',
-    '**/typings/**/*.d.ts',
+    '**/typings/**/*.d.ts'
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: 'packages/tsconfig.eslint.json',
+    project: 'packages/tsconfig.eslint.json'
   },
   plugins: ['@typescript-eslint', 'jest'],
   rules: {
@@ -59,11 +59,11 @@ module.exports = {
     'react/display-name': 'off',
     'prefer-spread': 'off',
     '@typescript-eslint/triple-slash-reference': 'off',
-    'no-async-promise-executor': 'off',
+    'no-async-promise-executor': 'off'
   },
   settings: {
     react: {
-      version: 'detect',
-    },
-  },
+      version: 'detect'
+    }
+  }
 };

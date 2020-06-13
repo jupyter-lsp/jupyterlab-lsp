@@ -173,9 +173,9 @@ export class NotebookJumper extends CodeJumper {
     return {
       token: {
         offset: this.getOffset(position, cell_index),
-        value: '',
+        value: ''
       },
-      index: cell_index,
+      index: cell_index
     };
   }
 }

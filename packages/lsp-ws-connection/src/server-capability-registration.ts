@@ -1,7 +1,7 @@
 import {
   Registration,
   ServerCapabilities,
-  Unregistration,
+  Unregistration
 } from 'vscode-languageserver-protocol';
 
 interface IFlexibleServerCapabilities extends ServerCapabilities {

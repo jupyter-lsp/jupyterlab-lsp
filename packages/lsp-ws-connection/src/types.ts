@@ -351,7 +351,7 @@ export function getFilledDefaults(
       enableParameterHints: true,
       iconsInSuggestions: true,
       formatOnType: false,
-      formatOnPaste: false,
+      formatOnPaste: false
     },
     options
   );

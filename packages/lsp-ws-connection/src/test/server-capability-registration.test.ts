@@ -2,11 +2,11 @@ import { expect } from 'chai';
 import {
   Registration,
   ServerCapabilities,
-  Unregistration,
+  Unregistration
 } from 'vscode-languageserver-protocol';
 import {
   registerServerCapability,
-  unregisterServerCapability,
+  unregisterServerCapability
 } from '../server-capability-registration';
 
 describe('ServerCapabilities client registration', () => {
@@ -14,10 +14,10 @@ describe('ServerCapabilities client registration', () => {
     hoverProvider: true,
     completionProvider: {
       resolveProvider: true,
-      triggerCharacters: ['.', ','],
+      triggerCharacters: ['.', ',']
     },
     signatureHelpProvider: {
-      triggerCharacters: ['.', ','],
+      triggerCharacters: ['.', ',']
     },
     definitionProvider: true,
     typeDefinitionProvider: true,
@@ -28,23 +28,23 @@ describe('ServerCapabilities client registration', () => {
     workspaceSymbolProvider: true,
     codeActionProvider: true,
     codeLensProvider: {
-      resolveProvider: true,
+      resolveProvider: true
     },
     documentFormattingProvider: true,
     documentRangeFormattingProvider: true,
     documentOnTypeFormattingProvider: {
-      firstTriggerCharacter: '.',
+      firstTriggerCharacter: '.'
     },
     renameProvider: true,
     documentLinkProvider: {
-      resolveProvider: true,
+      resolveProvider: true
     },
     colorProvider: true,
     foldingRangeProvider: true,
     declarationProvider: true,
     executeCommandProvider: {
-      commands: ['not', 'real', 'commands'],
-    },
+      commands: ['not', 'real', 'commands']
+    }
   };
 
   it('registers server capabilities', () => {
@@ -52,7 +52,7 @@ describe('ServerCapabilities client registration', () => {
       const capabilityOptions = (serverCapabilities as any)[capability];
       const registration = {
         id: 'id',
-        method: getMethodFromCapability(capability),
+        method: getMethodFromCapability(capability)
       } as Registration;
 
       if (typeof capabilityOptions !== 'boolean') {
@@ -80,7 +80,7 @@ describe('ServerCapabilities client registration', () => {
     Object.keys(serverCapabilities).forEach((capability) => {
       const unregistration = {
         id: 'some id',
-        method: getMethodFromCapability(capability),
+        method: getMethodFromCapability(capability)
       } as Unregistration;
       const newServerCapabilities = unregisterServerCapability(
         serverCapabilities,

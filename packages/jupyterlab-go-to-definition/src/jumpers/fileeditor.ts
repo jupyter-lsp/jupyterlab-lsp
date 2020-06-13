@@ -107,9 +107,9 @@ export class FileEditorJumper extends CodeJumper {
     return {
       token: {
         offset: this.getOffset(position),
-        value: '',
+        value: ''
       },
-      index: 0,
+      index: 0
     };
   }
 }
