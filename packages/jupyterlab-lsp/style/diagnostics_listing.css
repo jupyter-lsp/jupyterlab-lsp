@@ -19,8 +19,13 @@
   overflow-x: hidden;
 }
 
+.lsp-diagnostics-listing th,
+.lsp-diagnostics-listing td {
+  padding: 4px 12px 2px 12px;
+  height: 18px;
+}
+
 .lsp-diagnostics-listing th {
-  padding: 4px 12px;
   font-weight: 500;
   text-align: left;
   border-bottom: var(--jp-border-width) solid var(--jp-border-color1);
@@ -44,37 +49,35 @@
   content: ' > ';
 }
 
-.lsp-diagnostics-listing td:first-child,
-.lsp-diagnostics-listing td:last-child {
-  padding: 4px 12px;
-}
-
-.lsp-diagnostics-listing tbody td:not(:first-child):not(:last-child) {
-  padding: 4px 2px;
-}
-
 .lsp-diagnostics-listing tbody tr:hover {
   background: var(--jp-layout-color2);
 }
 
-.lsp-sort-caret {
-  height: 16px;
-  width: 16px;
-  background-size: 18px;
-  background-image: 18px;
-  background-repeat: no-repeat;
-  background-position: center;
-  display: inline-block;
-  position: relative;
-  top: 3px;
+.lsp-diagnostics-listing thead th > div {
+  flex-direction: row;
+  display: flex;
 }
 
-.lsp-sorted .lsp-caret {
-  background-image: var(--jp-icon-caretup);
-  margin-top: -4px;
-  left: 3px;
+.lsp-diagnostics-listing thead th > div > label {
+  flex: 1;
+  text-overflow: ellipsis;
 }
 
-.lsp-sorted.lsp-descending .lsp-caret {
-  background-image: var(--jp-icon-caretdown);
+.lsp-sort-icon {
+  flex: 0;
+  height: var(--jp-ui-font-size1);
+  width: var(--jp-ui-font-size1);
+}
+
+.lsp-sort-icon svg {
+  display: inline;
+  height: auto;
+}
+
+.lsp-diagnostics-listing thead th:not(.lsp-sorted-header) .lsp-sort-icon {
+  opacity: 0;
+}
+
+.lsp-diagnostics-listing thead th:not(.lsp-sorted-header):hover .lsp-sort-icon {
+  opacity: 0.5;
 }
