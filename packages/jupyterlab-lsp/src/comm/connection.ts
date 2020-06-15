@@ -218,6 +218,8 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
   }
 
   async initialize(): Promise<void> {
+    this._isInitialized = false;
+
     if (!this.isConnected) {
       return;
     }
@@ -235,8 +237,6 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
       console.warn(err)
     );
 
-    this._isInitialized = true;
-
     await this.notify(LSP.Method.DID_CHANGE_CONFIGURATION, {
       settings: {},
     }).catch((err) => console.warn(err));
@@ -244,6 +244,8 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     while (this.documentsToOpen.length) {
       this.sendOpen(this.documentsToOpen.pop());
     }
+
+    this._isInitialized = true;
 
     this._signals
       .get(ILSPConnection.LegacyEvents.ON_INITIALIZED)

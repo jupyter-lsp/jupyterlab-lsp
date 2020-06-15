@@ -14,8 +14,7 @@ from .handlers import CommHandler
 
 
 class CommLanguageServerManager(LanguageServerManager):
-    CONTROL_COMM_TARGET = "jupyter.lsp.control"
-    LANGUAGE_SERVER_COMM_TARGET = "jupyter.lsp.language_server"
+    COMM_TARGET = "jupyter.lsp"
 
     config_manager = Instance(ConfigManager)
     root_uri = Unicode()
@@ -61,26 +60,14 @@ class CommLanguageServerManager(LanguageServerManager):
                 setattr(self, key, value)
 
     def initialize(self, *args, **kwargs):
-        # this uses the decorator which changes the LanguageServerManager singleton
         setup_shadow_filesystem(virtual_documents_uri=self.virtual_documents_uri)
         super().initialize(*args, **kwargs)
         self.init_comm_targets()
 
     def init_comm_targets(self):
         self.comm_manager.register_target(
-            self.CONTROL_COMM_TARGET, self.on_control_comm_opened
+            self.COMM_TARGET, self.on_language_server_comm_opened
         )
-        self.comm_manager.register_target(
-            self.LANGUAGE_SERVER_COMM_TARGET, self.on_language_server_comm_opened
-        )
-
-    def on_control_comm_opened(self, comm, comm_msg):
-        def on_msg(comm_msg):
-            # nb: other message types, a la stop from #255
-            self.send_status(comm)
-
-        comm.on_msg(on_msg)
-        on_msg(comm_msg)
 
     def get_status_response(self):
         response = {
@@ -102,13 +89,15 @@ class CommLanguageServerManager(LanguageServerManager):
 
         return response
 
-    def send_status(self, comm):
-        comm.send(self.get_status_response())
-
     def on_language_server_comm_opened(self, comm, comm_msg):
-        language_server = comm_msg["metadata"]["language_server"]
-
+        """ Handle a new comm from the client, optionally launch a handler
+        """
         handler = CommHandler()
         handler.comm = comm
         handler.initialize(self)
-        handler.open(language_server)
+
+        language_server = comm_msg["metadata"].get("language_server")
+
+        # this is a pre-baked connection
+        if language_server:
+            handler.open(language_server)

@@ -17,8 +17,7 @@ import * as SCHEMA from './_schema';
 import { ISessionConnection } from '@jupyterlab/services/lib/session/session';
 import { IComm } from '@jupyterlab/services/lib/kernel/kernel';
 
-const CONTROL_COMM_TARGET = 'jupyter.lsp.control';
-const LANGUAGE_SERVER_COMM_TARGET = 'jupyter.lsp.language_server';
+const COMM_TARGET = 'jupyter.lsp';
 
 export class LanguageServerManager implements ILanguageServerManager {
   protected _sessionsChanged: Signal<ILanguageServerManager, void> = new Signal<
@@ -118,41 +117,33 @@ export class LanguageServerManager implements ILanguageServerManager {
   }
 
   /**
-   * Get (or create) the control comm
+   * Get (or create) an existing comm to use as the control comm, or create one
+   * with no language server
    */
   protected async getControlComm() {
     const kernel = await this.ensureKernel();
     const commInfo = await kernel.requestCommInfo({
-      target_name: CONTROL_COMM_TARGET,
+      target_name: COMM_TARGET,
     });
 
-    let commId: string;
-
-    if (commInfo.content.status === 'ok') {
-      const commIds = Object.keys(commInfo.content.comms);
-      commId = commIds.length ? commIds[0] : null;
+    if (commInfo.content.status !== 'ok') {
+      return;
     }
 
-    const comm = kernel.createComm(
-      CONTROL_COMM_TARGET,
-      ...(commId == null ? [] : [commId])
-    );
+    const commIds = Object.keys(commInfo.content.comms);
+    const commId = commIds.length ? commIds[0] : null;
 
+    // not _neccessarily_ the language server comm, but we can use it anyway
+    // and it wil be re-connected later
+    const comm = kernel.createComm(COMM_TARGET, ...(commId ? [commId] : []));
     comm.onMsg = this.onControlCommMsg.bind(this);
+    comm.open({});
 
-    if (commId == null) {
-      // nb: do something here? negotiate schema version?
-      comm.open({});
-    } else {
-      comm.send({});
-    }
-
-    // nb: should we await something?
     return comm;
   }
 
   protected async onControlCommMsg(msg: KernelMessage.ICommMsgMsg) {
-    const { sessions, uris } = msg.content.data as SCHEMA.ServersResponse;
+    const { sessions, uris } = msg.metadata as SCHEMA.ServersResponse;
     this._rootUri = uris.root;
     this._virtualDocumentsUri = uris.virtual_documents;
     this._sessions = new Map(Object.entries(sessions));
@@ -167,7 +158,7 @@ export class LanguageServerManager implements ILanguageServerManager {
     let commId = session.comm_ids.length ? session.comm_ids[0] : null;
 
     const comm = kernel.createComm(
-      LANGUAGE_SERVER_COMM_TARGET,
+      COMM_TARGET,
       ...(commId == null ? [] : [commId])
     );
 

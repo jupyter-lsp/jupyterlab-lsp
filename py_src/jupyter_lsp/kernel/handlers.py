@@ -7,7 +7,9 @@ from ..types import LangaugeServerClientAPI
 
 
 class CommHandler(LangaugeServerClientAPI):
-    """ Jupyter Kernel Comm-based transport that imitates the tornado websocket handler
+    """ Jupyter Kernel Comm-based transport
+
+        The interface is mostly derived from the tornado.websocket.WebSocketHandler
     """
 
     comm = None  # type: Comm
@@ -15,6 +17,7 @@ class CommHandler(LangaugeServerClientAPI):
     def initialize(self, manager):
         self.manager = manager
         self.comm.on_msg(self.on_message_sync)
+        self.comm.send(data={}, metadata=self.manager.get_status_response())
 
     def open(self, language_server):
         self.language_server = language_server
@@ -37,9 +40,13 @@ class CommHandler(LangaugeServerClientAPI):
     async def on_message(self, message):
         self.log.debug("[{}] Got a message".format(self.language_server))
 
-        # nb: deal with legacy json for now
         message_data = message
-        if isinstance(message, dict):  # pragma: no cover
+
+        if isinstance(message, dict):
+            if not message["content"]["data"]:
+
+                return
+
             message_data = json.dumps(message["content"]["data"])
 
         await self.manager.on_client_message(message_data, self)
