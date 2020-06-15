@@ -273,7 +273,9 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
       return;
     }
 
-    this.notify(LSP.Method.DID_CHANGE_CONFIGURATION, settings);
+    this.notify(LSP.Method.DID_CHANGE_CONFIGURATION, settings).catch((err) =>
+      console.warn(err)
+    );
   }
 
   sendOpenWhenReady(documentInfo: ILSPConnection.IDocumentInfo) {
