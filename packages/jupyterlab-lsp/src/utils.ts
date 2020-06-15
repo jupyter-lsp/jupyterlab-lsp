@@ -1,3 +1,6 @@
+import mergeWith from 'lodash.mergewith';
+import { ReadonlyJSONObject, ReadonlyJSONValue } from '@lumino/coreutils';
+
 const RE_PATH_ANCHOR = /^file:\/\/([^\/]+|\/[A-Z]:)/;
 
 export async function sleep(timeout: number) {
@@ -123,3 +126,41 @@ export function uri_to_contents_path(child: string, parent: string) {
   }
   return null;
 }
+
+/**
+ * The docs for many language servers show settings in the
+ * VSCode format, e.g.: "pyls.plugins.pyflakes.enabled"
+ *
+ * VSCode converts that dot notation to JSON behind the scenes,
+ * as the language servers themselves don't accept that syntax.
+ */
+export const expandPath = (
+  path: string[],
+  value: ReadonlyJSONValue
+): ReadonlyJSONObject => {
+  const obj: any = {};
+
+  let curr = obj;
+  path.forEach((prop: string, i: any) => {
+    curr[prop] = {};
+
+    if (i === path.length - 1) {
+      curr[prop] = value;
+    } else {
+      curr = curr[prop];
+    }
+  });
+
+  return obj;
+};
+
+export const expandDottedPaths = (
+  obj: ReadonlyJSONObject
+): ReadonlyJSONObject => {
+  const settings: any = [];
+  for (let key in obj) {
+    const parsed = expandPath(key.split('.'), obj[key]);
+    settings.push(parsed);
+  }
+  return mergeWith({}, ...settings);
+};

@@ -40,6 +40,7 @@ import {
   DocumentRegistry,
 } from '@jupyterlab/docregistry/lib/registry';
 import { DocumentConnectionManager } from './connection_manager';
+import { TLanguageServerConfigurations } from './tokens';
 
 const lsp_commands: Array<IFeatureCommand> = [].concat(
   ...lsp_features.map((feature) => feature.commands)
@@ -241,22 +242,22 @@ const plugin: JupyterFrontEndPlugin<void> = {
     notebook_command_manager.add(lsp_commands);
 
     function updateOptions(settings: ISettingRegistry.ISettings): void {
-      // let options = settings.composite;
-      // Object.keys(options).forEach((key) => {
-      //  if (key === 'modifier') {
-      //    // let modifier = options[key] as KeyModifier;
-      //    CodeMirrorExtension.modifierKey = modifier;
-      //  }
-      // });
+      const options = settings.composite;
+
+      const languageServerSettings = (options.language_servers ||
+        {}) as TLanguageServerConfigurations;
+      connection_manager.updateServerConfigurations(languageServerSettings);
     }
 
     settingRegistry
       .load(plugin.id)
-      .then((settings) => {
-        updateOptions(settings);
-        settings.changed.connect(() => {
-          updateOptions(settings);
-        });
+      .then(settings => {
+        // Store the initial server settings, to be sent asynchronously
+        // when the servers are initialized.
+        connection_manager.initial_configurations = (settings.composite
+          .language_servers || {}) as TLanguageServerConfigurations;
+
+        settings.changed.connect(() => updateOptions(settings));
       })
       .catch((reason: Error) => {
         console.error(reason.message);

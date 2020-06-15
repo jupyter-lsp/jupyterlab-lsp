@@ -1,8 +1,8 @@
 {
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "bash-language-server": "^1.6.1",
+    "dictionary-en": "^3.0.0",
     "dockerfile-language-server-nodejs": "^0.0.22",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.1.0",
@@ -21,7 +21,7 @@
     "vscode-css-languageserver-bin": "^1.4.0",
     "vscode-html-languageserver-bin": "^1.4.0",
     "vscode-json-languageserver-bin": "^1.0.1",
-    "yaml-language-server": "^0.4.0"
+    "yaml-language-server": "~0.4.0"
   },
   "husky": {
     "hooks": {

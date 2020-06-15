@@ -5,11 +5,17 @@ import { URLExt } from '@jupyterlab/coreutils';
 import { sleep, until_ready } from './utils';
 
 import {
-  TLanguageServerId,
-  ILanguageServerManager,
   ILSPConnection,
 } from './tokens';
 import { CommLSPConnection } from './comm/connection';
+import { expandDottedPaths } from './utils';
+
+import {
+  TLanguageServerId,
+  ILanguageServerManager,
+  ILanguageServerConfiguration,
+  TLanguageServerConfigurations
+} from './tokens';
 
 export interface IDocumentConnectionData {
   virtual_document: VirtualDocument;
@@ -53,6 +59,7 @@ export class DocumentConnectionManager {
     Map<VirtualDocument.id_path, VirtualDocument>
   >;
   language_server_manager: ILanguageServerManager;
+  initial_configurations: TLanguageServerConfigurations;
   private ignored_languages: Set<string>;
 
   constructor(options: DocumentConnectionManager.IOptions) {
@@ -151,6 +158,26 @@ export class DocumentConnectionManager {
   }
 
   /**
+   * Currently only supports the settings that the language servers
+   * accept using onDidChangeConfiguration messages, under the
+   * "serverSettings" keyword in the setting registry. New keywords can
+   * be added and extra functionality implemented here when needed.
+   */
+  public updateServerConfigurations(allServerSettings: any) {
+    for (let language_server_id in allServerSettings) {
+      const parsedSettings = expandDottedPaths(
+        allServerSettings[language_server_id].serverSettings
+      );
+
+      const serverSettings: ILanguageServerConfiguration = {
+        settings: parsedSettings
+      };
+
+      Private.updateServerConfiguration(language_server_id, serverSettings);
+    }
+  }
+
+  /**
    * Fired the first time a connection is opened. These _should_ be the only
    * invocation of `.on` (once remaining LSPFeature.connection_handlers are made
    * singletons).
@@ -185,6 +212,9 @@ export class DocumentConnectionManager {
         // TODO: is this still neccessary, e.g. for status bar to update responsively?
         this.initialized.emit({ connection, virtual_document });
       });
+
+      // Initialize using settings stored in the SettingRegistry
+      this.updateServerConfigurations(this.initial_configurations);
     });
 
     connection.on('close', (closed_manually) => {
@@ -352,5 +382,15 @@ namespace Private {
     connection = _connections.get(language_server_id);
 
     return connection;
+  }
+
+  export function updateServerConfiguration(
+    language_server_id: TLanguageServerId,
+    settings: ILanguageServerConfiguration
+  ): void {
+    const connection = _connections.get(language_server_id);
+    if (connection) {
+      connection.sendConfigurationChange(settings);
+    }
   }
 }
