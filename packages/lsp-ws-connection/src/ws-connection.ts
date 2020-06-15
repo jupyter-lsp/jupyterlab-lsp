@@ -268,6 +268,19 @@ export class LspWsConnection extends events.EventEmitter
     );
   }
 
+  public sendConfigurationChange(
+    settings: protocol.DidChangeConfigurationParams
+  ) {
+    if (!this.isReady) {
+      return;
+    }
+
+    this.connection.sendNotification(
+      'workspace/didChangeConfiguration',
+      settings
+    );
+  }
+
   public async getHoverTooltip(
     location: IPosition,
     documentInfo: IDocumentInfo,
