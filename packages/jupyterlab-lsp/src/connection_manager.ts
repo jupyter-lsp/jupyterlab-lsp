@@ -2,20 +2,16 @@ import { VirtualDocument, IForeignContext } from './virtual/document';
 
 import { Signal } from '@lumino/signaling';
 import { URLExt } from '@jupyterlab/coreutils';
-import { sleep, until_ready } from './utils';
-
-import {
-  ILSPConnection,
-} from './tokens';
-import { CommLSPConnection } from './comm/connection';
-import { expandDottedPaths } from './utils';
+import { sleep, until_ready, expandDottedPaths } from './utils';
 
 import {
   TLanguageServerId,
   ILanguageServerManager,
+  ILSPConnection,
+  TLanguageServerConfigurations,
   ILanguageServerConfiguration,
-  TLanguageServerConfigurations
 } from './tokens';
+import { CommLSPConnection } from './comm/connection';
 
 export interface IDocumentConnectionData {
   virtual_document: VirtualDocument;
@@ -170,13 +166,12 @@ export class DocumentConnectionManager {
       );
 
       const serverSettings: ILanguageServerConfiguration = {
-        settings: parsedSettings
+        settings: parsedSettings,
       };
 
       Private.updateServerConfiguration(language_server_id, serverSettings);
     }
   }
-
   /**
    * Fired the first time a connection is opened. These _should_ be the only
    * invocation of `.on` (once remaining LSPFeature.connection_handlers are made

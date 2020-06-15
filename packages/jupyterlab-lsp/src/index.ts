@@ -251,7 +251,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     settingRegistry
       .load(plugin.id)
-      .then(settings => {
+      .then((settings) => {
         // Store the initial server settings, to be sent asynchronously
         // when the servers are initialized.
         connection_manager.initial_configurations = (settings.composite
