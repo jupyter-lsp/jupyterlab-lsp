@@ -32,6 +32,9 @@ Less
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable-2')][contains(text(), '@width')])[last()]
     Editor Shows Features for Language    Less    example.less    Diagnostics=Do not use empty rulesets    Jump to Definition=${def}
 
+Markdown
+    Editor Shows Features for Language    Markdown    example.md    Diagnostics=`Color` is misspelt
+
 Python
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
     Editor Shows Features for Language    Python    example.py    Diagnostics=multiple spaces after keyword    Jump to Definition=${def}    Rename=${def}
@@ -58,12 +61,7 @@ YAML
 *** Keywords ***
 Editor Shows Features for Language
     [Arguments]    ${Language}    ${file}    &{features}
-    Set Tags    language:${Language.lower()}
-    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}editor${/}${Language.lower()}
-    Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
-    Try to Close All Tabs
-    Open ${file} in ${MENU EDITOR}
-    Capture Page Screenshot    00-opened.png
+    Prepare File for Editing    ${Language}    editor    ${file}
     FOR    ${f}    IN    @{features}
         Run Keyword If    "${f}" == "Diagnostics"    Editor Should Show Diagnostics    ${features["${f}"]}
         ...    ELSE IF    "${f}" == "Jump to Definition"    Editor Should Jump To Definition    ${features["${f}"]}
@@ -105,10 +103,6 @@ Measure Cursor Position
     Wait Until Page Contains Element    ${CM CURSORS}
     ${position} =    Wait Until Keyword Succeeds    20 x    0.05s    Get Vertical Position    ${CM CURSOR}
     [Return]    ${position}
-
-Get Editor Content
-    ${content}    Execute JavaScript    return document.querySelector('.CodeMirror').CodeMirror.getValue()
-    [Return]    ${content}
 
 Editor Content Changed
     [Arguments]    ${old_content}

@@ -2,7 +2,38 @@
   "title": "Language Server",
   "description": "Language Server Protocol settings.",
   "type": "object",
-  "properties": {},
+  "properties": {
+    "language_servers": {
+      "title": "Language Server",
+      "description": "Language-server specific configuration, keyed by implementation, e.g: \n\npyls: {\n  serverSettings: {\n    pyls: {\n      plugins: {\n        pydocstyle: {\n          enabled: true\n        },\n        pyflakes: {\n          enabled: false\n        },\n        flake8: {\n          enabled: true\n        }\n      }\n    }\n  }\n}\n\nAlternatively, using VSCode's naming convention:\n\npyls: {\n  serverSettings: {\n    \"pyls.plugins.pydocstyle.enabled\": true,\n    \"pyls.plugins.pyflakes.enabled\": false,\n    \"pyls.plugins.flake8.enabled\": true\n  }\n}",
+      "type": "object",
+      "default": {},
+      "patternProperties": {
+        ".*": {
+          "$ref": "#/definitions/language-server"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/language-server"
+      }
+    }
+  },
+  "definitions": {
+    "language-server": {
+      "title": "Language Server",
+      "description": "Client and server configurations for a single language server",
+      "type": "object",
+      "default": {},
+      "properties": {
+        "serverSettings": {
+          "title": "Language Server Configurations",
+          "description": "Configuration to be sent to language server over LSP when initialized: see the specific language server's documentation for more",
+          "type": "object",
+          "default": {}
+        }
+      }
+    }
+  },
   "jupyter.lab.shortcuts": [
     {
       "command": "lsp:jump-to-definition-notebook",
