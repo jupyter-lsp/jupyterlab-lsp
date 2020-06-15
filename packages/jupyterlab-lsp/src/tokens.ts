@@ -110,8 +110,8 @@ export interface ILSPConnection {
     documentInfo: ILSPConnection.IDocumentInfo
   ): void;
   sendSaved(documentInfo: ILSPConnection.IDocumentInfo): void;
-
   sendConfigurationChange(settings: LSP.DidChangeConfigurationParams): void;
+
   rename(
     location: ILSPConnection.IPosition,
     documentInfo: ILSPConnection.IDocumentInfo,
