@@ -114,5 +114,5 @@ class MockComm:
     def on_msg(self, fn):
         self._fn = fn
 
-    def send(self, msg):
-        self._sent = getattr(self, "_sent", []) + [msg]
+    def send(self, data=None, metadata=None):
+        self._sent = getattr(self, "_sent", []) + [dict(data=data, metadata=metadata)]

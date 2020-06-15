@@ -42,9 +42,12 @@ class CommHandler(LangaugeServerClientAPI):
 
         message_data = message
 
-        if isinstance(message, dict):
-            if not message["content"]["data"]:
-
+        if isinstance(message, dict):  # pragma: no cover
+            data = message["content"]["data"]
+            metadata = message["content"]["metadata"]
+            if not data and metadata:
+                self.log.debug("[{}] Sent metadata".format(self.language_server))
+                self.comm.send(data={}, metadata=self.manager.get_status_response())
                 return
 
             message_data = json.dumps(message["content"]["data"])

@@ -31,14 +31,6 @@ def test_kernel_install(
 
 
 @pytest.mark.asyncio
-def test_kernel_manager_control_comm(lsp_handler, mock_comm):
-    manager = lsp_handler.manager
-    manager.initialize()
-    manager.on_control_comm_opened(mock_comm, None)
-    assert mock_comm._sent
-
-
-@pytest.mark.asyncio
 def test_kernel_manager_server_comm(lsp_handler, mock_comm):
     manager = lsp_handler.manager
     manager.initialize()
