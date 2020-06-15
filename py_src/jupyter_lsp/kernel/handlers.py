@@ -40,19 +40,19 @@ class CommHandler(LangaugeServerClientAPI):
     async def on_message(self, message):
         self.log.debug("[{}] Got a message".format(self.language_server))
 
-        message_data = message
+        message_str = message
 
         if isinstance(message, dict):  # pragma: no cover
-            data = message["content"]["data"]
-            metadata = message["content"]["metadata"]
+            data = message.get("content", {}).get("data")
+            metadata = message.get("metadata")
             if not data and metadata:
-                self.log.debug("[{}] Sent metadata".format(self.language_server))
+                self.log.debug("[{}] Sending status".format(self.language_server))
                 self.comm.send(data={}, metadata=self.manager.get_status_response())
                 return
 
-            message_data = json.dumps(message["content"]["data"])
+            message_str = json.dumps(data)
 
-        await self.manager.on_client_message(message_data, self)
+        await self.manager.on_client_message(message_str, self)
         self.log.debug("[{}] Finished handling message".format(self.language_server))
 
     def write_message(self, message: str):  # pragma: no cover
