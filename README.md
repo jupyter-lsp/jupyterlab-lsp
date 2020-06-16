@@ -104,11 +104,17 @@ Use of a python `virtualenv` or a conda env is also recommended.
    pip install 'jupyterlab>=2,<2.1.0a0'
    ```
 
-1. install the server extension:
+1. install the kernel:
 
    ```bash
    pip install jupyter-lsp
    ```
+
+1. enable the kernelspec
+
+```bash
+jupyter lsp kernelspec install
+```
 
 1. install `nodejs`
 

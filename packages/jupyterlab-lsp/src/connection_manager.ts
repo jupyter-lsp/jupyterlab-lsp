@@ -136,9 +136,6 @@ export class DocumentConnectionManager {
       language
     });
 
-    // lazily load 1) the underlying library (1.5mb) and/or 2) a live WebSocket-
-    // like connection: either already connected or potentiailly in the process
-    // of connecting.
     const connection = await Private.connection(
       language,
       language_server_id,
@@ -350,7 +347,7 @@ namespace Private {
   }
 
   /**
-   * Return (or create and initialize) the WebSocket associated with the language
+   * Return (or create and initialize) the connection associated with the language
    */
   export async function connection(
     language: string,

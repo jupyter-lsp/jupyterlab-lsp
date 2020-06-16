@@ -133,8 +133,11 @@ export class LanguageServerManager implements ILanguageServerManager {
     const commIds = Object.keys(commInfo.content.comms);
     const commId = commIds.length ? commIds[0] : null;
 
-    // not _neccessarily_ the language server comm, but we can use it anyway
-    // and it wil be re-connected later
+    /**
+     * If comms are already open on the server, this will not _neccessarily_
+     * be "the" control comm, but we can use it anyway and it wil be repurposed
+     * later.
+     */
     const comm = kernel.createComm(COMM_TARGET, ...(commId ? [commId] : []));
     comm.onMsg = this.onControlCommMsg.bind(this);
     comm.open({});
@@ -142,6 +145,9 @@ export class LanguageServerManager implements ILanguageServerManager {
     return comm;
   }
 
+  /**
+   * Handle a metadata-only comm message which provides information about all
+   */
   protected async onControlCommMsg(msg: KernelMessage.ICommMsgMsg) {
     const { sessions, uris } = msg.metadata as SCHEMA.ServersResponse;
     this._rootUri = uris.root;
@@ -151,6 +157,9 @@ export class LanguageServerManager implements ILanguageServerManager {
     this._kernelReady.resolve(void 0);
   }
 
+  /**
+   * Find a language server comm by implementation id
+   */
   protected async getLanguageServerComm(language_server_id: TLanguageServerId) {
     const kernel = await this.ensureKernel();
 
@@ -175,6 +184,18 @@ export class LanguageServerManager implements ILanguageServerManager {
     return comm;
   }
 
+  /**
+   * Start a singleton Language Server Kernel
+   *
+   * Right now, this is a singleton, as it is the only kernel that supports
+   * the `jupyter.lsp` comm target. When another kernel _does_ support it,
+   * it would be neccessary to:
+   *
+   * - ask all open kernels if they support `jupyter.lsp`
+   * - open the comm
+   * - see which language (servers) they provide
+   * - probably give the user the option to prefer "native" kernel LSP sources
+   */
   async initKernel() {
     if (this._kernelSessionConnection) {
       this._kernelSessionConnection.dispose();
