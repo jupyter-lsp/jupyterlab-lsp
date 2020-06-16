@@ -45,6 +45,7 @@ graph backend {
     }
 
     Clients -- {LanguageServerComm} -- Manager
+    LanguageServerComm -- Spec
     Session -- {Reader Writer} -- LanguageServer
     {Manager Traitlets EntryPoints} -- {SpecFinders Listeners}
     Manager -- {Spec Session}
