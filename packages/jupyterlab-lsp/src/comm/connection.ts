@@ -27,6 +27,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
   > = new Map();
 
   private _listeners = new Map<any, any>();
+  private _openDocuments = new Map<string, boolean>();
 
   private closingManually = false;
 
@@ -35,6 +36,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     this._rootUri = options.rootUri;
     this.initSignals();
     this.initHandlers();
+    this.commChanged.connect(() => this._openDocuments.clear());
   }
 
   get rootUri() {
@@ -297,12 +299,16 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
         version: documentInfo.version
       }
     }).catch(err => console.warn(err));
+    this._openDocuments.set(documentInfo.uri, true);
     this.sendChange(documentInfo);
   }
 
   sendChange(documentInfo: ILSPConnection.IDocumentInfo) {
     if (!this.isReady) {
       return;
+    }
+    if (!this._openDocuments.get(documentInfo.uri)) {
+      this.sendOpen(documentInfo);
     }
     this.notify(LSP.Method.DID_CHANGE, {
       textDocument: {
@@ -527,6 +533,11 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     if (!this.isReady) {
       return;
     }
+
+    if (!this._openDocuments.get(documentInfo.uri)) {
+      this.sendOpen(documentInfo);
+    }
+
     this.notify(LSP.Method.DID_CHANGE, {
       textDocument: {
         uri: documentInfo.uri,
