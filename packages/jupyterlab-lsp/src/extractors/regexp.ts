@@ -87,7 +87,7 @@ export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
         host_code: host_code_fragment,
         foreign_code: prefix + foreign_code_fragment,
         range: { start, end },
-        virtual_shift: position_shift,
+        virtual_shift: position_shift
       });
 
       started_from = this.global_expression.lastIndex;
@@ -100,7 +100,7 @@ export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
         host_code: final_host_code_fragment,
         foreign_code: null,
         range: null,
-        virtual_shift: null,
+        virtual_shift: null
       });
     }
 

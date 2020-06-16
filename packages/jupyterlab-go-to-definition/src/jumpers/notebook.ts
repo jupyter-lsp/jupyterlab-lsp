@@ -35,7 +35,7 @@ export class NotebookJumper extends CodeJumper {
   }
 
   get editors() {
-    return this.notebook.widgets.map((cell) => cell.editor);
+    return this.notebook.widgets.map(cell => cell.editor);
   }
 
   get language() {
@@ -173,9 +173,9 @@ export class NotebookJumper extends CodeJumper {
     return {
       token: {
         offset: this.getOffset(position, cell_index),
-        value: '',
+        value: ''
       },
-      index: cell_index,
+      index: cell_index
     };
   }
 }

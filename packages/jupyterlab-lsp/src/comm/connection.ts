@@ -7,7 +7,7 @@ import { ICommRPC } from '.';
 import { CommLSP } from './lsp';
 import {
   registerServerCapability,
-  unregisterServerCapability,
+  unregisterServerCapability
 } from './server-capability-registration';
 
 export class CommLSPConnection extends CommLSP implements ILSPConnection {
@@ -86,56 +86,56 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
       [ILSPConnection.LegacyEvents.ON_CLOSE, new Signal(this)],
       [ILSPConnection.LegacyEvents.ON_DIAGNOSTIC, new Signal(this)],
       [ILSPConnection.LegacyEvents.ON_LOGGING, new Signal(this)],
-      [ILSPConnection.LegacyEvents.ON_INITIALIZED, new Signal(this)],
+      [ILSPConnection.LegacyEvents.ON_INITIALIZED, new Signal(this)]
     ]);
   }
 
   protected initHandlers() {
     // logging
     this.onNotification(LSP.Method.SHOW_MESSAGE, {
-      onMsg: async (params) => {
+      onMsg: async params => {
         this._signals.get(ILSPConnection.LegacyEvents.ON_LOGGING).emit(params);
-      },
+      }
     });
 
     this.onRequest(LSP.Method.SHOW_MESSAGE_REQUEST, {
-      onMsg: async (params) => {
+      onMsg: async params => {
         this._signals.get(ILSPConnection.LegacyEvents.ON_LOGGING).emit(params);
         // nb: this seems important
         return null;
-      },
+      }
     });
 
     // diagnostics
     this.onNotification(LSP.Method.PUBLISH_DIAGNOSTICS, {
-      onMsg: async (params) => {
+      onMsg: async params => {
         this._signals
           .get(ILSPConnection.LegacyEvents.ON_DIAGNOSTIC)
           .emit(params);
-      },
+      }
     });
 
     // capabilities
     this.onRequest(LSP.Method.REGISTER_CAPABILITY, {
-      onMsg: async (params) => {
+      onMsg: async params => {
         for (const registration of params.registrations) {
           this.serverCapabilities = registerServerCapability(
             this.serverCapabilities,
             registration
           );
         }
-      },
+      }
     });
 
     this.onRequest(LSP.Method.UNREGISTER_CAPABILITY, {
-      onMsg: async (params) => {
+      onMsg: async params => {
         for (const registration of params.unregisterations) {
           this.serverCapabilities = unregisterServerCapability(
             this.serverCapabilities,
             registration
           );
         }
-      },
+      }
     });
   }
 
@@ -162,13 +162,13 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
         textDocument: {
           hover: {
             dynamicRegistration: true,
-            contentFormat: ['markdown', 'plaintext'],
+            contentFormat: ['markdown', 'plaintext']
           },
           synchronization: {
             dynamicRegistration: true,
             willSave: false,
             didSave: true,
-            willSaveWaitUntil: false,
+            willSaveWaitUntil: false
           },
           completion: {
             dynamicRegistration: true,
@@ -177,43 +177,43 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
               commitCharactersSupport: true,
               documentationFormat: ['markdown', 'plaintext'],
               deprecatedSupport: false,
-              preselectSupport: false,
+              preselectSupport: false
             },
-            contextSupport: false,
+            contextSupport: false
           },
           signatureHelp: {
             dynamicRegistration: true,
             signatureInformation: {
-              documentationFormat: ['markdown', 'plaintext'],
-            },
+              documentationFormat: ['markdown', 'plaintext']
+            }
           },
           declaration: {
             dynamicRegistration: true,
-            linkSupport: true,
+            linkSupport: true
           },
           definition: {
             dynamicRegistration: true,
-            linkSupport: true,
+            linkSupport: true
           },
           typeDefinition: {
             dynamicRegistration: true,
-            linkSupport: true,
+            linkSupport: true
           },
           implementation: {
             dynamicRegistration: true,
-            linkSupport: true,
-          },
+            linkSupport: true
+          }
         } as LSP.ClientCapabilities,
         workspace: {
           didChangeConfiguration: {
-            dynamicRegistration: true,
-          },
-        } as LSP.WorkspaceClientCapabilities,
+            dynamicRegistration: true
+          }
+        } as LSP.WorkspaceClientCapabilities
       } as LSP.ClientCapabilities,
       initializationOptions: null,
       processId: null,
       rootUri: this._rootUri,
-      workspaceFolders: null,
+      workspaceFolders: null
     };
   }
 
@@ -233,13 +233,13 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
     this.serverCapabilities = capabilities;
 
-    await this.notify(LSP.Method.INITIALIZED, null).catch((err) =>
+    await this.notify(LSP.Method.INITIALIZED, null).catch(err =>
       console.warn(err)
     );
 
     await this.notify(LSP.Method.DID_CHANGE_CONFIGURATION, {
-      settings: {},
-    }).catch((err) => console.warn(err));
+      settings: {}
+    }).catch(err => console.warn(err));
 
     while (this.documentsToOpen.length) {
       this.sendOpen(this.documentsToOpen.pop());
@@ -275,7 +275,7 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
       return;
     }
 
-    this.notify(LSP.Method.DID_CHANGE_CONFIGURATION, settings).catch((err) =>
+    this.notify(LSP.Method.DID_CHANGE_CONFIGURATION, settings).catch(err =>
       console.warn(err)
     );
   }
@@ -294,9 +294,9 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
         uri: documentInfo.uri,
         languageId: documentInfo.languageId,
         text: documentInfo.text,
-        version: documentInfo.version,
-      },
-    }).catch((err) => console.warn(err));
+        version: documentInfo.version
+      }
+    }).catch(err => console.warn(err));
     this.sendChange(documentInfo);
   }
 
@@ -307,10 +307,10 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     this.notify(LSP.Method.DID_CHANGE, {
       textDocument: {
         uri: documentInfo.uri,
-        version: documentInfo.version,
+        version: documentInfo.version
       },
-      contentChanges: [{ text: documentInfo.text }],
-    }).catch((err) => console.warn(err));
+      contentChanges: [{ text: documentInfo.text }]
+    }).catch(err => console.warn(err));
     documentInfo.version++;
   }
 
@@ -338,13 +338,13 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     }
     return await this.request(LSP.Method.RENAME, {
       textDocument: {
-        uri: documentInfo.uri,
+        uri: documentInfo.uri
       },
       position: {
         line: location.line,
-        character: location.ch,
+        character: location.ch
       },
-      newName,
+      newName
     });
   }
 
@@ -358,12 +358,12 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
     return await this.request(LSP.Method.DOCUMENT_HIGHLIGHT, {
       textDocument: {
-        uri: documentInfo.uri,
+        uri: documentInfo.uri
       },
       position: {
         line: location.line,
-        character: location.ch,
-      },
+        character: location.ch
+      }
     });
   }
 
@@ -376,12 +376,12 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     }
     return await this.request(LSP.Method.HOVER, {
       textDocument: {
-        uri: documentInfo.uri,
+        uri: documentInfo.uri
       },
       position: {
         line: location.line,
-        character: location.ch,
-      },
+        character: location.ch
+      }
     });
   }
 
@@ -405,12 +405,12 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
     return await this.request(LSP.Method.SIGNATURE_HELP, {
       textDocument: {
-        uri: documentInfo.uri,
+        uri: documentInfo.uri
       },
       position: {
         line: location.line,
-        character: location.ch,
-      },
+        character: location.ch
+      }
     });
   }
 
@@ -427,16 +427,16 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
     const items = await this.request(LSP.Method.COMPLETION, {
       textDocument: {
-        uri: documentInfo.uri,
+        uri: documentInfo.uri
       },
       position: {
         line: location.line,
-        character: location.ch,
+        character: location.ch
       },
       context: {
         triggerKind: triggerKind || LSP.CompletionTriggerKind.Invoked,
-        triggerCharacter,
-      },
+        triggerCharacter
+      }
     });
 
     if (Array.isArray(items)) {
@@ -455,15 +455,15 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
     return this.request(LSP.Method.REFERENCES, {
       context: {
-        includeDeclaration: true,
+        includeDeclaration: true
       },
       textDocument: {
-        uri: documentInfo.uri,
+        uri: documentInfo.uri
       },
       position: {
         line: location.line,
-        character: location.ch,
-      },
+        character: location.ch
+      }
     });
   }
 
@@ -475,10 +475,10 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     this.notify(LSP.Method.DID_SAVE, {
       textDocument: {
         uri: documentInfo.uri,
-        version: documentInfo.version,
+        version: documentInfo.version
       },
-      text: documentInfo.text,
-    }).catch((err) => console.warn(err));
+      text: documentInfo.text
+    }).catch(err => console.warn(err));
   }
 
   async getTypeDefinition(
@@ -491,12 +491,12 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
     return await this.request(LSP.Method.TYPE_DEFINITION, {
       textDocument: {
-        uri: documentInfo.uri,
+        uri: documentInfo.uri
       },
       position: {
         line: location.line,
-        character: location.ch,
-      },
+        character: location.ch
+      }
     });
   }
 
@@ -510,12 +510,12 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
 
     return this.request(LSP.Method.DEFINITION, {
       textDocument: {
-        uri: documentInfo.uri,
+        uri: documentInfo.uri
       },
       position: {
         line: location.line,
-        character: location.ch,
-      },
+        character: location.ch
+      }
     });
   }
 
@@ -530,10 +530,10 @@ export class CommLSPConnection extends CommLSP implements ILSPConnection {
     this.notify(LSP.Method.DID_CHANGE, {
       textDocument: {
         uri: documentInfo.uri,
-        version: documentInfo.version,
+        version: documentInfo.version
       },
-      contentChanges: changeEvents,
-    }).catch((err) => console.warn(err));
+      contentChanges: changeEvents
+    }).catch(err => console.warn(err));
     documentInfo.version++;
   }
 }

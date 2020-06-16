@@ -4,11 +4,11 @@ import {
   IEditorPosition,
   IRootPosition,
   IVirtualPosition,
-  offset_at_position,
+  offset_at_position
 } from '../../positioning';
 import {
   IJupyterLabComponentsManager,
-  StatusMessage,
+  StatusMessage
 } from '../jupyterlab/jl_adapter';
 /// <reference path="../../../node_modules/@types/events/index.d.ts"/>
 // this appears to break when @types/node is around
@@ -23,7 +23,7 @@ import { ILSPConnection } from '../../tokens';
 
 export enum CommandEntryPoint {
   CellContextMenu,
-  FileEditorContextMenu,
+  FileEditorContextMenu
 }
 
 function toDocumentChanges(changes: {
@@ -33,7 +33,7 @@ function toDocumentChanges(changes: {
   for (let uri of Object.keys(changes)) {
     documentChanges.push({
       textDocument: { uri },
-      edits: changes[uri],
+      edits: changes[uri]
     } as LSP.TextDocumentEdit);
   }
   return documentChanges;
@@ -215,7 +215,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
     return {
       start: this.virtual_document.transform_virtual_to_editor(start),
       end: this.virtual_document.transform_virtual_to_editor(end),
-      editor: cm_editor,
+      editor: cm_editor
     };
   }
 
@@ -223,7 +223,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
     return this.virtual_editor.coordsChar(
       {
         left: event.clientX,
-        top: event.clientY,
+        top: event.clientY
       },
       'window'
     ) as IRootPosition;
@@ -292,7 +292,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
     // Specs: documentChanges are preferred over changes
     let changes = workspaceEdit.documentChanges
       ? workspaceEdit.documentChanges.map(
-          (change) => change as LSP.TextDocumentEdit
+          change => change as LSP.TextDocumentEdit
         )
       : toDocumentChanges(workspaceEdit.changes);
     let applied_changes = null;
@@ -378,10 +378,10 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
               start: { line: 0, character: 0 },
               end: {
                 line: lines.length - 1,
-                character: lines[lines.length - 1].length,
-              },
+                character: lines[lines.length - 1].length
+              }
             },
-            newText: new_text,
+            newText: new_text
           };
           console.assert(this.is_whole_document_edit(edit));
         } else {
@@ -394,7 +394,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
       appliedChanges: applied_changes,
       modifiedCells: edited_cells,
       wasGranular: !is_whole_document_edit,
-      errors: errors,
+      errors: errors
     };
   }
 
@@ -449,7 +449,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
       { line: 0, ch: 0 },
       {
         line: fragment_end.line - fragment_start.line + 1,
-        ch: 0,
+        ch: 0
       }
     );
 
@@ -490,7 +490,7 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
         line++;
         let editor = document.get_editor_at_virtual_line({
           line: line,
-          ch: 0,
+          ch: 0
         } as IVirtualPosition);
 
         if (editor === last_editor) {
@@ -509,11 +509,11 @@ export abstract class CodeMirrorLSPFeature implements ILSPFeature {
           recently_replaced = true;
           fragment_start = {
             line: line,
-            ch: 0,
+            ch: 0
           };
           fragment_end = {
             line: line,
-            ch: 0,
+            ch: 0
           };
           last_editor = editor;
         }

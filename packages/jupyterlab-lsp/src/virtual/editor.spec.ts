@@ -4,13 +4,13 @@ import { RegExpForeignCodeExtractor } from '../extractors/regexp';
 import {
   IEditorPosition,
   IRootPosition,
-  IVirtualPosition,
+  IVirtualPosition
 } from '../positioning';
 import * as CodeMirror from 'codemirror';
 import { DocumentConnectionManager } from '../connection_manager';
 import {
   MockLanguageServerManager,
-  MockServiceManager,
+  MockServiceManager
 } from '../adapters/codemirror/testutils';
 
 class VirtualEditorImplementation extends VirtualEditor {
@@ -53,15 +53,15 @@ describe('VirtualEditor', () => {
     pattern: '(^|\n)%R (.*)\n?',
     extract_to_foreign: '$2',
     is_standalone: false,
-    file_extension: 'R',
+    file_extension: 'R'
   });
 
   const SERVICE_MANAGER = new MockServiceManager();
   const LANGSERVER_MANAGER = new MockLanguageServerManager({
-    serviceManager: SERVICE_MANAGER,
+    serviceManager: SERVICE_MANAGER
   });
   const CONNECTION_MANAGER = new DocumentConnectionManager({
-    language_server_manager: LANGSERVER_MANAGER,
+    language_server_manager: LANGSERVER_MANAGER
   });
 
   const DEBUG = false;

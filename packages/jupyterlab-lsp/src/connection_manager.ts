@@ -9,7 +9,7 @@ import {
   ILanguageServerManager,
   ILSPConnection,
   TLanguageServerConfigurations,
-  ILanguageServerConfiguration,
+  ILanguageServerConfiguration
 } from './tokens';
 import { CommLSPConnection } from './comm/connection';
 
@@ -133,7 +133,7 @@ export class DocumentConnectionManager {
     );
 
     const language_server_id = await this.language_server_manager.getServerId({
-      language,
+      language
     });
 
     // lazily load 1) the underlying library (1.5mb) and/or 2) a live WebSocket-
@@ -166,7 +166,7 @@ export class DocumentConnectionManager {
       );
 
       const serverSettings: ILanguageServerConfiguration = {
-        settings: parsedSettings,
+        settings: parsedSettings
       };
 
       Private.updateServerConfiguration(language_server_id, serverSettings);
@@ -202,8 +202,8 @@ export class DocumentConnectionManager {
     //   }
     // });
 
-    connection.on('serverInitialized', (capabilities) => {
-      this.forEachDocumentOfConnection(connection, (virtual_document) => {
+    connection.on('serverInitialized', capabilities => {
+      this.forEachDocumentOfConnection(connection, virtual_document => {
         // TODO: is this still neccessary, e.g. for status bar to update responsively?
         this.initialized.emit({ connection, virtual_document });
       });
@@ -212,12 +212,12 @@ export class DocumentConnectionManager {
       this.updateServerConfigurations(this.initial_configurations);
     });
 
-    connection.on('close', (closed_manually) => {
+    connection.on('close', closed_manually => {
       if (!closed_manually) {
         console.warn('LSP: Connection unexpectedly disconnected');
       } else {
         console.warn('LSP: Connection closed');
-        this.forEachDocumentOfConnection(connection, (virtual_document) => {
+        this.forEachDocumentOfConnection(connection, virtual_document => {
           this.closed.emit({ connection, virtual_document });
         });
       }
@@ -230,7 +230,7 @@ export class DocumentConnectionManager {
   ) {
     for (const [
       virtual_document_id_path,
-      a_connection,
+      a_connection
     ] of this.connections.entries()) {
       if (connection !== a_connection) {
         continue;
@@ -262,7 +262,7 @@ export class DocumentConnectionManager {
         .then(() => {
           success = true;
         })
-        .catch((e) => {
+        .catch(e => {
           console.warn(e);
         });
 
@@ -323,7 +323,7 @@ export namespace DocumentConnectionManager {
 
     return {
       base: baseUri,
-      document: URLExt.join(baseUri, virtual_document.uri),
+      document: URLExt.join(baseUri, virtual_document.uri)
     };
   }
 

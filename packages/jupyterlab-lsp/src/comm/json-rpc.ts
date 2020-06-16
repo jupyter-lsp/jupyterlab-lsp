@@ -166,17 +166,17 @@ export class CommRPC implements ICommRPC {
       if (handler != null) {
         handler
           .onMsg(params)
-          .then((result) => {
+          .then(result => {
             if (result != null) {
               this.comm.send({ jsonrpc: this._jsonrpc, id, result });
             }
           })
-          .catch((error) => {
+          .catch(error => {
             if (error?.rpcError) {
               this.comm.send({
                 jsonrpc: this._jsonrpc,
                 id,
-                error: error.rpcError,
+                error: error.rpcError
               });
             } else {
               throw error;

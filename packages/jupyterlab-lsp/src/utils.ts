@@ -4,7 +4,7 @@ import { ReadonlyJSONObject, ReadonlyJSONValue } from '@lumino/coreutils';
 const RE_PATH_ANCHOR = /^file:\/\/([^\/]+|\/[A-Z]:)/;
 
 export async function sleep(timeout: number) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     setTimeout(() => {
       resolve();
     }, timeout);
@@ -114,7 +114,7 @@ export function is_win_path(uri: string) {
  * lowercase the drive component of a URI
  */
 export function normalize_win_path(uri: string) {
-  return uri.replace(RE_PATH_ANCHOR, (it) => it.toLowerCase());
+  return uri.replace(RE_PATH_ANCHOR, it => it.toLowerCase());
 }
 
 export function uri_to_contents_path(child: string, parent: string) {

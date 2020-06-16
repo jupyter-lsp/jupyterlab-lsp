@@ -26,12 +26,12 @@ describe('Rename', () => {
             {
               range: {
                 start: { line: 0, character: 0 },
-                end: { line: 2, character: 0 },
+                end: { line: 2, character: 0 }
               },
-              newText: 'y = 1\n',
-            } as LSP.TextEdit,
-          ],
-        },
+              newText: 'y = 1\n'
+            } as LSP.TextEdit
+          ]
+        }
       });
 
       await env.virtual_editor.update_documents();

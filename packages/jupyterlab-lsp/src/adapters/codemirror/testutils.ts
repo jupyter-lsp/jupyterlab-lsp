@@ -1,7 +1,7 @@
 import { UUID } from '@lumino/coreutils';
 import {
   CodeMirrorEditor,
-  CodeMirrorEditorFactory,
+  CodeMirrorEditorFactory
 } from '@jupyterlab/codemirror';
 import { VirtualEditor } from '../../virtual/editor';
 import { CodeMirrorLSPFeature, ILSPFeatureConstructor } from './feature';
@@ -10,7 +10,7 @@ import { VirtualFileEditor } from '../../virtual/editors/file_editor';
 import { FreeTooltip } from '../jupyterlab/components/free_tooltip';
 import {
   IJupyterLabComponentsManager,
-  StatusMessage,
+  StatusMessage
 } from '../jupyterlab/jl_adapter';
 import { VirtualEditorForNotebook } from '../../virtual/editors/notebook';
 import { Notebook, NotebookModel } from '@jupyterlab/notebook';
@@ -99,7 +99,7 @@ export abstract class FeatureTestEnvironment
     }
     return new CommLSPConnection({
       comm,
-      rootUri: rootUri || 'file:///unit-test',
+      rootUri: rootUri || 'file:///unit-test'
     });
   }
 
@@ -118,7 +118,7 @@ export abstract class FeatureTestEnvironment
       isDisposed: false,
       dispose: () => {
         // nothing yet
-      },
+      }
     };
   }
 
@@ -143,16 +143,16 @@ export class FileEditorFeatureTestEnvironment extends FeatureTestEnvironment {
 
     this.ce_editor = factoryService.newDocumentEditor({
       host: this.host,
-      model,
+      model
     });
 
     const serviceManager = new MockServiceManager();
 
     this.language_server_manager = new MockLanguageServerManager({
-      serviceManager,
+      serviceManager
     });
     this.connection_manager = new DocumentConnectionManager({
-      language_server_manager: this.language_server_manager,
+      language_server_manager: this.language_server_manager
     });
 
     this.init();
@@ -213,7 +213,7 @@ export function code_cell(
     source: source,
     metadata: metadata,
     execution_count: null,
-    outputs: [],
+    outputs: []
   } as nbformat.ICodeCell;
 }
 
@@ -224,7 +224,7 @@ export function set_notebook_content(
 ) {
   let test_notebook = {
     cells: cells,
-    metadata: metadata,
+    metadata: metadata
   } as nbformat.INotebookContent;
 
   notebook.model = new NotebookModel();
@@ -235,21 +235,21 @@ export const python_notebook_metadata = {
   kernelspec: {
     display_name: 'Python [default]',
     language: 'python',
-    name: 'python3',
+    name: 'python3'
   },
   language_info: {
     codemirror_mode: {
       name: 'ipython',
-      version: 3,
+      version: 3
     },
     file_extension: '.py',
     mimetype: 'text/x-python',
     name: 'python',
     nbconvert_exporter: 'python',
     pygments_lexer: 'ipython3',
-    version: '3.5.2',
+    version: '3.5.2'
   },
-  orig_nbformat: 4.1,
+  orig_nbformat: 4.1
 } as nbformat.INotebookMetadata;
 
 export function showAllCells(notebook: Notebook) {
@@ -266,7 +266,7 @@ export function getCellsJSON(notebook: Notebook) {
   for (let i = 0; i < notebook.model.cells.length; i++) {
     cells.push(notebook.model.cells.get(i));
   }
-  return cells.map((cell) => cell.toJSON());
+  return cells.map(cell => cell.toJSON());
 }
 
 export async function synchronize_content(

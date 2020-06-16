@@ -48,7 +48,7 @@ import type {
   MarkedString,
   SignatureInformation,
   Registration,
-  Unregistration,
+  Unregistration
 } from 'vscode-languageserver-protocol';
 
 export type {
@@ -92,7 +92,7 @@ export type {
   MarkedString,
   SignatureInformation,
   Registration,
-  Unregistration,
+  Unregistration
 };
 
 namespace DiagnosticSeverity {
@@ -226,7 +226,7 @@ export const Provider: { [key: string]: keyof ServerCapabilities } = {
   EXECUTE_COMMAND: 'executeCommandProvider',
   SELECTION_RANGE: 'selectionRangeProvider',
   WORKSPACE_SYMBOL: 'workspaceSymbolProvider',
-  WORKSPACE: 'workspace',
+  WORKSPACE: 'workspace'
 };
 
 /** compound types for some responses */

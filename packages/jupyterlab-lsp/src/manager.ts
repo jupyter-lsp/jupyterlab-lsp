@@ -4,14 +4,14 @@ import { Signal } from '@lumino/signaling';
 import {
   // ServerConnection,
   ServiceManager,
-  KernelMessage,
+  KernelMessage
 } from '@jupyterlab/services';
 
 import {
   ILanguageServerManager,
   TSessionMap,
   TCommMap,
-  TLanguageServerId,
+  TLanguageServerId
 } from './tokens';
 import * as SCHEMA from './_schema';
 import { ISessionConnection } from '@jupyterlab/services/lib/session/session';
@@ -103,7 +103,7 @@ export class LanguageServerManager implements ILanguageServerManager {
    */
   protected async _handleKernelChanged({
     oldValue,
-    newValue,
+    newValue
   }: ISessionConnection.IKernelChangedArgs): Promise<void> {
     if (this._controlComm) {
       this._controlComm = null;
@@ -123,7 +123,7 @@ export class LanguageServerManager implements ILanguageServerManager {
   protected async getControlComm() {
     const kernel = await this.ensureKernel();
     const commInfo = await kernel.requestCommInfo({
-      target_name: COMM_TARGET,
+      target_name: COMM_TARGET
     });
 
     if (commInfo.content.status !== 'ok') {
@@ -164,7 +164,7 @@ export class LanguageServerManager implements ILanguageServerManager {
 
     this._comms.set(language_server_id, comm);
 
-    comm.onMsg = (msg) => {
+    comm.onMsg = msg => {
       console.warn('unitialized comm', comm, msg.content.data);
     };
 
@@ -187,7 +187,7 @@ export class LanguageServerManager implements ILanguageServerManager {
         path: '/',
         type: '',
         name: 'language-server',
-        kernel: { name: 'jupyter-lsp-kernel' },
+        kernel: { name: 'jupyter-lsp-kernel' }
       }
     ));
 
@@ -200,7 +200,7 @@ export class LanguageServerManager implements ILanguageServerManager {
     await this._handleKernelChanged({
       name: 'kernel',
       oldValue: null,
-      newValue: kernel,
+      newValue: kernel
     });
   }
 }

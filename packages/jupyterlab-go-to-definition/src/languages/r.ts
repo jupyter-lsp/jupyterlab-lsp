@@ -5,7 +5,7 @@ export class RAnalyzer extends LanguageWithOptionalSemicolons {
   definitionRules = [
     this.isStandaloneAssignment,
     this.isImport,
-    this.isForLoop,
+    this.isForLoop
   ];
 
   isAssignment(token: CodeEditor.IToken): boolean {

@@ -3,7 +3,7 @@ import * as LSP from '../../../lsp';
 import {
   CodeMirrorLSPFeature,
   IEditOutcome,
-  IFeatureCommand,
+  IFeatureCommand
 } from '../feature';
 import { InputDialog } from '@jupyterlab/apputils';
 import { Diagnostics } from './diagnostics';
@@ -20,7 +20,7 @@ export class Rename extends CodeMirrorLSPFeature {
         connection,
         virtual_position,
         document,
-        features,
+        features
       }) => {
         let old_value = document.getTokenAt(virtual_position).string;
         const rename_feature = features.get('Rename') as Rename;
@@ -42,7 +42,7 @@ export class Rename extends CodeMirrorLSPFeature {
         const dialog_value = await InputDialog.getText({
           title: 'Rename to',
           text: old_value,
-          okLabel: 'Rename',
+          okLabel: 'Rename'
         });
 
         try {
@@ -57,8 +57,8 @@ export class Rename extends CodeMirrorLSPFeature {
         }
       },
       is_enabled: ({ connection }) => connection.provides(LSP.Provider.RENAME),
-      label: 'Rename symbol',
-    },
+      label: 'Rename symbol'
+    }
   ];
 
   async handleRename(workspaceEdit: LSP.WorkspaceEdit) {
@@ -120,7 +120,7 @@ function ux_workaround_for_rope_limitation(
   let dire_python_errors = (
     diagnostics_feature.diagnostics_db.all || []
   ).filter(
-    (diagnostic) =>
+    diagnostic =>
       diagnostic.diagnostic.message.includes('invalid syntax') ||
       diagnostic.diagnostic.message.includes('SyntaxError') ||
       diagnostic.diagnostic.message.includes('IndentationError')
@@ -132,7 +132,7 @@ function ux_workaround_for_rope_limitation(
 
   let dire_errors = [
     ...new Set(
-      dire_python_errors.map((diagnostic) => {
+      dire_python_errors.map(diagnostic => {
         let message = diagnostic.diagnostic.message;
         let start = diagnostic.range.start;
         if (editor.has_cells) {
@@ -147,7 +147,7 @@ function ux_workaround_for_rope_limitation(
           return `${message} at line ${start.line}`;
         }
       })
-    ),
+    )
   ].join(', ');
   return `Syntax error(s) prevent rename: ${dire_errors}`;
 }

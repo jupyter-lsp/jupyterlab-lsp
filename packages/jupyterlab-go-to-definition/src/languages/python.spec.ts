@@ -145,7 +145,7 @@ describe('PythonAnalyzer', () => {
         'x, (y, z) = a, [b, c]',
         'x, (y, z) = a, (b, c)',
         '(x, y), z = (a, b), c',
-        '(x, y), z = [a, b], c',
+        '(x, y), z = [a, b], c'
       ];
 
       for (let testCase of cases) {
@@ -223,7 +223,7 @@ describe('PythonAnalyzer', () => {
 
       expect(queryWithSelectedToken(analyzer.guessReferencePath, 'y')).to.eql([
         'y.py',
-        'y/__init__.py',
+        'y/__init__.py'
       ]);
     });
 
@@ -278,7 +278,7 @@ describe('PythonAnalyzer', () => {
 
       expect(queryWithSelectedToken(analyzer.guessReferencePath, 'a')).to.eql([
         'a.py',
-        'a/__init__.py',
+        'a/__init__.py'
       ]);
 
       expect(

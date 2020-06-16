@@ -17,7 +17,7 @@ export class Highlights extends CodeMirrorLSPFeature {
         connection.getReferences(virtual_position, document.document_info),
       is_enabled: ({ connection }) =>
         connection.provides(LSP.Provider.REFERENCES),
-      label: 'Highlight references',
+      label: 'Highlight references'
     },
     {
       id: 'highlight-type-definition',
@@ -25,8 +25,8 @@ export class Highlights extends CodeMirrorLSPFeature {
         connection.getTypeDefinition(virtual_position, document.document_info),
       is_enabled: ({ connection }) =>
         connection.provides(LSP.Provider.TYPE_DEFINITION),
-      label: 'Highlight type definition',
-    },
+      label: 'Highlight type definition'
+    }
   ];
 
   register(): void {
