@@ -112,9 +112,9 @@ Use of a python `virtualenv` or a conda env is also recommended.
 
 1. enable the kernelspec
 
-```bash
-jupyter lsp kernelspec install
-```
+   ```bash
+   jupyter lsp kernelspec install
+   ```
 
 1. install `nodejs`
 
