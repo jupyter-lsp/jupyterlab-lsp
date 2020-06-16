@@ -21,7 +21,6 @@ graph backend {
             DiagnosticPanel
             ConnectionManager
             LanguageServerManager
-            ControlComm
         }
         WidgetTrackers
 
@@ -53,7 +52,7 @@ graph backend {
 
     {Connection CodeMirrors VirtualDocument VirtualEditor} -- Feature[lhead=cluster_features];
     Diagnostics -- DiagnosticPanel
-    Connection -- ConnectionManager -- LanguageServerManager -- ControlComm -- LanguageServerKernel
+    Connection -- ConnectionManager -- LanguageServerManager
     CodeMirrors -- CodeMirrorAdapters -- WidgetAdapter
     WidgetAdapter -- VirtualEditor -- VirtualDocument
     WidgetTrackers -- {Plugin -- Widget}

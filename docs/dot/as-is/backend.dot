@@ -13,8 +13,6 @@ graph backend {
 
     subgraph cluster_kernel { label="The Language Server Kernel"
         Manager[label="The\nLanguage\nServer\nManager"]
-        Handlers
-        ControlComm
         SpecFinders
         subgraph cluster_lsp { label="Per Language Server"
             LanguageServerComm
@@ -46,7 +44,7 @@ graph backend {
         }
     }
 
-    Clients -- {ControlComm LanguageServerComm} -- Manager
+    Clients -- {LanguageServerComm} -- Manager
     Session -- {Reader Writer} -- LanguageServer
     {Manager Traitlets EntryPoints} -- {SpecFinders Listeners}
     Manager -- {Spec Session}
