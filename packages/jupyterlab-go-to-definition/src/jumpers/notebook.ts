@@ -31,10 +31,7 @@ export class NotebookJumper extends CodeJumper {
   }
 
   get cwd() {
-    return this.widget.model.modelDB.basePath
-      .split('/')
-      .slice(0, -1)
-      .join('/');
+    return this.widget.model.modelDB.basePath.split('/').slice(0, -1).join('/');
   }
 
   get editors() {

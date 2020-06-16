@@ -22,7 +22,7 @@ export class VirtualFileEditor extends VirtualEditor {
     super(language, file_extension, path, {}, {}, true);
     this.cm_editor = cm_editor;
     let handler = {
-      get: function(
+      get: function (
         target: VirtualFileEditor,
         prop: keyof CodeMirror.Editor,
         receiver: any

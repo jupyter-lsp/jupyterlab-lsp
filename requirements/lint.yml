@@ -8,5 +8,5 @@ dependencies:
   - black
   - isort
   - mypy
-  - robotframework-lint <1.1
-  - robotframework <3.2
+  - robotframework-lint >=1.1
+  - robotframework >=3.2

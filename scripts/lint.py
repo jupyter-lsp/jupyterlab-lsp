@@ -28,7 +28,7 @@ RFLINT_RULES = [
     "TooFewKeywordSteps:0",
     "TooFewTestSteps:1",
     "TooManyTestSteps:30",
-    "TooManyTestCases:13",
+    "TooManyTestCases:30",
 ]
 
 RFLINT_IGNORES = [

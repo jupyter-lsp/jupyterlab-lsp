@@ -20,7 +20,7 @@ let local = {
   transformIgnorePatterns: ['/node_modules/(?!(@jupyterlab/.*)/)']
 };
 
-for (option of reuseFromUpstream) {
+for (const option of reuseFromUpstream) {
   local[option] = upstream[option];
 }
 

@@ -66,8 +66,10 @@ Tear Down Everything
     Terminate All Processes    kill=${True}
 
 Wait For Splash
-    Wait Until Page Contains Element    ${SPLASH}    timeout=180s
-    Wait Until Page Does Not Contain Element    ${SPLASH}    timeout=180s
+    Go To    ${URL}lab?reset&token=${TOKEN}
+    Set Window Size    1024    768
+    Wait Until Page Contains Element    ${SPLASH}    timeout=30s
+    Wait Until Page Does Not Contain Element    ${SPLASH}    timeout=10s
     Execute Javascript    window.onbeforeunload \= function (){}
 
 Open JupyterLab
@@ -75,9 +77,7 @@ Open JupyterLab
     ${firefox} =    Which    firefox
     ${geckodriver} =    Which    geckodriver
     Create WebDriver    Firefox    executable_path=${geckodriver}    firefox_binary=${firefox}    service_log_path=${OUTPUT DIR}${/}geckodriver.log
-    Wait Until Keyword Succeeds    20x    3s    Go To    ${URL}lab?reset&token=${TOKEN}
-    Set Window Size    1024    768
-    Wait For Splash
+    Wait Until Keyword Succeeds    3x    5s    Wait For Splash
 
 Close JupyterLab
     Close All Browsers
@@ -95,7 +95,7 @@ Reset Application State
     Accept Default Dialog Option
     Ensure All Kernels Are Shut Down
     Lab Command    Reset Application State
-    Wait For Splash
+    Wait Until Keyword Succeeds    3x    5s    Wait For Splash
 
 Accept Default Dialog Option
     [Documentation]    Accept a dialog, if it exists

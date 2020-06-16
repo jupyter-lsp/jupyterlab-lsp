@@ -355,7 +355,7 @@ export class LspWsConnection extends events.EventEmitter
     if (!this.isReady) {
       return;
     }
-    this.connection
+    void this.connection
       .sendRequest<protocol.CompletionItem>(
         'completionItem/resolve',
         completionItem
@@ -517,7 +517,7 @@ export class LspWsConnection extends events.EventEmitter
       return;
     }
 
-    this.connection
+    void this.connection
       .sendRequest<Location | Location[] | LocationLink[]>(
         'textDocument/implementation',
         {
