@@ -22,7 +22,8 @@ Setup Server and Browser
     Initialize User Settings
     ${cmd} =    Create Lab Launch Command    ${root}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots
-    ${server} =    Start Process    ${cmd}    shell=yes    env:HOME=${home}    cwd=${home}    stdout=${OUTPUT DIR}${/}lab.log
+    Set Global Variable    ${LAB LOG}    ${OUTPUT DIR}${/}lab.log
+    ${server} =    Start Process    ${cmd}    shell=yes    env:HOME=${home}    cwd=${home}    stdout=${LAB LOG}
     ...    stderr=STDOUT
     Set Global Variable    ${SERVER}    ${server}
     Open JupyterLab
@@ -64,6 +65,13 @@ Tear Down Everything
     Wait For Process    ${SERVER}    timeout=30s
     Terminate All Processes
     Terminate All Processes    kill=${True}
+    Validate Lab Log
+
+Validate Lab Log
+    [Documentation]    Ensure the notebook server log doesn't contain certain errors
+    ${log} =    Get File    ${LAB LOG}
+    Should Not Contain Any    ${log}
+    ...    pyls_jsonrpc.endpoint - Failed to handle notification textDocument/didChange
 
 Wait For Splash
     Go To    ${URL}lab?reset&token=${TOKEN}
