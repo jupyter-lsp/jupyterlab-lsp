@@ -71,7 +71,8 @@ Validate Lab Log
     [Documentation]    Ensure the notebook server log doesn't contain certain errors
     ${log} =    Get File    ${LAB LOG}
     Should Not Contain Any    ${log}
-    ...    pyls_jsonrpc.endpoint - Failed to handle notification textDocument/didChange
+    ...    pyls_jsonrpc.endpoint - Failed to handle notification
+    ...    pyls_jsonrpc.endpoint - Failed to handle request
 
 Wait For Splash
     Go To    ${URL}lab?reset&token=${TOKEN}
