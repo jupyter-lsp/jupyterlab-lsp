@@ -65,14 +65,10 @@ Tear Down Everything
     Wait For Process    ${SERVER}    timeout=30s
     Terminate All Processes
     Terminate All Processes    kill=${True}
-    Validate Lab Log
 
-Validate Lab Log
-    [Documentation]    Ensure the notebook server log doesn't contain certain errors
+Lab Log Should Not Contain Known Error Messages
     ${log} =    Get File    ${LAB LOG}
-    Should Not Contain Any    ${log}
-    ...    pyls_jsonrpc.endpoint - Failed to handle notification
-    ...    pyls_jsonrpc.endpoint - Failed to handle request
+    Should Not Contain Any    ${log}    @{KNOWN BAD ERRORS}
 
 Wait For Splash
     Go To    ${URL}lab?reset&token=${TOKEN}
@@ -210,6 +206,7 @@ Clean Up After Working With File
     [Arguments]    ${file}
     Remove File    ${OUTPUT DIR}${/}home${/}${file}
     Reset Application State
+    Lab Log Should Not Contain Known Error Messages
 
 Setup Notebook
     [Arguments]    ${Language}    ${file}    ${isolated}=${True}
