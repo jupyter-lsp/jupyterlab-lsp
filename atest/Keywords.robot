@@ -23,6 +23,7 @@ Setup Server and Browser
     ${cmd} =    Create Lab Launch Command    ${root}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots
     Set Global Variable    ${LAB LOG}    ${OUTPUT DIR}${/}lab.log
+    Set Global Variable    ${PREVIOUS LAB LOG TEXT}    ${EMPTY}
     ${server} =    Start Process    ${cmd}    shell=yes    env:HOME=${home}    cwd=${home}    stdout=${LAB LOG}
     ...    stderr=STDOUT
     Set Global Variable    ${SERVER}    ${server}
@@ -68,11 +69,12 @@ Tear Down Everything
 
 Capture Lab Log Before Test
     ${log} =    Get File    ${LAB LOG}
-    Set Global Variable    ${PREVIOUS LAB LOG TEXT}    ${log}
+    ${length} =    Get Length    ${log}
+    Set Global Variable    ${PREVIOUS LAB LOG LENGTH}    ${length}
 
 Lab Log Should Not Contain Known Error Messages
     ${log} =    Get File    ${LAB LOG}
-    ${test log} =    Replace String    ${log}    ${PREVIOUS LAB LOG TEXT}    ${EMPTY}
+    ${test log} =    Set Variable    ${log[:${PREVIOUS LAB LOG LENGTH}]}
     Should Not Contain Any    ${test log}    @{KNOWN BAD ERRORS}    msg=${test log}
 
 Wait For Splash
