@@ -1,9 +1,9 @@
 from .config import load_config_schema
-from .utils import ShellSpec
+from .utils import PythonModuleSpec
 
 
-class PythonLanguageServer(ShellSpec):
-    key = cmd = "pyls"
+class PythonLanguageServer(PythonModuleSpec):
+    python_module = key = "pyls"
     languages = ["python"]
     spec = dict(
         display_name="pyls",

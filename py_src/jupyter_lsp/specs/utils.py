@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 from pathlib import Path
 from typing import List, Text
 
@@ -54,6 +55,29 @@ class ShellSpec(SpecBase):
         return {
             self.key: {
                 "argv": [cmd, *self.args],
+                "languages": self.languages,
+                "version": SPEC_VERSION,
+                **self.spec,
+            }
+        }
+
+
+class PythonModuleSpec(SpecBase):
+    """ Helper for a python-based language server spec in the notebook server
+        environment
+    """
+
+    python_module = ""
+
+    def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
+        spec = __import__("importlib").util.find_spec(self.python_module)
+
+        if not spec.origin:  # pragma: no cover
+            return {}
+
+        return {
+            self.key: {
+                "argv": [sys.executable, "-m", self.python_module, *self.args],
                 "languages": self.languages,
                 "version": SPEC_VERSION,
                 **self.spec,
