@@ -1,6 +1,6 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    notebook
-Test Setup        Try to Close All Tabs
+Test Setup        Run Keywords    Capture Lab Log Before Test    Try to Close All Tabs
 Resource          Keywords.robot
 
 *** Test Cases ***

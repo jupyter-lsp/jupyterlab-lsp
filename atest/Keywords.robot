@@ -66,9 +66,14 @@ Tear Down Everything
     Terminate All Processes
     Terminate All Processes    kill=${True}
 
+Capture Lab Log Before Test
+    ${log} =    Get File    ${LAB LOG}
+    Set Global Variable    ${PREVIOUS LAB LOG TEXT}    ${log}
+
 Lab Log Should Not Contain Known Error Messages
     ${log} =    Get File    ${LAB LOG}
-    Should Not Contain Any    ${log}    @{KNOWN BAD ERRORS}
+    ${test log} =    Replace String    ${log}    ${PREVIOUS LAB LOG TEXT}    ${EMPTY}
+    Should Not Contain Any    ${test log}    @{KNOWN BAD ERRORS}    msg=${test log}
 
 Wait For Splash
     Go To    ${URL}lab?reset&token=${TOKEN}
