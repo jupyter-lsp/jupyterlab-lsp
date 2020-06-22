@@ -20,6 +20,7 @@ dependencies:
   - r-irkernel
   - r-languageserver
   - r-stringi >=1.4.6
+  - r-xfun !=0.15
   - rpy2
   # test tools
   - pytest-asyncio
