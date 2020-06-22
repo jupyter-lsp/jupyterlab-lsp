@@ -48,7 +48,7 @@ jobs:
               - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
                 displayName: update conda environment with test dependencies
 
-              - script: conda info && conda list -n ${{ parameters.env_name }}
+              - script: conda info && conda list -n base
                 displayName: list conda packages and info
 
               - script: ${{ platform.activate }} && jlpm || jlpm || jlpm
