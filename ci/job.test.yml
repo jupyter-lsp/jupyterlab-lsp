@@ -5,10 +5,10 @@ parameters:
       activate: source activate base
     - name: MacOSX
       vmImage: macos-10.14
-      activate: source activate
+      activate: source activate base
     - name: Windows
       vmImage: vs2017-win2016
-      activate: call activate
+      activate: call activate base
   pythons:
     - name: ThreeSix
       spec: '>=3.6,<3.7.0a0'
