@@ -23,11 +23,13 @@ MODULES_TO_CACHE = [
     *sys.modules,
 ]
 
+ENV = jedi.InterpreterEnvironment()
+
 
 def warm_up_one(module):
     print(module, end="\t")
     start = time.time()
-    script = jedi.Script(SOURCE_TEMPLATE.format(module=module))
+    script = jedi.Script(SOURCE_TEMPLATE.format(module=module), environment=ENV)
     completions = len(script.complete(3, len("{}.".format(module))))
     end = time.time()
     print("\t", completions, end - start)
@@ -53,9 +55,8 @@ def print_env():
 
 def setup_jedi():
     print("default jedi environment", jedi.api.environment.get_default_environment())
-    jedi_cache = pathlib.Path(
-        jedi.settings.cache_directory, environment=jedi.InterpreterEnvironment()
-    )
+    print("jedi environment", ENV)
+    jedi_cache = pathlib.Path(jedi.settings.cache_directory)
     if jedi_cache.exists():
         shutil.rmtree(jedi_cache)
         print("removed jedi cache!")
