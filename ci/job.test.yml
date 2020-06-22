@@ -106,6 +106,9 @@ jobs:
               - script: ${{ platform.activate }} && jupyter labextension list
                 displayName: list labextensions after build
 
+              - script: ${{ platform.activate }} && python scripts/jedi_cache.py
+                displayName: warm up jedi cache
+
               - script: ${{ platform.activate }} && python scripts/atest.py
                 displayName: run browser tests
 
