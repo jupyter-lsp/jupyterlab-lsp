@@ -1,7 +1,7 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    diagnostics_panel
 Resource          ../Keywords.robot
-Test Setup        Run Keywords    Capture Lab Log Before Test    Gently Reset Workspace
+Test Setup        Gently Reset Workspace
 
 *** Variables ***
 ${EXPECTED_COUNT}    1

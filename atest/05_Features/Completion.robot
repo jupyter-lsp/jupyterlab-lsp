@@ -93,7 +93,6 @@ Triggers Completer On Dot
 
 *** Keywords ***
 Setup Completion Test
-    Capture Lab Log Before Test
     Setup Notebook    Python    Completion.ipynb
 
 Get Cell Editor Content
