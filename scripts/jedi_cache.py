@@ -1,5 +1,7 @@
 """ utility script to warm up/validate the jedi cache
 """
+import pathlib
+import shutil
 import sys
 import time
 
@@ -31,6 +33,9 @@ def warm_up_one(module):
 
 
 if __name__ == "__main__":
+    jedi_cache = pathlib.Path(jedi.settings.cache_directory)
+    if jedi_cache.exists():
+        shutil.rmtree(jedi_cache)
     print(IPython.__version__)
     print(jupyterlab.__version__)
     start = time.time()
@@ -38,4 +43,4 @@ if __name__ == "__main__":
     [warm_up_one(module) for module in modules]
     end = time.time()
     print("------------------")
-    print(len(modules), "modules", end - start)
+    print(len(modules), "modules in", jedi.settings.cache_directory, end - start)
