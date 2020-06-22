@@ -11,15 +11,15 @@ parameters:
       activate: call activate base
   pythons:
     - name: ThreeSix
-      spec: '>=3.6,<3.7.0a0'
+      spec: '=3.6'
       lab: '>=2,<3.0.0a0'
       nodejs: '>=10,<11.0.0.a0'
     - name: ThreeSeven
-      spec: '>=3.7,<3.8.0a0'
+      spec: '=3.7'
       lab: '>=2,<3.0.0a0'
       nodejs: '>=12,<13.0.0a0'
     - name: ThreeEight
-      spec: '>=3.8,<3.9.0a0'
+      spec: '=3.8'
       lab: '>=2,<3.0.0a0'
       nodejs: '>=13,<14.0.0a0'
   js_cov_packages:
