@@ -33,7 +33,7 @@ class SpecBase:
         return {}
 
 
-class ShellSpec(SpecBase):
+class ShellSpec(SpecBase):  # pragma: no cover
     """ Helper for a language server spec for executables on $PATH in the
         notebook server environment.
     """
