@@ -37,3 +37,7 @@ ${LSP PLUGIN SETTINGS FILE}    @krassowski${/}jupyterlab-lsp${/}plugin.jupyterla
 ${CSS USER SETTINGS}    .jp-SettingsRawEditor-user
 # diagnostics
 ${CSS DIAGNOSTIC}    css:.cm-lsp-diagnostic
+# log messages
+@{KNOWN BAD ERRORS}
+...               pyls_jsonrpc.endpoint - Failed to handle notification
+...               pyls_jsonrpc.endpoint - Failed to handle request

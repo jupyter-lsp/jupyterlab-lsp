@@ -1,6 +1,7 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    diagnostics_panel
 Resource          ../Keywords.robot
+Test Setup        Gently Reset Workspace
 
 *** Variables ***
 ${EXPECTED_COUNT}    1
@@ -11,7 +12,6 @@ ${MENU COLUMN MESSAGE}    xpath://div[contains(@class, 'p-Menu-itemLabel')][cont
 
 *** Test Cases ***
 Diagnostics Panel Opens
-    [Setup]    Gently Reset Workspace
     Open Notebook And Panel    Panel.ipynb
     Capture Page Screenshot    03-panel-opens.png
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count
@@ -19,7 +19,6 @@ Diagnostics Panel Opens
 
 Diagnostics Panel Works After Rename
     [Documentation]    Test for #141 bug (diagnostics were not cleared after rename)
-    [Setup]    Gently Reset Workspace
     Open Notebook And Panel    Panel.ipynb
     Rename Jupyter File    Panel.ipynb    PanelRenamed.ipynb
     Close Diagnostics Panel
@@ -32,7 +31,6 @@ Diagnostics Panel Works After Rename
     [Teardown]    Clean Up After Working With File    Panel.ipynb
 
 Diagnostics Panel Can Be Restored
-    [Setup]    Gently Reset Workspace
     Open Notebook And Panel    Panel.ipynb
     Close Diagnostics Panel
     Open Diagnostics Panel
@@ -40,7 +38,6 @@ Diagnostics Panel Can Be Restored
     [Teardown]    Clean Up After Working With File    Panel.ipynb
 
 Columns Can Be Hidden
-    [Setup]    Gently Reset Workspace
     Open Notebook And Panel    Panel.ipynb
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
     Open Context Menu Over    css:.lsp-diagnostics-listing th
