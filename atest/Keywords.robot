@@ -72,7 +72,7 @@ Lab Log Should Not Contain Known Error Messages
     ${test log} =    Set Variable    ${log[${PREVIOUS LAB LOG LENGTH}:]}
     ${length} =    Get Length    ${log}
     Set Global Variable    ${PREVIOUS LAB LOG LENGTH}    ${length}
-    Run Keyword If  ("${OS}", "${PY}") !\= ("windows", "36")
+    Run Keyword If  ("${OS}", "${PY}") !\= ("Windows", "36")
     ...     Should Not Contain Any    ${test log}    @{KNOWN BAD ERRORS}
 
 Wait For Splash
