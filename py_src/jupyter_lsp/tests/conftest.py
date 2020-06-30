@@ -14,13 +14,14 @@ from jupyter_lsp.handlers import LanguageServersHandler, LanguageServerWebSocket
 # these should always be available in a test environment ()
 KNOWN_SERVERS = [
     "bash-language-server",
-    "vscode-css-languageserver-bin",
     "dockerfile-language-server-nodejs",
-    "vscode-html-languageserver-bin",
-    "unified-language-server",
     "javascript-typescript-langserver",
-    "vscode-json-languageserver-bin",
     "pyls",
+    "texlab",
+    "unified-language-server",
+    "vscode-css-languageserver-bin",
+    "vscode-html-languageserver-bin",
+    "vscode-json-languageserver-bin",
     "yaml-language-server",
 ]
 

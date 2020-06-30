@@ -19,6 +19,9 @@ dependencies:
   - r-irkernel
   - r-languageserver
   - rpy2
+  # tex
+  - tectonic
+  - texlab
   # test tools
   - pytest-asyncio
   - pytest-azurepipelines

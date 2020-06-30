@@ -11,6 +11,7 @@ from .vscode_css_languageserver import VSCodeCSSLanguageServer
 from .vscode_html_languageserver import VSCodeHTMLLanguageServer
 from .vscode_json_languageserver import VSCodeJSONLanguageServer
 from .yaml_language_server import YAMLLanguageServer
+from .texlab import Texlab
 
 bash = BashLanguageServer()
 css = VSCodeCSSLanguageServer()
@@ -19,6 +20,7 @@ html = VSCodeHTMLLanguageServer()
 json = VSCodeJSONLanguageServer()
 md = UnifiedLanguageServer()
 py = PythonLanguageServer()
+r = RLanguageServer()
+tex = Texlab()
 ts = JavascriptTypescriptLanguageServer()
 yaml = YAMLLanguageServer()
-r = RLanguageServer()
