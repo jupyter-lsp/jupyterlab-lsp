@@ -20,6 +20,7 @@ PY = "".join(map(str, sys.version_info[:2]))
 OS_PY_ARGS = {
     # notebook and ipykernel releases do not yet support python 3.8 on windows
     # ("Windows", "38"): ["--include", "not-supported", "--runemptysuite"]
+    ("Windows", "36"): ["--exclude", "feature:completion"]
 }
 
 NON_CRITICAL = [
