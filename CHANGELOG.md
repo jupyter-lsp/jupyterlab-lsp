@@ -4,6 +4,7 @@
 
 - features
 
+  - configures language servers with JupyterLab _Advanced Settings_ ([#245][])
   - autodetects the `texlab` language server for LaTeX ([#288][])
 
 - bug fixes
@@ -12,9 +13,16 @@
     (and vice versa) ([#195][])
   - restores sorting order-indicating caret icons in diagnostics panel table ([#261][])
   - handles document open and change operation ordering more predictably ([#284][])
+
+### `lsp-ws-connection 0.4.1` (unreleased)
+
+- bug fixes
+
+  - handles document open and change operation ordering more predictably ([#284][])
   - always sends a non-null `initialized` notification body ([#288][])
 
 [#195]: https://github.com/krassowski/jupyterlab-lsp/issues/195
+[#245]: https://github.com/krassowski/jupyterlab-lsp/pull/245
 [#261]: https://github.com/krassowski/jupyterlab-lsp/issues/261
 [#284]: https://github.com/krassowski/jupyterlab-lsp/pull/284
 [#288]: https://github.com/krassowski/jupyterlab-lsp/pull/288
