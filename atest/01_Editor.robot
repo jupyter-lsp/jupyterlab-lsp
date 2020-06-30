@@ -47,9 +47,14 @@ SCSS
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable-2')][contains(text(), 'primary-color')])[last()]
     Editor Shows Features for Language    SCSS    example.scss    Diagnostics=Do not use empty rulesets    Jump to Definition=${def}
 
+LaTeX
+    [Tags]    language:latex
+    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-atom')][contains(text(), 'foo')])[last()]
+    Editor Shows Features for Language    LaTeX    example.tex    Jump to Definition=${def}    Rename=${def}
+
 TSX
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-tag')][contains(text(), 'HelloWorld')])[last()]
-    Editor Shows Features for Language    TSX    example.tsx    Diagnostics=Cannot find module 'react'    Jump to Definition=${def}    Rename=${def}
+    Editor Shows Features for Language    TEX    example.tsx    Diagnostics=Cannot find module 'react'    Jump to Definition=${def}    Rename=${def}
 
 TypeScript
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'inc')])[last()]

@@ -160,7 +160,7 @@ class LspStdIoWriter(LspStdIoBase):
                 response = "Content-Length: {}\r\n\r\n{}".format(len(body), message)
                 await convert_yielded(self._write_one(response.encode("utf-8")))
             except Exception:  # pragma: no cover
-                self.log.exception("s couldn't write message: %s", self, response)
+                self.log.exception("%s couldn't write message: %s", self, response)
             finally:
                 self.queue.task_done()
 

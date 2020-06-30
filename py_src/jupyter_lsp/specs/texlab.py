@@ -4,7 +4,6 @@ from .utils import ShellSpec
 
 class Texlab(ShellSpec):
     cmd = key = "texlab"
-    args = ["-vv"]
     languages = ["tex", "latex"]
     spec = dict(
         display_name="texlab",
@@ -15,4 +14,5 @@ class Texlab(ShellSpec):
         ),
         install=dict(conda="conda install -c conda-forge texlab"),
         config_schema=load_config_schema(key),
+        env=dict(RUST_BACKTRACE="1"),
     )
