@@ -17,7 +17,6 @@ KNOWN_SERVERS = [
     "dockerfile-language-server-nodejs",
     "javascript-typescript-langserver",
     "pyls",
-    "texlab",
     "unified-language-server",
     "vscode-css-languageserver-bin",
     "vscode-html-languageserver-bin",
@@ -25,7 +24,10 @@ KNOWN_SERVERS = [
     "yaml-language-server",
 ]
 
-CMD_BASED_SERVERS = {"Rscript": ["r-languageserver"]}
+CMD_BASED_SERVERS = {
+    "Rscript": ["r-languageserver"],
+    "texlab": ["texlab"],
+}
 
 KNOWN_SERVERS += sum(
     [langs for cmd, langs in CMD_BASED_SERVERS.items() if shutil.which(cmd)], []
