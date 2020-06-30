@@ -2,10 +2,7 @@
   "title": "LaTeX configuration",
   "properties": {
     "latex.rootDirectory": {
-      "type": [
-        "string",
-        "null"
-      ],
+      "type": ["string", "null"],
       "default": null,
       "description": "Path to the root directory."
     },
@@ -16,12 +13,7 @@
     },
     "latex.build.args": {
       "type": "array",
-      "default": [
-        "-pdf",
-        "-interaction=nonstopmode",
-        "-synctex=1",
-        "%f"
-      ],
+      "default": ["-pdf", "-interaction=nonstopmode", "-synctex=1", "%f"],
       "description": "Additional arguments that are passed to the build tool."
     },
     "latex.build.onSave": {
@@ -40,10 +32,7 @@
       "description": "Execute forward search after building"
     },
     "latex.forwardSearch.executable": {
-      "type": [
-        "string",
-        "null"
-      ],
+      "type": ["string", "null"],
       "default": null,
       "description": "Path to a PDF previewer that supports SyncTeX."
     },
@@ -73,10 +62,7 @@
       "description": "Enable the trace verbosity of the server."
     },
     "latex.server.logFile": {
-      "type": [
-        "string",
-        "null"
-      ],
+      "type": ["string", "null"],
       "default": null,
       "description": "Path to the server log file."
     },
