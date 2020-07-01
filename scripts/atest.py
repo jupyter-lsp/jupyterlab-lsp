@@ -29,7 +29,7 @@ NON_CRITICAL = [
     # everything else: https://github.com/krassowski/jupyterlab-lsp/pull/245
     ["language:yaml", "feature:config"],
     # TODO: restore when we figure out win36 vs jedi on windows
-    ["language:python", "py:36", "os:windows"]
+    ["language:python", "py:36", "os:windows"],
 ]
 
 
