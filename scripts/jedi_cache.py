@@ -1,4 +1,40 @@
 """ utility script to warm up/validate the jedi cache
+what does it do:
+- Deletes the jedi cache (usually already empty on CI)
+- Imports a bunch of libraries
+- Prints out some versions, especially ones that are
+  at times troublesome
+- Forces indexing all of the loaded libraries and their
+  dependencies
+
+why is this needed:
+- Before we had this, a couple of browser tests appeared 
+  "consistently flakier" than they were, as they were 
+  time-bounded by creating the jedi cache.
+- This was taking up to a minute to get a single 
+  completion value back
+- Further, were this cache to get corrupted (perhaps due to 
+  killing a running test :P) things go very mysteriously bad.
+- We need a way for the cache to be right before testing
+
+how does it work:
+- When _using_ jedi for the first time, the cache gets
+  created in  `jedi.settings.cache_directory`, usually 
+  somewhere in $HOME. 
+- As different libriraries are inspected by jedi, they get 
+  added to the cache. 
+- This is very slow, especially on windows, and cannot 
+  feasibly be cached, today.
+- This script accelerates this process, so it can be done
+  in a controlled manner rather than during some other test
+- also, by running it ahead of time, if the jedi dependency
+  chain is broken in any way, this should help determine
+  if faster, before trying to build everything
+
+see more:
+- https://jedi.readthedocs.io/en/latest/docs/settings.html
+- https://github.com/krassowski/jupyterlab-lsp/pull/284
+
 """
 import os
 import pathlib
