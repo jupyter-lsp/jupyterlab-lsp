@@ -22,7 +22,9 @@ Setup Server and Browser
     Initialize User Settings
     ${cmd} =    Create Lab Launch Command    ${root}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots
-    ${server} =    Start Process    ${cmd}    shell=yes    env:HOME=${home}    cwd=${home}    stdout=${OUTPUT DIR}${/}lab.log
+    Set Global Variable    ${LAB LOG}    ${OUTPUT DIR}${/}lab.log
+    Set Global Variable    ${PREVIOUS LAB LOG LENGTH}    0
+    ${server} =    Start Process    ${cmd}    shell=yes    env:HOME=${home}    cwd=${home}    stdout=${LAB LOG}
     ...    stderr=STDOUT
     Set Global Variable    ${SERVER}    ${server}
     Open JupyterLab
@@ -64,6 +66,14 @@ Tear Down Everything
     Wait For Process    ${SERVER}    timeout=30s
     Terminate All Processes
     Terminate All Processes    kill=${True}
+
+Lab Log Should Not Contain Known Error Messages
+    ${log} =    Get File    ${LAB LOG}
+    ${test log} =    Set Variable    ${log[${PREVIOUS LAB LOG LENGTH}:]}
+    ${length} =    Get Length    ${log}
+    Set Global Variable    ${PREVIOUS LAB LOG LENGTH}    ${length}
+    Run Keyword If    ("${OS}", "${PY}") !\= ("Windows", "36")
+    ...    Should Not Contain Any    ${test log}    @{KNOWN BAD ERRORS}
 
 Wait For Splash
     Go To    ${URL}lab?reset&token=${TOKEN}
@@ -201,6 +211,7 @@ Clean Up After Working With File
     [Arguments]    ${file}
     Remove File    ${OUTPUT DIR}${/}home${/}${file}
     Reset Application State
+    Lab Log Should Not Contain Known Error Messages
 
 Setup Notebook
     [Arguments]    ${Language}    ${file}    ${isolated}=${True}
