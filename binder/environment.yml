@@ -14,8 +14,9 @@ dependencies:
   # for python language server (and development)
   - black
   - flake8 >=3.5
-  # isort 5.0 has breaking API changes which affect (among others) pylint;
+  # isort 5.0 has breaking API changes which affect (among others) pylint and nblint;
   # the pin should be removed once https://github.com/PyCQA/pylint/pull/3725 is merged
+  # see https://github.com/krassowski/jupyterlab-lsp/pull/291
   - isort <5
   - mypy
   - pip
