@@ -494,10 +494,7 @@ export abstract class JupyterLabWidgetAdapter
 
   update_documents(_slot: any) {
     // update the virtual documents (sending the updates to LSP is out of scope here)
-    this.virtual_editor
-      .update_documents()
-      .then()
-      .catch(console.warn);
+    this.virtual_editor.update_documents().then().catch(console.warn);
   }
 
   get_position_from_context_menu(): IRootPosition {
@@ -509,6 +506,7 @@ export abstract class JupyterLabWidgetAdapter
 
     let { left, top } = leaf_node.getBoundingClientRect();
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     let event = this.app._contextMenuEvent;
 

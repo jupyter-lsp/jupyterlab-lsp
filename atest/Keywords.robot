@@ -22,7 +22,9 @@ Setup Server and Browser
     Initialize User Settings
     ${cmd} =    Create Lab Launch Command    ${root}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots
-    ${server} =    Start Process    ${cmd}    shell=yes    env:HOME=${home}    cwd=${home}    stdout=${OUTPUT DIR}${/}lab.log
+    Set Global Variable    ${LAB LOG}    ${OUTPUT DIR}${/}lab.log
+    Set Global Variable    ${PREVIOUS LAB LOG LENGTH}    0
+    ${server} =    Start Process    ${cmd}    shell=yes    env:HOME=${home}    cwd=${home}    stdout=${LAB LOG}
     ...    stderr=STDOUT
     Set Global Variable    ${SERVER}    ${server}
     Open JupyterLab
@@ -55,6 +57,9 @@ Initialize User Settings
     Set Suite Variable    ${SETTINGS DIR}    ${OUTPUT DIR}${/}user-settings    children=${True}
     Create File    ${SETTINGS DIR}${/}@jupyterlab${/}codemirror-extension${/}commands.jupyterlab-settings    {"styleActiveLine": true}
 
+Reset Plugin Settings
+    Create File    ${SETTINGS DIR}${/}${LSP PLUGIN SETTINGS FILE}    {}
+
 Tear Down Everything
     Close All Browsers
     Evaluate    __import__("urllib.request").request.urlopen("${URL}api/shutdown?token=${TOKEN}", data=[])
@@ -62,9 +67,19 @@ Tear Down Everything
     Terminate All Processes
     Terminate All Processes    kill=${True}
 
+Lab Log Should Not Contain Known Error Messages
+    ${log} =    Get File    ${LAB LOG}
+    ${test log} =    Set Variable    ${log[${PREVIOUS LAB LOG LENGTH}:]}
+    ${length} =    Get Length    ${log}
+    Set Global Variable    ${PREVIOUS LAB LOG LENGTH}    ${length}
+    Run Keyword If    ("${OS}", "${PY}") !\= ("Windows", "36")
+    ...    Should Not Contain Any    ${test log}    @{KNOWN BAD ERRORS}
+
 Wait For Splash
-    Wait Until Page Contains Element    ${SPLASH}    timeout=180s
-    Wait Until Page Does Not Contain Element    ${SPLASH}    timeout=180s
+    Go To    ${URL}lab?reset&token=${TOKEN}
+    Set Window Size    1024    768
+    Wait Until Page Contains Element    ${SPLASH}    timeout=30s
+    Wait Until Page Does Not Contain Element    ${SPLASH}    timeout=10s
     Execute Javascript    window.onbeforeunload \= function (){}
 
 Open JupyterLab
@@ -72,9 +87,7 @@ Open JupyterLab
     ${firefox} =    Which    firefox
     ${geckodriver} =    Which    geckodriver
     Create WebDriver    Firefox    executable_path=${geckodriver}    firefox_binary=${firefox}    service_log_path=${OUTPUT DIR}${/}geckodriver.log
-    Wait Until Keyword Succeeds    20x    3s    Go To    ${URL}lab?reset&token=${TOKEN}
-    Set Window Size    1024    768
-    Wait For Splash
+    Wait Until Keyword Succeeds    3x    5s    Wait For Splash
 
 Close JupyterLab
     Close All Browsers
@@ -92,7 +105,7 @@ Reset Application State
     Accept Default Dialog Option
     Ensure All Kernels Are Shut Down
     Lab Command    Reset Application State
-    Wait For Splash
+    Wait Until Keyword Succeeds    3x    5s    Wait For Splash
 
 Accept Default Dialog Option
     [Documentation]    Accept a dialog, if it exists
@@ -198,6 +211,7 @@ Clean Up After Working With File
     [Arguments]    ${file}
     Remove File    ${OUTPUT DIR}${/}home${/}${file}
     Reset Application State
+    Lab Log Should Not Contain Known Error Messages
 
 Setup Notebook
     [Arguments]    ${Language}    ${file}    ${isolated}=${True}
@@ -246,3 +260,29 @@ Open Context Menu Over
     Wait Until Keyword Succeeds    10 x    0.1 s    Mouse Over    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
+
+Prepare File for Editing
+    [Arguments]    ${Language}    ${Screenshots}    ${file}
+    Set Tags    language:${Language.lower()}
+    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}${Screenshots}${/}${Language.lower()}
+    Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
+    Try to Close All Tabs
+    Open ${file} in ${MENU EDITOR}
+    Capture Page Screenshot    00-opened.png
+
+Open in Advanced Settings
+    [Arguments]    ${plugin id}
+    Lab Command    Advanced Settings Editor
+    ${sel} =    Set Variable    css:[data-id="${plugin id}"]
+    Wait Until Page Contains Element    ${sel}
+    Click Element    ${sel}
+    Wait Until Page Contains    System Defaults
+
+Set Editor Content
+    [Arguments]    ${text}    ${css}=${EMPTY}
+    Execute JavaScript    return document.querySelector('${css} .CodeMirror').CodeMirror.setValue(`${text}`)
+
+Get Editor Content
+    [Arguments]    ${css}=${EMPTY}
+    ${content} =    Execute JavaScript    return document.querySelector('${css} .CodeMirror').CodeMirror.getValue()
+    [Return]    ${content}

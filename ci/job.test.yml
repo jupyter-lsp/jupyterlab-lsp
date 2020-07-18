@@ -2,30 +2,30 @@ parameters:
   platforms:
     - name: Linux
       vmImage: ubuntu-16.04
-      activate: source activate
+      activate: source activate base
     - name: MacOSX
       vmImage: macos-10.14
-      activate: source activate
+      activate: source activate base
     - name: Windows
       vmImage: vs2017-win2016
-      activate: call activate
+      activate: call activate base
   pythons:
     - name: ThreeSix
-      spec: '>=3.6,<3.7.0a0'
+      spec: '=3.6'
       lab: '>=2,<3.0.0a0'
       nodejs: '>=10,<11.0.0.a0'
     - name: ThreeSeven
-      spec: '>=3.7,<3.8.0a0'
+      spec: '=3.7'
       lab: '>=2,<3.0.0a0'
       nodejs: '>=12,<13.0.0a0'
     - name: ThreeEight
-      spec: '>=3.8,<3.9.0a0'
+      spec: '=3.8'
       lab: '>=2,<3.0.0a0'
       nodejs: '>=13,<14.0.0a0'
   js_cov_packages:
     - jupyterlab-go-to-definition
     - jupyterlab-lsp
-  env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
+  env_update: conda env update -n base --file env-test.yml --quiet
   lab_link: jupyter labextension link --debug --no-build $(LINKED_EXTENSIONS)
   lab_ext: jupyter labextension install --debug --no-build $(FIRST_PARTY_LABEXTENSIONS)
   lab_build: jupyter lab build --debug --dev-build=False --minimize=True
@@ -40,6 +40,7 @@ jobs:
               - template: steps.conda.yml
                 parameters:
                   name: ${{ platform.name }}
+                  packages: "'python${{ python.spec }}'"
 
               - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" "${{ python.lab }}" "${{ python.nodejs }}"
                 displayName: generate env with python, lab, and nodejs version
@@ -47,25 +48,28 @@ jobs:
               - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
                 displayName: update conda environment with test dependencies
 
-              - script: conda info && conda list -n jupyterlab-lsp
+              - script: conda info && conda list -n base
                 displayName: list conda packages and info
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm || jlpm || jlpm
+              - script: ${{ platform.activate }} && jlpm || jlpm || jlpm
                 displayName: install npm dependencies
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm build
+              - script: ${{ platform.activate }} && jlpm build
                 displayName: build typescript
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && python setup.py sdist bdist_wheel
+              - script: ${{ platform.activate }} && python setup.py sdist bdist_wheel
                 displayName: build python distributions
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm lerna run bundle
+              - script: ${{ platform.activate }} && jlpm lerna run bundle
                 displayName: build npm bundles
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && cd dist && python -m pip install jupyter_lsp-$(PY_JLSP_VERSION)-py3-none-any.whl --no-deps
+              - script: ${{ platform.activate }} && cd dist && python -m pip install jupyter_lsp-$(PY_JLSP_VERSION)-py3-none-any.whl --no-deps
                 displayName: install python wheel
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm test
+              - script: ${{ platform.activate }} && python scripts/jedi_cache.py
+                displayName: warm up jedi cache
+
+              - script: ${{ platform.activate }} && jlpm test
                 displayName: run frontend unit tests
 
               - task: PublishTestResults@2
@@ -84,28 +88,28 @@ jobs:
                       summaryFileLocation: 'packages/${{ js_package }}/coverage/cobertura-coverage.xml'
                     condition: always()
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter serverextension list
+              - script: ${{ platform.activate }} && jupyter serverextension list
                 displayName: list server extensions
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/utest.py --test-run-title="Pytest ${{ platform.name }}${{ python.name }}"
+              - script: ${{ platform.activate }} && python scripts/utest.py --test-run-title="Pytest ${{ platform.name }}${{ python.name }}"
                 displayName: run python tests
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && ${{ parameters.lab_link }} || ${{ parameters.lab_link }} || ${{ parameters.lab_link }}
+              - script: ${{ platform.activate }} && ${{ parameters.lab_link }} || ${{ parameters.lab_link }} || ${{ parameters.lab_link }}
                 displayName: install support packages
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }}
+              - script: ${{ platform.activate }} && ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }}
                 displayName: install labextensions
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter labextension list
+              - script: ${{ platform.activate }} && jupyter labextension list
                 displayName: list labextensions before build
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && ${{ parameters.lab_build }} || ${{ parameters.lab_build }} || ${{ parameters.lab_build }}
+              - script: ${{ platform.activate }} && ${{ parameters.lab_build }} || ${{ parameters.lab_build }} || ${{ parameters.lab_build }}
                 displayName: build lab
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jupyter labextension list
+              - script: ${{ platform.activate }} && jupyter labextension list
                 displayName: list labextensions after build
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/atest.py
+              - script: ${{ platform.activate }} && python scripts/atest.py
                 displayName: run browser tests
 
               - task: PublishTestResults@2

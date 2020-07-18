@@ -32,6 +32,7 @@ export class LspWsConnection extends events.EventEmitter
   public serverCapabilities: protocol.ServerCapabilities;
   protected socket: WebSocket;
   protected connection: MessageConnection;
+  protected openedUris = new Map<string, boolean>();
   private rootUri: string;
 
   constructor(options: ILspOptions) {
@@ -129,6 +130,7 @@ export class LspWsConnection extends events.EventEmitter
     if (this.connection) {
       this.connection.dispose();
     }
+    this.openedUris.clear();
     this.socket.close();
   }
 
@@ -202,6 +204,8 @@ export class LspWsConnection extends events.EventEmitter
       return;
     }
 
+    this.openedUris.clear();
+
     const message: protocol.InitializeParams = this.initializeParams();
 
     this.connection
@@ -229,11 +233,16 @@ export class LspWsConnection extends events.EventEmitter
       'textDocument/didOpen',
       textDocumentMessage
     );
+    this.openedUris.set(documentInfo.uri, true);
     this.sendChange(documentInfo);
   }
 
   public sendChange(documentInfo: IDocumentInfo) {
     if (!this.isReady) {
+      return;
+    }
+    if (!this.openedUris.get(documentInfo.uri)) {
+      this.sendOpen(documentInfo);
       return;
     }
     const textDocumentChange: protocol.DidChangeTextDocumentParams = {
@@ -265,6 +274,19 @@ export class LspWsConnection extends events.EventEmitter
     this.connection.sendNotification(
       'textDocument/didSave',
       textDocumentChange
+    );
+  }
+
+  public sendConfigurationChange(
+    settings: protocol.DidChangeConfigurationParams
+  ) {
+    if (!this.isReady) {
+      return;
+    }
+
+    this.connection.sendNotification(
+      'workspace/didChangeConfiguration',
+      settings
     );
   }
 
@@ -342,7 +364,7 @@ export class LspWsConnection extends events.EventEmitter
     if (!this.isReady) {
       return;
     }
-    this.connection
+    void this.connection
       .sendRequest<protocol.CompletionItem>(
         'completionItem/resolve',
         completionItem
@@ -504,7 +526,7 @@ export class LspWsConnection extends events.EventEmitter
       return;
     }
 
-    this.connection
+    void this.connection
       .sendRequest<Location | Location[] | LocationLink[]>(
         'textDocument/implementation',
         {

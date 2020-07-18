@@ -24,6 +24,7 @@ envs
 examples/app/build
 examples/app/schemas
 examples/app/themes
+htmlcov
 jupyterlab/geckodriver
 jupyterlab/schemas
 jupyterlab/staging/index.js

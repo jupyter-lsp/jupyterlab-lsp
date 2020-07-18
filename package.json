@@ -1,27 +1,27 @@
 {
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.27.0",
+    "@typescript-eslint/parser": "^2.27.0",
     "bash-language-server": "^1.6.1",
+    "dictionary-en": "^3.0.0",
     "dockerfile-language-server-nodejs": "^0.0.22",
-    "eslint": "^5.16.0",
-    "eslint-config-prettier": "^4.1.0",
-    "eslint-plugin-prettier": "^3.0.1",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-jest": "^23.8.2",
+    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-react": "^7.19.0",
+    "eslint": "^6.8.0",
     "husky": "^3.0.9",
     "javascript-typescript-langserver": "^2.11.3",
     "lerna": "^3.13.2",
     "precise-commits": "^1.0.2",
-    "prettier": "^1.19.1",
-    "tslint-config-prettier": "^1.18.0",
-    "tslint-plugin-prettier": "^2.0.1",
-    "tslint-react": "^4.0.0",
-    "tslint": "^5.15.0",
-    "typescript": "~3.7.2",
+    "prettier": "^2.0.5",
+    "typescript": "~3.9.5",
     "unified-language-server": "^0.3.0",
     "vscode-css-languageserver-bin": "^1.4.0",
     "vscode-html-languageserver-bin": "^1.4.0",
     "vscode-json-languageserver-bin": "^1.0.1",
-    "yaml-language-server": "^0.4.0"
+    "yaml-language-server": "~0.4.0"
   },
   "husky": {
     "hooks": {
@@ -29,7 +29,9 @@
     }
   },
   "prettier": {
-    "singleQuote": true
+    "arrowParens": "avoid",
+    "singleQuote": true,
+    "trailingComma": "none"
   },
   "private": true,
   "scripts": {
@@ -42,13 +44,13 @@
     "bundle": "lerna run --parallel bundle",
     "clean": "lerna run --parallel clean",
     "lab:link": "lerna run lab:link",
-    "lint:check": "jlpm prettier:check && jlpm tslint:check",
-    "lint": "jlpm prettier && jlpm tslint",
+    "lint:check": "jlpm prettier:check && jlpm eslint:check",
+    "lint": "jlpm prettier && jlpm eslint",
     "prettier:check": "prettier --check '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
-    "test": "lerna run --stream --concurrency=1 test",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}'",
-    "tslint": "tslint --fix -c ./packages/tslint.json --project ./packages/tsconfigbase.json 'packages/**/*{.ts,.tsx}'",
-    "tslint:check": "tslint -c ./packages/tslint.json --project ./packages/tsconfigbase.json 'packages/**/*{.ts,.tsx}'"
+    "eslint": "eslint --config packages/.eslintrc.js --ext .js,.jsx,.ts,.tsx --fix packages",
+    "eslint:check": "eslint --config packages/.eslintrc.js --ext .js,.jsx,.ts,.tsx packages",
+    "test": "lerna run --stream --concurrency=1 test"
   },
   "workspaces": {
     "packages": [
