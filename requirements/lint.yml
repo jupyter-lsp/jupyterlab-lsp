@@ -6,7 +6,10 @@ channels:
 
 dependencies:
   - black
-  - isort
+  # isort 5.0 has breaking API changes which affect (among others) pylint and nblint;
+  # the pin should be removed once https://github.com/PyCQA/pylint/pull/3725 is merged
+  # see https://github.com/krassowski/jupyterlab-lsp/pull/291
+  - isort <5
   - mypy
   - robotframework-lint >=1.1
   - robotframework >=3.2
