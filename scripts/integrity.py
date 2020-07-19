@@ -6,13 +6,14 @@
 
 import json
 import pathlib
-import re
 import sys
 import tempfile
 from importlib.util import find_spec
 
 import jsonschema
+import nbformat
 import pytest
+from nbconvert.preprocessors import ExecutePreprocessor
 
 try:
     import ruamel.yaml as yaml
@@ -20,20 +21,23 @@ except ImportError:
     import ruamel_yaml as yaml
 
 ROOT = pathlib.Path.cwd()
+
+sys.path.insert(0, str(ROOT))
+
+if True:
+    # a workaround for isort 4.0 limitations
+    # see https://github.com/timothycrosley/isort/issues/468
+    from versions import (  # noqa
+        REQUIRED_JUPYTERLAB as LAB_SPEC,
+        JUPYTER_LSP_VERSION as PY_VERSION,
+    )
+
 REQS = ROOT / "requirements"
 BINDER = ROOT / "binder"
 
 # docs
 MAIN_README = ROOT / "README.md"
 CHANGELOG = ROOT / "CHANGELOG.md"
-
-# dependencies
-ENV = yaml.safe_load((BINDER / "environment.yml").read_text())
-LAB_SPEC = [
-    d.split(" ", 1)[1]
-    for d in ENV["dependencies"]
-    if isinstance(d, str) and d.startswith("jupyterlab ")
-][0]
 
 # TS stuff
 NPM_NS = "@krassowski"
@@ -55,8 +59,7 @@ JS_G2D_VERSION = PACKAGES[JS_G2D_NAME][1]["version"]
 
 # py stuff
 PY_NAME = "jupyter-lsp"
-_VERSION_PY = ROOT / "py_src" / "jupyter_lsp" / "_version.py"
-PY_VERSION = re.findall(r'= "(.*)"$', (_VERSION_PY).read_text())[0]
+
 
 # CI stuff
 PIPE_FILE = ROOT / "azure-pipelines.yml"
@@ -87,9 +90,16 @@ def the_meta_package():
 
 @pytest.fixture(scope="module")
 def the_installation_notebook():
-    """ loads up the installation notebook
+    """ executes and loads up the installation notebook
     """
-    return (DOCS / "Installation.ipynb").read_text()
+    with open(DOCS / "Installation.ipynb") as f:
+        installation_nb = nbformat.read(f, as_version=4)
+    executor = ExecutePreprocessor(timeout=600)
+
+    # modifies notebook in-place
+    executor.preprocess(installation_nb, {"metadata": {"path": DOCS}})
+
+    return nbformat.writes(installation_nb)
 
 
 @pytest.mark.parametrize(
@@ -138,7 +148,16 @@ def test_ts_package_integrity(name, info, the_meta_package):
 
 
 @pytest.mark.parametrize(
-    "path", map(str, [REQS / "lab.txt", CI / "job.test.yml", MAIN_README])
+    "path",
+    map(
+        str,
+        [
+            REQS / "lab.txt",
+            CI / "job.test.yml",
+            MAIN_README,
+            BINDER / "environment.yml",
+        ],
+    ),
 )
 def test_jlab_versions(path):
     """ is the version of jupyterlab consistent?

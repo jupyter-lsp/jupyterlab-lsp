@@ -76,7 +76,7 @@ Open it searching for "Show diagnostics panel" in JupyterLab commands palette or
 
 Either:
 
-- JupyterLab >=2,<3.0.0a0
+- JupyterLab >=2.1.0,<3.0.0a0
 
 And:
 
@@ -99,9 +99,9 @@ Use of a python `virtualenv` or a conda env is also recommended.
 1. install JupyterLab
 
    ```bash
-   conda install -c conda-forge 'jupyterlab>=2,<2.1.0a0'
+   conda install -c conda-forge 'jupyterlab>=2.1,<3.0.0a0'
    # or
-   pip install 'jupyterlab>=2,<2.1.0a0'
+   pip install 'jupyterlab>=2.1,<3.0.0a0'
    ```
 
 1. install the kernel:

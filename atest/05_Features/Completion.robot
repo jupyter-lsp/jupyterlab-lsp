@@ -1,6 +1,6 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    completion
-Test Setup        Setup Notebook    Python    Completion.ipynb
+Test Setup        Setup Completion Test
 Test Teardown     Clean Up After Working With File    Completion.ipynb
 Force Tags        feature:completion
 Resource          ../Keywords.robot
@@ -92,6 +92,9 @@ Triggers Completer On Dot
     Completer Should Suggest    append
 
 *** Keywords ***
+Setup Completion Test
+    Setup Notebook    Python    Completion.ipynb
+
 Get Cell Editor Content
     [Arguments]    ${cell_nr}
     ${content}    Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()

@@ -16,9 +16,11 @@ dependencies:
   - python-language-server
   - ujson <=1.35
   # for R language server and kernel
-  - r
+  # TODO: try r 4.0 soon
+  - r <4
   - r-irkernel
   - r-languageserver
+  - r-stringi >=1.4.6
   - rpy2
   # test tools
   - pytest-asyncio
