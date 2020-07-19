@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.4.3",
-    "@jupyterlab/application": "~2.0.0",
+    "@jupyterlab/application": "~2.1.0",
     "@jupyterlab/apputils": "~2.0.0",
     "@jupyterlab/cells": "~2.0.0",
     "@jupyterlab/codeeditor": "~2.0.0",
@@ -77,7 +77,7 @@
     "typescript": "~3.9.5"
   },
   "peerDependencies": {
-    "@jupyterlab/application": "~2.0.0",
+    "@jupyterlab/application": "~2.1.0",
     "@jupyterlab/apputils": "~2.0.0",
     "@jupyterlab/cells": "~2.0.0",
     "@jupyterlab/codeeditor": "~2.0.0",
