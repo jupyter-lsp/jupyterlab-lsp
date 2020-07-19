@@ -6,7 +6,6 @@
 
 import json
 import pathlib
-import re
 import sys
 import tempfile
 from importlib.util import find_spec
@@ -22,20 +21,20 @@ except ImportError:
     import ruamel_yaml as yaml
 
 ROOT = pathlib.Path.cwd()
+
+sys.path.insert(0, str(ROOT))
+
+from versions import (  # noqa
+    REQUIRED_JUPYTERLAB as LAB_SPEC,
+    JUPYTER_LSP_VERSION as PY_VERSION
+)
+
 REQS = ROOT / "requirements"
 BINDER = ROOT / "binder"
 
 # docs
 MAIN_README = ROOT / "README.md"
 CHANGELOG = ROOT / "CHANGELOG.md"
-
-# dependencies
-ENV = yaml.safe_load((BINDER / "environment.yml").read_text())
-LAB_SPEC = [
-    d.split(" ", 1)[1]
-    for d in ENV["dependencies"]
-    if isinstance(d, str) and d.startswith("jupyterlab ")
-][0]
 
 # TS stuff
 NPM_NS = "@krassowski"
@@ -57,8 +56,7 @@ JS_G2D_VERSION = PACKAGES[JS_G2D_NAME][1]["version"]
 
 # py stuff
 PY_NAME = "jupyter-lsp"
-_VERSION_PY = ROOT / "py_src" / "jupyter_lsp" / "_version.py"
-PY_VERSION = re.findall(r'= "(.*)"$', (_VERSION_PY).read_text())[0]
+
 
 # CI stuff
 PIPE_FILE = ROOT / "azure-pipelines.yml"
@@ -147,7 +145,7 @@ def test_ts_package_integrity(name, info, the_meta_package):
 
 
 @pytest.mark.parametrize(
-    "path", map(str, [REQS / "lab.txt", CI / "job.test.yml", MAIN_README])
+    "path", map(str, [REQS / "lab.txt", CI / "job.test.yml", MAIN_README, BINDER / "environment.yml"])
 )
 def test_jlab_versions(path):
     """ is the version of jupyterlab consistent?
