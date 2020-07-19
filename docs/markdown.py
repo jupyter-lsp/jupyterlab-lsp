@@ -1,5 +1,5 @@
+from IPython.core.magic import needs_local_scope, register_cell_magic
 from IPython.display import Markdown
-from IPython.core.magic import register_cell_magic, needs_local_scope
 
 
 @register_cell_magic
