@@ -7,7 +7,7 @@ channels:
 dependencies:
   # runtime dependencies
   - python >=3.7,<3.8.0a0
-  - jupyterlab >=2.1.0,<3.0.0a0
+  - jupyterlab >=2.2.0,<3.0.0a0
   - notebook >=4.3.1
   # build dependencies
   - nodejs >=10,<14

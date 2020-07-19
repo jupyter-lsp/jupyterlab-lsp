@@ -6,7 +6,7 @@ parameters:
   pythons:
     - name: ThreeSeven
       spec: '>=3.7,<3.8.0a0'
-      lab: '>=2,<3.0.0a0'
+      lab: '>=2.2.0,<3.0.0a0'
       nodejs: '>=12,<13.0.0a0'
   env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
   env_docs: conda env update -n jupyterlab-lsp --file requirements/docs.yml --quiet

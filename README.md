@@ -76,7 +76,7 @@ Open it searching for "Show diagnostics panel" in JupyterLab commands palette or
 
 Either:
 
-- JupyterLab >=2.1.0,<3.0.0a0
+- JupyterLab >=2.2.0,<3.0.0a0
 
 And:
 
