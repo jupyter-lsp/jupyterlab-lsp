@@ -8,7 +8,7 @@
     },
     "current-version": {
       "description": "which version of the spec this implements",
-      "enum": [2],
+      "enum": [3],
       "title": "Spec Schema Version",
       "type": "number"
     },
@@ -165,6 +165,12 @@
         "sessions": {
           "$ref": "#/definitions/sessions"
         },
+        "uris": {
+          "properties": {
+            "root": { "type": "string", "format": "uri" },
+            "virtual_documents": { "type": "string", "format": "uri" }
+          }
+        },
         "version": {
           "$ref": "#/definitions/current-version"
         }
@@ -188,15 +194,16 @@
       "additionalProperties": false,
       "description": "a language server session",
       "properties": {
-        "handler_count": {
-          "description": "the count of currently-connected WebSocket handlers",
-          "minValue": 0,
-          "title": "handler count",
-          "type": "integer"
+        "comm_ids": {
+          "description": "the currently-connected comms",
+          "items": {
+            "type": "string"
+          },
+          "title": "comm ids"
         },
         "last_handler_message_at": {
           "$ref": "#/definitions/nullable-date-time",
-          "description": "date-time of last seen message from a WebSocket handler"
+          "description": "date-time of last seen message from a handler"
         },
         "last_server_message_at": {
           "$ref": "#/definitions/nullable-date-time",
@@ -212,7 +219,7 @@
         }
       },
       "required": [
-        "handler_count",
+        "comm_ids",
         "status",
         "last_server_message_at",
         "last_handler_message_at",

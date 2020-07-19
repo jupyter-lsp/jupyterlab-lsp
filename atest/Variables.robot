@@ -1,6 +1,6 @@
 *** Variables ***
 ${FIXTURES}       ${CURDIR}${/}fixtures
-${NBSERVER CONF}    jupyter_notebook_config.json
+${ROOT}           ${CURDIR}${/}..
 ${SPLASH}         id:jupyterlab-splash
 # to help catch hard-coded paths
 ${BASE}           /@est/

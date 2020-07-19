@@ -76,7 +76,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
     labShell: ILabShell,
     status_bar: IStatusBar
   ) => {
-    const language_server_manager = new LanguageServerManager({});
+    const language_server_manager = new LanguageServerManager({
+      serviceManager: app.serviceManager
+    });
     const connection_manager = new DocumentConnectionManager({
       language_server_manager
     });
@@ -126,9 +128,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
       // connection.close();
     });
 
-    const connect_file_editor = (
+    const connect_file_editor = async (
       widget: IDocumentWidget<FileEditor, DocumentRegistry.IModel>
     ) => {
+      await language_server_manager.ready;
+
       let fileEditor = widget.content;
 
       if (fileEditor.editor instanceof CodeMirrorEditor) {
@@ -153,9 +157,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
           }
         };
 
-        const reconnect = () => {
+        const reconnect = async () => {
           disconnect();
-          connect_file_editor(widget);
+          await connect_file_editor(widget);
         };
 
         widget.disposed.connect(disconnect);
@@ -165,8 +169,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
       }
     };
 
-    fileEditorTracker.widgetAdded.connect((sender, widget) => {
-      connect_file_editor(widget);
+    fileEditorTracker.widgetAdded.connect(async (sender, widget) => {
+      await connect_file_editor(widget);
     });
 
     let command_manager = new FileEditorCommandManager(
@@ -177,7 +181,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
     );
     command_manager.add(lsp_commands);
 
-    const connect_notebook = (widget: NotebookPanel) => {
+    const connect_notebook = async (widget: NotebookPanel) => {
+      await language_server_manager.ready;
+
       // NOTE: assuming that the default cells content factory produces CodeMirror editors(!)
       let jumper = new NotebookJumper(widget, documentManager);
       let adapter = new NotebookAdapter(
@@ -200,9 +206,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
         }
       };
 
-      const reconnect = () => {
+      const reconnect = async () => {
         disconnect();
-        connect_notebook(widget);
+        await connect_notebook(widget);
       };
 
       widget.context.pathChanged.connect(reconnect);
@@ -212,7 +218,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     };
 
     notebookTracker.widgetAdded.connect(async (sender, widget) => {
-      connect_notebook(widget);
+      await connect_notebook(widget);
     });
 
     // position context menu entries after 10th but before 11th default entry
@@ -238,13 +244,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     function updateOptions(settings: ISettingRegistry.ISettings): void {
       const options = settings.composite;
 
-      // Object.keys(options).forEach((key) => {
-      //  if (key === 'modifier') {
-      //    // let modifier = options[key] as KeyModifier;
-      //    CodeMirrorExtension.modifierKey = modifier;
-      //  }
-      // });
-
       const languageServerSettings = (options.language_servers ||
         {}) as TLanguageServerConfigurations;
       connection_manager.updateServerConfigurations(languageServerSettings);
@@ -258,9 +257,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
         connection_manager.initial_configurations = (settings.composite
           .language_servers || {}) as TLanguageServerConfigurations;
 
-        settings.changed.connect(() => {
-          updateOptions(settings);
-        });
+        settings.changed.connect(() => updateOptions(settings));
       })
       .catch((reason: Error) => {
         console.error(reason.message);

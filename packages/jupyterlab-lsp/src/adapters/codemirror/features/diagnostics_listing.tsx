@@ -1,7 +1,8 @@
 import React, { ReactElement } from 'react';
 import { VDomModel, VDomRenderer } from '@jupyterlab/apputils';
 import { caretDownIcon, caretUpIcon, LabIcon } from '@jupyterlab/ui-components';
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import * as LSP from '../../../lsp';
+
 import * as CodeMirror from 'codemirror';
 import { IEditorPosition } from '../../../positioning';
 import { VirtualEditor } from '../../../virtual/editor';
@@ -25,7 +26,7 @@ export const diagnosticsIcon = new LabIcon({
  * (if used in the context of a FileEditor, then there is just a single editor)
  */
 export interface IEditorDiagnostic {
-  diagnostic: lsProtocol.Diagnostic;
+  diagnostic: LSP.Diagnostic;
   editor: CodeMirror.Editor;
   range: {
     start: IEditorPosition;
@@ -86,7 +87,7 @@ function DocumentLocator(props: {
         let { cell_id: last_cell } = notebook_editor.find_cell_by_editor(
           last_line.editor
         );
-        target_cell = cell;
+        target_cell = cell as any;
 
         let cell_locator =
           first_cell === last_cell

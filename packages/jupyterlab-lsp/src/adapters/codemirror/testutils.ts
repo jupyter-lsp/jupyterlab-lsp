@@ -1,10 +1,10 @@
+import { UUID } from '@lumino/coreutils';
 import {
   CodeMirrorEditor,
   CodeMirrorEditorFactory
 } from '@jupyterlab/codemirror';
 import { VirtualEditor } from '../../virtual/editor';
 import { CodeMirrorLSPFeature, ILSPFeatureConstructor } from './feature';
-import { LSPConnection } from '../../connection';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { VirtualFileEditor } from '../../virtual/editors/file_editor';
 import { FreeTooltip } from '../jupyterlab/components/free_tooltip';
@@ -24,6 +24,10 @@ import { CodeMirrorAdapter } from './cm_adapter';
 import { VirtualDocument } from '../../virtual/document';
 import { LanguageServerManager } from '../../manager';
 import { DocumentConnectionManager } from '../../connection_manager';
+import { ILSPConnection } from '../../tokens';
+import { CommLSPConnection } from '../../comm/connection';
+import { CommHandler } from '@jupyterlab/services/lib/kernel/comm';
+import { ServiceManager } from '@jupyterlab/services';
 
 interface IFeatureTestEnvironment {
   host: HTMLElement;
@@ -32,23 +36,15 @@ interface IFeatureTestEnvironment {
   dispose(): void;
 }
 
-export class MockLanguageServerManager extends LanguageServerManager {
-  async fetchSessions() {
-    this._sessions = new Map();
-    this._sessions.set('pyls', {
-      spec: {
-        languages: ['python']
-      }
-    } as any);
-    this._sessionsChanged.emit(void 0);
-  }
-}
+export class MockServiceManager extends ServiceManager {}
+export class MockComm extends CommHandler {}
+export class MockLanguageServerManager extends LanguageServerManager {}
 
 export abstract class FeatureTestEnvironment
   implements IFeatureTestEnvironment {
   host: HTMLElement;
   virtual_editor: VirtualEditor;
-  private connections: Map<CodeMirrorLSPFeature, LSPConnection>;
+  private connections: Map<CodeMirrorLSPFeature, ILSPConnection>;
 
   protected constructor(
     public language: () => string,
@@ -95,11 +91,15 @@ export abstract class FeatureTestEnvironment
     feature.is_registered = false;
   }
 
-  public create_dummy_connection() {
-    return new LSPConnection({
-      languageId: this.language(),
-      serverUri: 'ws://localhost:8080',
-      rootUri: 'file:///unit-test'
+  public create_dummy_connection(comm?: CommHandler, rootUri?: string) {
+    if (comm == null) {
+      comm = new MockComm('mock-target', UUID.uuid4(), null, () => {
+        // empty dispose
+      });
+    }
+    return new CommLSPConnection({
+      comm,
+      rootUri: rootUri || 'file:///unit-test'
     });
   }
 
@@ -146,7 +146,11 @@ export class FileEditorFeatureTestEnvironment extends FeatureTestEnvironment {
       model
     });
 
-    this.language_server_manager = new MockLanguageServerManager({});
+    const serviceManager = new MockServiceManager();
+
+    this.language_server_manager = new MockLanguageServerManager({
+      serviceManager
+    });
     this.connection_manager = new DocumentConnectionManager({
       language_server_manager: this.language_server_manager
     });

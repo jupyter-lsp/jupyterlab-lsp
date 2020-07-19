@@ -203,7 +203,7 @@ export class CodeMirrorExtension extends CodeMirrorTokensProvider
         while (sibling.lastChild && sibling.textContent !== lookupName) {
           sibling = sibling.lastChild;
         }
-        nextSibling = sibling;
+        nextSibling = sibling as any;
       }
       sibling = nextSibling;
 

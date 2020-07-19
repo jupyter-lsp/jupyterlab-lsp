@@ -1,5 +1,6 @@
 import * as CodeMirror from 'codemirror';
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import * as LSP from '../../../lsp';
+
 import { documentHighlightKindNames } from '../../../lsp';
 import { VirtualDocument } from '../../../virtual/document';
 import { IRootPosition } from '../../../positioning';
@@ -14,14 +15,16 @@ export class Highlights extends CodeMirrorLSPFeature {
       id: 'highlight-references',
       execute: ({ connection, virtual_position, document }) =>
         connection.getReferences(virtual_position, document.document_info),
-      is_enabled: ({ connection }) => connection.isReferencesSupported(),
+      is_enabled: ({ connection }) =>
+        connection.provides(LSP.Provider.REFERENCES),
       label: 'Highlight references'
     },
     {
       id: 'highlight-type-definition',
       execute: ({ connection, virtual_position, document }) =>
         connection.getTypeDefinition(virtual_position, document.document_info),
-      is_enabled: ({ connection }) => connection.isTypeDefinitionSupported(),
+      is_enabled: ({ connection }) =>
+        connection.provides(LSP.Provider.TYPE_DEFINITION),
       label: 'Highlight type definition'
     }
   ];
@@ -46,7 +49,7 @@ export class Highlights extends CodeMirrorLSPFeature {
   }
 
   protected handleHighlight = (
-    items: lsProtocol.DocumentHighlight[],
+    items: LSP.DocumentHighlight[],
     documentUri: string
   ) => {
     if (documentUri !== this.virtual_document.document_info.uri) {
@@ -105,8 +108,7 @@ export class Highlights extends CodeMirrorLSPFeature {
       );
       const highlights = await this.connection.getDocumentHighlights(
         virtual_position,
-        this.virtual_document.document_info,
-        false
+        this.virtual_document.document_info
       );
       if (!this.virtual_document.isDisposed) {
         this.handleHighlight(

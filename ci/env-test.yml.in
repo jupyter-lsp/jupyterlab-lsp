@@ -10,6 +10,7 @@ dependencies:
   - jupyterlab {lab}
   # build dependencies
   - nodejs {nodejs}
+  - python-libarchive-c
   # for python language server (and development)
   - flake8 >=3.5
   - python-language-server

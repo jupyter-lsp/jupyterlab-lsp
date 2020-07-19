@@ -4,7 +4,9 @@ Library           SeleniumLibrary
 Library           OperatingSystem
 Library           Process
 Library           String
+Library           Collections
 Library           ./ports.py
+Library           ./config.py
 
 *** Keywords ***
 Setup Server and Browser
@@ -18,7 +20,7 @@ Setup Server and Browser
     ${home} =    Set Variable    ${OUTPUT DIR}${/}home
     ${root} =    Normalize Path    ${OUTPUT DIR}${/}..${/}..${/}..
     Create Directory    ${home}
-    Create Notebok Server Config    ${home}
+    Initialize Server Config    ${home}    ${root}
     Initialize User Settings
     ${cmd} =    Create Lab Launch Command    ${root}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots
@@ -42,11 +44,6 @@ Create Lab Launch Command
     ${ext args} =    Set Variable    --LanguageServerManager.extra_node_roots\="['${root.replace('\\', '\\\\')}']"
     ${cmd} =    Set Variable    jupyter-lab ${app args} ${path args} ${ext args}
     [Return]    ${cmd}
-
-Create Notebok Server Config
-    [Arguments]    ${home}
-    [Documentation]    Copies in notebook server config file to disables npm/build checks
-    Copy File    ${FIXTURES}${/}${NBSERVER CONF}    ${home}${/}${NBSERVER CONF}
 
 Setup Suite For Screenshots
     [Arguments]    ${folder}
@@ -253,13 +250,19 @@ Place Cursor In Cell Editor At
     Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
 
 Wait Until Fully Initialized
-    Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=60s
+    Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=30s
 
 Open Context Menu Over
     [Arguments]    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Mouse Over    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
+
+Switch Kernel
+    [Arguments]    ${kernel name}
+    Click Element    css:.jp-Toolbar-kernelName
+    Select From List By Label    css:.jp-Dialog select    ${kernel name}
+    Click Element    css:.jp-mod-accept
 
 Prepare File for Editing
     [Arguments]    ${Language}    ${Screenshots}    ${file}

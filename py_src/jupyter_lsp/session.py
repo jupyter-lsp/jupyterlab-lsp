@@ -10,14 +10,13 @@ from datetime import datetime, timezone
 
 from tornado.ioloop import IOLoop
 from tornado.queues import Queue
-from tornado.websocket import WebSocketHandler
 from traitlets import Bunch, Instance, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
 
 from . import stdio
 from .schema import LANGUAGE_SERVER_SPEC
 from .trait_types import Schema
-from .types import SessionStatus
+from .types import LangaugeServerClientAPI, SessionStatus
 
 # these are not desirable to publish to the frontend
 SKIP_JSON_SPEC = ["argv", "debug_argv", "env"]
@@ -43,7 +42,7 @@ class LanguageServerSession(LoggingConfigurable):
         Queue, help="a queue for string message to the server", allow_none=True
     )
     handlers = Set(
-        trait=Instance(WebSocketHandler),
+        trait=Instance(LangaugeServerClientAPI),
         default_value=[],
         help="the currently subscribed websockets",
     )
@@ -68,7 +67,7 @@ class LanguageServerSession(LoggingConfigurable):
 
     def to_json(self):
         return dict(
-            handler_count=len(self.handlers),
+            comm_ids=[handler.comm.comm_id for handler in self.handlers],
             status=self.status.value,
             last_server_message_at=self.last_server_message_at.isoformat()
             if self.last_server_message_at

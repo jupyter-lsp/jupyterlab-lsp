@@ -1,0 +1,12 @@
+{
+  "argv": ["python", "-m", "jupyter_lsp.kernel", "-f", "{connection_file}"],
+  "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+  },
+  "display_name": "Language Server",
+  "language": "language-server-protocol",
+  "mimetype": "text/x-python",
+  "name": "jupyter-lsp-kernel",
+  "pygments_lexer": "python"
+}

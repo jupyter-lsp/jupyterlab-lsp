@@ -1,15 +1,17 @@
 import json
 import pathlib
 import shutil
-from typing import Text
+import uuid
+from typing import Any, Text
 
-from notebook.notebookapp import NotebookApp
 from pytest import fixture
 from tornado.queues import Queue
 
 # local imports
-from jupyter_lsp import LanguageServerManager
-from jupyter_lsp.handlers import LanguageServersHandler, LanguageServerWebSocketHandler
+from jupyter_lsp.kernel.handlers import CommHandler
+from jupyter_lsp.kernel.kernel import LanguageServerKernel
+from jupyter_lsp.kernel.manager import CommLanguageServerManager
+from jupyter_lsp.types import LanguageServerManagerAPI
 
 # these should always be available in a test environment ()
 KNOWN_SERVERS = [
@@ -33,9 +35,13 @@ KNOWN_SERVERS += sum(
 KNOWN_UNKNOWN_SERVERS = ["foo-language-server"]
 
 
-@fixture
-def manager() -> LanguageServerManager:
-    return LanguageServerManager()
+@fixture(params=[CommLanguageServerManager])
+def manager(request) -> LanguageServerManagerAPI:
+    kwargs = {}  # type: Any
+    if request.param == CommLanguageServerManager:
+        kernel = MockKernel()
+        kwargs.update(parent=kernel)
+    return request.param(**kwargs)
 
 
 @fixture(params=sorted(KNOWN_SERVERS))
@@ -49,12 +55,12 @@ def known_unknown_server(request):
 
 
 @fixture
-def handlers(manager):
-    ws_handler = MockWebsocketHandler()
-    ws_handler.initialize(manager)
-    handler = MockHandler()
+def lsp_handler(manager):
+    handler = MockCommHandler()
+    handler.comm = MockComm()
     handler.initialize(manager)
-    return handler, ws_handler
+
+    return handler
 
 
 @fixture
@@ -76,35 +82,37 @@ def jsonrpc_init_msg():
 
 
 @fixture
-def app():
-    return MockNotebookApp()
+def mock_comm():
+    return MockComm()
 
 
 # mocks
-class MockWebsocketHandler(LanguageServerWebSocketHandler):
+class MockClientMixin:
     _messages_wrote = None  # type: Queue
 
-    def __init__(self):
-        pass
-
-    def initialize(self, manager):
-        super().initialize(manager)
+    def initialize(self, manager, *args, **kwargs):
+        super().initialize(manager, *args, **kwargs)
         self._messages_wrote = Queue()
 
     def write_message(self, message: Text) -> None:
-        self.log.warning("write_message %s", message)
+        getattr(self, "log").warning("write_message %s", message)
         self._messages_wrote.put_nowait(message)
 
 
-class MockHandler(LanguageServersHandler):
-    _payload = None
-
-    def __init__(self):
-        pass
-
-    def finish(self, payload):
-        self._payload = payload
-
-
-class MockNotebookApp(NotebookApp):
+class MockCommHandler(MockClientMixin, CommHandler):
     pass
+
+
+class MockKernel(LanguageServerKernel):
+    pass
+
+
+class MockComm:
+    def __init__(self):
+        self.comm_id = str(uuid.uuid4())
+
+    def on_msg(self, fn):
+        self._fn = fn
+
+    def send(self, data=None, metadata=None):
+        self._sent = getattr(self, "_sent", []) + [dict(data=data, metadata=metadata)]

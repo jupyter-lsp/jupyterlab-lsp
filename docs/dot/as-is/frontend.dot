@@ -12,10 +12,13 @@ graph backend {
         Mouse[label="The Mouse"]
     }
     subgraph cluster_server { label="Server"
-        RestAPI[label="The REST API"]
-        WebSocketHandlers
+        LanguageServerKernel[label="The Language Server Kernel"]
     }
     subgraph cluster_lab { label="JupyterLab"
+        WidgetTrackers
+        SettingsManager
+        ServiceManager
+
         subgraph cluster_singletons { label="Singletons"
             Plugin
             StatusBarItem
@@ -23,13 +26,17 @@ graph backend {
             ConnectionManager
             LanguageServerManager
         }
-        WidgetTrackers
-        
+
+        subgraph cluster_kernels { label="Kernels"
+            ClientLanguageServerKernel[label="The Language Server Kernel"]
+        }
+
         subgraph cluster_lang {label="Per Language"
             Connection
-            MessageConnection
-            WebSocket
+            LanguageServerComm
+            Comm
         }
+
         subgraph cluster_doc { label="Per Document"
             Widget
             CodeMirrors
@@ -51,17 +58,17 @@ graph backend {
             }
         }
     }
-    
+
     {Connection CodeMirrors VirtualDocument VirtualEditor} -- Feature[lhead=cluster_features];
     Diagnostics -- DiagnosticPanel
-    Connection -- ConnectionManager -- LanguageServerManager -- RestAPI
+    Connection -- ConnectionManager -- LanguageServerManager -- ClientLanguageServerKernel
     CodeMirrors -- CodeMirrorAdapters -- WidgetAdapter
     WidgetAdapter -- VirtualEditor -- VirtualDocument
-    WidgetTrackers -- {Plugin -- Widget} 
+    WidgetTrackers -- {Plugin -- Widget}
     StatusBarItem -- Connection
-    Widget -- WidgetAdapter -- Plugin -- StatusBarItem -- LanguageServerManager
+    Widget -- WidgetAdapter -- Plugin -- StatusBarItem -- LanguageServerManager -- SettingsManager
     Widget -- CodeMirrors
     Plugin -- {ConnectionManager LanguageServerManager}
-    Connection -- MessageConnection -- WebSocket -- WebSocketHandlers
+    Connection -- LanguageServerComm -- Comm -- ClientLanguageServerKernel -- ServiceManager -- LanguageServerKernel
     {Keyboard Mouse} -- CodeMirrors
 }

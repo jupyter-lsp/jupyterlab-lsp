@@ -12,15 +12,15 @@ parameters:
   pythons:
     - name: ThreeSix
       spec: '=3.6'
-      lab: '>=2.1.0,<3.0.0a0'
+      lab: '>=2.2.0,<3.0.0a0'
       nodejs: '>=10,<11.0.0.a0'
     - name: ThreeSeven
       spec: '=3.7'
-      lab: '>=2.1.0,<3.0.0a0'
+      lab: '>=2.2.0,<3.0.0a0'
       nodejs: '>=12,<13.0.0a0'
     - name: ThreeEight
       spec: '=3.8'
-      lab: '>=2.1.0,<3.0.0a0'
+      lab: '>=2.2.0,<3.0.0a0'
       nodejs: '>=13,<14.0.0a0'
   js_cov_packages:
     - jupyterlab-go-to-definition
@@ -88,8 +88,14 @@ jobs:
                       summaryFileLocation: 'packages/${{ js_package }}/coverage/cobertura-coverage.xml'
                     condition: always()
 
-              - script: ${{ platform.activate }} && jupyter serverextension list
-                displayName: list server extensions
+              - script: ${{ platform.activate }} && jupyter kernelspec list
+                displayName: list kernels
+
+              - script: ${{ platform.activate }} && jupyter lsp kernelspec install
+                displayName: install kernel
+
+              - script: ${{ platform.activate }} && jupyter kernelspec list
+                displayName: list kernels (again)
 
               - script: ${{ platform.activate }} && python scripts/utest.py --test-run-title="Pytest ${{ platform.name }}${{ python.name }}"
                 displayName: run python tests

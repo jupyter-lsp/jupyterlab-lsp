@@ -38,9 +38,9 @@ https://jupyterlab.readthedocs.io/en/latest/getting_started/issue.html
 - Browser and version:
 - JupyterLab version:
 
-<details><summary>Required: installed server extensions</summary>
+<details><summary>Required: installed Kernel</summary>
 <pre>
-Paste the output from running `jupyter serverextension list` from the command line here.
+Paste the output from running `jupyter kernelspec list` from the command line here.
 You may want to sanitize the paths in the output.
 </pre>
 </details>

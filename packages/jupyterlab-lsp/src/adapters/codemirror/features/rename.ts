@@ -1,4 +1,5 @@
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import * as LSP from '../../../lsp';
+
 import {
   CodeMirrorLSPFeature,
   IEditOutcome,
@@ -48,20 +49,19 @@ export class Rename extends CodeMirrorLSPFeature {
           const edit = await connection.rename(
             virtual_position,
             document.document_info,
-            dialog_value.value,
-            false
+            dialog_value.value
           );
           await rename_feature.handleRename(edit);
         } catch (error) {
           handle_failure(error);
         }
       },
-      is_enabled: ({ connection }) => connection.isRenameSupported(),
+      is_enabled: ({ connection }) => connection.provides(LSP.Provider.RENAME),
       label: 'Rename symbol'
     }
   ];
 
-  async handleRename(workspaceEdit: lsProtocol.WorkspaceEdit) {
+  async handleRename(workspaceEdit: LSP.WorkspaceEdit) {
     let outcome: IEditOutcome;
 
     try {

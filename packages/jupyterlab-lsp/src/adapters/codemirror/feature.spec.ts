@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { CodeMirrorAdapter } from './cm_adapter';
-import { LSPConnection } from '../../connection';
 import {
   IJupyterLabComponentsManager,
   StatusMessage
@@ -21,7 +20,7 @@ import * as nbformat from '@jupyterlab/nbformat';
 import { language_specific_overrides } from '../../magics/defaults';
 import { foreign_code_extractors } from '../../extractors/defaults';
 import { NotebookModel } from '@jupyterlab/notebook';
-import { PageConfig } from '@jupyterlab/coreutils';
+import { ILSPConnection } from '../../tokens';
 
 const js_fib_code = `function fib(n) {
   return n<2?n:fib(n-1)+fib(n-2);
@@ -95,8 +94,6 @@ const js_partial_edits = [
 ];
 
 describe('Feature', () => {
-  PageConfig.setOption('rootUri', 'file://');
-
   describe('apply_edit()', () => {
     class EditApplyingFeature extends CodeMirrorLSPFeature {
       name = 'EditApplyingFeature';
@@ -104,7 +101,7 @@ describe('Feature', () => {
         return this.apply_edit(workspaceEdit);
       }
     }
-    let connection: LSPConnection;
+    let connection: ILSPConnection;
 
     let dummy_components_manager: IJupyterLabComponentsManager;
 
@@ -142,7 +139,8 @@ describe('Feature', () => {
 
       beforeEach(() => {
         environment = new FileEditorFeatureTestEnvironment();
-        connection = environment.create_dummy_connection();
+        (environment.language_server_manager as any)._rootUri = 'file://';
+        connection = environment.create_dummy_connection(null, 'file://');
 
         feature = init_feature(environment);
         adapter = init_adapter(environment, feature);

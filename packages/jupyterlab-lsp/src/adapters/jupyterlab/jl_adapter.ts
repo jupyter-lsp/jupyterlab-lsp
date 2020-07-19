@@ -7,14 +7,14 @@ import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import * as LSP from '../../lsp';
 import { FreeTooltip } from './components/free_tooltip';
 import { Widget } from '@lumino/widgets';
 import { VirtualEditor } from '../../virtual/editor';
 import { VirtualDocument, IForeignContext } from '../../virtual/document';
 import { Signal } from '@lumino/signaling';
 import { IEditorPosition, IRootPosition } from '../../positioning';
-import { LSPConnection } from '../../connection';
+import { ILSPConnection } from '../../tokens';
 import { LSPConnector } from './components/completion';
 import { CompletionTriggerKind } from '../../lsp';
 import { Completion } from '../codemirror/features/completion';
@@ -46,7 +46,7 @@ export const lsp_features: Array<ILSPFeatureConstructor> = [
 export interface IJupyterLabComponentsManager {
   invoke_completer: (kind: CompletionTriggerKind) => void;
   create_tooltip: (
-    markup: lsProtocol.MarkupContent,
+    markup: LSP.MarkupContent,
     cm_editor: CodeMirror.Editor,
     position: IEditorPosition
   ) => FreeTooltip;
@@ -407,7 +407,7 @@ export abstract class JupyterLabWidgetAdapter
 
   private async connect_adapter(
     virtual_document: VirtualDocument,
-    connection: LSPConnection
+    connection: ILSPConnection
   ) {
     let adapter = this.create_adapter(virtual_document, connection);
     this.adapters.set(virtual_document.id_path, adapter);
@@ -466,7 +466,7 @@ export abstract class JupyterLabWidgetAdapter
 
   create_adapter(
     virtual_document: VirtualDocument,
-    connection: LSPConnection
+    connection: ILSPConnection
   ): CodeMirrorAdapter {
     let adapter_features = new Array<ILSPFeature>();
     for (let feature_type of lsp_features) {
@@ -550,7 +550,7 @@ export abstract class JupyterLabWidgetAdapter
   }
 
   public create_tooltip(
-    markup: lsProtocol.MarkupContent,
+    markup: LSP.MarkupContent,
     cm_editor: CodeMirror.Editor,
     position: IEditorPosition
   ): FreeTooltip {

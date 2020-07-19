@@ -27,7 +27,7 @@ Works With Kernel Running
     Should Contain    ${content}    TabError
 
 Works When Kernel Is Shut Down
-    Lab Command    Shut Down All Kernels…
+    Switch Kernel    No Kernel
     Capture Page Screenshot    01-shutting-kernels.png
     Accept Default Dialog Option
     Capture Page Screenshot    02-kernels-shut.png

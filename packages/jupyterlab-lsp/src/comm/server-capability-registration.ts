@@ -1,8 +1,4 @@
-import {
-  Registration,
-  ServerCapabilities,
-  Unregistration
-} from 'vscode-languageserver-protocol';
+import { Registration, ServerCapabilities, Unregistration } from '../lsp';
 
 interface IFlexibleServerCapabilities extends ServerCapabilities {
   [key: string]: any;

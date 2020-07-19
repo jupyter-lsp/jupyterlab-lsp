@@ -1,13 +1,13 @@
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import * as LSP from './lsp';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import * as CodeMirror from 'codemirror';
 
 export class PositionConverter {
-  static lsp_to_cm(position: lsProtocol.Position): CodeMirror.Position {
+  static lsp_to_cm(position: LSP.Position): CodeMirror.Position {
     return { line: position.line, ch: position.character };
   }
 
-  static lsp_to_ce(position: lsProtocol.Position): CodeEditor.IPosition {
+  static lsp_to_ce(position: LSP.Position): CodeEditor.IPosition {
     return { line: position.line, column: position.character };
   }
 

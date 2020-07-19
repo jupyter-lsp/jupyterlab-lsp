@@ -8,7 +8,7 @@ import {
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { completionItemKindNames, CompletionTriggerKind } from '../../../lsp';
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import * as LSP from '../../../lsp';
 import { PositionConverter } from '../../../converter';
 import { VirtualDocument } from '../../../virtual/document';
 import { VirtualEditor } from '../../../virtual/editor';
@@ -18,8 +18,8 @@ import {
   IRootPosition,
   IVirtualPosition
 } from '../../../positioning';
-import { LSPConnection } from '../../../connection';
 import { Session } from '@jupyterlab/services';
+import { ILSPConnection } from '../../../tokens';
 
 /*
 Feedback: anchor - not clear from docs
@@ -36,7 +36,7 @@ export class LSPConnector extends DataConnector<
 > {
   isDisposed = false;
   private _editor: CodeEditor.IEditor;
-  private _connections: Map<VirtualDocument.id_path, LSPConnection>;
+  private _connections: Map<VirtualDocument.id_path, ILSPConnection>;
   private _context_connector: ContextConnector;
   private _kernel_connector: KernelConnector;
   private _kernel_and_context_connector: CompletionConnector;
@@ -216,10 +216,9 @@ export class LSPConnector extends DataConnector<
         text: token.value
       },
       document.document_info,
-      false,
       typed_character,
       this.trigger_kind
-    )) || []) as lsProtocol.CompletionItem[];
+    )) || []) as LSP.CompletionItem[];
 
     let prefix = token.value.slice(0, position_in_token + 1);
 
@@ -394,7 +393,7 @@ export namespace LSPConnector {
     /**
      * The connections to be used by the LSP connector.
      */
-    connections: Map<VirtualDocument.id_path, LSPConnection>;
+    connections: Map<VirtualDocument.id_path, ILSPConnection>;
 
     session?: Session.ISessionConnection;
   }

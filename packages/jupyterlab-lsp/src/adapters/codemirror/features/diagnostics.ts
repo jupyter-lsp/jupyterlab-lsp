@@ -1,5 +1,6 @@
 import * as CodeMirror from 'codemirror';
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import * as LSP from '../../../lsp';
+
 import { Menu } from '@lumino/widgets';
 import { PositionConverter } from '../../../converter';
 import { IVirtualPosition, IEditorPosition } from '../../../positioning';
@@ -168,8 +169,8 @@ export class Diagnostics extends CodeMirrorLSPFeature {
   };
 
   protected collapse_overlapping_diagnostics(
-    diagnostics: lsProtocol.Diagnostic[]
-  ): Map<lsProtocol.Range, lsProtocol.Diagnostic[]> {
+    diagnostics: LSP.Diagnostic[]
+  ): Map<LSP.Range, LSP.Diagnostic[]> {
     // because Range is not a primitive type, the equality of the objects having
     // the same parameters won't be compared (thus considered equal) in Map.
 
@@ -177,10 +178,10 @@ export class Diagnostics extends CodeMirrorLSPFeature {
     // an alternative would be using nested [start line][start character][end line][end character] structure,
     // which would increase the code complexity, but reduce memory use and may be slightly faster.
     type RangeID = string;
-    const range_id_to_range = new Map<RangeID, lsProtocol.Range>();
-    const range_id_to_diagnostics = new Map<RangeID, lsProtocol.Diagnostic[]>();
+    const range_id_to_range = new Map<RangeID, LSP.Range>();
+    const range_id_to_diagnostics = new Map<RangeID, LSP.Diagnostic[]>();
 
-    function get_range_id(range: lsProtocol.Range): RangeID {
+    function get_range_id(range: LSP.Range): RangeID {
       return (
         range.start.line +
         ',' +
@@ -192,7 +193,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
       );
     }
 
-    diagnostics.forEach((diagnostic: lsProtocol.Diagnostic) => {
+    diagnostics.forEach((diagnostic: LSP.Diagnostic) => {
       let range = diagnostic.range;
       let range_id = get_range_id(range);
       range_id_to_range.set(range_id, range);
@@ -204,10 +205,10 @@ export class Diagnostics extends CodeMirrorLSPFeature {
       }
     });
 
-    let map = new Map<lsProtocol.Range, lsProtocol.Diagnostic[]>();
+    let map = new Map<LSP.Range, LSP.Diagnostic[]>();
 
     range_id_to_diagnostics.forEach(
-      (range_diagnostics: lsProtocol.Diagnostic[], range_id: RangeID) => {
+      (range_diagnostics: LSP.Diagnostic[], range_id: RangeID) => {
         let range = range_id_to_range.get(range_id);
         map.set(range, range_diagnostics);
       }
@@ -216,7 +217,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
     return map;
   }
 
-  public handleDiagnostic = (response: lsProtocol.PublishDiagnosticsParams) => {
+  public handleDiagnostic = (response: LSP.PublishDiagnosticsParams) => {
     if (response.uri !== this.virtual_document.document_info.uri) {
       return;
     }
@@ -241,7 +242,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
       );
 
       diagnostics_by_range.forEach(
-        (diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
+        (diagnostics: LSP.Diagnostic[], range: LSP.Range) => {
           const start = PositionConverter.lsp_to_cm(
             range.start
           ) as IVirtualPosition;
@@ -416,7 +417,7 @@ export class Diagnostics extends CodeMirrorLSPFeature {
   }
 }
 
-export function message_without_code(diagnostic: lsProtocol.Diagnostic) {
+export function message_without_code(diagnostic: LSP.Diagnostic) {
   let message = diagnostic.message;
   let code_str = '' + diagnostic.code;
   if (

@@ -1,8 +1,9 @@
-import { CodeMirrorLSPFeature, IFeatureCommand } from '../feature';
 import { PositionConverter } from '../../../converter';
 import { IVirtualPosition } from '../../../positioning';
 import { uri_to_contents_path, uris_equal } from '../../../utils';
-import { AnyLocation } from 'lsp-ws-connection/src/types';
+import * as LSP from '../../../lsp';
+
+import { CodeMirrorLSPFeature, IFeatureCommand } from '../feature';
 
 export class JumpToDefinition extends CodeMirrorLSPFeature {
   name = 'JumpToDefinition';
@@ -15,12 +16,12 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
         ) as JumpToDefinition;
         const targets = await connection.getDefinition(
           virtual_position,
-          document.document_info,
-          false
+          document.document_info
         );
         await jump_feature.handle_jump(targets, document.document_info.uri);
       },
-      is_enabled: ({ connection }) => connection.isDefinitionSupported(),
+      is_enabled: ({ connection }) =>
+        connection.provides(LSP.Provider.DEFINITION),
       label: 'Jump to definition'
     }
   ];
@@ -29,7 +30,7 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
     return this.jupyterlab_components.jumper;
   }
 
-  get_uri_and_range(location_or_locations: AnyLocation) {
+  get_uri_and_range(location_or_locations: LSP.TAnyLocation) {
     if (location_or_locations == null) {
       console.log('No jump targets found');
       return;
@@ -63,7 +64,10 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
     }
   }
 
-  async handle_jump(location_or_locations: AnyLocation, document_uri: string) {
+  async handle_jump(
+    location_or_locations: LSP.TAnyLocation,
+    document_uri: string
+  ) {
     const target_info = this.get_uri_and_range(location_or_locations);
 
     if (target_info == null) {
@@ -100,7 +104,7 @@ export class JumpToDefinition extends CodeMirrorLSPFeature {
       console.log('Jump target (source location):', source_position_ce);
 
       // can it be resolved vs our guessed server root?
-      const contents_path = uri_to_contents_path(uri);
+      const contents_path = uri_to_contents_path(uri, this.connection.rootUri);
 
       if (contents_path) {
         uri = contents_path;

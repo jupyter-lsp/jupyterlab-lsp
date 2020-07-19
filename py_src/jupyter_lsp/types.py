@@ -3,6 +3,7 @@
 import asyncio
 import enum
 import json
+import logging
 import pathlib
 import re
 import shutil
@@ -19,7 +20,6 @@ from typing import (
     Text,
 )
 
-from notebook.transutils import _
 from traitlets import Instance, List as List_, Unicode, default
 from traitlets.config import LoggingConfigurable
 
@@ -194,15 +194,18 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
     """ Public API that can be used for python-based spec finders and listeners
     """
 
-    nodejs = Unicode(help=_("path to nodejs executable")).tag(config=True)
+    nodejs = Unicode(help=("path to nodejs executable")).tag(config=True)
 
-    node_roots = List_([], help=_("absolute paths in which to seek node_modules")).tag(
+    node_roots = List_([], help=("absolute paths in which to seek node_modules")).tag(
         config=True
     )
 
     extra_node_roots = List_(
-        [], help=_("additional absolute paths to seek node_modules first")
+        [], help=("additional absolute paths to seek node_modules first")
     ).tag(config=True)
+
+    def get_status_response(self):  # pragma: no cover
+        raise NotImplementedError()
 
     def find_node_module(self, *path_frag):
         """ look through the node_module roots to find the given node module
@@ -236,7 +239,7 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
     def _default_node_roots(self):
         """ get the "usual suspects" for where `node_modules` may be found
 
-        - where this was launch (usually the same as NotebookApp.notebook_dir)
+        - where the parent was launched
         - the JupyterLab staging folder (if available)
         - wherever conda puts it
         - wherever some other conventions put it
@@ -260,6 +263,24 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
         roots += [pathlib.Path(sys.prefix)]
 
         return roots
+
+
+class LangaugeServerClientAPI:
+    """ A base class for a connection to a Language Server Protocol Client
+    """
+
+    language_server = None  # type: Optional[Text]
+    manager = None  # type: LanguageServerManagerAPI
+    log = None  # type: logging.Logger
+
+    async def on_message(self, message) -> None:  # pragma: no cover
+        raise NotImplementedError()
+
+    def write_message(self, message) -> None:  # pragma: no cover
+        raise NotImplementedError()
+
+    def open(language_server) -> None:  # pragma: no cover
+        raise NotImplementedError()
 
 
 # Gotta be down here so it can by typed... really should have a IL

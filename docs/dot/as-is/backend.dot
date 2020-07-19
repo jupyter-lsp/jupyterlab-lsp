@@ -10,32 +10,25 @@ graph backend {
         label=Browser
         Clients
     }
-    
-    subgraph cluster_notebook { label="Jupyter Server"
-        subgraph cluster_lsp { label="LSP ServerExtension"
-            Manager[label="The\nLanguage\nServer\nManager"]
-            Handlers    
-            WebSockets
-            SpecFinders
-            subgraph cluster_lsp { label="Per Language Server"
-                Spec
-                Session
-                subgraph cluster_read_thread { label="Reader Thread"
-                    Reader
-                }
-                subgraph cluster_write_thread { label="Writer Thread"
-                    Writer
-                }
-                subgraph cluster_ls_process { label="Subprocess"
-                    LanguageServer[label="Language\nServer"]
-                }
+
+    subgraph cluster_kernel { label="The Language Server Kernel"
+        Manager[label="The\nLanguage\nServer\nManager"]
+        SpecFinders
+        subgraph cluster_lsp { label="Per Language Server"
+            LanguageServerComm
+            Spec
+            Session
+            subgraph cluster_read_thread { label="Reader Thread"
+                Reader
             }
-            Listeners
-            RestAPI[label="The REST API"]
+            subgraph cluster_write_thread { label="Writer Thread"
+                Writer
+            }
+            subgraph cluster_ls_process { label="Subprocess"
+                LanguageServer[label="Language\nServer"]
+            }
         }
-        subgraph cluster_lab_ext { label="JupyterLab ServerExtension"
-            PageConfig[label="The Page Config"]
-        }
+        Listeners
     }
 
     subgraph cluster_files { label="Files"
@@ -50,11 +43,11 @@ graph backend {
             }
         }
     }
-    
-    Clients -- {RestAPI PageConfig} -- Manager
-    Clients -- WebSockets -- Handlers -- Manager
+
+    Clients -- {LanguageServerComm} -- Manager
+    LanguageServerComm -- Spec
     Session -- {Reader Writer} -- LanguageServer
-    {Manager Traitlets EntryPoints} -- SpecFinders 
+    {Manager Traitlets EntryPoints} -- {SpecFinders Listeners}
     Manager -- {Spec Session}
     Spec -- Session
     Session -- Listeners -- VirtualFiles

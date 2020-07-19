@@ -14,7 +14,7 @@ import {
   IVirtualPosition
 } from '../positioning';
 import IRange = CodeEditor.IRange;
-import { IDocumentInfo } from 'lsp-ws-connection/src';
+import { ILSPConnection } from '../tokens';
 
 import { DocumentConnectionManager } from '../connection_manager';
 
@@ -89,7 +89,7 @@ export function is_within_range(
 /**
  * a virtual implementation of IDocumentInfo
  */
-export class VirtualDocumentInfo implements IDocumentInfo {
+export class VirtualDocumentInfo implements ILSPConnection.IDocumentInfo {
   private _document: VirtualDocument;
   version = 0;
 
@@ -142,7 +142,7 @@ export class VirtualDocument {
   /**
    * the remote document uri, version and other server-related info
    */
-  public document_info: IDocumentInfo;
+  public document_info: ILSPConnection.IDocumentInfo;
   /**
    * Virtual lines keep all the lines present in the document AND extracted to the foreign document.
    */
