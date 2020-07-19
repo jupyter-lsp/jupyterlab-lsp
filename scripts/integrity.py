@@ -12,7 +12,9 @@ import tempfile
 from importlib.util import find_spec
 
 import jsonschema
+import nbformat
 import pytest
+from nbconvert.preprocessors import ExecutePreprocessor
 
 try:
     import ruamel.yaml as yaml
@@ -87,9 +89,16 @@ def the_meta_package():
 
 @pytest.fixture(scope="module")
 def the_installation_notebook():
-    """ loads up the installation notebook
+    """ executes and loads up the installation notebook
     """
-    return (DOCS / "Installation.ipynb").read_text()
+    with open(DOCS / "Installation.ipynb") as f:
+        installation_nb = nbformat.read(f, as_version=4)
+    executor = ExecutePreprocessor(timeout=600)
+
+    # modifies notebook in-place
+    executor.preprocess(installation_nb, {"metadata": {"path": DOCS}})
+
+    return nbformat.writes(installation_nb)
 
 
 @pytest.mark.parametrize(
