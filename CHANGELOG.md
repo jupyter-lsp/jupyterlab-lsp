@@ -13,10 +13,12 @@
   - restores sorting order-indicating caret icons in diagnostics panel table ([#261][])
   - handles document open and change operation ordering more predictably ([#284][])
   - fixes some pyflakes issues caused by line magics substitution ([#293][])
+  - updated the link to the documentation of language servers ([#294][])
 
 [#195]: https://github.com/krassowski/jupyterlab-lsp/issues/195
 [#261]: https://github.com/krassowski/jupyterlab-lsp/issues/261
 [#293]: https://github.com/krassowski/jupyterlab-lsp/pull/293
+[#294]: https://github.com/krassowski/jupyterlab-lsp/pull/294
 
 ### `@krassowski/jupyterlab-lsp 0.9.0` (unreleased)
 
