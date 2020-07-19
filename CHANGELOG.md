@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 1.1.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 1.1.0` (2020-07-20)
 
 - features
 
@@ -20,7 +20,7 @@
 [#293]: https://github.com/krassowski/jupyterlab-lsp/pull/293
 [#294]: https://github.com/krassowski/jupyterlab-lsp/pull/294
 
-### `@krassowski/jupyterlab-lsp 0.9.0` (unreleased)
+### `jupyter-lsp 0.9.0` (2020-07-20)
 
 - features
 
@@ -30,7 +30,7 @@
 
   - handles document open and change operation ordering more predictably ([#284][])
 
-### `lsp-ws-connection 0.5.0` (unreleased)
+### `lsp-ws-connection 0.5.0` (2020-07-20)
 
 - features
 
