@@ -24,10 +24,13 @@ ROOT = pathlib.Path.cwd()
 
 sys.path.insert(0, str(ROOT))
 
-from versions import (  # noqa
-    REQUIRED_JUPYTERLAB as LAB_SPEC,
-    JUPYTER_LSP_VERSION as PY_VERSION
-)
+if True:
+    # a workaround for isort 4.0 limitations
+    # see https://github.com/timothycrosley/isort/issues/468
+    from versions import (  # noqa
+        REQUIRED_JUPYTERLAB as LAB_SPEC,
+        JUPYTER_LSP_VERSION as PY_VERSION,
+    )
 
 REQS = ROOT / "requirements"
 BINDER = ROOT / "binder"
@@ -145,7 +148,16 @@ def test_ts_package_integrity(name, info, the_meta_package):
 
 
 @pytest.mark.parametrize(
-    "path", map(str, [REQS / "lab.txt", CI / "job.test.yml", MAIN_README, BINDER / "environment.yml"])
+    "path",
+    map(
+        str,
+        [
+            REQS / "lab.txt",
+            CI / "job.test.yml",
+            MAIN_README,
+            BINDER / "environment.yml",
+        ],
+    ),
 )
 def test_jlab_versions(path):
     """ is the version of jupyterlab consistent?
