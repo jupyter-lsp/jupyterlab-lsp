@@ -26,6 +26,15 @@ Markdown
     ...    `Color` is misspelt
     ...    `Colour` is misspelt
 
+LaTeX
+    [Tags]    FOO
+    [Documentation]    diagnostics only appear if configured
+    Settings Should Change Editor Diagnostics    LaTeX    example.tex    texlab
+    ...    {"latex.lint.onChange": true}
+    ...    ${EMPTY}
+    ...    Command terminated with space. (chktex)
+    ...    Save File
+
 *** Keywords ***
 Clean Up After Working with File and Settings
     [Arguments]    ${file}
@@ -33,11 +42,12 @@ Clean Up After Working with File and Settings
     Reset Plugin Settings
 
 Settings Should Change Editor Diagnostics
-    [Arguments]    ${language}    ${file}    ${server}    ${settings}    ${before}    ${after}
+    [Arguments]    ${language}    ${file}    ${server}    ${settings}    ${before}    ${after}    ${save command}=${EMPTY}
     ${before diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title^="${before}"]
     ${after diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title^="${after}"]
     ${tab} =    Set Variable    ${JLAB XP DOCK TAB}\[contains(., '${file}')]
     ${close icon} =    Set Variable    *[contains(@class, 'm-TabBar-tabCloseIcon')]
+    ${save command} =    Set Variable If    "${save command}"    ${save command}    Save ${language} File
     Prepare File for Editing    ${language}    config    ${file}
     Open in Advanced Settings    ${LSP PLUGIN ID}
     Drag and Drop By Offset    ${tab}    0    100
@@ -45,18 +55,18 @@ Settings Should Change Editor Diagnostics
     Open Diagnostics Panel
     Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., 'Diagnostics Panel')]    600    -200
     Click Element    ${JLAB XP DOCK TAB}\[contains(., 'Launcher')]/${close icon}
-    Wait Until Page Contains Element    ${before diagnostic}    timeout=30s
+    Run Keyword If    "${before}"    Wait Until Page Contains Element    ${before diagnostic}    timeout=30s
     Page Should Not Contain    ${after diagnostic}
     Capture Page Screenshot    01-default-diagnostics-and-settings.png
     Set Editor Content    {"language_servers": {"${server}": {"serverSettings": ${settings}}}}    ${CSS USER SETTINGS}
     Wait Until Page Contains    No errors found
-    Capture Page Screenshot    01-default-diagnostics-and-settings.png
+    Capture Page Screenshot    02-default-diagnostics-and-unsaved-settings.png
     Click Element    css:button[title\='Save User Settings']
     Click Element    ${JLAB XP DOCK TAB}\[contains(., 'Settings')]/${close icon}
     Drag and Drop By Offset    ${tab}    0    100
-    Lab Command    Save ${language} File
+    Lab Command    ${save command}
     Ensure Sidebar Is Closed
-    Capture Page Screenshot    02-settings-changed.png
+    Capture Page Screenshot    03-settings-changed.png
     Wait Until Page Contains Element    ${after diagnostic}    timeout=30s
-    Capture Page Screenshot    03-configured-diagnostic-found.png
+    Capture Page Screenshot    04-configured-diagnostic-found.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}
