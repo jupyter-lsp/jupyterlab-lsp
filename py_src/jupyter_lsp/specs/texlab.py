@@ -12,7 +12,7 @@ class Texlab(ShellSpec):
             home="https://texlab.netlify.app",
             issues="https://github.com/latex-lsp/texlab/issues",
         ),
-        install=dict(conda="conda install -c conda-forge texlab"),
+        install=dict(conda="conda install -c conda-forge texlab chktex"),
         config_schema=load_config_schema(key),
         env=dict(RUST_BACKTRACE="1"),
     )
