@@ -36,3 +36,4 @@ dependencies:
   # for tex
   - tectonic
   - texlab
+  - chktex

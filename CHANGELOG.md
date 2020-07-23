@@ -1,15 +1,17 @@
 ## CHANGELOG
 
+### `jupyter-lsp 0.9.x` (unreleased)
+
+  - autodetects the `texlab` language server for LaTeX ([#288][])
+    - diagnostics are provided by `chktex`, and must be configured separately
+
+[#288]: https://github.com/krassowski/jupyterlab-lsp/issues/288
+
 ### `@krassowski/jupyterlab-lsp 1.1.0` (2020-07-20)
 
 - features
 
   - language servers can now be configured from the Advanced Settings Editor ([#245][])
-
-- features
-
-  - configures language servers with JupyterLab _Advanced Settings_ ([#245][])
-  - autodetects the `texlab` language server for LaTeX ([#288][])
 
 - bug fixes
 
@@ -20,15 +22,7 @@
   - fixes some pyflakes issues caused by line magics substitution ([#293][])
   - updated the link to the documentation of language servers ([#294][])
 
-### `lsp-ws-connection 0.4.1` (unreleased)
-
-- bug fixes
-
-  - handles document open and change operation ordering more predictably ([#284][])
-  - always sends a non-null `initialized` notification body ([#288][])
-
 [#195]: https://github.com/krassowski/jupyterlab-lsp/issues/195
-[#245]: https://github.com/krassowski/jupyterlab-lsp/pull/245
 [#261]: https://github.com/krassowski/jupyterlab-lsp/issues/261
 [#293]: https://github.com/krassowski/jupyterlab-lsp/pull/293
 [#294]: https://github.com/krassowski/jupyterlab-lsp/pull/294
@@ -55,7 +49,6 @@
 
 [#245]: https://github.com/krassowski/jupyterlab-lsp/pull/245
 [#284]: https://github.com/krassowski/jupyterlab-lsp/pull/284
-[#288]: https://github.com/krassowski/jupyterlab-lsp/pull/288
 
 ### `@krassowski/jupyterlab-lsp 1.0.0` (2020-03-14)
 

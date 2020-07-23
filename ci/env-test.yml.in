@@ -24,6 +24,7 @@ dependencies:
   # tex
   - tectonic
   - texlab
+  - chktex
   # test tools
   - pytest-asyncio
   - pytest-azurepipelines
