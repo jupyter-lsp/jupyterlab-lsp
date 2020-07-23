@@ -27,7 +27,6 @@ Markdown
     ...    `Colour` is misspelt
 
 LaTeX
-    [Tags]    FOO
     [Documentation]    diagnostics only appear if configured
     Settings Should Change Editor Diagnostics    LaTeX    example.tex    texlab
     ...    {"latex.lint.onChange": true}
@@ -36,11 +35,6 @@ LaTeX
     ...    Save File
 
 *** Keywords ***
-Clean Up After Working with File and Settings
-    [Arguments]    ${file}
-    Clean Up After Working With File    ${file}
-    Reset Plugin Settings
-
 Settings Should Change Editor Diagnostics
     [Arguments]    ${language}    ${file}    ${server}    ${settings}    ${before}    ${after}    ${save command}=${EMPTY}
     ${before diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title^="${before}"]
@@ -62,7 +56,7 @@ Settings Should Change Editor Diagnostics
     Wait Until Page Contains    No errors found
     Capture Page Screenshot    02-default-diagnostics-and-unsaved-settings.png
     Click Element    css:button[title\='Save User Settings']
-    Click Element    ${JLAB XP DOCK TAB}\[contains(., 'Settings')]/${close icon}
+    Click Element    ${JLAB XP CLOSE SETTINGS}
     Drag and Drop By Offset    ${tab}    0    100
     Lab Command    ${save command}
     Ensure Sidebar Is Closed
