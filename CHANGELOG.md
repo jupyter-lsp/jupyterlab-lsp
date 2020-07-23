@@ -1,6 +1,10 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 1.0.1` (unreleased)
+### `@krassowski/jupyterlab-lsp 1.1.0` (2020-07-20)
+
+- features
+
+  - language servers can now be configured from the Advanced Settings Editor ([#245][])
 
 - features
 
@@ -13,6 +17,8 @@
     (and vice versa) ([#195][])
   - restores sorting order-indicating caret icons in diagnostics panel table ([#261][])
   - handles document open and change operation ordering more predictably ([#284][])
+  - fixes some pyflakes issues caused by line magics substitution ([#293][])
+  - updated the link to the documentation of language servers ([#294][])
 
 ### `lsp-ws-connection 0.4.1` (unreleased)
 
@@ -24,6 +30,30 @@
 [#195]: https://github.com/krassowski/jupyterlab-lsp/issues/195
 [#245]: https://github.com/krassowski/jupyterlab-lsp/pull/245
 [#261]: https://github.com/krassowski/jupyterlab-lsp/issues/261
+[#293]: https://github.com/krassowski/jupyterlab-lsp/pull/293
+[#294]: https://github.com/krassowski/jupyterlab-lsp/pull/294
+
+### `jupyter-lsp 0.9.0` (2020-07-20)
+
+- features
+
+  - language servers can now be configured from the Advanced Settings Editor ([#245][])
+
+- bug fixes
+
+  - handles document open and change operation ordering more predictably ([#284][])
+
+### `lsp-ws-connection 0.5.0` (2020-07-20)
+
+- features
+
+  - language servers can now be configured from the Advanced Settings Editor ([#245][])
+
+- bug fixes
+
+  - handles document open and change operation ordering more predictably ([#284][])
+
+[#245]: https://github.com/krassowski/jupyterlab-lsp/pull/245
 [#284]: https://github.com/krassowski/jupyterlab-lsp/pull/284
 [#288]: https://github.com/krassowski/jupyterlab-lsp/pull/288
 
