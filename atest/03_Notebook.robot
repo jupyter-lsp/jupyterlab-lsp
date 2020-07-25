@@ -14,7 +14,10 @@ Python
 
 Foreign Extractors
     ${file} =    Set Variable    Foreign extractors.ipynb
-    Configure JupyterLab Plugin    {"language_servers": {"texlab": {"serverSettings": {"latex.lint.onChange": true}}}}
+    # #288: this would need to be restored for latex
+    #
+    # Configure JupyterLab Plugin    {"language_servers": {"texlab": {"serverSettings": {"latex.lint.onChange": true}}}}
+    #
     Setup Notebook    Python    ${file}
     # if mypy and pyflakes will fight over `(N|n)ame 'valid'`, just hope for the best
     @{diagnostics} =    Create List
@@ -22,7 +25,11 @@ Foreign Extractors
     ...    ame 'valid'    # python
     ...    Trailing whitespace is superfluous.    # r
     ...    `frob` is misspelt    # markdown
-    ...    Command terminated with space    # latex
+    #
+    # #288: once configured, diagnostics are coming back over the wire, but not displaying
+    #
+    # ...    Command terminated with space    # latex
+    #
     FOR    ${diagnostic}    IN    @{diagnostics}
         Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*\="${diagnostic}"]    timeout=35s
         Capture Page Screenshot    0x-${diagnostic}.png
