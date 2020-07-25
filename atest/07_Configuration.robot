@@ -64,8 +64,17 @@ Settings Should Change Editor Diagnostics
     Lab Command    ${save command}
     Ensure Sidebar Is Closed
     Capture Page Screenshot    03-settings-changed.png
-    Run Keyword If    ${needs reload}    Reload Page
-    Open Diagnostics Panel
+    Run Keyword If    ${needs reload}    Reload After Configuration  ${language}   ${file}
     Wait Until Page Contains Element    ${after diagnostic}    timeout=30s
     Capture Page Screenshot    04-configured-diagnostic-found.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}
+
+
+Reload After Configuration
+    [Arguments]    ${language}   ${file}
+    Reload Page
+    Wait Until Keyword Succeeds    3x    5s    Wait For Splash
+    Reset Application State
+    Prepare File for Editing    ${language}    config    ${file}
+    Wait Until Fully Initialized
+    Open Diagnostics Panel
