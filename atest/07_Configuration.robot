@@ -14,6 +14,7 @@ Python
 
 YAML
     [Documentation]    EXPECT FAIL Composer YAML files don't allow a "greetings" key
+    [Tags]    expect:fail
     Settings Should Change Editor Diagnostics    YAML    example.yaml    yaml-language-server
     ...    {"yaml.schemas": {"http://json.schemastore.org/composer": "*"}}
     ...    duplicate key
@@ -28,15 +29,17 @@ Markdown
 
 LaTeX
     [Documentation]    diagnostics only appear if configured
+    ${needs reload} =    Set Variable    "${OS}" == "Windows"
     Settings Should Change Editor Diagnostics    LaTeX    example.tex    texlab
     ...    {"latex.lint.onChange": true}
     ...    ${EMPTY}
     ...    Command terminated with space. (chktex)
     ...    Save File
+    ...    ${needs reload}
 
 *** Keywords ***
 Settings Should Change Editor Diagnostics
-    [Arguments]    ${language}    ${file}    ${server}    ${settings}    ${before}    ${after}    ${save command}=${EMPTY}
+    [Arguments]    ${language}    ${file}    ${server}    ${settings}    ${before}    ${after}    ${save command}=${EMPTY}    ${needs reload}=${False}
     ${before diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title^="${before}"]
     ${after diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title^="${after}"]
     ${tab} =    Set Variable    ${JLAB XP DOCK TAB}\[contains(., '${file}')]
@@ -61,6 +64,8 @@ Settings Should Change Editor Diagnostics
     Lab Command    ${save command}
     Ensure Sidebar Is Closed
     Capture Page Screenshot    03-settings-changed.png
+    Run Keyword If    ${needs reload}    Reload Page
+    Open Diagnostics Panel
     Wait Until Page Contains Element    ${after diagnostic}    timeout=30s
     Capture Page Screenshot    04-configured-diagnostic-found.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}
