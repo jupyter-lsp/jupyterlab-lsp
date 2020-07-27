@@ -78,5 +78,4 @@ Reload After Configuration
     Prepare File for Editing    ${language}    config    ${file}
     Wait Until Fully Initialized
     Open Diagnostics Panel
-    Click Element    ${JLAB XP DOCK TAB}\[contains(., 'Launcher')]/${file}
     Ensure Sidebar Is Closed
