@@ -29,11 +29,12 @@ Markdown
 
 LaTeX
     [Documentation]    diagnostics only appear if configured
+    [Tags]    language:latex
     ${needs reload} =    Set Variable    "${OS}" == "Windows"
     Settings Should Change Editor Diagnostics    LaTeX    example.tex    texlab
     ...    {"latex.lint.onChange": true}
     ...    ${EMPTY}
-    ...    Delete this space to maintain correct pagereferences.
+    ...    Command terminated with space. (chktex)
     ...    Save File
     ...    ${needs reload}
 
@@ -77,3 +78,5 @@ Reload After Configuration
     Prepare File for Editing    ${language}    config    ${file}
     Wait Until Fully Initialized
     Open Diagnostics Panel
+    Click Element    ${JLAB XP DOCK TAB}\[contains(., 'Launcher')]/${file}
+    Ensure Sidebar Is Closed
