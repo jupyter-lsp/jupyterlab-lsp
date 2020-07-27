@@ -33,7 +33,7 @@ LaTeX
     Settings Should Change Editor Diagnostics    LaTeX    example.tex    texlab
     ...    {"latex.lint.onChange": true}
     ...    ${EMPTY}
-    ...    Command terminated with space. (chktex)
+    ...    Delete this space to maintain correct pagereferences.
     ...    Save File
     ...    ${needs reload}
 
