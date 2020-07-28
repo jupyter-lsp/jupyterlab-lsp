@@ -11,7 +11,7 @@ interface IFlexibleServerCapabilities extends ServerCapabilities {
 function registerServerCapability(
   serverCapabilities: ServerCapabilities,
   registration: Registration
-): ServerCapabilities {
+): ServerCapabilities | null {
   const serverCapabilitiesCopy = JSON.parse(
     JSON.stringify(serverCapabilities)
   ) as IFlexibleServerCapabilities;
@@ -27,7 +27,8 @@ function registerServerCapability(
       );
     }
   } else {
-    throw new Error('Could not register server capability.');
+    console.warn('Could not register server capability.', registration);
+    return null;
   }
 
   return serverCapabilitiesCopy;

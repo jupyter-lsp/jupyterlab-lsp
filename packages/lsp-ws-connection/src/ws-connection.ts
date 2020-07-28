@@ -79,10 +79,14 @@ export class LspWsConnection extends events.EventEmitter
           (params: protocol.RegistrationParams) => {
             params.registrations.forEach(
               (capabilityRegistration: protocol.Registration) => {
-                this.serverCapabilities = registerServerCapability(
-                  this.serverCapabilities,
-                  capabilityRegistration
-                );
+                try {
+                  this.serverCapabilities = registerServerCapability(
+                    this.serverCapabilities,
+                    capabilityRegistration
+                  );
+                } catch (err) {
+                  console.error(err);
+                }
               }
             );
 

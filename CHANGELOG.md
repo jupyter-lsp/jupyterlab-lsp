@@ -1,5 +1,14 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 1.1.1` (unreleased)
+
+- bug fixes
+
+  - emits console warnings instead of throwing errors in hover handlers and connections ([#299][], [#300][])
+
+[#299]: https://github.com/krassowski/jupyterlab-lsp/pull/299
+[#300]: https://github.com/krassowski/jupyterlab-lsp/pull/300
+
 ### `jupyter-lsp 0.9.x` (unreleased)
 
 - autodetects the `texlab` language server for `.tex` files ([#288][])
