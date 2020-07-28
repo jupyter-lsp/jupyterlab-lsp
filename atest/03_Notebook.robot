@@ -5,19 +5,27 @@ Resource          Keywords.robot
 
 *** Test Cases ***
 Python
-    Setup Notebook    Python    Python.ipynb
-    Capture Page Screenshot    01-python.png
+    [Setup]    Setup Notebook    Python    Python.ipynb
     ${diagnostic} =    Set Variable    W291 trailing whitespace (pycodestyle)
     Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title="${diagnostic}"]    timeout=35s
-    Capture Page Screenshot    02-python.png
-    Clean Up After Working With File    Python.ipynb
+    Capture Page Screenshot    01-python.png
+    [Teardown]    Clean Up After Working With File    Python.ipynb
 
-Foregin Extractors
-    Setup Notebook    Python    Foreign extractors.ipynb
-    # if mypy and pyflakes will fight over `(N|n)ame 'valid'`, just hope for the best
-    @{diagnostics} =    Create List    Failed to parse expression    ame 'valid'    Trailing whitespace is superfluous.
+Foreign Extractors
+    ${file} =    Set Variable    Foreign extractors.ipynb
+    Configure JupyterLab Plugin
+    ...    {"language_servers": {"texlab": {"serverSettings": {"latex.lint.onChange": true}}}}
+    Capture Page Screenshot    10-configured.png
+    Reset Application State
+    Setup Notebook    Python    ${file}
+    @{diagnostics} =    Create List
+    ...    Failed to parse expression    # bash
+    ...    ame 'valid'    # python, mypy and pyflakes will fight over `(N|n)ame 'valid'`, just hope for the best
+    ...    Trailing whitespace is superfluous.    # r
+    ...    `frob` is misspelt    # markdown
+    ...    Command terminated with space    # latex
     FOR    ${diagnostic}    IN    @{diagnostics}
         Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*\="${diagnostic}"]    timeout=35s
-        Capture Page Screenshot    0x-${diagnostic}.png
     END
-    Clean Up After Working With File    Foreign Extractors.ipynb
+    Capture Page Screenshot    11-extracted.png
+    [Teardown]    Clean Up After Working with File and Settings    ${file}

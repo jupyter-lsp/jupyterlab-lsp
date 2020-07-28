@@ -29,6 +29,7 @@ RFLINT_RULES = [
     "TooFewTestSteps:1",
     "TooManyTestSteps:30",
     "TooManyTestCases:30",
+    "FileTooLong:400",
 ]
 
 RFLINT_IGNORES = [

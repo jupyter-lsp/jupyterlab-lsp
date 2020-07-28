@@ -28,6 +28,11 @@ JSX
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'hello')])[last()]
     Editor Shows Features for Language    JSX    example.jsx    Diagnostics=Expression expected    Jump to Definition=${def}    Rename=${def}
 
+LaTeX
+    [Tags]    language:latex
+    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-atom')][contains(text(), 'foo')])[last()]
+    Editor Shows Features for Language    LaTeX    example.tex    Jump to Definition=${def}    Rename=${def}
+
 Less
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable-2')][contains(text(), '@width')])[last()]
     Editor Shows Features for Language    Less    example.less    Diagnostics=Do not use empty rulesets    Jump to Definition=${def}
@@ -62,6 +67,7 @@ YAML
 Editor Shows Features for Language
     [Arguments]    ${Language}    ${file}    &{features}
     Prepare File for Editing    ${Language}    editor    ${file}
+    Wait Until Fully Initialized
     FOR    ${f}    IN    @{features}
         Run Keyword If    "${f}" == "Diagnostics"    Editor Should Show Diagnostics    ${features["${f}"]}
         ...    ELSE IF    "${f}" == "Jump to Definition"    Editor Should Jump To Definition    ${features["${f}"]}

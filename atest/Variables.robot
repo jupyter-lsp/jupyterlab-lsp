@@ -35,6 +35,7 @@ ${CM CURSORS}     css:.CodeMirror-cursors:not([style='visibility: hidden'])
 ${LSP PLUGIN ID}    @krassowski/jupyterlab-lsp:plugin
 ${LSP PLUGIN SETTINGS FILE}    @krassowski${/}jupyterlab-lsp${/}plugin.jupyterlab-settings
 ${CSS USER SETTINGS}    .jp-SettingsRawEditor-user
+${JLAB XP CLOSE SETTINGS}    ${JLAB XP DOCK TAB}\[contains(., 'Settings')]/*[contains(@class, 'm-TabBar-tabCloseIcon')]
 # diagnostics
 ${CSS DIAGNOSTIC}    css:.cm-lsp-diagnostic
 # log messages

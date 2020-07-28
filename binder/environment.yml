@@ -33,3 +33,7 @@ dependencies:
   - r-irkernel
   - r-languageserver
   - rpy2
+  # for tex
+  - tectonic
+  - texlab
+  - chktex

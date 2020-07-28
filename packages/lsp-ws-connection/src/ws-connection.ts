@@ -629,7 +629,7 @@ export class LspWsConnection extends events.EventEmitter
   protected onServerInitialized(params: protocol.InitializeResult) {
     this.isInitialized = true;
     this.serverCapabilities = params.capabilities;
-    this.connection.sendNotification('initialized');
+    this.connection.sendNotification('initialized', {});
     this.connection.sendNotification('workspace/didChangeConfiguration', {
       settings: {}
     });

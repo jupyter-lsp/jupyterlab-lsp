@@ -286,3 +286,16 @@ Get Editor Content
     [Arguments]    ${css}=${EMPTY}
     ${content} =    Execute JavaScript    return document.querySelector('${css} .CodeMirror').CodeMirror.getValue()
     [Return]    ${content}
+
+Configure JupyterLab Plugin
+    [Arguments]    ${settings json}    ${plugin id}=${LSP PLUGIN ID}
+    Open in Advanced Settings    ${plugin id}
+    Set Editor Content    ${settings json}    ${CSS USER SETTINGS}
+    Wait Until Page Contains    No errors found
+    Click Element    css:button[title\='Save User Settings']
+    Click Element    ${JLAB XP CLOSE SETTINGS}
+
+Clean Up After Working with File and Settings
+    [Arguments]    ${file}
+    Clean Up After Working With File    ${file}
+    Reset Plugin Settings

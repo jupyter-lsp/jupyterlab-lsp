@@ -14,17 +14,20 @@ from jupyter_lsp.handlers import LanguageServersHandler, LanguageServerWebSocket
 # these should always be available in a test environment ()
 KNOWN_SERVERS = [
     "bash-language-server",
-    "vscode-css-languageserver-bin",
     "dockerfile-language-server-nodejs",
-    "vscode-html-languageserver-bin",
-    "unified-language-server",
     "javascript-typescript-langserver",
-    "vscode-json-languageserver-bin",
     "pyls",
+    "unified-language-server",
+    "vscode-css-languageserver-bin",
+    "vscode-html-languageserver-bin",
+    "vscode-json-languageserver-bin",
     "yaml-language-server",
 ]
 
-CMD_BASED_SERVERS = {"Rscript": ["r-languageserver"]}
+CMD_BASED_SERVERS = {
+    "Rscript": ["r-languageserver"],
+    "texlab": ["texlab"],
+}
 
 KNOWN_SERVERS += sum(
     [langs for cmd, langs in CMD_BASED_SERVERS.items() if shutil.which(cmd)], []
