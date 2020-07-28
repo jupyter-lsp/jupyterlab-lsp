@@ -1,0 +1,80 @@
+{
+  "title": "LaTeX configuration",
+  "properties": {
+    "latex.rootDirectory": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "Path to the root directory."
+    },
+    "latex.build.executable": {
+      "type": "string",
+      "default": "latexmk",
+      "description": "Path to a LaTeX build tool."
+    },
+    "latex.build.args": {
+      "type": "array",
+      "default": ["-pdf", "-interaction=nonstopmode", "-synctex=1", "%f"],
+      "description": "Additional arguments that are passed to the build tool."
+    },
+    "latex.build.onSave": {
+      "type": "boolean",
+      "default": false,
+      "description": "Build after saving a file"
+    },
+    "latex.build.outputDirectory": {
+      "type": "string",
+      "default": ".",
+      "description": "Directory containing the build artifacts."
+    },
+    "latex.build.forwardSearchAfter": {
+      "type": "boolean",
+      "default": false,
+      "description": "Execute forward search after building"
+    },
+    "latex.forwardSearch.executable": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "Path to a PDF previewer that supports SyncTeX."
+    },
+    "latex.forwardSearch.args": {
+      "type": "array",
+      "default": [],
+      "description": "Additional arguments that are passed to the previewer."
+    },
+    "latex.lint.onSave": {
+      "type": "boolean",
+      "default": true,
+      "description": "Lint after saving a file"
+    },
+    "latex.lint.onChange": {
+      "type": "boolean",
+      "default": false,
+      "description": "Lint after changing a file"
+    },
+    "latex.server.autoDownload": {
+      "type": "boolean",
+      "default": false,
+      "description": "Automatically download the language server if it is not installed."
+    },
+    "latex.server.trace": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable the trace verbosity of the server."
+    },
+    "latex.server.logFile": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "Path to the server log file."
+    },
+    "bibtex.formatting.formatter": {
+      "type": "string",
+      "default": "texlab",
+      "description": "BibTeX formatter to use."
+    },
+    "bibtex.formatting.lineLength": {
+      "type": "integer",
+      "default": 120,
+      "description": "Maximum amount of characters per line (0 = disable)."
+    }
+  }
+}

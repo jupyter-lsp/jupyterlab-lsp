@@ -69,6 +69,9 @@ jobs:
               - script: ${{ platform.activate }} && python scripts/jedi_cache.py
                 displayName: warm up jedi cache
 
+              - script: ${{ platform.activate }} && python scripts/tectonic_cache.py
+                displayName: warm up tectonic cache
+
               - script: ${{ platform.activate }} && jlpm test
                 displayName: run frontend unit tests
 
@@ -109,7 +112,7 @@ jobs:
               - script: ${{ platform.activate }} && jupyter labextension list
                 displayName: list labextensions after build
 
-              - script: ${{ platform.activate }} && python scripts/atest.py
+              - script: ${{ platform.activate }} && python scripts/atest.py --exclude expect:fail
                 displayName: run browser tests
 
               - task: PublishTestResults@2

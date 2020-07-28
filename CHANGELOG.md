@@ -9,6 +9,14 @@
 [#299]: https://github.com/krassowski/jupyterlab-lsp/pull/299
 [#300]: https://github.com/krassowski/jupyterlab-lsp/pull/300
 
+### `jupyter-lsp 0.9.x` (unreleased)
+
+- autodetects the `texlab` language server for `.tex` files ([#288][])
+  - diagnostics _should_ be provided by `chktex` on save, but don't yet appear,
+    but can be configured through the Advanced Settings Editor to appear on save or change
+
+[#288]: https://github.com/krassowski/jupyterlab-lsp/issues/288
+
 ### `@krassowski/jupyterlab-lsp 1.1.0` (2020-07-20)
 
 - features
