@@ -32,7 +32,7 @@ def test_normalize_posix_path_home_subdir(
     assert normalized_uri(root_dir) == expected_root_uri
 
 
-@pytest.mark.skipif(~WIN, reason="can't test Windows paths on POSIX")
+@pytest.mark.skipif(not WIN, reason="can't test Windows paths on POSIX")
 @pytest.mark.parametrize(
     "root_dir, expected_root_uri",
     [
@@ -58,7 +58,7 @@ def test_file_uri_to_path_posix(file_uri, expected_posix_path):  # pragma: no co
     assert file_uri_to_path(file_uri) == expected_posix_path
 
 
-@pytest.mark.skipif(~WIN, reason="can't test Windows paths on POSIX")
+@pytest.mark.skipif(not WIN, reason="can't test Windows paths on POSIX")
 @pytest.mark.parametrize(
     "file_uri, expected_windows_path",
     [
