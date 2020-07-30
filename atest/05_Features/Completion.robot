@@ -77,14 +77,14 @@ Mid Token Completions Do Not Overwrite
     Place Cursor In Cell Editor At    9    line=1    character=4
     Capture Page Screenshot    01-cursor-placed.png
     Trigger Completer
-    Completer Should Suggest  display_table
+    Completer Should Suggest    display_table
     Select Completer Suggestion    display_table
     Capture Page Screenshot    02-completed.png
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    9    display_tabledata
     # `disp<tab>lay` → `display_table<cursor>`
     Place Cursor In Cell Editor At    11    line=1    character=4
     Trigger Completer
-    Completer Should Suggest  display_table
+    Completer Should Suggest    display_table
     Select Completer Suggestion    display_table
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    11    display_table
 
