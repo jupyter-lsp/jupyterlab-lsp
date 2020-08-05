@@ -3,9 +3,8 @@ import re
 
 import pytest
 import traitlets
-from tornado.queues import Queue
-
 from jupyter_lsp import lsp_message_listener
+from tornado.queues import Queue
 
 
 @pytest.mark.parametrize("bad_string", ["not-a-function", "jupyter_lsp.__version__"])
