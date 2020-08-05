@@ -1,15 +1,16 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 1.1.1` (unreleased)
+### `@krassowski/jupyterlab-lsp 1.1.1` (2020-08-05)
 
 - bug fixes
 
   - emits console warnings instead of throwing errors in hover handlers and connections ([#299][], [#300][])
+  - improve URL checks in message handling to enable LaTeX diagnostics to work when configured ([#288][])
 
 [#299]: https://github.com/krassowski/jupyterlab-lsp/pull/299
 [#300]: https://github.com/krassowski/jupyterlab-lsp/pull/300
 
-### `jupyter-lsp 0.9.x` (unreleased)
+### `jupyter-lsp 0.9.1` (2020-08-05)
 
 - autodetects the `texlab` language server for `.tex` files ([#288][])
   - diagnostics _should_ be provided by `chktex` on save, but don't yet appear,

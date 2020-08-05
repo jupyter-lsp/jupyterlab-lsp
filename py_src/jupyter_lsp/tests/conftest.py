@@ -3,13 +3,12 @@ import pathlib
 import shutil
 from typing import Text
 
-from notebook.notebookapp import NotebookApp
-from pytest import fixture
-from tornado.queues import Queue
-
 # local imports
 from jupyter_lsp import LanguageServerManager
 from jupyter_lsp.handlers import LanguageServersHandler, LanguageServerWebSocketHandler
+from notebook.notebookapp import NotebookApp
+from pytest import fixture
+from tornado.queues import Queue
 
 # these should always be available in a test environment ()
 KNOWN_SERVERS = [

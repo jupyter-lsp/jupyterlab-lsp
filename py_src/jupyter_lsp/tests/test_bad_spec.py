@@ -1,6 +1,5 @@
 import pytest
 import traitlets
-
 from jupyter_lsp.session import LanguageServerSession
 
 
