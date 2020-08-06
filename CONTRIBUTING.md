@@ -279,6 +279,19 @@ python scripts/combine.py
   and change `create_console('browser')` to `create_console('floating')` in `VirtualEditor`
   constructor (please feel free to add a config option for this).
 
+- If you see:
+
+  > `SessionNotCreatedException: Message: Unable to find a matching set of capabilities`
+
+  `geckodriver >=0.27.0` requires an _actual_ Firefox executable. Several places
+  will be checked (including where `conda-forge` installs, as in CI): to test
+  a Firefox _not_ on your `PATH`, set the following enviroment variable:
+
+  ```bash
+  export FIREFOX_BINARY=/path/to/firefox      # ... unix
+  set FIREFOX_BINARY=C:\path\to\firefox.exe   # ... windows
+  ```
+
 ### Formatting
 
 Minimal code style is enforced with `pytest-flake8` during unit testing. If installed,
