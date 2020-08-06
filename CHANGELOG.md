@@ -12,7 +12,6 @@
 
   - path-autocompletion issues were resolved upstream an this release adopts these changes
 
-
 [#301]: https://github.com/krassowski/jupyterlab-lsp/pull/301
 
 ### `@krassowski/jupyterlab-lsp 1.1.2` (2020-08-05)
