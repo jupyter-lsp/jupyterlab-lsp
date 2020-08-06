@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 1.1.1` (2020-08-05)
+### `@krassowski/jupyterlab-lsp 1.1.2` (2020-08-05)
 
 - bug fixes
 
