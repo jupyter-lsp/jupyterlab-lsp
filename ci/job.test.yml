@@ -48,8 +48,8 @@ jobs:
               - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
                 displayName: update conda environment with test dependencies
 
-              - script: mamba info && mamba list -n base
-                displayName: list conda packages with mamba and info
+              - script: conda info && conda list -n base
+                displayName: list conda info and packages
 
               - script: ${{ platform.activate }} && jlpm || jlpm || jlpm
                 displayName: install npm dependencies
