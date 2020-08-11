@@ -5,7 +5,7 @@ parameters:
       activate: source activate
   pythons:
     - name: ThreeSeven
-      spec: '>=3.7,<3.8.0a0'
+      spec: '>=3.8,<3.9.0a0'
       lab: '>=2,<3.0.0a0'
       nodejs: '>=12,<13.0.0a0'
   env_update: mamba env update -n jupyterlab-lsp --file env-test.yml --quiet
