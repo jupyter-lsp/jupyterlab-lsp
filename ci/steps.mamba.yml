@@ -1,6 +1,6 @@
 parameters:
   name: Linux
-  install_cmd: conda install -yn base -c conda-forge mamba
+  install_cmd: conda install -yn base -c conda-forge mamba conda=4.8.3
 
 steps:
   - ${{ if eq(parameters.name, 'Linux') }}:
