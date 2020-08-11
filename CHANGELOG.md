@@ -7,12 +7,16 @@
   - support for JupyterLab 2.2 ([#301][])
   - completer now displays server-provided documentation,
     and a kernel icon for kernel suggestions without type information ([#301][])
+  - the documentation by the completer can be turned on or off ([#315])
+  - continuous hinting (Hinterland mode) can be enabled in settings ([#315])
+  - tokens in which the completer should not be triggered can be changed ([#315])
 
 - bug fixes
 
   - path-autocompletion issues were resolved upstream an this release adopts these changes
 
 [#301]: https://github.com/krassowski/jupyterlab-lsp/pull/301
+[#315]: https://github.com/krassowski/jupyterlab-lsp/pull/315
 
 ### `@krassowski/jupyterlab-lsp 1.1.2` (2020-08-05)
 
