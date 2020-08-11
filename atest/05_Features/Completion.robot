@@ -43,8 +43,26 @@ Autocompletes If Only One Option
     Enter Cell Editor    3    line=1
     Press Keys    None    cle
     Wait Until Fully Initialized
+    # First tab brings up the completer
     Press Keys    None    TAB
+    Completer Should Suggest    clear
+    # Second tab inserts the only suggestion
+    Press Keys    None    TAB
+    # depends on Python list type having only one method with prefix "cle"
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    3    list.clear
+
+Does Not Autocomplete If Multiple Options
+    Enter Cell Editor    3    line=1
+    Press Keys    None    c
+    Wait Until Fully Initialized
+    # First tab brings up the completer
+    Press Keys    None    TAB
+    Completer Should Suggest    copy
+    # Second tab inserts should not insert the first of many choices.
+    Press Keys    None    TAB
+    # depends on Python list type having multiple methods with prefix "c"
+    # in this case "Completer Should Suggest" means that the completer is still shown!
+    Completer Should Suggest    copy
 
 User Can Select Lowercase After Starting Uppercase
     # `from time import Tim<tab>` → `from time import time`
@@ -58,12 +76,16 @@ Mid Token Completions Do Not Overwrite
     # `disp<tab>data` → `display_table<cursor>data`
     Place Cursor In Cell Editor At    9    line=1    character=4
     Capture Page Screenshot    01-cursor-placed.png
-    Press Keys    None    TAB
+    Trigger Completer
+    Completer Should Suggest    display_table
+    Select Completer Suggestion    display_table
     Capture Page Screenshot    02-completed.png
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    9    display_tabledata
     # `disp<tab>lay` → `display_table<cursor>`
     Place Cursor In Cell Editor At    11    line=1    character=4
-    Press Keys    None    TAB
+    Trigger Completer
+    Completer Should Suggest    display_table
+    Select Completer Suggestion    display_table
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    11    display_table
 
 Completion Works For Tokens Separated By Space
@@ -108,6 +130,7 @@ Cell Editor Should Equal
 Select Completer Suggestion
     [Arguments]    ${text}
     ${suggestion} =    Set Variable    css:.jp-Completer-item[data-value="${text}"]
+    Wait Until Element Is Visible   ${suggestion}  timeout=10s
     Mouse Over    ${suggestion}
     Click Element    ${suggestion} code
 

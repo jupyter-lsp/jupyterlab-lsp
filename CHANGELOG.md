@@ -1,5 +1,19 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 1.2.0` (unreleased)
+
+- features
+
+  - support for JupyterLab 2.2 ([#301][])
+  - completer now displays server-provided documentation,
+    and a kernel icon for kernel suggestions without type information ([#301][])
+
+- bug fixes
+
+  - path-autocompletion issues were resolved upstream an this release adopts these changes
+
+[#301]: https://github.com/krassowski/jupyterlab-lsp/pull/301
+
 ### `@krassowski/jupyterlab-lsp 1.1.2` (2020-08-05)
 
 - bug fixes

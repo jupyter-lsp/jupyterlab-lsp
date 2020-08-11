@@ -65,7 +65,7 @@ const system_keys = [
   'F2',
   'F3',
   'F4',
-  ' F5',
+  'F5',
   'F6',
   'F7',
   'F8',
