@@ -1,7 +1,7 @@
 parameters:
   name: Linux
   packages: ''
-  install_cmd: conda install -yn base -c conda-forge conda python-libarchive-c
+  install_cmd: conda install -yn base conda
 
 steps:
   - ${{ if eq(parameters.name, 'Linux') }}:
