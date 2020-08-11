@@ -25,7 +25,7 @@ parameters:
   js_cov_packages:
     - jupyterlab-go-to-definition
     - jupyterlab-lsp
-  env_update: conda env update -n base --file env-test.yml --quiet
+  env_update: mamba env update -n base --file env-test.yml --quiet
   lab_link: jupyter labextension link --debug --no-build $(LINKED_EXTENSIONS)
   lab_ext: jupyter labextension install --debug --no-build $(FIRST_PARTY_LABEXTENSIONS)
   lab_build: jupyter lab build --debug --dev-build=False --minimize=True
@@ -37,7 +37,7 @@ jobs:
             pool:
               vmImage: ${{ platform.vmImage }}
             steps:
-              - template: steps.conda.yml
+              - template: steps.mamba.yml
                 parameters:
                   name: ${{ platform.name }}
                   packages: "'python${{ python.spec }}'"
@@ -48,8 +48,8 @@ jobs:
               - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
                 displayName: update conda environment with test dependencies
 
-              - script: conda info && conda list -n base
-                displayName: list conda packages and info
+              - script: mamba info && mamba list -n base
+                displayName: list conda packages with mamba and info
 
               - script: ${{ platform.activate }} && jlpm || jlpm || jlpm
                 displayName: install npm dependencies

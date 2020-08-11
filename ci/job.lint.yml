@@ -8,8 +8,8 @@ parameters:
       spec: '>=3.7,<3.8.0a0'
       lab: '>=2,<3.0.0a0'
       nodejs: '>=12,<13.0.0a0'
-  env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
-  env_lint: conda env update -n jupyterlab-lsp --file requirements/lint.yml --quiet
+  env_update: mamba env update -n jupyterlab-lsp --file env-test.yml --quiet
+  env_lint: mamba env update -n jupyterlab-lsp --file requirements/lint.yml --quiet
 
 jobs:
   - ${{ each platform in parameters.platforms }}:
@@ -18,7 +18,7 @@ jobs:
             pool:
               vmImage: ${{ platform.vmImage }}
             steps:
-              - template: steps.conda.yml
+              - template: steps.mamba.yml
                 parameters:
                   name: ${{ platform.name }}
 

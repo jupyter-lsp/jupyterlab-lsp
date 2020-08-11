@@ -1,7 +1,6 @@
 parameters:
   name: Linux
-  packages: ''
-  install_cmd: conda install -yn base conda
+  install_cmd: conda install -yn base -c conda-forge mamba
 
 steps:
   - ${{ if eq(parameters.name, 'Linux') }}:
@@ -19,5 +18,5 @@ steps:
       - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
         displayName: conda %PATH%
 
-  - script: ${{ parameters.install_cmd }} ${{ parameters.packages}} || ${{ parameters.install_cmd }} ${{ parameters.packages}} || ${{ parameters.install_cmd }} ${{ parameters.packages}}
-    displayName: update conda
+  - script: ${{ parameters.install_cmd }} || ${{ parameters.install_cmd }} || ${{ parameters.install_cmd }}
+    displayName: install mamba
