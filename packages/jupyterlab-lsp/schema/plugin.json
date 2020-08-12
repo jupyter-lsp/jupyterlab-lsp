@@ -30,7 +30,7 @@
             "showDocumentation": {
               "type": "boolean",
               "default": true,
-              "description": "Whether to show documentation box next to the completion suggestions.",
+              "description": "Whether to show documentation box next to the completion suggestions."
             },
             "continuousHinting": {
               "type": "boolean",
