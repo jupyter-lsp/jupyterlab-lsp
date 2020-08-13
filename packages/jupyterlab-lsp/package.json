@@ -29,9 +29,10 @@
   },
   "scripts": {
     "build": "jlpm build:schema && tsc -b",
-    "build:schema": "jlpm build:schema-backend && jlpm build:schema-completion",
+    "build:schema": "jlpm build:schema-backend && jlpm build:schema-completion && jlpm build:schema-hover",
     "build:schema-backend": "json2ts ../../py_src/jupyter_lsp/schema/schema.json --unreachableDefinitions | prettier --stdin-filepath _schema.d.ts > src/_schema.d.ts",
-    "build:schema-completion": "json2ts schema/completion.json --unreachableDefinitions | prettier --stdin-filepath _completion.d.ts > src/_completion.d.ts",
+    "build:schema-completion": "json2ts schema/completion.json | prettier --stdin-filepath _completion.d.ts > src/_completion.d.ts",
+    "build:schema-hover": "json2ts schema/hover.json | prettier --stdin-filepath _hover.d.ts > src/_hover.d.ts",
     "bundle": "npm pack .",
     "clean": "rimraf lib",
     "lab:link": "jupyter labextension link . --no-build",
