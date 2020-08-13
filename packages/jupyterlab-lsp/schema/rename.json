@@ -1,0 +1,25 @@
+{
+  "jupyter.lab.setting-icon": "lsp:diagnostics",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "title": "LSP Rename settings",
+  "description": "LSP Rename settings.",
+  "type": "object",
+  "definitions": {
+  },
+  "properties": {
+    "$ref": "#/definitions",
+    "default": {}
+  },
+  "jupyter.lab.shortcuts": [
+    {
+      "command": "lsp:rename-symbol-notebook",
+      "keys": ["F2"],
+      "selector": ".jp-Notebook .jp-CodeCell"
+    },
+    {
+      "command": "lsp:rename-symbol-file_editor'",
+      "keys": ["F2"],
+      "selector": ".jp-FileEditor"
+    }
+  ]
+}

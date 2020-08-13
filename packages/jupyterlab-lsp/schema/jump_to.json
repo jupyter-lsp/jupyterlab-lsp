@@ -1,0 +1,25 @@
+{
+  "jupyter.lab.setting-icon": "lsp:diagnostics",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "title": "LSP Jump to definition settings",
+  "description": "LSP Jump to definition settings.",
+  "type": "object",
+  "definitions": {
+  },
+  "properties": {
+    "$ref": "#/definitions",
+    "default": {}
+  },
+  "jupyter.lab.shortcuts": [
+    {
+      "command": "lsp:jump-to-definition-notebook",
+      "keys": ["Accel B"],
+      "selector": ".jp-Notebook .jp-CodeCell"
+    },
+    {
+      "command": "lsp:jump-to-definition-file_editor",
+      "keys": ["Accel B"],
+      "selector": ".jp-FileEditor"
+    }
+  ]
+}
