@@ -20,6 +20,15 @@
       },
       "default": [],
       "description": "Codes of diagnostics which should not be shown in the panel nor highlighted in the editor."
+    },
+    "ignoreMessagesPatterns": {
+      "title": "Diagnostic messages to ignore",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Regular expressions matching messages of diagnostics which should not be shown in the panel nor highlighted in the editor."
     }
   },
   "additionalProperties": false,
