@@ -1,7 +1,7 @@
 {
-  "jupyter.lab.setting-icon": "lsp:diagnostics",
+  "jupyter.lab.setting-icon": "lsp:rename",
   "jupyter.lab.setting-icon-label": "Language integration",
-  "title": "LSP Rename settings",
+  "title": "Code Rename",
   "description": "LSP Rename settings.",
   "type": "object",
   "properties": {},

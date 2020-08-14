@@ -1,7 +1,7 @@
 {
   "jupyter.lab.setting-icon": "lsp:diagnostics",
   "jupyter.lab.setting-icon-label": "Language integration",
-  "title": "LSP Diagnostics settings",
+  "title": "Code Diagnostics",
   "description": "LSP Diagnostics (linter results) settings.",
   "type": "object",
   "properties": {

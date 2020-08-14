@@ -1,7 +1,7 @@
 {
-  "jupyter.lab.setting-icon": "lsp:diagnostics",
+  "jupyter.lab.setting-icon": "lsp:hover",
   "jupyter.lab.setting-icon-label": "Language integration",
-  "title": "LSP Hover settings",
+  "title": "Code Hover",
   "description": "LSP Hover over the code tooltip settings.",
   "type": "object",
   "properties": {

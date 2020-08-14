@@ -1,7 +1,7 @@
 {
-  "jupyter.lab.setting-icon": "lsp:diagnostics",
+  "jupyter.lab.setting-icon": "lsp:completion",
   "jupyter.lab.setting-icon-label": "Language integration",
-  "title": "LSP Completion settings",
+  "title": "Code Completion",
   "description": "LSP Completion settings.",
   "type": "object",
   "properties": {
