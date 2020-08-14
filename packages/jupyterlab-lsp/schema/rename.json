@@ -4,12 +4,8 @@
   "title": "LSP Rename settings",
   "description": "LSP Rename settings.",
   "type": "object",
-  "definitions": {
-  },
-  "properties": {
-    "$ref": "#/definitions",
-    "default": {}
-  },
+  "properties": {},
+  "additionalProperties": false,
   "jupyter.lab.shortcuts": [
     {
       "command": "lsp:rename-symbol-notebook",

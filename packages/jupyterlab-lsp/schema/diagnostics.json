@@ -4,11 +4,12 @@
   "title": "LSP Diagnostics settings",
   "description": "LSP Diagnostics (linter results) settings.",
   "type": "object",
-  "definitions": {
+  "properties": {
     "defaultSeverity": {
       "title": "Default severity level",
       "type": "string",
       "enum": ["Error", "Warning", "Information", "Hint"],
+      "default": "Warning",
       "description": "Default level of the severity for diagnostics without severity provided by the language server."
     },
     "ignoreCodes": {
@@ -17,15 +18,10 @@
       "items": {
         "type": "string"
       },
+      "default": [],
       "description": "Codes of diagnostics which should not be shown in the panel nor highlighted in the editor."
     }
   },
-  "properties": {
-    "$ref": "#/definitions",
-    "default": {
-      "defaultSeverity": "Warning",
-      "ignoreCodes": []
-    }
-  },
+  "additionalProperties": false,
   "jupyter.lab.shortcuts": []
 }

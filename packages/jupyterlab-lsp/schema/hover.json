@@ -4,7 +4,7 @@
   "title": "LSP Hover settings",
   "description": "LSP Hover over the code tooltip settings.",
   "type": "object",
-  "definitions": {
+  "properties": {
     "modifierKey": {
       "title": "Modifier key",
       "type": "string",
@@ -13,11 +13,6 @@
       "description": "Keyboard key which activates the tooltip on hover."
     }
   },
-  "properties": {
-    "$ref": "#/definitions",
-    "default": {
-      "modifierKey": "Control"
-    }
-  },
+  "additionalProperties": false,
   "jupyter.lab.shortcuts": []
 }
