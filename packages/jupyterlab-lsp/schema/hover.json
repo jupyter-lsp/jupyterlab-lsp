@@ -13,6 +13,5 @@
       "description": "Keyboard key which activates the tooltip on hover."
     }
   },
-  "additionalProperties": false,
   "jupyter.lab.shortcuts": []
 }

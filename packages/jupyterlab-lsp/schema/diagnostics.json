@@ -31,6 +31,5 @@
       "description": "Regular expressions matching messages of diagnostics which should not be shown in the panel nor highlighted in the editor."
     }
   },
-  "additionalProperties": false,
   "jupyter.lab.shortcuts": []
 }

@@ -5,7 +5,6 @@
   "description": "LSP Jump to definition settings.",
   "type": "object",
   "properties": {},
-  "additionalProperties": false,
   "jupyter.lab.shortcuts": [
     {
       "command": "lsp:jump-to-definition-notebook",
