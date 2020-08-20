@@ -97,3 +97,19 @@ h5 {
   overflow: hidden;
   white-space: nowrap;
 }
+
+.lsp-status-icon.ready svg g {
+  fill: var(--jp-success-color0);
+}
+
+.lsp-status-icon.preparing svg g {
+  fill: var(--jp-warn-color0);
+}
+
+.lsp-status-icon.inactive svg g {
+  fill: var(--jp-layout-color3);
+}
+
+body[data-jp-theme-light='false'] .lsp-status-icon.ready svg g {
+  fill: var(--jp-success-color1);
+}
