@@ -35,6 +35,7 @@ h5 .lsp-language-server-name {
 .lsp-documents-by-language ul,
 .lsp-server-status ul {
   margin: 0;
+  padding-left: 25px;
 }
 
 .lsp-servers-menu h5 {
@@ -62,19 +63,6 @@ h5 {
   margin: 0;
 }
 
-.lsp-caret,
-.lsp-document-status-icon {
-  height: 16px;
-  width: 16px;
-  background-size: 18px;
-  background-image: 18px;
-  background-repeat: no-repeat;
-  background-position: center;
-  display: inline-block;
-  position: relative;
-  top: 3px;
-}
-
 .lsp-documents-by-language li {
   clear: both;
   width: 100%;
@@ -86,23 +74,18 @@ h5 {
 }
 
 .lsp-document-status-icon {
-  height: 13px;
-  width: 13px;
-  background-size: 15px;
-  background-image: 15px;
-  margin-left: 10px;
+  margin-left: 5px;
+  position: relative;
+  top: 3px;
 }
 
 .lsp-collapsible-list h4 {
   cursor: pointer;
 }
 
-.lsp-collapsible-list .lsp-caret {
-  background-image: var(--jp-icon-caretdown);
-}
-
-.lsp-collapsible-list.lsp-collapsed .lsp-caret {
-  background-image: var(--jp-icon-caretright);
+.lsp-collapsible-list .lsp-caret-icon {
+  position: relative;
+  top: 3px;
 }
 
 .lsp-collapsible-list.lsp-collapsed div {
