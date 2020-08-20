@@ -1,8 +1,8 @@
 {
-  "jupyter.lab.setting-icon": "lsp:diagnostics",
+  "jupyter.lab.setting-icon": "lsp:jump-to",
   "jupyter.lab.setting-icon-label": "Language integration",
-  "title": "LSP Jump to definition settings",
-  "description": "LSP Jump to definition settings.",
+  "title": "Code Jump",
+  "description": "Code Jump",
   "type": "object",
   "properties": {},
   "jupyter.lab.shortcuts": [
