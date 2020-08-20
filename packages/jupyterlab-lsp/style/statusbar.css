@@ -64,8 +64,9 @@ h5 {
 }
 
 .lsp-documents-by-language li {
-  clear: both;
   width: 100%;
+  display: flex;
+  justify-content: space-between;
 }
 
 .lsp-document-status {

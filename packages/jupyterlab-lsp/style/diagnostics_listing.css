@@ -45,10 +45,6 @@
   background: var(--jp-layout-color2);
 }
 
-.lsp-document-locator span:not(:last-child)::after {
-  content: ' > ';
-}
-
 .lsp-diagnostics-listing tbody tr:hover {
   background: var(--jp-layout-color2);
 }
