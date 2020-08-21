@@ -1,5 +1,5 @@
 {
-  "jupyter.lab.setting-icon": "lsp:syntax-highlight",
+  "jupyter.lab.setting-icon": "lsp:syntax-highlighting",
   "jupyter.lab.setting-icon-label": "Language integration",
   "title": "Code Syntax",
   "description": "LSP code syntax highlighting settings.",
