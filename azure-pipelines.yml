@@ -6,7 +6,7 @@ trigger:
       - refs/tags/v*
 
 pr:
-  - master
+  - *
 
 variables:
   PYTHONUNBUFFERED: 1
