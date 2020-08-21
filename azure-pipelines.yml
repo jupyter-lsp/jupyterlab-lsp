@@ -6,7 +6,9 @@ trigger:
       - refs/tags/v*
 
 pr:
-  - *
+  branches:
+    include:
+      - '*'
 
 variables:
   PYTHONUNBUFFERED: 1
