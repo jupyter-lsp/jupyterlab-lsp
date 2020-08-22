@@ -8,6 +8,7 @@
     "dockerfile-language-server-nodejs": "^0.0.22",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jest": "^23.8.2",
     "eslint-plugin-prettier": "^3.1.1",
     "eslint-plugin-react": "^7.19.0",
@@ -24,8 +25,7 @@
     "yaml-language-server": "~0.4.0"
   },
   "husky": {
-    "hooks": {
-    }
+    "hooks": {}
   },
   "prettier": {
     "arrowParens": "avoid",

@@ -7,3 +7,9 @@
 .lsp-document-locator span:not(:last-child)::after {
   content: ' > ';
 }
+
+.jp-Completer-icon svg {
+ position: relative;
+ top: 2px;
+ left: 2px;
+}

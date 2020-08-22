@@ -25,6 +25,12 @@
       },
       "default": ["comment", "string"],
       "description": "An array of CodeMirror tokens for which the auto-invoke should be suppressed. The token names vary between languages (modes)."
+    },
+    "icons": {
+      "title": "Icons theme",
+      "type": ["string", "null"],
+      "default": "vscode",
+      "description": "The name of a theme of icons which indicate the kind of completion. Set to null to disable icons."
     }
   },
   "jupyter.lab.shortcuts": []
