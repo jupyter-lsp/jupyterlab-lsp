@@ -29,3 +29,32 @@
 .lsp-completer-theme-vscode .jp-Completer-item.jp-mod-active svg path {
   fill: white;
 }
+
+.lsp-completer-theme-vscode .jp-Completer-typeExtended {
+  visibility: hidden;
+}
+
+.lsp-completer-theme-vscode
+  .jp-Completer-item.jp-mod-active
+  .jp-Completer-typeExtended {
+  visibility: visible;
+}
+
+.lsp-completer-icon-row {
+  width: 50%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.lsp-completer-themes .lsp-licence {
+  display: inline;
+}
+
+.lsp-completer-themes ul {
+  list-style: none;
+  padding-left: 10px;
+}
+
+.lsp-completer-theme-icons {
+  margin-left: 15px;
+}
