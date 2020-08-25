@@ -1,0 +1,18 @@
+.lsp-completer-themes .lsp-licence {
+  display: inline;
+}
+
+.lsp-completer-themes ul {
+  list-style: none;
+  padding-left: 10px;
+}
+
+.lsp-completer-theme-icons {
+  margin-left: 10px;
+}
+
+.lsp-completer-icon-row {
+  width: 50%;
+  display: flex;
+  justify-content: space-between;
+}

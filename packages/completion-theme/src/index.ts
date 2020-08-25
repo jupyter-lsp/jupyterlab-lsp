@@ -6,13 +6,14 @@ import {
   showDialog
 } from '@jupyterlab/apputils';
 import { JupyterFrontEndPlugin } from '@jupyterlab/application';
-import { PLUGIN_ID } from '../../../tokens';
 import {
   ICompletionIconSet,
   ICompletionTheme,
-  ILSPCompletionThemeManager
+  ILSPCompletionThemeManager,
+  PLUGIN_ID
 } from './types';
 import { render_themes_list } from './about';
+import '../style/index.css';
 
 export class CompletionThemeManager implements ILSPCompletionThemeManager {
   protected current_icons: Map<string, LabIcon>;
@@ -148,7 +149,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
 const LSP_CATEGORY = 'Language server protocol';
 
 export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionThemeManager> = {
-  id: PLUGIN_ID + ':ILSPCompletionThemeManager',
+  id: PLUGIN_ID,
   requires: [IThemeManager, ICommandPalette],
   activate: (
     app,

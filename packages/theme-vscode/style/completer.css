@@ -1,0 +1,19 @@
+.lsp-completer-theme-vscode .jp-Completer-icon svg {
+  position: relative;
+  top: 2px;
+  left: 2px;
+}
+
+.lsp-completer-theme-vscode .jp-Completer-item.jp-mod-active svg path {
+  fill: white;
+}
+
+.lsp-completer-theme-vscode .jp-Completer-typeExtended {
+  visibility: hidden;
+}
+
+.lsp-completer-theme-vscode
+  .jp-Completer-item.jp-mod-active
+  .jp-Completer-typeExtended {
+  visibility: visible;
+}

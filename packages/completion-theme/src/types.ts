@@ -1,7 +1,39 @@
 import { Token } from '@lumino/coreutils';
-import { PLUGIN_ID } from '../../../tokens';
 import { LabIcon } from '@jupyterlab/ui-components';
-import { CompletionItemKindStrings } from '../../../lsp';
+
+// TODO, once features are extracted to standalone packages,
+//  import the CompletionItemKindStrings from @feature-completer
+enum CompletionItemKind {
+  Text = 1,
+  Method = 2,
+  Function = 3,
+  Constructor = 4,
+  Field = 5,
+  Variable = 6,
+  Class = 7,
+  Interface = 8,
+  Module = 9,
+  Property = 10,
+  Unit = 11,
+  Value = 12,
+  Enum = 13,
+  Keyword = 14,
+  Snippet = 15,
+  Color = 16,
+  File = 17,
+  Reference = 18,
+  Folder = 19,
+  EnumMember = 20,
+  Constant = 21,
+  Struct = 22,
+  Event = 23,
+  Operator = 24,
+  TypeParameter = 25
+}
+
+export type CompletionItemKindStrings = keyof typeof CompletionItemKind;
+
+export const PLUGIN_ID = '@krassowski/completion-manager';
 
 export type SvgString = string;
 
@@ -71,7 +103,7 @@ export interface ICompletionTheme {
 }
 
 export interface ILSPCompletionThemeManager {
-  get_icon(type: string): LabIcon | null;
+  get_icon(type: string): LabIcon.ILabIcon | null;
 
   set_theme(theme_id: string | null): void;
 
@@ -79,7 +111,7 @@ export interface ILSPCompletionThemeManager {
 
   get_icons_set(
     theme: ICompletionTheme
-  ): Map<keyof ICompletionIconSet, LabIcon>;
+  ): Map<keyof ICompletionIconSet, LabIcon.ILabIcon>;
 }
 
 export const ILSPCompletionThemeManager = new Token<ILSPCompletionThemeManager>(
