@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react';
-import { ICompletionTheme, ILicenseInfo } from './types';
+import { ICompletionTheme, ILicenseInfo, COMPLETER_THEME_PREFIX  } from './types';
 import { LabIcon } from '@jupyterlab/ui-components';
 
 function render_licence(licence: ILicenseInfo): ReactElement {
@@ -32,7 +32,7 @@ function render_theme(
     );
   }
   return (
-    <div className={'lsp-completer-themes'}>
+    <div className={'lsp-completer-themes ' + COMPLETER_THEME_PREFIX + theme.id}>
       <h4>
         {theme.name}
         {is_current ? ' (current)' : ''}

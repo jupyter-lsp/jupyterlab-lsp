@@ -10,7 +10,8 @@ import {
   ICompletionIconSet,
   ICompletionTheme,
   ILSPCompletionThemeManager,
-  PLUGIN_ID
+  PLUGIN_ID,
+  COMPLETER_THEME_PREFIX
 } from './types';
 import { render_themes_list } from './about';
 import '../style/index.css';
@@ -91,7 +92,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   }
 
   protected get current_theme_class() {
-    return 'lsp-completer-theme-' + this.current_theme_id;
+    return COMPLETER_THEME_PREFIX + this.current_theme_id;
   }
 
   set_theme(id: string | null) {

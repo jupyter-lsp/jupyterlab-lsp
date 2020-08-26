@@ -1,6 +1,8 @@
 import { Token } from '@lumino/coreutils';
 import { LabIcon } from '@jupyterlab/ui-components';
 
+export const COMPLETER_THEME_PREFIX = 'lsp-completer-theme-';
+
 // TODO, once features are extracted to standalone packages,
 //  import the CompletionItemKindStrings from @feature-completer
 enum CompletionItemKind {
