@@ -34,6 +34,6 @@ dependencies:
   - r-languageserver
   - rpy2
   # for tex
-  - conda-forge/label/cf202003::tectonic
+  - tectonic
   - texlab
   - chktex
