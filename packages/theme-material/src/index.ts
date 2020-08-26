@@ -30,7 +30,7 @@ import structure from '../style/icons/file-tree.svg';
 import lightning from '../style/icons/flash-outline.svg';
 import key from '../style/icons/key.svg';
 import snippet from '../style/icons/border-none-variant.svg';
-import alpha_t from '../style/icons/alpha-t.svg';
+import alpha_t_over_code from '../style/icons/alpha-t-and-code.svg';
 
 const default_set: ICompletionIconSet = {
   Text: alphabetical,
@@ -57,7 +57,7 @@ const default_set: ICompletionIconSet = {
   Struct: sitemap,
   Event: lightning,
   Operator: plus_minus,
-  TypeParameter: alpha_t
+  TypeParameter: alpha_t_over_code
 };
 
 const completionTheme: ICompletionTheme = {
