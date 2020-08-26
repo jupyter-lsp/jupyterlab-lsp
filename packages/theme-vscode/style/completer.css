@@ -11,11 +11,11 @@
 }
 
 .lsp-completer-theme-vscode .jp-Completer-typeExtended {
-  visibility: hidden;
+  color: transparent;
 }
 
 .lsp-completer-theme-vscode
   .jp-Completer-item.jp-mod-active
   .jp-Completer-typeExtended {
-  visibility: visible;
+  color: inherit;
 }
