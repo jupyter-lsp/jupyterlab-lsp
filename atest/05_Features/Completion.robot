@@ -39,6 +39,14 @@ Works When Kernel Is Shut Down
     # this comes from kernel:
     Completer Should Not Suggest    %%timeit
 
+Works In File Editor
+    Prepare File for Editing    Python    completion    completion.py
+    Place Cursor In File Editor At    9    2
+    Capture Page Screenshot    01-editor-ready.png
+    Trigger Completer
+    Completer Should Suggest    add
+    [Teardown]    Clean Up After Working With File    completion.py
+
 Autocompletes If Only One Option
     Enter Cell Editor    3    line=1
     Press Keys    None    cle
