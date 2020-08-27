@@ -142,6 +142,7 @@ VSCode Dark Theme Works
     Capture Page Screenshot    01-configured.png
     Open ${file} in ${MENU NOTEBOOK}
     Enter Cell Editor    1    line=2
+    Wait Until Fully Initialized
     Trigger Completer
     Capture Page Screenshot    02-completions-shown.png
     Completer Should Suggest    TabError
