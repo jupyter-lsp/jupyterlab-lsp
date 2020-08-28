@@ -134,8 +134,8 @@ const completionTheme: ICompletionTheme = {
 export const plugin: JupyterFrontEndPlugin<void> = {
   id: '@krassowski/theme-vscode',
   requires: [ILSPCompletionThemeManager],
-  activate: (app, iconsManager: ILSPCompletionThemeManager) => {
-    iconsManager.register_theme(completionTheme);
+  activate: (app, completionThemeManager: ILSPCompletionThemeManager) => {
+    completionThemeManager.register_theme(completionTheme);
   },
   autoStart: true
 };

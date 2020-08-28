@@ -43,8 +43,10 @@ type requiredIcons = {
   [key in CompletionItemKindStrings]: SvgString;
 };
 
+export const KernelKind = 'Kernel';
+
 export interface ICompletionIconSet extends requiredIcons {
-  Kernel?: SvgString;
+  [KernelKind]?: SvgString;
 }
 
 export interface ILicenseInfo {
@@ -111,7 +113,7 @@ export interface ILSPCompletionThemeManager {
 
   register_theme(theme: ICompletionTheme): void;
 
-  get_icons_set(
+  get_iconset(
     theme: ICompletionTheme
   ): Map<keyof ICompletionIconSet, LabIcon.ILabIcon>;
 }
