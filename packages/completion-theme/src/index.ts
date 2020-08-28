@@ -3,7 +3,8 @@ import {
   Dialog,
   ICommandPalette,
   IThemeManager,
-  showDialog
+  showDialog,
+  MainAreaWidget
 } from '@jupyterlab/apputils';
 import { JupyterFrontEndPlugin } from '@jupyterlab/application';
 import {
@@ -15,6 +16,7 @@ import {
 } from './types';
 import { render_themes_list } from './about';
 import '../style/index.css';
+import { IconThemePicker } from './theme-picker';
 
 export class CompletionThemeManager implements ILSPCompletionThemeManager {
   protected current_icons: Map<string, LabIcon>;
@@ -35,6 +37,14 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
       return true;
     }
     return this.themeManager.isLight(current);
+  }
+
+  theme_ids() {
+    return [...this.themes.keys()];
+  }
+
+  get_theme(id: string) {
+    return this.themes.get(id);
   }
 
   get_icons_set(
@@ -136,7 +146,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
    */
   display_themes() {
     showDialog({
-      title: 'LSP Completer Themes',
+      title: 'Code Symbols',
       body: render_themes_list({
         themes: [...this.themes.values()],
         current: this.current_theme,
@@ -159,9 +169,14 @@ export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionTheme
   ) => {
     let manager = new CompletionThemeManager(themeManager);
     app.commands.addCommand('lsp-completer-about-themes', {
-      label: 'Display the completer themes',
+      label: 'Configure code symbol display',
       execute: () => {
-        manager.display_themes();
+        const model = new IconThemePicker.Model();
+        model.manager = manager;
+        const content = new IconThemePicker(model);
+        const main = new MainAreaWidget({ content });
+        main.title.label = 'Code Symbols';
+        app.shell.add(main);
       }
     });
     commandPalette.addItem({

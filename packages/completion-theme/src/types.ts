@@ -109,11 +109,15 @@ export interface ILSPCompletionThemeManager {
 
   set_theme(theme_id: string | null): void;
 
+  get_theme(theme_id: string): ICompletionTheme;
+
   register_theme(theme: ICompletionTheme): void;
 
   get_icons_set(
     theme: ICompletionTheme
   ): Map<keyof ICompletionIconSet, LabIcon.ILabIcon>;
+
+  theme_ids(): string[];
 }
 
 export const ILSPCompletionThemeManager = new Token<ILSPCompletionThemeManager>(

@@ -16,3 +16,26 @@
   display: flex;
   justify-content: space-between;
 }
+
+.jp-LSPIconThemePicker {
+  display: flex;
+  flex-direction: column;
+  padding: var(--jp-notebook-padding);
+}
+
+.jp-LSPIconThemePicker > div {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+}
+
+.jp-LSPIconThemePicker header {
+  flex: 1;
+  max-width: 400px;
+  min-width: 300px;
+}
+
+.jp-LSPIconThemePicker table {
+  flex: 1;
+  overflow-y: auto;
+}
