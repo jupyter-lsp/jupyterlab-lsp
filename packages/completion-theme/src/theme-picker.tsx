@@ -97,10 +97,6 @@ export namespace IconThemePicker {
     _icons: TThemeKindIcons;
     _kinds: string[];
 
-    get manager() {
-      return this._manager;
-    }
-
     get theme_ids() {
       return this._theme_ids;
     }
@@ -111,6 +107,10 @@ export namespace IconThemePicker {
 
     get icons() {
       return this._icons;
+    }
+
+    get manager() {
+      return this._manager;
     }
 
     set manager(manager) {
