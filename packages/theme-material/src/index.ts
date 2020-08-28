@@ -80,8 +80,8 @@ export const plugin: JupyterFrontEndPlugin<void> = {
   // components, reusing these plugins.
   id: '@krassowski/theme-material',
   requires: [ILSPCompletionThemeManager],
-  activate: (app, iconsManager: ILSPCompletionThemeManager) => {
-    iconsManager.register_theme(completionTheme);
+  activate: (app, completionThemeManager: ILSPCompletionThemeManager) => {
+    completionThemeManager.register_theme(completionTheme);
   },
   autoStart: true
 };

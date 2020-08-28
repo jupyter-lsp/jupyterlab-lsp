@@ -39,3 +39,10 @@
   flex: 1;
   overflow-y: auto;
 }
+
+/* a workaround for scrollbars being always on in the completer documentation panel, see
+ https://github.com/krassowski/jupyterlab-lsp/pull/322#issuecomment-682724175
+ */
+.jp-Completer-docpanel {
+  overflow: auto;
+}

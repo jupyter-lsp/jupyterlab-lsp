@@ -12,7 +12,8 @@ import {
   ICompletionTheme,
   ILSPCompletionThemeManager,
   PLUGIN_ID,
-  COMPLETER_THEME_PREFIX
+  COMPLETER_THEME_PREFIX,
+  KernelKind
 } from './types';
 import { render_themes_list } from './about';
 import '../style/index.css';
@@ -47,9 +48,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     return this.themes.get(id);
   }
 
-  get_icons_set(
-    theme: ICompletionTheme
-  ): Map<keyof ICompletionIconSet, LabIcon> {
+  get_iconset(theme: ICompletionTheme): Map<keyof ICompletionIconSet, LabIcon> {
     const icons_sets = theme.icons;
     const dark_mode_and_dark_supported =
       !this.is_theme_light() && typeof icons_sets.dark !== 'undefined';
@@ -80,7 +79,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     if (this.current_theme === null) {
       return;
     }
-    this.current_icons = this.get_icons_set(this.current_theme);
+    this.current_icons = this.get_iconset(this.current_theme);
   }
 
   get_icon(type: string): LabIcon {
@@ -95,7 +94,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     if (this.current_icons.has(type)) {
       return this.current_icons.get(type).bindprops(options);
     }
-    if (type === 'Kernel') {
+    if (type === KernelKind) {
       return kernelIcon;
     }
     return null;
@@ -150,7 +149,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
       body: render_themes_list({
         themes: [...this.themes.values()],
         current: this.current_theme,
-        get_set: this.get_icons_set.bind(this)
+        get_set: this.get_iconset.bind(this)
       }),
       buttons: [Dialog.okButton()]
     }).catch(console.warn);
@@ -168,8 +167,9 @@ export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionTheme
     commandPalette: ICommandPalette
   ) => {
     let manager = new CompletionThemeManager(themeManager);
-    app.commands.addCommand('lsp-completer-about-themes', {
-      label: 'Configure code symbol display',
+    const command_id = 'lsp:completer-about-themes';
+    app.commands.addCommand(command_id, {
+      label: 'Display the completer themes',
       execute: () => {
         const model = new IconThemePicker.Model();
         model.manager = manager;
@@ -181,7 +181,7 @@ export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionTheme
     });
     commandPalette.addItem({
       category: LSP_CATEGORY,
-      command: 'lsp-completer-about-themes'
+      command: command_id
     });
     return manager;
   },
