@@ -1,31 +1,32 @@
+import * as React from 'react';
+
+import { LabIcon } from '@jupyterlab/ui-components';
 import { VDomRenderer, VDomModel } from '@jupyterlab/apputils';
 
-import * as React from 'react';
-import { ILSPCompletionThemeManager } from './types';
-import { LabIcon } from '@jupyterlab/ui-components';
+import { ILSPCompletionThemeManager } from '@krassowski/completion-theme/lib/types';
+
+import '../../../style/config/completion.css';
 
 type TThemeKindIcons = Map<string, LabIcon>;
 
-const PICKER_CLASS = 'jp-LSPIconThemePicker';
+const CONFIG_CLASS = 'jp-LSPCompletion-Config';
 
-export class IconThemePicker extends VDomRenderer<IconThemePicker.Model> {
+export class Configurer extends VDomRenderer<Configurer.Model> {
   onThemeChanged = (evt: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.currentTarget as HTMLInputElement;
-    this.model.manager.set_theme(value);
+    this.model.iconsThemeManager.set_theme(value);
   };
 
   protected render() {
     const { theme_ids, kinds, icons } = this.model;
-    const currentThemeId = this.model.manager.get_current_theme_id();
+    const currentThemeId = this.model.iconsThemeManager.get_current_theme_id();
 
-    this.addClass(PICKER_CLASS);
-
-    this.model.manager.get_theme;
+    this.addClass(CONFIG_CLASS);
 
     return (
       <div className={`jp-RenderedHTMLCommon`}>
         <header>
-          <h1>Symbol Icon Themes</h1>
+          <h1>Code Completion Settings</h1>
           <blockquote>
             Pick an icon theme to use for symbol references, such as completion
             hints.
@@ -85,26 +86,31 @@ export class IconThemePicker extends VDomRenderer<IconThemePicker.Model> {
       <tr key={kind}>
         <th>{kind}</th>
         {theme_ids.map(id =>
-          this.renderThemeKind(id, icons.get(`${kind}-${id}`))
+          this.renderThemeKind(kind, id, icons.get(`${kind}-${id}`))
         )}
       </tr>
     );
   }
 
-  protected renderThemeKind(theme_id: string, icon: LabIcon | null) {
+  protected renderThemeKind(
+    kind: string,
+    theme_id: string,
+    icon: LabIcon | null
+  ) {
+    const key = `${kind}-${theme_id}`;
     if (icon != null) {
       return (
-        <td>
+        <td key={key}>
           <icon.react />
         </td>
       );
     } else {
-      return <td></td>;
+      return <td key={key}></td>;
     }
   }
 }
 
-export namespace IconThemePicker {
+export namespace Configurer {
   export class Model extends VDomModel {
     _manager: ILSPCompletionThemeManager;
     _theme_ids: string[];
@@ -123,14 +129,14 @@ export namespace IconThemePicker {
       return this._icons;
     }
 
-    get manager() {
+    get iconsThemeManager() {
       return this._manager;
     }
 
-    set manager(manager) {
+    set iconsThemeManager(manager) {
       this._manager = manager;
       if (manager != null) {
-        this.manager.current_theme_changed.connect(() => {
+        this.iconsThemeManager.current_theme_changed.connect(() => {
           this.stateChanged.emit(void 0);
         });
         this.refresh();
@@ -143,7 +149,7 @@ export namespace IconThemePicker {
     }
 
     refresh() {
-      const { manager } = this;
+      const { iconsThemeManager: manager } = this;
       let theme_ids = manager.theme_ids();
       theme_ids.sort();
 

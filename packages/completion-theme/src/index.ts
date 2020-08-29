@@ -1,13 +1,8 @@
 import { Signal } from '@lumino/signaling';
 import { kernelIcon, LabIcon } from '@jupyterlab/ui-components';
-import {
-  Dialog,
-  ICommandPalette,
-  IThemeManager,
-  showDialog,
-  MainAreaWidget
-} from '@jupyterlab/apputils';
+import { ICommandPalette, IThemeManager } from '@jupyterlab/apputils';
 import { JupyterFrontEndPlugin } from '@jupyterlab/application';
+
 import {
   ICompletionIconSet,
   ICompletionTheme,
@@ -16,9 +11,6 @@ import {
   COMPLETER_THEME_PREFIX,
   KernelKind
 } from './types';
-import { render_themes_list } from './about';
-import '../style/index.css';
-import { IconThemePicker } from './theme-picker';
 
 export class CompletionThemeManager implements ILSPCompletionThemeManager {
   protected current_icons: Map<string, LabIcon>;
@@ -148,53 +140,13 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     this.themes.set(theme.id, theme);
     this.update_icons_set();
   }
-
-  /**
-   * Display the registered themes in a dialog,
-   * both for the user to know what they can choose from,
-   * and for the developer to quickly check how the icons
-   * from each theme would look rendered.
-   */
-  display_themes() {
-    showDialog({
-      title: 'Code Symbols',
-      body: render_themes_list({
-        themes: [...this.themes.values()],
-        current: this.current_theme,
-        get_set: this.get_iconset.bind(this)
-      }),
-      buttons: [Dialog.okButton()]
-    }).catch(console.warn);
-  }
 }
-
-const LSP_CATEGORY = 'Language server protocol';
 
 export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionThemeManager> = {
   id: PLUGIN_ID,
   requires: [IThemeManager, ICommandPalette],
-  activate: (
-    app,
-    themeManager: IThemeManager,
-    commandPalette: ICommandPalette
-  ) => {
+  activate: (app, themeManager: IThemeManager) => {
     let manager = new CompletionThemeManager(themeManager);
-    const command_id = 'lsp:completer-about-themes';
-    app.commands.addCommand(command_id, {
-      label: 'Configure Code Completion',
-      execute: () => {
-        const model = new IconThemePicker.Model();
-        model.manager = manager;
-        const content = new IconThemePicker(model);
-        const main = new MainAreaWidget({ content });
-        main.title.label = 'Code Symbols';
-        app.shell.add(main);
-      }
-    });
-    commandPalette.addItem({
-      category: LSP_CATEGORY,
-      command: command_id
-    });
     return manager;
   },
   provides: ILSPCompletionThemeManager,

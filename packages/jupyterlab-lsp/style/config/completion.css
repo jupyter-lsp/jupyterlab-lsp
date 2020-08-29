@@ -1,0 +1,22 @@
+.jp-LSPCompletion-Config {
+  display: flex;
+  flex-direction: column;
+  padding: var(--jp-notebook-padding);
+}
+
+.jp-LSPCompletion-Config > div {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+}
+
+.jp-LSPCompletion-Config header {
+  flex: 1;
+  max-width: 400px;
+  min-width: 300px;
+}
+
+.jp-LSPCompletion-Config table {
+  flex: 1;
+  overflow-y: auto;
+}
