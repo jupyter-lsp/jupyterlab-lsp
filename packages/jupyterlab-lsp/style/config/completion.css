@@ -8,15 +8,16 @@
   flex: 1;
   overflow-y: auto;
   display: flex;
+  flex-wrap: wrap;
 }
 
 .jp-LSPCompletion-Config header {
-  flex: 1;
-  max-width: 400px;
-  min-width: 300px;
+  min-width: 100%;
 }
 
-.jp-LSPCompletion-Config table {
+.jp-LSPCompletion-Config section {
   flex: 1;
   overflow-y: auto;
+  max-height: 80vh;
+  min-width: 25vw;
 }
