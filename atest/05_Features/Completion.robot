@@ -130,7 +130,7 @@ Cell Editor Should Equal
 Select Completer Suggestion
     [Arguments]    ${text}
     ${suggestion} =    Set Variable    css:.jp-Completer-item[data-value="${text}"]
-    Wait Until Element Is Visible   ${suggestion}  timeout=10s
+    Wait Until Element Is Visible    ${suggestion}    timeout=10s
     Mouse Over    ${suggestion}
     Click Element    ${suggestion} code
 

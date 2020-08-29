@@ -1,11 +1,13 @@
 """ default specs
 """
 # flake8: noqa: F401
+
 from .bash_language_server import BashLanguageServer
 from .dockerfile_language_server_nodejs import DockerfileLanguageServerNodeJS
 from .javascript_typescript_langserver import JavascriptTypescriptLanguageServer
 from .pyls import PythonLanguageServer
 from .r_languageserver import RLanguageServer
+from .sql_langserver import SQLLanguageServer
 from .texlab import Texlab
 from .unified_language_server import UnifiedLanguageServer
 from .vscode_css_languageserver import VSCodeCSSLanguageServer
@@ -23,4 +25,5 @@ py = PythonLanguageServer()
 r = RLanguageServer()
 tex = Texlab()
 ts = JavascriptTypescriptLanguageServer()
+sql = SQLLanguageServer()
 yaml = YAMLLanguageServer()

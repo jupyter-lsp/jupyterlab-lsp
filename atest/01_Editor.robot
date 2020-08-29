@@ -60,6 +60,9 @@ TypeScript
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'inc')])[last()]
     Editor Shows Features for Language    TypeScript    example.ts    Diagnostics=The left-hand side of an arithmetic    Jump to Definition=${def}    Rename=${def}
 
+SQL
+    Editor Shows Features for Language    SQL    example.sql    Diagnostics=Expected
+
 YAML
     Editor Shows Features for Language    YAML    example.yaml    Diagnostics=duplicate key
 
