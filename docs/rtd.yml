@@ -1,6 +1,9 @@
 # minimal possible conda env for modern nodejs
 name: jupyterlab-lsp-docs
 
+channels:
+  - conda-forge
+
 dependencies:
   - nodejs >=11,<14
   - pip
