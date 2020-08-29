@@ -9,10 +9,18 @@ type TThemeKindIcons = Map<string, LabIcon>;
 const PICKER_CLASS = 'jp-LSPIconThemePicker';
 
 export class IconThemePicker extends VDomRenderer<IconThemePicker.Model> {
+  onThemeChanged = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = evt.currentTarget as HTMLInputElement;
+    this.model.manager.set_theme(value);
+  };
+
   protected render() {
     const { theme_ids, kinds, icons } = this.model;
+    const currentThemeId = this.model.manager.get_current_theme_id();
 
     this.addClass(PICKER_CLASS);
+
+    this.model.manager.get_theme;
 
     return (
       <div className={`jp-RenderedHTMLCommon`}>
@@ -41,7 +49,13 @@ export class IconThemePicker extends VDomRenderer<IconThemePicker.Model> {
               <th>Current Theme</th>
               {theme_ids.map((id, i) => (
                 <th key={i}>
-                  <input type="radio" name="current-theme" />
+                  <input
+                    type="radio"
+                    defaultValue={id}
+                    name="current-theme"
+                    checked={id === currentThemeId}
+                    onChange={this.onThemeChanged}
+                  />
                 </th>
               ))}
             </tr>
@@ -116,33 +130,41 @@ export namespace IconThemePicker {
     set manager(manager) {
       this._manager = manager;
       if (manager != null) {
-        let theme_ids = manager.theme_ids();
-        theme_ids.sort();
-
-        let icons: TThemeKindIcons = new Map();
-        let kinds: string[] = [];
-
-        for (const id of theme_ids) {
-          const theme = manager.get_theme(id);
-          const theme_icons = manager.get_icons_set(theme);
-          for (const [kind, icon] of theme_icons.entries()) {
-            icons.set(`${kind}-${id}`, icon as LabIcon);
-            if (kinds.indexOf(kind) < 0) {
-              kinds.push(kind);
-            }
-          }
-        }
-
-        kinds.sort();
-        this._theme_ids = theme_ids;
-        this._kinds = kinds;
-        this._icons = icons;
+        this.manager.current_theme_changed.connect(() => {
+          this.stateChanged.emit(void 0);
+        });
+        this.refresh();
       } else {
         this._theme_ids = [];
         this._kinds = [];
         this._icons = new Map();
       }
       this.stateChanged.emit(void 0);
+    }
+
+    refresh() {
+      const { manager } = this;
+      let theme_ids = manager.theme_ids();
+      theme_ids.sort();
+
+      let icons: TThemeKindIcons = new Map();
+      let kinds: string[] = [];
+
+      for (const id of theme_ids) {
+        const theme = manager.get_theme(id);
+        const theme_icons = manager.get_iconset(theme);
+        for (const [kind, icon] of theme_icons.entries()) {
+          icons.set(`${kind}-${id}`, icon as LabIcon);
+          if (kinds.indexOf(kind) < 0) {
+            kinds.push(kind);
+          }
+        }
+      }
+
+      kinds.sort();
+      this._theme_ids = theme_ids;
+      this._kinds = kinds;
+      this._icons = icons;
     }
   }
 }

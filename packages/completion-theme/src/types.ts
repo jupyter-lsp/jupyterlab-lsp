@@ -1,5 +1,6 @@
 import { Token } from '@lumino/coreutils';
 import { LabIcon } from '@jupyterlab/ui-components';
+import { Signal } from '@lumino/signaling';
 
 export const COMPLETER_THEME_PREFIX = 'lsp-completer-theme-';
 
@@ -112,6 +113,10 @@ export interface ILSPCompletionThemeManager {
   set_theme(theme_id: string | null): void;
 
   get_theme(theme_id: string): ICompletionTheme;
+
+  current_theme_changed: Signal<ILSPCompletionThemeManager, void>;
+
+  get_current_theme_id(): string;
 
   register_theme(theme: ICompletionTheme): void;
 

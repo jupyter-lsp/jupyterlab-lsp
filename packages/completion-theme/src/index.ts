@@ -1,3 +1,4 @@
+import { Signal } from '@lumino/signaling';
 import { kernelIcon, LabIcon } from '@jupyterlab/ui-components';
 import {
   Dialog,
@@ -24,11 +25,17 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   protected themes: Map<string, ICompletionTheme>;
   private current_theme_id: string;
   private icons_cache: Map<string, LabIcon>;
+  private _current_theme_changed: Signal<ILSPCompletionThemeManager, void>;
 
   constructor(protected themeManager: IThemeManager) {
+    this._current_theme_changed = new Signal(this);
     this.themes = new Map();
     this.icons_cache = new Map();
     themeManager.themeChanged.connect(this.update_icons_set, this);
+  }
+
+  get current_theme_changed() {
+    return this._current_theme_changed;
   }
 
   protected is_theme_light() {
@@ -42,6 +49,10 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
 
   theme_ids() {
     return [...this.themes.keys()];
+  }
+
+  get_current_theme_id() {
+    return this.current_theme_id;
   }
 
   get_theme(id: string) {
@@ -116,6 +127,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     this.current_theme_id = id;
     document.body.classList.add(this.current_theme_class);
     this.update_icons_set();
+    this._current_theme_changed.emit(void 0);
   }
 
   protected get current_theme(): ICompletionTheme | null {
@@ -169,7 +181,7 @@ export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionTheme
     let manager = new CompletionThemeManager(themeManager);
     const command_id = 'lsp:completer-about-themes';
     app.commands.addCommand(command_id, {
-      label: 'Display the completer themes',
+      label: 'Configure Code Completion',
       execute: () => {
         const model = new IconThemePicker.Model();
         model.manager = manager;

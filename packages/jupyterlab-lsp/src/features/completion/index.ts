@@ -14,6 +14,7 @@ import { CompletionCM, CompletionLabIntegration } from './completion';
 import { LabIcon } from '@jupyterlab/ui-components';
 import completionSvg from '../../../style/icons/completion.svg';
 import { ILSPCompletionThemeManager } from '@krassowski/completion-theme/lib/types';
+import { CodeCompletion } from '../../_completion';
 
 export const completionIcon = new LabIcon({
   name: 'lsp:completion',
@@ -40,7 +41,10 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
     adapterManager: ILSPAdapterManager,
     iconsThemeManager: ILSPCompletionThemeManager
   ) => {
-    const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
+    const settings = new FeatureSettings<CodeCompletion>(
+      settingRegistry,
+      FEATURE_ID
+    );
     const labIntegration = new CompletionLabIntegration(
       app,
       completionManager,
@@ -48,6 +52,12 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
       adapterManager,
       iconsThemeManager
     );
+
+    app.commands.addCommand('lsp:set-completion-icon-theme', {
+      execute: (args: Partial<CodeCompletion>) => {
+        settings.set('theme', args.theme);
+      }
+    });
 
     featureManager.register({
       feature: {
