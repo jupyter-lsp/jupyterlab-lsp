@@ -16,7 +16,6 @@ dependencies:
   - sphinx-autobuild
   - sphinx-autodoc-typehints
   - sphinx-copybutton
-  - nodejs >=11,<14
   - pip:
       - pytest-check-links
       - sphinx-markdown-tables

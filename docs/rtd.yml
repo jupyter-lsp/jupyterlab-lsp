@@ -2,7 +2,7 @@
 name: jupyterlab-lsp-docs
 
 dependencies:
-  - nodejs
+  - nodejs >=11,<14
   - pip
   - python >=3.8,<3.9.0a0
   - pip:
