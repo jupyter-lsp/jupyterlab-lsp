@@ -1,6 +1,4 @@
-import { Signal } from '@lumino/signaling';
 import { kernelIcon, LabIcon } from '@jupyterlab/ui-components';
-import { ICommandPalette, IThemeManager } from '@jupyterlab/apputils';
 import { JupyterFrontEndPlugin } from '@jupyterlab/application';
 
 import {
@@ -12,31 +10,19 @@ import {
   KernelKind
 } from './types';
 
+const RE_ICON_THEME_CLASS = /jp-icon[^" ]+/g;
+const GREYSCALE_CLASS = 'jp-icon4';
+
 export class CompletionThemeManager implements ILSPCompletionThemeManager {
   protected current_icons: Map<string, LabIcon>;
   protected themes: Map<string, ICompletionTheme>;
   private current_theme_id: string;
   private icons_cache: Map<string, LabIcon>;
-  private _current_theme_changed: Signal<ILSPCompletionThemeManager, void>;
+  private color_scheme: string;
 
-  constructor(protected themeManager: IThemeManager) {
-    this._current_theme_changed = new Signal(this);
+  constructor() {
     this.themes = new Map();
     this.icons_cache = new Map();
-    themeManager.themeChanged.connect(this.update_icons_set, this);
-  }
-
-  get current_theme_changed() {
-    return this._current_theme_changed;
-  }
-
-  protected is_theme_light() {
-    const current = this.themeManager.theme;
-    if (!current) {
-      // assume true by default
-      return true;
-    }
-    return this.themeManager.isLight(current);
   }
 
   theme_ids() {
@@ -51,26 +37,23 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     return this.themes.get(id);
   }
 
-  get_iconset(theme: ICompletionTheme): Map<keyof ICompletionIconSet, LabIcon> {
-    const icons_sets = theme.icons;
-    const dark_mode_and_dark_supported =
-      !this.is_theme_light() && typeof icons_sets.dark !== 'undefined';
-    const set: ICompletionIconSet = dark_mode_and_dark_supported
-      ? icons_sets.dark
-      : icons_sets.light;
-    const icons: Map<keyof ICompletionIconSet, LabIcon> = new Map();
-    const mode = this.is_theme_light() ? 'light' : 'dark';
-    for (let [completion_kind, svg] of Object.entries(set)) {
-      let name =
-        'lsp:' + theme.id + '-' + completion_kind.toLowerCase() + '-' + mode;
-      let icon: LabIcon;
-      if (this.icons_cache.has(name)) {
-        icon = this.icons_cache.get(name);
-      } else {
-        icon = new LabIcon({
-          name: name,
-          svgstr: svg
-        });
+  async get_icons(
+    theme: ICompletionTheme,
+    color_scheme: string
+  ): Promise<Map<keyof ICompletionIconSet, LabIcon>> {
+    const icons = new Map();
+
+    for (const [completion_kind, raw] of Object.entries(
+      await theme.icons.svg()
+    )) {
+      const name = `lsp:${theme.id}-${completion_kind}-${color_scheme}`.toLowerCase();
+      let icon = this.icons_cache.get(name);
+      let svgstr = raw;
+      if (color_scheme === 'greyscale') {
+        svgstr = svgstr.replace(RE_ICON_THEME_CLASS, GREYSCALE_CLASS);
+      }
+      if (icon == null) {
+        icon = new LabIcon({ name, svgstr });
         this.icons_cache.set(name, icon);
       }
       icons.set(completion_kind as keyof ICompletionIconSet, icon);
@@ -78,11 +61,22 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     return icons;
   }
 
-  protected update_icons_set() {
+  get_color_scheme() {
+    return this.color_scheme;
+  }
+
+  set_color_scheme(color_scheme: string) {
+    this.color_scheme = color_scheme;
+  }
+
+  protected async update_icons_set() {
     if (this.current_theme === null) {
       return;
     }
-    this.current_icons = this.get_iconset(this.current_theme);
+    this.current_icons = await this.get_icons(
+      this.current_theme,
+      this.color_scheme
+    );
   }
 
   get_icon(type: string): LabIcon {
@@ -107,7 +101,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     return COMPLETER_THEME_PREFIX + this.current_theme_id;
   }
 
-  set_theme(id: string | null) {
+  async set_theme(id: string | null) {
     if (this.current_theme_id) {
       document.body.classList.remove(this.current_theme_class);
     }
@@ -118,8 +112,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     }
     this.current_theme_id = id;
     document.body.classList.add(this.current_theme_class);
-    this.update_icons_set();
-    this._current_theme_changed.emit(void 0);
+    await this.update_icons_set();
   }
 
   protected get current_theme(): ICompletionTheme | null {
@@ -138,15 +131,13 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
       );
     }
     this.themes.set(theme.id, theme);
-    this.update_icons_set();
   }
 }
 
 export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionThemeManager> = {
   id: PLUGIN_ID,
-  requires: [IThemeManager, ICommandPalette],
-  activate: (app, themeManager: IThemeManager) => {
-    let manager = new CompletionThemeManager(themeManager);
+  activate: app => {
+    let manager = new CompletionThemeManager();
     return manager;
   },
   provides: ILSPCompletionThemeManager,

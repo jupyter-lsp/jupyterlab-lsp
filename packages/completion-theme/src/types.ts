@@ -1,6 +1,5 @@
 import { Token } from '@lumino/coreutils';
 import { LabIcon } from '@jupyterlab/ui-components';
-import { Signal } from '@lumino/signaling';
 
 export const COMPLETER_THEME_PREFIX = 'lsp-completer-theme-';
 
@@ -86,15 +85,11 @@ export interface ICompletionTheme {
     /**
      * Short name of the license of the icons included.
      */
-    licence: ILicenseInfo;
+    license: ILicenseInfo;
     /**
-     * The version to be used in the light mode.
+     * The icons as SVG strings, keyed by completion kind.
      */
-    light: ICompletionIconSet;
-    /**
-     * The version to be used in the dark mode.
-     */
-    dark?: ICompletionIconSet;
+    svg(): Promise<ICompletionIconSet>;
     /**
      * Icon properties to be set on each of the icons.
      * NOTE: setting className here will not work, as
@@ -114,15 +109,18 @@ export interface ILSPCompletionThemeManager {
 
   get_theme(theme_id: string): ICompletionTheme;
 
-  current_theme_changed: Signal<ILSPCompletionThemeManager, void>;
-
   get_current_theme_id(): string;
+
+  set_color_scheme(scheme_id: string): void;
+
+  get_color_scheme(): string;
 
   register_theme(theme: ICompletionTheme): void;
 
-  get_iconset(
-    theme: ICompletionTheme
-  ): Map<keyof ICompletionIconSet, LabIcon.ILabIcon>;
+  get_icons(
+    theme: ICompletionTheme,
+    color_scheme: string
+  ): Promise<Map<keyof ICompletionIconSet, LabIcon.ILabIcon>>;
 
   theme_ids(): string[];
 }

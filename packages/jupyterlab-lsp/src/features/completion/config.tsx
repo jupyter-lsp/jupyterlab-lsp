@@ -22,8 +22,6 @@ const CONFIG_CLASS = 'jp-LSPCompletion-Config';
 export class Configurer extends VDomRenderer<Configurer.Model> {
   protected render() {
     const { theme_ids, kinds, icons, themes, settings } = this.model;
-    const currentThemeId = this.model.iconsThemeManager.get_current_theme_id();
-
     const { composite } = settings;
 
     this.addClass(CONFIG_CLASS);
@@ -111,7 +109,7 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
           </section>
           <section>
             <h2 id="completion-settings-icon-theme">
-              Icon Theme <code>{currentThemeId}</code>
+              Icon Theme <code>{composite.theme}</code>
             </h2>
             <blockquote>
               Pick an icon theme to use for symbol references, such as
@@ -127,8 +125,10 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
                         type="radio"
                         defaultValue={id}
                         name="current-theme"
-                        checked={id === currentThemeId}
-                        onChange={this.onThemeChanged}
+                        checked={id === composite.theme}
+                        onChange={e =>
+                          settings.set('theme', e.currentTarget.value)
+                        }
                       />
                     </th>
                   ))}
@@ -142,7 +142,7 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
                 <tr>
                   <th>License</th>
                   {theme_ids.map((id, i) =>
-                    this.renderLicense(themes.get(id).icons.licence, i)
+                    this.renderLicense(themes.get(id).icons.license, i)
                   )}
                 </tr>
               </thead>
@@ -154,18 +154,19 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
 
           <section>
             <h2 id="completion-settings-icon-color-schema">
-              <i>TBD: Icon Color Scheme</i>
+              Icon Color Scheme
             </h2>
-            <ul>
-              {['colorful', 'monochrome'].map(v => (
-                <li key={v}>
-                  <label>
-                    <input type="radio" name="symbol-icon-color" />
-                    {v}
-                  </label>
-                </li>
-              ))}
-            </ul>
+            {['themed', 'greyscale'].map(v => (
+              <label key={v}>
+                <input
+                  type="radio"
+                  name="symbol-icon-color"
+                  defaultChecked={composite.colorScheme === v}
+                  onChange={e => settings.set('colorScheme', v)}
+                />
+                {v}
+              </label>
+            ))}
             <blockquote>Pick an icon color scheme</blockquote>
           </section>
         </article>
@@ -173,13 +174,7 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
     );
   }
 
-  protected onThemeChanged = (evt: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = evt.currentTarget as HTMLInputElement;
-    this.model.iconsThemeManager.set_theme(value);
-  };
-
   // renderers
-
   protected renderLicense(license: ILicenseInfo, key: number) {
     return (
       <th key={key}>
@@ -253,7 +248,7 @@ export namespace Configurer {
     }
 
     _onSettingsChanged() {
-      this.stateChanged.emit(void 0);
+      this.refresh().catch(console.warn);
     }
 
     get theme_ids() {
@@ -279,20 +274,17 @@ export namespace Configurer {
     set iconsThemeManager(manager) {
       this._manager = manager;
       if (manager != null) {
-        this.iconsThemeManager.current_theme_changed.connect(() => {
-          this.stateChanged.emit(void 0);
-        });
-        this.refresh();
+        this.refresh().catch(console.warn);
       } else {
         this._theme_ids = [];
         this._kinds = [];
         this._icons = new Map();
         this._themes = new Map();
+        this.stateChanged.emit(void 0);
       }
-      this.stateChanged.emit(void 0);
     }
 
-    refresh() {
+    async refresh() {
       const { iconsThemeManager: manager } = this;
       let theme_ids = manager.theme_ids();
       theme_ids.sort();
@@ -304,7 +296,10 @@ export namespace Configurer {
       for (const id of theme_ids) {
         const theme = manager.get_theme(id);
         themes.set(id, theme);
-        const theme_icons = manager.get_iconset(theme);
+        const theme_icons = await manager.get_icons(
+          theme,
+          this.settings?.composite.colorScheme
+        );
         for (const [kind, icon] of theme_icons.entries()) {
           icons.set(`${kind}-${id}`, icon as LabIcon);
           if (kinds.indexOf(kind) < 0) {
@@ -318,6 +313,7 @@ export namespace Configurer {
       this._kinds = kinds;
       this._icons = icons;
       this._themes = themes;
+      this.stateChanged.emit(void 0);
     }
   }
 }

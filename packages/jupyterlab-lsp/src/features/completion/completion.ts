@@ -77,13 +77,10 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
   ) {
     adapterManager.adapterChanged.connect(this.swap_adapter, this);
     settings.changed.connect(() => {
+      completionThemeManager.set_color_scheme(
+        this.settings.composite.colorScheme
+      );
       completionThemeManager.set_theme(this.settings.composite.theme);
-    });
-    completionThemeManager.current_theme_changed.connect(() => {
-      const new_theme_id = completionThemeManager.get_current_theme_id();
-      if (this.settings.composite.theme !== new_theme_id) {
-        this.settings.set('theme', new_theme_id);
-      }
     });
   }
 
