@@ -39,6 +39,14 @@ Works When Kernel Is Shut Down
     # this comes from kernel:
     Completer Should Not Suggest    %%timeit
 
+Works In File Editor
+    Prepare File for Editing    Python    completion    completion.py
+    Place Cursor In File Editor At    9    2
+    Capture Page Screenshot    01-editor-ready.png
+    Trigger Completer
+    Completer Should Suggest    add
+    [Teardown]    Clean Up After Working With File    completion.py
+
 Autocompletes If Only One Option
     Enter Cell Editor    3    line=1
     Press Keys    None    cle
@@ -113,6 +121,61 @@ Triggers Completer On Dot
     Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=35s
     Completer Should Suggest    append
 
+Material Theme Works
+    Configure JupyterLab Plugin    {"theme": "material"}    plugin id=${COMPLETION PLUGIN ID}
+    Capture Page Screenshot    01-configured.png
+    Enter Cell Editor    1    line=2
+    Trigger Completer
+    Capture Page Screenshot    02-completions-shown.png
+    # TabError is a builtin exception which is a class in Python,
+    # so we should get lsp:material-class-light icon:
+    Completer Should Suggest    TabError
+    Completer Should Include Icon    lsp:material-class-light
+
+VSCode Theme Works
+    Configure JupyterLab Plugin    {"theme": "vscode"}    plugin id=${COMPLETION PLUGIN ID}
+    Capture Page Screenshot    01-configured.png
+    Enter Cell Editor    1    line=2
+    Trigger Completer
+    Capture Page Screenshot    02-completions-shown.png
+    Completer Should Suggest    TabError
+    Completer Should Include Icon    lsp:vscode-class-light
+
+VSCode Dark Theme Works
+    ${file} =    Set Variable    Completion.ipynb
+    Lab Command    Use JupyterLab Dark Theme
+    Wait For Splash
+    Capture Page Screenshot    00-theme-changed.png
+    Configure JupyterLab Plugin    {"theme": "vscode"}    plugin id=${COMPLETION PLUGIN ID}
+    Capture Page Screenshot    01-configured.png
+    Open ${file} in ${MENU NOTEBOOK}
+    Enter Cell Editor    1    line=2
+    Wait Until Fully Initialized
+    Trigger Completer
+    Capture Page Screenshot    02-completions-shown.png
+    Completer Should Suggest    TabError
+    Completer Should Include Icon    lsp:vscode-class-dark
+    Lab Command    Use JupyterLab Light Theme
+    Wait For Splash
+
+Works Without A Theme
+    Configure JupyterLab Plugin    {"theme": null}    plugin id=${COMPLETION PLUGIN ID}
+    Capture Page Screenshot    01-configured.png
+    Enter Cell Editor    1    line=2
+    Trigger Completer
+    Capture Page Screenshot    02-completions-shown.png
+    Completer Should Suggest    TabError
+    Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
+
+Works With Incorrect Theme
+    Configure JupyterLab Plugin    {"theme": "a-non-existing-theme"}    plugin id=${COMPLETION PLUGIN ID}
+    Capture Page Screenshot    01-configured.png
+    Enter Cell Editor    1    line=2
+    Trigger Completer
+    Capture Page Screenshot    02-completions-shown.png
+    Completer Should Suggest    TabError
+    Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
+
 *** Keywords ***
 Setup Completion Test
     Setup Notebook    Python    Completion.ipynb
@@ -130,7 +193,7 @@ Cell Editor Should Equal
 Select Completer Suggestion
     [Arguments]    ${text}
     ${suggestion} =    Set Variable    css:.jp-Completer-item[data-value="${text}"]
-    Wait Until Element Is Visible   ${suggestion}  timeout=10s
+    Wait Until Element Is Visible    ${suggestion}    timeout=10s
     Mouse Over    ${suggestion}
     Click Element    ${suggestion} code
 
@@ -138,6 +201,10 @@ Completer Should Suggest
     [Arguments]    ${text}
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
     Capture Page Screenshot    ${text.replace(' ', '_')}.png
+
+Completer Should Include Icon
+    [Arguments]    ${icon}
+    Wait Until Page Contains Element    ${COMPLETER_BOX} svg[data-icon="${icon}"]
 
 Completer Should Not Suggest
     [Arguments]    ${text}

@@ -1,7 +1,7 @@
 {
   "name": "@krassowski/jupyterlab-lsp-metapackage",
   "version": "1.1.2",
-  "description": "JupyterLab LSP - Meta Package.  All of the packages used by JupyterLab LSP",
+  "description": "JupyterLab LSP - Meta Package. All of the packages used by JupyterLab LSP",
   "homepage": "https://github.com/krassowski/jupyterlab-lsp",
   "bugs": {
     "url": "https://github.com/krassowski/jupyterlab-lsp/issues"
@@ -26,9 +26,12 @@
     "watch": "tsc -b --watch"
   },
   "dependencies": {
-    "@krassowski/jupyterlab-lsp": "file:../jupyterlab-lsp",
     "lsp-ws-connection": "file:../lsp-ws-connection",
-    "@krassowski/jupyterlab_go_to_definition": "file:../jupyterlab-go-to-definition"
+    "@krassowski/completion-theme": "file:../completion-theme",
+    "@krassowski/theme-material": "file:../theme-material",
+    "@krassowski/theme-vscode": "file:../theme-vscode",
+    "@krassowski/jupyterlab_go_to_definition": "file:../jupyterlab-go-to-definition",
+    "@krassowski/jupyterlab-lsp": "file:../jupyterlab-lsp"
   },
   "devDependencies": {
     "fs-extra": "^8.0.1",
