@@ -17,9 +17,9 @@ import { FeatureSettings } from '../../feature';
 type TThemeKindIcons = Map<string, LabIcon>;
 type TThemeMap = Map<string, ICompletionTheme>;
 
-const CONFIG_CLASS = 'jp-LSPCompletion-Config';
+const CONFIG_CLASS = 'jp-LSPCompletion-Settings';
 
-export class Configurer extends VDomRenderer<Configurer.Model> {
+export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
   protected render() {
     const { theme_ids, kinds, icons, themes, settings } = this.model;
     const { composite } = settings;
@@ -223,7 +223,7 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
   }
 }
 
-export namespace Configurer {
+export namespace SettingsEditor {
   export class Model extends VDomModel {
     _manager: ILSPCompletionThemeManager;
     _theme_ids: string[];

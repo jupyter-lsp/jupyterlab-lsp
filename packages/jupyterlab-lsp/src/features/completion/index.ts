@@ -31,11 +31,11 @@ export const completionIcon = new LabIcon({
   svgstr: completionSvg
 });
 
-const FEATURE_ID = PLUGIN_ID + ':completion';
+const FEATURE_ID = `${PLUGIN_ID}:completion`;
 
 export namespace CommandIds {
-  export const configure = 'lsp:show-completion-config';
-  export const setTheme = 'lsp:set-completion-theme';
+  export const showSettings = 'lsp:completion-show-settings';
+  export const setTheme = 'lsp:completion-set-theme';
 }
 
 export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
@@ -87,14 +87,14 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
     });
 
     const label = 'Code Completion Settings';
-    app.commands.addCommand(CommandIds.configure, {
+    app.commands.addCommand(CommandIds.showSettings, {
       label,
       execute: async () => {
-        const { Configurer } = await import('./config');
-        const model = new Configurer.Model();
+        const { SettingsEditor } = await import('./settings');
+        const model = new SettingsEditor.Model();
         model.iconsThemeManager = iconsThemeManager;
         model.settings = settings;
-        const content = new Configurer(model);
+        const content = new SettingsEditor(model);
         const main = new MainAreaWidget({ content });
         main.title.label = label;
         main.title.icon = completionIcon;
@@ -104,7 +104,7 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
 
     commandPalette.addItem({
       category: LSP_CATEGORY,
-      command: CommandIds.configure
+      command: CommandIds.showSettings
     });
   }
 };
