@@ -67,10 +67,6 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
             <h2 id="completion-settings-documentation-box">
               Show Documentation Box
             </h2>
-            <blockquote>
-              Whether to show documentation box next to the completion
-              suggestions.
-            </blockquote>
             <label>
               <input
                 type="checkbox"
@@ -81,15 +77,16 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
               />{' '}
               Enabled
             </label>
+            <blockquote>
+              Whether to show documentation box next to the completion
+              suggestions.
+            </blockquote>
           </section>
 
           <section>
             <h2 id="completion-settings-continuous-hinting">
               Continuous Hinting
             </h2>
-            <blockquote>
-              Whether to enable continuous hinting (Hinterland mode).
-            </blockquote>
             <label>
               <input
                 type="checkbox"
@@ -100,6 +97,9 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
               />{' '}
               Enabled
             </label>
+            <blockquote>
+              Whether to enable continuous hinting (Hinterland mode).
+            </blockquote>
           </section>
 
           <section>
@@ -156,7 +156,6 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
             <h2 id="completion-settings-icon-color-schema">
               <i>TBD: Icon Color Scheme</i>
             </h2>
-            <blockquote>Pick an icon color scheme</blockquote>
             <ul>
               {['colorful', 'monochrome'].map(v => (
                 <li key={v}>
@@ -167,6 +166,7 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
                 </li>
               ))}
             </ul>
+            <blockquote>Pick an icon color scheme</blockquote>
           </section>
         </article>
       </div>
