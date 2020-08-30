@@ -91,10 +91,9 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
       label: `${label} Editor`,
       execute: async () => {
         const { SettingsEditor } = await import('./settings');
-        const model = new SettingsEditor.Model();
-        model.iconsThemeManager = iconsThemeManager;
-        model.settings = settings;
-        const content = new SettingsEditor(model);
+        const content = new SettingsEditor(
+          new SettingsEditor.Model({ iconsThemeManager, settings })
+        );
         const main = new MainAreaWidget({ content });
         main.title.label = label;
         main.title.icon = completionIcon;

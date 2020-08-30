@@ -48,3 +48,16 @@
   margin-bottom: 0;
   margin-right: 0;
 }
+
+.jp-LSPCompletion-IconPreview {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.jp-LSPCompletion-IconPreview label {
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+  margin: var(--jp-ui-font-size0);
+}

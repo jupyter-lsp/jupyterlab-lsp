@@ -105,7 +105,7 @@ export interface ICompletionTheme {
 export type TCompletionLabIcons = Map<keyof ICompletionIconSet, LabIcon>;
 
 export interface ILSPCompletionThemeManager {
-  get_icon(type: string): LabIcon.ILabIcon | null;
+  get_icon(type: string): LabIcon | null;
 
   set_theme(theme_id: string | null): void;
 

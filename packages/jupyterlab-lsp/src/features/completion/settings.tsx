@@ -12,7 +12,7 @@ import {
 import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
 
 import '../../../style/settings/completion.css';
-import { FeatureSettings } from '../../feature';
+import { IFeatureSettings } from '../../feature';
 
 type TThemeKindIcons = Map<string, LabIcon>;
 type TThemeMap = Map<string, ICompletionTheme>;
@@ -20,17 +20,16 @@ type TThemeMap = Map<string, ICompletionTheme>;
 const CONFIG_CLASS = 'jp-LSPCompletion-Settings';
 const TOKEN_QUERY = '.CodeMirror-line span[class*=cm]';
 const TOKEN_LABEL_CLASS = 'jp-LSPCompletion-Settings-TokenLabel';
+const ICON_PREVIEW_CLASS = 'jp-LSPCompletion-IconPreview';
 
 export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
+  dispose() {
+    this.model.dispose();
+    super.dispose();
+  }
+
   protected render() {
-    const {
-      theme_ids,
-      kinds,
-      icons,
-      themes,
-      settings,
-      tokenNames
-    } = this.model;
+    const { theme_ids, themes, settings, tokenNames, icons } = this.model;
     const { composite } = settings;
 
     this.addClass(CONFIG_CLASS);
@@ -154,6 +153,12 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
 
           <section>
             <h2 id="completion-settings-theme">Theme</h2>
+            <details>
+              <summary>Icon Preview...</summary>
+              <div className={ICON_PREVIEW_CLASS}>
+                {[...icons.entries()].map(this.renderKindIcon)}
+              </div>
+            </details>
             <section>
               <h3 id="completion-settings-theme-icons">
                 Icons <code>{composite.theme}</code>
@@ -166,8 +171,16 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
                 <thead>
                   <tr>
                     <th>Current Theme</th>
-                    {theme_ids.map((id, i) => (
-                      <th key={i}>
+                    <th>Theme Name</th>
+                    <th>License</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {theme_ids.map(id => (
+                    <tr key={id}>
+                      <th>{themes.get(id).name}</th>
+                      {this.renderLicense(themes.get(id).icons.license)}
+                      <td>
                         <input
                           type="radio"
                           defaultValue={id}
@@ -177,30 +190,17 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
                             settings.set('theme', e.currentTarget.value)
                           }
                         />
-                      </th>
-                    ))}
-                  </tr>
-                  <tr>
-                    <th>Theme Name</th>
-                    {theme_ids.map((id, i) => (
-                      <th key={i}>{themes.get(id).name}</th>
-                    ))}
-                  </tr>
-                  <tr>
-                    <th>License</th>
-                    {theme_ids.map((id, i) =>
-                      this.renderLicense(themes.get(id).icons.license, i)
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {kinds.map(kind => this.renderKind(kind, theme_ids, icons))}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </section>
 
             <section>
-              <h3 id="completion-settings-theme-colors">Colors</h3>
+              <h3 id="completion-settings-theme-colors">
+                Colors <code>{composite.colorScheme}</code>
+              </h3>
               {['themed', 'greyscale'].map(v => (
                 <label key={v}>
                   <input
@@ -220,6 +220,22 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
     );
   }
 
+  // event handlers
+
+  protected onTokenClicked = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    const { settings } = this.model;
+    const { value, checked } = evt.currentTarget;
+    const { suppressInvokeIn } = settings.composite;
+    if (checked) {
+      settings.set('suppressInvokeIn', [...suppressInvokeIn, value]);
+    } else {
+      settings.set(
+        'suppressInvokeIn',
+        suppressInvokeIn.filter(t => t !== value)
+      );
+    }
+  };
+
   // renderers
   protected renderToken = (token: string) => {
     const { settings } = this.model;
@@ -236,23 +252,9 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
     );
   };
 
-  protected onTokenClicked = (evt: React.ChangeEvent<HTMLInputElement>) => {
-    const { settings } = this.model;
-    const { value, checked } = evt.currentTarget;
-    const { suppressInvokeIn } = settings.composite;
-    if (checked) {
-      settings.set('suppressInvokeIn', [...suppressInvokeIn, value]);
-    } else {
-      settings.set(
-        'suppressInvokeIn',
-        suppressInvokeIn.filter(t => t !== value)
-      );
-    }
-  };
-
-  protected renderLicense(license: ILicenseInfo, key: number) {
+  protected renderLicense(license: ILicenseInfo) {
     return (
-      <th key={key}>
+      <th>
         <a
           href={license.url}
           title={`${license.name} by ${license.licensor}`}
@@ -265,37 +267,19 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
     );
   }
 
-  protected renderKind(
-    kind: string,
-    theme_ids: string[],
-    icons: TThemeKindIcons
-  ) {
-    return (
-      <tr key={kind}>
-        <th>{kind}</th>
-        {theme_ids.map(id =>
-          this.renderThemeKind(kind, id, icons.get(`${kind}-${id}`))
-        )}
-      </tr>
-    );
-  }
-
-  protected renderThemeKind(
-    kind: string,
-    theme_id: string,
-    icon: LabIcon | null
-  ) {
-    const key = `${kind}-${theme_id}`;
+  protected renderKindIcon = (entry: [string, LabIcon]) => {
+    const [kind, icon] = entry;
     if (icon != null) {
       return (
-        <td key={key}>
+        <label key={kind}>
           <icon.react />
-        </td>
+          {kind}
+        </label>
       );
     } else {
-      return <td key={key}></td>;
+      return <label key={kind}>{kind}</label>;
     }
-  }
+  };
 }
 
 export namespace SettingsEditor {
@@ -305,26 +289,24 @@ export namespace SettingsEditor {
     protected _icons: TThemeKindIcons = new Map();
     protected _kinds: string[] = [];
     protected _themes: TThemeMap = new Map();
-    protected _settings: FeatureSettings<LSPCompletionSettings>;
+    protected _settings: IFeatureSettings<LSPCompletionSettings>;
     protected _tokenNames: string[] = [];
+
+    constructor(options: IOptions) {
+      super();
+      this._manager = options.iconsThemeManager;
+      this._settings = options.settings;
+      this._settings.changed.connect(this.onSettingsChanged, this);
+      this.refresh().catch(console.error);
+    }
+
+    dispose() {
+      this._settings.changed.disconnect(this.onSettingsChanged, this);
+      super.dispose();
+    }
 
     get settings() {
       return this._settings;
-    }
-
-    set settings(settings) {
-      if (this._settings) {
-        this._settings.changed.disconnect(this._onSettingsChanged, this);
-      }
-      this._settings = settings;
-      if (this._settings) {
-        this._settings.changed.connect(this._onSettingsChanged, this);
-      }
-      this.stateChanged.emit(void 0);
-    }
-
-    _onSettingsChanged() {
-      this.refresh().catch(console.warn);
     }
 
     get theme_ids() {
@@ -343,25 +325,16 @@ export namespace SettingsEditor {
       return this._icons;
     }
 
+    get tokenNames() {
+      return this._tokenNames;
+    }
+
     get iconsThemeManager() {
       return this._manager;
     }
 
-    set iconsThemeManager(manager) {
-      this._manager = manager;
-      if (manager != null) {
-        this.refresh().catch(console.warn);
-      } else {
-        this._theme_ids = [];
-        this._kinds = [];
-        this._icons = new Map();
-        this._themes = new Map();
-        this.stateChanged.emit(void 0);
-      }
-    }
-
-    get tokenNames() {
-      return this._tokenNames;
+    protected onSettingsChanged() {
+      this.refresh().catch(console.warn);
     }
 
     protected refreshTokenNames() {
@@ -382,23 +355,28 @@ export namespace SettingsEditor {
     }
 
     async refresh() {
-      const { iconsThemeManager: manager } = this;
-      let theme_ids = manager.theme_ids();
+      const { _manager } = this;
+      let theme_ids = _manager.theme_ids();
       theme_ids.sort();
 
       let icons: TThemeKindIcons = new Map();
       let kinds: string[] = [];
       const themes: TThemeMap = new Map();
 
-      for (const id of theme_ids) {
-        const theme = manager.get_theme(id);
-        themes.set(id, theme);
-        const theme_icons = await manager.get_icons(
+      for (const theme_id of theme_ids) {
+        themes.set(theme_id, _manager.get_theme(theme_id));
+      }
+
+      const theme_id = this.settings.composite.theme;
+      if (theme_id) {
+        const theme = themes.get(theme_id);
+        themes.set(theme_id, theme);
+        const theme_icons = await _manager.get_icons(
           theme,
           this.settings?.composite.colorScheme
         );
         for (const [kind, icon] of theme_icons.entries()) {
-          icons.set(`${kind}-${id}`, icon);
+          icons.set(kind, icon);
           if (kinds.indexOf(kind) < 0) {
             kinds.push(kind);
           }
@@ -413,5 +391,10 @@ export namespace SettingsEditor {
       this._tokenNames = this.refreshTokenNames();
       this.stateChanged.emit(void 0);
     }
+  }
+
+  export interface IOptions {
+    iconsThemeManager: ILSPCompletionThemeManager;
+    settings: IFeatureSettings<LSPCompletionSettings>;
   }
 }
