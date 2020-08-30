@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### `jupyter-lsp 0.9.2` (unreleased)
+
+- autodetects the `sql` language server for `.sql` files ([#328][])
+  - diagnostics are provided by `sqlint` which requires Node 11+
+    to work well (in contrast to currently required Node 10+).
+
+[#328]: https://github.com/krassowski/jupyterlab-lsp/pull/328
+
 ### `@krassowski/jupyterlab-lsp 1.2.0` (unreleased)
 
 - features
