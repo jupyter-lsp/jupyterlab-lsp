@@ -31,7 +31,8 @@ def tectonic_cache():
                 break
             except subprocess.CalledProcessError as e:
                 warn(
-                    "Tectonic cache attempt {attempt} failed: {e}, retrying in {time} seconds".format(
+                    "Tectonic cache attempt {attempt} failed: {e},"
+                    " retrying in {time} seconds".format(
                         e=e, attempt=attempt, time=SLEEP
                     )
                 )
