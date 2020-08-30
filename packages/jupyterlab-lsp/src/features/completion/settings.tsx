@@ -164,8 +164,7 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
                 Icons <code>{composite.theme}</code>
               </h3>
               <blockquote>
-                Pick an icon theme to use for symbol references, such as
-                completion hints.
+                Pick an icon theme to display in the completer dialog.
               </blockquote>
               <table>
                 <thead>
