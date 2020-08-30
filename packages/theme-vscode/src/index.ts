@@ -14,9 +14,9 @@ export const plugin: JupyterFrontEndPlugin<void> = {
       icons: {
         license: {
           name: 'Creative Commons Attribution 4.0 International Public License',
-          abbreviation: 'CC 4.0',
+          spdx: 'CC-BY-4.0',
           licensor: 'Microsoft',
-          link: 'https://github.com/microsoft/vscode-icons/blob/master/LICENSE'
+          url: 'https://github.com/microsoft/vscode-icons/blob/master/LICENSE'
         },
         svg: async () =>
           (await import(/* webpackChunkName: "theme-vscode" */ './icons'))

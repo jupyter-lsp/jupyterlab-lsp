@@ -17,9 +17,9 @@ export const plugin: JupyterFrontEndPlugin<void> = {
       icons: {
         license: {
           name: 'SIL Open Font License 1.1',
-          abbreviation: 'OFL',
+          spdx: 'OFL-1.1',
           licensor: 'Austin Andrews and Google',
-          link:
+          url:
             'https://github.com/Templarian/MaterialDesign/blob/master/LICENSE'
         },
         svg: async () =>

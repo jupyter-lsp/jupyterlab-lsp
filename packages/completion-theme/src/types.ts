@@ -51,21 +51,21 @@ export interface ICompletionIconSet extends requiredIcons {
 
 export interface ILicenseInfo {
   /**
-   * Licence name.
+   * License name.
    */
   name: string;
   /**
-   * Abbreviation of the licence name;
+   * SDPX identifer of the license.
    */
-  abbreviation: string;
+  spdx: string;
   /**
    * The copyright holder/owner name.
    */
   licensor: string;
   /**
-   * Link to the full licence text.
+   * URL of the full license text.
    */
-  link: string;
+  url: string;
 }
 
 export interface ICompletionTheme {
@@ -102,6 +102,8 @@ export interface ICompletionTheme {
   };
 }
 
+export type TCompletionLabIcons = Map<keyof ICompletionIconSet, LabIcon>;
+
 export interface ILSPCompletionThemeManager {
   get_icon(type: string): LabIcon.ILabIcon | null;
 
@@ -120,7 +122,7 @@ export interface ILSPCompletionThemeManager {
   get_icons(
     theme: ICompletionTheme,
     color_scheme: string
-  ): Promise<Map<keyof ICompletionIconSet, LabIcon.ILabIcon>>;
+  ): Promise<TCompletionLabIcons>;
 
   theme_ids(): string[];
 }

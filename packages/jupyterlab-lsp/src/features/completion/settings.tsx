@@ -179,12 +179,12 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
     return (
       <th key={key}>
         <a
-          href={license.link}
+          href={license.url}
           title={`${license.name} by ${license.licensor}`}
           target="_blank"
           rel="noreferrer"
         >
-          {license.abbreviation}
+          {license.spdx}
         </a>
       </th>
     );
@@ -301,7 +301,7 @@ export namespace SettingsEditor {
           this.settings?.composite.colorScheme
         );
         for (const [kind, icon] of theme_icons.entries()) {
-          icons.set(`${kind}-${id}`, icon as LabIcon);
+          icons.set(`${kind}-${id}`, icon);
           if (kinds.indexOf(kind) < 0) {
             kinds.push(kind);
           }

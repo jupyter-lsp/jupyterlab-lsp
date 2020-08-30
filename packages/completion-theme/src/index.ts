@@ -7,14 +7,15 @@ import {
   ILSPCompletionThemeManager,
   PLUGIN_ID,
   COMPLETER_THEME_PREFIX,
-  KernelKind
+  KernelKind,
+  TCompletionLabIcons
 } from './types';
 
 const RE_ICON_THEME_CLASS = /jp-icon[^" ]+/g;
 const GREYSCALE_CLASS = 'jp-icon4';
 
 export class CompletionThemeManager implements ILSPCompletionThemeManager {
-  protected current_icons: Map<string, LabIcon>;
+  protected current_icons: TCompletionLabIcons;
   protected themes: Map<string, ICompletionTheme>;
   private current_theme_id: string;
   private icons_cache: Map<string, LabIcon>;
@@ -40,8 +41,8 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   async get_icons(
     theme: ICompletionTheme,
     color_scheme: string
-  ): Promise<Map<keyof ICompletionIconSet, LabIcon>> {
-    const icons = new Map();
+  ): Promise<TCompletionLabIcons> {
+    const icons: TCompletionLabIcons = new Map();
 
     for (const [completion_kind, raw] of Object.entries(
       await theme.icons.svg()
@@ -88,8 +89,8 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
       type =
         type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
     }
-    if (this.current_icons.has(type)) {
-      return this.current_icons.get(type).bindprops(options);
+    if (this.current_icons.has(type as any)) {
+      return this.current_icons.get(type as any).bindprops(options);
     }
     if (type === KernelKind) {
       return kernelIcon;
