@@ -1,23 +1,28 @@
+.jp-LSPCompletion-Config h1 {
+  padding-top: 0;
+  margin-top: 0;
+}
 .jp-LSPCompletion-Config {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   padding: var(--jp-notebook-padding);
 }
 
 .jp-LSPCompletion-Config > div {
   flex: 1;
-  overflow-y: auto;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row;
+  max-height: 100%;
 }
 
 .jp-LSPCompletion-Config header {
-  min-width: 100%;
+  max-width: 400px;
+  min-width: 200px;
+  flex: 1;
 }
 
-.jp-LSPCompletion-Config section {
+.jp-LSPCompletion-Config article {
   flex: 1;
   overflow-y: auto;
-  max-height: 80vh;
-  min-width: 25vw;
+  max-height: 100%;
 }

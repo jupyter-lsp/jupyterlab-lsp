@@ -33,65 +33,127 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
       <div>
         <header>
           <h1>Code Completion Settings</h1>
-        </header>
-        <section>
-          <h2>
-            <i>TBD: Icon Color Scheme</i>
-          </h2>
-          <blockquote>Pick an icon color scheme</blockquote>
-          <ul>
-            {['colorful', 'monochrome'].map(v => (
-              <li key={v}>
-                <label>
-                  <input type="radio" name="symbol-icon-color" />
-                  {v}
-                </label>
+          <nav>
+            <ul>
+              <li>
+                <a href="#completion-settings-documentation-box">
+                  Show Documentation Box
+                </a>
               </li>
-            ))}
-          </ul>
-        </section>
-        <section>
-          <h2>
-            Icon Theme <code>{currentThemeId}</code>
-          </h2>
-          <blockquote>
-            Pick an icon theme to use for symbol references, such as completion
-            hints.
-          </blockquote>
-          <table>
-            <thead>
-              <tr>
-                <th>Current Theme</th>
-                {theme_ids.map((id, i) => (
-                  <th key={i}>
-                    <input
-                      type="radio"
-                      defaultValue={id}
-                      name="current-theme"
-                      checked={id === currentThemeId}
-                      onChange={this.onThemeChanged}
-                    />
-                  </th>
-                ))}
-              </tr>
-              <tr>
-                <th>Theme Name</th>
-                {theme_ids.map((id, i) => (
-                  <th key={i}>{themes.get(id).name}</th>
-                ))}
-              </tr>
-              <tr>
-                <th>License</th>
-                {theme_ids.map((id, i) =>
-                  this.renderLicense(themes.get(id).icons.licence, i)
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {kinds.map(kind => this.renderKind(kind, theme_ids, icons))}
-            </tbody>
-          </table>
-        </section>
+              <li>
+                <a href="#completion-settings-continuous-hinting">
+                  Continuous Hinting
+                </a>
+              </li>
+              <li>
+                <a href="#completion-settings-suppress-invoke">
+                  Suppress Invoke
+                </a>
+              </li>
+              <li>
+                <a href="#completion-settings-icon-theme">Icon Theme</a>
+              </li>
+              <li>
+                <a href="#completion-settings-icon-color-schema">
+                  Icon Color Scheme
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </header>
+        <article>
+          <section>
+            <h2 id="completion-settings-documentation-box">
+              Show Documentation Box
+            </h2>
+            <blockquote>
+              Whether to show documentation box next to the completion
+              suggestions.
+            </blockquote>
+            <label>
+              <input type="checkbox" /> Enabled
+            </label>
+          </section>
+
+          <section>
+            <h2 id="completion-settings-continuous-hinting">
+              Continuous Hinting
+            </h2>
+            <blockquote>
+              Whether to enable continuous hinting (Hinterland mode).
+            </blockquote>
+            <label>
+              <input type="checkbox" /> Enabled
+            </label>
+          </section>
+
+          <section>
+            <h2 id="completion-settings-suppress-invoke">Suppress Invoke</h2>
+            <blockquote>
+              An array of CodeMirror tokens for which the auto-invoke should be
+              suppressed. The token names vary between languages (modes).
+            </blockquote>
+          </section>
+          <section>
+            <h2 id="completion-settings-icon-theme">
+              Icon Theme <code>{currentThemeId}</code>
+            </h2>
+            <blockquote>
+              Pick an icon theme to use for symbol references, such as
+              completion hints.
+            </blockquote>
+            <table>
+              <thead>
+                <tr>
+                  <th>Current Theme</th>
+                  {theme_ids.map((id, i) => (
+                    <th key={i}>
+                      <input
+                        type="radio"
+                        defaultValue={id}
+                        name="current-theme"
+                        checked={id === currentThemeId}
+                        onChange={this.onThemeChanged}
+                      />
+                    </th>
+                  ))}
+                </tr>
+                <tr>
+                  <th>Theme Name</th>
+                  {theme_ids.map((id, i) => (
+                    <th key={i}>{themes.get(id).name}</th>
+                  ))}
+                </tr>
+                <tr>
+                  <th>License</th>
+                  {theme_ids.map((id, i) =>
+                    this.renderLicense(themes.get(id).icons.licence, i)
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {kinds.map(kind => this.renderKind(kind, theme_ids, icons))}
+              </tbody>
+            </table>
+          </section>
+
+          <section>
+            <h2 id="completion-settings-icon-color-schema">
+              <i>TBD: Icon Color Scheme</i>
+            </h2>
+            <blockquote>Pick an icon color scheme</blockquote>
+            <ul>
+              {['colorful', 'monochrome'].map(v => (
+                <li key={v}>
+                  <label>
+                    <input type="radio" name="symbol-icon-color" />
+                    {v}
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </article>
       </div>
     );
   }
@@ -103,6 +165,7 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
           href={license.link}
           title={`${license.name} by ${license.licensor}`}
           target="_blank"
+          rel="noreferrer"
         >
           {license.abbreviation}
         </a>
