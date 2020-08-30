@@ -263,6 +263,15 @@ Place Cursor In Cell Editor At
     Enter Cell Editor    ${cell_nr}    ${line}
     Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
 
+Enter File Editor
+    Click Element    css:.jp-FileEditor .CodeMirror
+    Wait Until Page Contains Element    css:.jp-FileEditor .CodeMirror-focused
+
+Place Cursor In File Editor At
+    [Arguments]    ${line}    ${character}
+    Enter File Editor
+    Execute JavaScript    return document.querySelector('.jp-FileEditor .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
+
 Wait Until Fully Initialized
     Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=60s
 
