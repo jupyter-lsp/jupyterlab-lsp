@@ -1,0 +1,50 @@
+.jp-RenderedHTMLCommon.jp-LSPCompletion-Settings h1 {
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.jp-RenderedHTMLCommon.jp-LSPCompletion-Settings li,
+.jp-RenderedHTMLCommon.jp-LSPCompletion-Settings ul {
+  list-style: none;
+}
+
+.jp-LSPCompletion-Settings {
+  display: flex;
+  flex-direction: row;
+  padding: var(--jp-notebook-padding);
+}
+
+.jp-LSPCompletion-Settings > div {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  max-height: 100%;
+}
+
+.jp-LSPCompletion-Settings header {
+  max-width: 400px;
+  min-width: 200px;
+  flex: 1;
+}
+
+.jp-LSPCompletion-Settings article {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+.jp-LSPCompletion-Settings section {
+  padding: 0 var(--jp-notebook-padding) 0 var(--jp-notebook-padding);
+}
+
+.jp-LSPCompletion-Settings input[type='text'] {
+  width: 100%;
+}
+
+.jp-LSPCompletion-Settings-TokenLabel {
+  display: inline-block;
+  white-space: nowrap;
+  margin: var(--jp-ui-font-size0);
+  margin-bottom: 0;
+  margin-right: 0;
+}

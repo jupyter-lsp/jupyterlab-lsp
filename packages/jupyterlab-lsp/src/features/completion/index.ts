@@ -88,7 +88,7 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
 
     const label = 'Code Completion Settings';
     app.commands.addCommand(CommandIds.showSettings, {
-      label,
+      label: `${label} Editor`,
       execute: async () => {
         const { SettingsEditor } = await import('./settings');
         const model = new SettingsEditor.Model();
