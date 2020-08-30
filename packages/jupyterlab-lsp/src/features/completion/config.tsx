@@ -9,7 +9,10 @@ import {
   ILicenseInfo
 } from '@krassowski/completion-theme/lib/types';
 
+import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
+
 import '../../../style/config/completion.css';
+import { FeatureSettings } from '../../feature';
 
 type TThemeKindIcons = Map<string, LabIcon>;
 type TThemeMap = Map<string, ICompletionTheme>;
@@ -17,14 +20,11 @@ type TThemeMap = Map<string, ICompletionTheme>;
 const CONFIG_CLASS = 'jp-LSPCompletion-Config';
 
 export class Configurer extends VDomRenderer<Configurer.Model> {
-  onThemeChanged = (evt: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = evt.currentTarget as HTMLInputElement;
-    this.model.iconsThemeManager.set_theme(value);
-  };
-
   protected render() {
-    const { theme_ids, kinds, icons, themes } = this.model;
+    const { theme_ids, kinds, icons, themes, settings } = this.model;
     const currentThemeId = this.model.iconsThemeManager.get_current_theme_id();
+
+    const { composite } = settings;
 
     this.addClass(CONFIG_CLASS);
     this.addClass('jp-RenderedHTMLCommon');
@@ -61,6 +61,7 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
             </ul>
           </nav>
         </header>
+
         <article>
           <section>
             <h2 id="completion-settings-documentation-box">
@@ -71,7 +72,14 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
               suggestions.
             </blockquote>
             <label>
-              <input type="checkbox" /> Enabled
+              <input
+                type="checkbox"
+                defaultChecked={composite.showDocumentation}
+                onChange={e =>
+                  settings.set('showDocumentation', e.currentTarget.checked)
+                }
+              />{' '}
+              Enabled
             </label>
           </section>
 
@@ -83,7 +91,14 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
               Whether to enable continuous hinting (Hinterland mode).
             </blockquote>
             <label>
-              <input type="checkbox" /> Enabled
+              <input
+                type="checkbox"
+                defaultChecked={composite.continuousHinting}
+                onChange={e =>
+                  settings.set('continuousHinting', e.currentTarget.checked)
+                }
+              />{' '}
+              Enabled
             </label>
           </section>
 
@@ -158,6 +173,13 @@ export class Configurer extends VDomRenderer<Configurer.Model> {
     );
   }
 
+  protected onThemeChanged = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = evt.currentTarget as HTMLInputElement;
+    this.model.iconsThemeManager.set_theme(value);
+  };
+
+  // renderers
+
   protected renderLicense(license: ILicenseInfo, key: number) {
     return (
       <th key={key}>
@@ -213,6 +235,26 @@ export namespace Configurer {
     _icons: TThemeKindIcons;
     _kinds: string[];
     _themes: TThemeMap;
+    _settings: FeatureSettings<LSPCompletionSettings>;
+
+    get settings() {
+      return this._settings;
+    }
+
+    set settings(settings) {
+      if (this._settings) {
+        this._settings.changed.disconnect(this._onSettingsChanged, this);
+      }
+      this._settings = settings;
+      if (this._settings) {
+        this._settings.changed.connect(this._onSettingsChanged, this);
+      }
+      this.stateChanged.emit(void 0);
+    }
+
+    _onSettingsChanged() {
+      this.stateChanged.emit(void 0);
+    }
 
     get theme_ids() {
       return this._theme_ids;

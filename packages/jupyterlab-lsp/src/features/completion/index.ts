@@ -70,6 +70,17 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
       iconsThemeManager
     );
 
+    featureManager.register({
+      feature: {
+        editorIntegrationFactory: new Map([['CodeMirrorEditor', CompletionCM]]),
+        id: FEATURE_ID,
+        name: 'LSP Completion',
+        labIntegration: labIntegration,
+        settings: settings
+      }
+    });
+
+    // commands
     app.commands.addCommand(CommandIds.setTheme, {
       execute: (args: Partial<CodeCompletion>) =>
         settings.set('theme', args.theme)
@@ -82,6 +93,7 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
         const { Configurer } = await import('./config');
         const model = new Configurer.Model();
         model.iconsThemeManager = iconsThemeManager;
+        model.settings = settings;
         const content = new Configurer(model);
         const main = new MainAreaWidget({ content });
         main.title.label = label;
@@ -93,16 +105,6 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
     commandPalette.addItem({
       category: LSP_CATEGORY,
       command: CommandIds.configure
-    });
-
-    featureManager.register({
-      feature: {
-        editorIntegrationFactory: new Map([['CodeMirrorEditor', CompletionCM]]),
-        id: FEATURE_ID,
-        name: 'LSP Completion',
-        labIntegration: labIntegration,
-        settings: settings
-      }
     });
   }
 };
