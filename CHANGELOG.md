@@ -35,13 +35,14 @@
   - pressing "Cancel" rename during rename now correctly aborts the rename operation ([#318])
   - when a language server for a foreign document is not available an explanation is displayed (rather than the "Connecting..." status as before) ([4e5b2ad])
   - when jump target is not found a message is now shown instead of raising an exception ([00448d0])
-  - fixed status message expiration and replacement ([8798f2d])
+  - fixed status message expiration and replacement ([8798f2d]), ([#329])
   - fixed some context command rank issues introduced after an attempt of migration to nulls ([#318])
 
 [#301]: https://github.com/krassowski/jupyterlab-lsp/pull/301
 [#315]: https://github.com/krassowski/jupyterlab-lsp/pull/315
 [#318]: https://github.com/krassowski/jupyterlab-lsp/pull/318
 [#322]: https://github.com/krassowski/jupyterlab-lsp/pull/322
+[#329]: https://github.com/krassowski/jupyterlab-lsp/pull/329
 [00448d0]: https://github.com/krassowski/jupyterlab-lsp/pull/318/commits/00448d0c55e7f9a1e7e0a5322f17610daac47dfe
 [bacc006]: https://github.com/krassowski/jupyterlab-lsp/pull/318/commits/bacc0066da0727ff7397574914bf0401e4d8f7cb
 [4e5b2ad]: https://github.com/krassowski/jupyterlab-lsp/pull/318/commits/4e5b2adf655120458cc8be4b453fe9a78c98e061
