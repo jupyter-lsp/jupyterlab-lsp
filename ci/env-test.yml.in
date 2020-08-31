@@ -22,11 +22,7 @@ dependencies:
   - r-stringi >=1.4.6
   - rpy2
   # tex
-  # NOTE: pinned tectonic label to prevent a Windows failure, see:
-  # https://github.com/krassowski/jupyterlab-lsp/pull/318#issuecomment-678352715
-  # and
-  # https://github.com/krassowski/jupyterlab-lsp/pull/318#issuecomment-678540262
-  - conda-forge/label/cf202003::tectonic
+  - tectonic
   - texlab
   - chktex
   # test tools
