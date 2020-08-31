@@ -285,8 +285,12 @@ Prepare File for Editing
     [Arguments]    ${Language}    ${Screenshots}    ${file}
     Set Tags    language:${Language.lower()}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}${Screenshots}${/}${Language.lower()}
-    Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
     Try to Close All Tabs
+    Open File    ${file}
+
+Open File
+    [Arguments]    ${file}
+    Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
     Open ${file} in ${MENU EDITOR}
     Capture Page Screenshot    00-opened.png
 
