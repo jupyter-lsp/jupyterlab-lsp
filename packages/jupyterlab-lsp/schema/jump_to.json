@@ -1,0 +1,20 @@
+{
+  "jupyter.lab.setting-icon": "lsp:jump-to",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "title": "Code Jump",
+  "description": "Code Jump",
+  "type": "object",
+  "properties": {},
+  "jupyter.lab.shortcuts": [
+    {
+      "command": "lsp:jump-to-definition-notebook",
+      "keys": ["Accel B"],
+      "selector": ".jp-Notebook .jp-CodeCell"
+    },
+    {
+      "command": "lsp:jump-to-definition-file_editor",
+      "keys": ["Accel B"],
+      "selector": ".jp-FileEditor"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "jupyter.lab.setting-icon": "lsp:completion",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "title": "Code Completion",
+  "description": "LSP Completion settings.",
+  "type": "object",
+  "properties": {
+    "showDocumentation": {
+      "title": "Show documentation box",
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to show documentation box next to the completion suggestions."
+    },
+    "continuousHinting": {
+      "title": "Continuous hinting",
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to enable continuous hinting (Hinterland mode)."
+    },
+    "suppressInvokeIn": {
+      "title": "Suppress invoke in specific code fragments",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": ["comment", "string"],
+      "description": "An array of CodeMirror tokens for which the auto-invoke should be suppressed. The token names vary between languages (modes)."
+    },
+    "theme": {
+      "title": "Completer theme",
+      "type": ["string", "null"],
+      "default": "vscode",
+      "description": "The identifier of a completer theme with icons which indicate the kind of completion. Set to null to disable icons."
+    }
+  },
+  "jupyter.lab.shortcuts": []
+}

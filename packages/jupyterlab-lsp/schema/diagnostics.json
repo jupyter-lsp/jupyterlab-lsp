@@ -1,0 +1,35 @@
+{
+  "jupyter.lab.setting-icon": "lsp:diagnostics",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "title": "Code Diagnostics",
+  "description": "LSP Diagnostics (linter results) settings.",
+  "type": "object",
+  "properties": {
+    "defaultSeverity": {
+      "title": "Default severity level",
+      "type": "string",
+      "enum": ["Error", "Warning", "Information", "Hint"],
+      "default": "Warning",
+      "description": "Default level of the severity for diagnostics without severity provided by the language server."
+    },
+    "ignoreCodes": {
+      "title": "Diagnostic codes to ignore",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Codes of diagnostics which should not be shown in the panel nor highlighted in the editor."
+    },
+    "ignoreMessagesPatterns": {
+      "title": "Diagnostic messages to ignore",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Regular expressions matching messages of diagnostics which should not be shown in the panel nor highlighted in the editor."
+    }
+  },
+  "jupyter.lab.shortcuts": []
+}

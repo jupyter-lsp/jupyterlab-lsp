@@ -1,9 +1,13 @@
 import subprocess
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from time import sleep
+from warnings import warn
 
 HERE = Path(__file__).parent
 EXAMPLE = HERE.parent / "atest/examples/example.tex"
+ATTEMPTS = 3
+SLEEP = 5
 
 
 def tectonic_cache():
@@ -21,7 +25,18 @@ def tectonic_cache():
                 ]
             )
         )
-        subprocess.check_call(["tectonic", str(tex)], cwd=td)
+        for attempt in range(ATTEMPTS):
+            try:
+                subprocess.check_call(["tectonic", str(tex)], cwd=td)
+                break
+            except subprocess.CalledProcessError as e:
+                warn(
+                    "Tectonic cache attempt {attempt} failed: {e},"
+                    " retrying in {time} seconds".format(
+                        e=e, attempt=attempt, time=SLEEP
+                    )
+                )
+                sleep(SLEEP)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,17 @@
+{
+  "jupyter.lab.setting-icon": "lsp:hover",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "title": "Code Hover",
+  "description": "LSP Hover over the code tooltip settings.",
+  "type": "object",
+  "properties": {
+    "modifierKey": {
+      "title": "Modifier key",
+      "type": "string",
+      "enum": ["Alt", "Control", "Shift", "Meta", "AltGraph"],
+      "default": "Control",
+      "description": "Keyboard key which activates the tooltip on hover."
+    }
+  },
+  "jupyter.lab.shortcuts": []
+}

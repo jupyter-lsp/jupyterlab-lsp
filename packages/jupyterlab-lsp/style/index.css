@@ -1,1 +1,9 @@
 @import url('./highlight.css');
+
+.lsp-document-locator:hover {
+  cursor: pointer;
+}
+
+.lsp-document-locator span:not(:last-child)::after {
+  content: ' > ';
+}

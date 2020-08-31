@@ -6,7 +6,9 @@ trigger:
       - refs/tags/v*
 
 pr:
-  - master
+  branches:
+    include:
+      - '*'
 
 variables:
   PYTHONUNBUFFERED: 1
@@ -23,6 +25,9 @@ variables:
   LINKED_EXTENSIONS: >-
     packages/lsp-ws-connection
     packages/jupyterlab-go-to-definition
+    packages/completion-theme
+    packages/theme-vscode
+    packages/theme-material
 
 jobs:
   - template: ci/job.lint.yml

@@ -1,257 +1,177 @@
 import { VirtualDocument } from './document';
-import { IOverridesRegistry } from '../magics/overrides';
-import { IForeignCodeExtractorsRegistry } from '../extractors/types';
-import * as CodeMirror from 'codemirror';
 import {
   IEditorPosition,
   IRootPosition,
   ISourcePosition,
   IVirtualPosition
 } from '../positioning';
-import { until_ready } from '../utils';
 import { Signal } from '@lumino/signaling';
-import { EditorLogConsole, create_console } from './console';
+import { CodeEditor } from '@jupyterlab/codeeditor';
+import { IEditorName } from '../feature';
+import IEditor = CodeEditor.IEditor;
+import { JupyterFrontEndPlugin } from '@jupyterlab/application';
+import {
+  IVirtualEditorType,
+  ILSPVirtualEditorManager,
+  PLUGIN_ID
+} from '../tokens';
+import { WidgetAdapter } from '../adapters/adapter';
+import { IDocumentWidget } from '@jupyterlab/docregistry/lib/registry';
 
-export type CodeMirrorHandler = (instance: any, ...args: any[]) => void;
-type WrappedHandler = (instance: CodeMirror.Editor, ...args: any[]) => void;
+export interface IWindowCoordinates {
+  /**
+   * The number of pixels away from the left edge of the window.
+   */
+  left: number;
+  /**
+   * The number of pixels away from the top edge of the window.
+   */
+  top: number;
+}
 
 /**
- * VirtualEditor extends the CodeMirror.Editor interface; its subclasses may either
- * fast-forward any requests to an existing instance of the CodeMirror.Editor
- * (using ES6 Proxy), or implement custom behaviour, allowing for the use of
- * virtual documents representing code in complex entities such as notebooks.
+ * This is based on CodeMirror.EditorChange
  */
-export abstract class VirtualEditor implements CodeMirror.Editor {
-  // TODO: getValue could be made private in the virtual editor and the virtual editor
-  //  could stop exposing the full implementation of CodeMirror but rather hide it inside.
+export interface IEditorChange {
+  /** Position (in the pre-change coordinate system) where the change started. */
+  from: ISourcePosition;
+  /** Position (in the pre-change coordinate system) where the change ended. */
+  to: ISourcePosition;
+  /** Array of strings representing the text that replaced the changed range (split by line). */
+  text: string[];
+  /**  Text that used to be between from and to, which is overwritten by this change. */
+  removed?: string[];
+  /**  String representing the origin of the change event and whether it can be merged with history */
+  origin?: string;
+}
+
+/**
+ * A virtual editor represents an abstraction of a single editor,
+ * even when it aggregates multiple underlying editors. It is not
+ * concerned with how the editors are presented (e.g. as cells or
+ * tiles) but should be able to pass on the responsibilities to the
+ * appropriate editor transparently, so that the features do not
+ * need to know about existence of multiple editors.
+ */
+export interface IVirtualEditor<T extends IEditor> {
+  /**
+   * The root (outermost, with no parent) virtual document
+   * representing the underlying document. While it is NOT
+   * being created by the virtual editor (but passed into
+   * the constructor), the instance stored there is the
+   * reference for all other objects.
+   */
   virtual_document: VirtualDocument;
-  code_extractors: IForeignCodeExtractorsRegistry;
   /**
-   * Signal emitted by the editor that triggered the update, providing the root document of the updated documents.
+   * A signal which will be emitted after each change in the
+   * value of any of the underlying editors
    */
-  private documents_updated: Signal<VirtualEditor, VirtualDocument>;
-  /**
-   * Whether the editor reflects an interface with multiple cells (such as a notebook)
-   */
-  has_cells: boolean;
-  console: EditorLogConsole;
-  isDisposed = false;
-
-  public constructor(
-    protected language: () => string,
-    protected file_extension: () => string,
-    protected path: () => string,
-    protected overrides_registry: IOverridesRegistry,
-    protected foreign_code_extractors: IForeignCodeExtractorsRegistry,
-    public has_lsp_supported_file: boolean
-  ) {
-    this.create_virtual_document();
-    this.documents_updated = new Signal<VirtualEditor, VirtualDocument>(this);
-    this.documents_updated.connect(this.on_updated, this);
-    this.console = create_console('browser');
-  }
-
-  create_virtual_document() {
-    this.virtual_document = new VirtualDocument(
-      this.language(),
-      this.path(),
-      this.overrides_registry,
-      this.foreign_code_extractors,
-      false,
-      this.file_extension(),
-      this.has_lsp_supported_file
-    );
-  }
-
-  dispose() {
-    if (this.isDisposed) {
-      return;
-    }
-
-    this.documents_updated.disconnect(this.on_updated, this);
-
-    for (let [[eventName], wrapped_handler] of this._event_wrappers.entries()) {
-      this.forEveryBlockEditor(cm_editor => {
-        cm_editor.off(eventName, wrapped_handler);
-      }, false);
-    }
-
-    this._event_wrappers.clear();
-
-    this.virtual_document.dispose();
-
-    // just to be sure
-    this.virtual_document = null;
-    this.overrides_registry = null;
-    this.foreign_code_extractors = null;
-    this.code_extractors = null;
-
-    this.isDisposed = true;
-  }
+  change: Signal<IVirtualEditor<T>, IEditorChange>;
 
   /**
-   * Once all the foreign documents were refreshed, the unused documents (and their connections)
-   * should be terminated if their lifetime has expired.
+   * The editor name that will be used by feature-integration layer
+   * to identify this virtual editor.
    */
-  on_updated(editor: VirtualEditor, root_document: VirtualDocument) {
-    try {
-      root_document.close_expired_documents();
-    } catch (e) {
-      this.console.warn('LSP: Failed to close expired documents');
-    }
-  }
+  readonly editor_name: IEditorName;
 
-  abstract get_editor_index(position: IVirtualPosition): number;
+  /**
+   * Remove all handlers, signal connections and dispose any other objects
+   * created by the virtual editor.
+   */
+  dispose(): void;
 
-  transform_virtual_to_editor(position: IVirtualPosition): IEditorPosition {
-    return this.virtual_document.transform_virtual_to_editor(position);
-  }
+  /**
+   * Get the innermost virtual document present at given root position.
+   */
+  document_at_root_position(position: IRootPosition): VirtualDocument;
 
-  abstract transform_editor_to_root(
-    cm_editor: CodeMirror.Editor,
-    position: IEditorPosition
+  /**
+   * Transform a root position to a position relative to the innermost virtual document
+   * corresponding to the same character.
+   */
+  root_position_to_virtual_position(position: IRootPosition): IVirtualPosition;
+
+  /**
+   * Retrieve a position the text cursor would have if it
+   * was placed at given window coordinates (screen pixels).
+   */
+  window_coords_to_root_position(
+    coordinates: IWindowCoordinates
   ): IRootPosition;
 
-  abstract get_cm_editor(position: IRootPosition): CodeMirror.Editor;
+  /**
+   * Get the token at given root source position.
+   */
+  get_token_at(position: IRootPosition): CodeEditor.IToken;
 
   /**
-   * Virtual documents update guard.
+   * Get the position of the active text cursor in terms of the
+   * root position. If each editor has a separate cursor,
+   * the cursor of the active editor should be returned.
    */
-  private is_update_in_progress: boolean = false;
+  get_cursor_position(): IRootPosition;
 
-  private can_update() {
-    return !this.isDisposed && !this.is_update_in_progress && !this.update_lock;
+  /**
+   * Transform the position within an editor to a root position.
+   */
+  transform_from_editor_to_root(
+    ce_editor: T,
+    position: IEditorPosition
+  ): IRootPosition | null;
+
+  /**
+   * Get the text from the model of the editor.
+   */
+  get_editor_value(editor: T): string;
+}
+
+export namespace IVirtualEditor {
+  export interface IOptions {
+    adapter: WidgetAdapter<IDocumentWidget>;
+    virtual_document: VirtualDocument;
   }
 
-  private update_lock: boolean = false;
+  export type Constructor = {
+    new (options: IVirtualEditor.IOptions): IVirtualEditor<any>;
+  };
+}
 
-  /**
-   * Execute provided callback within an update-locked context, which guarantees that:
-   *  - the previous updates must have finished before the callback call, and
-   *  - no update will happen when executing the callback
-   * @param fn - the callback to execute in update lock
-   */
-  public async with_update_lock(fn: Function) {
-    // this.console.log('Will enter update lock with', fn);
-    await until_ready(() => this.can_update(), 12, 10).then(() => {
-      try {
-        this.update_lock = true;
-        fn();
-      } finally {
-        this.update_lock = false;
+export class VirtualEditorManager implements ILSPVirtualEditorManager {
+  private readonly editorTypes: IVirtualEditorType<any>[];
+
+  constructor() {
+    this.editorTypes = [];
+  }
+
+  registerEditorType(options: IVirtualEditorType<CodeEditor.IEditor>) {
+    this.editorTypes.push(options);
+  }
+
+  findBestImplementation(
+    editors: CodeEditor.IEditor[]
+  ): IVirtualEditorType<any> {
+    // for now, we check if all editors are of the same type,
+    // but it could be good enough if majority of the editors
+    // had the requested type
+    for (let editorType of this.editorTypes) {
+      if (editors.every(editor => editor instanceof editorType.supports)) {
+        return editorType;
       }
-    });
-  }
-
-  /**
-   * Update all the virtual documents, emit documents updated with root document if succeeded,
-   * and resolve a void promise. The promise does not contain the text value of the root document,
-   * as to avoid an easy trap of ignoring the changes in the virtual documents.
-   */
-  public async update_documents(): Promise<void> {
-    return new Promise<void>(async (resolve, reject) => {
-      // defer the update by up to 50 ms (10 retrials * 5 ms break),
-      // awaiting for the previous update to complete.
-      await until_ready(() => this.can_update(), 10, 5).then(() => {
-        if (this.isDisposed || !this.virtual_document) {
-          resolve();
-        }
-        try {
-          this.is_update_in_progress = true;
-          this.perform_documents_update();
-
-          if (this.virtual_document) {
-            this.documents_updated.emit(this.virtual_document);
-            this.virtual_document.maybe_emit_changed();
-          }
-
-          resolve();
-        } catch (e) {
-          this.console.warn('Documents update failed:', e);
-          reject(e);
-        } finally {
-          this.is_update_in_progress = false;
-        }
-      });
-    });
-  }
-
-  /**
-   * Actual implementation of the update action.
-   */
-  protected abstract perform_documents_update(): void;
-
-  // TODO: remove?
-  abstract addEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject
-  ): void;
-
-  // TODO .root is not really needed as we are in editor now...
-  document_at_root_position(position: IRootPosition): VirtualDocument {
-    let root_as_source = position as ISourcePosition;
-    return this.virtual_document.root.document_at_source_position(
-      root_as_source
+    }
+    console.warn(
+      'Cold not find a VirtualEditor suitable for the provided set of editors:',
+      editors
     );
-  }
-
-  root_position_to_virtual_position(position: IRootPosition): IVirtualPosition {
-    let root_as_source = position as ISourcePosition;
-    return this.virtual_document.root.virtual_position_at_document(
-      root_as_source
-    );
-  }
-
-  get_editor_at_root_position(root_position: IRootPosition) {
-    return this.virtual_document.root.get_editor_at_source_line(root_position);
-  }
-
-  root_position_to_editor(root_position: IRootPosition): IEditorPosition {
-    return this.virtual_document.root.transform_source_to_editor(root_position);
-  }
-
-  abstract forEveryBlockEditor(
-    callback: (cm_editor: CodeMirror.Editor) => void,
-    monitor_for_new_blocks?: boolean
-  ): void;
-
-  private _event_wrappers = new Map<
-    [string, CodeMirrorHandler],
-    WrappedHandler
-  >();
-
-  /**
-   * Proxy the event handler binding to the CodeMirror editors,
-   * allowing for multiple actual editors per a virtual editor.
-   *
-   * Only handlers accepting CodeMirror.Editor are supported for simplicity.
-   */
-  on(eventName: string, handler: CodeMirrorHandler, ...args: any[]): void {
-    let wrapped_handler = (instance: CodeMirror.Editor, ...args: any[]) => {
-      try {
-        return handler(this, ...args);
-      } catch (error) {
-        this.console.warn(
-          'Wrapped handler (which should accept a CodeMirror Editor instance) failed',
-          { error, instance, args, this: this }
-        );
-      }
-    };
-    this._event_wrappers.set([eventName, handler], wrapped_handler);
-
-    this.forEveryBlockEditor(cm_editor => {
-      cm_editor.on(eventName, wrapped_handler);
-    });
-  }
-
-  off(eventName: string, handler: CodeMirrorHandler, ...args: any[]): void {
-    let wrapped_handler = this._event_wrappers.get([eventName, handler]);
-
-    this.forEveryBlockEditor(cm_editor => {
-      cm_editor.off(eventName, wrapped_handler);
-    });
+    return null;
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
-export interface VirtualEditor extends CodeMirror.Editor {}
+export const VIRTUAL_EDITOR_MANAGER: JupyterFrontEndPlugin<ILSPVirtualEditorManager> = {
+  id: PLUGIN_ID + ':ILSPVirtualEditorManager',
+  requires: [],
+  activate: app => {
+    return new VirtualEditorManager();
+  },
+  provides: ILSPVirtualEditorManager,
+  autoStart: true
+};

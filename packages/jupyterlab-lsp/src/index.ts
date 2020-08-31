@@ -1,275 +1,269 @@
 import {
-  ILabShell,
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
-import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
-import { CodeMirrorEditor } from '@jupyterlab/codemirror';
-import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IDocumentManager } from '@jupyterlab/docmanager';
-
+import { Signal } from '@lumino/signaling';
 import { LanguageServerManager } from './manager';
-
-import { FileEditorJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/fileeditor';
-import { NotebookJumper } from '@krassowski/jupyterlab_go_to_definition/lib/jumpers/notebook';
-
-// TODO: make use of it for jump target selection (requires to be added to package.json)?
-// import 'codemirror/addon/hint/show-hint.css';
-// import 'codemirror/addon/hint/show-hint';
 import '../style/index.css';
-
-import { ICompletionManager } from '@jupyterlab/completer';
-import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { NotebookAdapter } from './adapters/jupyterlab/notebook';
-import { FileEditorAdapter } from './adapters/jupyterlab/file_editor';
-import { lsp_features } from './adapters/jupyterlab/jl_adapter';
-import { IFeatureCommand } from './adapters/codemirror/feature';
-import {
-  file_editor_adapters,
-  FileEditorCommandManager,
-  notebook_adapters,
-  NotebookCommandManager
-} from './command_manager';
-import IPaths = JupyterFrontEnd.IPaths;
+import { ContextCommandManager } from './command_manager';
 import { IStatusBar } from '@jupyterlab/statusbar';
-import { LSPStatus } from './adapters/jupyterlab/components/statusbar';
-import {
-  IDocumentWidget,
-  DocumentRegistry
-} from '@jupyterlab/docregistry/lib/registry';
+import { LSPStatus } from './components/statusbar';
 import { DocumentConnectionManager } from './connection_manager';
-import { TLanguageServerConfigurations } from './tokens';
+import {
+  ILSPAdapterManager,
+  ILSPCodeExtractorsManager,
+  ILSPFeatureManager,
+  ILSPVirtualEditorManager,
+  PLUGIN_ID,
+  TLanguageServerConfigurations
+} from './tokens';
+import { IFeature } from './feature';
+import { JUMP_PLUGIN } from './features/jump_to';
+import { SIGNATURE_PLUGIN } from './features/signature';
+import { HOVER_PLUGIN } from './features/hover';
+import { RENAME_PLUGIN } from './features/rename';
+import { HIGHLIGHTS_PLUGIN } from './features/highlights';
+import { WIDGET_ADAPTER_MANAGER } from './adapter_manager';
+import { FILE_EDITOR_ADAPTER } from './adapters/file_editor';
+import { NOTEBOOK_ADAPTER } from './adapters/notebook';
+import { VIRTUAL_EDITOR_MANAGER } from './virtual/editor';
+import IPaths = JupyterFrontEnd.IPaths;
+import { CODEMIRROR_VIRTUAL_EDITOR } from './virtual/codemirror_editor';
+import { LabIcon } from '@jupyterlab/ui-components';
+import codeCheckSvg from '../style/icons/code-check.svg';
+import { DIAGNOSTICS_PLUGIN } from './features/diagnostics';
+import { COMPLETION_PLUGIN } from './features/completion';
+import { CODE_EXTRACTORS_MANAGER } from './extractors/manager';
+import { IForeignCodeExtractorsRegistry } from './extractors/types';
+import {
+  ILSPCodeOverridesManager,
+  ICodeOverridesRegistry
+} from './overrides/tokens';
+import { DEFAULT_TRANSCLUSIONS } from './transclusions/defaults';
+import { SYNTAX_HIGHLIGHTING_PLUGIN } from './features/syntax_highlighting';
+import { COMPLETION_THEME_MANAGER } from '@krassowski/completion-theme';
+import { plugin as THEME_VSCODE } from '@krassowski/theme-vscode';
+import { plugin as THEME_MATERIAL } from '@krassowski/theme-material';
+import { CODE_OVERRIDES_MANAGER } from './overrides';
 
-const lsp_commands: Array<IFeatureCommand> = [].concat(
-  ...lsp_features.map(feature => feature.commands)
-);
+export const codeCheckIcon = new LabIcon({
+  name: 'lsp:codeCheck',
+  svgstr: codeCheckSvg
+});
 
-/**
- * The plugin registration information.
- */
-const plugin: JupyterFrontEndPlugin<void> = {
-  id: '@krassowski/jupyterlab-lsp:plugin',
-  requires: [
-    IEditorTracker,
-    INotebookTracker,
-    ISettingRegistry,
-    ICommandPalette,
-    IDocumentManager,
-    ICompletionManager,
-    IRenderMimeRegistry,
-    IPaths,
-    ILabShell,
-    IStatusBar
-  ],
-  activate: (
-    app: JupyterFrontEnd,
-    fileEditorTracker: IEditorTracker,
-    notebookTracker: INotebookTracker,
-    settingRegistry: ISettingRegistry,
+export interface IFeatureOptions {
+  /**
+   * The feature to be registered.
+   */
+  feature: IFeature;
+  /**
+   * Identifiers (values of `JupyterFrontEndPlugin.id` field) of the features
+   * that your feature wants to disable; use it to override the default feature
+   * implementations with your custom implementation (e.g. a custom completer)
+   */
+  supersedes?: string[];
+}
+
+export class FeatureManager implements ILSPFeatureManager {
+  features: Array<IFeature> = [];
+  private command_managers: Array<ContextCommandManager> = [];
+  private command_manager_registered: Signal<
+    FeatureManager,
+    ContextCommandManager
+  >;
+
+  constructor() {
+    this.command_manager_registered = new Signal(this);
+  }
+
+  register(options: IFeatureOptions): void {
+    if (options.supersedes) {
+      for (let option of options.supersedes) {
+        this.features = this.features.filter(feature => feature.id != option);
+      }
+    }
+    this.features.push(options.feature);
+
+    if (options.feature.commands) {
+      for (let command_manager of this.command_managers) {
+        command_manager.add(options.feature.commands);
+      }
+      this.command_manager_registered.connect(
+        (feature_manager, command_manager) => {
+          command_manager.add(options.feature.commands);
+        }
+      );
+    }
+  }
+
+  registerCommandManager(manager: ContextCommandManager) {
+    this.command_managers.push(manager);
+    this.command_manager_registered.emit(manager);
+  }
+}
+
+export interface ILSPExtension {
+  app: JupyterFrontEnd;
+  connection_manager: DocumentConnectionManager;
+  language_server_manager: LanguageServerManager;
+  feature_manager: ILSPFeatureManager;
+  editor_type_manager: ILSPVirtualEditorManager;
+  foreign_code_extractors: IForeignCodeExtractorsRegistry;
+  code_overrides: ICodeOverridesRegistry;
+}
+
+export class LSPExtension implements ILSPExtension {
+  connection_manager: DocumentConnectionManager;
+  language_server_manager: LanguageServerManager;
+  feature_manager: ILSPFeatureManager;
+
+  constructor(
+    public app: JupyterFrontEnd,
+    private setting_registry: ISettingRegistry,
     palette: ICommandPalette,
     documentManager: IDocumentManager,
-    completion_manager: ICompletionManager,
-    rendermime_registry: IRenderMimeRegistry,
     paths: IPaths,
-    labShell: ILabShell,
-    status_bar: IStatusBar
-  ) => {
-    const language_server_manager = new LanguageServerManager({});
-    const connection_manager = new DocumentConnectionManager({
-      language_server_manager
+    status_bar: IStatusBar,
+    adapterManager: ILSPAdapterManager,
+    public editor_type_manager: ILSPVirtualEditorManager,
+    private code_extractors_manager: ILSPCodeExtractorsManager,
+    private code_overrides_manager: ILSPCodeOverridesManager
+  ) {
+    this.language_server_manager = new LanguageServerManager({});
+    this.connection_manager = new DocumentConnectionManager({
+      language_server_manager: this.language_server_manager
     });
 
-    const status_bar_item = new LSPStatus();
-    status_bar_item.model.language_server_manager = language_server_manager;
-    status_bar_item.model.connection_manager = connection_manager;
+    const status_bar_item = new LSPStatus(adapterManager);
+    status_bar_item.model.language_server_manager = this.language_server_manager;
+    status_bar_item.model.connection_manager = this.connection_manager;
 
-    labShell.currentChanged.connect(() => {
-      const current = labShell.currentWidget;
-      if (!current) {
-        return;
-      }
-      let adapter = null;
-      if (notebookTracker.has(current)) {
-        let id = (current as NotebookPanel).id;
-        adapter = notebook_adapters.get(id);
-      } else if (fileEditorTracker.has(current)) {
-        let id = (current as IDocumentWidget<FileEditor>).content.id;
-        adapter = file_editor_adapters.get(id);
-      }
-
-      if (adapter != null) {
-        status_bar_item.model.adapter = adapter;
-      }
+    status_bar.registerStatusItem(PLUGIN_ID + ':language-server-status', {
+      item: status_bar_item,
+      align: 'left',
+      rank: 1,
+      isActive: () => adapterManager.isAnyActive()
     });
 
-    status_bar.registerStatusItem(
-      '@krassowski/jupyterlab-lsp:language-server-status',
-      {
-        item: status_bar_item,
-        align: 'left',
-        rank: 1,
-        isActive: () =>
-          labShell.currentWidget &&
-          (fileEditorTracker.currentWidget || notebookTracker.currentWidget) &&
-          (labShell.currentWidget === fileEditorTracker.currentWidget ||
-            labShell.currentWidget === notebookTracker.currentWidget)
-      }
-    );
+    this.feature_manager = new FeatureManager();
 
-    fileEditorTracker.widgetUpdated.connect((_sender, _widget) => {
-      console.log(_sender);
-      console.log(_widget);
-      // TODO?
-      // adapter.remove();
-      // connection.close();
-    });
-
-    const connect_file_editor = (
-      widget: IDocumentWidget<FileEditor, DocumentRegistry.IModel>
-    ) => {
-      let fileEditor = widget.content;
-
-      if (fileEditor.editor instanceof CodeMirrorEditor) {
-        let jumper = new FileEditorJumper(widget, documentManager);
-        let adapter = new FileEditorAdapter(
-          widget,
-          jumper,
-          app,
-          completion_manager,
-          rendermime_registry,
-          connection_manager
-        );
-        file_editor_adapters.set(fileEditor.id, adapter);
-
-        const disconnect = () => {
-          file_editor_adapters.delete(fileEditor.id);
-          widget.disposed.disconnect(disconnect);
-          widget.context.pathChanged.disconnect(reconnect);
-          adapter.dispose();
-          if (status_bar_item.model.adapter === adapter) {
-            status_bar_item.model.adapter = null;
-          }
-        };
-
-        const reconnect = () => {
-          disconnect();
-          connect_file_editor(widget);
-        };
-
-        widget.disposed.connect(disconnect);
-        widget.context.pathChanged.connect(reconnect);
-
-        status_bar_item.model.adapter = adapter;
-      }
-    };
-
-    fileEditorTracker.widgetAdded.connect((sender, widget) => {
-      connect_file_editor(widget);
-    });
-
-    let command_manager = new FileEditorCommandManager(
-      app,
-      palette,
-      fileEditorTracker,
-      'file_editor'
-    );
-    command_manager.add(lsp_commands);
-
-    const connect_notebook = (widget: NotebookPanel) => {
-      // NOTE: assuming that the default cells content factory produces CodeMirror editors(!)
-      let jumper = new NotebookJumper(widget, documentManager);
-      let adapter = new NotebookAdapter(
-        widget,
-        jumper,
-        app,
-        completion_manager,
-        rendermime_registry,
-        connection_manager
-      );
-      notebook_adapters.set(widget.id, adapter);
-
-      const disconnect = () => {
-        notebook_adapters.delete(widget.id);
-        widget.disposed.disconnect(disconnect);
-        widget.context.pathChanged.disconnect(reconnect);
-        adapter.dispose();
-        if (status_bar_item.model.adapter === adapter) {
-          status_bar_item.model.adapter = null;
-        }
-      };
-
-      const reconnect = () => {
-        disconnect();
-        connect_notebook(widget);
-      };
-
-      widget.context.pathChanged.connect(reconnect);
-      widget.disposed.connect(disconnect);
-
-      status_bar_item.model.adapter = adapter;
-    };
-
-    notebookTracker.widgetAdded.connect(async (sender, widget) => {
-      connect_notebook(widget);
-    });
-
-    // position context menu entries after 10th but before 11th default entry
-    // this lets it be before "Clear outputs" which is the last entry of the
-    // CodeCell contextmenu and plays nicely with the first notebook entry
-    // ('Clear all outputs') thus should stay as the last one.
-    // see https://github.com/blink1073/jupyterlab/blob/3592afd328116a588e3307b4cdd9bcabc7fe92bb/packages/notebook-extension/src/index.ts#L802
-    // TODO: PR bumping rank of clear all outputs instead?
-    let notebook_command_manager = new NotebookCommandManager(
-      app,
-      palette,
-      notebookTracker,
-      'notebook',
-      // adding a very small number (epsilon) places the group just after 10th entry
-      10 + Number.EPSILON,
-      // the group size is increased by one to account for separator,
-      // and by another one to prevent exceeding 11th rank by epsilon.
-      lsp_commands.length + 2
-    );
-    notebook_command_manager.add_context_separator(0);
-    notebook_command_manager.add(lsp_commands);
-
-    function updateOptions(settings: ISettingRegistry.ISettings): void {
-      const options = settings.composite;
-
-      // Object.keys(options).forEach((key) => {
-      //  if (key === 'modifier') {
-      //    // let modifier = options[key] as KeyModifier;
-      //    CodeMirrorExtension.modifierKey = modifier;
-      //  }
-      // });
-
-      const languageServerSettings = (options.language_servers ||
-        {}) as TLanguageServerConfigurations;
-      connection_manager.updateServerConfigurations(languageServerSettings);
-    }
-
-    settingRegistry
+    this.setting_registry
       .load(plugin.id)
       .then(settings => {
         // Store the initial server settings, to be sent asynchronously
         // when the servers are initialized.
-        connection_manager.initial_configurations = (settings.composite
+        this.connection_manager.initial_configurations = (settings.composite
           .language_servers || {}) as TLanguageServerConfigurations;
 
         settings.changed.connect(() => {
-          updateOptions(settings);
+          this.updateOptions(settings);
         });
       })
       .catch((reason: Error) => {
         console.error(reason.message);
       });
+
+    adapterManager.registerExtension(this);
+
+    adapterManager.adapterTypeAdded.connect((manager, type) => {
+      let command_manger = new ContextCommandManager({
+        adapter_manager: adapterManager,
+        app: app,
+        palette: palette,
+        tracker: type.tracker,
+        suffix: type.name,
+        entry_point: type.entrypoint,
+        ...type.context_menu
+      });
+      this.feature_manager.registerCommandManager(command_manger);
+    });
+  }
+
+  get foreign_code_extractors() {
+    return this.code_extractors_manager.registry;
+  }
+
+  get code_overrides() {
+    return this.code_overrides_manager.registry;
+  }
+
+  private updateOptions(settings: ISettingRegistry.ISettings) {
+    const options = settings.composite;
+
+    const languageServerSettings = (options.language_servers ||
+      {}) as TLanguageServerConfigurations;
+    this.connection_manager.updateServerConfigurations(languageServerSettings);
+  }
+}
+
+/**
+ * The plugin registration information.
+ */
+const plugin: JupyterFrontEndPlugin<ILSPFeatureManager> = {
+  id: PLUGIN_ID + ':plugin',
+  requires: [
+    ISettingRegistry,
+    ICommandPalette,
+    IDocumentManager,
+    IPaths,
+    IStatusBar,
+    ILSPAdapterManager,
+    ILSPVirtualEditorManager,
+    ILSPCodeExtractorsManager,
+    ILSPCodeOverridesManager
+  ],
+  activate: (app, ...args) => {
+    let extension = new LSPExtension(
+      app,
+      ...(args as [
+        ISettingRegistry,
+        ICommandPalette,
+        IDocumentManager,
+        IPaths,
+        IStatusBar,
+        ILSPAdapterManager,
+        ILSPVirtualEditorManager,
+        ILSPCodeExtractorsManager,
+        ILSPCodeOverridesManager
+      ])
+    );
+    return extension.feature_manager;
   },
+  provides: ILSPFeatureManager,
   autoStart: true
 };
 
+const default_features: JupyterFrontEndPlugin<void>[] = [
+  JUMP_PLUGIN,
+  COMPLETION_PLUGIN,
+  SIGNATURE_PLUGIN,
+  HOVER_PLUGIN,
+  RENAME_PLUGIN,
+  HIGHLIGHTS_PLUGIN,
+  DIAGNOSTICS_PLUGIN,
+  SYNTAX_HIGHLIGHTING_PLUGIN
+];
+
+const plugins: JupyterFrontEndPlugin<any>[] = [
+  CODE_EXTRACTORS_MANAGER,
+  WIDGET_ADAPTER_MANAGER,
+  NOTEBOOK_ADAPTER,
+  FILE_EDITOR_ADAPTER,
+  VIRTUAL_EDITOR_MANAGER,
+  CODEMIRROR_VIRTUAL_EDITOR,
+  COMPLETION_THEME_MANAGER,
+  THEME_VSCODE,
+  THEME_MATERIAL,
+  CODE_OVERRIDES_MANAGER,
+  plugin,
+  ...DEFAULT_TRANSCLUSIONS,
+  ...default_features
+];
+
 /**
- * Export the plugin as default.
+ * Export the plugins as default.
  */
-export default plugin;
+export default plugins;
