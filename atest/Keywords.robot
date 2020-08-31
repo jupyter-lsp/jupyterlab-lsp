@@ -58,6 +58,8 @@ Initialize User Settings
     Create File    ${SETTINGS DIR}${/}@jupyterlab${/}codemirror-extension${/}commands.jupyterlab-settings    {"styleActiveLine": true}
 
 Reset Plugin Settings
+    [Arguments]    ${package}=jupyterlab-lsp    ${plugin}=plugin
+    ${LSP PLUGIN SETTINGS FILE} =    Set Variable    @krassowski${/}${package}${/}${plugin}.jupyterlab-settings
     Create File    ${SETTINGS DIR}${/}${LSP PLUGIN SETTINGS FILE}    {}
 
 Tear Down Everything
@@ -278,7 +280,6 @@ Wait Until Fully Initialized
 Open Context Menu Over
     [Arguments]    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Mouse Over    ${sel}
-    Wait Until Keyword Succeeds    10 x    0.1 s    Click Element    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
 
 Prepare File for Editing
