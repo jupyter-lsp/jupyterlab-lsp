@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Bump version of selected packages or core requirements (JupyterLab)"""
 import sys
+from argparse import ArgumentParser
 from dataclasses import dataclass
+from difflib import context_diff
 from pathlib import Path
 from typing import List
 
@@ -50,7 +52,13 @@ class PackageVersionInfo:
     def change_version(self, new_version: str, dry: bool):
 
         changelog = CHANGELOG.read_text()
-        assert new_version in changelog
+        if new_version not in changelog:
+            raise Exception(
+                (
+                    f"{new_version} is absent in CHANGELOG.md file."
+                    f" Please update the changelog first."
+                ).format(new_version=new_version)
+            )
 
         for location in self.locations:
             replace_version(
@@ -63,12 +71,21 @@ class PackageVersionInfo:
 
 
 def replace_version(path: Path, template: str, old: str, new: str, dry: bool):
-    new_content = path.read_text().replace(
+    old_content = path.read_text()
+    new_content = old_content.replace(
         template.format(version=old), template.format(version=new)
     )
     if dry:
-        print(path)
-        print(new_content)
+        diff = context_diff(
+            old_content.splitlines(),
+            new_content.splitlines(),
+            fromfile="current",
+            tofile="new (proposed update)",
+            n=4,
+        )
+        relative_path = path.relative_to(ROOT) if path.is_absolute() else path
+        print("\n## Summary of changes proposed to {path}".format(path=relative_path))
+        print("\n".join(diff) + "\n")
     else:
         path.write_text(new_content)
 
@@ -127,4 +144,11 @@ def update_versions(dry: bool):
 
 
 if __name__ == "__main__":
-    update_versions(dry=False)
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--dry",
+        action="store_true",
+        help="do not perform the update, only show the changes",
+    )
+    args = parser.parse_args()
+    update_versions(dry=args.dry)
