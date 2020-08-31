@@ -17,6 +17,11 @@ import {
   IContextMenuOptions
 } from './command_manager';
 import IEditor = CodeEditor.IEditor;
+import {
+  IForeignCodeExtractor,
+  IForeignCodeExtractorsRegistry
+} from './extractors/types';
+import { LanguageIdentifier } from './lsp';
 
 export type TLanguageServerId = string;
 export type TLanguageId = string;
@@ -157,6 +162,24 @@ export interface ILSPVirtualEditorManager {
   ): IVirtualEditorType<any>;
 }
 
+/**
+ * Manages code transclusion plugins.
+ */
+export interface ILSPCodeExtractorsManager {
+  /**
+   * Global registry of the foreign code extractors.
+   */
+  registry: IForeignCodeExtractorsRegistry;
+
+  /**
+   * Register the extraction rules to be applied in documents with language `host_language`.
+   */
+  register(
+    extractor: IForeignCodeExtractor,
+    host_language: LanguageIdentifier
+  ): void;
+}
+
 export const PLUGIN_ID = '@krassowski/jupyterlab-lsp';
 
 export const ILSPFeatureManager = new Token<ILSPFeatureManager>(
@@ -169,4 +192,8 @@ export const ILSPAdapterManager = new Token<ILSPAdapterManager>(
 
 export const ILSPVirtualEditorManager = new Token<ILSPVirtualEditorManager>(
   PLUGIN_ID + ':ILSPVirtualEditorManager'
+);
+
+export const ILSPCodeExtractorsManager = new Token<ILSPCodeExtractorsManager>(
+  PLUGIN_ID + ':ILSPCodeExtractorsManager'
 );

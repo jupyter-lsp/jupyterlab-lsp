@@ -17,6 +17,7 @@ import { ILSPExtension } from '../index';
 import { IFeatureEditorIntegration, IFeature } from '../feature';
 import { EditorAdapter } from '../editor_integration/editor_adapter';
 import IEditor = CodeEditor.IEditor;
+import { LanguageIdentifier } from '../lsp';
 
 export class StatusMessage {
   /**
@@ -126,6 +127,14 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     this.widget.disposed.connect(this.dispose, this);
   }
 
+  protected get foreign_code_extractors() {
+    return this.extension.foreign_code_extractors;
+  }
+
+  protected get code_overrides() {
+    return this.extension.code_overrides;
+  }
+
   on_connection_closed(
     manager: DocumentConnectionManager,
     { virtual_document }: IDocumentConnectionData
@@ -187,8 +196,9 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     return this.widget.id;
   }
 
-  get language(): string {
-    // the values should follow https://microsoft.github.io/language-server-protocol/specification guidelines
+  get language(): LanguageIdentifier {
+    // the values should follow https://microsoft.github.io/language-server-protocol/specification guidelines,
+    // see the table in https://microsoft.github.io/language-server-protocol/specification#textDocumentItem
     if (mime_type_language_map.hasOwnProperty(this.mime_type)) {
       return mime_type_language_map[this.mime_type] as string;
     } else {

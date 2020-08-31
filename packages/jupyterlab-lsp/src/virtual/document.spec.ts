@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { is_within_range, VirtualDocument } from './document';
 import { ISourcePosition, IVirtualPosition } from '../positioning';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { foreign_code_extractors } from '../extractors/defaults';
+import { foreign_code_extractors } from '../transclusions/ipython-rpy2/extractors';
 import Mock = jest.Mock;
 
 let R_LINE_MAGICS = `%R df = data.frame()
