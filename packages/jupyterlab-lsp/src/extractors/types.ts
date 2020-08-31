@@ -1,4 +1,5 @@
 import { CodeEditor } from '@jupyterlab/codeeditor';
+import { LanguageIdentifier } from '../lsp';
 
 export interface IExtractedCode {
   /**
@@ -25,7 +26,7 @@ export interface IExtractedCode {
  *
  * The typical examples are:
  *  - (X=CSS< Y=HTML), or
- *  - (X=JavaScrip, Y=HTML),
+ *  - (X=JavaScript, Y=HTML),
  *
  * while in the data analysis realm, examples include:
  *   - (X=R, Y=IPython),
@@ -42,7 +43,7 @@ export interface IForeignCodeExtractor {
   /**
    * The foreign language.
    */
-  language: string;
+  language: LanguageIdentifier;
 
   /**
    * Split the code into the host and foreign code (if any foreign code was detected)

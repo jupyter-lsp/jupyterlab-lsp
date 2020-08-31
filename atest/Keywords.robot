@@ -263,6 +263,15 @@ Place Cursor In Cell Editor At
     Enter Cell Editor    ${cell_nr}    ${line}
     Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
 
+Enter File Editor
+    Click Element    css:.jp-FileEditor .CodeMirror
+    Wait Until Page Contains Element    css:.jp-FileEditor .CodeMirror-focused
+
+Place Cursor In File Editor At
+    [Arguments]    ${line}    ${character}
+    Enter File Editor
+    Execute JavaScript    return document.querySelector('.jp-FileEditor .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
+
 Wait Until Fully Initialized
     Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=60s
 
@@ -276,8 +285,12 @@ Prepare File for Editing
     [Arguments]    ${Language}    ${Screenshots}    ${file}
     Set Tags    language:${Language.lower()}
     Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}${Screenshots}${/}${Language.lower()}
-    Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
     Try to Close All Tabs
+    Open File    ${file}
+
+Open File
+    [Arguments]    ${file}
+    Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
     Open ${file} in ${MENU EDITOR}
     Capture Page Screenshot    00-opened.png
 

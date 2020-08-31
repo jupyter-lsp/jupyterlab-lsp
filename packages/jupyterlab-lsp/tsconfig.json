@@ -12,6 +12,15 @@
       "path": "../jupyterlab-go-to-definition"
     },
     {
+      "path": "../completion-theme"
+    },
+    {
+      "path": "../theme-vscode"
+    },
+    {
+      "path": "../theme-material"
+    },
+    {
       "path": "../lsp-ws-connection"
     }
   ]

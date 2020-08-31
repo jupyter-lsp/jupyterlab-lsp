@@ -1,5 +1,5 @@
 {
-  "jupyter.lab.setting-icon": "lsp:diagnostics",
+  "jupyter.lab.setting-icon": "lsp:codeCheck",
   "jupyter.lab.setting-icon-label": "Language integration",
   "title": "Language Server",
   "description": "Language Server Protocol settings.",
@@ -18,35 +18,6 @@
           "default": {}
         }
       }
-    },
-    "features": {
-      "title": "Code Intelligence Features Configuration",
-      "description": "Configuration for the implementation of the LSP features",
-      "type": "object",
-      "properties": {
-        "completion": {
-          "type": "object",
-          "properties": {
-            "showDocumentation": {
-              "type": "boolean",
-              "default": true,
-              "description": "Whether to show documentation box next to the completion suggestions."
-            },
-            "continuousHinting": {
-              "type": "boolean",
-              "default": false,
-              "description": "Whether to enable continuous hinting (Hinterland mode)."
-            },
-            "suppressInvokeIn": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "An array of CodeMirror tokens for which the auto-invoke should be suppressed. The token names vary between languages (modes)."
-            }
-          }
-        }
-      }
     }
   },
   "properties": {
@@ -62,40 +33,7 @@
       "additionalProperties": {
         "$ref": "#/definitions/language-server"
       }
-    },
-    "features": {
-      "title": "LSP features",
-      "description": "Client-side features configuration",
-      "$ref": "#/definitions/features",
-      "default": {
-        "completion": {
-          "showDocumentation": true,
-          "continuousHinting": false,
-          "suppressInvokeIn": ["comment", "string"]
-        }
-      }
     }
   },
-  "jupyter.lab.shortcuts": [
-    {
-      "command": "lsp:jump-to-definition-notebook",
-      "keys": ["Accel B"],
-      "selector": ".jp-Notebook .jp-CodeCell"
-    },
-    {
-      "command": "lsp:jump-to-definition-file_editor",
-      "keys": ["Accel B"],
-      "selector": ".jp-FileEditor"
-    },
-    {
-      "command": "lsp:rename-symbol-notebook",
-      "keys": ["F2"],
-      "selector": ".jp-Notebook .jp-CodeCell"
-    },
-    {
-      "command": "lsp:rename-symbol-file_editor'",
-      "keys": ["F2"],
-      "selector": ".jp-FileEditor"
-    }
-  ]
+  "jupyter.lab.shortcuts": []
 }

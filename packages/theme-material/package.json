@@ -1,0 +1,45 @@
+{
+  "name": "@krassowski/theme-material",
+  "version": "2.0.0",
+  "description": "Material theme for JupyterLab-LSP",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension",
+    "lsp",
+    "language-server-protocol",
+    "theme",
+    "material",
+    "completer"
+  ],
+  "homepage": "https://github.com/krassowski/jupyterlab-lsp",
+  "bugs": {
+    "url": "https://github.com/krassowski/jupyterlab-lsp/issues"
+  },
+  "license": "BSD-3-Clause",
+  "author": "JupyterLab-LSP Developement Team",
+  "files": [
+    "{lib,style,schema,src}/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css,json,ts,tsx,txt,md}"
+  ],
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krassowski/jupyterlab-lsp.git"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "bundle": "npm pack .",
+    "clean": "rimraf lib",
+    "lab:link": "jupyter labextension link . --no-build"
+  },
+  "dependencies": {
+    "@krassowski/completion-theme": "~2.0.0"
+  },
+  "devDependencies": {},
+  "peerDependencies": {},
+  "jupyterlab": {
+    "extension": true,
+    "schemaDir": "schema"
+  }
+}

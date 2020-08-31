@@ -1,47 +1,55 @@
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { ICommandPalette, IWidgetTracker } from '@jupyterlab/apputils';
-import { JupyterLabWidgetAdapter } from './adapters/jupyterlab/jl_adapter';
-import {
-  CommandEntryPoint,
-  IFeatureCommand,
-  ILSPFeature
-} from './adapters/codemirror/feature';
-import { IEditorTracker } from '@jupyterlab/fileeditor';
-import { FileEditorAdapter } from './adapters/jupyterlab/file_editor';
-import { NotebookAdapter } from './adapters/jupyterlab/notebook';
-import { INotebookTracker } from '@jupyterlab/notebook';
+import { WidgetAdapter } from './adapters/adapter';
+import { IFeatureEditorIntegration, IFeatureCommand } from './feature';
 import { VirtualDocument } from './virtual/document';
 import { LSPConnection } from './connection';
-import {
-  IEditorPosition,
-  IRootPosition,
-  IVirtualPosition
-} from './positioning';
-import { VirtualEditor } from './virtual/editor';
-import { PositionConverter } from './converter';
+import { IRootPosition, IVirtualPosition } from './positioning';
+import { IVirtualEditor } from './virtual/editor';
+import { CodeEditor } from '@jupyterlab/codeeditor';
+import { IDocumentWidget } from '@jupyterlab/docregistry';
+import { ILSPAdapterManager } from './tokens';
 
-export const file_editor_adapters: Map<string, FileEditorAdapter> = new Map();
-export const notebook_adapters: Map<string, NotebookAdapter> = new Map();
-
-function is_context_menu_over_token(adapter: JupyterLabWidgetAdapter) {
+function is_context_menu_over_token(adapter: WidgetAdapter<IDocumentWidget>) {
   let position = adapter.get_position_from_context_menu();
   if (!position) {
     return false;
   }
-  let token = adapter.virtual_editor.getTokenAt(position);
-  return token.string !== '';
+  let token = adapter.virtual_editor.get_token_at(position);
+  return token.value !== '';
+}
+
+export type CommandEntryPoint = string;
+
+export interface ILSPCommandManagerOptions {
+  adapter_manager: ILSPAdapterManager;
+  app: JupyterFrontEnd;
+  palette: ICommandPalette;
+  tracker: IWidgetTracker;
+  suffix: string;
+  entry_point: CommandEntryPoint;
 }
 
 abstract class LSPCommandManager {
-  protected constructor(
-    protected app: JupyterFrontEnd,
-    protected palette: ICommandPalette,
-    protected tracker: IWidgetTracker,
-    protected suffix: string
-  ) {}
+  protected adapter_manager: ILSPAdapterManager;
+  protected app: JupyterFrontEnd;
+  protected palette: ICommandPalette;
+  protected tracker: IWidgetTracker;
+  protected suffix: string;
+  protected entry_point: CommandEntryPoint;
 
-  abstract entry_point: CommandEntryPoint;
-  abstract get current_adapter(): JupyterLabWidgetAdapter;
+  protected constructor(options: ILSPCommandManagerOptions) {
+    this.adapter_manager = options.adapter_manager;
+    this.app = options.app;
+    this.palette = options.palette;
+    this.tracker = options.tracker;
+    this.suffix = options.suffix;
+    this.entry_point = options.entry_point;
+  }
+
+  get current_adapter() {
+    return this.adapter_manager.currentAdapter;
+  }
   abstract attach_command(command: IFeatureCommand): void;
   abstract execute(command: IFeatureCommand): void;
   abstract is_enabled(command: IFeatureCommand): boolean;
@@ -56,7 +64,8 @@ abstract class LSPCommandManager {
         execute: () => this.execute(cmd),
         isEnabled: () => this.is_enabled(cmd),
         isVisible: () => this.is_visible(cmd),
-        label: cmd.label
+        label: cmd.label,
+        icon: cmd.icon
       });
 
       if (this.should_attach(cmd)) {
@@ -81,22 +90,36 @@ abstract class LSPCommandManager {
   }
 }
 
+export interface IContextMenuOptions {
+  selector: string;
+  rank_group?: number;
+  rank_group_size?: number;
+  callback?(manager: ContextCommandManager): void;
+}
+
+export interface ILSPContextManagerOptions
+  extends ILSPCommandManagerOptions,
+    IContextMenuOptions {}
+
 /**
  * Contextual commands, with the context retrieved from the ContextMenu
  * position (if open) or from the cursor in the current widget.
  */
-export abstract class ContextCommandManager extends LSPCommandManager {
-  abstract selector: string;
+export class ContextCommandManager extends LSPCommandManager {
+  protected selector: string;
+  public entry_point: CommandEntryPoint;
+  protected rank_group?: number;
+  protected rank_group_size?: number;
 
-  constructor(
-    app: JupyterFrontEnd,
-    palette: ICommandPalette,
-    tracker: IWidgetTracker,
-    suffix: string,
-    protected rank_group?: number,
-    protected rank_group_size?: number
-  ) {
-    super(app, palette, tracker, suffix);
+  constructor(options: ILSPContextManagerOptions) {
+    super(options);
+    this.selector = options.selector;
+    this.entry_point = options.entry_point;
+    this.rank_group = options.rank_group;
+    this.rank_group_size = options.rank_group_size;
+    if (options.callback) {
+      options.callback(this);
+    }
   }
 
   attach_command(command: IFeatureCommand): void {
@@ -157,7 +180,7 @@ export abstract class ContextCommandManager extends LSPCommandManager {
       }
     }
     if (context == null) {
-      context = this.context_from_active_document();
+      context = this.current_adapter?.context_from_active_document();
     }
     return context;
   }
@@ -179,76 +202,19 @@ export abstract class ContextCommandManager extends LSPCommandManager {
 
   protected get_rank(command: IFeatureCommand): number {
     let is_relative =
-      command.is_rank_relative == null ? true : command.is_rank_relative;
-    if (is_relative && this.rank_group != null && this.rank_group_size) {
-      let relative = command.rank != null ? command.rank : 0;
+      typeof command.is_rank_relative === 'undefined'
+        ? true
+        : command.is_rank_relative;
+    if (
+      is_relative &&
+      typeof this.rank_group !== 'undefined' &&
+      this.rank_group_size
+    ) {
+      let relative = typeof command.rank !== 'undefined' ? command.rank : 0;
       return this.rank_group + relative / this.rank_group_size;
     } else {
       return command.rank != null ? command.rank : Infinity;
     }
-  }
-
-  abstract context_from_active_document(): ICommandContext;
-}
-
-export class NotebookCommandManager extends ContextCommandManager {
-  protected tracker: INotebookTracker;
-  selector = '.jp-Notebook .jp-CodeCell .jp-Editor';
-  entry_point = CommandEntryPoint.CellContextMenu;
-
-  get current_adapter() {
-    let notebook = this.tracker.currentWidget;
-    return notebook_adapters.get(notebook.id);
-  }
-
-  context_from_active_document(): ICommandContext | null {
-    if (!this.is_widget_current) {
-      return null;
-    }
-    let notebook = this.tracker.currentWidget;
-    let cell = notebook.content.activeCell;
-    let editor = cell.editor;
-    let ce_cursor = editor.getCursorPosition();
-    let cm_cursor = PositionConverter.ce_to_cm(ce_cursor) as IEditorPosition;
-
-    let virtual_editor = this.current_adapter?.virtual_editor;
-
-    if (virtual_editor == null) {
-      return null;
-    }
-
-    let root_position = virtual_editor.transform_from_notebook_to_root(
-      cell,
-      cm_cursor
-    );
-
-    if (root_position == null) {
-      console.warn('Could not retrieve current context', virtual_editor);
-      return null;
-    }
-
-    return this.current_adapter?.get_context(root_position);
-  }
-}
-
-export class FileEditorCommandManager extends ContextCommandManager {
-  protected tracker: IEditorTracker;
-  selector = '.jp-FileEditor';
-  entry_point = CommandEntryPoint.FileEditorContextMenu;
-
-  get current_adapter() {
-    let fileEditorId = this.tracker.currentWidget?.content?.id;
-    return fileEditorId && file_editor_adapters.get(fileEditorId);
-  }
-
-  context_from_active_document(): ICommandContext {
-    if (!this.is_widget_current) {
-      return null;
-    }
-    let editor = this.tracker.currentWidget.content.editor;
-    let ce_cursor = editor.getCursorPosition();
-    let root_position = PositionConverter.ce_to_cm(ce_cursor) as IRootPosition;
-    return this.current_adapter?.get_context(root_position);
   }
 }
 
@@ -258,7 +224,7 @@ export interface ICommandContext {
   connection: LSPConnection;
   virtual_position: IVirtualPosition;
   root_position: IRootPosition;
-  features: Map<string, ILSPFeature>;
-  editor: VirtualEditor;
-  adapter: JupyterLabWidgetAdapter;
+  features: Map<string, IFeatureEditorIntegration<any>>;
+  editor: IVirtualEditor<CodeEditor.IEditor>;
+  adapter: WidgetAdapter<IDocumentWidget>;
 }
