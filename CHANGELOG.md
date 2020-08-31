@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### `jupyter-lsp 0.9.2` (unreleased)
+
+- autodetects the `sql` language server for `.sql` files ([#328][])
+  - diagnostics are provided by `sqlint` which requires Node 11+
+    to work well (in contrast to currently required Node 10+).
+
+[#328]: https://github.com/krassowski/jupyterlab-lsp/pull/328
+
 ### `@krassowski/jupyterlab-lsp 2.0.0` (unreleased)
 
 - features
@@ -7,6 +15,7 @@
   - support for JupyterLab 2.2 ([#301][])
   - completer now displays server-provided documentation,
     and a kernel icon for kernel suggestions without type information ([#301][])
+  - add two icons themes for the completer (material and vscode) ([#322])
   - the documentation by the completer can be turned on or off ([#315])
   - continuous hinting (Hinterland mode) can be enabled in settings ([#315])
   - tokens in which the completer should not be triggered can be changed ([#315])
@@ -18,6 +27,7 @@
   - added icons for all the features and their commands ([#318])
   - refactored the codebase with a new architecture which allows dynamic feature, document widget adapter, and code editor registration ([#318])
   - the document in the connections list in the statusbar popover are now represented by easy-to-understand DocumentLocator (breadcrumbs) widget rather than an internal id ([bacc006])
+  - syntax highlighting mode is adjusted to the language with the majority of the code in an editor ([#319])
 
 - bug fixes
 
@@ -26,12 +36,15 @@
   - pressing "Cancel" rename during rename now correctly aborts the rename operation ([#318])
   - when a language server for a foreign document is not available an explanation is displayed (rather than the "Connecting..." status as before) ([4e5b2ad])
   - when jump target is not found a message is now shown instead of raising an exception ([00448d0])
-  - fixed status message expiration and replacement ([8798f2d])
+  - fixed status message expiration and replacement ([8798f2d]), ([#329])
   - fixed some context command rank issues introduced after an attempt of migration to nulls ([#318])
 
 [#301]: https://github.com/krassowski/jupyterlab-lsp/pull/301
 [#315]: https://github.com/krassowski/jupyterlab-lsp/pull/315
 [#318]: https://github.com/krassowski/jupyterlab-lsp/pull/318
+[#319]: https://github.com/krassowski/jupyterlab-lsp/pull/319
+[#322]: https://github.com/krassowski/jupyterlab-lsp/pull/322
+[#329]: https://github.com/krassowski/jupyterlab-lsp/pull/329
 [00448d0]: https://github.com/krassowski/jupyterlab-lsp/pull/318/commits/00448d0c55e7f9a1e7e0a5322f17610daac47dfe
 [bacc006]: https://github.com/krassowski/jupyterlab-lsp/pull/318/commits/bacc0066da0727ff7397574914bf0401e4d8f7cb
 [4e5b2ad]: https://github.com/krassowski/jupyterlab-lsp/pull/318/commits/4e5b2adf655120458cc8be4b453fe9a78c98e061

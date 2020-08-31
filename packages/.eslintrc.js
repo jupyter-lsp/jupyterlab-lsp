@@ -27,7 +27,7 @@ module.exports = {
   parserOptions: {
     project: 'packages/tsconfig.eslint.json'
   },
-  plugins: ['@typescript-eslint', 'jest'],
+  plugins: ['@typescript-eslint', 'jest', 'import'],
   rules: {
     '@typescript-eslint/ban-ts-ignore': 'warn',
     '@typescript-eslint/camelcase': 'off',
@@ -56,6 +56,11 @@ module.exports = {
     'no-undef': 'warn',
     'no-useless-escape': 'off',
     'prefer-const': 'off',
+    // deviations from jupyterlab, should not be changed
+    // a pitfall of enums is that they do not work correctly
+    // when circular dependencies are present
+    // (see https://stackoverflow.com/a/59665223/)
+    'import/no-cycle': 'error',
     // deviations from jupyterlab, should probably be fixed
     '@typescript-eslint/triple-slash-reference': 'off',
     'jest/no-test-callback': 'off',

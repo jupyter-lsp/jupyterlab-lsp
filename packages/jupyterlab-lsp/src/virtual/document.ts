@@ -2,8 +2,7 @@ import {
   IForeignCodeExtractor,
   IForeignCodeExtractorsRegistry
 } from '../extractors/types';
-import { CellMagicsMap, LineMagicsMap } from '../magics/maps';
-import { IOverridesRegistry } from '../magics/overrides';
+import { ICodeOverridesRegistry } from '../overrides/tokens';
 import { DefaultMap, until_ready } from '../utils';
 import { Signal } from '@lumino/signaling';
 import { CodeEditor } from '@jupyterlab/codeeditor';
@@ -17,6 +16,8 @@ import { IDocumentInfo } from 'lsp-ws-connection/src';
 import { DocumentConnectionManager } from '../connection_manager';
 import { create_console, EditorLogConsole } from './console';
 import IRange = CodeEditor.IRange;
+import { ReversibleOverridesMap } from '../overrides/maps';
+import { LanguageIdentifier } from '../lsp';
 
 type language = string;
 
@@ -32,12 +33,18 @@ interface IVirtualLine {
   editor: CodeEditor.IEditor;
 }
 
+export interface ICodeBlockOptions {
+  ce_editor: CodeEditor.IEditor;
+  value: string;
+}
+
 export interface IVirtualDocumentBlock {
   /**
    * Line corresponding to the block in the entire foreign document
    */
   virtual_line: number;
   virtual_document: VirtualDocument;
+  editor: CodeEditor.IEditor;
 }
 
 export type ForeignDocumentsMap = Map<IRange, IVirtualDocumentBlock>;
@@ -118,11 +125,17 @@ export class VirtualDocumentInfo implements IDocumentInfo {
 
 export namespace VirtualDocument {
   export interface IOptions {
-    language: string;
+    language: LanguageIdentifier;
     foreign_code_extractors: IForeignCodeExtractorsRegistry;
-    overrides_registry: IOverridesRegistry;
+    overrides_registry: ICodeOverridesRegistry;
     path: string;
     file_extension: string;
+    /**
+     * Notebooks or any other aggregates of documents are not supported
+     * by the LSP specification, and we need to make appropriate
+     * adjustments for them, pretending they are simple files
+     * so that the LSP servers do not refuse to cooperate.
+     */
     has_lsp_supported_file: boolean;
     /**
      * Being standalone is relevant to foreign documents
@@ -175,7 +188,7 @@ export class VirtualDocument {
   protected source_lines: Map<number, ISourceLine>;
 
   foreign_extractors: IForeignCodeExtractor[];
-  overrides_registry: IOverridesRegistry;
+  overrides_registry: ICodeOverridesRegistry;
   protected foreign_extractors_registry: IForeignCodeExtractorsRegistry;
   protected lines: Array<string>;
 
@@ -187,8 +200,8 @@ export class VirtualDocument {
   >;
 
   private _remaining_lifetime: number;
-  private cell_magics_overrides: CellMagicsMap;
-  private line_magics_overrides: LineMagicsMap;
+  private cell_magics_overrides: ReversibleOverridesMap;
+  private line_magics_overrides: ReversibleOverridesMap;
   private static instances_count = 0;
   public foreign_documents: Map<VirtualDocument.virtual_id, VirtualDocument>;
 
@@ -216,11 +229,11 @@ export class VirtualDocument {
       this.language in options.overrides_registry
         ? options.overrides_registry[this.language]
         : null;
-    this.cell_magics_overrides = new CellMagicsMap(
-      overrides ? overrides.cell_magics : []
+    this.cell_magics_overrides = new ReversibleOverridesMap(
+      overrides ? overrides.cell : []
     );
-    this.line_magics_overrides = new LineMagicsMap(
-      overrides ? overrides.line_magics : []
+    this.line_magics_overrides = new ReversibleOverridesMap(
+      overrides ? overrides.line : []
     );
     this.foreign_extractors_registry = options.foreign_code_extractors;
     this.foreign_extractors =
@@ -251,6 +264,7 @@ export class VirtualDocument {
     if (this.isDisposed) {
       return;
     }
+    this.isDisposed = true;
 
     this.parent = null;
 
@@ -276,9 +290,6 @@ export class VirtualDocument {
     this.line_magics_overrides = null;
     this.lines = null;
     this.overrides_registry = null;
-
-    // actually disposed now
-    this.isDisposed = true;
   }
 
   /**
@@ -480,14 +491,15 @@ export class VirtualDocument {
   }
 
   extract_foreign_code(
-    cell_code: string,
-    ce_editor: CodeEditor.IEditor,
+    block: ICodeBlockOptions,
     editor_shift: CodeEditor.IPosition
   ) {
     let foreign_document_map = new Map<
       CodeEditor.IRange,
       IVirtualDocumentBlock
     >();
+
+    let cell_code = block.value;
 
     for (let extractor of this.foreign_extractors) {
       // first, check if there is any foreign code:
@@ -506,15 +518,18 @@ export class VirtualDocument {
 
           foreign_document_map.set(result.range, {
             virtual_line: foreign_document.last_virtual_line,
-            virtual_document: foreign_document
+            virtual_document: foreign_document,
+            editor: block.ce_editor
           });
           let foreign_shift = {
             line: editor_shift.line + result.range.start.line,
             column: editor_shift.column + result.range.start.column
           };
           foreign_document.append_code_block(
-            result.foreign_code,
-            ce_editor,
+            {
+              value: result.foreign_code,
+              ce_editor: block.ce_editor
+            },
             foreign_shift,
             result.virtual_shift
           );
@@ -548,19 +563,17 @@ export class VirtualDocument {
   }
 
   prepare_code_block(
-    cell_code: string,
-    ce_editor: CodeEditor.IEditor,
+    block: ICodeBlockOptions,
     editor_shift: CodeEditor.IPosition = { line: 0, column: 0 }
   ) {
     let lines: Array<string>;
     let skip_inspect: Array<Array<VirtualDocument.id_path>>;
 
     let { cell_code_kept, foreign_document_map } = this.extract_foreign_code(
-      cell_code,
-      ce_editor,
+      block,
       editor_shift
     );
-    cell_code = cell_code_kept;
+    let cell_code = cell_code_kept;
 
     // cell magics are replaced if requested and matched
     let cell_override = this.cell_magics_overrides.override_for(cell_code);
@@ -590,16 +603,22 @@ export class VirtualDocument {
   }
 
   append_code_block(
-    cell_code: string,
-    ce_editor: CodeEditor.IEditor,
+    block: ICodeBlockOptions,
     editor_shift: CodeEditor.IPosition = { line: 0, column: 0 },
     virtual_shift?: CodeEditor.IPosition
   ) {
+    let cell_code = block.value;
+    let ce_editor = block.ce_editor;
+
+    if (this.isDisposed) {
+      console.warn('Cannot append code block: document disposed');
+      return;
+    }
+
     let source_cell_lines = cell_code.split('\n');
 
     let { lines, foreign_document_map, skip_inspect } = this.prepare_code_block(
-      cell_code,
-      ce_editor,
+      block,
       editor_shift
     );
 
@@ -909,10 +928,7 @@ export class UpdateManager {
               block: code_block,
               virtual_document: this.virtual_document
             });
-            this.virtual_document.append_code_block(
-              code_block.value,
-              code_block.ce_editor
-            );
+            this.virtual_document.append_code_block(code_block);
           }
 
           this.update_finished.emit(blocks);
@@ -934,9 +950,4 @@ export class UpdateManager {
     this.update_done = update;
     return update;
   }
-}
-
-export interface ICodeBlockOptions {
-  ce_editor: CodeEditor.IEditor;
-  value: string;
 }

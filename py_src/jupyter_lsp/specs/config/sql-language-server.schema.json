@@ -1,0 +1,60 @@
+{
+  "properties": {
+    "personalConfig": {
+      "connections": {
+        "type": "array",
+        "default": [
+          {
+            "name": "default sqlite3 connection",
+            "adapter": "sqlite3",
+            "filename": ":memory:",
+            "projectPaths": ["."]
+          }
+        ],
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "description": "Connection name (free-form text)",
+              "type": "string"
+            },
+            "adapter": {
+              "description": "Database type",
+              "type": "string",
+              "enum": ["mysql", "postgresql", "postgres", "sqlite3"]
+            },
+            "host": {
+              "description": "Database host",
+              "type": "string"
+            },
+            "port": {
+              "description": "Database port",
+              "type": "number"
+            },
+            "user": {
+              "description": "Database user",
+              "type": "string"
+            },
+            "database": {
+              "description": "Database name",
+              "type": "string"
+            },
+            "password": {
+              "description": "Database password",
+              "type": "string"
+            },
+            "filename": {
+              "description": "Database filename - only for sqlite3 (required); use ':memory:' for in-memory database",
+              "type": "string"
+            },
+            "projectPaths": {
+              "description": "Project path that you want to apply (if you don't set it configuration will not apply automatically when lsp's started up)",
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

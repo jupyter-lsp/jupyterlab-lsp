@@ -8,6 +8,7 @@
     "dockerfile-language-server-nodejs": "^0.0.22",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jest": "^23.8.2",
     "eslint-plugin-prettier": "^3.1.1",
     "eslint-plugin-react": "^7.19.0",
@@ -16,6 +17,7 @@
     "lerna": "^3.13.2",
     "precise-commits": "^1.0.2",
     "prettier": "^2.0.5",
+    "sql-language-server": "^0.11.4",
     "typescript": "~3.9.5",
     "unified-language-server": "^0.3.0",
     "vscode-css-languageserver-bin": "^1.4.0",
@@ -24,8 +26,7 @@
     "yaml-language-server": "~0.4.0"
   },
   "husky": {
-    "hooks": {
-    }
+    "hooks": {}
   },
   "prettier": {
     "arrowParens": "avoid",
@@ -35,9 +36,12 @@
   "private": true,
   "scripts": {
     "bootstrap": "jlpm --no-optional --prefer-offline && lerna bootstrap && jlpm lint && jlpm clean && jlpm build",
-    "build": "jlpm build:schema && jlpm build:meta && jlpm build:ws",
+    "build": "jlpm build:schema && jlpm build:completion-theme && jlpm build:theme-material && jlpm build:theme-vscode && jlpm build:meta && jlpm build:ws",
     "build:schema": "lerna run build:schema --stream",
     "build:meta": "lerna run build --stream --scope @krassowski/jupyterlab-lsp-metapackage",
+    "build:completion-theme": "lerna run build --stream --scope @krassowski/completion-theme",
+    "build:theme-vscode": "lerna run build --stream --scope @krassowski/theme-vscode",
+    "build:theme-material": "lerna run build --stream --scope @krassowski/theme-material",
     "build:ws": "lerna run build --stream --scope lsp-ws-connection",
     "watch": "lerna run --parallel watch",
     "bundle": "lerna run --parallel bundle",
