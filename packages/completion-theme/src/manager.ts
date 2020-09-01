@@ -1,3 +1,5 @@
+import { Signal } from '@lumino/signaling';
+
 import { kernelIcon, LabIcon } from '@jupyterlab/ui-components';
 
 import {
@@ -17,11 +19,15 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   private current_theme_id: string;
   private current_color_scheme_id: string;
   private icons_cache: Map<string, LabIcon>;
+  private _theme_registered: Signal<this, ICompletionTheme>;
+  private _color_scheme_registered: Signal<this, ICompletionColorScheme>;
 
   constructor() {
     this.themes = new Map();
     this.color_schemes = new Map();
     this.icons_cache = new Map();
+    this._theme_registered = new Signal(this);
+    this._color_scheme_registered = new Signal(this);
   }
 
   register_theme(theme: ICompletionTheme) {
@@ -30,6 +36,11 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
       console.warn(`Theme ${id} already registered, overwriting.`);
     }
     this.themes.set(id, theme);
+    this._theme_registered.emit(theme);
+  }
+
+  get theme_registered() {
+    return this._theme_registered;
   }
 
   register_color_scheme(color_scheme: ICompletionColorScheme) {
@@ -38,6 +49,10 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
       console.warn(`Color scheme ${id} already registered, overwriting.`);
     }
     this.color_schemes.set(id, color_scheme);
+    this._color_scheme_registered.emit(color_scheme);
+  }
+  get color_scheme_registered() {
+    return this._color_scheme_registered;
   }
 
   get_current_color_scheme_id() {

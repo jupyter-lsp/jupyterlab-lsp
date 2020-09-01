@@ -22,6 +22,8 @@ import { LSP_CATEGORY } from '../../command_manager';
 
 import { CompletionCM, CompletionLabIntegration } from './completion';
 
+import { defaultColorSchemes } from './color_schemes';
+
 // style imports
 import '../../../style/completion.css';
 import completionSvg from '../../../style/icons/completion.svg';
@@ -36,6 +38,7 @@ const FEATURE_ID = `${PLUGIN_ID}:completion`;
 export namespace CommandIds {
   export const showSettings = 'lsp:completion-show-settings';
   export const setTheme = 'lsp:completion-set-theme';
+  export const setColorScheme = 'lsp:completion-set-color-scheme';
 }
 
 export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
@@ -80,13 +83,14 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
       }
     });
 
-    // commands
-    app.commands.addCommand(CommandIds.setTheme, {
-      execute: (args: Partial<CodeCompletion>) =>
-        settings.set('theme', args.theme)
-    });
+    // themes
+    for (const color_scheme of defaultColorSchemes) {
+      iconsThemeManager.register_color_scheme(color_scheme);
+    }
 
+    // commands
     const label = 'Code Completion Settings';
+
     app.commands.addCommand(CommandIds.showSettings, {
       label: `${label} Editor`,
       execute: async () => {
@@ -101,9 +105,50 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
       }
     });
 
+    app.commands.addCommand(CommandIds.setTheme, {
+      label: args => `Use ${args.theme} Code Completion Icon Theme`,
+      execute: (args: Partial<CodeCompletion>) =>
+        settings.set('theme', args.theme)
+    });
+
+    app.commands.addCommand(CommandIds.setColorScheme, {
+      label: args =>
+        `Use ${args.colorScheme} Code Completion Icon Color Scheme`,
+      execute: (args: Partial<CodeCompletion>) =>
+        settings.set('colorScheme', args.colorScheme)
+    });
+
+    // palette
     commandPalette.addItem({
       category: LSP_CATEGORY,
       command: CommandIds.showSettings
     });
+
+    const addThemeToPalette = (themeId: string) => {
+      commandPalette.addItem({
+        category: LSP_CATEGORY,
+        command: CommandIds.setTheme,
+        args: { theme: themeId }
+      });
+    };
+
+    const addColorSchemeToPalette = (colorSchemeId: string) => {
+      commandPalette.addItem({
+        category: LSP_CATEGORY,
+        command: CommandIds.setColorScheme,
+        args: { colorScheme: colorSchemeId }
+      });
+    };
+
+    iconsThemeManager.theme_registered.connect((_, theme) =>
+      addThemeToPalette(theme.id)
+    );
+    iconsThemeManager.color_scheme_registered.connect((_, colorScheme) => {
+      addColorSchemeToPalette(colorScheme.id);
+    });
+
+    // backfill any themes/schemes
+    iconsThemeManager.theme_ids().map(addThemeToPalette);
+    iconsThemeManager.color_scheme_ids().map(addColorSchemeToPalette);
   }
 };

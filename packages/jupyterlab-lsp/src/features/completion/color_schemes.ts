@@ -1,4 +1,7 @@
-import { ICompletionColorScheme, RE_ICON_THEME_CLASS } from './types';
+import {
+  ICompletionColorScheme,
+  RE_ICON_THEME_CLASS
+} from '@krassowski/completion-theme/lib/types';
 
 export const defaultColorSchemes: ICompletionColorScheme[] = [
   {

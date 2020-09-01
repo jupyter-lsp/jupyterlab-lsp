@@ -1,4 +1,5 @@
 import { Token } from '@lumino/coreutils';
+import { ISignal } from '@lumino/signaling';
 import { LabIcon } from '@jupyterlab/ui-components';
 
 export const COMPLETER_THEME_PREFIX = 'lsp-completer-theme';
@@ -128,7 +129,14 @@ export type TCompletionLabIcons = Map<keyof ICompletionIconSet, LabIcon>;
 export interface ILSPCompletionThemeManager {
   register_theme(theme: ICompletionTheme): void;
 
+  theme_registered: ISignal<ILSPCompletionThemeManager, ICompletionTheme>;
+
   register_color_scheme(schema: ICompletionColorScheme): void;
+
+  color_scheme_registered: ISignal<
+    ILSPCompletionThemeManager,
+    ICompletionColorScheme
+  >;
 
   theme_ids(): string[];
 
