@@ -57,7 +57,7 @@ export interface ILicenseInfo {
    */
   name: string;
   /**
-   * SDPX identifer of the license.
+   * SPDX identifer of the license. See https://spdx.org/licenses
    */
   spdx: string;
   /**
