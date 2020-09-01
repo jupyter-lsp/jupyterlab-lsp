@@ -14,6 +14,7 @@ import { LSPStatus } from './components/statusbar';
 import { DocumentConnectionManager } from './connection_manager';
 import {
   ILSPAdapterManager,
+  ILSPCodeExtractorsManager,
   ILSPFeatureManager,
   ILSPVirtualEditorManager,
   PLUGIN_ID,
@@ -35,9 +36,18 @@ import { LabIcon } from '@jupyterlab/ui-components';
 import codeCheckSvg from '../style/icons/code-check.svg';
 import { DIAGNOSTICS_PLUGIN } from './features/diagnostics';
 import { COMPLETION_PLUGIN } from './features/completion';
+import { CODE_EXTRACTORS_MANAGER } from './extractors/manager';
+import { IForeignCodeExtractorsRegistry } from './extractors/types';
+import {
+  ILSPCodeOverridesManager,
+  ICodeOverridesRegistry
+} from './overrides/tokens';
+import { DEFAULT_TRANSCLUSIONS } from './transclusions/defaults';
+import { SYNTAX_HIGHLIGHTING_PLUGIN } from './features/syntax_highlighting';
 import { COMPLETION_THEME_MANAGER } from '@krassowski/completion-theme';
 import { plugin as THEME_VSCODE } from '@krassowski/theme-vscode';
 import { plugin as THEME_MATERIAL } from '@krassowski/theme-material';
+import { CODE_OVERRIDES_MANAGER } from './overrides';
 
 export const codeCheckIcon = new LabIcon({
   name: 'lsp:codeCheck',
@@ -101,6 +111,8 @@ export interface ILSPExtension {
   language_server_manager: LanguageServerManager;
   feature_manager: ILSPFeatureManager;
   editor_type_manager: ILSPVirtualEditorManager;
+  foreign_code_extractors: IForeignCodeExtractorsRegistry;
+  code_overrides: ICodeOverridesRegistry;
 }
 
 export class LSPExtension implements ILSPExtension {
@@ -116,7 +128,9 @@ export class LSPExtension implements ILSPExtension {
     paths: IPaths,
     status_bar: IStatusBar,
     adapterManager: ILSPAdapterManager,
-    public editor_type_manager: ILSPVirtualEditorManager
+    public editor_type_manager: ILSPVirtualEditorManager,
+    private code_extractors_manager: ILSPCodeExtractorsManager,
+    private code_overrides_manager: ILSPCodeOverridesManager
   ) {
     this.language_server_manager = new LanguageServerManager({});
     this.connection_manager = new DocumentConnectionManager({
@@ -168,6 +182,14 @@ export class LSPExtension implements ILSPExtension {
     });
   }
 
+  get foreign_code_extractors() {
+    return this.code_extractors_manager.registry;
+  }
+
+  get code_overrides() {
+    return this.code_overrides_manager.registry;
+  }
+
   private updateOptions(settings: ISettingRegistry.ISettings) {
     const options = settings.composite;
 
@@ -189,7 +211,9 @@ const plugin: JupyterFrontEndPlugin<ILSPFeatureManager> = {
     IPaths,
     IStatusBar,
     ILSPAdapterManager,
-    ILSPVirtualEditorManager
+    ILSPVirtualEditorManager,
+    ILSPCodeExtractorsManager,
+    ILSPCodeOverridesManager
   ],
   activate: (app, ...args) => {
     let extension = new LSPExtension(
@@ -201,7 +225,9 @@ const plugin: JupyterFrontEndPlugin<ILSPFeatureManager> = {
         IPaths,
         IStatusBar,
         ILSPAdapterManager,
-        ILSPVirtualEditorManager
+        ILSPVirtualEditorManager,
+        ILSPCodeExtractorsManager,
+        ILSPCodeOverridesManager
       ])
     );
     return extension.feature_manager;
@@ -217,10 +243,12 @@ const default_features: JupyterFrontEndPlugin<void>[] = [
   HOVER_PLUGIN,
   RENAME_PLUGIN,
   HIGHLIGHTS_PLUGIN,
-  DIAGNOSTICS_PLUGIN
+  DIAGNOSTICS_PLUGIN,
+  SYNTAX_HIGHLIGHTING_PLUGIN
 ];
 
 const plugins: JupyterFrontEndPlugin<any>[] = [
+  CODE_EXTRACTORS_MANAGER,
   WIDGET_ADAPTER_MANAGER,
   NOTEBOOK_ADAPTER,
   FILE_EDITOR_ADAPTER,
@@ -229,7 +257,9 @@ const plugins: JupyterFrontEndPlugin<any>[] = [
   COMPLETION_THEME_MANAGER,
   THEME_VSCODE,
   THEME_MATERIAL,
+  CODE_OVERRIDES_MANAGER,
   plugin,
+  ...DEFAULT_TRANSCLUSIONS,
   ...default_features
 ];
 

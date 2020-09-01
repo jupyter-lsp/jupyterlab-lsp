@@ -32,4 +32,3 @@ variables:
 jobs:
   - template: ci/job.lint.yml
   - template: ci/job.test.yml
-  - template: ci/job.docs.yml

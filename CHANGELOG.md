@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### `jupyter-lsp 0.9.2` (unreleased)
+
+- autodetects the `sql` language server for `.sql` files ([#328][])
+  - diagnostics are provided by `sqlint` which requires Node 11+
+    to work well (in contrast to currently required Node 10+).
+
+[#328]: https://github.com/krassowski/jupyterlab-lsp/pull/328
+
 ### `@krassowski/jupyterlab-lsp 2.0.0` (unreleased)
 
 - features
@@ -19,6 +27,8 @@
   - added icons for all the features and their commands ([#318])
   - refactored the codebase with a new architecture which allows dynamic feature, document widget adapter, and code editor registration ([#318])
   - the document in the connections list in the statusbar popover are now represented by easy-to-understand DocumentLocator (breadcrumbs) widget rather than an internal id ([bacc006])
+  - syntax highlighting mode is adjusted to the language with the majority of the code in an editor ([#319])
+  - copy diagnostics message and filter diagnostics from context menu of Diagnostic Panel ([#330])
 
 - bug fixes
 
@@ -27,13 +37,16 @@
   - pressing "Cancel" rename during rename now correctly aborts the rename operation ([#318])
   - when a language server for a foreign document is not available an explanation is displayed (rather than the "Connecting..." status as before) ([4e5b2ad])
   - when jump target is not found a message is now shown instead of raising an exception ([00448d0])
-  - fixed status message expiration and replacement ([8798f2d])
+  - fixed status message expiration and replacement ([8798f2d]), ([#329])
   - fixed some context command rank issues introduced after an attempt of migration to nulls ([#318])
 
 [#301]: https://github.com/krassowski/jupyterlab-lsp/pull/301
 [#315]: https://github.com/krassowski/jupyterlab-lsp/pull/315
 [#318]: https://github.com/krassowski/jupyterlab-lsp/pull/318
+[#319]: https://github.com/krassowski/jupyterlab-lsp/pull/319
 [#322]: https://github.com/krassowski/jupyterlab-lsp/pull/322
+[#329]: https://github.com/krassowski/jupyterlab-lsp/pull/329
+[#330]: https://github.com/krassowski/jupyterlab-lsp/pull/330
 [00448d0]: https://github.com/krassowski/jupyterlab-lsp/pull/318/commits/00448d0c55e7f9a1e7e0a5322f17610daac47dfe
 [bacc006]: https://github.com/krassowski/jupyterlab-lsp/pull/318/commits/bacc0066da0727ff7397574914bf0401e4d8f7cb
 [4e5b2ad]: https://github.com/krassowski/jupyterlab-lsp/pull/318/commits/4e5b2adf655120458cc8be4b453fe9a78c98e061

@@ -1,8 +1,6 @@
 import { WidgetAdapter } from '../adapter';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { until_ready } from '../../utils';
-import { language_specific_overrides } from '../../magics/defaults';
-import { foreign_code_extractors } from '../../extractors/defaults';
 import { Cell } from '@jupyterlab/cells';
 import * as nbformat from '@jupyterlab/nbformat';
 import ILanguageInfoMetadata = nbformat.ILanguageInfoMetadata;
@@ -61,6 +59,7 @@ export class NotebookAdapter extends WidgetAdapter<NotebookPanel> {
     if (this.isDisposed) {
       return;
     }
+
     this.widget.context.sessionContext.kernelChanged.disconnect(
       this.on_kernel_changed,
       this
@@ -69,8 +68,11 @@ export class NotebookAdapter extends WidgetAdapter<NotebookPanel> {
       this.activeCellChanged,
       this
     );
-    this.ce_editor_to_cell.clear();
+
     super.dispose();
+
+    // editors are needed for the parent dispose() to unbind signals, so they are the last to go
+    this.ce_editor_to_cell.clear();
   }
 
   is_ready = () => {
@@ -161,8 +163,8 @@ export class NotebookAdapter extends WidgetAdapter<NotebookPanel> {
     return new VirtualDocument({
       language: this.language,
       path: this.document_path,
-      overrides_registry: language_specific_overrides,
-      foreign_code_extractors: foreign_code_extractors,
+      overrides_registry: this.code_overrides,
+      foreign_code_extractors: this.foreign_code_extractors,
       file_extension: this.language_file_extension,
       // notebooks are continuous, each cell is dependent on the previous one
       standalone: false,

@@ -199,7 +199,7 @@ Select Completer Suggestion
 
 Completer Should Suggest
     [Arguments]    ${text}
-    Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
+    Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]    timeout=10s
     Capture Page Screenshot    ${text.replace(' ', '_')}.png
 
 Completer Should Include Icon

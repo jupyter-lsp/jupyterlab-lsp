@@ -17,6 +17,7 @@
     "lerna": "^3.13.2",
     "precise-commits": "^1.0.2",
     "prettier": "^2.0.5",
+    "sql-language-server": "^0.11.4",
     "typescript": "~3.9.5",
     "unified-language-server": "^0.3.0",
     "vscode-css-languageserver-bin": "^1.4.0",

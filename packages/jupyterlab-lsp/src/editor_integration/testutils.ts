@@ -44,6 +44,8 @@ import { ServiceManager } from '@jupyterlab/services';
 import { FeatureManager, ILSPExtension } from '../index';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { IFeatureSettings } from '../feature';
+import { IForeignCodeExtractorsRegistry } from '../extractors/types';
+import { ICodeOverridesRegistry } from '../overrides/tokens';
 import { Signal } from '@lumino/signaling';
 
 export interface ITestEnvironment {
@@ -94,6 +96,8 @@ export class MockExtension implements ILSPExtension {
   language_server_manager: LanguageServerManager;
   feature_manager: ILSPFeatureManager;
   editor_type_manager: ILSPVirtualEditorManager;
+  foreign_code_extractors: IForeignCodeExtractorsRegistry;
+  code_overrides: ICodeOverridesRegistry;
 
   constructor() {
     this.app = null;
@@ -108,6 +112,8 @@ export class MockExtension implements ILSPExtension {
       name: 'CodeMirrorEditor',
       supports: CodeMirrorEditor
     });
+    this.foreign_code_extractors = {};
+    this.code_overrides = {};
   }
 }
 

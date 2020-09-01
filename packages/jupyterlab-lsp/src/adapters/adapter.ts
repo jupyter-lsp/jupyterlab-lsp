@@ -17,6 +17,7 @@ import { ILSPExtension } from '../index';
 import { IFeatureEditorIntegration, IFeature } from '../feature';
 import { EditorAdapter } from '../editor_integration/editor_adapter';
 import IEditor = CodeEditor.IEditor;
+import { LanguageIdentifier } from '../lsp';
 
 export class StatusMessage {
   /**
@@ -126,6 +127,14 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     this.widget.disposed.connect(this.dispose, this);
   }
 
+  protected get foreign_code_extractors() {
+    return this.extension.foreign_code_extractors;
+  }
+
+  protected get code_overrides() {
+    return this.extension.code_overrides;
+  }
+
   on_connection_closed(
     manager: DocumentConnectionManager,
     { virtual_document }: IDocumentConnectionData
@@ -144,6 +153,7 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     if (this.isDisposed) {
       return;
     }
+
     if (this.virtual_editor?.virtual_document) {
       this.disconnect_adapter(this.virtual_editor?.virtual_document);
     }
@@ -173,7 +183,6 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     this.connection_manager = null;
     this.widget = null;
 
-    // actually disposed
     this.isDisposed = true;
   }
 
@@ -187,8 +196,9 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     return this.widget.id;
   }
 
-  get language(): string {
-    // the values should follow https://microsoft.github.io/language-server-protocol/specification guidelines
+  get language(): LanguageIdentifier {
+    // the values should follow https://microsoft.github.io/language-server-protocol/specification guidelines,
+    // see the table in https://microsoft.github.io/language-server-protocol/specification#textDocumentItem
     if (mime_type_language_map.hasOwnProperty(this.mime_type)) {
       return mime_type_language_map[this.mime_type] as string;
     } else {
@@ -251,6 +261,10 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
    * public for use in tests (but otherwise could be private)
    */
   public update_documents() {
+    if (this.isDisposed) {
+      console.warn('Cannot update documents: adapter disposed');
+      return;
+    }
     return this.virtual_editor.virtual_document.update_manager.update_documents(
       this.editors.map(ce_editor => {
         return {
@@ -388,6 +402,11 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     document: VirtualDocument,
     is_init = false
   ) {
+    if (this.isDisposed) {
+      console.warn('Cannot swap document: adapter disposed');
+      return;
+    }
+
     // TODO only send the difference, using connection.sendSelectiveChange()
     let connection = this.connection_manager.connections.get(
       virtual_document.id_path
