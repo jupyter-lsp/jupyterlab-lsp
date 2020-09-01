@@ -148,11 +148,11 @@ export interface ILSPCompletionThemeManager {
 
   set_theme(theme_id: string | null): void;
 
-  get_theme(theme_id: string): ICompletionTheme;
+  get_theme(theme_id: string | null): ICompletionTheme;
 
-  set_color_scheme(scheme_id: string): void;
+  set_color_scheme(scheme_id: string | null): void;
 
-  get_color_scheme(scheme_id: string): ICompletionColorScheme;
+  get_color_scheme(scheme_id: string | null): ICompletionColorScheme;
 
   get_icon(type: string): LabIcon | null;
 

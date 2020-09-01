@@ -201,16 +201,19 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
                             name="completion-icon-theme"
                             checked={id === composite.theme}
                             onChange={e =>
-                              settings.set('theme', e.currentTarget.value)
+                              settings.set(
+                                'theme',
+                                e.currentTarget.value || null
+                              )
                             }
                           />
                           {themes.get(id).name}
                         </label>
                       </th>
-                      {this.renderLicense(themes.get(id).icons.license)}
+                      {this.renderLicense(themes.get(id).icons?.license)}
                       <td>
                         <i>
-                          {themes.get(id).icons.license.modifications || ''}
+                          {themes.get(id).icons?.license?.modifications || ''}
                         </i>
                       </td>
                     </tr>
@@ -293,6 +296,9 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
   };
 
   protected renderLicense(license: ILicenseInfo) {
+    if (license == null) {
+      return <th></th>;
+    }
     return (
       <th>
         <a
@@ -407,7 +413,9 @@ export namespace SettingsEditor {
     async refresh() {
       const { _manager } = this;
       const themeIds = _manager.theme_ids();
-      themeIds.sort();
+      themeIds.sort((a, b) =>
+        a == null ? 1 : b == null ? -1 : a.localeCompare(b)
+      );
 
       const colorSchemeIds = _manager.color_scheme_ids();
       colorSchemeIds.sort();

@@ -23,6 +23,7 @@ import { LSP_CATEGORY } from '../../command_manager';
 import { CompletionCM, CompletionLabIntegration } from './completion';
 
 import { defaultColorSchemes } from './color_schemes';
+import { defaultThemes } from './themes';
 
 // style imports
 import '../../../style/completion.css';
@@ -83,7 +84,10 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
       }
     });
 
-    // themes
+    // icons
+    for (const theme of defaultThemes) {
+      iconsThemeManager.register_theme(theme);
+    }
     for (const color_scheme of defaultColorSchemes) {
       iconsThemeManager.register_color_scheme(color_scheme);
     }

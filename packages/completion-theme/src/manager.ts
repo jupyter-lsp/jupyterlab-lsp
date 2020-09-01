@@ -71,7 +71,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     return this.current_theme_id;
   }
 
-  get_theme(id: string) {
+  get_theme(id: string | null) {
     return this.themes.get(id);
   }
 
@@ -105,17 +105,14 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   }
 
   protected async update_icons_set() {
-    if (this.current_theme === null) {
-      return;
-    }
-    this.current_icons = await this.get_icons(
-      this.current_theme,
-      this.current_color_scheme
-    );
+    this.current_icons =
+      this.current_theme?.id == null
+        ? new Map()
+        : await this.get_icons(this.current_theme, this.current_color_scheme);
   }
 
   get_icon(type: string): LabIcon {
-    if (this.current_theme === null) {
+    if (this.current_theme.id === null) {
       return null;
     }
     let options = this.current_theme.icons.options || {};
@@ -137,16 +134,19 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   }
 
   async set_theme(id: string | null) {
-    if (this.current_theme_id) {
+    if (this.current_theme_id != null) {
       document.body.classList.remove(this.current_theme_class);
     }
-    if (!this.themes.has(id)) {
+    const theme = this.themes.get(id);
+    if (theme == null) {
       console.warn(
         `[LSP][Completer] Icons theme ${id} cannot be set yet (it may be loaded later).`
       );
     }
     this.current_theme_id = id;
-    document.body.classList.add(this.current_theme_class);
+    if (id != null) {
+      document.body.classList.add(this.current_theme_class);
+    }
     await this.update_icons_set();
   }
 
