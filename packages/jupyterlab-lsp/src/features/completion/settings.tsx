@@ -42,26 +42,26 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
           <nav>
             <ul>
               <li>
-                <a href="#completion-settings-documentation-box">
-                  Show Documentation Box
-                </a>
-              </li>
-              <li>
-                <a href="#completion-settings-continuous-hinting">
-                  Continuous Hinting
+                <a href="#completion-settings-completer-display">
+                  Completer Display
                 </a>
                 <ul>
                   <li>
-                    <a href="#completion-settings-continuous-hinting-enable">
-                      Enable
+                    <a href="#completion-settings-continuous-hinting">
+                      Continuous Hinting
                     </a>
                   </li>
                   <li>
-                    <a href="#completion-settings-continuous-hinting-suppress-in">
+                    <a href="#completion-settings-suppress-invoke-in">
                       Suppress In
                     </a>
                   </li>
                 </ul>
+              </li>
+              <li>
+                <a href="#completion-settings-documentation-box">
+                  Documentation Box
+                </a>
               </li>
               <li>
                 <a href="#completion-settings-theme">Theme</a>
@@ -85,31 +85,17 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
 
         <article>
           <section>
-            <h2 id="completion-settings-documentation-box">
-              Show Documentation Box
-            </h2>
-            <label>
-              <input
-                type="checkbox"
-                defaultChecked={composite.showDocumentation}
-                onChange={e =>
-                  settings.set('showDocumentation', e.currentTarget.checked)
-                }
-              />{' '}
-              Enabled
-            </label>
-            <blockquote>
-              Whether to show documentation box next to the completion
-              suggestions.
-            </blockquote>
-          </section>
-
-          <section>
-            <h2 id="completion-settings-continuous-hinting">
-              Continuous Hinting
+            <h2 id="completion-settings-completer-display">
+              Completer Display
             </h2>
             <section>
-              <h3 id="completion-settings-continuous-hinting-enable">Enable</h3>
+              <h3 id="completion-settings-continuous-hinting">
+                Continuous Hinting
+              </h3>
+              <blockquote>
+                Show completions after every key stroke, as in <i>Hinterland</i>
+                .
+              </blockquote>
               <label>
                 <input
                   type="checkbox"
@@ -120,15 +106,15 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
                 />{' '}
                 Enabled
               </label>
-              <blockquote>
-                Whether to enable continuous hinting (Hinterland mode).
-              </blockquote>
             </section>
 
             <section>
-              <h3 id="completion-settings-continuous-hinting-suppress-in">
-                Suppress In
-              </h3>
+              <h3 id="completion-settings-suppress-invoke-in">Suppress In</h3>
+              <blockquote>
+                CodeMirror token names for which the auto-invoke should be
+                suppressed, including <i>magic</i> characters. The available
+                token names vary between languages and magic characters.
+              </blockquote>
               <input
                 type="text"
                 className="jp-mod-styled"
@@ -141,14 +127,39 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
                 }}
               />
               <details>
-                <summary>Detected Tokens...</summary>
-                {tokenNames.map(this.renderToken)}
+                <summary>
+                  {this.model.tokenNames.length} Detected Tokens...
+                </summary>
+                <button
+                  onClick={() => this.model.refresh().catch(console.warn)}
+                  className="jp-mod-styled jp-mod-accept"
+                >
+                  {' '}
+                  Refresh Tokens
+                </button>
+                <div>{tokenNames.map(this.renderToken)}</div>
               </details>
-              <blockquote>
-                An array of CodeMirror tokens for which the auto-invoke should
-                be suppressed. The token names vary between languages (modes).
-              </blockquote>
             </section>
+          </section>
+
+          <section>
+            <h2 id="completion-settings-documentation-box">
+              Show Documentation Box
+            </h2>
+            <blockquote>
+              Whether to show documentation box next to the completion
+              suggestions.
+            </blockquote>
+            <label>
+              <input
+                type="checkbox"
+                defaultChecked={composite.showDocumentation}
+                onChange={e =>
+                  settings.set('showDocumentation', e.currentTarget.checked)
+                }
+              />{' '}
+              Enabled
+            </label>
           </section>
 
           <section>
@@ -160,12 +171,12 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
               </div>
             </details>
             <section>
-              <h3 id="completion-settings-theme-icons">
-                Icons <code>{composite.theme}</code>
-              </h3>
               <blockquote>
                 Pick an icon theme to display in the completer dialog.
               </blockquote>
+              <h3 id="completion-settings-theme-icons">
+                Icons <code>{composite.theme}</code>
+              </h3>
               <table>
                 <thead>
                   <tr>
@@ -200,6 +211,7 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
               <h3 id="completion-settings-theme-colors">
                 Colors <code>{composite.colorScheme}</code>
               </h3>
+              <blockquote>Pick an icon color scheme</blockquote>
               {['themed', 'greyscale'].map(v => (
                 <label key={v}>
                   <input
@@ -211,7 +223,6 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
                   {v}
                 </label>
               ))}
-              <blockquote>Pick an icon color scheme</blockquote>
             </section>
           </section>
         </article>
@@ -240,13 +251,15 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
     const { settings } = this.model;
     return (
       <label key={token} className={TOKEN_LABEL_CLASS}>
-        <input
-          type="checkbox"
-          onChange={this.onTokenClicked}
-          value={token}
-          checked={settings.composite.suppressInvokeIn.indexOf(token) > -1}
-        />
-        <code>{token}</code>
+        <code>
+          <input
+            type="checkbox"
+            onChange={this.onTokenClicked}
+            value={token}
+            checked={settings.composite.suppressInvokeIn.indexOf(token) > -1}
+          />
+          {token}
+        </code>
       </label>
     );
   };

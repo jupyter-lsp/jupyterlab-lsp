@@ -47,6 +47,13 @@
   margin: var(--jp-ui-font-size0);
   margin-bottom: 0;
   margin-right: 0;
+  min-width: 10em;
+}
+
+.jp-RenderedHTMLCommon .jp-LSPCompletion-Settings-TokenLabel code {
+  padding: calc(0.5 * var(--jp-ui-font-size0));
+  border-radius: calc(0.5 * var(--jp-ui-font-size0));
+  display: inline-block;
 }
 
 .jp-LSPCompletion-IconPreview {
