@@ -16,6 +16,7 @@ export const plugin: JupyterFrontEndPlugin<void> = {
           name: 'Creative Commons Attribution 4.0 International Public License',
           spdx: 'CC-BY-4.0',
           licensor: 'Microsoft',
+          modifications: 'Added JupyterLab icon classes',
           url: 'https://github.com/microsoft/vscode-icons/blob/master/LICENSE'
         },
         svg: async () =>

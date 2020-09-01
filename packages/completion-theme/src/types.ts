@@ -1,7 +1,9 @@
 import { Token } from '@lumino/coreutils';
 import { LabIcon } from '@jupyterlab/ui-components';
 
-export const COMPLETER_THEME_PREFIX = 'lsp-completer-theme-';
+export const COMPLETER_THEME_PREFIX = 'lsp-completer-theme';
+
+export const RE_ICON_THEME_CLASS = /jp-icon[^" ]+/g;
 
 // TODO, once features are extracted to standalone packages,
 //  import the CompletionItemKindStrings from @feature-completer
@@ -66,6 +68,10 @@ export interface ILicenseInfo {
    * URL of the full license text.
    */
   url: string;
+  /**
+   * Modifications made to the icons, if any.
+   */
+  modifications?: string;
 }
 
 export interface ICompletionTheme {
@@ -102,31 +108,52 @@ export interface ICompletionTheme {
   };
 }
 
+export interface ICompletionColorScheme {
+  /**
+   * Scheme identifier
+   */
+  id: string;
+  /**
+   * Transforms an icon SVG string, usually by manipulating jp-icon* classes
+   */
+  transform(svg: string): string;
+
+  title: string;
+
+  description: string;
+}
+
 export type TCompletionLabIcons = Map<keyof ICompletionIconSet, LabIcon>;
 
 export interface ILSPCompletionThemeManager {
-  get_icon(type: string): LabIcon | null;
+  register_theme(theme: ICompletionTheme): void;
+
+  register_color_scheme(schema: ICompletionColorScheme): void;
+
+  theme_ids(): string[];
+
+  color_scheme_ids(): string[];
+
+  get_current_theme_id(): string;
+
+  get_current_color_scheme_id(): string;
 
   set_theme(theme_id: string | null): void;
 
   get_theme(theme_id: string): ICompletionTheme;
 
-  get_current_theme_id(): string;
-
   set_color_scheme(scheme_id: string): void;
 
-  get_color_scheme(): string;
+  get_color_scheme(scheme_id: string): ICompletionColorScheme;
 
-  register_theme(theme: ICompletionTheme): void;
+  get_icon(type: string): LabIcon | null;
 
   get_icons(
     theme: ICompletionTheme,
-    color_scheme: string
+    color_scheme: ICompletionColorScheme
   ): Promise<TCompletionLabIcons>;
-
-  theme_ids(): string[];
 }
 
 export const ILSPCompletionThemeManager = new Token<ILSPCompletionThemeManager>(
-  PLUGIN_ID + ':ILSPCompletionThemeManager'
+  `${PLUGIN_ID}:ILSPCompletionThemeManager`
 );

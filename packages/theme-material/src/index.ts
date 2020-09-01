@@ -19,6 +19,7 @@ export const plugin: JupyterFrontEndPlugin<void> = {
           name: 'SIL Open Font License 1.1',
           spdx: 'OFL-1.1',
           licensor: 'Austin Andrews and Google',
+          modifications: 'Added JupyterLab icon classes',
           url:
             'https://github.com/Templarian/MaterialDesign/blob/master/LICENSE'
         },

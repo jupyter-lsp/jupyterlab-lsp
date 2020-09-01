@@ -6,7 +6,8 @@ import { VDomRenderer, VDomModel } from '@jupyterlab/apputils';
 import {
   ILSPCompletionThemeManager,
   ICompletionTheme,
-  ILicenseInfo
+  ILicenseInfo,
+  ICompletionColorScheme
 } from '@krassowski/completion-theme/lib/types';
 
 import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
@@ -16,6 +17,7 @@ import { IFeatureSettings } from '../../feature';
 
 type TThemeKindIcons = Map<string, LabIcon>;
 type TThemeMap = Map<string, ICompletionTheme>;
+type TColorSchemeMap = Map<string, ICompletionColorScheme>;
 
 const CONFIG_CLASS = 'jp-LSPCompletion-Settings';
 const TOKEN_QUERY = '.CodeMirror-line span[class*=cm]';
@@ -29,7 +31,15 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
   }
 
   protected render() {
-    const { theme_ids, themes, settings, tokenNames, icons } = this.model;
+    const {
+      themeIds,
+      themes,
+      colorSchemes,
+      colorSchemeIds,
+      settings,
+      tokenNames,
+      icons
+    } = this.model;
     const { composite } = settings;
 
     this.addClass(CONFIG_CLASS);
@@ -183,23 +193,29 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
                     <th>Current Theme</th>
                     <th>Theme Name</th>
                     <th>License</th>
+                    <th>Modifications</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {theme_ids.map(id => (
+                  {themeIds.map(id => (
                     <tr key={id}>
-                      <th>{themes.get(id).name}</th>
-                      {this.renderLicense(themes.get(id).icons.license)}
                       <td>
                         <input
                           type="radio"
                           defaultValue={id}
-                          name="current-theme"
+                          name="completion-icon-theme"
                           checked={id === composite.theme}
                           onChange={e =>
                             settings.set('theme', e.currentTarget.value)
                           }
                         />
+                      </td>
+                      <td>{themes.get(id).name}</td>
+                      {this.renderLicense(themes.get(id).icons.license)}
+                      <td>
+                        <i>
+                          {themes.get(id).icons.license.modifications || ''}
+                        </i>
                       </td>
                     </tr>
                   ))}
@@ -212,17 +228,34 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
                 Colors <code>{composite.colorScheme}</code>
               </h3>
               <blockquote>Pick an icon color scheme</blockquote>
-              {['themed', 'greyscale'].map(v => (
-                <label key={v}>
-                  <input
-                    type="radio"
-                    name="symbol-icon-color"
-                    checked={composite.colorScheme === v}
-                    onChange={e => settings.set('colorScheme', v)}
-                  />
-                  {v}
-                </label>
-              ))}
+
+              <table>
+                <thead>
+                  <tr>
+                    <th>Current Color Scheme</th>
+                    <th>Scheme Name</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {colorSchemeIds.map(colorSchemeId => (
+                    <tr key={colorSchemeId}>
+                      <td>
+                        <input
+                          type="radio"
+                          name="completion-icon-color-scheme"
+                          checked={composite.colorScheme === colorSchemeId}
+                          onChange={e =>
+                            settings.set('colorScheme', colorSchemeId)
+                          }
+                        />
+                      </td>
+                      <td>{colorSchemes.get(colorSchemeId).title}</td>
+                      <td>{colorSchemes.get(colorSchemeId).description}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </section>
           </section>
         </article>
@@ -284,7 +317,7 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
     if (icon != null) {
       return (
         <label key={kind}>
-          <icon.react />
+          <icon.react width="16px" />
           {kind}
         </label>
       );
@@ -297,10 +330,12 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
 export namespace SettingsEditor {
   export class Model extends VDomModel {
     protected _manager: ILSPCompletionThemeManager;
-    protected _theme_ids: string[] = [];
+    protected _themeIds: string[] = [];
+    protected _colorSchemeIds: string[] = [];
     protected _icons: TThemeKindIcons = new Map();
     protected _kinds: string[] = [];
     protected _themes: TThemeMap = new Map();
+    protected _colorSchemes: TColorSchemeMap = new Map();
     protected _settings: IFeatureSettings<LSPCompletionSettings>;
     protected _tokenNames: string[] = [];
 
@@ -321,12 +356,20 @@ export namespace SettingsEditor {
       return this._settings;
     }
 
-    get theme_ids() {
-      return this._theme_ids;
+    get themeIds() {
+      return this._themeIds;
     }
 
     get themes() {
       return this._themes;
+    }
+
+    get colorSchemeIds() {
+      return this._colorSchemeIds;
+    }
+
+    get colorSchemes() {
+      return this._colorSchemes;
     }
 
     get kinds() {
@@ -368,25 +411,33 @@ export namespace SettingsEditor {
 
     async refresh() {
       const { _manager } = this;
-      let theme_ids = _manager.theme_ids();
-      theme_ids.sort();
+      const themeIds = _manager.theme_ids();
+      themeIds.sort();
+
+      const colorSchemeIds = _manager.color_scheme_ids();
+      colorSchemeIds.sort();
 
       let icons: TThemeKindIcons = new Map();
       let kinds: string[] = [];
       const themes: TThemeMap = new Map();
+      const schemes: TColorSchemeMap = new Map();
 
-      for (const theme_id of theme_ids) {
-        themes.set(theme_id, _manager.get_theme(theme_id));
+      for (const themeId of themeIds) {
+        themes.set(themeId, _manager.get_theme(themeId));
       }
 
-      const theme_id = this.settings.composite.theme;
-      if (theme_id) {
-        const theme = themes.get(theme_id);
-        themes.set(theme_id, theme);
-        const theme_icons = await _manager.get_icons(
-          theme,
-          this.settings?.composite.colorScheme
-        );
+      for (const colorSchemeId of colorSchemeIds) {
+        schemes.set(colorSchemeId, _manager.get_color_scheme(colorSchemeId));
+      }
+
+      const themeId = this.settings.composite.theme;
+      const colorSchemeId = this.settings.composite.colorScheme;
+
+      if (themeId && colorSchemeId) {
+        const theme = themes.get(themeId);
+        const color_scheme = schemes.get(colorSchemeId);
+        themes.set(themeId, theme);
+        const theme_icons = await _manager.get_icons(theme, color_scheme);
         for (const [kind, icon] of theme_icons.entries()) {
           icons.set(kind, icon);
           if (kinds.indexOf(kind) < 0) {
@@ -396,11 +447,13 @@ export namespace SettingsEditor {
       }
 
       kinds.sort();
-      this._theme_ids = theme_ids;
+      this._themeIds = themeIds;
+      this._colorSchemeIds = colorSchemeIds;
       this._kinds = kinds;
       this._icons = icons;
       this._themes = themes;
       this._tokenNames = this.refreshTokenNames();
+      this._colorSchemes = schemes;
       this.stateChanged.emit(void 0);
     }
   }
