@@ -48,7 +48,6 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
     return (
       <div>
         <header>
-          <h1>Code Completion Settings</h1>
           <nav>
             <ul>
               <li>
@@ -119,9 +118,22 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
             </section>
 
             <section>
-              <h3 id="completion-settings-suppress-invoke-in">Suppress In</h3>
+              <h3 id="completion-settings-suppress-invoke-in">
+                Suppress In Tokens
+              </h3>
+              <aside>
+                <h4>Tokens in Open Documents</h4>
+                <button
+                  onClick={() => this.model.refresh().catch(console.warn)}
+                  className="jp-mod-styled jp-mod-accept"
+                >
+                  {' '}
+                  Refresh Tokens
+                </button>
+                <div>{tokenNames.map(this.renderToken)}</div>
+              </aside>
               <blockquote>
-                CodeMirror token names for which the auto-invoke should be
+                CodeMirror token names for which auto-invoke should be
                 suppressed, including <i>magic</i> characters. The available
                 token names vary between languages and magic characters.
               </blockquote>
@@ -136,19 +148,6 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
                   );
                 }}
               />
-              <details>
-                <summary>
-                  {this.model.tokenNames.length} Detected Tokens...
-                </summary>
-                <button
-                  onClick={() => this.model.refresh().catch(console.warn)}
-                  className="jp-mod-styled jp-mod-accept"
-                >
-                  {' '}
-                  Refresh Tokens
-                </button>
-                <div>{tokenNames.map(this.renderToken)}</div>
-              </details>
             </section>
           </section>
 
@@ -157,8 +156,8 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
               Show Documentation Box
             </h2>
             <blockquote>
-              Whether to show documentation box next to the completion
-              suggestions.
+              Show a documentation of the currently selected completion
+              suggestion.
             </blockquote>
             <label>
               <input
@@ -174,24 +173,19 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
 
           <section>
             <h2 id="completion-settings-theme">Theme</h2>
-            <details>
-              <summary>Icon Preview...</summary>
-              <div className={ICON_PREVIEW_CLASS}>
-                {[...icons.entries()].map(this.renderKindIcon)}
-              </div>
-            </details>
+            <aside className={ICON_PREVIEW_CLASS}>
+              <h4>Icon Preview</h4>
+              {[...icons.entries()].map(this.renderKindIcon)}
+            </aside>
             <section>
+              <h3 id="completion-settings-theme-icons">Icons</h3>
               <blockquote>
                 Pick an icon theme to display in the completer dialog.
               </blockquote>
-              <h3 id="completion-settings-theme-icons">
-                Icons <code>{composite.theme}</code>
-              </h3>
               <table>
                 <thead>
                   <tr>
-                    <th>Current Theme</th>
-                    <th>Theme Name</th>
+                    <th>Theme</th>
                     <th>License</th>
                     <th>Modifications</th>
                   </tr>
@@ -199,18 +193,20 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
                 <tbody>
                   {themeIds.map(id => (
                     <tr key={id}>
-                      <td>
-                        <input
-                          type="radio"
-                          defaultValue={id}
-                          name="completion-icon-theme"
-                          checked={id === composite.theme}
-                          onChange={e =>
-                            settings.set('theme', e.currentTarget.value)
-                          }
-                        />
-                      </td>
-                      <td>{themes.get(id).name}</td>
+                      <th>
+                        <label>
+                          <input
+                            type="radio"
+                            defaultValue={id}
+                            name="completion-icon-theme"
+                            checked={id === composite.theme}
+                            onChange={e =>
+                              settings.set('theme', e.currentTarget.value)
+                            }
+                          />
+                          {themes.get(id).name}
+                        </label>
+                      </th>
                       {this.renderLicense(themes.get(id).icons.license)}
                       <td>
                         <i>
@@ -224,33 +220,32 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
             </section>
 
             <section>
-              <h3 id="completion-settings-theme-colors">
-                Colors <code>{composite.colorScheme}</code>
-              </h3>
+              <h3 id="completion-settings-theme-colors">Color Scheme</h3>
               <blockquote>Pick an icon color scheme</blockquote>
 
               <table>
                 <thead>
                   <tr>
-                    <th>Current Color Scheme</th>
-                    <th>Scheme Name</th>
+                    <th>Color Scheme</th>
                     <th>Description</th>
                   </tr>
                 </thead>
                 <tbody>
                   {colorSchemeIds.map(colorSchemeId => (
                     <tr key={colorSchemeId}>
-                      <td>
-                        <input
-                          type="radio"
-                          name="completion-icon-color-scheme"
-                          checked={composite.colorScheme === colorSchemeId}
-                          onChange={e =>
-                            settings.set('colorScheme', colorSchemeId)
-                          }
-                        />
-                      </td>
-                      <td>{colorSchemes.get(colorSchemeId).title}</td>
+                      <th>
+                        <label>
+                          <input
+                            type="radio"
+                            name="completion-icon-color-scheme"
+                            checked={composite.colorScheme === colorSchemeId}
+                            onChange={e =>
+                              settings.set('colorScheme', colorSchemeId)
+                            }
+                          />
+                          {colorSchemes.get(colorSchemeId).title}
+                        </label>
+                      </th>
                       <td>{colorSchemes.get(colorSchemeId).description}</td>
                     </tr>
                   ))}
