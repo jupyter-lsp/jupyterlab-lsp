@@ -128,25 +128,27 @@ Material Theme Works
     Trigger Completer
     Capture Page Screenshot    02-completions-shown.png
     # TabError is a builtin exception which is a class in Python,
-    # so we should get lsp:material-class-light icon:
+    # so we should get lsp:material-themed-class icon:
     Completer Should Suggest    TabError
-    Completer Should Include Icon    lsp:material-class-light
+    Completer Should Include Icon    lsp:material-themed-class
+    [Teardown]    Reset Plugin Settings    plugin id=${COMPLETION PLUGIN ID}
 
-VSCode Theme Works
-    Configure JupyterLab Plugin    {"theme": "vscode"}    plugin id=${COMPLETION PLUGIN ID}
+VSCode Unthemed Works
+    Configure JupyterLab Plugin    {"theme": "vscode", "colorScheme": "unthemed"}    plugin id=${COMPLETION PLUGIN ID}
     Capture Page Screenshot    01-configured.png
     Enter Cell Editor    1    line=2
     Trigger Completer
     Capture Page Screenshot    02-completions-shown.png
     Completer Should Suggest    TabError
-    Completer Should Include Icon    lsp:vscode-class-light
+    Completer Should Include Icon    lsp:vscode-unthemed-class
+    [Teardown]    Reset Plugin Settings    plugin id=${COMPLETION PLUGIN ID}
 
-VSCode Dark Theme Works
+VSCode Muted Works
     ${file} =    Set Variable    Completion.ipynb
     Lab Command    Use JupyterLab Dark Theme
     Wait For Splash
     Capture Page Screenshot    00-theme-changed.png
-    Configure JupyterLab Plugin    {"theme": "vscode"}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"theme": "vscode", "colorScheme": "muted"}    plugin id=${COMPLETION PLUGIN ID}
     Capture Page Screenshot    01-configured.png
     Open ${file} in ${MENU NOTEBOOK}
     Enter Cell Editor    1    line=2
@@ -154,9 +156,10 @@ VSCode Dark Theme Works
     Trigger Completer
     Capture Page Screenshot    02-completions-shown.png
     Completer Should Suggest    TabError
-    Completer Should Include Icon    lsp:vscode-class-dark
+    Completer Should Include Icon    lsp:vscode-muted-class
     Lab Command    Use JupyterLab Light Theme
     Wait For Splash
+    [Teardown]    Reset Plugin Settings    plugin id=${COMPLETION PLUGIN ID}
 
 Works Without A Theme
     Configure JupyterLab Plugin    {"theme": null}    plugin id=${COMPLETION PLUGIN ID}
@@ -166,6 +169,7 @@ Works Without A Theme
     Capture Page Screenshot    02-completions-shown.png
     Completer Should Suggest    TabError
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
+    [Teardown]    Reset Plugin Settings    plugin id=${COMPLETION PLUGIN ID}
 
 Works With Incorrect Theme
     Configure JupyterLab Plugin    {"theme": "a-non-existing-theme"}    plugin id=${COMPLETION PLUGIN ID}
@@ -175,6 +179,7 @@ Works With Incorrect Theme
     Capture Page Screenshot    02-completions-shown.png
     Completer Should Suggest    TabError
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
+    [Teardown]    Reset Plugin Settings    plugin id=${COMPLETION PLUGIN ID}
 
 *** Keywords ***
 Setup Completion Test
