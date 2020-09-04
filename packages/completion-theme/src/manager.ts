@@ -151,7 +151,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   }
 
   protected get current_theme(): ICompletionTheme | null {
-    return this.themes.get(this.current_theme_id);
+    return this.themes.get(this.current_theme_id) || this.themes.get(null);
   }
 
   protected get current_color_scheme(): ICompletionColorScheme | null {
