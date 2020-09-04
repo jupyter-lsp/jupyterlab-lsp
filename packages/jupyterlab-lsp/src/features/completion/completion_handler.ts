@@ -305,12 +305,33 @@ export class LSPConnector
 
   protected icon_for(type: string): LabIcon {
     if (!this.options.settings.composite.theme) {
-      return undefined;
+      return null;
     }
-    if (typeof type === 'undefined' || type == '<unknown>') {
+    if (type == null || type == '<unknown>') {
       type = KernelKind;
     }
-    return (this.options.themeManager.get_icon(type) as LabIcon) || undefined;
+    return (this.options.themeManager.get_icon(type) as LabIcon) || null;
+  }
+
+  private transform_typed_item(
+    item: JSONObject
+  ): CompletionHandler.ICompletionItem {
+    return {
+      label: item.text as string,
+      insertText: item.text as string,
+      type: item.type as string,
+      icon: this.icon_for(item.type as string)
+    };
+  }
+
+  private transform_untyped_match(
+    match: string
+  ): CompletionHandler.ICompletionItem {
+    return {
+      label: match,
+      insertText: match,
+      icon: this.icon_for(KernelKind)
+    };
   }
 
   private transform_reply(
@@ -322,22 +343,9 @@ export class LSPConnector
     const types = metadata._jupyter_types_experimental as JSONArray;
 
     if (types) {
-      items = types.map((item: JSONObject) => {
-        return {
-          label: item.text as string,
-          insertText: item.text as string,
-          type: item.type as string,
-          icon: this.icon_for(item.type as string)
-        };
-      });
+      items = types.map(this.transform_typed_item, this);
     } else {
-      items = reply.matches.map(match => {
-        return {
-          label: match,
-          insertText: match,
-          icon: this.icon_for('Kernel')
-        };
-      });
+      items = reply.matches.map(this.transform_untyped_match, this);
     }
     return { start: reply.start, end: reply.end, items };
   }
@@ -402,15 +410,15 @@ export class LSPConnector
     ids: CompletionHandler.IRequest[];
     values: CompletionHandler.ICompletionItemsReply[];
   }> {
-    return Promise.resolve(undefined);
+    return Promise.resolve(void 0);
   }
 
   remove(id: CompletionHandler.IRequest): Promise<any> {
-    return Promise.resolve(undefined);
+    return Promise.resolve(void 0);
   }
 
   save(id: CompletionHandler.IRequest, value: void): Promise<any> {
-    return Promise.resolve(undefined);
+    return Promise.resolve(void 0);
   }
 
   private suppress_if_needed(reply: CompletionHandler.ICompletionItemsReply) {
