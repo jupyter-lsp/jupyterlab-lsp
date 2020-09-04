@@ -24,8 +24,7 @@ SKIP_JSON_SPEC = ["argv", "debug_argv", "env"]
 
 
 class LanguageServerSession(LoggingConfigurable):
-    """ Manage a session for a connection to a language server
-    """
+    """Manage a session for a connection to a language server"""
 
     language_server = Unicode(help="the language server implementation name")
     spec = Schema(LANGUAGE_SERVER_SPEC)
@@ -56,8 +55,7 @@ class LanguageServerSession(LoggingConfigurable):
     _skip_serialize = ["argv", "debug_argv"]
 
     def __init__(self, *args, **kwargs):
-        """ set up the required traitlets and exit behavior for a session
-        """
+        """set up the required traitlets and exit behavior for a session"""
         super().__init__(*args, **kwargs)
         atexit.register(self.stop)
 
@@ -80,8 +78,7 @@ class LanguageServerSession(LoggingConfigurable):
         )
 
     def initialize(self):
-        """ (re)initialize a language server session
-        """
+        """(re)initialize a language server session"""
         self.stop()
         self.status = SessionStatus.STARTING
         self.init_queues()
@@ -98,8 +95,7 @@ class LanguageServerSession(LoggingConfigurable):
         self.status = SessionStatus.STARTED
 
     def stop(self):
-        """ clean up all of the state of the session
-        """
+        """clean up all of the state of the session"""
 
         self.status = SessionStatus.STOPPING
 
@@ -120,16 +116,14 @@ class LanguageServerSession(LoggingConfigurable):
 
     @observe("handlers")
     def _on_handlers(self, change: Bunch):
-        """ re-initialize if someone starts listening, or stop if nobody is
-        """
+        """re-initialize if someone starts listening, or stop if nobody is"""
         if change["new"] and not self.process:
             self.initialize()
         elif not change["new"] and self.process:
             self.stop()
 
     def write(self, message):
-        """ wrapper around the write queue to keep it mostly internal
-        """
+        """wrapper around the write queue to keep it mostly internal"""
         self.last_handler_message_at = self.now()
         IOLoop.current().add_callback(self.to_lsp.put_nowait, message)
 
@@ -137,8 +131,7 @@ class LanguageServerSession(LoggingConfigurable):
         return datetime.now(timezone.utc)
 
     def init_process(self):
-        """ start the language server subprocess
-        """
+        """start the language server subprocess"""
         self.process = subprocess.Popen(
             self.spec["argv"],
             stdin=subprocess.PIPE,
@@ -147,21 +140,18 @@ class LanguageServerSession(LoggingConfigurable):
         )
 
     def init_queues(self):
-        """ create the queues
-        """
+        """create the queues"""
         self.from_lsp = Queue()
         self.to_lsp = Queue()
 
     def init_reader(self):
-        """ create the stdout reader (from the language server)
-        """
+        """create the stdout reader (from the language server)"""
         self.reader = stdio.LspStdIoReader(
             stream=self.process.stdout, queue=self.from_lsp, parent=self
         )
 
     def init_writer(self):
-        """ create the stdin writer (to the language server)
-        """
+        """create the stdin writer (to the language server)"""
         self.writer = stdio.LspStdIoWriter(
             stream=self.process.stdin, queue=self.to_lsp, parent=self
         )
@@ -181,8 +171,8 @@ class LanguageServerSession(LoggingConfigurable):
         await self.writer.write()
 
     async def _broadcast_from_lsp(self):
-        """ loop for reading messages from the queue of messages from the language
-            server
+        """loop for reading messages from the queue of messages from the language
+        server
         """
         async for message in self.from_lsp:
             self.last_server_message_at = self.now()

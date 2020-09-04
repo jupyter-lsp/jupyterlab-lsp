@@ -17,8 +17,7 @@ DEFAULT_ARGS = ["--cov-fail-under=100"]
 
 
 def run_tests():
-    """ actually run the tests
-    """
+    """actually run the tests"""
     args = [
         "--pyargs",
         "jupyter_lsp",

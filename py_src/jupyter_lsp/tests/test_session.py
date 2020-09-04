@@ -22,8 +22,7 @@ def assert_status_set(handler, expected_statuses, language_server=None):
 
 @pytest.mark.asyncio
 async def test_start_known(known_server, handlers, jsonrpc_init_msg):
-    """ will a process start for a known server if a handler starts?
-    """
+    """will a process start for a known server if a handler starts?"""
     handler, ws_handler = handlers
     manager = handler.manager
 
@@ -54,8 +53,7 @@ async def test_start_known(known_server, handlers, jsonrpc_init_msg):
 
 @pytest.mark.asyncio
 async def test_start_unknown(known_unknown_server, handlers, jsonrpc_init_msg):
-    """ will a process not start for an unknown server if a handler starts?
-    """
+    """will a process not start for an unknown server if a handler starts?"""
     handler, ws_handler = handlers
     manager = handler.manager
     manager.initialize()

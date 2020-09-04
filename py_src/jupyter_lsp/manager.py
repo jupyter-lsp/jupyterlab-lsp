@@ -25,8 +25,7 @@ from .types import (
 
 
 class LanguageServerManager(LanguageServerManagerAPI):
-    """ Manage language servers
-    """
+    """Manage language servers"""
 
     language_servers = Schema(
         validator=LANGUAGE_SERVER_SPEC_MAP,
@@ -56,8 +55,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         return {}
 
     def __init__(self, **kwargs):
-        """ Before starting, perform all necessary configuration
-        """
+        """Before starting, perform all necessary configuration"""
         super().__init__(**kwargs)
 
     def initialize(self, *args, **kwargs):
@@ -66,8 +64,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         self.init_sessions()
 
     def init_language_servers(self) -> None:
-        """ determine the final language server configuration.
-        """
+        """determine the final language server configuration."""
         language_servers = {}  # type: KeyedLanguageServerSpecs
 
         # copy the language servers before anybody monkeys with them
@@ -85,8 +82,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         }
 
     def init_sessions(self):
-        """ create, but do not initialize all sessions
-        """
+        """create, but do not initialize all sessions"""
         sessions = {}
         for language_server, spec in self.language_servers.items():
             sessions[language_server] = LanguageServerSession(
@@ -95,8 +91,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         self.sessions = sessions
 
     def init_listeners(self):
-        """ register traitlets-configured listeners
-        """
+        """register traitlets-configured listeners"""
 
         scopes = {
             MessageScope.ALL: [self.all_listeners, EP_LISTENER_ALL_V1],
@@ -118,8 +113,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
                 self.__class__.register_message_listener(scope=scope.value)(listener)
 
     def subscribe(self, handler):
-        """ subscribe a handler to session, or sta
-        """
+        """subscribe a handler to session, or sta"""
         session = self.sessions.get(handler.language_server)
 
         if session is None:

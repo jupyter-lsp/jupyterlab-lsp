@@ -77,8 +77,7 @@ junit_family=xunit2
 
 @pytest.fixture(scope="module")
 def the_meta_package():
-    """ loads up the files in the metapackage that might be out-of-date
-    """
+    """loads up the files in the metapackage that might be out-of-date"""
     meta_path, meta = PACKAGES[META_NAME]
     return (
         meta_path,
@@ -90,8 +89,7 @@ def the_meta_package():
 
 @pytest.fixture(scope="module")
 def the_installation_notebook():
-    """ executes and loads up the installation notebook
-    """
+    """executes and loads up the installation notebook"""
     with open(DOCS / "Installation.ipynb") as f:
         installation_nb = nbformat.read(f, as_version=4)
     executor = ExecutePreprocessor(timeout=600)
@@ -111,8 +109,7 @@ def the_installation_notebook():
     ],
 )
 def test_ci_variables(name, version):
-    """ Are the CI version variables consistent?
-    """
+    """Are the CI version variables consistent?"""
     assert PIPE_VARS[name] == version
 
 
@@ -120,8 +117,7 @@ def test_ci_variables(name, version):
     "name,info", [p for p in PACKAGES.items() if p[0] != META_NAME]
 )
 def test_ts_package_integrity(name, info, the_meta_package):
-    """ are the versions of the frontend packages consistent and in the metapackage?
-    """
+    """are the versions of the frontend packages consistent and in the metapackage?"""
     m_path, m_pkg, m_tsconfig, m_index = the_meta_package
     path, pkg = info
 
@@ -160,8 +156,7 @@ def test_ts_package_integrity(name, info, the_meta_package):
     ),
 )
 def test_jlab_versions(path):
-    """ is the version of jupyterlab consistent?
-    """
+    """is the version of jupyterlab consistent?"""
     assert (
         LAB_SPEC in pathlib.Path(path).read_text().lower()
     ), "{} lab version is out-of-sync vs {}".format(path, LAB_SPEC)
@@ -176,8 +171,7 @@ def test_jlab_versions(path):
     ],
 )
 def test_changelog_versions(pkg, version):
-    """ are the current versions represented in the changelog?
-    """
+    """are the current versions represented in the changelog?"""
     assert "## `{} {}`".format(pkg, version) in CHANGELOG.read_text()
 
 
@@ -190,8 +184,7 @@ def test_installation_versions(the_installation_notebook, pkg, sep, version, exp
 
 
 def check_integrity():
-    """ actually run the tests
-    """
+    """actually run the tests"""
     args = ["-vv", __file__]
 
     try:

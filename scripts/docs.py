@@ -24,9 +24,9 @@ filterwarnings =
 
 
 def docs(watch=False, check=False, local_only=False):
-    """ build (and test) docs.
+    """build (and test) docs.
 
-        because readthedocs, this gets called twice from inside sphinx
+    because readthedocs, this gets called twice from inside sphinx
     """
     if watch:
         return call(["sphinx-autobuild", ".", "_build"], cwd=DOCS)

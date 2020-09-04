@@ -46,8 +46,7 @@ RFLINT = sum(
 
 
 def lint():
-    """ get that linty fresh feeling
-    """
+    """get that linty fresh feeling"""
 
     return max(
         map(

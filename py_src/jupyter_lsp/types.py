@@ -42,8 +42,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 class SessionStatus(enum.Enum):
-    """ States in which a language server session can be
-    """
+    """States in which a language server session can be"""
 
     NOT_STARTED = "not_started"
     STARTING = "starting"
@@ -53,8 +52,7 @@ class SessionStatus(enum.Enum):
 
 
 class MessageScope(enum.Enum):
-    """ Scopes for message listeners
-    """
+    """Scopes for message listeners"""
 
     ALL = "all"
     CLIENT = "client"
@@ -62,8 +60,7 @@ class MessageScope(enum.Enum):
 
 
 class MessageListener(object):
-    """ A base listener implementation
-    """
+    """A base listener implementation"""
 
     listener = None  # type: HandlerListenerCallback
     language_server = None  # type: Optional[Pattern[Text]]
@@ -86,8 +83,7 @@ class MessageListener(object):
         language_server: Text,
         manager: "HasListeners",
     ) -> None:
-        """ actually dispatch the message to the listener and capture any errors
-        """
+        """actually dispatch the message to the listener and capture any errors"""
         try:
             await self.listener(
                 scope=scope,
@@ -104,10 +100,10 @@ class MessageListener(object):
             )
 
     def wants(self, message: LanguageServerMessage, language_server: Text):
-        """ whether this listener wants a particular message
+        """whether this listener wants a particular message
 
-            `method` is currently the only message content discriminator, but not
-            all messages will have a `method`
+        `method` is currently the only message content discriminator, but not
+        all messages will have a `method`
         """
         if self.method:
             method = message.get("method")
@@ -141,8 +137,7 @@ class HasListeners:
         language_server: Optional[Text] = None,
         method: Optional[Text] = None,
     ):
-        """ register a listener for language server protocol messages
-        """
+        """register a listener for language server protocol messages"""
 
         def inner(listener: "HandlerListenerCallback") -> "HandlerListenerCallback":
             cls.unregister_message_listener(listener)
@@ -157,8 +152,7 @@ class HasListeners:
 
     @classmethod
     def unregister_message_listener(cls, listener: "HandlerListenerCallback"):
-        """ unregister a listener for language server protocol messages
-        """
+        """unregister a listener for language server protocol messages"""
         for scope in MessageScope:
             cls._listeners[str(scope.value)] = [
                 lst
@@ -191,8 +185,7 @@ class HasListeners:
 
 
 class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
-    """ Public API that can be used for python-based spec finders and listeners
-    """
+    """Public API that can be used for python-based spec finders and listeners"""
 
     nodejs = Unicode(help=_("path to nodejs executable")).tag(config=True)
 
@@ -205,8 +198,7 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
     ).tag(config=True)
 
     def find_node_module(self, *path_frag):
-        """ look through the node_module roots to find the given node module
-        """
+        """look through the node_module roots to find the given node module"""
         all_roots = self.extra_node_roots + self.node_roots
         found = None
 
@@ -234,7 +226,7 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
 
     @default("node_roots")
     def _default_node_roots(self):
-        """ get the "usual suspects" for where `node_modules` may be found
+        """get the "usual suspects" for where `node_modules` may be found
 
         - where this was launch (usually the same as NotebookApp.notebook_dir)
         - the JupyterLab staging folder (if available)
