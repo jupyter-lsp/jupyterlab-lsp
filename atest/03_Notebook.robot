@@ -29,3 +29,11 @@ Foreign Extractors
     END
     Capture Page Screenshot    11-extracted.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}
+
+Code Overrides
+    ${file} =    Set Variable    Code overrides.ipynb
+    Setup Notebook    Python    ${file}
+    ${virtual_path} =       Set Variable  ${OUTPUT DIR}${/}home${/}.virtual_documents/Code\ overrides.ipynb
+    Wait Until Created      ${virtual_path}
+    ${document} =   Get File    ${virtual_path}
+    Should Be Equal    ${document}   get_ipython().run_line_magic("ls", "")\n\n\nget_ipython().run_line_magic("pip", " freeze")\n
