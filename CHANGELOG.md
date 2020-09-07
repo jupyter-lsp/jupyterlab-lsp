@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 2.0.2` (2020-09-07)
+
+- bug fixes
+
+  - fix code overrides not being registered properly ([#340])
+
+[#340]: https://github.com/krassowski/jupyterlab-lsp/issues/340
+
 ### `@krassowski/jupyterlab-lsp 2.0.1` (2020-09-07)
 
 - bug fixes
