@@ -6,6 +6,7 @@ Library           Process
 Library           String
 Library           ../library/logcheck.py
 Library           ../library/ports.py
+Library           json5    WITH NAME    JSON5
 
 *** Keywords ***
 Setup Server and Browser
@@ -58,12 +59,24 @@ Initialize User Settings
     Set Suite Variable    ${SETTINGS DIR}    ${OUTPUT DIR}${/}user-settings    children=${True}
     Create File    ${SETTINGS DIR}${/}@jupyterlab${/}codemirror-extension${/}commands.jupyterlab-settings    {"styleActiveLine": true}
 
+Get Plugin Settings Path
+    [Arguments]    ${plugin}
+    ${norm} =    Normalize Path    ${plugin.replace(':', '/')}.jupyterlab-settings
+    [Return]    ${SETTINGS DIR}${/}${norm}
+
+Get Plugin Settings
+    [Arguments]    ${plugin}
+    ${path} =    Get Plugin Settings Path    ${plugin}
+    ${text} =    Get File    ${path}
+    ${settings} =    JSON5.loads    ${text}
+    [Return]    ${settings}
+
 Reset Plugin Settings
     [Documentation]    Restore some plugins' settings to `{}` (by default, all first-party plugins)
     [Arguments]    @{plugins}=@{ALL LSP PLUGIN IDS}
     FOR    ${plugin}    IN    @{plugins}
-        ${file} =    Normalize Path    ${plugin.replace(':', '/')}.jupyterlab-settings
-        Create File    ${SETTINGS DIR}${/}${file}    {}
+        ${file} =    Get Plugin Settings Path    ${plugin}
+        Create File    ${file}    {}
     END
 
 Tear Down Everything

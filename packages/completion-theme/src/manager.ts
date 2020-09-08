@@ -81,9 +81,19 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   ): Promise<TCompletionLabIcons> {
     const icons: TCompletionLabIcons = new Map();
 
-    for (const [completion_kind, raw] of Object.entries(
-      await theme.icons.svg()
-    )) {
+    let svg: ICompletionIconSet;
+
+    try {
+      svg = await theme?.icons?.svg();
+    } catch (err) {
+      console.warn(err);
+    }
+
+    if (svg == null) {
+      return icons;
+    }
+
+    for (const [completion_kind, raw] of Object.entries(svg)) {
       const name = `lsp:${theme.id}-${color_scheme.id}-${completion_kind}`.toLowerCase();
       let icon = this.icons_cache.get(name);
       if (icon == null) {

@@ -241,6 +241,7 @@ export class SettingsEditor extends VDomRenderer<SettingsEditor.Model> {
                           <input
                             type="radio"
                             name="completion-icon-color-scheme"
+                            defaultValue={colorSchemeId}
                             checked={composite.colorScheme === colorSchemeId}
                             onChange={e =>
                               settings.set('colorScheme', colorSchemeId)
