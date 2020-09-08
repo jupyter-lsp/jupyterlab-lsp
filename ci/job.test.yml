@@ -25,7 +25,7 @@ parameters:
   js_cov_packages:
     - jupyterlab-go-to-definition
     - jupyterlab-lsp
-  env_update: mamba env update -n base --file env-test.yml --quiet
+  env_update: conda env update -n base --file env-test.yml --quiet
   lab_link: jupyter labextension link --debug --no-build $(LINKED_EXTENSIONS)
   lab_ext: jupyter labextension install --debug --no-build $(FIRST_PARTY_LABEXTENSIONS)
   lab_build: jupyter lab build --debug --dev-build=False --minimize=True
@@ -33,99 +33,109 @@ parameters:
 jobs:
   - ${{ each platform in parameters.platforms }}:
       - ${{ each python in parameters.pythons}}:
-          - job: ${{ platform.name }}${{ python.name }}
-            pool:
-              vmImage: ${{ platform.vmImage }}
+          - ${{ platform.name }}${{ python.name }}:
+            runs-on: ${{ platform.vmImage }}
             steps:
-              - template: steps.mamba.yml
-                parameters:
-                  name: ${{ platform.name }}
-                  packages: "'python${{ python.spec }}'"
+              - uses: actions/checkout@v2
+              #- name: Use Node.js ${{ python.nodejs }}
+              #  uses: actions/setup-node@v1
+              #  with:
+              #    node-version: ${{ python.nodejs }}
 
-              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" "${{ python.lab }}" "${{ python.nodejs }}"
-                displayName: generate env with python, lab, and nodejs version
+              - name: Set up Python and conda
+                uses: s-weigand/setup-conda@v1
+                with:
+                  update-conda: false
+                  python-version: ${{ python.spec }}
+                  conda-channels: anaconda, conda-forge
 
-              - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
-                displayName: update conda environment with test dependencies
+              - run: conda --version
+              - run: which python
 
-              - script: conda info && conda list -n base
-                displayName: list conda info and packages
+              - name: generate env with lab and node version
+                run: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.lab }}" "{{ python.nodejs }}"
 
-              - script: ${{ platform.activate }} && jlpm || jlpm || jlpm
-                displayName: install npm dependencies
+              - name: update conda environment with test dependencies
+                run: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
 
-              - script: ${{ platform.activate }} && jlpm build
-                displayName: build typescript
+              - run: conda info && conda list -n base
+                name: list conda info and packages
 
-              - script: ${{ platform.activate }} && python setup.py sdist bdist_wheel
-                displayName: build python distributions
+              - run: ${{ platform.activate }} && jlpm || jlpm || jlpm
+                name: install npm dependencies
 
-              - script: ${{ platform.activate }} && jlpm lerna run bundle
-                displayName: build npm bundles
+              - run: ${{ platform.activate }} && jlpm build
+                name: build typerun
 
-              - script: ${{ platform.activate }} && cd dist && python -m pip install jupyter_lsp-$(PY_JLSP_VERSION)-py3-none-any.whl --no-deps
-                displayName: install python wheel
+              - run: ${{ platform.activate }} && python setup.py sdist bdist_wheel
+                name: build python distributions
 
-              - script: ${{ platform.activate }} && python scripts/jedi_cache.py
-                displayName: warm up jedi cache
+              - run: ${{ platform.activate }} && jlpm lerna run bundle
+                name: build npm bundles
 
-              - script: ${{ platform.activate }} && python scripts/tectonic_cache.py
-                displayName: warm up tectonic cache
+              - run: ${{ platform.activate }} && cd dist && python -m pip install jupyter_lsp-$(PY_JLSP_VERSION)-py3-none-any.whl --no-deps
+                name: install python wheel
 
-              - script: ${{ platform.activate }} && jlpm test
-                displayName: run frontend unit tests
+              - run: ${{ platform.activate }} && python scripts/jedi_cache.py
+                name: warm up jedi cache
 
-              - task: PublishTestResults@2
-                displayName: publish frontend test results
-                inputs:
-                  testResultsFiles: packages/**/junit.xml
-                  testRunTitle: 'Jest ${{ platform.name }}${{ python.name }}'
-                  mergeTestResults: true
-                condition: always()
+              - run: ${{ platform.activate }} && python scripts/tectonic_cache.py
+                name: warm up tectonic cache
 
-              - ${{ each js_package in parameters.js_cov_packages }}:
-                  - task: PublishCodeCoverageResults@1
-                    displayName: 'publish ${{ js_package }} coverage'
-                    inputs:
-                      codeCoverageTool: Cobertura
-                      summaryFileLocation: 'packages/${{ js_package }}/coverage/cobertura-coverage.xml'
-                    condition: always()
+              - run: ${{ platform.activate }} && jlpm test
+                name: run frontend unit tests
 
-              - script: ${{ platform.activate }} && jupyter serverextension list
-                displayName: list server extensions
+              #- task: PublishTestResults@2
+              #  name: publish frontend test results
+              #  inputs:
+              #    testResultsFiles: packages/**/junit.xml
+              #    testRunTitle: 'Jest ${{ platform.name }}${{ python.name }}'
+              #    mergeTestResults: true
+              #  condition: always()
 
-              - script: ${{ platform.activate }} && python scripts/utest.py --test-run-title="Pytest ${{ platform.name }}${{ python.name }}"
-                displayName: run python tests
+              #- ${{ each js_package in parameters.js_cov_packages }}:
+              #    - task: PublishCodeCoverageResults@1
+              #      name: 'publish ${{ js_package }} coverage'
+              #      inputs:
+              #        codeCoverageTool: Cobertura
+              #        summaryFileLocation: 'packages/${{ js_package }}/coverage/cobertura-coverage.xml'
+              #      condition: always()
 
-              - script: ${{ platform.activate }} && ${{ parameters.lab_link }} || ${{ parameters.lab_link }} || ${{ parameters.lab_link }}
-                displayName: install support packages
+              - run: ${{ platform.activate }} && jupyter serverextension list
+                name: list server extensions
 
-              - script: ${{ platform.activate }} && ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }}
-                displayName: install labextensions
+              - run: ${{ platform.activate }} && python scripts/utest.py --test-run-title="Pytest ${{ platform.name }}${{ python.name }}"
+                name: run python tests
 
-              - script: ${{ platform.activate }} && jupyter labextension list
-                displayName: list labextensions before build
+              - run: ${{ platform.activate }} && ${{ parameters.lab_link }} || ${{ parameters.lab_link }} || ${{ parameters.lab_link }}
+                name: install support packages
 
-              - script: ${{ platform.activate }} && ${{ parameters.lab_build }} || ${{ parameters.lab_build }} || ${{ parameters.lab_build }}
-                displayName: build lab
+              - run: ${{ platform.activate }} && ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }} || ${{ parameters.lab_ext }}
+                name: install labextensions
 
-              - script: ${{ platform.activate }} && jupyter labextension list
-                displayName: list labextensions after build
+              - run: ${{ platform.activate }} && jupyter labextension list
+                name: list labextensions before build
 
-              - script: ${{ platform.activate }} && python scripts/atest.py --exclude expect:fail
-                displayName: run browser tests
+              - run: ${{ platform.activate }} && ${{ parameters.lab_build }} || ${{ parameters.lab_build }} || ${{ parameters.lab_build }}
+                name: build lab
 
-              - task: PublishTestResults@2
-                displayName: publish browser test results
-                inputs:
-                  testResultsFiles: atest/output/*.xunit.xml
-                  testRunTitle: 'Robot ${{ platform.name }}${{ python.name }}'
-                  mergeTestResults: true
-                condition: always()
+              - run: ${{ platform.activate }} && jupyter labextension list
+                name: list labextensions after build
 
-              - task: PublishPipelineArtifact@0
-                displayName: publish browser test output
-                inputs:
-                  targetPath: atest/output
-                  artifactName: $(Agent.JobStatus) Robot ${{ platform.name }}${{ python.name }} $(Build.BuildId)
-                condition: always()
+              - run: ${{ platform.activate }} && python scripts/atest.py --exclude expect:fail
+                name: run browser tests
+
+              #- task: PublishTestResults@2
+              #  name: publish browser test results
+              #  inputs:
+              #    testResultsFiles: atest/output/*.xunit.xml
+              #    testRunTitle: 'Robot ${{ platform.name }}${{ python.name }}'
+              #    mergeTestResults: true
+              #  condition: always()
+
+              #- task: PublishPipelineArtifact@0
+              #  name: publish browser test output
+              #  inputs:
+              #    targetPath: atest/output
+              #    artifactName: $(Agent.JobStatus) Robot ${{ platform.name }}${{ python.name }} $(Build.BuildId)
+              #  condition: always()

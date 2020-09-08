@@ -6,7 +6,6 @@ channels:
 
 dependencies:
   # runtime dependencies
-  - python {python}
   - jupyterlab {lab}
   # build dependencies
   - nodejs {nodejs}
@@ -27,7 +26,6 @@ dependencies:
   - chktex
   # test tools
   - pytest-asyncio
-  - pytest-azurepipelines
   - pytest-cov
   - pytest-flake8
   - pytest-runner

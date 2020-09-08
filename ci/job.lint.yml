@@ -8,40 +8,42 @@ parameters:
       spec: '>=3.8,<3.9.0a0'
       lab: '>=2,<3.0.0a0'
       nodejs: '>=12,<13.0.0a0'
-  env_update: mamba env update -n jupyterlab-lsp --file env-test.yml --quiet
-  env_lint: mamba env update -n jupyterlab-lsp --file requirements/lint.yml --quiet
+  env_update: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
+  env_lint: conda env update -n jupyterlab-lsp --file requirements/lint.yml --quiet
 
 jobs:
   - ${{ each platform in parameters.platforms }}:
       - ${{ each python in parameters.pythons}}:
           - job: Lint
-            pool:
-              vmImage: ${{ platform.vmImage }}
+            runs-on: ${{ platform.vmImage }}
             steps:
-              - template: steps.mamba.yml
-                parameters:
-                  name: ${{ platform.name }}
+              - name: Set up Python and conda
+                uses: s-weigand/setup-conda@v1
+                with:
+                  update-conda: false
+                  python-version: ${{ python.spec }}
+                  conda-channels: anaconda, conda-forge
 
-              - script: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.spec }}" "${{ python.lab }}" "${{ python.nodejs }}"
-                displayName: generate env with python, lab, and nodejs version
+              - name: generate env with lab and node version
+                run: ${{ platform.activate }} && cd ci && python env_template.py "${{ python.lab }}" "{{ python.nodejs }}"
 
-              - script: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
-                displayName: testing dependencies
+              - run: ${{ parameters.env_update }} || ${{ parameters.env_update }} || ${{ parameters.env_update }}
+                name: testing dependencies
 
-              - script: ${{ parameters.env_lint }} || ${{ parameters.env_lint }} || ${{ parameters.env_lint }}
-                displayName: linting dependencies
+              - run: ${{ parameters.env_lint }} || ${{ parameters.env_lint }} || ${{ parameters.env_lint }}
+                name: linting dependencies
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/integrity.py
-                displayName: check integrity of package versions
+              - run: ${{ platform.activate }} jupyterlab-lsp && python scripts/integrity.py
+                name: check integrity of package versions
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm || jlpm || jlpm
-                displayName: install npm dependencies
+              - run: ${{ platform.activate }} jupyterlab-lsp && jlpm || jlpm || jlpm
+                name: install npm dependencies
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && python scripts/lint.py
-                displayName: lint backend
+              - run: ${{ platform.activate }} jupyterlab-lsp && python scripts/lint.py
+                name: lint backend
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm build:schema
-                displayName: build schema so linting can complete
+              - run: ${{ platform.activate }} jupyterlab-lsp && jlpm build:schema
+                name: build schema so linting can complete
 
-              - script: ${{ platform.activate }} jupyterlab-lsp && jlpm lint:check
-                displayName: lint frontend
+              - run: ${{ platform.activate }} jupyterlab-lsp && jlpm lint:check
+                name: lint frontend
