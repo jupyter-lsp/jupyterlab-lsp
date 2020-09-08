@@ -93,7 +93,7 @@ Select Menu Entry
 Open Notebook And Panel
     [Arguments]    ${notebook}
     Setup Notebook    Python    ${notebook}
-    Capture Page Screenshot    00-notebook-and-panel-openeing.png
+    Capture Page Screenshot    00-notebook-and-panel-opening.png
     Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="${DIAGNOSTIC}"]    timeout=20s
     Open Diagnostics Panel
     Capture Page Screenshot    00-notebook-and-panel-opened.png
