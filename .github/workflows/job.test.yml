@@ -60,7 +60,7 @@ jobs:
           printenv | sort
 
       - name: update conda environment with test dependencies
-        run: conda env update -n base --file github-actions.yml jupyterlab"${{ matrix.lab }}" nodejs"${{ matrix.nodejs }}"
+        run: conda env update -n base --file requirements/github-actions.yml && conda install jupyterlab"${{ matrix.lab }}" nodejs"${{ matrix.nodejs }}"
 
       - name: install npm dependencies
         run: jlpm

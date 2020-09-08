@@ -31,7 +31,7 @@ jobs:
           auto-update-conda: false
 
       - name: testing dependencies
-        run: conda env update -n jupyterlab-lsp --file github-actions.yml jupyterlab"${{ matrix.lab }}" nodejs"${{ matrix.nodejs }}"
+        run: conda env update -n jupyterlab-lsp --file requirements/github-actions.yml && conda install jupyterlab"${{ matrix.lab }}" nodejs"${{ matrix.nodejs }}"
 
       - name: linting dependencies
         run: conda env update -n jupyterlab-lsp --file requirements/lint.yml --quiet
