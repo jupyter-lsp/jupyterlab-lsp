@@ -1,3 +1,5 @@
+on: [push, pull_request]
+
 vars:
   js_cov_packages:
     - jupyterlab-go-to-definition
