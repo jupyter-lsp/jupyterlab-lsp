@@ -1,14 +1,6 @@
 name: Run acceptance tests
 on: [push, pull_request]
 
-vars:
-  js_cov_packages:
-    - jupyterlab-go-to-definition
-    - jupyterlab-lsp
-  env_update:
-  lab_link:
-  lab_ext: jupyter labextension install --debug --no-build $(FIRST_PARTY_LABEXTENSIONS)
-  lab_build:
 
 defaults:
   run:
@@ -86,7 +78,7 @@ jobs:
         run: jlpm lerna run bundle
 
       - name: install python wheel
-        run: cd dist && python -m pip install jupyter_lsp-$(PY_JLSP_VERSION)-py3-none-any.whl --no-deps
+        run: cd dist && python -m pip install jupyter_lsp-${{ env.PY_JLSP_VERSION }}-py3-none-any.whl --no-deps
 
       - run: python scripts/jedi_cache.py
         name: warm up jedi cache
@@ -96,6 +88,10 @@ jobs:
 
       - name: run frontend unit tests
         run: jlpm test
+
+      #  js_cov_packages:
+      #    - jupyterlab-go-to-definition
+      #    - jupyterlab-lsp
 
       #- task: PublishTestResults@2
       #  name: publish frontend test results

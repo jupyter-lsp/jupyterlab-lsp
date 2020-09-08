@@ -18,7 +18,7 @@ jobs:
         os: [ubuntu-16.04]
         python: [3.8]
         nodejs: ['>=12,<13.0.0a0']
-        lap: '>=2,<3.0.0a0'
+        lab: ['>=2,<3.0.0a0']
     steps:
       - name: Set up Python and conda
         uses: goanpeca/setup-miniconda@v1
