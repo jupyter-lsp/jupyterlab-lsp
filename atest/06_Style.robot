@@ -51,7 +51,7 @@ Click the second Accumulate in ${editor}
 Change Editor Theme
     [Arguments]    ${editor theme}
     Open Editor Theme Menu
-    ${sel} =    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "${editor theme}")]
+    ${sel} =    Set Variable    ${JLAB XP MENU ITEM LABEL}\[contains(text(), "${editor theme}")]
     Wait Until Page Contains Element    ${sel}
     Mouse Over    ${sel}
     Click Element    ${sel}

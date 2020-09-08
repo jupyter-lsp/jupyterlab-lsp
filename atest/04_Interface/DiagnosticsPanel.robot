@@ -8,7 +8,7 @@ Test Teardown     Clean Up Diagnostic Panel Test
 ${EXPECTED_COUNT}    1
 ${DIAGNOSTIC}     W291 trailing whitespace (pycodestyle)
 ${DIAGNOSTIC MESSAGE}    trailing whitespace
-${MENU COLUMNS}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "columns")]
+${MENU COLUMNS}    ${JLAB XP MENU ITEM LABEL}\[contains(text(), "columns")]
 ${LAB MENU}       css:.lm-Menu
 
 *** Test Cases ***
@@ -70,7 +70,7 @@ Diagnostic Message Can Be Copied
 *** Keywords ***
 Expand Menu Entry
     [Arguments]    ${label}
-    ${entry} =    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "${label}")]
+    ${entry} =    Set Variable    ${JLAB XP MENU ITEM LABEL}\[contains(text(), "${label}")]
     Wait Until Page Contains Element    ${entry}    timeout=10s
     ${menus before} =    Get Element Count    ${LAB MENU}
     Mouse Over    ${entry}
@@ -84,7 +84,7 @@ Menus Count Equal
 
 Select Menu Entry
     [Arguments]    ${label}
-    ${entry}    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
+    ${entry}    Set Variable    ${JLAB XP MENU ITEM LABEL}\[contains(text(), '${label}')]
     Wait Until Page Contains Element    ${entry}    timeout=10s
     Mouse Over    ${entry}
     Click Element    ${entry}
