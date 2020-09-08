@@ -1,3 +1,4 @@
+name: Run acceptance tests
 on: [push, pull_request]
 
 vars:

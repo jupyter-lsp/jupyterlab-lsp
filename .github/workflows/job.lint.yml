@@ -1,4 +1,4 @@
-name: Run acceptance tests
+name: Check lint
 on: [push, pull_request]
 
 defaults:
