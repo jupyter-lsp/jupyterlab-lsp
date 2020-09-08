@@ -1,5 +1,21 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 2.0.2` (2020-09-07)
+
+- bug fixes
+
+  - fix code overrides not being registered properly ([#340])
+
+[#340]: https://github.com/krassowski/jupyterlab-lsp/issues/340
+
+### `@krassowski/jupyterlab-lsp 2.0.1` (2020-09-07)
+
+- bug fixes
+
+  - bump version of lsp-ws-connection dependency to fix the LaTeX server issues (see [#337])
+
+[#337]: https://github.com/krassowski/jupyterlab-lsp/issues/337
+
 ### `jupyter-lsp 0.9.2` (2020-09-03)
 
 - autodetects the `sql` language server for `.sql` files ([#328][])
