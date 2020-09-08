@@ -4,7 +4,7 @@ from bs4 import UnicodeDammit
 
 
 def file_should_not_contain_phrases(filename, offset=0, *phrases):
-    """don't fail _too_ hard if the file can't be read for soem reason"""
+    """don't fail _too_ hard if the file can't be read for some reason"""
     with open(filename, "rb") as fp:
         raw = fp.read()[offset:]
 
