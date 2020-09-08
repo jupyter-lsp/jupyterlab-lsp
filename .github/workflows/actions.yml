@@ -1,4 +1,0 @@
-
-jobs:
-  - template: ci/job.lint.yml
-  - template: ci/job.test.yml
