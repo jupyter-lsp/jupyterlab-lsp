@@ -9,12 +9,9 @@ vars:
   lab_ext: jupyter labextension install --debug --no-build $(FIRST_PARTY_LABEXTENSIONS)
   lab_build:
 
-strategy:
-  matrix:
-    python: [3.6, 3.7, 3.8]
-    os: [ubuntu-16.04, macos-10.14, vs2017-win2016]
-    nodejs: ['>=10,<11.0.0.a0', '>=2.2.0,<3.0.0a0', '>=13,<14.0.0a0']
-    lab: ['>=2.2.0,<3.0.0a0']
+defaults:
+  run:
+    shell: bash -l {0}
 
 env:
   # TODO extract these from files instead
@@ -41,8 +38,12 @@ jobs:
   acceptance:
     runs-on: ${{ matrix.os }}
     name: ${{ runner.os }} ${{ matrix.python }}
-    defaults:
-      shell: bash -l {0}
+    strategy:
+      matrix:
+        python: [3.6, 3.7, 3.8]
+        os: [ubuntu-16.04, macos-10.14, vs2017-win2016]
+        nodejs: ['>=10,<11.0.0.a0', '>=2.2.0,<3.0.0a0', '>=13,<14.0.0a0']
+        lab: ['>=2.2.0,<3.0.0a0']
     steps:
       - uses: actions/checkout@v2
 
