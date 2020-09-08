@@ -35,6 +35,8 @@ ${CM CURSORS}     css:.CodeMirror-cursors:not([style='visibility: hidden'])
 ${LSP PLUGIN ID}    @krassowski/jupyterlab-lsp:plugin
 ${COMPLETION PLUGIN ID}    @krassowski/jupyterlab-lsp:completion
 ${DIAGNOSTICS PLUGIN ID}    @krassowski/jupyterlab-lsp:diagnostics
+@{ALL LSP PLUGIN IDS}    ${LSP PLUGIN ID}    ${COMPLETION PLUGIN ID}    ${DIAGNOSTICS PLUGIN ID}
+# more settings css
 ${CSS USER SETTINGS}    .jp-SettingsRawEditor-user
 ${JLAB XP CLOSE SETTINGS}    ${JLAB XP DOCK TAB}\[contains(., 'Settings')]/*[contains(@class, 'm-TabBar-tabCloseIcon')]
 # diagnostics

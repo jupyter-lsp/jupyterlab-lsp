@@ -35,7 +35,7 @@ Screenshot Editor Themes with Lab Theme
     FOR    ${editor theme}    IN    @{THEME NAMES}
         Capture Theme Screenshot    ${editor theme}
     END
-    [Teardown]    Clean Up After Working With File    ${file}
+    [Teardown]    Clean Up After Working With Files    ${file}
 
 Capture Theme Screenshot
     [Arguments]    ${editor theme}

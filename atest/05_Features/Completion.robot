@@ -1,7 +1,7 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    completion
 Test Setup        Setup Completion Test
-Test Teardown     Clean Up After Working With File    Completion.ipynb
+Test Teardown     Clean Up Completion Test
 Force Tags        feature:completion
 Resource          ../Keywords.robot
 
@@ -45,7 +45,6 @@ Works In File Editor
     Capture Page Screenshot    01-editor-ready.png
     Trigger Completer
     Completer Should Suggest    add
-    [Teardown]    Clean Up After Working With File    completion.py
 
 Autocompletes If Only One Option
     Enter Cell Editor    3    line=1
@@ -131,7 +130,6 @@ Material Theme Works
     # so we should get lsp:material-themed-class icon:
     Completer Should Suggest    TabError
     Completer Should Include Icon    lsp:material-themed-class
-    [Teardown]    Reset Plugin Settings    plugin id=${COMPLETION PLUGIN ID}
 
 VSCode Unthemed Works
     Configure JupyterLab Plugin    {"theme": "vscode", "colorScheme": "unthemed"}    plugin id=${COMPLETION PLUGIN ID}
@@ -141,7 +139,6 @@ VSCode Unthemed Works
     Capture Page Screenshot    02-completions-shown.png
     Completer Should Suggest    TabError
     Completer Should Include Icon    lsp:vscode-unthemed-class
-    [Teardown]    Reset Plugin Settings    plugin id=${COMPLETION PLUGIN ID}
 
 VSCode Muted Works
     ${file} =    Set Variable    Completion.ipynb
@@ -159,7 +156,6 @@ VSCode Muted Works
     Completer Should Include Icon    lsp:vscode-muted-class
     Lab Command    Use JupyterLab Light Theme
     Wait For Splash
-    [Teardown]    Reset Plugin Settings    plugin id=${COMPLETION PLUGIN ID}
 
 Works Without A Theme
     Configure JupyterLab Plugin    {"theme": null}    plugin id=${COMPLETION PLUGIN ID}
@@ -169,7 +165,6 @@ Works Without A Theme
     Capture Page Screenshot    02-completions-shown.png
     Completer Should Suggest    TabError
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
-    [Teardown]    Reset Plugin Settings    plugin id=${COMPLETION PLUGIN ID}
 
 Works With Incorrect Theme
     Configure JupyterLab Plugin    {"theme": "a-non-existing-theme"}    plugin id=${COMPLETION PLUGIN ID}
@@ -179,11 +174,14 @@ Works With Incorrect Theme
     Capture Page Screenshot    02-completions-shown.png
     Completer Should Suggest    TabError
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
-    [Teardown]    Reset Plugin Settings    plugin id=${COMPLETION PLUGIN ID}
 
 *** Keywords ***
 Setup Completion Test
     Setup Notebook    Python    Completion.ipynb
+
+Clean Up Completion Test
+    Reset Plugin Settings
+    Clean Up After Working With Files    Completion.ipynb    completion.py
 
 Get Cell Editor Content
     [Arguments]    ${cell_nr}

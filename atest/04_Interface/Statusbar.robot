@@ -17,7 +17,7 @@ Statusbar Popup Opens
     Capture Page Screenshot    01-statusbar.png
     Element Should Contain    ${POPOVER}    python
     Element Should Contain    ${POPOVER}    initialized
-    [Teardown]    Clean Up After Working With File    Python.ipynb
+    [Teardown]    Clean Up After Working With Files    Python.ipynb
 
 Status Changes Correctly Between Editors
     Prepare File for Editing    Python    status    example.py
@@ -29,7 +29,7 @@ Status Changes Correctly Between Editors
     Wait Until Fully Initialized
     Switch To Tab    example.plain
     Wait Until Element Contains    ${STATUSBAR}    Initialized (additional servers needed)    timeout=60s
-    [Teardown]    Clean Up After Working With File    example.plain
+    [Teardown]    Clean Up After Working With Files    example.plain
 
 *** Keywords ***
 Switch To Tab

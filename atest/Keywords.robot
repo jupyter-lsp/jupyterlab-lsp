@@ -59,9 +59,12 @@ Initialize User Settings
     Create File    ${SETTINGS DIR}${/}@jupyterlab${/}codemirror-extension${/}commands.jupyterlab-settings    {"styleActiveLine": true}
 
 Reset Plugin Settings
-    [Arguments]    ${package}=jupyterlab-lsp    ${plugin}=plugin
-    ${LSP PLUGIN SETTINGS FILE} =    Set Variable    @krassowski${/}${package}${/}${plugin}.jupyterlab-settings
-    Create File    ${SETTINGS DIR}${/}${LSP PLUGIN SETTINGS FILE}    {}
+    [Documentation]    Restore some plugins' settings to `{}` (by default, all first-party plugins)
+    [Arguments]    @{plugins}=@{ALL LSP PLUGIN IDS}
+    FOR    ${plugin}    IN    @{plugins}
+        ${file} =    Normalize Path    ${plugin.replace(':', '/')}.jupyterlab-settings
+        Create File    ${SETTINGS DIR}${/}${file}    {}
+    END
 
 Tear Down Everything
     Close All Browsers
@@ -219,9 +222,11 @@ Open ${file} in ${editor}
     Mouse Over    ${editor}
     Click Element    ${editor}
 
-Clean Up After Working With File
-    [Arguments]    ${file}
-    Remove File    ${OUTPUT DIR}${/}home${/}${file}
+Clean Up After Working With Files
+    [Arguments]    @{files}
+    FOR    ${file}    IN    @{files}
+        Remove File    ${OUTPUT DIR}${/}home${/}${file}
+    END
     Reset Application State
     Lab Log Should Not Contain Known Error Messages
 
@@ -321,5 +326,5 @@ Configure JupyterLab Plugin
 
 Clean Up After Working with File and Settings
     [Arguments]    ${file}
-    Clean Up After Working With File    ${file}
+    Clean Up After Working With Files    ${file}
     Reset Plugin Settings

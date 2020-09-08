@@ -15,4 +15,4 @@ Triggers Signature Help After A Keystroke
     Capture Page Screenshot    02-signature-shown.png
     Wait Until Keyword Succeeds    20x    0.5s    Page Should Contain Element    ${SIGNATURE_BOX}
     Element Should Contain    ${SIGNATURE_BOX}    Important docstring of abc()
-    [Teardown]    Clean Up After Working With File    Signature.ipynb
+    [Teardown]    Clean Up After Working With Files    Signature.ipynb
