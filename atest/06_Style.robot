@@ -1,7 +1,7 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    style
 Force Tags        ui:editor    aspect:style
-Resource          Keywords.robot
+Resource          keywords/Common.robot
 Resource          Variables.robot
 Library           Collections
 

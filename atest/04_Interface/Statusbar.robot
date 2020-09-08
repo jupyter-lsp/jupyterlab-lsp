@@ -1,6 +1,6 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    statusbar
-Resource          ../Keywords.robot
+Resource          ../keywords/Common.robot
 
 *** Variables ***
 ${STATUSBAR}      css:div.lsp-statusbar-item

@@ -1,6 +1,6 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    diagnostics_panel
-Resource          ../Keywords.robot
+Resource          ../keywords/Common.robot
 Test Setup        Set Up Diagnostic Panel Test
 Test Teardown     Clean Up Diagnostic Panel Test
 

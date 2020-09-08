@@ -1,7 +1,7 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    signature
 Force Tags        feature:signature
-Resource          ../Keywords.robot
+Resource          ../keywords/Common.robot
 
 *** Variables ***
 ${SIGNATURE_BOX}    css:.lsp-signature-help

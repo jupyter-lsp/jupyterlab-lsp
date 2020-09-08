@@ -1,8 +1,13 @@
 *** Settings ***
-Documentation     Configuration of language servers
-Suite Setup       Setup Suite For Screenshots    config
-Force Tags        feature:config
-Resource          ./Keywords.robot
+Documentation     Configuration of Language Servers for diagnostics
+Suite Setup       Setup Suite For Screenshots    ${SCREENS}
+Force Tags        settings:language-server-linting
+...               settings-ui:advanced
+...               feature:diagnostics
+Resource          ../keywords/Common.robot
+
+*** Variables ***
+${SCREENS}        settings-language-server-linting
 
 *** Test Cases ***
 Python
@@ -46,7 +51,7 @@ Settings Should Change Editor Diagnostics
     ${tab} =    Set Variable    ${JLAB XP DOCK TAB}\[contains(., '${file}')]
     ${close icon} =    Set Variable    *[contains(@class, 'm-TabBar-tabCloseIcon')]
     ${save command} =    Set Variable If    "${save command}"    ${save command}    Save ${language} File
-    Prepare File for Editing    ${language}    config    ${file}
+    Prepare File for Editing    ${language}    ${SCREENS}    ${file}
     Open in Advanced Settings    ${LSP PLUGIN ID}
     Drag and Drop By Offset    ${tab}    0    100
     Wait Until Fully Initialized
@@ -75,7 +80,7 @@ Reload After Configuration
     Reload Page
     Wait Until Keyword Succeeds    3x    5s    Wait For Splash
     Reset Application State
-    Prepare File for Editing    ${language}    config    ${file}
+    Prepare File for Editing    ${language}    ${SCREENS}    ${file}
     Wait Until Fully Initialized
     Open Diagnostics Panel
     Ensure Sidebar Is Closed

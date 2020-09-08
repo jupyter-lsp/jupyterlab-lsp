@@ -1,7 +1,7 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    editor
 Force Tags        ui:editor
-Resource          Keywords.robot
+Resource          keywords/Common.robot
 Resource          Variables.robot
 
 *** Test Cases ***

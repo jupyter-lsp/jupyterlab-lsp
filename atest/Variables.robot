@@ -45,3 +45,5 @@ ${CSS DIAGNOSTIC}    css:.cm-lsp-diagnostic
 @{KNOWN BAD ERRORS}
 ...               pyls_jsonrpc.endpoint - Failed to handle notification
 ...               pyls_jsonrpc.endpoint - Failed to handle request
+# completion
+${CSS COMPLETER BOX}    css:.jp-Completer.jp-HoverBox

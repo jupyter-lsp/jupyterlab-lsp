@@ -1,6 +1,6 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    settings
-Resource          Keywords.robot
+Resource          keywords/Common.robot
 
 *** Test Cases ***
 Settings

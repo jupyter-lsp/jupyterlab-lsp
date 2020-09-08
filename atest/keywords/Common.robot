@@ -1,11 +1,11 @@
 *** Settings ***
-Resource          Variables.robot
+Resource          ../Variables.robot
 Library           SeleniumLibrary
 Library           OperatingSystem
 Library           Process
 Library           String
-Library           ./logcheck.py
-Library           ./ports.py
+Library           ../library/logcheck.py
+Library           ../library/ports.py
 
 *** Keywords ***
 Setup Server and Browser

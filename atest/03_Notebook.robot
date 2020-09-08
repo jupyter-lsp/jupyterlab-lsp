@@ -1,7 +1,7 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    notebook
 Test Setup        Try to Close All Tabs
-Resource          Keywords.robot
+Resource          keywords/Common.robot
 
 *** Test Cases ***
 Python
