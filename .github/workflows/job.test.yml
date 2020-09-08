@@ -30,7 +30,7 @@ env:
 jobs:
   acceptance:
     runs-on: ${{ matrix.os }}
-    name: ${{ runner.os }} ${{ matrix.python }}
+    name: ${{ matrix.os }} ${{ matrix.python }}
     strategy:
       matrix:
         python: [3.6, 3.7, 3.8]
@@ -59,11 +59,8 @@ jobs:
           conda config --show
           printenv | sort
 
-      - name: generate env with lab and node version
-        run: cd ./github/workflows && python env_template.py "${{ matrix.lab }}" "{{ matrix.nodejs }}"
-
       - name: update conda environment with test dependencies
-        run: conda env update -n base --file env-test.yml --quiet
+        run: conda env update -n base --file github-actions.yml jupyterlab=="${{ matrix.lab }}" nodejs=="${{ matrix.nodejs }}"
 
       - name: install npm dependencies
         run: jlpm

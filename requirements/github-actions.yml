@@ -5,10 +5,6 @@ channels:
   - defaults
 
 dependencies:
-  # runtime dependencies
-  - jupyterlab {lab}
-  # build dependencies
-  - nodejs {nodejs}
   # for python language server (and development)
   - flake8 >=3.5
   - python-language-server

@@ -27,14 +27,11 @@ jobs:
           channels: conda-forge, anaconda
           channel-priority: true
           mamba-version: "*"
-          auto-activate-base: true
+          activate-environment: jupyterlab-lsp
           auto-update-conda: false
 
-      - name: generate env with lab and node version
-        run: cd .github/workflows && python env_template.py "${{ matrix.lab }}" "{{ matrix.nodejs }}"
-
       - name: testing dependencies
-        run: conda env update -n jupyterlab-lsp --file env-test.yml --quiet
+        run: conda env update -n jupyterlab-lsp --file github-actions.yml jupyterlab=="${{ matrix.lab }}" nodejs=="${{ matrix.nodejs }}"
 
       - name: linting dependencies
         run: conda env update -n jupyterlab-lsp --file requirements/lint.yml --quiet
