@@ -44,9 +44,8 @@ jobs:
         uses: goanpeca/setup-miniconda@v1
         with:
           python-version: ${{ matrix.python }}
-          channels: conda-forge, anaconda
+          channels: conda-forge, defaults
           channel-priority: true
-          mamba-version: "*"
           auto-activate-base: true
           auto-update-conda: false
 
