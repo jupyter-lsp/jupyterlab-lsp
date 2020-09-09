@@ -40,10 +40,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: danielr1996/envsubst-action@1.0.0
+      - uses: cschleiden/replace-tokens@v1
         with:
-          input: 'requirements/github-actions.yml.in'
-          output: 'requirements/github-actions.yml'
+          tokenPrefix: '{'
+          tokenSuffix: '}'
+          files: '["requirements/github-actions.yml"]'
         env:
           lab: "${{ matrix.lab }}"
           nodejs: "${{ matrix.nodejs }}"
