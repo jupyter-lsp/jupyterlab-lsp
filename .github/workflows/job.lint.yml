@@ -27,7 +27,7 @@ jobs:
           input: 'requirements/github-actions.yml.in'
           output: 'requirements/github-actions.yml'
         env:
-          jupyterlab: "${{ matrix.lab }}"
+          lab: "${{ matrix.lab }}"
           nodejs: "${{ matrix.nodejs }}"
 
       - name: Set up Python and conda
