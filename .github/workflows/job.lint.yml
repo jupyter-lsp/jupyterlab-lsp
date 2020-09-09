@@ -21,7 +21,6 @@ jobs:
         lab: ['>=2,<3.0.0a0']
     steps:
       - uses: actions/checkout@v2
-      - uses: ./
 
       - name: Set up Python and conda
         uses: goanpeca/setup-miniconda@v1
