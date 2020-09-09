@@ -28,13 +28,11 @@ jobs:
           channel-priority: true
           mamba-version: "*"
           activate-environment: jupyterlab-lsp
+          environment-file: requirements/github-actions.yml
           auto-update-conda: false
 
-      - name: testing dependencies
-        run: conda env update -n jupyterlab-lsp --file requirements/github-actions.yml
-
       - name: install lab and node
-        run:  conda install jupyterlab"${{ matrix.lab }}" nodejs"${{ matrix.nodejs }}"
+        run: th conda install jupyterlab"${{ matrix.lab }}" nodejs"${{ matrix.nodejs }}"
 
       - name: linting dependencies
         run: conda env update -n jupyterlab-lsp --file requirements/lint.yml --quiet
