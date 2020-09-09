@@ -1,5 +1,11 @@
 name: Acceptance tests
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 defaults:
   run:
@@ -13,8 +19,6 @@ env:
 
   PYTHONUNBUFFERED: 1
   ATEST_RETRIES: 3
-  # TODO
-  # YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
   LINKED_EXTENSIONS: >-
     packages/lsp-ws-connection
@@ -46,6 +50,15 @@ jobs:
           lab: '${{ matrix.lab }}'
           nodejs: '${{ matrix.nodejs }}'
 
+      - name: Cache conda
+        uses: actions/cache@v1
+        env:
+          # Increase this value to reset cache if requirements/github-actions.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key: ${{ matrix.os }}-${{ matrix.python }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/github-actions.yml') }}
+
       - name: Set up Python and conda
         uses: goanpeca/setup-miniconda@v1
         with:
@@ -56,6 +69,7 @@ jobs:
           activate-environment: jupyterlab-lsp
           environment-file: requirements/github-actions.yml
           auto-update-conda: true
+          use-only-tar-bz2: true # needs to be set for caching to work properly
 
       - name: Install pip dependencies
         run: pip install pytest-github-actions-annotate-failures
@@ -68,6 +82,15 @@ jobs:
           conda config --show-sources
           conda config --show
           printenv | sort
+
+      - name: Cache yarn
+        uses: actions/cache@v1
+        with:
+          path: .yarn-packages
+          key: yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-
+            yarn-
 
       - name: Install npm dependencies
         run: jlpm
