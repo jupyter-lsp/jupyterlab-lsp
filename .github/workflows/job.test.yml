@@ -123,10 +123,10 @@ jobs:
         run: python scripts/utest.py
 
       - name: Install support packages
-        run: jupyter labextension link --debug --no-build ${{ LINKED_EXTENSIONS }}
+        run: jupyter labextension link --debug --no-build ${{ env.LINKED_EXTENSIONS }}
 
       - name: Install labextensions
-        run: jupyter labextension install --debug --no-build ${{ FIRST_PARTY_LABEXTENSIONS }}
+        run: jupyter labextension install --debug --no-build ${{ env.FIRST_PARTY_LABEXTENSIONS }}
 
       - name: List labextensions before build
         run: jupyter labextension list
