@@ -1,4 +1,4 @@
-name: Check lint
+name: lint
 on: [push, pull_request]
 
 defaults:
