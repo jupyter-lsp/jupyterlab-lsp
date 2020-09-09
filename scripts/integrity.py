@@ -67,7 +67,7 @@ PIPELINES = yaml.safe_load(PIPE_FILE.read_text())
 PIPE_VARS = PIPELINES["env"]
 DOCS = ROOT / "docs"
 
-CI = ROOT / "ci"
+CI = ROOT / ".github/workflows"
 
 PYTEST_INI = """
 [pytest]

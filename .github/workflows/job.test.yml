@@ -61,6 +61,9 @@ jobs:
           environment-file: requirements/github-actions.yml
           auto-update-conda: true
 
+      - name: Install pip dependencies
+        run: pip install pytest-github-actions-annotate-failures
+
       - name: Describe conda
         shell: bash -l {0}
         run: |
@@ -118,7 +121,7 @@ jobs:
         run: jupyter serverextension list
 
       - name: Run python tests
-        run: python scripts/utest.py --test-run-title="Pytest ${{ matrix.os }}${{ matrix.python }}"
+        run: python scripts/utest.py
 
       - name: Install support packages
         run: jupyter labextension link --debug --no-build $(LINKED_EXTENSIONS)

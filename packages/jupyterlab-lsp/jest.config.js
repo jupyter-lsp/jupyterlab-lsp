@@ -4,7 +4,6 @@ const upstream = func('jupyterlab-lsp', __dirname);
 const reuseFromUpstream = [
   'moduleFileExtensions',
   'moduleNameMapper',
-  'reporters',
   'setupFiles',
   'setupFilesAfterEnv',
   'testPathIgnorePatterns'
@@ -18,7 +17,12 @@ let local = {
     '\\.(js|jsx)?$': './transform.js',
     '\\.svg$': 'jest-raw-loader'
   },
-  transformIgnorePatterns: ['/node_modules/(?!(@jupyterlab/.*)/)']
+  transformIgnorePatterns: ['/node_modules/(?!(@jupyterlab/.*)/)'],
+  testLocationInResults: true,
+  reporters: [
+      ...upstream['reporters'],
+    'jest-github-actions-reporter'
+  ]
 };
 
 for (const option of reuseFromUpstream) {

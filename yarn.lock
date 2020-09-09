@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@actions/core@^1.2.0":
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/@actions/core/-/core-1.2.5.tgz#fa57bf8c07a38191e243beb9ea9d8368c1cb02c8"
+  integrity sha512-mwpoNjHSWWh0IiALdDEQi3tru124JKn0yVNziIBzTME8QRv7thwoghVuT1jBRjFvdtoHsqD58IRHy1nf86paRg==
+
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.10.4":
   version "7.10.4"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.10.4.tgz#168da1a36e90da68ae8d49c0f1b48c7c6249213a"
@@ -1941,14 +1946,14 @@
   version "2.0.0"
 
 "@krassowski/jupyterlab-lsp@file:packages/jupyterlab-lsp":
-  version "1.1.2"
+  version "2.0.2"
   dependencies:
     "@krassowski/completion-theme" "~2.0.0"
     "@krassowski/jupyterlab_go_to_definition" "~1.0.0"
     "@krassowski/theme-material" "~2.0.0"
     "@krassowski/theme-vscode" "~2.0.0"
     lodash.mergewith "^4.6.1"
-    lsp-ws-connection "~0.5.0"
+    lsp-ws-connection "~0.5.1"
 
 "@krassowski/jupyterlab_go_to_definition@file:packages/jupyterlab-go-to-definition":
   version "1.0.0"
@@ -8443,6 +8448,13 @@ jest-get-type@^26.3.0:
   resolved "https://registry.yarnpkg.com/jest-get-type/-/jest-get-type-26.3.0.tgz#e97dc3c3f53c2b406ca7afaed4493b1d099199e0"
   integrity sha512-TpfaviN1R2pQWkIihlfEanwOXK0zcxrKEE4MlU6Tn7keoXdN6/3gK/xl0yEh8DOunn5pOVGKf8hB4R9gVh04ig==
 
+jest-github-actions-reporter@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/jest-github-actions-reporter/-/jest-github-actions-reporter-1.0.2.tgz#218222b34dacdea0d9d83a2e2a2561136d25e252"
+  integrity sha512-iA8PfVL0cZYLJgPKc6K54nF8Y5PMo0vtONpi03H9I4dMPQtrrWaqXUX21dZRssIo7eGuEmhBcDrnwezRgkn+Rw==
+  dependencies:
+    "@actions/core" "^1.2.0"
+
 jest-haste-map@^24.9.0:
   version "24.9.0"
   resolved "https://registry.yarnpkg.com/jest-haste-map/-/jest-haste-map-24.9.0.tgz#b38a5d64274934e21fa417ae9a9fbeb77ceaac7d"
@@ -9906,7 +9918,7 @@ lru-queue@0.1:
     es5-ext "~0.10.2"
 
 "lsp-ws-connection@file:packages/lsp-ws-connection":
-  version "0.5.0"
+  version "0.5.1"
   dependencies:
     vscode-jsonrpc "^4.1.0-next"
     vscode-languageclient "^5.2.1"

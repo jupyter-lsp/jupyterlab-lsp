@@ -14,6 +14,7 @@
     "eslint-plugin-react": "^7.19.0",
     "husky": "^3.0.9",
     "javascript-typescript-langserver": "^2.11.3",
+    "jest-github-actions-reporter": "^1.0.2",
     "lerna": "^3.13.2",
     "precise-commits": "^1.0.2",
     "prettier": "^2.0.5",
