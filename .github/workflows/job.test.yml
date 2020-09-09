@@ -35,8 +35,21 @@ jobs:
       matrix:
         python: [3.6, 3.7, 3.8]
         os: [ubuntu-16.04, macos-10.14, vs2017-win2016]
-        nodejs: ['>=10,<11.0.0.a0', '>=13,<14.0.0a0']
         lab: ['>=2.2.0,<3.0.0a0']
+        include:
+          # if using 3.6, use an old node
+          - python: 3.6
+            # Node 10 end-of-life: April 2021
+            nodejs: '>=10,<11.0.0.a0'
+          # if using 3.7, use newer node, etc...
+          - python: 3.7
+            # Node 12 end-of-life: April 2022
+            nodejs: '>=12,<13.0.0.a0'
+          - python: 3.8
+            # Node 14 end-of-life: April 2023
+            # TODO Node 13 is no longer supported
+            nodejs: '>=13,<14.0.0.a0'
+
     steps:
       - uses: actions/checkout@v2
 
