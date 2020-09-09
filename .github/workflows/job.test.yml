@@ -1,4 +1,4 @@
-name: Run acceptance tests
+name: Acceptance tests
 on: [push, pull_request]
 
 defaults:
