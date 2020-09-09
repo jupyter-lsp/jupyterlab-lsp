@@ -1,7 +1,7 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    notebook
 Test Setup        Try to Close All Tabs
-Resource          Keywords.robot
+Resource          keywords/Common.robot
 
 *** Test Cases ***
 Python
@@ -9,7 +9,7 @@ Python
     ${diagnostic} =    Set Variable    W291 trailing whitespace (pycodestyle)
     Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title="${diagnostic}"]    timeout=35s
     Capture Page Screenshot    01-python.png
-    [Teardown]    Clean Up After Working With File    Python.ipynb
+    [Teardown]    Clean Up After Working With Files    Python.ipynb
 
 Foreign Extractors
     ${file} =    Set Variable    Foreign extractors.ipynb

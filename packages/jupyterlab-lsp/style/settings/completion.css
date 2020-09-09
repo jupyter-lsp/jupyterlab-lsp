@@ -1,0 +1,100 @@
+.jp-LSPCompletion-Settings {
+  display: flex;
+  flex-direction: row;
+}
+
+.jp-LSPCompletion-Settings > div {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  max-height: 100%;
+}
+
+.jp-LSPCompletion-Settings header {
+  max-width: 20em;
+  min-width: 10em;
+  flex: 1;
+  background-color: var(--jp-layout-color1);
+}
+
+.jp-LSPCompletion-Settings article {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+.jp-LSPCompletion-Settings article > section {
+  clear: both;
+}
+
+.jp-LSPCompletion-Settings aside {
+  float: right;
+  max-width: 40%;
+  min-width: 200px;
+  background-color: var(--jp-layout-color1);
+  padding: var(--jp-notebook-padding);
+}
+
+.jp-LSPCompletion-Settings aside h4 {
+  width: 100%;
+  text-align: center;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.jp-LSPCompletion-Settings section {
+  padding: 0 0 var(--jp-notebook-padding) var(--jp-notebook-padding);
+}
+
+.jp-LSPCompletion-Settings input[type='text'] {
+  width: 50%;
+  min-width: 200px;
+}
+
+.jp-LSPCompletion-Settings-TokenLabel {
+  display: inline-block;
+  white-space: nowrap;
+  margin: var(--jp-ui-font-size0);
+  margin-bottom: 0;
+  margin-right: 0;
+  min-width: 10em;
+}
+
+.jp-RenderedHTMLCommon .jp-LSPCompletion-Settings-TokenLabel code {
+  padding: calc(0.5 * var(--jp-ui-font-size0));
+  border-radius: calc(0.5 * var(--jp-ui-font-size0));
+  display: inline-block;
+}
+
+.jp-LSPCompletion-IconPreview {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.jp-LSPCompletion-IconPreview label {
+  flex: 1;
+  min-width: 5em;
+  text-align: center;
+  margin: var(--jp-ui-font-size0);
+}
+
+/* overrides */
+.jp-RenderedHTMLCommon.jp-LSPCompletion-Settings h2 {
+  border-bottom: solid var(--jp-border-width) var(--jp-border-color1);
+  padding-bottom: var(--jp-ui-font-size1);
+}
+
+.jp-RenderedHTMLCommon.jp-LSPCompletion-Settings li,
+.jp-RenderedHTMLCommon.jp-LSPCompletion-Settings ul {
+  list-style: none;
+}
+
+.jp-RenderedHTMLCommon.jp-LSPCompletion-Settings td,
+.jp-RenderedHTMLCommon.jp-LSPCompletion-Settings th {
+  text-align: left;
+}
+
+.jp-RenderedHTMLCommon.jp-LSPCompletion-Settings table {
+  margin-left: 0;
+}

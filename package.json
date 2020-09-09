@@ -50,7 +50,7 @@
     "lint:check": "jlpm prettier:check && jlpm eslint:check",
     "lint": "jlpm prettier && jlpm eslint",
     "prettier:check": "prettier --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
-    "prettier": "prettier --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
+    "prettier": "prettier --list-different --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
     "eslint": "eslint --config packages/.eslintrc.js --ext .js,.jsx,.ts,.tsx --fix packages",
     "eslint:check": "eslint --config packages/.eslintrc.js --ext .js,.jsx,.ts,.tsx packages",
     "test": "lerna run --stream --concurrency=1 test"

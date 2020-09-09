@@ -33,7 +33,8 @@ dependencies:
   - pytest-runner
   - ruamel_yaml
   # browser testing
+  - bs4
   - firefox
   - geckodriver
-  - robotframework-seleniumlibrary
   - robotframework >=3.2
+  - robotframework-seleniumlibrary

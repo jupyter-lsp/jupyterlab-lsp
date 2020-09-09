@@ -33,10 +33,11 @@
     "lab:link": "jupyter labextension link . --no-build"
   },
   "devDependencies": {
-    "react": "*",
-    "@jupyterlab/ui-components": "~2.2.0"
+    "react": "*"
   },
-  "peerDependencies": {},
+  "peerDependencies": {
+    "react": "*"
+  },
   "jupyterlab": {
     "extension": true,
     "schemaDir": "schema"

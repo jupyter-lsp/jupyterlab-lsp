@@ -10,6 +10,8 @@ import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { ILSPAdapterManager } from './tokens';
 
+export const LSP_CATEGORY = 'Language Server Protocol';
+
 function is_context_menu_over_token(adapter: WidgetAdapter<IDocumentWidget>) {
   let position = adapter.get_position_from_context_menu();
   if (!position) {
@@ -55,7 +57,7 @@ abstract class LSPCommandManager {
   abstract is_enabled(command: IFeatureCommand): boolean;
   abstract is_visible(command: IFeatureCommand): boolean;
   add_to_palette: boolean = true;
-  category: string = 'Language Server Protocol';
+  category: string = LSP_CATEGORY;
 
   add(commands: Array<IFeatureCommand>) {
     for (let cmd of commands) {

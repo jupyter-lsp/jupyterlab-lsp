@@ -1,7 +1,7 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    style
 Force Tags        ui:editor    aspect:style
-Resource          Keywords.robot
+Resource          keywords/Common.robot
 Resource          Variables.robot
 Library           Collections
 
@@ -35,7 +35,7 @@ Screenshot Editor Themes with Lab Theme
     FOR    ${editor theme}    IN    @{THEME NAMES}
         Capture Theme Screenshot    ${editor theme}
     END
-    [Teardown]    Clean Up After Working With File    ${file}
+    [Teardown]    Clean Up After Working With Files    ${file}
 
 Capture Theme Screenshot
     [Arguments]    ${editor theme}
@@ -51,7 +51,7 @@ Click the second Accumulate in ${editor}
 Change Editor Theme
     [Arguments]    ${editor theme}
     Open Editor Theme Menu
-    ${sel} =    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "${editor theme}")]
+    ${sel} =    Set Variable    ${JLAB XP MENU ITEM LABEL}\[contains(text(), "${editor theme}")]
     Wait Until Page Contains Element    ${sel}
     Mouse Over    ${sel}
     Click Element    ${sel}

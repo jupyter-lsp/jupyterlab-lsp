@@ -19,8 +19,7 @@ BUILDING_DOCS = os.environ.get("JUPYTER_LSP_BUILDING_DOCS") is not None
 
 
 class SpecBase:
-    """ Base for a spec finder that returns a spec for starting a language server
-    """
+    """Base for a spec finder that returns a spec for starting a language server"""
 
     key = ""
     languages = []  # type: List[Text]
@@ -34,8 +33,8 @@ class SpecBase:
 
 
 class ShellSpec(SpecBase):  # pragma: no cover
-    """ Helper for a language server spec for executables on $PATH in the
-        notebook server environment.
+    """Helper for a language server spec for executables on $PATH in the
+    notebook server environment.
     """
 
     cmd = ""
@@ -63,8 +62,8 @@ class ShellSpec(SpecBase):  # pragma: no cover
 
 
 class PythonModuleSpec(SpecBase):
-    """ Helper for a python-based language server spec in the notebook server
-        environment
+    """Helper for a python-based language server spec in the notebook server
+    environment
     """
 
     python_module = ""
@@ -86,8 +85,8 @@ class PythonModuleSpec(SpecBase):
 
 
 class NodeModuleSpec(SpecBase):
-    """ Helper for a nodejs-based language server spec in one of several
-        node_modules
+    """Helper for a nodejs-based language server spec in one of several
+    node_modules
     """
 
     node_module = ""

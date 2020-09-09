@@ -26,8 +26,7 @@ from .non_blocking import make_non_blocking
 
 
 class LspStdIoBase(LoggingConfigurable):
-    """ Non-blocking, queued base for communicating with stdio Language Servers
-    """
+    """Non-blocking, queued base for communicating with stdio Language Servers"""
 
     executor = None
 
@@ -48,10 +47,10 @@ class LspStdIoBase(LoggingConfigurable):
 
 
 class LspStdIoReader(LspStdIoBase):
-    """ Language Server stdio Reader
+    """Language Server stdio Reader
 
-        Because non-blocking (but still synchronous) IO is used, rudimentary
-        exponential backoff is used.
+    Because non-blocking (but still synchronous) IO is used, rudimentary
+    exponential backoff is used.
     """
 
     max_wait = Float(help="maximum time to wait on idle stream").tag(config=True)
@@ -63,8 +62,7 @@ class LspStdIoReader(LspStdIoBase):
         return 2.0 if os.name == "nt" else self.min_wait
 
     async def sleep(self):
-        """ Simple exponential backoff for sleeping
-        """
+        """Simple exponential backoff for sleeping"""
         if self.stream.closed:  # pragma: no cover
             return
         self.next_wait = min(self.next_wait * 2, self.max_wait)
@@ -74,13 +72,11 @@ class LspStdIoReader(LspStdIoBase):
             pass
 
     def wake(self):
-        """ Reset the wait time
-        """
+        """Reset the wait time"""
         self.wait = self.min_wait
 
     async def read(self) -> None:
-        """ Read from a Language Server until it is closed
-        """
+        """Read from a Language Server until it is closed"""
         make_non_blocking(self.stream)
 
         while not self.stream.closed:
@@ -100,8 +96,7 @@ class LspStdIoReader(LspStdIoBase):
                 await self.sleep()
 
     async def read_one(self) -> Text:
-        """ Read a single message
-        """
+        """Read a single message"""
         message = ""
         headers = HTTPHeaders()
 
@@ -138,8 +133,7 @@ class LspStdIoReader(LspStdIoBase):
 
     @run_on_executor
     def _readline(self) -> Text:
-        """ Read a line (or immediately return None)
-        """
+        """Read a line (or immediately return None)"""
         try:
             return self.stream.readline().decode("utf-8").strip()
         except OSError:  # pragma: no cover
@@ -147,12 +141,10 @@ class LspStdIoReader(LspStdIoBase):
 
 
 class LspStdIoWriter(LspStdIoBase):
-    """ Language Server stdio Writer
-    """
+    """Language Server stdio Writer"""
 
     async def write(self) -> None:
-        """ Write to a Language Server until it closes
-        """
+        """Write to a Language Server until it closes"""
         while not self.stream.closed:
             message = await self.queue.get()
             try:

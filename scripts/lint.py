@@ -17,7 +17,7 @@ PY_SRC = [
 ]
 PY_SCRIPTS = list((ROOT / "scripts").rglob("*.py"))
 PY_DOCS = list((ROOT / "docs").rglob("*.py"))
-PY_ATEST = list((ROOT / "atest").glob("*.py"))
+PY_ATEST = list((ROOT / "atest" / "library").rglob("*.py"))
 
 ALL_PY = [*PY_SRC, *PY_SCRIPTS, *PY_ATEST, *PY_DOCS]
 
@@ -46,8 +46,7 @@ RFLINT = sum(
 
 
 def lint():
-    """ get that linty fresh feeling
-    """
+    """get that linty fresh feeling"""
 
     return max(
         map(
@@ -60,7 +59,7 @@ def lint():
                 ["mypy", *PY_SRC],
                 ["python", "-m", "robot.tidy", "--inplace", *ALL_ROBOT],
                 ["rflint", *RFLINT, *ALL_ROBOT],
-                ["python", "scripts/atest.py", "--dryrun", "--console", "quiet"],
+                ["python", "scripts/atest.py", "--dryrun", "--console", "dotted"],
                 ["python", "scripts/nblint.py"],
             ],
         )

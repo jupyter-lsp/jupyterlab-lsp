@@ -31,6 +31,12 @@
       "type": ["string", "null"],
       "default": "vscode",
       "description": "The identifier of a completer theme with icons which indicate the kind of completion. Set to null to disable icons."
+    },
+    "colorScheme": {
+      "title": "Icon Color Scheme",
+      "type": "string",
+      "default": "themed",
+      "description": "Color scheme to use for completion icons. Defaults include: themed, unthemed, muted"
     }
   },
   "jupyter.lab.shortcuts": []

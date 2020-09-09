@@ -1,12 +1,9 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    completion
 Test Setup        Setup Completion Test
-Test Teardown     Clean Up After Working With File    Completion.ipynb
+Test Teardown     Clean Up Completion Test
 Force Tags        feature:completion
-Resource          ../Keywords.robot
-
-*** Variables ***
-${COMPLETER_BOX}    css:.jp-Completer.jp-HoverBox
+Resource          ../keywords/Completion.robot
 
 *** Test Cases ***
 Works With Kernel Running
@@ -45,7 +42,6 @@ Works In File Editor
     Capture Page Screenshot    01-editor-ready.png
     Trigger Completer
     Completer Should Suggest    add
-    [Teardown]    Clean Up After Working With File    completion.py
 
 Autocompletes If Only One Option
     Enter Cell Editor    3    line=1
@@ -118,98 +114,5 @@ Triggers Completer On Dot
     Enter Cell Editor    2    line=1
     Press Keys    None    .
     Wait Until Keyword Succeeds    10x    0.5s    Cell Editor Should Equal    2    list.
-    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=35s
+    Wait Until Page Contains Element    ${CSS COMPLETER BOX}    timeout=35s
     Completer Should Suggest    append
-
-Material Theme Works
-    Configure JupyterLab Plugin    {"theme": "material"}    plugin id=${COMPLETION PLUGIN ID}
-    Capture Page Screenshot    01-configured.png
-    Enter Cell Editor    1    line=2
-    Trigger Completer
-    Capture Page Screenshot    02-completions-shown.png
-    # TabError is a builtin exception which is a class in Python,
-    # so we should get lsp:material-class-light icon:
-    Completer Should Suggest    TabError
-    Completer Should Include Icon    lsp:material-class-light
-
-VSCode Theme Works
-    Configure JupyterLab Plugin    {"theme": "vscode"}    plugin id=${COMPLETION PLUGIN ID}
-    Capture Page Screenshot    01-configured.png
-    Enter Cell Editor    1    line=2
-    Trigger Completer
-    Capture Page Screenshot    02-completions-shown.png
-    Completer Should Suggest    TabError
-    Completer Should Include Icon    lsp:vscode-class-light
-
-VSCode Dark Theme Works
-    ${file} =    Set Variable    Completion.ipynb
-    Lab Command    Use JupyterLab Dark Theme
-    Wait For Splash
-    Capture Page Screenshot    00-theme-changed.png
-    Configure JupyterLab Plugin    {"theme": "vscode"}    plugin id=${COMPLETION PLUGIN ID}
-    Capture Page Screenshot    01-configured.png
-    Open ${file} in ${MENU NOTEBOOK}
-    Enter Cell Editor    1    line=2
-    Wait Until Fully Initialized
-    Trigger Completer
-    Capture Page Screenshot    02-completions-shown.png
-    Completer Should Suggest    TabError
-    Completer Should Include Icon    lsp:vscode-class-dark
-    Lab Command    Use JupyterLab Light Theme
-    Wait For Splash
-
-Works Without A Theme
-    Configure JupyterLab Plugin    {"theme": null}    plugin id=${COMPLETION PLUGIN ID}
-    Capture Page Screenshot    01-configured.png
-    Enter Cell Editor    1    line=2
-    Trigger Completer
-    Capture Page Screenshot    02-completions-shown.png
-    Completer Should Suggest    TabError
-    Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
-
-Works With Incorrect Theme
-    Configure JupyterLab Plugin    {"theme": "a-non-existing-theme"}    plugin id=${COMPLETION PLUGIN ID}
-    Capture Page Screenshot    01-configured.png
-    Enter Cell Editor    1    line=2
-    Trigger Completer
-    Capture Page Screenshot    02-completions-shown.png
-    Completer Should Suggest    TabError
-    Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
-
-*** Keywords ***
-Setup Completion Test
-    Setup Notebook    Python    Completion.ipynb
-
-Get Cell Editor Content
-    [Arguments]    ${cell_nr}
-    ${content}    Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()
-    [Return]    ${content}
-
-Cell Editor Should Equal
-    [Arguments]    ${cell}    ${value}
-    ${content} =    Get Cell Editor Content    ${cell}
-    Should Be Equal    ${content}    ${value}
-
-Select Completer Suggestion
-    [Arguments]    ${text}
-    ${suggestion} =    Set Variable    css:.jp-Completer-item[data-value="${text}"]
-    Wait Until Element Is Visible    ${suggestion}    timeout=10s
-    Mouse Over    ${suggestion}
-    Click Element    ${suggestion} code
-
-Completer Should Suggest
-    [Arguments]    ${text}
-    Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]    timeout=10s
-    Capture Page Screenshot    ${text.replace(' ', '_')}.png
-
-Completer Should Include Icon
-    [Arguments]    ${icon}
-    Wait Until Page Contains Element    ${COMPLETER_BOX} svg[data-icon="${icon}"]
-
-Completer Should Not Suggest
-    [Arguments]    ${text}
-    Wait Until Page Does Not Contain Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
-
-Trigger Completer
-    Press Keys    None    TAB
-    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=35s

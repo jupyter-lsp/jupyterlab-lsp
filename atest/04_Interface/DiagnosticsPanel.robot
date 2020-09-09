@@ -1,14 +1,14 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    diagnostics_panel
-Resource          ../Keywords.robot
-Test Setup        Set Up
-Test Teardown     Clean Up
+Resource          ../keywords/Common.robot
+Test Setup        Set Up Diagnostic Panel Test
+Test Teardown     Clean Up Diagnostic Panel Test
 
 *** Variables ***
 ${EXPECTED_COUNT}    1
 ${DIAGNOSTIC}     W291 trailing whitespace (pycodestyle)
 ${DIAGNOSTIC MESSAGE}    trailing whitespace
-${MENU COLUMNS}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "columns")]
+${MENU COLUMNS}    ${JLAB XP MENU ITEM LABEL}\[contains(text(), "columns")]
 ${LAB MENU}       css:.lm-Menu
 
 *** Test Cases ***
@@ -25,7 +25,7 @@ Diagnostics Panel Works After Rename
     Open Diagnostics Panel
     Capture Page Screenshot    01-panel-rename.png
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_COUNT}
-    Clean Up After Working With File    PanelRenamed.ipynb
+    Clean Up After Working With Files    PanelRenamed.ipynb
 
 Diagnostics Panel Can Be Restored
     Close Diagnostics Panel
@@ -70,7 +70,7 @@ Diagnostic Message Can Be Copied
 *** Keywords ***
 Expand Menu Entry
     [Arguments]    ${label}
-    ${entry} =    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "${label}")]
+    ${entry} =    Set Variable    ${JLAB XP MENU ITEM LABEL}\[contains(text(), "${label}")]
     Wait Until Page Contains Element    ${entry}    timeout=10s
     ${menus before} =    Get Element Count    ${LAB MENU}
     Mouse Over    ${entry}
@@ -84,7 +84,7 @@ Menus Count Equal
 
 Select Menu Entry
     [Arguments]    ${label}
-    ${entry}    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
+    ${entry}    Set Variable    ${JLAB XP MENU ITEM LABEL}\[contains(text(), '${label}')]
     Wait Until Page Contains Element    ${entry}    timeout=10s
     Mouse Over    ${entry}
     Click Element    ${entry}
@@ -93,7 +93,7 @@ Select Menu Entry
 Open Notebook And Panel
     [Arguments]    ${notebook}
     Setup Notebook    Python    ${notebook}
-    Capture Page Screenshot    00-notebook-and-panel-openeing.png
+    Capture Page Screenshot    00-notebook-and-panel-opening.png
     Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="${DIAGNOSTIC}"]    timeout=20s
     Open Diagnostics Panel
     Capture Page Screenshot    00-notebook-and-panel-opened.png
@@ -103,11 +103,11 @@ Should Have Expected Rows Count
     ${count} =    Count Diagnostics In Panel
     Should Be True    ${count} == ${expected_count}
 
-Set Up
+Set Up Diagnostic Panel Test
     Gently Reset Workspace
     Open Notebook And Panel    Panel.ipynb
 
-Clean Up
-    Clean Up After Working With File    Panel.ipynb
-    Reset Plugin Settings    plugin=diagnostics
+Clean Up Diagnostic Panel Test
+    Clean Up After Working With Files    Panel.ipynb
+    Reset Plugin Settings
     Reset Application State

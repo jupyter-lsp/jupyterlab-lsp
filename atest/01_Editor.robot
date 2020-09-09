@@ -1,7 +1,7 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    editor
 Force Tags        ui:editor
-Resource          Keywords.robot
+Resource          keywords/Common.robot
 Resource          Variables.robot
 
 *** Test Cases ***
@@ -77,7 +77,7 @@ Editor Shows Features for Language
         ...    ELSE IF    "${f}" == "Rename"    Editor Should Rename    ${features["${f}"]}
     END
     Capture Page Screenshot    99-done.png
-    [Teardown]    Clean Up After Working With File    ${file}
+    [Teardown]    Clean Up After Working With Files    ${file}
 
 Editor Should Show Diagnostics
     [Arguments]    ${diagnostic}

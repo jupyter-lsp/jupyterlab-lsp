@@ -80,6 +80,9 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
   ) {
     adapterManager.adapterChanged.connect(this.swap_adapter, this);
     settings.changed.connect(() => {
+      completionThemeManager.set_color_scheme(
+        this.settings.composite.colorScheme
+      );
       completionThemeManager.set_theme(this.settings.composite.theme);
     });
   }

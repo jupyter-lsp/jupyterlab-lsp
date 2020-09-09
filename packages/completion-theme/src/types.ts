@@ -1,7 +1,10 @@
 import { Token } from '@lumino/coreutils';
+import { ISignal } from '@lumino/signaling';
 import { LabIcon } from '@jupyterlab/ui-components';
 
-export const COMPLETER_THEME_PREFIX = 'lsp-completer-theme-';
+export const COMPLETER_THEME_PREFIX = 'lsp-completer-theme';
+
+export const RE_ICON_THEME_CLASS = /jp-icon[^" ]+/g;
 
 // TODO, once features are extracted to standalone packages,
 //  import the CompletionItemKindStrings from @feature-completer
@@ -51,21 +54,25 @@ export interface ICompletionIconSet extends requiredIcons {
 
 export interface ILicenseInfo {
   /**
-   * Licence name.
+   * License name.
    */
   name: string;
   /**
-   * Abbreviation of the licence name;
+   * SPDX identifer of the license. See https://spdx.org/licenses
    */
-  abbreviation: string;
+  spdx: string;
   /**
    * The copyright holder/owner name.
    */
   licensor: string;
   /**
-   * Link to the full licence text.
+   * URL of the full license text.
    */
-  link: string;
+  url: string;
+  /**
+   * Modifications made to the icons, if any.
+   */
+  modifications?: string;
 }
 
 export interface ICompletionTheme {
@@ -85,15 +92,11 @@ export interface ICompletionTheme {
     /**
      * Short name of the license of the icons included.
      */
-    licence: ILicenseInfo;
+    license: ILicenseInfo;
     /**
-     * The version to be used in the light mode.
+     * The icons as SVG strings, keyed by completion kind.
      */
-    light: ICompletionIconSet;
-    /**
-     * The version to be used in the dark mode.
-     */
-    dark?: ICompletionIconSet;
+    svg(): Promise<ICompletionIconSet>;
     /**
      * Icon properties to be set on each of the icons.
      * NOTE: setting className here will not work, as
@@ -106,18 +109,59 @@ export interface ICompletionTheme {
   };
 }
 
+export interface ICompletionColorScheme {
+  /**
+   * Scheme identifier
+   */
+  id: string;
+  /**
+   * Transforms an icon SVG string, usually by manipulating jp-icon* classes
+   */
+  transform(svg: string): string;
+
+  title: string;
+
+  description: string;
+}
+
+export type TCompletionLabIcons = Map<keyof ICompletionIconSet, LabIcon>;
+
 export interface ILSPCompletionThemeManager {
-  get_icon(type: string): LabIcon.ILabIcon | null;
+  register_theme(theme: ICompletionTheme): void;
+
+  theme_registered: ISignal<ILSPCompletionThemeManager, ICompletionTheme>;
+
+  register_color_scheme(schema: ICompletionColorScheme): void;
+
+  color_scheme_registered: ISignal<
+    ILSPCompletionThemeManager,
+    ICompletionColorScheme
+  >;
+
+  theme_ids(): string[];
+
+  color_scheme_ids(): string[];
+
+  get_current_theme_id(): string;
+
+  get_current_color_scheme_id(): string;
 
   set_theme(theme_id: string | null): void;
 
-  register_theme(theme: ICompletionTheme): void;
+  get_theme(theme_id: string | null): ICompletionTheme;
 
-  get_iconset(
-    theme: ICompletionTheme
-  ): Map<keyof ICompletionIconSet, LabIcon.ILabIcon>;
+  set_color_scheme(scheme_id: string | null): void;
+
+  get_color_scheme(scheme_id: string | null): ICompletionColorScheme;
+
+  get_icon(type: string): LabIcon | null;
+
+  get_icons(
+    theme: ICompletionTheme,
+    color_scheme: ICompletionColorScheme
+  ): Promise<TCompletionLabIcons>;
 }
 
 export const ILSPCompletionThemeManager = new Token<ILSPCompletionThemeManager>(
-  PLUGIN_ID + ':ILSPCompletionThemeManager'
+  `${PLUGIN_ID}:ILSPCompletionThemeManager`
 );
