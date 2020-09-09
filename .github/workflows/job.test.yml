@@ -40,12 +40,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: microsoft/variable-substitution@v1
+      - uses: danielr1996/envsubst-action@1
         with:
-          files: 'requirements/github-actions.yml'
+          input: 'requirements/github-actions.yml.in'
+          output: 'requirements/github-actions.yml'
         env:
-          dependencies.jupyterlab: "${{ matrix.lab }}"
-          dependencies.nodejs: "${{ matrix.nodejs }}"
+          jupyterlab: "${{ matrix.lab }}"
+          nodejs: "${{ matrix.nodejs }}"
 
       - run: cat requirements/github-actions.yml
 
