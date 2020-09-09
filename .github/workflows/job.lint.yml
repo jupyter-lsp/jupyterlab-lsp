@@ -30,7 +30,7 @@ jobs:
           channel-priority: true
           activate-environment: jupyterlab-lsp
           environment-file: requirements/github-actions.yml
-          auto-update-conda: false
+          auto-update-conda: true
 
       - name: install lab and node
         run: conda install jupyterlab"${{ matrix.lab }}" nodejs"${{ matrix.nodejs }}"
