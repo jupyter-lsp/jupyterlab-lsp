@@ -23,8 +23,8 @@ jobs:
           tokenSuffix: '}'
           files: '["requirements/github-actions.yml"]'
         env:
-          lab: "${{ matrix.lab }}"
-          nodejs: "${{ matrix.nodejs }}"
+          lab: '${{ matrix.lab }}'
+          nodejs: '${{ matrix.nodejs }}'
 
       - name: Set up Python and conda
         uses: goanpeca/setup-miniconda@v1

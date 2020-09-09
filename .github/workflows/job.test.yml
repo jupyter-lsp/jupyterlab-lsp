@@ -1,7 +1,6 @@
 name: Run acceptance tests
 on: [push, pull_request]
 
-
 defaults:
   run:
     shell: bash -l {0}
@@ -47,8 +46,8 @@ jobs:
           tokenSuffix: '}'
           files: '["requirements/github-actions.yml"]'
         env:
-          lab: "${{ matrix.lab }}"
-          nodejs: "${{ matrix.nodejs }}"
+          lab: '${{ matrix.lab }}'
+          nodejs: '${{ matrix.nodejs }}'
 
       - name: Set up Python and conda
         uses: goanpeca/setup-miniconda@v1
@@ -124,10 +123,10 @@ jobs:
         run: python scripts/utest.py
 
       - name: Install support packages
-        run: jupyter labextension link --debug --no-build $(LINKED_EXTENSIONS)
+        run: jupyter labextension link --debug --no-build ${{ LINKED_EXTENSIONS }}
 
       - name: Install labextensions
-        run: jupyter labextension install --debug --no-build $(FIRST_PARTY_LABEXTENSIONS)
+        run: jupyter labextension install --debug --no-build ${{ FIRST_PARTY_LABEXTENSIONS }}
 
       - name: List labextensions before build
         run: jupyter labextension list
@@ -140,7 +139,6 @@ jobs:
 
       - name: Run browser tests
         run: python scripts/atest.py --exclude expect:fail
-
       #- task: PublishTestResults@2
       #  name: publish browser test results
       #  inputs:
@@ -148,7 +146,6 @@ jobs:
       #    testRunTitle: 'Robot ${{ env.name }}${{ python.name }}'
       #    mergeTestResults: true
       #  condition: always()
-
       #- task: PublishPipelineArtifact@0
       #  name: publish browser test output
       #  inputs:

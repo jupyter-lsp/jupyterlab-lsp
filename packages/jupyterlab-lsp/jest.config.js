@@ -19,10 +19,7 @@ let local = {
   },
   transformIgnorePatterns: ['/node_modules/(?!(@jupyterlab/.*)/)'],
   testLocationInResults: true,
-  reporters: [
-      ...upstream['reporters'],
-    'jest-github-actions-reporter'
-  ]
+  reporters: [...upstream['reporters'], 'jest-github-actions-reporter']
 };
 
 for (const option of reuseFromUpstream) {
