@@ -93,11 +93,7 @@ def setup_jedi():
     print("default jedi environment", jedi.api.environment.get_default_environment())
     print("jedi environment", ENV)
     jedi_cache = pathlib.Path(jedi.settings.cache_directory)
-    if jedi_cache.exists():
-        shutil.rmtree(jedi_cache)
-        print("removed jedi cache!")
-    else:
-        print("no jedi cache was found!")
+    return jedi_cache.exists()
 
 
 def warm_up(modules):
@@ -105,7 +101,12 @@ def warm_up(modules):
     print("-" * 80)
     print_versions()
     print("-" * 80)
-    setup_jedi()
+    cache_exists = setup_jedi()
+    if cache_exists:
+        print("jedi cache already exists, aborting warm up!")
+        return
+    else:
+        print("no jedi cache was found, warming up!")
     print("-" * 80)
     start = time.time()
     [warm_up_one(module) for module in modules]
@@ -115,4 +116,4 @@ def warm_up(modules):
 
 
 if __name__ == "__main__":
-    warm_up(sorted(set(sys.argv[1:] or MODULES_TO_CACHE)))
+    warm_up(sorted(set(sys.argv[2:] or MODULES_TO_CACHE)))
