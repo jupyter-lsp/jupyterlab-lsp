@@ -21,7 +21,7 @@ how does it work:
 - When _using_ jedi for the first time, the cache gets
   created in  `jedi.settings.cache_directory`, usually
   somewhere in $HOME.
-- As different libriraries are inspected by jedi, they get
+- As different libraries are inspected by jedi, they get
   added to the cache.
 - This is very slow, especially on windows, and cannot
   feasibly be cached, today.

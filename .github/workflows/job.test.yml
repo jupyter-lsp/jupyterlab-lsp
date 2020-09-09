@@ -107,6 +107,15 @@ jobs:
       - name: Install python wheel
         run: cd dist && python -m pip install jupyter_lsp-${{ env.PY_JLSP_VERSION }}-py3-none-any.whl --no-deps
 
+      - name: Find out jedi cache location
+        run: python -c 'import jedi; print("::set-env name=JEDI_CACHE_DIR::" + jedi.settings.cache_directory)'
+
+      - name: Cache jedi cache
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.JEDI_CACHE_DIR }}
+          key: jedi-${{ matrix.os }}-${{ hashFiles('scripts/jedi_cache.py') }}-${{ hashFiles('requirements/github-actions.yml') }}
+
       - name: Warm up jedi cache
         run: python scripts/jedi_cache.py
 
