@@ -40,7 +40,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: cschleiden/replace-tokens@v1
+      - name: Set JupyterLab and Node versions
+        uses: cschleiden/replace-tokens@v1
         with:
           tokenPrefix: '{'
           tokenSuffix: '}'
@@ -48,8 +49,6 @@ jobs:
         env:
           lab: "${{ matrix.lab }}"
           nodejs: "${{ matrix.nodejs }}"
-
-      - run: cat requirements/github-actions.yml
 
       - name: Set up Python and conda
         uses: goanpeca/setup-miniconda@v1
@@ -62,7 +61,7 @@ jobs:
           environment-file: requirements/github-actions.yml
           auto-update-conda: true
 
-      - name: describe conda
+      - name: Describe conda
         shell: bash -l {0}
         run: |
           conda info
@@ -71,28 +70,28 @@ jobs:
           conda config --show
           printenv | sort
 
-      - name: install npm dependencies
+      - name: Install npm dependencies
         run: jlpm
 
-      - name: build typerun
+      - name: Build the extension
         run: jlpm build
 
-      - name: build python distributions
+      - name: Build python distributions
         run: python setup.py sdist bdist_wheel
 
-      - name: build npm bundles
+      - name: Build npm bundles
         run: jlpm lerna run bundle
 
-      - name: install python wheel
+      - name: Install python wheel
         run: cd dist && python -m pip install jupyter_lsp-${{ env.PY_JLSP_VERSION }}-py3-none-any.whl --no-deps
 
-      - run: python scripts/jedi_cache.py
-        name: warm up jedi cache
+      - name: Warm up jedi cache
+        run: python scripts/jedi_cache.py
 
-      - name: warm up tectonic cache
+      - name: Warm up tectonic cache
         run: python scripts/tectonic_cache.py
 
-      - name: run frontend unit tests
+      - name: Run frontend unit tests
         run: jlpm test
 
       #  js_cov_packages:
@@ -115,28 +114,28 @@ jobs:
       #        summaryFileLocation: 'packages/${{ js_package }}/coverage/cobertura-coverage.xml'
       #      condition: always()
 
-      - name: list server extensions
+      - name: List server extensions
         run: jupyter serverextension list
 
-      - name: run python tests
+      - name: Run python tests
         run: python scripts/utest.py --test-run-title="Pytest ${{ matrix.os }}${{ matrix.python }}"
 
-      - name: install support packages
+      - name: Install support packages
         run: jupyter labextension link --debug --no-build $(LINKED_EXTENSIONS)
 
-      - name: install labextensions
+      - name: Install labextensions
         run: jupyter labextension install --debug --no-build $(FIRST_PARTY_LABEXTENSIONS)
 
-      - name: list labextensions before build
+      - name: List labextensions before build
         run: jupyter labextension list
 
-      - name: build lab
+      - name: Build lab
         run: jupyter lab build --debug --dev-build=False --minimize=True
 
-      - name: list labextensions after build
+      - name: List labextensions after build
         run: jupyter labextension list
 
-      - name: run browser tests
+      - name: Run browser tests
         run: python scripts/atest.py --exclude expect:fail
 
       #- task: PublishTestResults@2

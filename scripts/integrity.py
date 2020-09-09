@@ -62,9 +62,9 @@ PY_NAME = "jupyter-lsp"
 
 
 # CI stuff
-PIPE_FILE = ROOT / "azure-pipelines.yml"
+PIPE_FILE = ROOT / ".github/workflows/job.test.yml"
 PIPELINES = yaml.safe_load(PIPE_FILE.read_text())
-PIPE_VARS = PIPELINES["variables"]
+PIPE_VARS = PIPELINES["env"]
 DOCS = ROOT / "docs"
 
 CI = ROOT / "ci"
