@@ -151,7 +151,7 @@ Ensure All Kernels Are Shut Down
 Open Command Palette
     Press Keys    id:main    ${ACCEL}+SHIFT+c
     Wait Until Page Contains Element    ${CMD PALETTE INPUT}
-    Click Element    ${CMD PALETTE INPUT}
+    Wait Until Keyword Succeeds    3x    0.5s    Click Element    ${CMD PALETTE INPUT}
 
 Enter Command Name
     [Arguments]    ${cmd}

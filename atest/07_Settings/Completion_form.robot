@@ -14,8 +14,9 @@ ${SCREENS}        settings-completion-form
 @{SCHEMES}        themed    unthemed    muted
 
 *** Test Cases ***
-Completion form for all themes, schemes...
+Completion Form Handles Known Icon Themes and Color Schemes
     [Template]    The Completion Form Should Change Settings on Disk
+    # TODO: this should be generated, zipped, etc.
     material    Material Design    muted    Muted
     material    Material Design    themed    Themed
     material    Material Design    unthemed    Unthemed
@@ -25,26 +26,30 @@ Completion form for all themes, schemes...
     vscode    VSCode    muted    Muted
     vscode    VSCode    themed    Themed
     vscode    VSCode    unthemed    Unthemed
-    # TODO: this should be generated, zipped, etc.
 
 *** Keywords ***
 The Completion Form Should Change Settings on Disk
     [Documentation]    Verify an icon/color scheme pair
-    [Arguments]    ${theme}    ${theme label}    ${scheme}    ${scheme label}
-    ${stem} =    Set Variable    -form-theme-${theme}-${scheme}
+    ...    These are tested together to give better visual coverage e.g.
+    ...
+    ...    ```python
+    ...    display(sorted(Path("atest/output").rglob("20-schemed-*.png")))
+    ...    ```
+    [Arguments]    ${icon theme}    ${icon theme label}    ${color scheme}    ${color scheme label}
+    ${stem} =    Set Variable    -form-theme-${icon theme}-${color scheme}
     Lab Command    Code Completion Settings Editor
     Ensure Sidebar Is Closed
     Navigate to Section    theme    Theme
     Capture Page Screenshot    00-before-${stem}.png
     Navigate to Section    theme-icons    Icons
-    Click Form Field Radio    theme    ${theme label}
+    Click Form Field Radio    theme    ${icon theme label}
     Capture Page Screenshot    10-themed-${stem}.png
     Navigate to Section    theme-colors    Colors
-    Click Form Field Radio    color-scheme    ${scheme label}
+    Click Form Field Radio    color-scheme    ${color scheme label}
     Capture Page Screenshot    20-schemed-${stem}.png
     ${settings} =    Get Plugin Settings    ${COMPLETION PLUGIN ID}
-    Should Be Equal    ${settings["theme"]}    ${theme}
-    Should Be Equal    ${settings["colorScheme"]}    ${scheme}
+    Should Be Equal    ${settings["theme"]}    ${icon theme}
+    Should Be Equal    ${settings["colorScheme"]}    ${color scheme}
     [Teardown]    Clean Up Completion Form Test
 
 Navigate to Section
