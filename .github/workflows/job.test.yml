@@ -16,9 +16,6 @@ env:
   # TODO
   # YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
 
-  FIRST_PARTY_LABEXTENSIONS: >-
-    packages/jupyterlab-lsp/krassowski-jupyterlab-lsp-$(JS_JLLSP_VERSION).tgz
-
   LINKED_EXTENSIONS: >-
     packages/lsp-ws-connection
     packages/jupyterlab-go-to-definition
@@ -29,7 +26,7 @@ env:
 jobs:
   acceptance:
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }} ${{ matrix.python }}
+    name: ${{ matrix.os }}, Python ${{ matrix.python }}, Node ${{ matrix.nodejs }}
     strategy:
       matrix:
         python: [3.6, 3.7, 3.8]
@@ -126,7 +123,7 @@ jobs:
         run: jupyter labextension link --debug --no-build ${{ env.LINKED_EXTENSIONS }}
 
       - name: Install labextensions
-        run: jupyter labextension install --debug --no-build ${{ env.FIRST_PARTY_LABEXTENSIONS }}
+        run: jupyter labextension install --debug --no-build packages/jupyterlab-lsp/krassowski-jupyterlab-lsp-${{ env.JS_JLLSP_VERSION }}.tgz
 
       - name: List labextensions before build
         run: jupyter labextension list
