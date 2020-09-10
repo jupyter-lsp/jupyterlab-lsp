@@ -68,10 +68,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .yarn-packages
-          key: yarn--${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            yarn-${{ env.CACHE_EPOCH }}-${{ runner.os }}-
-            yarn-${{ env.CACHE_EPOCH }}-
+          key: yarn-${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
       - name: install npm dependencies
         run: jlpm --offline --ignore-optional || jlpm --prefer-offline --ignore-optional

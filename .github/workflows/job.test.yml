@@ -95,9 +95,6 @@ jobs:
         with:
           path: .yarn-packages
           key: yarn-${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            yarn-${{ runner.os }}-
-            yarn-
 
       - name: Install npm dependencies
         run: jlpm --offline --ignore-optional || jlpm --prefer-offline --ignore-optional
