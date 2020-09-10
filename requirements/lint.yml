@@ -11,5 +11,7 @@ dependencies:
   # see https://github.com/krassowski/jupyterlab-lsp/pull/291
   - isort <5
   - mypy
-  - robotframework-lint >=1.1
+  # needed for integrity
+  - pytest
   - robotframework >=3.2
+  - robotframework-lint >=1.1
