@@ -84,8 +84,7 @@ jobs:
           use-only-tar-bz2: true
 
       - name: Overwrite conda env from lockfile
-        run: |
-          conda create --yes --name jupyterlab-lsp --file conda.lock
+        run: conda create --yes --name jupyterlab-lsp --file conda.lock
 
       - name: Cache yarn
         uses: actions/cache@v1
@@ -119,7 +118,6 @@ jobs:
         with:
           path: ${{ env.JEDI_CACHE_DIR }}
           key: jedi-${{ matrix.os }}-${{ hashFiles('scripts/jedi_cache.py', 'conda.lock') }}
-
 
       - name: Warm up jedi cache
         run: python scripts/jedi_cache.py
