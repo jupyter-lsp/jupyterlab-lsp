@@ -66,7 +66,9 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Prep lock file
-        run: cp .github/conda.locks/conda.test.${{ matrix.platform }}-${{ matrix.python }}-${{ matrix.lab }}.lock conda.lock
+        run: |
+          cp .github/conda.locks/conda.test.${{ matrix.platform }}-${{ matrix.python }}-${{ matrix.lab }}.lock conda.lock
+          cat conda.lock
 
       - name: Cache conda
         uses: actions/cache@v2
@@ -182,14 +184,6 @@ jobs:
 
       - name: Run browser tests
         run: python scripts/atest.py --exclude expect:fail
-
-      #- task: PublishTestResults@2
-      #  name: publish browser test results
-      #  inputs:
-      #    testResultsFiles: atest/output/*.xunit.xml
-      #    testRunTitle: 'Robot ${{ env.name }}${{ python.name }}'
-      #    mergeTestResults: true
-      #  condition: always()
 
       - name: Publish browser test output
         uses: actions/upload-artifact@v2
