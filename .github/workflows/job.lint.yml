@@ -12,6 +12,9 @@ defaults:
   run:
     shell: bash -l {0}
 
+env:
+  CACHE_EPOCH: 0
+
 jobs:
   lint:
     runs-on: ${{ matrix.os }}
@@ -43,7 +46,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/conda_pkgs_dir
-          key: conda-lint-${{ hashFiles('conda.lock') }}
+          key: conda-lint-${{ env.CACHE_EPOCH }}-${{ hashFiles('conda.lock') }}
 
       - name: Set up conda env
         uses: goanpeca/setup-miniconda@v1
@@ -65,10 +68,10 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .yarn-packages
-          key: yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: yarn--${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            yarn-${{ runner.os }}-
-            yarn-
+            yarn-${{ env.CACHE_EPOCH }}-${{ runner.os }}-
+            yarn-${{ env.CACHE_EPOCH }}-
 
       - name: install npm dependencies
         run: jlpm --offline --ignore-optional || jlpm --prefer-offline --ignore-optional

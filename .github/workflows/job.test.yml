@@ -13,6 +13,7 @@ defaults:
     shell: bash -l {0}
 
 env:
+  CACHE_EPOCH: 0
   # TODO extract these from files instead
   PY_JLSP_VERSION: 0.9.2
   JS_JLLSP_VERSION: 2.0.2
@@ -74,7 +75,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/conda_pkgs_dir
-          key: conda-test-${{ hashFiles('conda.lock') }}
+          key: conda-test-${{ env.CACHE_EPOCH }}-${{ hashFiles('conda.lock') }}
 
       - name: Set up conda env
         uses: goanpeca/setup-miniconda@v1
@@ -93,7 +94,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .yarn-packages
-          key: yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: yarn-${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             yarn-${{ runner.os }}-
             yarn-
@@ -120,7 +121,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.JEDI_CACHE_DIR }}
-          key: jedi-${{ matrix.os }}-${{ hashFiles('scripts/jedi_cache.py', 'conda.lock') }}
+          key: jedi-${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ hashFiles('scripts/jedi_cache.py', 'conda.lock') }}
 
       - name: Warm up jedi cache
         run: python scripts/jedi_cache.py
@@ -133,7 +134,7 @@ jobs:
             ~/.cache/Tectonic
             ~/Library/Caches/Tectonic
             %LOCALAPPDATA%/TectonicProject/Tectonic
-          key: tectonic-${{ runner.os }}-${{ hashFiles('scripts/tectonic_cache.py', 'conda.lock') }}
+          key: tectonic-${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ hashFiles('scripts/tectonic_cache.py', 'conda.lock') }}
 
       - name: Warm up tectonic cache
         run: python scripts/tectonic_cache.py
