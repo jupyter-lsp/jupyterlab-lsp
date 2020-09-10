@@ -34,6 +34,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Prep lock file
+        run: cp .github/conda.locks/conda.lint.${{ matrix.platform }}-${{ matrix.python }}-${{ matrix.lab }}.lock conda.lock
+
+      - name: Cache conda
+        uses: actions/cache@v1
+        with:
+          path: ~/conda_pkgs_dir
+          key: conda-lint-${{ hashFiles('conda.lock'} }}
+
       - name: Set up conda env
         uses: goanpeca/setup-miniconda@v1
         with:
@@ -41,13 +50,23 @@ jobs:
           auto-activate-base: true
           auto-update-conda: false
           environment-file: requirements/minimal.yml
+          use-only-tar-bz2: true
 
       - name: Overwrite conda env from lockfile
         run: |
-          conda create --yes --name jupyterlab-lsp --file .github/conda.locks/conda.lint.${{ matrix.platform }}-${{ matrix.python }}-${{ matrix.lab }}.lock
+          conda create --yes --name jupyterlab-lsp --file conda.lock
 
       - name: check integrity of package versions
         run: python scripts/integrity.py
+
+      - name: Cache yarn
+        uses: actions/cache@v1
+        with:
+          path: .yarn-packages
+          key: yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-
+            yarn-
 
       - name: install npm dependencies
         run: jlpm

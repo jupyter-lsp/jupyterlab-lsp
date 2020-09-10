@@ -58,7 +58,6 @@ def task_lock():
         yield _make_lock_task(
             "test",
             [ENV.ci, ENV.lab, ENV.utest, ENV.atest],
-            [WORKFLOW_TEST],
             TEST_MATRIX,
             *task_args
         )
@@ -67,7 +66,6 @@ def task_lock():
         yield _make_lock_task(
             "lint",
             [ENV.ci, ENV.lab, ENV.lint],
-            [WORKFLOW_LINT],
             LINT_MATRIX,
             *task_args
         )
@@ -77,14 +75,14 @@ def task_lock():
 CHN = "channels"
 DEP = "dependencies"
 
-def _make_lock_task(kind_, env_files, extra_deps, config, platform_, python_, nodejs_, lab_):
+def _make_lock_task(kind_, env_files, config, platform_, python_, nodejs_, lab_):
     """ generate a single dodo excursion for conda-lock
     """
     if platform_ == "win-64":
         env_files = [*env_files, ENV.win]
 
     lockfile = LOCKS / f"conda.{kind_}.{platform_}-{python_}-{lab_}.lock"
-    file_dep = [*env_files, *extra_deps]
+    file_dep = [*env_files]
 
     def expand_specs(specs):
         from conda.models.match_spec import MatchSpec

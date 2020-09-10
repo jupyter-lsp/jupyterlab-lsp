@@ -65,6 +65,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Prep lock file
+        run: cp .github/conda.locks/conda.test.${{ matrix.platform }}-${{ matrix.python }}-${{ matrix.lab }}.lock conda.lock
+
+      - name: Cache conda
+        uses: actions/cache@v1
+        with:
+          path: ~/conda_pkgs_dir
+          key: conda-test-${{ hashFiles('conda.lock'} }}
+
       - name: Set up conda env
         uses: goanpeca/setup-miniconda@v1
         with:
@@ -72,10 +81,11 @@ jobs:
           auto-activate-base: true
           auto-update-conda: false
           environment-file: requirements/minimal.yml
+          use-only-tar-bz2: true
 
       - name: Overwrite conda env from lockfile
         run: |
-          conda create --yes --name jupyterlab-lsp --file .github/conda.locks/conda.test.${{ matrix.platform }}-${{ matrix.python }}-${{ matrix.lab }}.lock
+          conda create --yes --name jupyterlab-lsp --file conda.lock
 
       - name: Cache yarn
         uses: actions/cache@v1
