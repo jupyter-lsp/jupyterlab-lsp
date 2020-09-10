@@ -1,5 +1,14 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 2.0.3` (unreleased)
+
+- bug fixes
+
+  - improve code overrides for IPython line magics ([#346])
+  - implement missing code overrides for IPython's pinfo (`?`) and pinfo2 (`??`) syntactic sugar ([#346])
+
+[#346]: https://github.com/krassowski/jupyterlab-lsp/issues/346
+
 ### `@krassowski/jupyterlab-lsp 2.0.2` (2020-09-07)
 
 - bug fixes
