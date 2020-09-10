@@ -118,7 +118,8 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{ env.JEDI_CACHE_DIR }}
-          key: jedi-${{ matrix.os }}-${{ hashFiles('scripts/jedi_cache.py') }}-${{ hashFiles('requirements/github-actions.yml') }}
+          key: jedi-${{ matrix.os }}-${{ hashFiles('scripts/jedi_cache.py', 'conda.lock') }}
+
 
       - name: Warm up jedi cache
         run: python scripts/jedi_cache.py
@@ -131,7 +132,7 @@ jobs:
             ~/.cache/Tectonic
             ~/Library/Caches/Tectonic
             %LOCALAPPDATA%/TectonicProject/Tectonic
-          key: ${{ runner.os }}-${{ hashFiles('scripts/tectonic_cache.py') }}
+          key: ${{ runner.os }}-${{ hashFiles('scripts/tectonic_cache.py', 'conda.lock') }}
 
       - name: Warm up tectonic cache
         run: python scripts/tectonic_cache.py
