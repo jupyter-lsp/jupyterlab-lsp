@@ -1,11 +1,12 @@
+# browser-based acceptance testing
 name: jupyterlab-lsp
 
 channels:
   - conda-forge
-  - defaults
 
 dependencies:
-  - robotframework-seleniumlibrary
-  - robotframework >=3.2
+  - bs4
   - firefox
   - geckodriver
+  - robotframework >=3.2
+  - robotframework-seleniumlibrary

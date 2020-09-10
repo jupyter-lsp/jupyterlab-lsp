@@ -1,14 +1,15 @@
-name: jupyterlab-lsp-docs
+# documentation building (though needs full runtime env)
+name: jupyterlab-lsp
 
 channels:
   - conda-forge
-  - defaults
 
 dependencies:
   - nbsphinx
   - pandas
   - pip
   - pytest
+  - pytest-check-links
   - python-graphviz
   - recommonmark
   - sphinx
@@ -17,5 +18,4 @@ dependencies:
   - sphinx-autodoc-typehints
   - sphinx-copybutton
   - pip:
-      - pytest-check-links
-      - sphinx-markdown-tables
+    - sphinx-markdown-tables

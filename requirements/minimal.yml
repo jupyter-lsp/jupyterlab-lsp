@@ -1,0 +1,8 @@
+# seeding CI paths
+name: jupyterlab-lsp
+
+channels:
+  - conda-forge
+
+dependencies:
+  - sqlite

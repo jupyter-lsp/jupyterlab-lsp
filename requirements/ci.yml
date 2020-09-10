@@ -1,0 +1,30 @@
+# minimum needed runtime, plus language servers
+name: jupyterlab-lsp
+
+channels:
+  - conda-forge
+
+dependencies:
+  # these versions are overloaded dynamically when locking
+  - python
+  - jupyterlab
+  - nodejs
+  # build dependencies
+  - ruamel_yaml
+  - pip
+  - wheel
+  # for python language server (and development)
+  - flake8 >=3.5
+  - python-language-server
+  - ujson <=1.35
+  # for R language server and kernel
+  # TODO: try r 4.0 soon
+  - r <4
+  - r-irkernel
+  - r-languageserver
+  - r-stringi >=1.4.6
+  - rpy2
+  # tex
+  - tectonic
+  - texlab
+  - chktex

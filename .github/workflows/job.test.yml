@@ -1,4 +1,4 @@
-name: Test
+name: tests
 
 on:
   push:
@@ -20,11 +20,6 @@ env:
 
   PYTHONUNBUFFERED: 1
   ATEST_RETRIES: 3
-  # TODO
-  # YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
-
-  FIRST_PARTY_LABEXTENSIONS: >-
-    packages/jupyterlab-lsp/krassowski-jupyterlab-lsp-$(JS_JLLSP_VERSION).tgz
 
   LINKED_EXTENSIONS: >-
     packages/lsp-ws-connection
@@ -36,29 +31,61 @@ env:
 jobs:
   acceptance:
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }} ${{ matrix.python }}
+    name: ${{ matrix.os }}, Python ${{ matrix.python }}
     strategy:
       matrix:
-        python: ['3.6', '3.7', '3.8']
-        os: [ubuntu-16.04, macos-10.14, vs2017-win2016]
-        nodejs: ['10', '13']
-        lab: ['2.2']
+        python:
+          - '3.6'
+          - '3.7'
+          - '3.8'
+        platform:
+          - linux-64
+          - osx-64
+          - win-64
+        lab:
+          - '2.2'
+        include:
+          # representative platforms
+          - platform: linux-64
+            os: ubuntu-16.04
+          - platform: osx-64
+            os: macos-10.14
+          - platform: win-64
+            os: vs2017-win2016
+          # Node 10 end-of-life: April 2021
+          - python: '3.6'
+            nodejs: '10'
+          # Node 12 end-of-life: April 2022
+          - python: '3.7'
+            nodejs: '12'
+          # Node 14 end-of-life: April 2023
+          - python: '3.8'
+            nodejs: '14'
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Python and conda
+      - name: Set up conda env
         uses: goanpeca/setup-miniconda@v1
         with:
           activate-environment: jupyterlab-lsp
           auto-activate-base: true
           auto-update-conda: false
-          environment-file: requirements/lock.yml
+          environment-file: requirements/minimal.yml
           python-version: ${{ matrix.python }}
 
-      - name: create test env from lock file
+      - name: Overwrite conda env from lockfile
         run: |
-          conda create --yes --name jupyterlab-lsp --file .github/conda.locks/conda.${{ matrix.os }}-${{ matrix.python }}-${{ matrix.nodejs }}-${{ matrix.lab }}.lock
+          conda create --yes --name jupyterlab-lsp --file .github/conda.locks/conda.test.${{ matrix.platform }}-${{ matrix.python }}-${{ matrix.lab }}.lock
+
+      - name: Cache yarn
+        uses: actions/cache@v1
+        with:
+          path: .yarn-packages
+          key: yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-
+            yarn-
 
       - name: Install npm dependencies
         run: jlpm
@@ -75,8 +102,27 @@ jobs:
       - name: Install python wheel
         run: cd dist && python -m pip install jupyter_lsp-${{ env.PY_JLSP_VERSION }}-py3-none-any.whl --no-deps
 
+      - name: Find out jedi cache location
+        run: python -c 'import jedi; print("::set-env name=JEDI_CACHE_DIR::" + jedi.settings.cache_directory)'
+
+      - name: Cache jedi cache
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.JEDI_CACHE_DIR }}
+          key: jedi-${{ matrix.os }}-${{ hashFiles('scripts/jedi_cache.py') }}-${{ hashFiles('requirements/github-actions.yml') }}
+
       - name: Warm up jedi cache
         run: python scripts/jedi_cache.py
+
+      - name: Cache tectonic cache
+        uses: actions/cache@v2
+        with:
+          # locations for: Linux, MacOS, Windows
+          path: |
+            ~/.cache/Tectonic
+            ~/Library/Caches/Tectonic
+            %LOCALAPPDATA%/TectonicProject/Tectonic
+          key: ${{ runner.os }}-${{ hashFiles('scripts/tectonic_cache.py') }}
 
       - name: Warm up tectonic cache
         run: python scripts/tectonic_cache.py
@@ -108,13 +154,13 @@ jobs:
         run: jupyter serverextension list
 
       - name: Run python tests
-        run: python scripts/utest.py --test-run-title="Pytest ${{ matrix.os }}${{ matrix.python }}"
+        run: python scripts/utest.py
 
       - name: Install support packages
-        run: jupyter labextension link --debug --no-build $(LINKED_EXTENSIONS)
+        run: jupyter labextension link --debug --no-build ${{ env.LINKED_EXTENSIONS }}
 
       - name: Install labextensions
-        run: jupyter labextension install --debug --no-build $(FIRST_PARTY_LABEXTENSIONS)
+        run: jupyter labextension install --debug --no-build packages/jupyterlab-lsp/krassowski-jupyterlab-lsp-${{ env.JS_JLLSP_VERSION }}.tgz
 
       - name: List labextensions before build
         run: jupyter labextension list
@@ -136,9 +182,9 @@ jobs:
       #    mergeTestResults: true
       #  condition: always()
 
-      #- task: PublishPipelineArtifact@0
-      #  name: publish browser test output
-      #  inputs:
-      #    targetPath: atest/output
-      #    artifactName: $(Agent.JobStatus) Robot ${{ env.name }}${{ python.name }} $(Build.BuildId)
-      #  condition: always()
+      - name: Publish browser test output
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ job.status }} Robot ${{ matrix.os }} Python ${{ matrix.python }} ${{ github.run_number }}
+          path: ./atest/output
+        if: always()

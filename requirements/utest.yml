@@ -1,0 +1,11 @@
+# unit testing
+name: jupyterlab-lsp
+
+channels:
+  - conda-forge
+
+dependencies:
+  - pytest-asyncio
+  - pytest-cov
+  - pytest-flake8
+  - pytest-runner

@@ -14,6 +14,7 @@
     "eslint-plugin-react": "^7.19.0",
     "husky": "^3.0.9",
     "javascript-typescript-langserver": "^2.11.3",
+    "jest-github-actions-reporter": "^1.0.2",
     "lerna": "^3.13.2",
     "precise-commits": "^1.0.2",
     "prettier": "^2.0.5",
@@ -50,7 +51,7 @@
     "lint:check": "jlpm prettier:check && jlpm eslint:check",
     "lint": "jlpm prettier && jlpm eslint",
     "prettier:check": "prettier --check \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
-    "prettier": "prettier --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
+    "prettier": "prettier --list-different --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md,.yml}\"",
     "eslint": "eslint --config packages/.eslintrc.js --ext .js,.jsx,.ts,.tsx --fix packages",
     "eslint:check": "eslint --config packages/.eslintrc.js --ext .js,.jsx,.ts,.tsx packages",
     "test": "lerna run --stream --concurrency=1 test"

@@ -1,4 +1,5 @@
-name: jupyter-lsp-lock-env
+# generating lock files
+name: jupyterlab-lsp
 
 channels:
   - conda-forge
