@@ -34,14 +34,14 @@ jobs:
     name: ${{ matrix.platform }} py${{ matrix.python }}
     strategy:
       matrix:
-        python:
-          - '3.6'
-          - '3.7'
-          - '3.8'
         platform:
           - linux-64
           - osx-64
           - win-64
+        python:
+          - '3.6'
+          - '3.7'
+          - '3.8'
         lab:
           - '2.2'
         include:
