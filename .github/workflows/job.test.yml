@@ -191,6 +191,7 @@ jobs:
 
       - name: Run browser tests
         run: python scripts/atest.py --exclude expect:fail
+
       #- task: PublishTestResults@2
       #  name: publish browser test results
       #  inputs:
@@ -198,9 +199,10 @@ jobs:
       #    testRunTitle: 'Robot ${{ env.name }}${{ python.name }}'
       #    mergeTestResults: true
       #  condition: always()
-      #- task: PublishPipelineArtifact@0
-      #  name: publish browser test output
-      #  inputs:
-      #    targetPath: atest/output
-      #    artifactName: $(Agent.JobStatus) Robot ${{ env.name }}${{ python.name }} $(Build.BuildId)
-      #  condition: always()
+
+      - name: Publish browser test output
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ job.status }} Robot ${{ matrix.os }} Python ${{ matrix.python }} Node ${{ matrix.nodejs }} ${{ github.run_number }}
+          path: ./atest/output
+        if: always()
