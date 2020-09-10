@@ -41,7 +41,6 @@ jobs:
           auto-activate-base: true
           auto-update-conda: false
           environment-file: requirements/minimal.yml
-          python-version: ${{ matrix.python }}
 
       - name: Overwrite conda env from lockfile
         run: |
