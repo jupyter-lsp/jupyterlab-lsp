@@ -47,8 +47,7 @@ jobs:
             nodejs: '>=12,<13.0.0.a0'
           - python: 3.8
             # Node 14 end-of-life: April 2023
-            # TODO Node 13 is no longer supported
-            nodejs: '>=13,<14.0.0.a0'
+            nodejs: '>=14,<15.0.0.a0'
 
     steps:
       - uses: actions/checkout@v2
