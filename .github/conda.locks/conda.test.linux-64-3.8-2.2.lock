@@ -1,5 +1,5 @@
 # platform: linux-64
-# env_hash: 4b79331b44ae7f2e88c5882d4854080b067bed25575766eee9687aa06b06325d
+# env_hash: 0473aa53884ee380f97a57e0d3a067216cdec57a392ac156f7049b7ed9d82d99
 @EXPLICIT
 https://conda.anaconda.org/conda-forge/linux-64/texlab-2.2.0-he32d670_0.tar.bz2#ded86115b98be12936467b221594ff76
 https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2#d7c89558ba9fa0495403155b64376d81
@@ -182,6 +182,7 @@ https://conda.anaconda.org/conda-forge/noarch/pygments-2.6.1-py_0.tar.bz2#37736a
 https://conda.anaconda.org/conda-forge/linux-64/pyopenssl-19.1.0-py38_0.tar.bz2#276e6f9f0e49d58ce18755bce754616a
 https://conda.anaconda.org/conda-forge/linux-64/pytest-asyncio-0.12.0-py38h32f6830_1.tar.bz2#ec696f0d5569aa96e39ac338fa467771
 https://conda.anaconda.org/conda-forge/noarch/pytest-cov-2.10.1-pyh9f0ad1d_0.tar.bz2#0d83b4ea58595e9f685c51ba31f63116
+https://conda.anaconda.org/conda-forge/noarch/pytest-github-actions-annotate-failures-0.1.0-pyh9f0ad1d_0.tar.bz2#77d193e264b33e9c899eab38f25e9138
 https://conda.anaconda.org/conda-forge/noarch/pytest-runner-5.2-py_0.tar.bz2#6a51d7283dcc13101dbb060cddf54bfa
 https://conda.anaconda.org/conda-forge/linux-64/tectonic-0.1.15-h90f851f_0.tar.bz2#a18316d5b4899fdc35f2781b6829a935
 https://conda.anaconda.org/conda-forge/noarch/jupyterlab_pygments-0.1.1-pyh9f0ad1d_0.tar.bz2#1dcc48a573e69b44f9065dbe665fc186
@@ -243,7 +244,7 @@ https://conda.anaconda.org/conda-forge/noarch/requests-2.24.0-pyh9f0ad1d_0.tar.b
 https://conda.anaconda.org/conda-forge/linux-64/rpy2-3.3.2-py38r36h8790de6_0.tar.bz2#57d151ed9877b9741b5caa946a3bdb9c
 https://conda.anaconda.org/conda-forge/linux-64/selenium-3.141.0-py38h1e0a361_1001.tar.bz2#9b6582588698604a6d7a76b94c5db911
 https://conda.anaconda.org/conda-forge/linux-64/ipython-7.18.1-py38h1cdfbd6_0.tar.bz2#e6c0aefc70107e32644ff47aac9cbd2b
-https://conda.anaconda.org/conda-forge/linux-64/nbconvert-6.0.0-py38h32f6830_0.tar.bz2#47dde794a67d9420e89d4ef1b9e4ab00
+https://conda.anaconda.org/conda-forge/linux-64/nbconvert-6.0.1-py38h32f6830_0.tar.bz2#a0178952e0ff6db42059fbaf7534b0b5
 https://conda.anaconda.org/conda-forge/linux-64/r-askpass-1.1-r36hcdcec82_2.tar.bz2#4af1ebbcac3c46ed7a184150e8b9db90
 https://conda.anaconda.org/conda-forge/linux-64/r-class-7.3_17-r36hcdcec82_1.tar.bz2#12a91a28b58dad69f43c26e2da3656fd
 https://conda.anaconda.org/conda-forge/noarch/r-cli-2.0.2-r36h6115d3f_1.tar.bz2#63826798f99705dfdddf7cb21ad443b4

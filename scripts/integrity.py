@@ -8,7 +8,6 @@ import json
 import pathlib
 import sys
 import tempfile
-from importlib.util import find_spec
 
 import jsonschema
 import nbformat
@@ -186,12 +185,6 @@ def test_installation_versions(the_installation_notebook, pkg, sep, version, exp
 def check_integrity():
     """actually run the tests"""
     args = ["-vv", __file__]
-
-    try:
-        if find_spec("pytest_azurepipelines"):
-            args += ["--no-coverage-upload"]
-    except ImportError:
-        pass
 
     with tempfile.TemporaryDirectory() as tmp:
         ini = pathlib.Path(tmp) / "pytest.ini"

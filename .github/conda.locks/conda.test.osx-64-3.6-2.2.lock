@@ -1,5 +1,5 @@
 # platform: osx-64
-# env_hash: e0b0a40b353b9387979b0e8ec8afc11c1c4d605d95aa20c683d58f76e1b0c739
+# env_hash: c281c2fe9b25aafa488a3f01515df9253ebe7890e264f09f5954198e751811fe
 @EXPLICIT
 https://conda.anaconda.org/conda-forge/osx-64/texlab-2.2.0-he32d670_0.tar.bz2#7f2932542975c6a6f1bf31171317b08d
 https://conda.anaconda.org/conda-forge/noarch/_r-mutex-1.0.1-anacondar_1.tar.bz2#19f9db5f4f1b7f5ef5f6d67207f25f38
@@ -184,6 +184,7 @@ https://conda.anaconda.org/conda-forge/noarch/prompt-toolkit-3.0.7-py_0.tar.bz2#
 https://conda.anaconda.org/conda-forge/osx-64/pytest-asyncio-0.12.0-py36h9f0ad1d_1.tar.bz2#551055c39209d5ca49c0c410df3057d2
 https://conda.anaconda.org/conda-forge/noarch/pytest-cov-2.10.1-pyh9f0ad1d_0.tar.bz2#0d83b4ea58595e9f685c51ba31f63116
 https://conda.anaconda.org/conda-forge/noarch/pytest-flake8-1.0.6-pyh9f0ad1d_0.tar.bz2#da773d09f20668c9f335d6364b031b2e
+https://conda.anaconda.org/conda-forge/noarch/pytest-github-actions-annotate-failures-0.1.0-pyh9f0ad1d_0.tar.bz2#77d193e264b33e9c899eab38f25e9138
 https://conda.anaconda.org/conda-forge/noarch/pytest-runner-5.2-py_0.tar.bz2#6a51d7283dcc13101dbb060cddf54bfa
 https://conda.anaconda.org/conda-forge/osx-64/python-language-server-0.34.1-py36h9f0ad1d_0.tar.bz2#086a6ce39b185baf9159e40e5544bed5
 https://conda.anaconda.org/conda-forge/noarch/r-assertthat-0.2.1-r36h6115d3f_2.tar.bz2#89894bf1427eea74d7adb24bf93858dc
@@ -235,7 +236,7 @@ https://conda.anaconda.org/conda-forge/noarch/requests-2.24.0-pyh9f0ad1d_0.tar.b
 https://conda.anaconda.org/conda-forge/osx-64/rpy2-3.3.2-py36r36h255dfe6_0.tar.bz2#ea5b942a9dfd194a130076f5df928562
 https://conda.anaconda.org/conda-forge/osx-64/selenium-3.141.0-py36h37b9a7d_1001.tar.bz2#f247ae168911cfeb1863d5aaa4100293
 https://conda.anaconda.org/conda-forge/osx-64/ipython-7.16.1-py36h95af2a2_0.tar.bz2#73331f8ce4ee928ceb03165087fec2cc
-https://conda.anaconda.org/conda-forge/osx-64/nbconvert-6.0.0-py36h9f0ad1d_0.tar.bz2#d72f6d8205a2780a557a7424a8bd0719
+https://conda.anaconda.org/conda-forge/osx-64/nbconvert-6.0.1-py36h9f0ad1d_0.tar.bz2#f7ce48863c9228a6269b95660610e15d
 https://conda.anaconda.org/conda-forge/osx-64/r-askpass-1.1-r36h17f1fa6_2.tar.bz2#a7dea75b400f8401d8ab412aac37e1c2
 https://conda.anaconda.org/conda-forge/osx-64/r-class-7.3_17-r36h17f1fa6_1.tar.bz2#aa5c4926f68ae0cdf3edb909d2ea8391
 https://conda.anaconda.org/conda-forge/noarch/r-cli-2.0.2-r36h6115d3f_1.tar.bz2#63826798f99705dfdddf7cb21ad443b4

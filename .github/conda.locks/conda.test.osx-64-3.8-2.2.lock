@@ -1,5 +1,5 @@
 # platform: osx-64
-# env_hash: 79c2aee2d37f87511a257eefe31c359c591bcbe8277a7137cac51290f58feb63
+# env_hash: 8734f59f0ba3d0a948a02a8962bf4cf3753ddc4c61d582a81bc26fcfc7124ebd
 @EXPLICIT
 https://conda.anaconda.org/conda-forge/osx-64/texlab-2.2.0-he32d670_0.tar.bz2#7f2932542975c6a6f1bf31171317b08d
 https://conda.anaconda.org/conda-forge/noarch/_r-mutex-1.0.1-anacondar_1.tar.bz2#19f9db5f4f1b7f5ef5f6d67207f25f38
@@ -173,8 +173,9 @@ https://conda.anaconda.org/conda-forge/noarch/pygments-2.6.1-py_0.tar.bz2#37736a
 https://conda.anaconda.org/conda-forge/osx-64/pyopenssl-19.1.0-py38_0.tar.bz2#c79f61a3d9e170d5690a2527b1b1eb67
 https://conda.anaconda.org/conda-forge/osx-64/pytest-asyncio-0.12.0-py38h32f6830_1.tar.bz2#4c6cba1ee89e2a2cf0d5409c4c4c91e0
 https://conda.anaconda.org/conda-forge/noarch/pytest-cov-2.10.1-pyh9f0ad1d_0.tar.bz2#0d83b4ea58595e9f685c51ba31f63116
+https://conda.anaconda.org/conda-forge/noarch/pytest-github-actions-annotate-failures-0.1.0-pyh9f0ad1d_0.tar.bz2#77d193e264b33e9c899eab38f25e9138
 https://conda.anaconda.org/conda-forge/noarch/pytest-runner-5.2-py_0.tar.bz2#6a51d7283dcc13101dbb060cddf54bfa
-https://conda.anaconda.org/conda-forge/osx-64/tectonic-0.1.14-h093473c_0.tar.bz2#e26130cc6f93d922b67bdb58670fe4b0
+https://conda.anaconda.org/conda-forge/osx-64/tectonic-0.1.15-h093473c_0.tar.bz2#85e1875a0f8ad12b4ef48e298be7c4aa
 https://conda.anaconda.org/conda-forge/noarch/jupyterlab_pygments-0.1.1-pyh9f0ad1d_0.tar.bz2#1dcc48a573e69b44f9065dbe665fc186
 https://conda.anaconda.org/conda-forge/noarch/nbformat-5.0.7-py_0.tar.bz2#7f9984ee165126ac09d9eb678052783d
 https://conda.anaconda.org/conda-forge/osx-64/pylint-2.6.0-py38h32f6830_0.tar.bz2#684bc2fbb666db26275d6f73fcc243ea
@@ -234,7 +235,7 @@ https://conda.anaconda.org/conda-forge/noarch/requests-2.24.0-pyh9f0ad1d_0.tar.b
 https://conda.anaconda.org/conda-forge/osx-64/rpy2-3.3.2-py38r36h65ad66c_0.tar.bz2#62feb0b43afa7f7ba4cf128464bfb80f
 https://conda.anaconda.org/conda-forge/osx-64/selenium-3.141.0-py38h64e0658_1001.tar.bz2#155160e255dc13a153dfada014def133
 https://conda.anaconda.org/conda-forge/osx-64/ipython-7.18.1-py38h1cdfbd6_0.tar.bz2#9b4fc2ae9182f958ae31d7dbdb016bf9
-https://conda.anaconda.org/conda-forge/osx-64/nbconvert-6.0.0-py38h32f6830_0.tar.bz2#c505392d4563009976f707bd641684ea
+https://conda.anaconda.org/conda-forge/osx-64/nbconvert-6.0.1-py38h32f6830_0.tar.bz2#0191ddb49b9dcb5aae1b8d13a2330169
 https://conda.anaconda.org/conda-forge/osx-64/r-askpass-1.1-r36h17f1fa6_2.tar.bz2#a7dea75b400f8401d8ab412aac37e1c2
 https://conda.anaconda.org/conda-forge/osx-64/r-class-7.3_17-r36h17f1fa6_1.tar.bz2#aa5c4926f68ae0cdf3edb909d2ea8391
 https://conda.anaconda.org/conda-forge/noarch/r-cli-2.0.2-r36h6115d3f_1.tar.bz2#63826798f99705dfdddf7cb21ad443b4

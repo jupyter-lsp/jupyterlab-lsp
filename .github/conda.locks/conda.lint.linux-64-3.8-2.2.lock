@@ -1,5 +1,5 @@
 # platform: linux-64
-# env_hash: ee9a665abeca6ca389ba237aeac52fd1ed3f61907565cda6a96c3d63b233cdbf
+# env_hash: d531b87f5fe1db92b2d091e5ea6a7a368faef027178ce1ea941ca057bd581725
 @EXPLICIT
 https://conda.anaconda.org/conda-forge/linux-64/texlab-2.2.0-he32d670_0.tar.bz2#ded86115b98be12936467b221594ff76
 https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2#d7c89558ba9fa0495403155b64376d81
@@ -194,6 +194,7 @@ https://conda.anaconda.org/conda-forge/noarch/pygments-2.6.1-py_0.tar.bz2#37736a
 https://conda.anaconda.org/conda-forge/linux-64/pyopenssl-19.1.0-py38_0.tar.bz2#276e6f9f0e49d58ce18755bce754616a
 https://conda.anaconda.org/conda-forge/linux-64/pytest-asyncio-0.12.0-py38h32f6830_1.tar.bz2#ec696f0d5569aa96e39ac338fa467771
 https://conda.anaconda.org/conda-forge/noarch/pytest-cov-2.10.1-pyh9f0ad1d_0.tar.bz2#0d83b4ea58595e9f685c51ba31f63116
+https://conda.anaconda.org/conda-forge/noarch/pytest-github-actions-annotate-failures-0.1.0-pyh9f0ad1d_0.tar.bz2#77d193e264b33e9c899eab38f25e9138
 https://conda.anaconda.org/conda-forge/noarch/pytest-runner-5.2-py_0.tar.bz2#6a51d7283dcc13101dbb060cddf54bfa
 https://conda.anaconda.org/conda-forge/linux-64/tectonic-0.1.15-h90f851f_0.tar.bz2#a18316d5b4899fdc35f2781b6829a935
 https://conda.anaconda.org/conda-forge/noarch/jupyterlab_pygments-0.1.1-pyh9f0ad1d_0.tar.bz2#1dcc48a573e69b44f9065dbe665fc186
