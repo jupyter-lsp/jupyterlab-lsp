@@ -54,15 +54,13 @@ def task_lock():
     Requires `conda-lock` CLI to be available
     """
 
+    test_envs = [ENV.ci, ENV.lab, ENV.utest, ENV.atest]
+
     for task_args in _iter_lock_args(TEST_MATRIX):
-        yield _make_lock_task(
-            "test", [ENV.ci, ENV.lab, ENV.utest, ENV.atest], TEST_MATRIX, *task_args
-        )
+        yield _make_lock_task("test", test_envs, TEST_MATRIX, *task_args)
 
     for task_args in _iter_lock_args(LINT_MATRIX):
-        yield _make_lock_task(
-            "lint", [ENV.ci, ENV.lab, ENV.lint], LINT_MATRIX, *task_args
-        )
+        yield _make_lock_task("lint", [*test_envs, ENV.lint], LINT_MATRIX, *task_args)
 
 
 # below here could move to a separate file
