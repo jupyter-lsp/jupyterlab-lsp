@@ -18,8 +18,7 @@ class BaseHandler(IPythonHandler):
 
 
 class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, BaseHandler):
-    """ Setup tornado websocket to route to language server sessions
-    """
+    """Setup tornado websocket to route to language server sessions"""
 
     language_server = None  # type: Optional[Text]
 
@@ -38,9 +37,9 @@ class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, BaseHandl
 
 
 class LanguageServersHandler(BaseHandler):
-    """ Reports the status of all current servers
+    """Reports the status of all current servers
 
-        Response should conform to schema in schema/servers.schema.json
+    Response should conform to schema in schema/servers.schema.json
     """
 
     validator = SERVERS_RESPONSE
@@ -49,8 +48,7 @@ class LanguageServersHandler(BaseHandler):
         super().initialize(*args, **kwargs)
 
     def get(self):
-        """ finish with the JSON representations of the sessions
-        """
+        """finish with the JSON representations of the sessions"""
         response = {
             "version": 2,
             "sessions": {
@@ -68,8 +66,7 @@ class LanguageServersHandler(BaseHandler):
 
 
 def add_handlers(nbapp):
-    """ Add Language Server routes to the notebook server web application
-    """
+    """Add Language Server routes to the notebook server web application"""
     lsp_url = ujoin(nbapp.base_url, "lsp")
     re_langservers = "(?P<language_server>.*)"
 

@@ -1,20 +1,19 @@
 """ environment locking for jupyter[lab]-lsp
 """
-import os
-from pathlib import Path
-import json
-from ruamel_yaml import safe_load, safe_dump
-import tempfile
-import subprocess
 import platform
-from doit.tools import config_changed
+import subprocess
+import tempfile
+from pathlib import Path
 
+from ruamel_yaml import safe_dump, safe_load
+
+from doit.tools import config_changed
 
 DOIT_CONFIG = {
     "backend": "sqlite3",
     "verbosity": 2,
     "par_type": "thread",
-    "default_tasks": ["lock"]
+    "default_tasks": ["lock"],
 }
 
 WIN = platform.system() == "Windows"
@@ -38,6 +37,7 @@ LINT_MATRIX = WORKFLOW_LINT_YML["jobs"]["lint"]["strategy"]["matrix"]
 
 REQS = ROOT / "requirements"
 
+
 class ENV:
     atest = REQS / "atest.yml"
     ci = REQS / "ci.yml"
@@ -56,28 +56,23 @@ def task_lock():
 
     for task_args in _iter_lock_args(TEST_MATRIX):
         yield _make_lock_task(
-            "test",
-            [ENV.ci, ENV.lab, ENV.utest, ENV.atest],
-            TEST_MATRIX,
-            *task_args
+            "test", [ENV.ci, ENV.lab, ENV.utest, ENV.atest], TEST_MATRIX, *task_args
         )
 
     for task_args in _iter_lock_args(LINT_MATRIX):
         yield _make_lock_task(
-            "lint",
-            [ENV.ci, ENV.lab, ENV.lint],
-            LINT_MATRIX,
-            *task_args
+            "lint", [ENV.ci, ENV.lab, ENV.lint], LINT_MATRIX, *task_args
         )
+
 
 # below here could move to a separate file
 
 CHN = "channels"
 DEP = "dependencies"
 
+
 def _make_lock_task(kind_, env_files, config, platform_, python_, nodejs_, lab_):
-    """ generate a single dodo excursion for conda-lock
-    """
+    """generate a single dodo excursion for conda-lock"""
     if platform_ == "win-64":
         env_files = [*env_files, ENV.win]
 
@@ -99,14 +94,14 @@ def _make_lock_task(kind_, env_files, config, platform_, python_, nodejs_, lab_)
         comp_specs = dict(expand_specs(composite.get(DEP, [])))
         env_specs = dict(expand_specs(env.get(DEP, [])))
 
-        composite[DEP] = sorted([
-            raw for (raw, match) in env_specs.values()
-        ] + [
+        deps = [raw for (raw, match) in env_specs.values()]
+        deps += [
             raw for name, (raw, match) in comp_specs.items() if name not in env_specs
-        ])
+        ]
+
+        composite[DEP] = sorted(deps)
 
         return composite
-
 
     def _lock():
         composite = dict()
@@ -131,8 +126,11 @@ def _make_lock_task(kind_, env_files, config, platform_, python_, nodejs_, lab_)
             rc = 1
             for extra_args in [[], ["--no-mamba"]]:
                 args = [
-                    "conda-lock", "-p", platform_,
-                    "-f", str(composite_yml)
+                    "conda-lock",
+                    "-p",
+                    platform_,
+                    "-f",
+                    str(composite_yml),
                 ] + extra_args
                 print(">>>", " ".join(args), flush=True)
                 rc = subprocess.call(args, cwd=str(tdp))
@@ -156,7 +154,7 @@ def _make_lock_task(kind_, env_files, config, platform_, python_, nodejs_, lab_)
         uptodate=[config_changed(config)],
         file_dep=file_dep,
         actions=[_lock],
-        targets=[lockfile]
+        targets=[lockfile],
     )
 
 
@@ -169,8 +167,8 @@ def _iter_lock_args(matrix):
                 for include in matrix["include"]:
                     if "nodejs" not in include:
                         continue
-                    if include['python'] == python_:
-                        nodejs_ = include['nodejs']
+                    if include["python"] == python_:
+                        nodejs_ = include["nodejs"]
                         break
 
                 assert nodejs_ is not None
@@ -178,6 +176,7 @@ def _iter_lock_args(matrix):
 
 
 # would not be needed if put in the "well-known" location ./dodo.py
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doit
+
     doit.run(globals())

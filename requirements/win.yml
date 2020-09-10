@@ -2,8 +2,8 @@
 name: jupyterlab-lsp
 
 channels:
-- conda-forge
-- msys2
+  - conda-forge
+  - msys2
 
 dependencies:
-- colorama
+  - colorama
