@@ -69,7 +69,7 @@ jobs:
             yarn-
 
       - name: install npm dependencies
-        run: jlpm
+        run: jlpm --prefer-offline --ignore-optional
 
       - name: lint backend
         run: python scripts/lint.py

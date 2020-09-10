@@ -97,7 +97,7 @@ jobs:
             yarn-
 
       - name: Install npm dependencies
-        run: jlpm
+        run: jlpm --prefer-offline --ignore-optional
 
       - name: Build the extension
         run: jlpm build
