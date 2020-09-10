@@ -31,7 +31,7 @@ env:
 jobs:
   acceptance:
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }}, Python ${{ matrix.python }}
+    name: ${{ matrix.platform }} py${{ matrix.python }}
     strategy:
       matrix:
         python:
@@ -193,6 +193,6 @@ jobs:
       - name: Publish browser test output
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ job.status }} Robot ${{ matrix.os }} Python ${{ matrix.python }} ${{ github.run_number }}
+          name: Robot ${{ github.run_number }} ${{ job.status }} ${{ matrix.platform }} py${{ matrix.python }}
           path: ./atest/output
         if: always()
