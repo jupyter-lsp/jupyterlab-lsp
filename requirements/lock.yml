@@ -1,0 +1,10 @@
+name: jupyter-lsp-lock-env
+
+channels:
+  - conda-forge
+
+dependencies:
+  - conda ==4.8.3
+  - conda-lock ==0.4.1
+  - doit ==0.33.1
+  - mamba ==0.5.1

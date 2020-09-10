@@ -2,12 +2,15 @@ name: jupyterlab-lsp
 
 channels:
   - conda-forge
-  - defaults
 
 dependencies:
-  - jupyterlab {lab}
+  - doit ==0.33.1
+  - python
+  - jupyterlab
+  - pip
+  - wheel
   # build dependencies
-  - nodejs {nodejs}
+  - nodejs
   # for python language server (and development)
   - flake8 >=3.5
   - python-language-server

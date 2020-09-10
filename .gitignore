@@ -116,3 +116,4 @@ coverage/
 _schema.d.ts
 _build
 .virtual_documents/
+.doit*

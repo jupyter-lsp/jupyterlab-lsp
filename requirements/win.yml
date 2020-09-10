@@ -1,0 +1,9 @@
+name: jupyter-lsp-win64
+
+channels:
+- conda-forge
+- anaconda
+- msys2
+
+dependencies:
+- colorama

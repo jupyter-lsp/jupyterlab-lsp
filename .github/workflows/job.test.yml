@@ -1,6 +1,12 @@
-name: Run acceptance tests
-on: [push, pull_request]
+name: Test
 
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 defaults:
   run:
@@ -33,42 +39,26 @@ jobs:
     name: ${{ matrix.os }} ${{ matrix.python }}
     strategy:
       matrix:
-        python: [3.6, 3.7, 3.8]
+        python: ['3.6', '3.7', '3.8']
         os: [ubuntu-16.04, macos-10.14, vs2017-win2016]
-        nodejs: ['>=10,<11.0.0.a0', '>=13,<14.0.0a0']
-        lab: ['>=2.2.0,<3.0.0a0']
+        nodejs: ['10', '13']
+        lab: ['2.2']
+
     steps:
       - uses: actions/checkout@v2
-
-      - name: Set JupyterLab and Node versions
-        uses: cschleiden/replace-tokens@v1
-        with:
-          tokenPrefix: '{'
-          tokenSuffix: '}'
-          files: '["requirements/github-actions.yml"]'
-        env:
-          lab: "${{ matrix.lab }}"
-          nodejs: "${{ matrix.nodejs }}"
 
       - name: Set up Python and conda
         uses: goanpeca/setup-miniconda@v1
         with:
-          python-version: ${{ matrix.python }}
-          channels: conda-forge, defaults
-          channel-priority: true
-          auto-activate-base: true
           activate-environment: jupyterlab-lsp
-          environment-file: requirements/github-actions.yml
-          auto-update-conda: true
+          auto-activate-base: true
+          auto-update-conda: false
+          environment-file: requirements/lock.yml
+          python-version: ${{ matrix.python }}
 
-      - name: Describe conda
-        shell: bash -l {0}
+      - name: create test env from lock file
         run: |
-          conda info
-          conda list
-          conda config --show-sources
-          conda config --show
-          printenv | sort
+          conda create --yes --name jupyterlab-lsp --file .github/conda.locks/conda.${{ matrix.os }}-${{ matrix.python }}-${{ matrix.nodejs }}-${{ matrix.lab }}.lock
 
       - name: Install npm dependencies
         run: jlpm
