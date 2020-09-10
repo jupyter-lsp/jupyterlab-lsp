@@ -141,7 +141,7 @@ jobs:
             ~/.cache/Tectonic
             ~/Library/Caches/Tectonic
             %LOCALAPPDATA%/TectonicProject/Tectonic
-          key: ${{ runner.os }}-${{ hashFiles('scripts/tectonic_cache.py', 'conda.lock') }}
+          key: tectonic-${{ runner.os }}-${{ hashFiles('scripts/tectonic_cache.py', 'conda.lock') }}
 
       - name: Warm up tectonic cache
         shell: bash -l {0}
