@@ -46,22 +46,23 @@ def get_stem(attempt, extra_args):
 def atest(attempt, extra_args):
     """perform a single attempt of the acceptance tests"""
 
-    if "FIREFOX_BINARY" not in os.environ:
-        os.environ["FIREFOX_BINARY"] = shutil.which("firefox")
+    if "--dryrun" not in extra_args:
+        if "FIREFOX_BINARY" not in os.environ:
+            os.environ["FIREFOX_BINARY"] = shutil.which("firefox")
 
-        prefix = os.environ.get("CONDA_PREFIX")
+            prefix = os.environ.get("CONDA_PREFIX")
 
-        if prefix:
-            app_dir = join(prefix, "bin", "FirefoxApp")
-            os.environ["FIREFOX_BINARY"] = {
-                "Windows": join(prefix, "Library", "bin", "firefox.exe"),
-                "Linux": join(app_dir, "firefox"),
-                "Darwin": join(app_dir, "Contents", "MacOS", "firefox"),
-            }[OS]
+            if prefix:
+                app_dir = join(prefix, "bin", "FirefoxApp")
+                os.environ["FIREFOX_BINARY"] = {
+                    "Windows": join(prefix, "Library", "bin", "firefox.exe"),
+                    "Linux": join(app_dir, "firefox"),
+                    "Darwin": join(app_dir, "Contents", "MacOS", "firefox"),
+                }[OS]
 
-    print("Will use firefox at", os.environ["FIREFOX_BINARY"])
+        print("Will use firefox at", os.environ["FIREFOX_BINARY"])
 
-    assert os.path.exists(os.environ["FIREFOX_BINARY"])
+        assert os.path.exists(os.environ["FIREFOX_BINARY"])
 
     extra_args += OS_PY_ARGS.get((OS, PY), [])
 
