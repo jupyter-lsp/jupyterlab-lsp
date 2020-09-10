@@ -41,13 +41,41 @@ REQS = ROOT / "requirements"
 class ENV:
     atest = REQS / "atest.yml"
     ci = REQS / "ci.yml"
+    lab = REQS / "lab.yml"
     lint = REQS / "lint.yml"
     utest = REQS / "utest.yml"
     win = REQS / "win.yml"
 
+
+# here (and above) would stay in a "real" dodo file
+def task_lock():
+    """lock conda envs so they don't need to be solved in CI
+    This should be run semi-frequently (e.g. after merge to master).
+    Requires `conda-lock` CLI to be available
+    """
+
+    for task_args in _iter_lock_args(TEST_MATRIX):
+        yield _make_lock_task(
+            "test",
+            [ENV.ci, ENV.lab, ENV.utest, ENV.atest],
+            [WORKFLOW_TEST],
+            TEST_MATRIX,
+            *task_args
+        )
+
+    for task_args in _iter_lock_args(LINT_MATRIX):
+        yield _make_lock_task(
+            "lint",
+            [ENV.ci, ENV.lab, ENV.lint],
+            [WORKFLOW_LINT],
+            LINT_MATRIX,
+            *task_args
+        )
+
+# below here could move to a separate file
+
 CHN = "channels"
 DEP = "dependencies"
-
 
 def _make_lock_task(kind_, env_files, extra_deps, config, platform_, python_, nodejs_, lab_):
     """ generate a single dodo excursion for conda-lock
@@ -92,7 +120,6 @@ def _make_lock_task(kind_, env_files, extra_deps, config, platform_, python_, no
         fake_env = {
             DEP: [
                 f"python ={python_}.*",
-                f"jupyterlab ={lab_}.*",
                 f"nodejs ={nodejs_}.*",
             ]
         }
@@ -151,33 +178,8 @@ def _iter_lock_args(matrix):
                 assert nodejs_ is not None
                 yield platform_, python_, nodejs_, lab_
 
-# Not part of normal business
 
-def task_lock():
-    """lock conda envs so they don't need to be solved in CI
-    This should be run semi-frequently (e.g. after merge to master).
-    Requires `conda-lock` CLI to be available
-    """
-
-    for task_args in _iter_lock_args(TEST_MATRIX):
-        yield _make_lock_task(
-            "test",
-            [ENV.ci, ENV.utest, ENV.atest],
-            [WORKFLOW_TEST],
-            TEST_MATRIX,
-            *task_args
-        )
-
-    for task_args in _iter_lock_args(LINT_MATRIX):
-        yield _make_lock_task(
-            "lint",
-            [ENV.ci, ENV.lint],
-            [WORKFLOW_LINT],
-            LINT_MATRIX,
-            *task_args
-        )
-
-
+# would not be needed if put in the "well-known" location ./dodo.py
 if __name__ == '__main__':
     import doit
     doit.run(globals())

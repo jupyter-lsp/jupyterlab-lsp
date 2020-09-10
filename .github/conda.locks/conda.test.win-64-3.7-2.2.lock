@@ -1,5 +1,5 @@
 # platform: win-64
-# env_hash: 1f57cf57b7582c4c5f62ad45c48772c4413c52239d77ff5afc1848c461a1f5c6
+# env_hash: b078be98c1f1cd735311613dfc7f07bbb0cc12f047faa187a1da111c50a9a60c
 @EXPLICIT
 https://conda.anaconda.org/conda-forge/win-64/texlab-2.2.0-hf301747_0.tar.bz2#d920a1c5e86b4eb96653df2de4980711
 https://conda.anaconda.org/conda-forge/noarch/_r-mutex-1.0.1-anacondar_1.tar.bz2#19f9db5f4f1b7f5ef5f6d67207f25f38

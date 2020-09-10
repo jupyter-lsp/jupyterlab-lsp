@@ -1,5 +1,5 @@
 # platform: osx-64
-# env_hash: df6a821cf9e699cf31521dbe63a2593f3c6daade9c4133d912a57541b09304f6
+# env_hash: e0b0a40b353b9387979b0e8ec8afc11c1c4d605d95aa20c683d58f76e1b0c739
 @EXPLICIT
 https://conda.anaconda.org/conda-forge/osx-64/texlab-2.2.0-he32d670_0.tar.bz2#7f2932542975c6a6f1bf31171317b08d
 https://conda.anaconda.org/conda-forge/noarch/_r-mutex-1.0.1-anacondar_1.tar.bz2#19f9db5f4f1b7f5ef5f6d67207f25f38

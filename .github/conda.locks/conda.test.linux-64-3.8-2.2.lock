@@ -1,5 +1,5 @@
 # platform: linux-64
-# env_hash: 38c281a5735c7b162a7ec265d66ddefdd4d0e7b0bc09f2a82fd7691af2f23272
+# env_hash: 4b79331b44ae7f2e88c5882d4854080b067bed25575766eee9687aa06b06325d
 @EXPLICIT
 https://conda.anaconda.org/conda-forge/linux-64/texlab-2.2.0-he32d670_0.tar.bz2#ded86115b98be12936467b221594ff76
 https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2#d7c89558ba9fa0495403155b64376d81
