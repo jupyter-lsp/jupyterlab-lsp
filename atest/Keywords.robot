@@ -4,6 +4,7 @@ Library           SeleniumLibrary
 Library           OperatingSystem
 Library           Process
 Library           String
+Library           ./logcheck.py
 Library           ./ports.py
 
 *** Keywords ***
@@ -70,12 +71,10 @@ Tear Down Everything
     Terminate All Processes    kill=${True}
 
 Lab Log Should Not Contain Known Error Messages
-    ${log} =    Get File    ${LAB LOG}
-    ${test log} =    Set Variable    ${log[${PREVIOUS LAB LOG LENGTH}:]}
-    ${length} =    Get Length    ${log}
-    Set Global Variable    ${PREVIOUS LAB LOG LENGTH}    ${length}
-    Run Keyword If    ("${OS}", "${PY}") !\= ("Windows", "36")
-    ...    Should Not Contain Any    ${test log}    @{KNOWN BAD ERRORS}
+    Touch    ${LAB LOG}
+    ${length} =    Get File Size    ${LAB LOG}
+    File Should Not Contain Phrases    ${LAB LOG}    ${PREVIOUS LAB LOG LENGTH}    @{KNOWN BAD ERRORS}
+    [Teardown]    Set Global Variable    ${PREVIOUS LAB LOG LENGTH}    ${length}
 
 Wait For Splash
     Go To    ${URL}lab?reset&token=${TOKEN}
