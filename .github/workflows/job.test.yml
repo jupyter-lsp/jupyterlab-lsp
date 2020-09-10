@@ -1,0 +1,207 @@
+name: tests
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+env:
+  # TODO extract these from files instead
+  PY_JLSP_VERSION: 0.9.2
+  JS_JLLSP_VERSION: 2.0.2
+  JS_JLG2D_VERSION: 1.0.0
+
+  PYTHONUNBUFFERED: 1
+  ATEST_RETRIES: 3
+
+  LINKED_EXTENSIONS: >-
+    packages/lsp-ws-connection
+    packages/jupyterlab-go-to-definition
+    packages/completion-theme
+    packages/theme-vscode
+    packages/theme-material
+
+jobs:
+  acceptance:
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }}, Python ${{ matrix.python }}, Node ${{ matrix.nodejs }}
+    strategy:
+      matrix:
+        python: [3.6, 3.7, 3.8]
+        os: [ubuntu-16.04, macos-10.14, vs2017-win2016]
+        lab: ['>=2.2.0,<3.0.0a0']
+        include:
+          # if using 3.6, use an old node
+          - python: 3.6
+            # Node 10 end-of-life: April 2021
+            nodejs: '>=10,<11.0.0.a0'
+          # if using 3.7, use newer node, etc...
+          - python: 3.7
+            # Node 12 end-of-life: April 2022
+            nodejs: '>=12,<13.0.0.a0'
+          - python: 3.8
+            # Node 14 end-of-life: April 2023
+            nodejs: '>=14,<15.0.0.a0'
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set JupyterLab and Node versions
+        uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: '{'
+          tokenSuffix: '}'
+          files: '["requirements/github-actions.yml"]'
+        env:
+          lab: '${{ matrix.lab }}'
+          nodejs: '${{ matrix.nodejs }}'
+
+      - name: Cache conda
+        uses: actions/cache@v1
+        env:
+          # Increase this value to reset cache if requirements/github-actions.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key: ${{ matrix.os }}-${{ matrix.python }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/github-actions.yml') }}
+
+      - name: Set up Python and conda
+        uses: goanpeca/setup-miniconda@v1
+        with:
+          python-version: ${{ matrix.python }}
+          channels: conda-forge, defaults
+          channel-priority: true
+          auto-activate-base: true
+          activate-environment: jupyterlab-lsp
+          environment-file: requirements/github-actions.yml
+          auto-update-conda: true
+          use-only-tar-bz2: true # needs to be set for caching to work properly
+
+      - name: Install pip dependencies
+        run: pip install pytest-github-actions-annotate-failures
+
+      - name: Describe conda
+        shell: bash -l {0}
+        run: |
+          conda info
+          conda list
+          conda config --show-sources
+          conda config --show
+          printenv | sort
+
+      - name: Cache yarn
+        uses: actions/cache@v1
+        with:
+          path: .yarn-packages
+          key: yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-
+            yarn-
+
+      - name: Install npm dependencies
+        run: jlpm
+
+      - name: Build the extension
+        run: jlpm build
+
+      - name: Build python distributions
+        run: python setup.py sdist bdist_wheel
+
+      - name: Build npm bundles
+        run: jlpm lerna run bundle
+
+      - name: Install python wheel
+        run: cd dist && python -m pip install jupyter_lsp-${{ env.PY_JLSP_VERSION }}-py3-none-any.whl --no-deps
+
+      - name: Find out jedi cache location
+        run: python -c 'import jedi; print("::set-env name=JEDI_CACHE_DIR::" + jedi.settings.cache_directory)'
+
+      - name: Cache jedi cache
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.JEDI_CACHE_DIR }}
+          key: jedi-${{ matrix.os }}-${{ hashFiles('scripts/jedi_cache.py') }}-${{ hashFiles('requirements/github-actions.yml') }}
+
+      - name: Warm up jedi cache
+        run: python scripts/jedi_cache.py
+
+      - name: Cache tectonic cache
+        uses: actions/cache@v2
+        with:
+          # locations for: Linux, MacOS, Windows
+          path: |
+            ~/.cache/Tectonic
+            ~/Library/Caches/Tectonic
+            %LOCALAPPDATA%/TectonicProject/Tectonic
+          key: ${{ runner.os }}-${{ hashFiles('scripts/tectonic_cache.py') }}
+
+      - name: Warm up tectonic cache
+        run: python scripts/tectonic_cache.py
+
+      - name: Run frontend unit tests
+        run: jlpm test
+
+      #  js_cov_packages:
+      #    - jupyterlab-go-to-definition
+      #    - jupyterlab-lsp
+
+      #- task: PublishTestResults@2
+      #  name: publish frontend test results
+      #  inputs:
+      #    testResultsFiles: packages/**/junit.xml
+      #    testRunTitle: 'Jest ${{ env.name }}${{ python.name }}'
+      #    mergeTestResults: true
+      #  condition: always()
+
+      #- ${{ each js_package in parameters.js_cov_packages }}:
+      #    - task: PublishCodeCoverageResults@1
+      #      name: 'publish ${{ js_package }} coverage'
+      #      inputs:
+      #        codeCoverageTool: Cobertura
+      #        summaryFileLocation: 'packages/${{ js_package }}/coverage/cobertura-coverage.xml'
+      #      condition: always()
+
+      - name: List server extensions
+        run: jupyter serverextension list
+
+      - name: Run python tests
+        run: python scripts/utest.py
+
+      - name: Install support packages
+        run: jupyter labextension link --debug --no-build ${{ env.LINKED_EXTENSIONS }}
+
+      - name: Install labextensions
+        run: jupyter labextension install --debug --no-build packages/jupyterlab-lsp/krassowski-jupyterlab-lsp-${{ env.JS_JLLSP_VERSION }}.tgz
+
+      - name: List labextensions before build
+        run: jupyter labextension list
+
+      - name: Build lab
+        run: jupyter lab build --debug --dev-build=False --minimize=True
+
+      - name: List labextensions after build
+        run: jupyter labextension list
+
+      - name: Run browser tests
+        run: python scripts/atest.py --exclude expect:fail
+
+      #- task: PublishTestResults@2
+      #  name: publish browser test results
+      #  inputs:
+      #    testResultsFiles: atest/output/*.xunit.xml
+      #    testRunTitle: 'Robot ${{ env.name }}${{ python.name }}'
+      #    mergeTestResults: true
+      #  condition: always()
+
+      - name: Publish browser test output
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ job.status }} Robot ${{ matrix.os }} Python ${{ matrix.python }} ${{ github.run_number }}
+          path: ./atest/output
+        if: always()

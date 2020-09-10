@@ -1,6 +1,6 @@
 # Language Server Protocol integration for Jupyter(Lab)
 
-[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) [![Build Status](https://dev.azure.com/krassowskimichal/jupyterlab-lsp/_apis/build/status/jupyterlab-lsp?branchName=master)](https://dev.azure.com/krassowskimichal/jupyterlab-lsp/_build/latest?definitionId=1&branchName=master) [![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
+[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) ![tests](https://github.com/krassowski/jupyterlab-lsp/workflows/tests/badge.svg) [![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
 
 > _This project is still maturing, but you are welcome to check it out, leave feedback and/or a PR_
 
