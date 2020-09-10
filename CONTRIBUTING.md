@@ -448,17 +448,22 @@ python -m scripts/lock.py
 > Requires an environment such as `requirements/lock.yml`, which will prefer
 > [mamba][]
 
-##### Using Lockiles
+##### Using Lockiles Locally
 
-You can use lockfiles locally to exactly reproduce the CI environment.
+You can use lockfiles locally to exactly reproduce the CI environment, e.g.
 
 ```bash
-conda create --prefix .venv --file .github/conda.locks/conda.lint.linux-64-3.8-2.2.lock
-#                                                                 |        |   |
-#                                                 conda platform -|        |   |
-#                                                        python version   -|   |#                                                                 lab version -|
-source .venv/bin/activate
+# from the root of the repo
+conda create --prefix envs/lint --file .github/conda.locks/conda.lint.linux-64-3.8-2.2.lock
+#                          +--------------------------------job -+    |        |   |
+#                                                     conda platform -+        |   |
+#                                                              python version -+   |#                                                                     lab version -+
+source activate envs/lint
 ```
+
+> Note: this is convenient when developing interactively, as JupyterLab and the Language
+> Servers can _agree_ on the files paths in the environment without relying on the
+> the `.lsp_symlink` approach.
 
 [github-actions]: https://github.com/krassowski/jupyterlab-lsp/actions
 [conda-solve-spec]: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#building-identical-conda-environments
