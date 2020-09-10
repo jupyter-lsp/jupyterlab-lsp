@@ -101,7 +101,7 @@ jobs:
 
       - name: Install npm dependencies
         shell: bash -l {0}
-        run: jlpm --prefer-offline --ignore-optional
+        run: jlpm --offline --ignore-optional || jlpm --prefer-offline --ignore-optional
 
       - name: Build the extension
         shell: bash -l {0}

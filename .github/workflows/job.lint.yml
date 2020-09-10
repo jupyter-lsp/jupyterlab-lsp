@@ -74,7 +74,7 @@ jobs:
 
       - name: install npm dependencies
         shell: bash -l {0}
-        run: jlpm --prefer-offline --ignore-optional
+        run: jlpm --offline --ignore-optional || jlpm --prefer-offline --ignore-optional
 
       - name: lint backend
         shell: bash -l {0}
