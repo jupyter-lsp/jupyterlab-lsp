@@ -41,7 +41,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/conda_pkgs_dir
-          key: conda-lint-${{ hashFiles('conda.lock'} }}
+          key: conda-lint-${{ hashFiles('conda.lock') }}
 
       - name: Set up conda env
         uses: goanpeca/setup-miniconda@v1
