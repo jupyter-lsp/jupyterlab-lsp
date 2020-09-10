@@ -419,3 +419,49 @@ Build it!
 ```bash
 python setup.py sdist bdist_wheel
 ```
+
+### Continuous Integration
+
+Continuous integration for the project runs on [GitHub Actions][github-actions].
+
+#### conda in CI
+
+[conda](https://conda.io) is used for a fair amount of environment management.
+
+- ensured with [setup-miniconda][]
+- environments specified with [conda-lock][conda-lock]
+
+Most of the CI jobs will use an [explicit conda specification][conda-solve-spec]
+in `.github/conda.locks`. These are derived from what is currently:
+
+- tested in `.github/workflows/*.yml`, specifically the `matrix`
+- captured in `requirements/*.yml`
+
+##### Rebuilding Lockfiles
+
+To regenerate all of the lockfiles:
+
+```bash
+python -m scripts/lock.py
+```
+
+> Requires an environment such as `requirements/lock.yml`, which will prefer
+> [mamba][]
+
+##### Using Lockiles
+
+You can use lockfiles locally to exactly reproduce the CI environment.
+
+```bash
+conda create --prefix .venv --file .github/conda.locks/conda.lint.linux-64-3.8-2.2.lock
+#                                                                 |        |   |
+#                                                 conda platform -|        |   |
+#                                                        python version   -|   |#                                                                 lab version -|
+source .venv/bin/activate
+```
+
+[github-actions]: https://github.com/krassowski/jupyterlab-lsp/actions
+[conda-solve-spec]: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#building-identical-conda-environments
+[conda-lock]: https://github.com/conda-incubator/conda-lock
+[setup-miniconda]: https://github.com/conda-incubator/setup-miniconda
+[mamba]: https://github.com/mamba-org/mamba
