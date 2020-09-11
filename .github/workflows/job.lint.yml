@@ -13,7 +13,7 @@ defaults:
     shell: bash -l {0}
 
 env:
-  CACHE_EPOCH: 0
+  CACHE_EPOCH: 1
 
 jobs:
   lint:
