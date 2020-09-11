@@ -75,7 +75,10 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/conda_pkgs_dir
-          key: conda-test-${{ env.CACHE_EPOCH }}-${{ hashFiles('conda.lock') }}
+          key: conda-test-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-${{ hashFiles('conda.lock') }}
+          restore-keys: |
+            conda-test-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-
+            conda-test-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-
 
       - name: Set up conda env
         uses: goanpeca/setup-miniconda@v1
@@ -94,7 +97,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .yarn-packages
-          key: yarn-${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: yarn-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-
 
       - name: Install npm dependencies
         run: jlpm --offline --ignore-optional || jlpm --prefer-offline --ignore-optional
@@ -118,7 +123,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.JEDI_CACHE_DIR }}
-          key: jedi-${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ hashFiles('scripts/jedi_cache.py', 'conda.lock') }}
+          key: jedi-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-${{ hashFiles('scripts/jedi_cache.py', 'conda.lock') }}
+          restore-keys: |
+            jedi-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-
 
       - name: Warm up jedi cache
         run: python scripts/jedi_cache.py
@@ -131,7 +138,9 @@ jobs:
             ~/.cache/Tectonic
             ~/Library/Caches/Tectonic
             %LOCALAPPDATA%/TectonicProject/Tectonic
-          key: tectonic-${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ hashFiles('scripts/tectonic_cache.py', 'conda.lock') }}
+          key: tectonic-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-${{ hashFiles('scripts/tectonic_cache.py', 'conda.lock') }}
+          restore-keys: |
+            tectonic-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-
 
       - name: Warm up tectonic cache
         run: python scripts/tectonic_cache.py

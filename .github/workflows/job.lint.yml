@@ -18,6 +18,7 @@ env:
 jobs:
   lint:
     runs-on: ${{ matrix.os }}
+    name: ${{ matrix.platform }} py${{ matrix.python }}
     strategy:
       matrix:
         python:
@@ -46,7 +47,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/conda_pkgs_dir
-          key: conda-lint-${{ env.CACHE_EPOCH }}-${{ hashFiles('conda.lock') }}
+          key: conda-lint-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-${{ hashFiles('conda.lock') }}
+          restore-keys: |
+            conda-lint-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-
 
       - name: Set up conda env
         uses: goanpeca/setup-miniconda@v1
@@ -68,7 +71,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .yarn-packages
-          key: yarn-${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: yarn-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-
 
       - name: install npm dependencies
         run: jlpm --offline --ignore-optional || jlpm --prefer-offline --ignore-optional
