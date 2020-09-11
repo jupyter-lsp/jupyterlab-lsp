@@ -1,6 +1,6 @@
 {
   "name": "@krassowski/jupyterlab-lsp",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Language Server Protocol integration for JupyterLab",
   "keywords": [
     "jupyter",
