@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 2.0.3` (unreleased)
+### `@krassowski/jupyterlab-lsp 2.0.3` (2020-09-11)
 
 - bug fixes
 
