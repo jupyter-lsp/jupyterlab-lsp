@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 2.0.5` (2020-09-11)
+
+- bug fixes
+
+  - fix too aggressive overrides of IPython's pinfo (`?`) and pinfo2 (`??`) ([#352])
+
+[#352]: https://github.com/krassowski/jupyterlab-lsp/issues/352
+
 ### `@krassowski/jupyterlab-lsp 2.0.4` (2020-09-11)
 
 - bug fixes
