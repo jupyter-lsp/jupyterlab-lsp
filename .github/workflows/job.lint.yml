@@ -21,10 +21,10 @@ jobs:
     name: ${{ matrix.platform }} py${{ matrix.python }}
     strategy:
       matrix:
-        python:
-          - '3.8'
         platform:
           - linux-64
+        python:
+          - '3.8'
         lab:
           - '2.2'
         include:
