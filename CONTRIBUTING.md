@@ -437,7 +437,7 @@ in `.github/conda.locks`. These are derived from what is currently:
 - tested in `.github/workflows/*.yml`, specifically the `matrix`
 - captured in `requirements/*.yml`
 
-##### Rebuilding Lockfiles
+#### Rebuilding Lockfiles
 
 To regenerate all of the lockfiles:
 
@@ -448,7 +448,7 @@ python -m scripts/lock.py
 > Requires an environment such as `requirements/lock.yml`, which will prefer
 > [mamba][]
 
-##### Using Lockiles Locally
+#### Using Lockiles Locally
 
 You can use lockfiles locally to exactly reproduce the CI environment, e.g.
 
@@ -457,13 +457,20 @@ You can use lockfiles locally to exactly reproduce the CI environment, e.g.
 conda create --prefix envs/lint --file .github/conda.locks/conda.lint.linux-64-3.8-2.2.lock
 #                          +--------------------------------job -+    |        |   |
 #                                                     conda platform -+        |   |
-#                                                              python version -+   |#                                                                     lab version -+
+#                                                              python version -+   |
+#                                                                     lab version -+
 source activate envs/lint
 ```
 
 > Note: this is convenient when developing interactively, as JupyterLab and the Language
 > Servers can _agree_ on the files paths in the environment without relying on the
 > the `.lsp_symlink` approach.
+
+#### Cache Epoch
+Most of the caching can be overloaded by changing the top-level `CACHE_EPOCH`
+environment variable in a given workflow... this can help flush out (or work
+around)
+irreproducibility issues.
 
 [github-actions]: https://github.com/krassowski/jupyterlab-lsp/actions
 [conda-solve-spec]: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#building-identical-conda-environments
