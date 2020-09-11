@@ -50,6 +50,7 @@ jobs:
           key: conda-lint-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-${{ hashFiles('conda.lock') }}
           restore-keys: |
             conda-lint-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-
+            conda-lint-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-
 
       - name: Set up conda env
         uses: goanpeca/setup-miniconda@v1
@@ -74,6 +75,7 @@ jobs:
           key: yarn-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             yarn-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-
+            yarn-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-
 
       - name: install npm dependencies
         run: jlpm --offline --ignore-optional || jlpm --prefer-offline --ignore-optional
