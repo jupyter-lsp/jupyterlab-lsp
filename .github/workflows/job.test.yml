@@ -76,7 +76,9 @@ jobs:
       - name: Cache conda
         uses: actions/cache@v2
         with:
-          path: ~/conda_pkgs_dir
+          path: |
+            ~/conda_pkgs_dir
+            C:\runneradmin\conda_pkgs_dir
           key: conda-test-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-${{ hashFiles('conda.lock') }}
           restore-keys: |
             conda-test-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-
