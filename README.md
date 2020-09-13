@@ -1,6 +1,6 @@
 # Language Server Protocol integration for Jupyter(Lab)
 
-[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) ![tests](https://github.com/krassowski/jupyterlab-lsp/workflows/tests/badge.svg) [![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
+[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) ![tests](https://github.com/krassowski/jupyterlab-lsp/workflows/ttests/badge.svg) [![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
 
 > _This project is still maturing, but you are welcome to check it out, leave feedback and/or a PR_
 
@@ -153,10 +153,6 @@ Use of a python `virtualenv` or a conda env is also recommended.
 
    Note: it is worth visiting the repository of each server you install as
    many provide additional configuration options.
-
-   Note on pyls (python-language-server) issues: pyls is known to require specific
-   versions of some dependencies such as [ujson <= 1.35](https://github.com/krassowski/jupyterlab-lsp/issues/203#issuecomment-599039556), [jedi == 0.15.2 and parso == 0.5.2](https://github.com/krassowski/jupyterlab-lsp/issues/200#issuecomment-599039353). If you experience any issues with LSP functions in Python,
-   please check if you have the right version using `pip freeze` command.
 
 1. (Optional, Linux/OSX-only) to enable opening files outside of the root
    directory (the place where you start JupyterLab), create `.lsp_symlink` and
