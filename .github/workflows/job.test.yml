@@ -35,6 +35,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: ${{ matrix.platform }} py${{ matrix.python }}
     strategy:
+      fail-fast: false
       matrix:
         platform:
           - linux-64
