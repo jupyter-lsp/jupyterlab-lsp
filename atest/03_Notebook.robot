@@ -48,7 +48,7 @@ Performance
     Enter Cell Editor    48    9
     Capture Page Screenshot    01-in-cell.png
     ${start_time} =    Get Current Date
-    FOR    ${_}    IN RANGE    1    10
+    FOR    ${_}    IN RANGE    1    20
         Press Keys    None    add
         Trigger Completer
         Completer Should Suggest    add_together
@@ -69,7 +69,7 @@ Performance
     ${end_time} =    Get Current Date
     ${elapsed} =    Subtract Date From Date    ${end_time}    ${start_time}
     Log To Console    Completer total time: ${elapsed}
-    Should Be True    ${elapsed} < 15
+    Should Be True    ${elapsed} < 30
     Capture Page Screenshot    03-completer.png
 
 *** Keywords ***
