@@ -84,7 +84,7 @@ jobs:
 
       - name: move conda cache
         run: |
-          mv ./conda_pkgs_dir ~/conda_pkgs_dir
+          mv ./conda_pkgs_dir ~/conda_pkgs_dir || echo "probably didn't restore cache"
 
       - name: Set up conda env
         uses: goanpeca/setup-miniconda@v1
