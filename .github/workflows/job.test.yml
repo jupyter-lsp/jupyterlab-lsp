@@ -102,7 +102,7 @@ jobs:
 
       - name: Overwrite conda env from lockfile
         shell: bash -l {0}
-        run: conda create --yes --name jupyterlab-lsp --file conda.lock
+        run: conda create --verbose --yes --name jupyterlab-lsp --file conda.lock
 
       - name: Cache yarn
         uses: actions/cache@v2
