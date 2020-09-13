@@ -20,6 +20,9 @@ WIN = platform.system() == "Windows"
 OSX = platform.system() == "Darwin"
 LINUX = platform.system() == "Linux"
 
+CONDA_PLATFORM = "win-64" if WIN else "osx-64" if OSX else "linux-64"
+CONDA_CMD = "conda"
+
 ROOT = Path(__file__).parent.parent.resolve()
 
 GITHUB = ROOT / ".github"
@@ -43,6 +46,7 @@ class ENV:
     ci = REQS / "ci.yml"
     lab = REQS / "lab.yml"
     lint = REQS / "lint.yml"
+    lock = REQS / "lock.yml"
     utest = REQS / "utest.yml"
     win = REQS / "win.yml"
 
@@ -62,6 +66,8 @@ def task_lock():
     for task_args in _iter_lock_args(LINT_MATRIX):
         yield _make_lock_task("lint", [*test_envs, ENV.lint], LINT_MATRIX, *task_args)
 
+    yield _make_lock_task("lock", [ENV.lock], {}, CONDA_PLATFORM, "3.8")
+
 
 # below here could move to a separate file
 
@@ -69,12 +75,12 @@ CHN = "channels"
 DEP = "dependencies"
 
 
-def _make_lock_task(kind_, env_files, config, platform_, python_, nodejs_, lab_):
+def _make_lock_task(kind_, env_files, config, platform_, python_, nodejs_=None, lab_=None):
     """generate a single dodo excursion for conda-lock"""
     if platform_ == "win-64":
         env_files = [*env_files, ENV.win]
 
-    lockfile = LOCKS / f"conda.{kind_}.{platform_}-{python_}-{lab_}.lock"
+    lockfile = LOCKS / f"conda.{kind_}.{platform_}-{python_}-{lab_ if lab_ else ''}.lock"
     file_dep = [*env_files]
 
     def expand_specs(specs):
@@ -108,12 +114,15 @@ def _make_lock_task(kind_, env_files, config, platform_, python_, nodejs_, lab_)
             print(f"merging {env_dep.name}", flush=True)
             composite = merge(composite, safe_load(env_dep.read_text()))
 
-        fake_env = {
-            DEP: [
-                f"python ={python_}.*",
-                f"nodejs ={nodejs_}.*",
-            ]
-        }
+        fake_deps = []
+
+        if python_:
+            fake_deps += [f"python ={python_}.*"]
+        if nodejs_:
+            fake_deps += [f"nodejs ={nodejs_}.*"]
+
+        fake_env = {DEP: fake_deps}
+
         composite = merge(composite, fake_env)
 
         with tempfile.TemporaryDirectory() as td:
