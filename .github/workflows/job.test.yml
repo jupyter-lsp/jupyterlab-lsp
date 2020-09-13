@@ -227,4 +227,4 @@ jobs:
       - name: restore conda cache
         run: |
           rm -rf ./conda_pkgs_dir
-          cp ~/conda_pkgs_dir ./conda_pkgs_dir
+          cp -r ~/conda_pkgs_dir ./conda_pkgs_dir || echo "nothing to cache"
