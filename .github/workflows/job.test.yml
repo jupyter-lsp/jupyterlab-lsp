@@ -82,11 +82,9 @@ jobs:
             conda-test-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-
             conda-test-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-
 
-      - name: try symlink
+      - name: move conda cache
         run: |
-          mkdir -p conda_pkgs_dir
-          sudo chown -R 1001:118 ~/conda_pkgs_dir || echo "chown didn't work"
-          ln -s ./conda_pkgs_dir ~/conda_pkgs_dir
+          mv ./conda_pkgs_dir ~/conda_pkgs_dir
 
       - name: Set up conda env
         uses: goanpeca/setup-miniconda@v1
@@ -224,3 +222,8 @@ jobs:
           name: Robot ${{ github.run_number }} ${{ job.status }} ${{ matrix.platform }} py${{ matrix.python }}
           path: ./atest/output
         if: always()
+
+      - name: restore conda cache
+        run: |
+          rm -rf ./conda_pkgs_dir
+          cp ~/conda_pkgs_dir ./conda_pkgs_dir
