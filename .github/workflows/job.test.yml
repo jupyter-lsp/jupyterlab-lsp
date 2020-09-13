@@ -14,7 +14,7 @@ on:
 #     shell: bash -l {0}
 
 env:
-  CACHE_EPOCH: 4
+  CACHE_EPOCH: 5
   # TODO extract these from files instead
   PY_JLSP_VERSION: 0.9.2
   JS_JLLSP_VERSION: 2.0.5
