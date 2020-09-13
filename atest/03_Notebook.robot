@@ -52,7 +52,8 @@ Performance
     Completer Should Suggest    add_together
     ${end_time} =    Get Time    epoch
     ${elapsed} =    Evaluate    ${end_time} - ${start_time}
-    Should Be True    ${elapsed} < 10
+    Log To Console    Completer suggested in ${elapsed} seconds
+    Should Be True    ${elapsed} < 6
     Capture Page Screenshot    03-completer.png
 
 *** Keywords ***
