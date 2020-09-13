@@ -87,7 +87,7 @@ jobs:
       - name: move conda cache
         shell: bash -l {0}
         run: |
-          mv ./conda_pkgs_dir ~/conda_pkgs_dir || echo "probably didn't restore cache"
+          mv ./conda_pkgs_dir/*.tar.bz2 ~/conda_pkgs_dir || echo "probably didn't restore cache"
 
       - name: Set up conda env
         uses: goanpeca/setup-miniconda@v1
