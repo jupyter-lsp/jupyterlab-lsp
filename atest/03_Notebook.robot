@@ -2,7 +2,7 @@
 Suite Setup       Setup Suite For Screenshots    notebook
 Test Setup        Try to Close All Tabs
 Resource          Keywords.robot
-Library    DateTime
+Library           DateTime
 
 *** Variables ***
 ${COMPLETER_BOX}    css:.jp-Completer.jp-HoverBox
@@ -48,29 +48,36 @@ Performance
     Enter Cell Editor    48    9
     Capture Page Screenshot    01-in-cell.png
     ${start_time} =    Get Current Date
-    Press Keys    None    add
-    Trigger Completer
-    Completer Should Suggest    add_together
-    Press Keys    None    ESC
-    Press Keys    None    RETURN
-    Press Keys    None    s
-    Press Keys    None    t
-    Press Keys    None    a
-    Press Keys    None    t
-    Press Keys    None    s
-    Trigger Completer
-    Completer Should Suggest  stats_dict
+    FOR    ${_}    IN RANGE    1    10
+        Press Keys    None    add
+        Trigger Completer
+        Completer Should Suggest    add_together
+        Press Keys    None    ENTER
+        Wait Until Element Is Not Visible    ${COMPLETER_BOX} .jp-Completer-item[data-value="add_together"]    timeout=10s
+        Press Keys    None    RETURN
+        Press Keys    None    s
+        Press Keys    None    t
+        Press Keys    None    a
+        Press Keys    None    t
+        Press Keys    None    s
+        Trigger Completer
+        Completer Should Suggest    stats_dict
+        Press Keys    None    ENTER
+        Wait Until Element Is Not Visible    ${COMPLETER_BOX} .jp-Completer-item[data-value="stats_dict"]    timeout=10s
+        Press Keys    None    RETURN
+    END
     ${end_time} =    Get Current Date
-    ${elapsed} =    Subtract Date From Date    ${end_time}     ${start_time}
-    Log To Console    Completer suggested in ${elapsed} miliseconds
-    Should Be True    ${elapsed} < 6
+    ${elapsed} =    Subtract Date From Date    ${end_time}    ${start_time}
+    Log To Console    Completer total time: ${elapsed}
+    Should Be True    ${elapsed} < 15
     Capture Page Screenshot    03-completer.png
 
 *** Keywords ***
 # TODO reuse the completion keywords as soon as #328 merged and split up keywords from tests then
 Completer Should Suggest
     [Arguments]    ${text}
-    Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]    timeout=10s
+    # NOTE: is visible vs page contains
+    Wait Until Element Is Visible    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]    timeout=10s
     Capture Page Screenshot    ${text.replace(' ', '_')}.png
 
 Trigger Completer
