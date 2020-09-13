@@ -85,6 +85,7 @@ jobs:
       - name: try symlink
         run: |
           mkdir -p conda_pkgs_dir
+          sudo chown -R 1001:118 ~/conda_pkgs_dir || echo "chown didn't work"
           ln -s ./conda_pkgs_dir ~/conda_pkgs_dir
 
       - name: Set up conda env
