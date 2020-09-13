@@ -75,12 +75,16 @@ CHN = "channels"
 DEP = "dependencies"
 
 
-def _make_lock_task(kind_, env_files, config, platform_, python_, nodejs_=None, lab_=None):
+def _make_lock_task(
+    kind_, env_files, config, platform_, python_, nodejs_=None, lab_=None
+):
     """generate a single dodo excursion for conda-lock"""
     if platform_ == "win-64":
         env_files = [*env_files, ENV.win]
 
-    lockfile = LOCKS / f"conda.{kind_}.{platform_}-{python_}-{lab_ if lab_ else ''}.lock"
+    lockfile = (
+        LOCKS / f"conda.{kind_}.{platform_}-{python_}-{lab_ if lab_ else ''}.lock"
+    )
     file_dep = [*env_files]
 
     def expand_specs(specs):

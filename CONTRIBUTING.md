@@ -441,12 +441,12 @@ in `.github/conda.locks`. These are derived from what is currently:
 
 To regenerate all of the lockfiles:
 
+> Requires an environment such as `requirements/lock.yml`, (or the checked-in lockfile)
+> which will prefer [mamba][].
+
 ```bash
 python -m scripts/lock.py
 ```
-
-> Requires an environment such as `requirements/lock.yml`, which will prefer
-> [mamba][]
 
 #### Using Lockiles Locally
 
