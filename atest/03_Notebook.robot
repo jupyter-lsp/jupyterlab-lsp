@@ -44,13 +44,13 @@ Code Overrides
 Performance
     ${file} =    Set Variable    Medium_long_notebook.ipynb
     Setup Notebook    Python    ${file}
-    Enter Cell Editor  48   9
+    Enter Cell Editor    48    9
     Capture Page Screenshot    01-in-cell.png
-    ${start_time} =   Get Time   epoch
-    Press Keys   None   add
+    ${start_time} =    Get Time    epoch
+    Press Keys    None    add
     Trigger Completer
     Completer Should Suggest    add_together
-    ${end_time} =   Get Time    epoch
+    ${end_time} =    Get Time    epoch
     ${elapsed} =    Evaluate    ${end_time} - ${start_time}
     Should Be True    ${elapsed} < 10
     Capture Page Screenshot    03-completer.png
