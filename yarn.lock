@@ -1617,19 +1617,6 @@
     path-posix "~1.0.0"
     url-parse "~1.4.7"
 
-"@jupyterlab/coreutils@~4.0.0":
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/@jupyterlab/coreutils/-/coreutils-4.0.2.tgz#2ee81799249f5f4741157ac42ff50a2ee48a0475"
-  integrity sha512-v4RXIAeykoPjIymdCxUxPLl8lkn18jroGnDflZjvdMk21TZQQJSIrJ5bjrGByh9scco8yNg46z8m1LPguF3z8A==
-  dependencies:
-    "@lumino/coreutils" "^1.4.2"
-    "@lumino/disposable" "^1.3.5"
-    "@lumino/signaling" "^1.3.5"
-    minimist "~1.2.0"
-    moment "^2.24.0"
-    path-posix "~1.0.0"
-    url-parse "~1.4.7"
-
 "@jupyterlab/docmanager@^2.2.0", "@jupyterlab/docmanager@~2.2.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@jupyterlab/docmanager/-/docmanager-2.2.0.tgz#b8365e357341e242855b78f866780117f11df481"
@@ -1946,7 +1933,7 @@
   version "2.0.0"
 
 "@krassowski/jupyterlab-lsp@file:packages/jupyterlab-lsp":
-  version "2.0.2"
+  version "2.0.5"
   dependencies:
     "@krassowski/completion-theme" "~2.0.0"
     "@krassowski/jupyterlab_go_to_definition" "~1.0.0"

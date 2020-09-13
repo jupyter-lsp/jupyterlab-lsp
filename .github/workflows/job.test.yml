@@ -226,6 +226,7 @@ jobs:
         if: always()
 
       - name: restore conda cache
+        shell: bash -l {0}
         run: |
           rm -rf ./conda_pkgs_dir
           cp -r ~/conda_pkgs_dir ./conda_pkgs_dir || echo "nothing to cache"
