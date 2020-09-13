@@ -3,6 +3,9 @@ Suite Setup       Setup Suite For Screenshots    notebook
 Test Setup        Try to Close All Tabs
 Resource          Keywords.robot
 
+*** Variables ***
+${COMPLETER_BOX}    css:.jp-Completer.jp-HoverBox
+
 *** Test Cases ***
 Python
     [Setup]    Setup Notebook    Python    Python.ipynb
@@ -37,3 +40,28 @@ Code Overrides
     Wait Until Created    ${virtual_path}
     ${document} =    Get File    ${virtual_path}
     Should Be Equal    ${document}    get_ipython().run_line_magic("ls", "")\n\n\nget_ipython().run_line_magic("pip", " freeze")\n
+
+Performance
+    ${file} =    Set Variable    Medium_long_notebook.ipynb
+    Setup Notebook    Python    ${file}
+    Enter Cell Editor  48   9
+    Capture Page Screenshot    01-in-cell.png
+    ${start_time} =   Get Time   epoch
+    Press Keys   None   add
+    Trigger Completer
+    Completer Should Suggest    add_together
+    ${end_time} =   Get Time    epoch
+    ${elapsed} =    Evaluate    ${end_time} - ${start_time}
+    Should Be True    ${elapsed} < 10
+    Capture Page Screenshot    03-completer.png
+
+*** Keywords ***
+# TODO reuse the completion keywords as soon as #328 merged and split up keywords from tests then
+Completer Should Suggest
+    [Arguments]    ${text}
+    Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]    timeout=10s
+    Capture Page Screenshot    ${text.replace(' ', '_')}.png
+
+Trigger Completer
+    Press Keys    None    TAB
+    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=35s
