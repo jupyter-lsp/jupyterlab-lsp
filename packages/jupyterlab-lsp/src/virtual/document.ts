@@ -38,6 +38,17 @@ export interface ICodeBlockOptions {
   value: string;
 }
 
+class CodeBlock {
+  constructor(
+    public options: ICodeBlockOptions,
+    public lines: Array<string>,
+    public foreign_document_map: Map<CodeEditor.IRange, IVirtualDocumentBlock>,
+    public skip_inspect: Array<Array<VirtualDocument.id_path>>,
+    public editor_shift: CodeEditor.IPosition,
+    public virtual_shift: CodeEditor.IPosition
+  ) {}
+}
+
 export interface IVirtualDocumentBlock {
   /**
    * Line corresponding to the block in the entire foreign document
@@ -190,7 +201,6 @@ export class VirtualDocument {
   foreign_extractors: IForeignCodeExtractor[];
   overrides_registry: ICodeOverridesRegistry;
   protected foreign_extractors_registry: IForeignCodeExtractorsRegistry;
-  protected line_blocks: Array<string>;
 
   // TODO: merge into unused documents {standalone: Map, continuous: Map} ?
   protected unused_documents: Set<VirtualDocument>;
@@ -205,11 +215,13 @@ export class VirtualDocument {
   private static instances_count = 0;
   public foreign_documents: Map<VirtualDocument.virtual_id, VirtualDocument>;
 
+  public code_blocks: Map<string, CodeBlock>;
   // TODO: make this configurable, depending on the language used
   blank_lines_between_cells: number = 2;
   last_source_line: number;
   private previous_value: string;
   public changed: Signal<VirtualDocument, VirtualDocument>;
+  public block_positioned: Signal<VirtualDocument, IBlockPositionedInfo>;
 
   public path: string;
   public file_extension: string;
@@ -217,6 +229,7 @@ export class VirtualDocument {
   public parent?: VirtualDocument;
   private readonly options: VirtualDocument.IOptions;
   public update_manager: UpdateManager;
+  private block_keys: string[];
 
   constructor(options: VirtualDocument.IOptions) {
     this.options = options;
@@ -256,6 +269,8 @@ export class VirtualDocument {
     this.changed = new Signal(this);
     this.unused_documents = new Set();
     this.document_info = new VirtualDocumentInfo(this);
+    this.block_positioned = new Signal(this);
+    this.code_blocks = new Map();
     this.update_manager = new UpdateManager(this);
     this.clear();
   }
@@ -281,6 +296,7 @@ export class VirtualDocument {
     this.unused_documents.clear();
     this.unused_standalone_documents.clear();
     this.virtual_lines.clear();
+    this.code_blocks.clear();
 
     // just to be sure
     this.cell_magics_overrides = null;
@@ -288,7 +304,6 @@ export class VirtualDocument {
     this.foreign_extractors = null;
     this.foreign_extractors_registry = null;
     this.line_magics_overrides = null;
-    this.line_blocks = null;
     this.overrides_registry = null;
   }
 
@@ -313,7 +328,7 @@ export class VirtualDocument {
   }
 
   clear() {
-    // TODO - deep clear (assure that there is no memory leak)
+    this.code_blocks.clear();
     this.unused_standalone_documents.clear();
 
     for (let document of this.foreign_documents.values()) {
@@ -327,11 +342,6 @@ export class VirtualDocument {
       }
     }
     this.unused_documents = new Set(this.foreign_documents.values());
-    this.virtual_lines.clear();
-    this.source_lines.clear();
-    this.last_virtual_line = 0;
-    this.last_source_line = 0;
-    this.line_blocks = [];
   }
 
   private forward_closed_signal(
@@ -490,6 +500,19 @@ export class VirtualDocument {
     return foreign_document;
   }
 
+  has_any_foreign_code(block: ICodeBlockOptions): boolean {
+    let cell_code = block.value;
+
+    for (let extractor of this.foreign_extractors) {
+      // first, check if there is any foreign code:
+
+      if (extractor.has_foreign_code(cell_code)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   extract_foreign_code(
     block: ICodeBlockOptions,
     editor_shift: CodeEditor.IPosition
@@ -564,8 +587,9 @@ export class VirtualDocument {
 
   prepare_code_block(
     block: ICodeBlockOptions,
-    editor_shift: CodeEditor.IPosition = { line: 0, column: 0 }
-  ) {
+    editor_shift: CodeEditor.IPosition = { line: 0, column: 0 },
+    virtual_shift?: CodeEditor.IPosition
+  ): CodeBlock {
     let lines: Array<string>;
     let skip_inspect: Array<Array<VirtualDocument.id_path>>;
 
@@ -579,7 +603,7 @@ export class VirtualDocument {
     let cell_override = this.cell_magics_overrides.override_for(cell_code);
     if (cell_override != null) {
       lines = cell_override.split('\n');
-      skip_inspect = lines.map(l => [this.id_path]);
+      skip_inspect = Array(lines.length).fill([this.id_path]);
     } else {
       // otherwise, we replace line magics - if any
       let result = this.line_magics_overrides.replace_all(
@@ -591,7 +615,14 @@ export class VirtualDocument {
       );
     }
 
-    return { lines, foreign_document_map, skip_inspect };
+    return new CodeBlock(
+      block,
+      lines,
+      foreign_document_map,
+      skip_inspect,
+      editor_shift,
+      virtual_shift
+    );
   }
 
   get foreign_document_maps(): ForeignDocumentsMap[] {
@@ -607,73 +638,97 @@ export class VirtualDocument {
     editor_shift: CodeEditor.IPosition = { line: 0, column: 0 },
     virtual_shift?: CodeEditor.IPosition
   ) {
-    let cell_code = block.value;
-    let ce_editor = block.ce_editor;
-
     if (this.isDisposed) {
       console.warn('Cannot append code block: document disposed');
       return;
     }
-
-    let source_cell_lines = cell_code.split('\n');
-
-    let { lines, foreign_document_map, skip_inspect } = this.prepare_code_block(
+    let code_block = this.prepare_code_block(
       block,
-      editor_shift
+      editor_shift,
+      virtual_shift
     );
 
-    for (let i = 0; i < lines.length; i++) {
-      this.virtual_lines.set(this.last_virtual_line + i, {
-        skip_inspect: skip_inspect[i],
-        editor: ce_editor,
-        // TODO this is incorrect, wont work if something was extracted
-        source_line: this.last_source_line + i
+    this.code_blocks.set(block.ce_editor.uuid, code_block);
+  }
+
+  calculate_positions() {
+    this.virtual_lines.clear();
+    this.source_lines.clear();
+    this.last_virtual_line = 0;
+    this.last_source_line = 0;
+    this.block_keys = [...this.code_blocks.keys()];
+
+    for (let block of this.code_blocks.values()) {
+      let cell_code = block.options.value;
+      let ce_editor = block.options.ce_editor;
+
+      this.block_positioned.emit({
+        block: block.options,
+        at_source_line: this.last_source_line
       });
+
+      let source_cell_lines = cell_code.split('\n');
+
+      for (let i = 0; i < block.lines.length; i++) {
+        this.virtual_lines.set(this.last_virtual_line + i, {
+          skip_inspect: block.skip_inspect[i],
+          editor: ce_editor,
+          // TODO this is incorrect, wont work if something was extracted
+          source_line: this.last_source_line + i
+        });
+      }
+      for (let i = 0; i < source_cell_lines.length; i++) {
+        this.source_lines.set(this.last_source_line + i, {
+          editor_line: i,
+          editor_shift: {
+            line: block.editor_shift.line - (block.virtual_shift?.line || 0),
+            column:
+              i === 0
+                ? block.editor_shift.column - (block.virtual_shift?.column || 0)
+                : 0
+          },
+          editor: ce_editor,
+          foreign_documents_map: block.foreign_document_map,
+          // TODO this is incorrect, wont work if something was extracted
+          virtual_line: this.last_virtual_line + i
+        });
+      }
+
+      this.last_virtual_line += block.lines.length;
+
+      // adding the virtual lines for the blank lines
+      for (let i = 0; i < this.blank_lines_between_cells; i++) {
+        this.virtual_lines.set(this.last_virtual_line + i, {
+          skip_inspect: [this.id_path],
+          editor: ce_editor,
+          source_line: null
+        });
+      }
+
+      this.last_virtual_line += this.blank_lines_between_cells;
+      this.last_source_line += source_cell_lines.length;
     }
-    for (let i = 0; i < source_cell_lines.length; i++) {
-      this.source_lines.set(this.last_source_line + i, {
-        editor_line: i,
-        editor_shift: {
-          line: editor_shift.line - (virtual_shift?.line || 0),
-          column:
-            i === 0 ? editor_shift.column - (virtual_shift?.column || 0) : 0
-        },
-        // TODO: move those to a new abstraction layer (DocumentBlock class)
-        editor: ce_editor,
-        foreign_documents_map: foreign_document_map,
-        // TODO this is incorrect, wont work if something was extracted
-        virtual_line: this.last_virtual_line + i
-      });
+
+    for (let foreign of this.foreign_documents.values()) {
+      foreign.calculate_positions();
     }
-
-    this.last_virtual_line += lines.length;
-
-    // one empty line is necessary to separate code blocks, next 'n' lines are to silence linters;
-    // the final cell does not get the additional lines (thanks to the use of join, see below)
-    this.line_blocks.push(lines.join('\n') + '\n');
-
-    // adding the virtual lines for the blank lines
-    for (let i = 0; i < this.blank_lines_between_cells; i++) {
-      this.virtual_lines.set(this.last_virtual_line + i, {
-        skip_inspect: [this.id_path],
-        editor: ce_editor,
-        source_line: null
-      });
-    }
-
-    this.last_virtual_line += this.blank_lines_between_cells;
-    this.last_source_line += source_cell_lines.length;
   }
 
   get value() {
+    // 'n' lines are to silence linters
     let lines_padding = '\n'.repeat(this.blank_lines_between_cells);
-    return this.line_blocks.join(lines_padding);
+    return [...this.code_blocks.values()]
+      .map(
+        // one empty line is necessary to separate code blocks
+        block => block.lines.join('\n') + '\n'
+      )
+      .join(lines_padding);
   }
 
   get last_line() {
-    const lines_in_last_block = this.line_blocks[
-      this.line_blocks.length - 1
-    ].split('\n');
+    const lines_in_last_block = this.code_blocks.get(
+      this.block_keys[this.block_keys.length - 1]
+    ).lines;
     return lines_in_last_block[lines_in_last_block.length - 1];
   }
 
@@ -829,9 +884,9 @@ export function collect_documents(
   return collected;
 }
 
-export interface IBlockAddedInfo {
-  virtual_document: VirtualDocument;
+export interface IBlockPositionedInfo {
   block: ICodeBlockOptions;
+  at_source_line: number;
 }
 
 export class UpdateManager {
@@ -850,7 +905,6 @@ export class UpdateManager {
    * Signal emitted by the editor that triggered the update, providing the root document of the updated documents.
    */
   private document_updated: Signal<UpdateManager, VirtualDocument>;
-  public block_added: Signal<UpdateManager, IBlockAddedInfo>;
   update_done: Promise<void> = new Promise<void>(resolve => {
     resolve();
   });
@@ -859,7 +913,6 @@ export class UpdateManager {
 
   constructor(private virtual_document: VirtualDocument) {
     this.document_updated = new Signal(this);
-    this.block_added = new Signal(this);
     this.update_began = new Signal(this);
     this.update_finished = new Signal(this);
     this.document_updated.connect(this.on_updated, this);
@@ -924,15 +977,67 @@ export class UpdateManager {
           this.is_update_in_progress = true;
           this.update_began.emit(blocks);
 
-          this.virtual_document.clear();
+          let changed_blocks: ICodeBlockOptions[] = [];
+
+          // check if the change is limited to only a few blocks
+          let is_change_small = true;
+          const document_blocks = this.virtual_document.code_blocks;
+
+          const expected_blocks = [...document_blocks.keys()];
+          if (
+            !blocks.every(
+              (block, index) => expected_blocks[index] == block.ce_editor.uuid
+            )
+          ) {
+            console.log('a block got removed, added or moved around');
+            // a block got removed, added or moved around
+            is_change_small = false;
+          }
 
           for (let code_block of blocks) {
-            this.block_added.emit({
-              block: code_block,
-              virtual_document: this.virtual_document
-            });
-            this.virtual_document.append_code_block(code_block);
+            let uuid = code_block.ce_editor.uuid;
+            if (!document_blocks.has(uuid)) {
+              // a block got added (e.g. a cell inserted)
+              console.log('a block got added (e.g. a cell inserted)');
+              is_change_small = false;
+              break;
+            }
+            if (code_block.value != document_blocks.get(uuid).options.value) {
+              // a block got changed
+              changed_blocks.push(code_block);
+            }
           }
+
+          let foreign_documents_changed = false;
+
+          if (is_change_small) {
+            for (let block of changed_blocks) {
+              let uuid = block.ce_editor.uuid;
+              // if had a foreign document, or will have a foreign document
+              if (
+                document_blocks.get(uuid).foreign_document_map.size > 0 ||
+                this.virtual_document.has_any_foreign_code(block)
+              ) {
+                foreign_documents_changed = true;
+                break;
+              }
+            }
+          }
+
+          if (is_change_small && !foreign_documents_changed) {
+            // perform partial update
+            for (let block of changed_blocks) {
+              this.virtual_document.append_code_block(block);
+            }
+          } else {
+            // otherwise recreate the document from scratch
+            this.virtual_document.clear();
+
+            for (let code_block of blocks) {
+              this.virtual_document.append_code_block(code_block);
+            }
+          }
+          this.virtual_document.calculate_positions();
 
           this.update_finished.emit(blocks);
 

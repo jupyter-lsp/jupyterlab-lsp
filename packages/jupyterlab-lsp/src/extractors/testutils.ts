@@ -4,7 +4,7 @@ import { expect } from 'chai';
 
 export function extract_code(document: VirtualDocument, code: string) {
   return document.extract_foreign_code(
-    { value: code, ce_editor: null },
+    { value: code, ce_editor: { uuid: '1' } as CodeEditor.IEditor },
     {
       line: 0,
       column: 0

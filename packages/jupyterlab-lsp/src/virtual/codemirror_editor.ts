@@ -3,7 +3,7 @@ import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IEditorName } from '../feature';
 import {
-  IBlockAddedInfo,
+  IBlockPositionedInfo,
   ICodeBlockOptions,
   UpdateManager,
   VirtualDocument
@@ -125,7 +125,7 @@ export class CodeMirrorVirtualEditor
       this
     );
 
-    this.virtual_document.update_manager.block_added.connect(
+    this.virtual_document.block_positioned.connect(
       this.save_block_position,
       this
     );
@@ -189,12 +189,12 @@ export class CodeMirrorVirtualEditor
   }
 
   private save_block_position(
-    update_manager: UpdateManager,
-    block_data: IBlockAddedInfo
+    virtual_document: VirtualDocument,
+    block_data: IBlockPositionedInfo
   ) {
     this.editor_to_source_line_new.set(
       block_data.block.ce_editor,
-      block_data.virtual_document.last_source_line
+      block_data.at_source_line
     );
   }
 

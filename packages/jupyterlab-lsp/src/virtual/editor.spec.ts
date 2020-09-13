@@ -70,8 +70,8 @@ describe('VirtualEditor', () => {
 
   describe('#document_at_root_position()', () => {
     it('returns correct document', () => {
-      let ce_editor_for_cell_1 = {} as CodeEditor.IEditor;
-      let ce_editor_for_cell_2 = {} as CodeEditor.IEditor;
+      let ce_editor_for_cell_1 = { uuid: '1' } as CodeEditor.IEditor;
+      let ce_editor_for_cell_2 = { uuid: '2' } as CodeEditor.IEditor;
       let editor = notebook_env.virtual_editor;
 
       editor.virtual_document.append_code_block({
@@ -82,6 +82,7 @@ describe('VirtualEditor', () => {
         value: 'test line in Python 2\n%R test line in R 2',
         ce_editor: ce_editor_for_cell_2
       });
+      editor.virtual_document.calculate_positions();
 
       // The first (Python) line in the first block
       let root_position = { line: 0, ch: 0 } as IRootPosition;

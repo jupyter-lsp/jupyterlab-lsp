@@ -65,7 +65,7 @@ describe('VirtualDocument', () => {
       // appending code block here should work fine
       document.append_code_block({
         value: 'code',
-        ce_editor: {} as CodeEditor.IEditor
+        ce_editor: { uuid: '1' } as CodeEditor.IEditor
       });
       document.dispose();
       expect(document.isDisposed).to.equal(true);
@@ -74,7 +74,7 @@ describe('VirtualDocument', () => {
       // this one should not raise, but just warn
       document.append_code_block({
         value: 'code',
-        ce_editor: {} as CodeEditor.IEditor
+        ce_editor: { uuid: '2' } as CodeEditor.IEditor
       });
       expect((console.warn as Mock).mock.calls[0][0]).to.equal(
         'Cannot append code block: document disposed'
@@ -88,7 +88,10 @@ describe('VirtualDocument', () => {
         cell_code_kept,
         foreign_document_map
       } = document.extract_foreign_code(
-        { value: R_LINE_MAGICS, ce_editor: null },
+        {
+          value: R_LINE_MAGICS,
+          ce_editor: { uuid: '1' } as CodeEditor.IEditor
+        },
         {
           line: 0,
           column: 0
@@ -112,10 +115,10 @@ describe('VirtualDocument', () => {
   });
 
   let init_document_with_Python_and_R = () => {
-    let ce_editor_for_cell_1 = {} as CodeEditor.IEditor;
-    let ce_editor_for_cell_2 = {} as CodeEditor.IEditor;
-    let ce_editor_for_cell_3 = {} as CodeEditor.IEditor;
-    let ce_editor_for_cell_4 = {} as CodeEditor.IEditor;
+    let ce_editor_for_cell_1 = { uuid: '1' } as CodeEditor.IEditor;
+    let ce_editor_for_cell_2 = { uuid: '2' } as CodeEditor.IEditor;
+    let ce_editor_for_cell_3 = { uuid: '3' } as CodeEditor.IEditor;
+    let ce_editor_for_cell_4 = { uuid: '4' } as CodeEditor.IEditor;
     // first block
     document.append_code_block({
       value: 'test line in Python 1\n%R 1st test line in R line magic 1',
@@ -142,6 +145,7 @@ describe('VirtualDocument', () => {
       value: '%%R -i imported_variable\n1st test line in R cell magic 2',
       ce_editor: ce_editor_for_cell_4
     });
+    document.calculate_positions();
   };
 
   describe('#transform_virtual_to_editor', () => {
