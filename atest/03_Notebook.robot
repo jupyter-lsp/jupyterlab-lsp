@@ -2,6 +2,7 @@
 Suite Setup       Setup Suite For Screenshots    notebook
 Test Setup        Try to Close All Tabs
 Resource          Keywords.robot
+Library    DateTime
 
 *** Variables ***
 ${COMPLETER_BOX}    css:.jp-Completer.jp-HoverBox
@@ -46,13 +47,22 @@ Performance
     Setup Notebook    Python    ${file}
     Enter Cell Editor    48    9
     Capture Page Screenshot    01-in-cell.png
-    ${start_time} =    Get Time    epoch
+    ${start_time} =    Get Current Date
     Press Keys    None    add
     Trigger Completer
     Completer Should Suggest    add_together
-    ${end_time} =    Get Time    epoch
-    ${elapsed} =    Evaluate    ${end_time} - ${start_time}
-    Log To Console    Completer suggested in ${elapsed} seconds
+    Press Keys    None    ESC
+    Press Keys    None    RETURN
+    Press Keys    None    s
+    Press Keys    None    t
+    Press Keys    None    a
+    Press Keys    None    t
+    Press Keys    None    s
+    Trigger Completer
+    Completer Should Suggest  stats_dict
+    ${end_time} =    Get Current Date
+    ${elapsed} =    Subtract Date From Date    ${end_time}     ${start_time}
+    Log To Console    Completer suggested in ${elapsed} miliseconds
     Should Be True    ${elapsed} < 6
     Capture Page Screenshot    03-completer.png
 
