@@ -5,8 +5,10 @@
 - bug fixes
 
   - fix syntax highlighting of %%language cells slowing down editing in notebooks ([#361])
+  - fix syntax highlighting in hover tooltips and reduce unnecessary padding and margin ([#363])
 
 [#361]: https://github.com/krassowski/jupyterlab-lsp/issues/361
+[#363]: https://github.com/krassowski/jupyterlab-lsp/issues/363
 
 ### `@krassowski/jupyterlab-lsp 2.0.5` (2020-09-11)
 
