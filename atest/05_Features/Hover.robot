@@ -26,6 +26,7 @@ Hover works in foreign code (javascript)
     Element Should Contain    ${HOVER_BOX}    function js_add(a: any, b: any): any
     Page Should Contain Element    ${HOVER_BOX} code.language-typescript
     # also for multiple cells of the same document
+    Enter Cell Editor    3
     Hover Over    Math
     Element Should Contain    ${HOVER_BOX}    const Math: Math
 
@@ -38,9 +39,10 @@ Hover Over
 Trigger Tooltip
     [Arguments]    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Mouse Over    ${sel}
+    Click Element   ${sel}
     Wait Until Page Contains Element    ${HOVER_SIGNAL}
-    Press Keys    None    CTRL
-    Wait Until Keyword Succeeds    20x    0.5s    Page Should Contain Element    ${HOVER_BOX}
+    Press Keys    ${sel}    CTRL
+    Wait Until Keyword Succeeds    10x    0.1s    Page Should Contain Element    ${HOVER_BOX}
 
 Setup Hover Test
     Setup Notebook    Python    Hover.ipynb
