@@ -96,19 +96,16 @@ Use of a python `virtualenv` or a conda env is also recommended.
    conda install -c conda-forge python=3
    ```
 
-1. install JupyterLab
+1. install JupyterLab and the server extension
 
    ```bash
-   conda install -c conda-forge 'jupyterlab>=2.2,<3.0.0a0'
+   conda install -c conda-forge 'jupyterlab>=2.2,<3.0.0a0' jupyter-lsp
    # or
-   pip install 'jupyterlab>=2.2,<3.0.0a0'
+   pip install 'jupyterlab>=2.2,<3.0.0a0' jupyter-lsp
    ```
 
-1. install the server extension:
-
-   ```bash
-   pip install jupyter-lsp
-   ```
+   > Note: With conda, you could take advantage of the meta-packages `jupyter-lsp-python`
+   > or `jupyter-lsp-r` to install the language server and the server extension.
 
 1. install `nodejs`
 
@@ -175,6 +172,9 @@ Use of a python `virtualenv` or a conda env is also recommended.
 To update previously installed extensions:
 
 ```bash
+conda update jupyter-lsp
+jupyter labextension update @krassowski/jupyterlab-lsp
+# or
 pip install -U jupyter-lsp
 jupyter labextension update @krassowski/jupyterlab-lsp
 ```
