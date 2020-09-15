@@ -6,6 +6,9 @@
 
   - fix syntax highlighting of %%language cells slowing down editing in notebooks ([#361])
   - fix syntax highlighting in hover tooltips and reduce unnecessary padding and margin ([#363])
+  - greatly improve performance of hover action ([#363])
+  - improve support for expanded hovers tooltips using deprecated API ([#363])
+  - do not hide hover tooltips too eagerly (allowing selecting text/easy scrolling of longer tooltips) ([#363])
 
 [#361]: https://github.com/krassowski/jupyterlab-lsp/issues/361
 [#363]: https://github.com/krassowski/jupyterlab-lsp/issues/363
