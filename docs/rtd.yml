@@ -17,7 +17,6 @@ dependencies:
       - pandas
       - pytest-check-links
       - python-language-server
-      - ujson <=1.35
       - recommonmark
       - sphinx
       - sphinx_rtd_theme

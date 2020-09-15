@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 2.0.6` (2020-09-15)
+
+- bug fixes
+
+  - fix syntax highlighting of %%language cells slowing down editing in notebooks ([#361])
+
+[#361]: https://github.com/krassowski/jupyterlab-lsp/issues/361
+
 ### `@krassowski/jupyterlab-lsp 2.0.5` (2020-09-11)
 
 - bug fixes

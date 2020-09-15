@@ -16,7 +16,6 @@ dependencies:
   # for python language server (and development)
   - flake8 >=3.5
   - python-language-server
-  - ujson <=1.35
   # for R language server and kernel
   # TODO: try r 4.0 soon
   - r <4

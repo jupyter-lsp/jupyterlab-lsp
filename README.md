@@ -154,10 +154,6 @@ Use of a python `virtualenv` or a conda env is also recommended.
    Note: it is worth visiting the repository of each server you install as
    many provide additional configuration options.
 
-   Note on pyls (python-language-server) issues: pyls is known to require specific
-   versions of some dependencies such as [ujson <= 1.35](https://github.com/krassowski/jupyterlab-lsp/issues/203#issuecomment-599039556), [jedi == 0.15.2 and parso == 0.5.2](https://github.com/krassowski/jupyterlab-lsp/issues/200#issuecomment-599039353). If you experience any issues with LSP functions in Python,
-   please check if you have the right version using `pip freeze` command.
-
 1. (Optional, Linux/OSX-only) to enable opening files outside of the root
    directory (the place where you start JupyterLab), create `.lsp_symlink` and
    symlink your `/home`, or any other location which includes the files that you
