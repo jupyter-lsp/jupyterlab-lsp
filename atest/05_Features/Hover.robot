@@ -16,8 +16,12 @@ Hover works in notebooks
     Element Text Should Be    ${HOVER_SIGNAL}    python_add
     Capture Page Screenshot    02-hover-shown.png
     Element Should Contain    ${HOVER_BOX}    python_add(a: int, b: int)
+    # syntax highlight should work
     Page Should Contain Element    ${HOVER_BOX} code.language-python
+    # testing multi-element responses
     Element Should Contain    ${HOVER_BOX}    Add documentation
+    # it should be possible to move the mouse over the tooltip in order to copy/scroll
+    Mouse Over    ${HOVER_BOX}
 
 Hover works in foreign code (javascript)
     Enter Cell Editor    2
@@ -25,6 +29,10 @@ Hover works in foreign code (javascript)
     Capture Page Screenshot    02-hover-shown.png
     Element Should Contain    ${HOVER_BOX}    function js_add(a: any, b: any): any
     Page Should Contain Element    ${HOVER_BOX} code.language-typescript
+    # should be hidden once moving the mouse away
+    Mouse Over    ${STATUSBAR}
+    Page Should Not Contain Element    ${HOVER_BOX}
+    Page Should Not Contain Element    ${HOVER_SIGNAL}
     # also for multiple cells of the same document
     Enter Cell Editor    3
     Hover Over    Math
@@ -34,15 +42,15 @@ Hover works in foreign code (javascript)
 Hover Over
     [Arguments]    ${symbol}
     ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
-    Wait Until Keyword Succeeds    10 x    0.1 s    Trigger Tooltip    ${sel}
+    Wait Until Keyword Succeeds    2x    0.1 s    Trigger Tooltip    ${sel}
 
 Trigger Tooltip
     [Arguments]    ${sel}
-    Wait Until Keyword Succeeds    10 x    0.1 s    Mouse Over    ${sel}
-    Click Element   ${sel}
+    Mouse Over    ${sel}
     Wait Until Page Contains Element    ${HOVER_SIGNAL}
+    Click Element    ${sel}
     Press Keys    ${sel}    CTRL
-    Wait Until Keyword Succeeds    10x    0.1s    Page Should Contain Element    ${HOVER_BOX}
+    Wait Until Keyword Succeeds    2x    0.1s    Page Should Contain Element    ${HOVER_BOX}
 
 Setup Hover Test
     Setup Notebook    Python    Hover.ipynb
