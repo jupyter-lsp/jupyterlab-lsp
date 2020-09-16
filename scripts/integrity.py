@@ -184,7 +184,8 @@ def test_changelog_versions(pkg, version):
 @pytest.mark.parametrize(
     "pkg,sep,version,expected",
     [
-        [PY_NAME, "=", PY_VERSION, 3],
+        [PY_NAME, "=", PY_VERSION, 2],
+        [PY_NAME, "==", PY_VERSION, 1],
         [PY_NAME + "-python", "=", PY_VERSION, 1],
         [JS_LSP_NAME, "@", JS_LSP_VERSION, 4]
     ],
