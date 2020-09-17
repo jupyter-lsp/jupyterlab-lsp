@@ -4,6 +4,7 @@ Test Setup        Setup Hover Test
 Test Teardown     Clean Up After Working With File    Hover.ipynb
 Force Tags        feature:hover
 Resource          ../Keywords.robot
+Library           ../mouse_over_with_modifier.py
 
 *** Variables ***
 ${HOVER_BOX}      css:.lsp-hover
@@ -42,15 +43,16 @@ Hover works in foreign code (javascript)
 Hover Over
     [Arguments]    ${symbol}
     ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
-    Wait Until Keyword Succeeds    2x    0.1 s    Trigger Tooltip    ${sel}
+    Wait Until Keyword Succeeds    3x    0.1 s    Trigger Tooltip    ${sel}
 
 Trigger Tooltip
     [Arguments]    ${sel}
+    # bring the cursor to the element
     Mouse Over    ${sel}
+    # move it back and forth (wiggle) while hodling the ctrl modifier
+    Mouse Over With Control    ${sel}    x_wiggle=5
     Wait Until Page Contains Element    ${HOVER_SIGNAL}
-    Click Element    ${sel}
-    Press Keys    ${sel}    CTRL
-    Wait Until Keyword Succeeds    2x    0.1s    Page Should Contain Element    ${HOVER_BOX}
+    Wait Until Keyword Succeeds    3x    0.1s    Page Should Contain Element    ${HOVER_BOX}
 
 Setup Hover Test
     Setup Notebook    Python    Hover.ipynb
