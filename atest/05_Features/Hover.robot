@@ -4,7 +4,7 @@ Test Setup        Setup Hover Test
 Test Teardown     Clean Up After Working With File    Hover.ipynb
 Force Tags        feature:hover
 Resource          ../Keywords.robot
-Library           ../mouse_over_with_modifier.py
+Library           ../mouse_over_extension.py
 
 *** Variables ***
 ${HOVER_BOX}      css:.lsp-hover
@@ -13,7 +13,7 @@ ${HOVER_SIGNAL}    css:.cm-lsp-hover-available
 *** Test Cases ***
 Hover works in notebooks
     Enter Cell Editor    1
-    Hover Over    python_add
+    Trigger Tooltip    python_add
     Element Text Should Be    ${HOVER_SIGNAL}    python_add
     Capture Page Screenshot    02-hover-shown.png
     Element Should Contain    ${HOVER_BOX}    python_add(a: int, b: int)
@@ -24,9 +24,14 @@ Hover works in notebooks
     # it should be possible to move the mouse over the tooltip in order to copy/scroll
     Mouse Over    ${HOVER_BOX}
 
+Hover can be triggered via modifier key once cursor stopped moving
+    Enter Cell Editor    1
+    ${element} =    Last Occurrence    python_add
+    Wait Until Keyword Succeeds    4x    0.1 s    Trigger Via Modifier Key Press    ${element}
+
 Hover works in foreign code (javascript)
     Enter Cell Editor    2
-    Hover Over    js_add
+    Trigger Tooltip    js_add
     Capture Page Screenshot    02-hover-shown.png
     Element Should Contain    ${HOVER_BOX}    function js_add(a: any, b: any): any
     Page Should Contain Element    ${HOVER_BOX} code.language-typescript
@@ -36,23 +41,38 @@ Hover works in foreign code (javascript)
     Page Should Not Contain Element    ${HOVER_SIGNAL}
     # also for multiple cells of the same document
     Enter Cell Editor    3
-    Hover Over    Math
+    Trigger Tooltip    Math
     Element Should Contain    ${HOVER_BOX}    const Math: Math
 
 *** Keywords ***
-Hover Over
+Last Occurrence
     [Arguments]    ${symbol}
     ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
-    Wait Until Keyword Succeeds    3x    0.1 s    Trigger Tooltip    ${sel}
+    [Return]    ${sel}
 
-Trigger Tooltip
+Trigger Via Hover With Modifier
     [Arguments]    ${sel}
     # bring the cursor to the element
     Mouse Over    ${sel}
     # move it back and forth (wiggle) while hodling the ctrl modifier
     Mouse Over With Control    ${sel}    x_wiggle=5
     Wait Until Page Contains Element    ${HOVER_SIGNAL}
-    Wait Until Keyword Succeeds    3x    0.1s    Page Should Contain Element    ${HOVER_BOX}
+    Wait Until Keyword Succeeds    4x    0.1s    Page Should Contain Element    ${HOVER_BOX}
+
+Trigger Via Modifier Key Press
+    [Arguments]    ${sel}
+    # bring the cursor to the element
+    Mouse Over    ${sel}
+    Wait Until Page Contains Element    ${HOVER_SIGNAL}
+    Mouse Over And Wiggle    ${sel}    5
+    Press Keys    ${sel}    CTRL
+    Wait Until Keyword Succeeds    4x    0.1s    Page Should Contain Element    ${HOVER_BOX}
+
+Trigger Tooltip
+    [Arguments]    ${symbol}
+    [Documentation]    The default way to trigger the hover tooltip
+    ${sel} =    Last Occurrence    ${symbol}
+    Wait Until Keyword Succeeds    4x    0.1 s    Trigger Via Hover With Modifier    ${sel}
 
 Setup Hover Test
     Setup Notebook    Python    Hover.ipynb
