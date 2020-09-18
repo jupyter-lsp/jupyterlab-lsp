@@ -183,7 +183,12 @@ def test_changelog_versions(pkg, version):
 
 @pytest.mark.parametrize(
     "pkg,sep,version,expected",
-    [[PY_NAME, "=", PY_VERSION, 3], [JS_LSP_NAME, "@", JS_LSP_VERSION, 3]],
+    [
+        [PY_NAME, "=", PY_VERSION, 2],
+        [PY_NAME, "==", PY_VERSION, 1],
+        [PY_NAME + "-python", "=", PY_VERSION, 1],
+        [JS_LSP_NAME, "@", JS_LSP_VERSION, 4]
+    ],
 )
 def test_installation_versions(the_installation_notebook, pkg, sep, version, expected):
     assert the_installation_notebook.count(f"{pkg}{sep}{version}") == expected

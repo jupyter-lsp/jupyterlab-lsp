@@ -1,6 +1,6 @@
 # Language Server Protocol integration for Jupyter(Lab)
 
-[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) ![tests](https://github.com/krassowski/jupyterlab-lsp/workflows/ttests/badge.svg) [![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
+[![Build Status](https://travis-ci.org/krassowski/jupyterlab-lsp.svg?branch=master)](https://travis-ci.org/krassowski/jupyterlab-lsp) ![tests](https://github.com/krassowski/jupyterlab-lsp/workflows/tests/badge.svg) [![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
 
 > _This project is still maturing, but you are welcome to check it out, leave feedback and/or a PR_
 
@@ -96,19 +96,16 @@ Use of a python `virtualenv` or a conda env is also recommended.
    conda install -c conda-forge python=3
    ```
 
-1. install JupyterLab
+1. install JupyterLab and the server extension
 
    ```bash
-   conda install -c conda-forge 'jupyterlab>=2.2,<3.0.0a0'
+   conda install -c conda-forge 'jupyterlab>=2.2,<3.0.0a0' jupyter-lsp
    # or
-   pip install 'jupyterlab>=2.2,<3.0.0a0'
+   pip install 'jupyterlab>=2.2,<3.0.0a0' jupyter-lsp
    ```
 
-1. install the server extension:
-
-   ```bash
-   pip install jupyter-lsp
-   ```
+   > Note: With conda, you could take advantage of the meta-packages `jupyter-lsp-python`
+   > or `jupyter-lsp-r` to install the language server and the server extension.
 
 1. install `nodejs`
 
@@ -175,6 +172,9 @@ Use of a python `virtualenv` or a conda env is also recommended.
 To update previously installed extensions:
 
 ```bash
+conda update jupyter-lsp
+jupyter labextension update @krassowski/jupyterlab-lsp
+# or
 pip install -U jupyter-lsp
 jupyter labextension update @krassowski/jupyterlab-lsp
 ```
