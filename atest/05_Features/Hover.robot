@@ -27,7 +27,7 @@ Hover works in notebooks
 Hover can be triggered via modifier key once cursor stopped moving
     Enter Cell Editor    1
     ${element} =    Last Occurrence    python_add
-    Wait Until Keyword Succeeds    4x    0.1 s    Trigger Via Modifier Key Press    ${element}
+    Wait Until Keyword Succeeds    5x    0.1 s    Trigger Via Modifier Key Press    ${element}
 
 Hover works in foreign code (javascript)
     Enter Cell Editor    2
@@ -63,7 +63,7 @@ Trigger Via Modifier Key Press
     [Arguments]    ${sel}
     # bring the cursor to the element
     Mouse Over    ${sel}
-    Wait Until Page Contains Element    ${HOVER_SIGNAL}
+    Wait Until Page Contains Element    ${HOVER_SIGNAL}    timeout=10s
     Mouse Over And Wiggle    ${sel}    5
     Press Keys    ${sel}    CTRL
     Wait Until Keyword Succeeds    4x    0.1s    Page Should Contain Element    ${HOVER_BOX}
