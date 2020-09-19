@@ -180,7 +180,7 @@ def test_changelog_versions(pkg, version):
         [PY_NAME, "=", PY_VERSION, 2],
         [PY_NAME, "==", PY_VERSION, 1],
         [PY_NAME + "-python", "=", PY_VERSION, 1],
-        [JS_LSP_NAME, "@", JS_LSP_VERSION, 4]
+        [JS_LSP_NAME, "@", JS_LSP_VERSION, 4],
     ],
 )
 def test_installation_versions(the_installation_notebook, pkg, sep, version, expected):
