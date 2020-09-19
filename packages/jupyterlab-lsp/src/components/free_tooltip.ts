@@ -9,7 +9,8 @@ import { IEditorPosition } from '../positioning';
 import { PositionConverter } from '../converter';
 import { Widget } from '@lumino/widgets';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { ILSPAdapterManager } from '../tokens';
+import { WidgetAdapter } from '../adapters/adapter';
+import { IDocumentWidget } from '@jupyterlab/docregistry';
 
 const MIN_HEIGHT = 20;
 const MAX_HEIGHT = 250;
@@ -95,21 +96,19 @@ export namespace EditorTooltip {
     markup: lsProtocol.MarkupContent;
     ce_editor: CodeEditor.IEditor;
     position: IEditorPosition;
+    adapter: WidgetAdapter<IDocumentWidget>;
+    className?: string;
   }
 }
 
 export class EditorTooltipManager {
   private currentTooltip: FreeTooltip = null;
 
-  constructor(
-    private rendermime_registry: IRenderMimeRegistry,
-    private adapterManager: ILSPAdapterManager
-  ) {}
+  constructor(private rendermime_registry: IRenderMimeRegistry) {}
 
   create(options: EditorTooltip.IOptions): FreeTooltip {
     this.remove();
-    let { markup, position } = options;
-    let adapter = this.adapterManager.currentAdapter;
+    let { markup, position, adapter } = options;
     let widget = adapter.widget;
     const bundle =
       markup.kind === 'plaintext'
@@ -123,6 +122,7 @@ export class EditorTooltipManager {
       position: PositionConverter.cm_to_ce(position),
       moveToLineEnd: false
     });
+    tooltip.addClass(options.className);
     Widget.attach(tooltip, document.body);
     this.currentTooltip = tooltip;
     return tooltip;

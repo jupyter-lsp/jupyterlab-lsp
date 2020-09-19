@@ -1,4 +1,5 @@
 @import url('./highlight.css');
+@import url('./hover.css');
 
 .lsp-document-locator:hover {
   cursor: pointer;

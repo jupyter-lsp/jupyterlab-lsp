@@ -56,6 +56,8 @@
 .cm-lsp-hover-available {
   text-decoration: var(--jp-editor-mirror-lsp-hover-decoration-style);
   text-decoration-color: var(--jp-editor-mirror-lsp-hover-decoration-color);
+  text-decoration-line: underline;
+  text-decoration-skip-ink: none;
 }
 
 /* highlight */

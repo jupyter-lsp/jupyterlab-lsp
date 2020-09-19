@@ -69,17 +69,15 @@ Use the context menu option or the <kbd>F2</kbd> shortcut to invoke.
 
 Sort and jump between the diagnostics using the diagnostics panel.
 Open it searching for "Show diagnostics panel" in JupyterLab commands palette or from the context menu.
+Use context menu on rows in the panel to filter out diagnostics or copy their message.
 
 ![panel](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/panel.png)
 
 ## Prerequisites
 
-Either:
+You will need to have all of the following installed:
 
 - JupyterLab >=2.2.0,<3.0.0a0
-
-And:
-
 - Python 3.5+
 - nodejs 10+
 
@@ -104,8 +102,8 @@ Use of a python `virtualenv` or a conda env is also recommended.
    pip install 'jupyterlab>=2.2,<3.0.0a0' jupyter-lsp
    ```
 
-   > Note: With conda, you could take advantage of the meta-packages `jupyter-lsp-python`
-   > or `jupyter-lsp-r` to install the language server and the server extension.
+   > Note: With conda, you could take advantage of the bundles: `jupyter-lsp-python`
+   > or `jupyter-lsp-r` to install both the server extension and the language server.
 
 1. install `nodejs`
 
