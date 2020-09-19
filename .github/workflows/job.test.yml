@@ -74,21 +74,6 @@ jobs:
           cp .github/conda.locks/conda.test.${{ matrix.platform }}-${{ matrix.python }}-${{ matrix.lab }}.lock conda.lock
           cat conda.lock
 
-      - name: Cache conda
-        uses: actions/cache@v2
-        with:
-          path: ./conda_pkgs_dir
-          key: conda-test-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-${{ hashFiles('conda.lock') }}
-          restore-keys: |
-            conda-test-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-${{ matrix.python }}-
-            conda-test-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-
-
-      - name: move conda cache
-        shell: bash -l {0}
-        run: |
-          mkdir -p ~/conda_pkgs_dir/
-          mv ./conda_pkgs_dir/*.tar.bz2 ~/conda_pkgs_dir/ || echo "probably didn't restore cache"
-
       - name: Set up conda env
         uses: goanpeca/setup-miniconda@v1
         with:
@@ -225,10 +210,3 @@ jobs:
           name: Robot ${{ github.run_number }} ${{ job.status }} ${{ matrix.platform }} py${{ matrix.python }}
           path: ./atest/output
         if: always()
-
-      - name: restore conda cache
-        shell: bash -l {0}
-        run: |
-          rm -rf ./conda_pkgs_dir
-          mkdir -p ./conda_pkgs_dir
-          cp ~/conda_pkgs_dir/*.tar.bz2 ./conda_pkgs_dir || echo "nothing to cache"
