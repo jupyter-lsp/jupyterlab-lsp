@@ -75,7 +75,7 @@ jobs:
           cat conda.lock
 
       - name: Set up conda env
-        uses: goanpeca/setup-miniconda@v1
+        uses: conda-incubator/setup-miniconda@v1.7
         with:
           activate-environment: jupyterlab-lsp
           auto-activate-base: true
