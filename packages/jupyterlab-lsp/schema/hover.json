@@ -10,7 +10,7 @@
       "type": "string",
       "enum": ["Alt", "Control", "Shift", "Meta", "AltGraph"],
       "default": "Control",
-      "description": "Keyboard key which activates the tooltip on hover."
+      "description": "Keyboard key which activates the tooltip on hover. The allowed keys are Alt, Control, Shift, and AltGraph. Linux user: Meta key is also supported. Safari users: Meta key is also suported, AltGraph is not supported. To see which physical keys are mapped, visit: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/getModifierState"
     },
     "throttlerDelay": {
       "title": "Throttler delay",
