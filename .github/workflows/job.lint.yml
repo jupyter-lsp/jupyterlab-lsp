@@ -53,17 +53,13 @@ jobs:
             conda-lint-${{ env.CACHE_EPOCH }}-${{ matrix.platform }}-
 
       - name: Set up conda env
-        uses: conda-incubator/setup-miniconda@v1.7
+        uses: conda-incubator/setup-miniconda@master
         with:
           activate-environment: jupyterlab-lsp
           auto-activate-base: true
           auto-update-conda: false
-          # TODO: remove once setup-miniconda supports conda lock files, save a minute
-          environment-file: requirements/minimal.yml
+          environment-file: conda.lock
           use-only-tar-bz2: true
-
-      - name: Overwrite conda env from lockfile
-        run: conda create --yes --name jupyterlab-lsp --file conda.lock
 
       - name: check integrity of package versions
         run: python scripts/integrity.py
