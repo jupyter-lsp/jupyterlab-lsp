@@ -10,8 +10,7 @@ SPEC_VERSION = SCHEMA["definitions"]["current-version"]["enum"][0]
 
 
 def make_validator(key):
-    """ make a JSON Schema (Draft 7) validator
-    """
+    """make a JSON Schema (Draft 7) validator"""
     schema = {"$ref": "#/definitions/{}".format(key)}
     schema.update(SCHEMA)
     return jsonschema.validators.Draft7Validator(schema)

@@ -14,7 +14,6 @@ Python
 
 YAML
     [Documentation]    EXPECT FAIL Composer YAML files don't allow a "greetings" key
-    [Tags]    expect:fail
     Settings Should Change Editor Diagnostics    YAML    example.yaml    yaml-language-server
     ...    {"yaml.schemas": {"http://json.schemastore.org/composer": "*"}}
     ...    duplicate key

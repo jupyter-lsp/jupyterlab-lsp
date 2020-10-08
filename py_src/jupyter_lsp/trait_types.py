@@ -3,8 +3,7 @@ import traitlets
 
 
 class Schema(traitlets.Any):
-    """ any... but validated by a jsonschema.Validator
-    """
+    """any... but validated by a jsonschema.Validator"""
 
     _validator = None
 

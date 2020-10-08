@@ -7,10 +7,10 @@ RE_PATH_ANCHOR = r"^file://([^/]+|/[A-Z]:)"
 
 
 def normalized_uri(root_dir):
-    """ Attempt to make an LSP rootUri from a ContentsManager root_dir
+    """Attempt to make an LSP rootUri from a ContentsManager root_dir
 
-        Special care must be taken around windows paths: the canonical form of
-        windows drives and UNC paths is lower case
+    Special care must be taken around windows paths: the canonical form of
+    windows drives and UNC paths is lower case
     """
     root_uri = pathlib.Path(root_dir).expanduser().resolve().as_uri()
     root_uri = re.sub(
@@ -20,10 +20,10 @@ def normalized_uri(root_dir):
 
 
 def file_uri_to_path(file_uri):
-    """ Return a path string for give file:/// URI.
+    """Return a path string for give file:/// URI.
 
-        Respect the different path convention on Windows.
-        Based on https://stackoverflow.com/a/57463161/6646912, BSD 0
+    Respect the different path convention on Windows.
+    Based on https://stackoverflow.com/a/57463161/6646912, BSD 0
     """
     windows_path = os.name == "nt"
     file_uri_parsed = urlparse(file_uri)

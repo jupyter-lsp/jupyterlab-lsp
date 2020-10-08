@@ -24,7 +24,8 @@ import {
  *  - initializeParams() was extracted, and can be modified by subclasses
  *  - typescript 3.7 was adopted to clean up deep references
  */
-export class LspWsConnection extends events.EventEmitter
+export class LspWsConnection
+  extends events.EventEmitter
   implements ILspConnection {
   public isConnected = false;
   public isInitialized = false;
