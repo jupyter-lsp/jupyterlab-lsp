@@ -5,8 +5,10 @@
 - bug fixes
 
   - custom cell syntax highlighting is now properly removed when no longer needed ([#387])
+  - the completer in continuous hinting now works well with the pasted text ([#389])
 
 [#387]: https://github.com/krassowski/jupyterlab-lsp/issues/387
+[#389]: https://github.com/krassowski/jupyterlab-lsp/issues/389
 
 ### `@krassowski/jupyterlab-lsp 2.0.7` (2020-09-18)
 
