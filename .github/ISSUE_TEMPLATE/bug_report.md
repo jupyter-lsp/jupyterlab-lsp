@@ -12,7 +12,7 @@ https://jupyterlab.readthedocs.io/en/latest/getting_started/issue.html
 
 ## Description
 
-<!--Describe the bug clearly and concisely. Include screenshots if possible-->
+<!--Describe the bug clearly and concisely. Include screenshots (or even better - gifs) if possible-->
 
 ## Reproduce
 
@@ -52,7 +52,7 @@ You may want to sanitize the paths in the output.
 </pre>
 </details>
 
-<!--The more contet you provide, the more we can help!-->
+<!--The more content you provide, the more we can help!-->
 
 <details><summary>Troubleshoot Output</summary>
 <pre>
@@ -67,8 +67,13 @@ Paste the output from your command line running `jupyter lab` here, use `--debug
 </pre>
 </details>
 
-<details><summary>Browser Output</summary>
+<details><summary>Browser Output (recommended for all interface issues)</summary>
 <pre>
-Paste the output from your browser Javascript console here.
+Paste the output from your browser JavaScript console replacing the text in here.
+
+To learn how to open the developer tools in your browser:
+https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_are_browser_developer_tools#How_to_open_the_devtools_in_your_browser
+If too many messagess accumulated after many hours of working in JupyterLab,
+consider refreshing the window and then reproducing the bug to reduce the noise in the logs.
 </pre>
 </details>
