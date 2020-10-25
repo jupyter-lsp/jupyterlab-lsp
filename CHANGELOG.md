@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 2.0.8` (unreleased)
+
+- bug fixes
+
+  - custom cell syntax highlighting is now properly removed when no longer needed ([#387])
+
+[#387]: https://github.com/krassowski/jupyterlab-lsp/issues/387
+
 ### `@krassowski/jupyterlab-lsp 2.0.7` (2020-09-18)
 
 - bug fixes
