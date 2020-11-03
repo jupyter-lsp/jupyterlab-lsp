@@ -47,6 +47,14 @@ Works In File Editor
     Completer Should Suggest    add
     [Teardown]    Clean Up After Working With File    completion.py
 
+Continious Hinting Works
+    Configure JupyterLab Plugin    {"continuousHinting": true}    plugin id=${COMPLETION PLUGIN ID}
+    Prepare File for Editing    Python    completion    completion.py
+    Place Cursor In File Editor At    9    2
+    Capture Page Screenshot    01-editor-ready.png
+    Press Keys    None    d
+    Completer Should Suggest    addition
+
 Autocompletes If Only One Option
     Enter Cell Editor    3    line=1
     Press Keys    None    cle
@@ -149,8 +157,8 @@ VSCode Dark Theme Works
     Configure JupyterLab Plugin    {"theme": "vscode"}    plugin id=${COMPLETION PLUGIN ID}
     Capture Page Screenshot    01-configured.png
     Open ${file} in ${MENU NOTEBOOK}
-    Enter Cell Editor    1    line=2
     Wait Until Fully Initialized
+    Enter Cell Editor    1    line=2
     Trigger Completer
     Capture Page Screenshot    02-completions-shown.png
     Completer Should Suggest    TabError
