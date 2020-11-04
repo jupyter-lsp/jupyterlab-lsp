@@ -28,6 +28,7 @@ dependencies:
   - pytest-flake8
   - pytest-runner
   - ruamel_yaml
+  - pytest-github-actions-annotate-failures
   # browser testing
   - bs4
   - firefox

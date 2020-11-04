@@ -1,5 +1,3 @@
-import os
-
 from .config import load_config_schema
 from .utils import NodeModuleSpec
 

@@ -13,7 +13,7 @@ Python
     ...    undefined name 'foo' (flake8)
 
 YAML
-    [Documentation]    EXPECT FAIL Composer YAML files don't allow a "greetings" key
+    [Documentation]    Composer YAML files don't allow a "greetings" key
     Settings Should Change Editor Diagnostics    YAML    example.yaml    yaml-language-server
     ...    {"yaml.schemas": {"http://json.schemastore.org/composer": "*"}}
     ...    duplicate key
