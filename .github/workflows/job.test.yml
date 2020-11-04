@@ -32,6 +32,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: ${{ matrix.os }}, Python ${{ matrix.python }}, Node ${{ matrix.nodejs }}
     strategy:
+      # TODO: maybe turn back on
+      fail-fast: false
       matrix:
         python: [3.6, 3.7, 3.8]
         os: [ubuntu-16.04, macos-10.14, vs2017-win2016]
@@ -142,6 +144,7 @@ jobs:
         run: python scripts/tectonic_cache.py
 
       - name: Run frontend unit tests
+        if: ${{ not(contains(matrix.os, 'win')) }}
         run: jlpm test
 
       #  js_cov_packages:
