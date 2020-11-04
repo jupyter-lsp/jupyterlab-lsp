@@ -14,12 +14,12 @@ Python
 Foreign Extractors
     ${file} =    Set Variable    Foreign extractors.ipynb
     Configure JupyterLab Plugin
-    ...    {"language_servers": {"texlab": {"serverSettings": {"latex.lint.onChange": true}}}}
+    ...    {"language_servers": {"texlab": {"serverSettings": {"latex.lint.onChange": true}}, "bash-langauge-server": {"bashIde.highlightParsingErrors": true}}}
     Capture Page Screenshot    10-configured.png
     Reset Application State
     Setup Notebook    Python    ${file}
     @{diagnostics} =    Create List
-    ...    Failed to parse expression    # bash
+    ...    Failed to parse expression    # bash, configured by spec.env
     ...    ame 'valid'    # python, mypy and pyflakes will fight over `(N|n)ame 'valid'`, just hope for the best
     ...    Trailing whitespace is superfluous.    # r
     ...    `frob` is misspelt    # markdown
