@@ -3,7 +3,7 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^3.10.1",
     "@typescript-eslint/parser": "^3.10.1",
-    "bash-language-server": "^1.6.1",
+    "bash-language-server": "^1.17.0",
     "dictionary-en": "^3.0.0",
     "dockerfile-language-server-nodejs": "^0.0.22",
     "eslint": "^7.5.0",
@@ -24,7 +24,8 @@
     "vscode-css-languageserver-bin": "^1.4.0",
     "vscode-html-languageserver-bin": "^1.4.0",
     "vscode-json-languageserver-bin": "^1.0.1",
-    "yaml-language-server": "^0.11.1"
+    "yaml-language-server": "^0.12.0",
+    "vscode-json-languageservice": "^3.9.1 <3.10.0"
   },
   "husky": {
     "hooks": {}
