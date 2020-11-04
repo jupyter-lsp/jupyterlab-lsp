@@ -144,7 +144,7 @@ jobs:
         run: python scripts/tectonic_cache.py
 
       - name: Run frontend unit tests
-        if: ${{ not(contains(matrix.os, 'win')) }}
+        if: ${{ !contains(matrix.os, 'win') }}
         run: jlpm test
 
       #  js_cov_packages:
