@@ -1,7 +1,8 @@
+import os
+
 from .config import load_config_schema
 from .utils import NodeModuleSpec
 
-import os
 
 class BashLanguageServer(NodeModuleSpec):
     node_module = key = "bash-language-server"
@@ -21,8 +22,4 @@ class BashLanguageServer(NodeModuleSpec):
             jlpm="jlpm add --dev {}".format(key),
         ),
         config_schema=load_config_schema(key),
-        # required as of bash-language-server 1.17.0, can't be configured. sigh.
-        env=dict(
-            HIGHLIGHT_PARSING_ERRORS=os.environ.get("HIGHLIGHT_PARSING_ERRORS", "true")
-        )
     )

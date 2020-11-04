@@ -34,6 +34,11 @@ NON_CRITICAL = [
 ]
 
 
+# because we use diagnostics as a litmus for "working", revert to behavior
+# from before https://github.com/bash-lsp/bash-language-server/pull/269
+os.environ["HIGHLIGHT_PARSING_ERRORS"] = "true"
+
+
 def get_stem(attempt, extra_args):
     stem = "_".join([OS, PY, str(attempt)]).replace(".", "_").lower()
 
