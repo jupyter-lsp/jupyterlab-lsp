@@ -32,6 +32,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: ${{ matrix.os }}, Python ${{ matrix.python }}, Node ${{ matrix.nodejs }}
     strategy:
+      # TODO: maybe turn back on
+      fail-fast: false
       matrix:
         python: [3.6, 3.7, 3.8]
         os: [ubuntu-16.04, macos-10.14, vs2017-win2016]
@@ -83,9 +85,6 @@ jobs:
           auto-update-conda: true
           use-only-tar-bz2: true # needs to be set for caching to work properly
 
-      - name: Install pip dependencies
-        run: pip install pytest-github-actions-annotate-failures
-
       - name: Describe conda
         shell: bash -l {0}
         run: |
@@ -105,7 +104,7 @@ jobs:
             yarn-
 
       - name: Install npm dependencies
-        run: jlpm
+        run: jlpm --ignore-optional
 
       - name: Build the extension
         run: jlpm build
@@ -145,6 +144,7 @@ jobs:
         run: python scripts/tectonic_cache.py
 
       - name: Run frontend unit tests
+        if: ${{ !contains(matrix.os, 'win') }}
         run: jlpm test
 
       #  js_cov_packages:

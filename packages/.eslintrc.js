@@ -21,7 +21,8 @@ module.exports = {
     '**/_*.ts',
     '**/_*.d.ts',
     '**/typings/**/*.d.ts',
-    '**/dist/*'
+    '**/dist/*',
+    'packages/.eslintrc.js'
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -29,13 +30,9 @@ module.exports = {
   },
   plugins: ['@typescript-eslint', 'jest', 'import'],
   rules: {
-    '@typescript-eslint/ban-ts-ignore': 'warn',
     '@typescript-eslint/camelcase': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
-    '@typescript-eslint/interface-name-prefix': [
-      'error',
-      { prefixWithI: 'always' }
-    ],
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-floating-promises': ['error', { ignoreVoid: true }],

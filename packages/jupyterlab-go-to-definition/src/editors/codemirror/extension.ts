@@ -32,7 +32,8 @@ function getModifierState(event: MouseEvent, modifierKey: string): boolean {
   }
 }
 
-export class CodeMirrorExtension extends CodeMirrorTokensProvider
+export class CodeMirrorExtension
+  extends CodeMirrorTokensProvider
   implements IEditorExtension {
   jumper: CodeJumper;
   static modifierKey: KeyModifier;

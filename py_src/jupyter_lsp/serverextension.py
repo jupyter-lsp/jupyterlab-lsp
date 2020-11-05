@@ -11,8 +11,7 @@ from .virtual_documents_shadow import setup_shadow_filesystem
 
 
 def load_jupyter_server_extension(nbapp):
-    """ create a LanguageServerManager and add handlers
-    """
+    """create a LanguageServerManager and add handlers"""
     nbapp.add_traits(language_server_manager=traitlets.Instance(LanguageServerManager))
     manager = nbapp.language_server_manager = LanguageServerManager(parent=nbapp)
     manager.initialize()

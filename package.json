@@ -1,12 +1,12 @@
 {
   "dependencies": {},
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^2.27.0",
-    "@typescript-eslint/parser": "^2.27.0",
-    "bash-language-server": "^1.6.1",
+    "@typescript-eslint/eslint-plugin": "^3.10.1",
+    "@typescript-eslint/parser": "^3.10.1",
+    "bash-language-server": "^1.17.0",
     "dictionary-en": "^3.0.0",
     "dockerfile-language-server-nodejs": "^0.0.22",
-    "eslint": "^6.8.0",
+    "eslint": "^7.5.0",
     "eslint-config-prettier": "^6.7.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jest": "^23.8.2",
@@ -17,14 +17,15 @@
     "jest-github-actions-reporter": "^1.0.2",
     "lerna": "^3.13.2",
     "precise-commits": "^1.0.2",
-    "prettier": "^2.0.5",
+    "prettier": "^2.1.2",
     "sql-language-server": "^0.11.4",
-    "typescript": "~3.9.5",
+    "typescript": "~4.0.2",
     "unified-language-server": "^0.3.0",
     "vscode-css-languageserver-bin": "^1.4.0",
     "vscode-html-languageserver-bin": "^1.4.0",
     "vscode-json-languageserver-bin": "^1.0.1",
-    "yaml-language-server": "~0.4.0"
+    "yaml-language-server": "^0.12.0",
+    "vscode-json-languageservice": "^3.9.1 <3.10.0"
   },
   "husky": {
     "hooks": {}

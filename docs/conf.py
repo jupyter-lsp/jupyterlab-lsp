@@ -102,7 +102,6 @@ html_context = {
 
 
 def setup(app):
-    """ Runs before the "normal business" of sphinx. Don't go too crazy here.
-    """
+    """Runs before the "normal business" of sphinx. Don't go too crazy here."""
     app.add_css_file("css/custom.css")
     subprocess.check_call(["jlpm", "--ignore-optional"])

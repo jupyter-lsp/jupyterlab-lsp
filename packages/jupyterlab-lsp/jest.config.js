@@ -10,7 +10,7 @@ const reuseFromUpstream = [
 ];
 
 let local = {
-  globals: { 'ts-jest': { tsConfig: 'tsconfig.json' } },
+  globals: { 'ts-jest': { tsconfig: 'tsconfig.json' } },
   testRegex: `.*\.spec\.tsx?$`,
   transform: {
     '\\.(ts|tsx)?$': 'ts-jest',
