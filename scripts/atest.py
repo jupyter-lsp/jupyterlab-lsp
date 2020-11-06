@@ -34,6 +34,11 @@ NON_CRITICAL = [
 ]
 
 
+# because we use diagnostics as a litmus for "working", revert to behavior
+# from before https://github.com/bash-lsp/bash-language-server/pull/269
+os.environ["HIGHLIGHT_PARSING_ERRORS"] = "true"
+
+
 def get_stem(attempt, extra_args):
     stem = "_".join([OS, PY, str(attempt)]).replace(".", "_").lower()
 
@@ -44,8 +49,7 @@ def get_stem(attempt, extra_args):
 
 
 def atest(attempt, extra_args):
-    """ perform a single attempt of the acceptance tests
-    """
+    """perform a single attempt of the acceptance tests"""
 
     if "FIREFOX_BINARY" not in os.environ:
         os.environ["FIREFOX_BINARY"] = shutil.which("firefox")
@@ -121,8 +125,7 @@ def atest(attempt, extra_args):
 
 
 def attempt_atest_with_retries(*extra_args):
-    """ retry the robot tests a number of times
-    """
+    """retry the robot tests a number of times"""
     attempt = 0
     error_count = -1
 

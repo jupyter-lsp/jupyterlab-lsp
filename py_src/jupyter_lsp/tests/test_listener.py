@@ -20,8 +20,7 @@ async def test_listener_bad_traitlets(bad_string, handlers):
 
 @pytest.mark.asyncio
 async def test_listeners(known_server, handlers, jsonrpc_init_msg):
-    """ will some listeners listen?
-    """
+    """will some listeners listen?"""
     handler, ws_handler = handlers
     manager = handler.manager
 

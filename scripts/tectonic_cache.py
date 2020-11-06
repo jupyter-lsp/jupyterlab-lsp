@@ -11,8 +11,7 @@ SLEEP = 5
 
 
 def tectonic_cache():
-    """ warm up the tectonic cache so that it doesn't fail the acceptance test
-    """
+    """warm up the tectonic cache so that it doesn't fail the acceptance test"""
     with TemporaryDirectory() as td:
         tdp = Path(td)
         tex = tdp / "example.tex"

@@ -108,7 +108,8 @@ def update_versions(dry: bool):
             current_version=JUPYTERLAB_LSP_VERSION,
             locations=[
                 VersionLocation(
-                    path=JUPYTERLAB_LSP_PACKAGE, template=NPM_PACKAGE_VERSION_TEMPLATE,
+                    path=JUPYTERLAB_LSP_PACKAGE,
+                    template=NPM_PACKAGE_VERSION_TEMPLATE,
                 ),
                 VersionLocation(path=PIPELINE, template="JS_JLLSP_VERSION: {version}"),
                 VersionLocation(
@@ -134,8 +135,14 @@ def update_versions(dry: bool):
                     path=Path("binder/environment.yml"),
                     template="jupyterlab {version}",
                 ),
-                VersionLocation(path=README, template="jupyterlab {version}",),
-                VersionLocation(path=README, template="JupyterLab {version}",),
+                VersionLocation(
+                    path=README,
+                    template="jupyterlab {version}",
+                ),
+                VersionLocation(
+                    path=README,
+                    template="JupyterLab {version}",
+                ),
             ],
         ),
     ]

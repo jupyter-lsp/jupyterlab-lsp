@@ -358,7 +358,7 @@ export abstract class CodeJumper {
     }
   }
 
-  handle_kernel_inspect(response: IIOPubMessage, fallback: Function) {
+  handle_kernel_inspect(response: IIOPubMessage, fallback: () => void) {
     let obj: any = response.content;
     if (obj.name === 'stdout') {
       let data = JSON.parse(obj.text);
@@ -386,8 +386,8 @@ export abstract class CodeJumper {
   protected inspect_and_jump(
     context: TokenContext,
     cell_of_origin_analyzer: LanguageAnalyzer,
-    fallback: Function,
-    callback: Function
+    fallback: () => void,
+    callback: () => void
   ) {
     let code = cell_of_origin_analyzer.definitionLocationQuery(context);
 

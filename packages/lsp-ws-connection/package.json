@@ -54,7 +54,7 @@
     "rimraf": "^2.6.3",
     "sinon": "^7.3.2",
     "source-map-loader": "~0.2.1",
-    "typescript": "~3.9.5",
+    "typescript": "~4.0.2",
     "webpack": "^4.32.2",
     "webpack-cli": "^3.3.0"
   }

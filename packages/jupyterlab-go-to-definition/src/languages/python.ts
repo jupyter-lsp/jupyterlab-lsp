@@ -6,7 +6,7 @@ import { PathExt } from '@jupyterlab/coreutils';
 function evaluateSkippingBrackets(
   tokens: ReadonlyArray<IToken>,
   indexShift: number,
-  callback: Function,
+  callback: (nextToken: CodeEditor.IToken, indexShift: number) => any,
   allowNegativeBrackets = false
 ) {
   // here `nextToken` is any token, not necessarily a meaningful one

@@ -12,8 +12,7 @@ OUT = ATEST / "output"
 
 
 def combine_robot_reports():
-    """ generate a single report/log.html and output.xml from all available outputs
-    """
+    """generate a single report/log.html and output.xml from all available outputs"""
 
     args = [
         "--outputdir",
