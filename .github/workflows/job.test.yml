@@ -74,7 +74,8 @@ jobs:
           key: ${{ matrix.os }}-${{ matrix.python }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/github-actions.yml') }}
 
       - name: Set up Python and conda
-        uses: goanpeca/setup-miniconda@v1
+        # uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@16930e6
         with:
           python-version: ${{ matrix.python }}
           channels: conda-forge, defaults
