@@ -78,7 +78,6 @@ jobs:
         uses: conda-incubator/setup-miniconda@16930e6
         with:
           python-version: ${{ matrix.python }}
-          channels: conda-forge, defaults
           channel-priority: true
           auto-activate-base: true
           activate-environment: jupyterlab-lsp
