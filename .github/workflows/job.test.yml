@@ -35,8 +35,8 @@ jobs:
       # TODO: maybe turn back on
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python: [3.6, 3.7, 3.8]
-        os: [ubuntu-16.04, macos-10.14, vs2017-win2016]
         lab: ['>=2.2.0,<3.0.0a0']
         include:
           # if using 3.6, use an old node
@@ -118,12 +118,13 @@ jobs:
         run: cd dist && python -m pip install jupyter_lsp-${{ env.PY_JLSP_VERSION }}-py3-none-any.whl --no-deps
 
       - name: Find out jedi cache location
-        run: python -c 'import jedi; print("::set-env name=JEDI_CACHE_DIR::" + jedi.settings.cache_directory)'
+        id: jedi-cache
+        run: python -c 'import jedi; print("::set-output name=dir::" + jedi.settings.cache_directory)'
 
       - name: Cache jedi cache
         uses: actions/cache@v1
         with:
-          path: ${{ env.JEDI_CACHE_DIR }}
+          path: ${{ steps.jedi-cache.outputs.dir }}
           key: jedi-${{ matrix.os }}-${{ hashFiles('scripts/jedi_cache.py') }}-${{ hashFiles('requirements/github-actions.yml') }}
 
       - name: Warm up jedi cache
@@ -143,7 +144,7 @@ jobs:
         run: python scripts/tectonic_cache.py
 
       - name: Run frontend unit tests
-        if: ${{ !contains(matrix.os, 'win') }}
+        if: ${{ !contains(matrix.os, 'windows') }}
         run: jlpm test
 
       #  js_cov_packages:
