@@ -30,7 +30,7 @@ env:
 jobs:
   acceptance:
     runs-on: ${{ matrix.os }}-latest
-    name: ${{ matrix.os }}, Python ${{ matrix.python }}, Node ${{ matrix.nodejs }}
+    name: ${{ matrix.os }} py${{ matrix.python }} node${{ matrix.nodejs }}
     strategy:
       # TODO: maybe turn back on
       fail-fast: false
