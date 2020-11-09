@@ -116,3 +116,6 @@ coverage/
 _*.d.ts
 _build
 .virtual_documents/
+
+# labextensions
+packages/completion-theme/krassowski_completion_theme/labextension/*

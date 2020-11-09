@@ -148,7 +148,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
 
 const LSP_CATEGORY = 'Language server protocol';
 
-export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionThemeManager> = {
+const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionThemeManager> = {
   id: PLUGIN_ID,
   requires: [IThemeManager, ICommandPalette],
   activate: (
@@ -173,3 +173,5 @@ export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionTheme
   provides: ILSPCompletionThemeManager,
   autoStart: true
 };
+
+export default COMPLETION_THEME_MANAGER;

@@ -1,9 +1,24 @@
 {
-  "extends": "../tsconfigbase",
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "composite": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "incremental": true,
+    "jsx": "react",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmitOnError": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "preserveWatchOutput": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "target": "es2017",
+    "skipLibCheck": true,
+    "types": [],
     "outDir": "lib",
     "rootDir": "src",
-    "types": ["jest"],
     "tsBuildInfoFile": "lib/.tsbuildinfo"
   },
   "include": ["src/**/*"]

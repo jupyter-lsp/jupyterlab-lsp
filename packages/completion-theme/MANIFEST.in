@@ -1,0 +1,23 @@
+include LICENSE
+include README.md
+include pyproject.toml
+include jupyter-config/krassowski_completion_theme.json
+
+include package.json
+include install.json
+include ts*.json
+
+graft krassowski_completion_theme/labextension
+
+# Javascript files
+graft src
+graft style
+prune **/node_modules
+prune lib
+
+# Patterns to exclude from any directory
+global-exclude *~
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude .git
+global-exclude .ipynb_checkpoints

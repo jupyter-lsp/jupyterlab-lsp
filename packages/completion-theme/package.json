@@ -27,18 +27,42 @@
     "url": "https://github.com/krassowski/jupyterlab-lsp.git"
   },
   "scripts": {
-    "build": "tsc -b",
+    "build": "jlpm run build:lib && jlpm run build:labextension:dev",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "build:lib": "tsc",
+    "build:prod": "jlpm run build:lib && jlpm run build:labextension",
     "bundle": "npm pack .",
-    "clean": "rimraf lib",
-    "lab:link": "jupyter labextension link . --no-build"
+    "clean": "jlpm run clean:lib",
+    "clean:all": "jlpm run clean:lib && jlpm run clean:labextension",
+    "clean:labextension": "rimraf krassowski_completion_theme/labextension",
+    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
+    "eslint": "eslint . --ext .ts,.tsx --fix",
+    "eslint:check": "eslint . --ext .ts,.tsx",
+    "install:extension": "jupyter labextension develop --overwrite .",
+    "lab:link": "jupyter labextension link . --no-build",
+    "prepare": "jlpm run clean && jlpm run build:prod",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:labextension": "jupyter labextension watch .",
+    "watch:src": "tsc -w"
+  },
+  "dependencies": {
+    "@jupyterlab/application": "^3.0.0-rc.7",
+    "@jupyterlab/apputils": "^3.0.0-rc.7",
+    "@types/react": "^16.9.48",
+    "react": "^17.0.1"
   },
   "devDependencies": {
-    "react": "*",
-    "@jupyterlab/ui-components": "~2.2.0"
+    "@jupyterlab/builder": "^3.0.0-rc.2",
+    "@jupyterlab/ui-components": "^3.0.0-rc.7",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.2",
+    "typescript": "~4.0.3"
   },
   "peerDependencies": {},
   "jupyterlab": {
     "extension": true,
-    "schemaDir": "schema"
+    "schemaDir": "schema",
+    "outputDir": "krassowski_completion_theme/labextension"
   }
 }
