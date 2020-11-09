@@ -29,13 +29,13 @@ env:
 
 jobs:
   acceptance:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
     name: ${{ matrix.os }}, Python ${{ matrix.python }}, Node ${{ matrix.nodejs }}
     strategy:
       # TODO: maybe turn back on
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu, macos, windows]
         python: [3.6, 3.7, 3.8]
         lab: ['>=2.2.0,<3.0.0a0']
         include:
