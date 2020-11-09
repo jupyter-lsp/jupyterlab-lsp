@@ -33,8 +33,7 @@ jobs:
           nodejs: '${{ matrix.nodejs }}'
 
       - name: Set up Python and conda
-        # uses: conda-incubator/setup-miniconda@v2
-        uses: conda-incubator/setup-miniconda@16930e6
+        uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.python }}
           channel-priority: true
