@@ -1,10 +1,13 @@
 name: jupyterlab-lsp
 
 channels:
+  - conda-forge/label/jupyterlab_rc
+  - conda-forge/label/jupyterlab_server_rc
   - conda-forge
   - defaults
 
 dependencies:
+  - jupyter-packaging
   - jupyterlab {lab}
   # build dependencies
   - nodejs {nodejs}

@@ -116,3 +116,6 @@ coverage/
 _*.d.ts
 _build
 .virtual_documents/
+
+# Built labextensions
+py_src/jupyter_lsp/labextensions/
