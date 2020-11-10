@@ -41,6 +41,7 @@ os.environ["HIGHLIGHT_PARSING_ERRORS"] = "true"
 # https://github.com/krassowski/jupyterlab-lsp/issues/403
 GH_403_BAD_PATH = os.environ.get("GH_403_BAD_PATH", " späces")
 
+
 def get_stem(attempt, extra_args):
     stem = "_".join([OS, PY, str(attempt)]).replace(".", "_").lower()
 
