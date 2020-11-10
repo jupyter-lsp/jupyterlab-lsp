@@ -38,6 +38,8 @@ NON_CRITICAL = [
 # from before https://github.com/bash-lsp/bash-language-server/pull/269
 os.environ["HIGHLIGHT_PARSING_ERRORS"] = "true"
 
+# https://github.com/krassowski/jupyterlab-lsp/issues/403
+GH_403_BAD_PATH = os.environ.get("GH_403_BAD_PATH", " späces")
 
 def get_stem(attempt, extra_args):
     stem = "_".join([OS, PY, str(attempt)]).replace(".", "_").lower()
@@ -51,6 +53,7 @@ def get_stem(attempt, extra_args):
 def atest(attempt, extra_args):
     """perform a single attempt of the acceptance tests"""
 
+    # TODO: investigate whether this is still required vs geckodriver 0.28
     if "FIREFOX_BINARY" not in os.environ:
         os.environ["FIREFOX_BINARY"] = shutil.which("firefox")
 
@@ -80,7 +83,7 @@ def atest(attempt, extra_args):
         if previous.exists():
             extra_args += ["--rerunfailed", str(previous)]
 
-    out_dir = OUT / stem
+    out_dir = OUT / (stem + GH_403_BAD_PATH)
 
     args = [
         "--name",
