@@ -33,10 +33,9 @@ jobs:
           nodejs: '${{ matrix.nodejs }}'
 
       - name: Set up Python and conda
-        uses: goanpeca/setup-miniconda@v1
+        uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.python }}
-          channels: conda-forge, defaults
           channel-priority: true
           activate-environment: jupyterlab-lsp
           environment-file: requirements/github-actions.yml
