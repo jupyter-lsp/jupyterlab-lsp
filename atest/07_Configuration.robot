@@ -40,8 +40,8 @@ LaTeX
 *** Keywords ***
 Settings Should Change Editor Diagnostics
     [Arguments]    ${language}    ${file}    ${server}    ${settings}    ${before}    ${after}    ${save command}=${EMPTY}    ${needs reload}=${False}
-    ${before diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title^="${before}"]
-    ${after diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title^="${after}"]
+    ${before diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title*="${before}"]
+    ${after diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title*="${after}"]
     ${tab} =    Set Variable    ${JLAB XP DOCK TAB}\[contains(., '${file}')]
     ${close icon} =    Set Variable    *[contains(@class, 'm-TabBar-tabCloseIcon')]
     ${save command} =    Set Variable If    "${save command}"    ${save command}    Save ${language} File
