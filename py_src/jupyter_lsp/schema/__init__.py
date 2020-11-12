@@ -5,7 +5,7 @@ import jsonschema
 
 HERE = pathlib.Path(__file__).parent
 SCHEMA_FILE = HERE / "schema.json"
-SCHEMA = json.loads(SCHEMA_FILE.read_text())
+SCHEMA = json.loads(SCHEMA_FILE.read_text(encoding="utf-8"))
 SPEC_VERSION = SCHEMA["definitions"]["current-version"]["enum"][0]
 
 

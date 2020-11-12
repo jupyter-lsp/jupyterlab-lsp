@@ -40,6 +40,7 @@ class EditableFile:
         # empty string required by the assumptions of the gluing algorithm
         lines = [""]
         try:
+            # TODO: what to do about bad encoding reads?
             lines = self.path.read_text().splitlines()
         except FileNotFoundError:
             pass

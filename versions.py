@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parent
 
 
 _VERSION_PY = ROOT / "py_src" / "jupyter_lsp" / "_version.py"
-JUPYTER_LSP_VERSION = findall(r'= "(.*)"$', (_VERSION_PY).read_text())[0]
+JUPYTER_LSP_VERSION = findall(r'= "(.*)"$', (_VERSION_PY).read_text(encoding="utf-8"))[0]
 
 with open(ROOT / "packages/jupyterlab-lsp/package.json") as f:
     jupyterlab_lsp_package = json.load(f)

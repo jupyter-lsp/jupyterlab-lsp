@@ -51,7 +51,7 @@ class PackageVersionInfo:
 
     def change_version(self, new_version: str, dry: bool):
 
-        changelog = CHANGELOG.read_text()
+        changelog = CHANGELOG.read_text(encoding="utf-8")
         if new_version not in changelog:
             raise Exception(
                 (
@@ -71,7 +71,7 @@ class PackageVersionInfo:
 
 
 def replace_version(path: Path, template: str, old: str, new: str, dry: bool):
-    old_content = path.read_text()
+    old_content = path.read_text(encoding="utf-8")
     new_content = old_content.replace(
         template.format(version=old), template.format(version=new)
     )
