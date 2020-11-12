@@ -12,6 +12,7 @@ ${GECKODRIVER LOG}    ${OUTPUT DIR}${/}geckodriver.log
 ${SETTINGS DIR}    ${OUTPUT DIR}${/}user-settings
 ${WORKSPACES DIR}    ${OUTPUT DIR}${/}workspaces
 ${NOTEBOOK DIR}    ${HOME}${/}${NOTEBOOK DIR NAME}
+${VIRTUALDOCS DIR}    ${NOTEBOOK DIR}${/}.virtual_documents
 ${SCREENSHOTS DIR}    ${OUTPUT DIR}${/}screenshots
 # override with `python scripts/atest.py --variable HEADLESS:0`
 ${HEADLESS}       1
