@@ -4,59 +4,67 @@ Library           SeleniumLibrary
 Library           OperatingSystem
 Library           Process
 Library           String
+Library           Collections
 Library           ./logcheck.py
 Library           ./ports.py
+Library           ./config.py
 
 *** Keywords ***
 Setup Server and Browser
-    ${port} =    Get Unused Port
-    Set Global Variable    ${PORT}    ${port}
-    Set Global Variable    ${URL}    http://localhost:${PORT}${BASE}
+    Initialize Global Variables
+    Create Notebok Server Config
+    Initialize User Settings
+    ${server} =    Start Process    jupyter-lab
+    ...    cwd=${NOTEBOOK DIR}
+    ...    stdout=${LAB LOG}
+    ...    stderr=STDOUT
+    ...    env:HOME=${HOME}
+    Set Global Variable    ${SERVER}    ${server}
+    Open JupyterLab
+    Read Page Config
+
+Initialize Global Variables
+    ${root} =    Normalize Path    ${OUTPUT DIR}${/}..${/}..${/}..
+    Set Global Variable    ${ROOT}    ${root}
     ${accel} =    Evaluate    "COMMAND" if "${OS}" == "Darwin" else "CTRL"
     Set Global Variable    ${ACCEL}    ${accel}
     ${token} =    Generate Random String
     Set Global Variable    ${TOKEN}    ${token}
-    ${home} =    Set Variable    ${OUTPUT DIR}${/}home
-    ${root} =    Normalize Path    ${OUTPUT DIR}${/}..${/}..${/}..
-    Create Directory    ${home}
-    Create Notebok Server Config    ${home}
-    Initialize User Settings
-    ${cmd} =    Create Lab Launch Command    ${root}
-    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots
-    Set Global Variable    ${LAB LOG}    ${OUTPUT DIR}${/}lab.log
     Set Global Variable    ${PREVIOUS LAB LOG LENGTH}    0
-    ${server} =    Start Process    ${cmd}    shell=yes    env:HOME=${home}    cwd=${home}    stdout=${LAB LOG}
-    ...    stderr=STDOUT
-    Set Global Variable    ${SERVER}    ${server}
-    Open JupyterLab
+    Set Screenshot Directory    ${SCREENSHOTS DIR}
+
+Create Notebok Server Config
+    [Documentation]    Copies in notebook server config file and updates accordingly
+    ${conf} =    Set Variable    ${NOTEBOOK DIR}${/}${NBSERVER CONF}
+    ${extra_node_roots} =    Create List    ${ROOT}
+    ${port} =    Get Unused Port
+    Set Global Variable    ${PORT}    ${port}
+    Set Global Variable    ${URL}    http://localhost:${PORT}${BASE URL}
+    Copy File    ${FIXTURES}${/}${NBSERVER CONF}    ${conf}
+    Update Jupyter Config    ${conf}    LabApp
+    ...    base_url=${BASE URL}
+    ...    port=${PORT}
+    ...    token=${TOKEN}
+    ...    user_settings_dir=${SETTINGS DIR}
+    ...    workspaces_dir=${WORKSPACES DIR}
+    Update Jupyter Config    ${conf}    LanguageServerManager
+    ...    extra_node_roots=@{extra_node_roots}
+
+Read Page Config
     ${script} =    Get Element Attribute    id:jupyter-config-data    innerHTML
     ${config} =    Evaluate    __import__("json").loads("""${script}""")
     Set Global Variable    ${PAGE CONFIG}    ${config}
     Set Global Variable    ${LAB VERSION}    ${config["appVersion"]}
 
-Create Lab Launch Command
-    [Arguments]    ${root}
-    [Documentation]    Create a JupyterLab CLI shell string, escaping for traitlets
-    ${WORKSPACES DIR} =    Set Variable    ${OUTPUT DIR}${/}workspaces
-    ${app args} =    Set Variable    --no-browser --debug --NotebookApp.base_url\='${BASE}' --port\=${PORT} --NotebookApp.token\='${TOKEN}'
-    ${path args} =    Set Variable    --LabApp.user_settings_dir='${SETTINGS DIR.replace('\\', '\\\\')}' --LabApp.workspaces_dir\='${WORKSPACES DIR.replace('\\', '\\\\')}'
-    ${ext args} =    Set Variable    --LanguageServerManager.extra_node_roots\="['${root.replace('\\', '\\\\')}']"
-    ${cmd} =    Set Variable    jupyter-lab ${app args} ${path args} ${ext args}
-    [Return]    ${cmd}
-
-Create Notebok Server Config
-    [Arguments]    ${home}
-    [Documentation]    Copies in notebook server config file to disables npm/build checks
-    Copy File    ${FIXTURES}${/}${NBSERVER CONF}    ${home}${/}${NBSERVER CONF}
-
 Setup Suite For Screenshots
     [Arguments]    ${folder}
-    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}${folder}
+    Set Screenshot Directory    ${SCREENSHOTS DIR}${/}${folder}
     Set Tags    lab:${LAB VERSION}
 
 Initialize User Settings
-    Set Suite Variable    ${SETTINGS DIR}    ${OUTPUT DIR}${/}user-settings    children=${True}
-    Create File    ${SETTINGS DIR}${/}@jupyterlab${/}codemirror-extension${/}commands.jupyterlab-settings    {"styleActiveLine": true}
+    Create File
+    ...    ${SETTINGS DIR}${/}@jupyterlab${/}codemirror-extension${/}commands.jupyterlab-settings
+    ...    {"styleActiveLine": true}
 
 Reset Plugin Settings
     [Arguments]    ${package}=jupyterlab-lsp    ${plugin}=plugin
@@ -91,7 +99,7 @@ Open JupyterLab
     Create WebDriver    Firefox
     ...    executable_path=${geckodriver}
     ...    firefox_binary=${firefox}
-    ...    service_log_path=${OUTPUT DIR}${/}geckodriver.log
+    ...    service_log_path=${GECKODRIVER LOG}
     ...    service_args=${service args}
     Wait Until Keyword Succeeds    3x    5s    Wait For Splash
 
@@ -221,15 +229,15 @@ Open ${file} in ${editor}
 
 Clean Up After Working With File
     [Arguments]    ${file}
-    Remove File    ${OUTPUT DIR}${/}home${/}${file}
+    Remove File    ${NOTEBOOK DIR}${/}${file}
     Reset Application State
     Lab Log Should Not Contain Known Error Messages
 
 Setup Notebook
     [Arguments]    ${Language}    ${file}    ${isolated}=${True}
     Set Tags    language:${Language.lower()}
-    Run Keyword If    ${isolated}    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}notebook${/}${TEST NAME.replace(' ', '_')}
-    Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
+    Run Keyword If    ${isolated}    Set Screenshot Directory    ${SCREENSHOTS DIR}${/}notebook${/}${TEST NAME.replace(' ', '_')}
+    Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
     Run Keyword If    ${isolated}    Try to Close All Tabs
     Open ${file} in ${MENU NOTEBOOK}
     Capture Page Screenshot    00-notebook-opened.png
@@ -284,13 +292,13 @@ Open Context Menu Over
 Prepare File for Editing
     [Arguments]    ${Language}    ${Screenshots}    ${file}
     Set Tags    language:${Language.lower()}
-    Set Screenshot Directory    ${OUTPUT DIR}${/}screenshots${/}${Screenshots}${/}${Language.lower()}
+    Set Screenshot Directory    ${SCREENSHOTS DIR}${/}${Screenshots}${/}${Language.lower()}
     Try to Close All Tabs
     Open File    ${file}
 
 Open File
     [Arguments]    ${file}
-    Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
+    Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
     Open ${file} in ${MENU EDITOR}
     Capture Page Screenshot    00-opened.png
 

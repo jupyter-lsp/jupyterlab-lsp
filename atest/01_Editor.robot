@@ -1,6 +1,6 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    editor
-Force Tags        ui:editor
+Force Tags        ui:editor    aspect:ls:features
 Resource          Keywords.robot
 Resource          Variables.robot
 

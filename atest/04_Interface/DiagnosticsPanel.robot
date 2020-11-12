@@ -1,6 +1,7 @@
 *** Settings ***
 Suite Setup       Setup Suite For Screenshots    diagnostics_panel
 Resource          ../Keywords.robot
+Force Tags        ui:notebook    aspect:ls:features
 Test Setup        Set Up
 Test Teardown     Clean Up
 

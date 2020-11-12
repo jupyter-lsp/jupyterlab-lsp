@@ -2,8 +2,17 @@
 ${FIXTURES}       ${CURDIR}${/}fixtures
 ${NBSERVER CONF}    jupyter_notebook_config.json
 ${SPLASH}         id:jupyterlab-splash
-# to help catch hard-coded paths
-${BASE}           /@est/
+# to help catch hard-coded paths and encoding issues
+${BASE URL}       /@est/
+${NOTEBOOK DIR NAME}    nöte bòóks
+# core paths
+${HOME}           ${OUTPUT DIR}${/}home
+${LAB LOG}        ${OUTPUT DIR}${/}lab.log
+${GECKODRIVER LOG}    ${OUTPUT DIR}${/}geckodriver.log
+${SETTINGS DIR}    ${OUTPUT DIR}${/}user-settings
+${WORKSPACES DIR}    ${OUTPUT DIR}${/}workspaces
+${NOTEBOOK DIR}    ${HOME}${/}${NOTEBOOK DIR NAME}
+${SCREENSHOTS DIR}    ${OUTPUT DIR}${/}screenshots
 # override with `python scripts/atest.py --variable HEADLESS:0`
 ${HEADLESS}       1
 ${CMD PALETTE INPUT}    css:#command-palette .lm-CommandPalette-input

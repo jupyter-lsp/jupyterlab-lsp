@@ -20,8 +20,8 @@ Screenshot Editor Themes with Lab Theme
     [Arguments]    ${lab theme}    ${file}=style.py    ${notebook}=Diagnostic.ipynb
     ${norm lab theme} =    Set Variable    ${lab theme.lower().replace(" ", "-")}
     Set Tags    theme:lab:${norm lab theme}
-    Set Screenshot Directory    ${OUTPUT DIR}${/}style${/}${norm lab theme}
-    Copy File    examples${/}${file}    ${OUTPUT DIR}${/}home${/}${file}
+    Set Screenshot Directory    ${SCREENSHOTS DIR}${/}style${/}${norm lab theme}
+    Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
     Run Keyword If    "${THEME NAMES}" == ""    Wait Until Keyword Succeeds    3x    1s    Get Theme Names
     Lab Command    Use ${lab theme} Theme
     Try to Close All Tabs

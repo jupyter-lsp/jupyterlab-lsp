@@ -5,6 +5,8 @@
         "buildCheck": false,
         "buildAvailable": false
       }
-    }
+    },
+    "log_level": "DEBUG",
+    "open_browser": false
   }
 }
