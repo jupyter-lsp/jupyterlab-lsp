@@ -1,8 +1,6 @@
-from os import chdir
 import re
 import sys
 from pathlib import Path
-from glob import iglob
 
 import setuptools
 
@@ -13,14 +11,10 @@ LABEXTENSIONS_INSTALL_DIR = Path('share') / 'jupyter' / 'labextensions'
 
 
 def get_data_files():
-    chdir(str(LABEXTENSIONS_DIR))
-
     extension_files = [
-        (str(LABEXTENSIONS_INSTALL_DIR / Path(filename).parent), [str(LABEXTENSIONS_DIR / filename)])
-        for filename in iglob('**/*.*', recursive=True)
+        (str(LABEXTENSIONS_INSTALL_DIR / file.relative_to(LABEXTENSIONS_DIR)), [str(file)])
+        for file in LABEXTENSIONS_DIR.rglob("*.*")
     ]
-
-    chdir('../../../')
 
     extension_files.append(("etc/jupyter/jupyter_notebook_config.d", ["py_src/jupyter_lsp/etc/jupyter-lsp-serverextension.json"]))
 
