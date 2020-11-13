@@ -9,10 +9,9 @@ LABEXTENSIONS_DIR = Path('py_src') / 'jupyter_lsp' / 'labextensions'
 LABEXTENSIONS_INSTALL_DIR = Path('share') / 'jupyter' / 'labextensions'
 
 
-
 def get_data_files():
     extension_files = [
-        (str(LABEXTENSIONS_INSTALL_DIR / file.relative_to(LABEXTENSIONS_DIR)), [str(file)])
+        (str(LABEXTENSIONS_INSTALL_DIR / file.relative_to(LABEXTENSIONS_DIR).parent), [str(file)])
         for file in LABEXTENSIONS_DIR.rglob("*.*")
     ]
 
