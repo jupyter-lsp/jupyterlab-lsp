@@ -7,7 +7,6 @@ channels:
   - defaults
 
 dependencies:
-  - jupyter-packaging
   - jupyterlab {lab}
   # build dependencies
   - nodejs {nodejs}
