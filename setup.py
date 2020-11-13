@@ -1,16 +1,30 @@
+from os import chdir
 import re
 import sys
 from pathlib import Path
+from glob import iglob
 
 import setuptools
 
-from jupyter_packaging import create_cmdclass
+
+LABEXTENSIONS_DIR = Path('py_src') / 'jupyter_lsp' / 'labextensions'
+LABEXTENSIONS_INSTALL_DIR = Path('share') / 'jupyter' / 'labextensions'
 
 
-data_files_spec = [
-    ('share/jupyter/labextensions', 'py_src/jupyter_lsp/labextensions', '**'),
-    ('etc/jupyter/jupyter_notebook_config.d', 'py_src/jupyter_lsp/etc', 'jupyter-lsp-serverextension.json')
-]
+
+def get_data_files():
+    chdir(str(LABEXTENSIONS_DIR))
+
+    extension_files = [
+        (str(LABEXTENSIONS_INSTALL_DIR / Path(filename).parent), [str(LABEXTENSIONS_DIR / filename)])
+        for filename in iglob('**/*.*', recursive=True)
+    ]
+
+    chdir('../../../')
+
+    extension_files.append(("etc/jupyter/jupyter_notebook_config.d", ["py_src/jupyter_lsp/etc/jupyter-lsp-serverextension.json"]))
+
+    return extension_files
 
 
 setuptools.setup(
@@ -19,5 +33,5 @@ setuptools.setup(
         (Path(__file__).parent / "py_src" / "jupyter_lsp" / "_version.py").read_text(),
     )[0],
     setup_requires=["pytest-runner"] if "test" in sys.argv else [],
-    cmd_class=create_cmdclass(data_files_spec=data_files_spec),
+    data_files=get_data_files(),
 )
