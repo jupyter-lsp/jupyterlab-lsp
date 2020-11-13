@@ -28,7 +28,7 @@
     "url": "https://github.com/krassowski/jupyterlab-lsp.git"
   },
   "scripts": {
-    "build": "jlpm run build:lib && jlpm run build:labextension",
+    "build": "jlpm build:schema && jlpm run build:lib && jlpm run build:labextension",
     "build:labextension": "jupyter labextension build .",
     "build:labextension:dev": "jupyter labextension build --development True .",
     "build:lib": "tsc",
