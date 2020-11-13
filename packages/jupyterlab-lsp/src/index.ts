@@ -5,6 +5,7 @@ import {
 import { ICommandPalette } from '@jupyterlab/apputils';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IDocumentManager } from '@jupyterlab/docmanager';
+import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { Signal } from '@lumino/signaling';
 import { LanguageServerManager } from './manager';
 import '../style/index.css';
@@ -13,6 +14,7 @@ import { IStatusBar } from '@jupyterlab/statusbar';
 import { LSPStatus } from './components/statusbar';
 import { DocumentConnectionManager } from './connection_manager';
 import {
+  IAdapterTypeOptions,
   ILSPAdapterManager,
   ILSPCodeExtractorsManager,
   ILSPFeatureManager,
@@ -123,7 +125,7 @@ export class LSPExtension implements ILSPExtension {
   constructor(
     public app: JupyterFrontEnd,
     private setting_registry: ISettingRegistry,
-    palette: ICommandPalette,
+    private palette: ICommandPalette,
     documentManager: IDocumentManager,
     paths: IPaths,
     status_bar: IStatusBar,
@@ -167,19 +169,22 @@ export class LSPExtension implements ILSPExtension {
       });
 
     adapterManager.registerExtension(this);
+  }
 
-    adapterManager.adapterTypeAdded.connect((manager, type) => {
-      let command_manger = new ContextCommandManager({
-        adapter_manager: adapterManager,
-        app: app,
-        palette: palette,
-        tracker: type.tracker,
-        suffix: type.name,
-        entry_point: type.entrypoint,
-        ...type.context_menu
-      });
-      this.feature_manager.registerCommandManager(command_manger);
+  registerAdapterType(
+    adapterManager: ILSPAdapterManager,
+    type: IAdapterTypeOptions<IDocumentWidget>
+  ): void {
+    let command_manger = new ContextCommandManager({
+      adapter_manager: adapterManager,
+      app: this.app,
+      palette: this.palette,
+      tracker: type.tracker,
+      suffix: type.name,
+      entry_point: type.entrypoint,
+      ...type.context_menu
     });
+    this.feature_manager.registerCommandManager(command_manger);
   }
 
   get foreign_code_extractors() {
