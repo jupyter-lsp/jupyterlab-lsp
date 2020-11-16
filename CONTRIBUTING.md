@@ -29,15 +29,15 @@ You can contribute to the project through:
 
 Development requires:
 
-- `nodejs` 10+
-- `python` 3.5+
+- `nodejs` 12+
+- `python` 3.6+
 - `jupyterlab` 2
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
 for development.
 
 ```bash
-conda env update -n jupyterlab-lsp   # create a conda env
+conda create -n jupyterlab-lsp       # create a conda env
 source activate jupyterlab-lsp       # activate it
 # or...
 pip install -r requirements/dev.txt  # in a virtualenv, probably
