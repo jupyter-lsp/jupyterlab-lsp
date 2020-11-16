@@ -23,6 +23,7 @@ ${JLAB XP MENU ITEM LABEL}    //div[@class='lm-Menu-itemLabel']
 ${JLAB XP MENU LABEL}    //div[@class='lm-MenuBar-itemLabel']
 ${JLAB XP DOCK TAB}    xpath://div[contains(@class, 'lm-DockPanel-tabBar')]//li[contains(@class, 'lm-TabBar-tab')]
 ${JLAB CSS VERSION}    css:.jp-About-version
+${JLAB CSS REFRESH FILES}    css:button[title="Refresh File List"]
 ${CSS DIALOG OK}    css:.jp-Dialog .jp-mod-accept
 ${MENU OPEN WITH}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Open With")]
 # R is missing on purpose (may need to use .)
@@ -40,7 +41,7 @@ ${MENU JUMP}      xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(te
 ${MENU SETTINGS}    xpath://div[contains(@class, 'lm-MenuBar-itemLabel')][contains(text(), "Settings")]
 ${MENU EDITOR THEME}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Text Editor Theme")]
 ${CM CURSOR}      css:.CodeMirror-cursor
-${CM CURSORS}     css:.CodeMirror-cursors:not([style='visibility: hidden'])
+${CM CURSORS}     css:.jp-MainAreaWidget:not(.lm-mod-hidden) .CodeMirror-cursors:not([style='visibility: hidden'])
 # settings
 ${LSP PLUGIN ID}    @krassowski/jupyterlab-lsp:plugin
 ${COMPLETION PLUGIN ID}    @krassowski/jupyterlab-lsp:completion

@@ -90,29 +90,6 @@ Editor Should Show Diagnostics
     Should Be True    ${count} >= 1
     Close Diagnostics Panel
 
-Editor Should Jump To Definition
-    [Arguments]    ${symbol}
-    Set Tags    feature:jump-to-definition
-    ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
-    Open Context Menu Over    ${sel}
-    ${cursor} =    Measure Cursor Position
-    Capture Page Screenshot    02-jump-to-definition-0.png
-    Mouse Over    ${MENU JUMP}
-    Capture Page Screenshot    02-jump-to-definition-1.png
-    Click Element    ${MENU JUMP}
-    Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Jump    ${cursor}
-    Capture Page Screenshot    02-jump-to-definition-2.png
-
-Cursor Should Jump
-    [Arguments]    ${original}
-    ${current} =    Measure Cursor Position
-    Should Not Be Equal    ${original}    ${current}
-
-Measure Cursor Position
-    Wait Until Page Contains Element    ${CM CURSORS}
-    ${position} =    Wait Until Keyword Succeeds    20 x    0.05s    Get Vertical Position    ${CM CURSOR}
-    [Return]    ${position}
-
 Editor Content Changed
     [Arguments]    ${old_content}
     ${new_content}    Get Editor Content
