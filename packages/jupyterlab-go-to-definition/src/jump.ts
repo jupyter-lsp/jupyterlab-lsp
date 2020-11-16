@@ -37,5 +37,5 @@ export interface IGlobalJump {
   line: number;
   column: number;
 
-  uri: string;
+  contents_path: string;
 }
