@@ -79,7 +79,7 @@ You will need to have all of the following installed:
 
 - JupyterLab >=2.2.0,<3.0.0a0
 - Python 3.6+
-- nodejs 12+
+- nodejs 10.12+
 
 ## Installation
 

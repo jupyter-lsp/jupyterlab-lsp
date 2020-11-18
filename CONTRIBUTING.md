@@ -29,7 +29,7 @@ You can contribute to the project through:
 
 Development requires:
 
-- `nodejs` 12+
+- `nodejs` 10.12+
 - `python` 3.6+
 - `jupyterlab` 2
 
