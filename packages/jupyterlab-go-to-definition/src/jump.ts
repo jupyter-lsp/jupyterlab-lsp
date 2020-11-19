@@ -37,5 +37,8 @@ export interface IGlobalJump {
   line: number;
   column: number;
 
+  /**
+   * The Jupyter ContentsManager path, _not_ passed through encode URI.
+   */
   contents_path: string;
 }
