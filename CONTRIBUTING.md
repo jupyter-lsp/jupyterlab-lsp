@@ -27,21 +27,29 @@ You can contribute to the project through:
 
 ### Set up the environment
 
-Development requires:
+Development requires, at a minimum:
 
-- `nodejs` 10.12+
-- `python` 3.6+
-- `jupyterlab` 2
+- `nodejs >=10.12,<15`
+- `python >=3.6,<3.9.0a0`
+  - Python 3.6 and 3.8 are also tested on CI
+  - Python 3.6 has issues on Windows
+- `jupyterlab >=2.2.0,<3.0.0a0`
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
 for development.
 
+To use the same environment as the binder demo (recommended):
+
 ```bash
-conda create -n jupyterlab-lsp       # create a conda env
-source activate jupyterlab-lsp       # activate it
-# or...
+conda env update -n jupyterlab-lsp --file binder/environment.yml # create a conda env
+source activate jupyterlab-lsp                                   # activate it
+```
+
+Or with `pip`:
+
+```bash
 pip install -r requirements/dev.txt  # in a virtualenv, probably
-                                     # ... and install nodejs, somehow
+sudo apt-get install nodejs          # ... e.g. on debian/ubuntu
 ```
 
 #### The Easy Way
@@ -168,9 +176,13 @@ Prepare the environment:
 
 ```bash
 conda env update -n jupyterlab-lsp --file requirements/atest.yml
-# or
+```
+
+or with `pip`
+
+```
 pip install -r requirements/atest.txt  # ... and install geckodriver, somehow
-apt-get install firefox-geckodriver    # ... e.g. on debian/ubuntu
+sudo apt-get install firefox-geckodriver    # ... e.g. on debian/ubuntu
 ```
 
 Run the tests:
