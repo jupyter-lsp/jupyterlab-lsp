@@ -7,7 +7,7 @@
   - handles characters that need escaping (spaces, non-ASCII characters) more
     robustly in files and folder names ([#403])
 
-[#403]: https://github.com/krassowski/jupyterlab-lsp/pulls/403
+[#403]: https://github.com/krassowski/jupyterlab-lsp/issues/403
 
 ### `@krassowski/jupyterlab_go_to_definition 2.0.0` (???)
 
