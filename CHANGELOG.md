@@ -16,7 +16,7 @@
   - breaking change: renames `uri` to `contents_path` to help avoid programmer issues
     with characters requiring URI encoding ([#406])
 
-[#406]: https://github.com/krassowski/jupyterlab-lsp/pulls/406
+[#406]: https://github.com/krassowski/jupyterlab-lsp/pull/406
 
 ### `@krassowski/jupyterlab-lsp 2.0.8` (2020-10-25)
 
