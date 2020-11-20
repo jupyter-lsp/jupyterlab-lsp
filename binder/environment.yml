@@ -6,11 +6,11 @@ channels:
 
 dependencies:
   # runtime dependencies
-  - python >=3.7,<3.8.0a0
+  - python >=3.6,<3.9.0a0
   - jupyterlab >=2.2.0,<3.0.0a0
   - notebook >=4.3.1
   # build dependencies
-  - nodejs >=10,<14
+  - nodejs >=10.12,<15
   # for python language server (and development)
   - black
   - flake8 >=3.5

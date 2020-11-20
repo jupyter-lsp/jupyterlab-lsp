@@ -1,7 +1,7 @@
 # jupyter-lsp
 
 Multi-[Language Server][language-server] WebSocket proxy for your Jupyter
-`notebook` or `lab` server. For Python 3.5+.
+`notebook` or `lab` server. For Python 3.6+.
 
 > See the parent of this repository,
 > [jupyterlab-lsp](https://github.com/krassowski/jupyterlab-lsp) for the

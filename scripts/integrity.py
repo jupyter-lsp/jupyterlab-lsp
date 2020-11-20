@@ -34,10 +34,12 @@ if True:
 
 REQS = ROOT / "requirements"
 BINDER = ROOT / "binder"
+BINDER_ENV = BINDER / "environment.yml"
 
 # docs
 MAIN_README = ROOT / "README.md"
 CHANGELOG = ROOT / "CHANGELOG.md"
+CONTRIBUTING = ROOT / "CONTRIBUTING.md"
 
 # TS stuff
 NPM_NS = "@krassowski"
@@ -85,6 +87,16 @@ def the_meta_package():
         json.loads((meta_path / "tsconfig.json").read_text()),
         (meta_path / "src" / "index.ts").read_text(),
     )
+
+
+@pytest.fixture(scope="module")
+def the_contributing_doc():
+    return CONTRIBUTING.read_text(encoding="utf-8")
+
+
+@pytest.fixture(scope="module")
+def the_binder_env():
+    return yaml.safe_load(BINDER_ENV.read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="module")
@@ -185,7 +197,33 @@ def test_changelog_versions(pkg, version):
     ],
 )
 def test_installation_versions(the_installation_notebook, pkg, sep, version, expected):
+    """are the first-party versions consistent with the package metadata?"""
     assert the_installation_notebook.count(f"{pkg}{sep}{version}") == expected
+
+
+@pytest.mark.parametrize(
+    "pkg,count",
+    [
+        ["python", 2],
+        ["nodejs", 4],
+        # ["jupyterlab", 2], # this is handled through template variables
+    ],
+)
+def test_installation_env_versions(
+    the_installation_notebook, the_binder_env, pkg, count
+):
+    """are the third-party versions consistent with the binder?"""
+    for spec in the_binder_env["dependencies"]:
+        if isinstance(spec, str) and spec.startswith(f"{pkg} "):
+            assert the_installation_notebook.count(spec) == count
+
+
+@pytest.mark.parametrize("pkg", ["python", "jupyterlab", "nodejs"])
+def test_contributing_versions(the_contributing_doc, the_binder_env, pkg):
+    """are the documented contributing requirements consistent with binder?"""
+    for spec in the_binder_env["dependencies"]:
+        if isinstance(spec, str) and spec.startswith(f"{pkg} "):
+            assert spec in the_contributing_doc
 
 
 def check_integrity():

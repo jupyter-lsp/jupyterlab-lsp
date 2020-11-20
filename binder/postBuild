@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -eux
+
 # do a dev install of the server side
 python -m pip install -e . --ignore-installed --no-deps -vv
 jupyter serverextension enable --sys-prefix --py jupyter_lsp

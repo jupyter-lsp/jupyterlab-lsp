@@ -78,8 +78,8 @@ Use context menu on rows in the panel to filter out diagnostics or copy their me
 You will need to have all of the following installed:
 
 - JupyterLab >=2.2.0,<3.0.0a0
-- Python 3.5+
-- nodejs 10+
+- Python 3.6+
+- nodejs 10.12+
 
 ## Installation
 
