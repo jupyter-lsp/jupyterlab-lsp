@@ -51,6 +51,7 @@ def get_stem(attempt, extra_args):
 def atest(attempt, extra_args):
     """perform a single attempt of the acceptance tests"""
 
+    # TODO: investigate whether this is still required vs geckodriver 0.28
     if "FIREFOX_BINARY" not in os.environ:
         os.environ["FIREFOX_BINARY"] = shutil.which("firefox")
 

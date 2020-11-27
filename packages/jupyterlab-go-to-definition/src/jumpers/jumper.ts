@@ -197,7 +197,9 @@ export abstract class CodeJumper {
   }
 
   public global_jump(position: IGlobalJump, is_symlink = false) {
-    let document_widget = this.document_manager.openOrReveal(position.uri);
+    let document_widget = this.document_manager.openOrReveal(
+      position.contents_path
+    );
 
     document_widget.revealed
       .then(() => {
@@ -285,7 +287,7 @@ export abstract class CodeJumper {
               editor_index: input_number,
               line: line_number,
               column: column,
-              uri: path
+              contents_path: path
             },
             is_symlink
           );

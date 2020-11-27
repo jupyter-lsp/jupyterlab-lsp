@@ -1,5 +1,23 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 2.0.9` (???)
+
+- bug fixes
+
+  - handles characters that need escaping (spaces, non-ASCII characters) more
+    robustly in files and folder names ([#403])
+
+[#403]: https://github.com/krassowski/jupyterlab-lsp/issues/403
+
+### `@krassowski/jupyterlab_go_to_definition 2.0.0` (???)
+
+- features
+
+  - breaking change: renames `uri` to `contents_path` to help avoid programmer issues
+    with characters requiring URI encoding ([#406])
+
+[#406]: https://github.com/krassowski/jupyterlab-lsp/pull/406
+
 ### `@krassowski/jupyterlab-lsp 2.0.8` (2020-10-25)
 
 - bug fixes

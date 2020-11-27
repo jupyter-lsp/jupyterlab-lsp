@@ -46,7 +46,7 @@ NPM_NS = "@krassowski"
 PACKAGES = {
     package["name"]: [path.parent, package]
     for path, package in [
-        (path, json.loads(path.read_text()))
+        (path, json.loads(path.read_text(encoding="utf-8")))
         for path in ROOT.glob("packages/*/package.json")
     ]
 }
@@ -65,7 +65,7 @@ PY_NAME = "jupyter-lsp"
 
 # CI stuff
 PIPE_FILE = ROOT / ".github/workflows/job.test.yml"
-PIPELINES = yaml.safe_load(PIPE_FILE.read_text())
+PIPELINES = yaml.safe_load(PIPE_FILE.read_text(encoding="utf-8"))
 PIPE_VARS = PIPELINES["env"]
 DOCS = ROOT / "docs"
 
@@ -84,8 +84,8 @@ def the_meta_package():
     return (
         meta_path,
         meta,
-        json.loads((meta_path / "tsconfig.json").read_text()),
-        (meta_path / "src" / "index.ts").read_text(),
+        json.loads((meta_path / "tsconfig.json").read_text(encoding="utf-8")),
+        (meta_path / "src" / "index.ts").read_text(encoding="utf-8"),
     )
 
 
@@ -151,7 +151,7 @@ def test_ts_package_integrity(name, info, the_meta_package):
 
     if schemas:
         for schema in schemas:
-            schema_instance = json.loads(schema.read_text())
+            schema_instance = json.loads(schema.read_text(encoding="utf-8"))
             jsonschema.validators.Draft7Validator(schema_instance)
 
 
@@ -170,7 +170,7 @@ def test_ts_package_integrity(name, info, the_meta_package):
 def test_jlab_versions(path):
     """is the version of jupyterlab consistent?"""
     assert (
-        LAB_SPEC in pathlib.Path(path).read_text().lower()
+        LAB_SPEC in pathlib.Path(path).read_text(encoding="utf-8").lower()
     ), "{} lab version is out-of-sync vs {}".format(path, LAB_SPEC)
 
 
@@ -184,7 +184,7 @@ def test_jlab_versions(path):
 )
 def test_changelog_versions(pkg, version):
     """are the current versions represented in the changelog?"""
-    assert "## `{} {}`".format(pkg, version) in CHANGELOG.read_text()
+    assert "## `{} {}`".format(pkg, version) in CHANGELOG.read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize(

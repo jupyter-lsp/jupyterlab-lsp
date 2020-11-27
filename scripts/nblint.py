@@ -27,7 +27,7 @@ def blacken(source):
 def nblint():
     for nb_path in DOCS_IPYNB:
         print(".", end="", flush=True)
-        nb_text = nb_path.read_text()
+        nb_text = nb_path.read_text(encoding="utf-8")
         nb_node = nbformat.reads(nb_text, 4)
         changes = 0
         has_empty = 0

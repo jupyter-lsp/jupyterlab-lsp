@@ -19,7 +19,7 @@ def tectonic_cache():
             "\n".join(
                 [
                     line
-                    for line in EXAMPLE.read_text().splitlines()
+                    for line in EXAMPLE.read_text(encoding="utf-8").splitlines()
                     if "\\foo" not in line
                 ]
             )
