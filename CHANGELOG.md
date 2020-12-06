@@ -2,12 +2,19 @@
 
 ### `@krassowski/jupyterlab-lsp 2.0.9` (???)
 
+- features
+
+  - The virtual document folder can be configure with `JP_LSP_VIRTUAL_DIR` or  
+    `LanguageServerManager.virtual_documents_dir`. Its default value is kept
+    unchanged: *contents.root_dir* / `.virtual_documents` ([#416])
+
 - bug fixes
 
   - handles characters that need escaping (spaces, non-ASCII characters) more
     robustly in files and folder names ([#403])
 
 [#403]: https://github.com/krassowski/jupyterlab-lsp/issues/403
+[#416]: https://github.com/krassowski/jupyterlab-lsp/issues/416
 
 ### `@krassowski/jupyterlab_go_to_definition 2.0.0` (???)
 
