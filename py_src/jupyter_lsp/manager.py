@@ -1,11 +1,12 @@
 """ A configurable frontend for stdio-based Language Servers
 """
+import os
 import traceback
 from typing import Dict, Text, Tuple
 
 import entrypoints
 from notebook.transutils import _
-from traitlets import Bool, Dict as Dict_, Instance, List as List_, default
+from traitlets import Bool, Dict as Dict_, Instance, List as List_, Unicode, default
 
 from .constants import (
     EP_LISTENER_ALL_V1,
@@ -46,6 +47,15 @@ class LanguageServerManager(LanguageServerManagerAPI):
         help="sessions keyed by language server name",
     )  # type: Dict[Tuple[Text], LanguageServerSession]
 
+    virtual_documents_dir = Unicode(
+        help="""Path to virtual documents relative to the content manager root
+        directory.
+
+        Its default value can be set with JP_LSP_VIRTUAL_DIR and fallback to
+        '.virtual_documents'.
+        """
+    ).tag(config=True)
+
     all_listeners = List_(trait=LoadableCallable).tag(config=True)
     server_listeners = List_(trait=LoadableCallable).tag(config=True)
     client_listeners = List_(trait=LoadableCallable).tag(config=True)
@@ -53,6 +63,10 @@ class LanguageServerManager(LanguageServerManagerAPI):
     @default("language_servers")
     def _default_language_servers(self):
         return {}
+
+    @default("virtual_documents_dir")
+    def _default_virtual_documents_dir(self):
+        return os.getenv("JP_LSP_VIRTUAL_DIR", ".virtual_documents")
 
     def __init__(self, **kwargs):
         """Before starting, perform all necessary configuration"""

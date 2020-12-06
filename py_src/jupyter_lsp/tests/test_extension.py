@@ -1,3 +1,6 @@
+import os
+
+
 def test_serverextension_path(app):
     import jupyter_lsp
 
@@ -18,3 +21,29 @@ def test_serverextension(app):
                 found_lsp = True
 
     assert found_lsp, "apparently didn't install the /lsp/ route"
+
+
+def test_default_virtual_documents_dir(app):
+    app.initialize(
+        ["--NotebookApp.nbserver_extensions={'jupyter_lsp.serverextension': True}"]
+    )
+    assert app.language_server_manager.virtual_documents_dir == ".virtual_documents"
+
+
+def test_virtual_documents_dir_config(app):
+    custom_dir = ".custom_virtual_dir"
+    app.initialize(
+        [
+            "--NotebookApp.nbserver_extensions={'jupyter_lsp.serverextension': True}",
+            "--NotebookApp.LanguageServerManager.virtual_documents_dir=" + custom_dir,
+        ]
+    )
+    assert app.language_server_manager.virtual_documents_dir == custom_dir
+
+
+def test_virtual_documents_dir_env(app):
+    os.environ["JP_LSP_VIRTUAL_DIR"] = custom_dir = ".custom_virtual_dir"
+    app.initialize(
+        ["--NotebookApp.nbserver_extensions={'jupyter_lsp.serverextension': True}"]
+    )
+    assert app.language_server_manager.virtual_documents_dir == custom_dir
