@@ -6,7 +6,7 @@
 
   - The virtual document folder can be configure with `JP_LSP_VIRTUAL_DIR` or
     `LanguageServerManager.virtual_documents_dir`. Its default value is kept
-    unchanged: *contents.root_dir* / `.virtual_documents` ([#416])
+    unchanged: _contents.root_dir_ / `.virtual_documents` ([#416])
 
 [#416]: https://github.com/krassowski/jupyterlab-lsp/issues/416
 
