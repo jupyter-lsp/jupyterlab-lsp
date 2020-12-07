@@ -23,7 +23,7 @@
   "properties": {
     "language_servers": {
       "title": "Language Server",
-      "description": "Language-server specific configuration, keyed by implementation, e.g: \n\npyls: {\n  serverSettings: {\n    pyls: {\n      plugins: {\n        pydocstyle: {\n          enabled: true\n        },\n        pyflakes: {\n          enabled: false\n        },\n        flake8: {\n          enabled: true\n        }\n      }\n    }\n  }\n}\n\nAlternatively, using VSCode's naming convention:\n\npyls: {\n  serverSettings: {\n    \"pyls.plugins.pydocstyle.enabled\": true,\n    \"pyls.plugins.pyflakes.enabled\": false,\n    \"pyls.plugins.flake8.enabled\": true\n  }\n}",
+      "description": "Language-server specific configuration, keyed by implementation, e.g: \n\n{\n  \"language_servers\": {\n    \"pyls\": {\n      \"serverSettings\": {\n        \"pyls\": {\n          \"plugins\": {\n            \"pydocstyle\": {\n              \"enabled\": true\n            },\n            \"pyflakes\": {\n              \"enabled\": false\n            },\n            \"flake8\": {\n              \"enabled\": true\n            }\n          }\n        }\n      }\n    }\n  }\n}\n\nAlternatively, using VSCode's naming convention:\n\n{\n  \"language_servers\": {\n    \"pyls\": {\n      \"serverSettings\": {\n        \"pyls.plugins.pydocstyle.enabled\": true,\n        \"pyls.plugins.pyflakes.enabled\": false,\n        \"pyls.plugins.flake8.enabled\": true\n      }\n    },\n    \"r-languageserver\": {\n      \"serverSettings\": {\n        \"r.lsp.debug\": false,\n        \"r.lsp.diagnostics\": false\n      }\n    }\n  }\n}",
       "default": {},
       "patternProperties": {
         ".*": {
