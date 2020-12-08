@@ -1,6 +1,7 @@
 """ add language server support to the running jupyter notebook application
 """
 import json
+from pathlib import Path
 
 import traitlets
 
@@ -25,7 +26,9 @@ def load_jupyter_server_extension(nbapp):
         page_config["rootUri"] = root_uri
         nbapp.log.debug("[lsp] rootUri will be %s", root_uri)
 
-        virtual_documents_uri = root_uri + "/.virtual_documents"
+        virtual_documents_uri = normalized_uri(
+            Path(contents.root_dir) / manager.virtual_documents_dir
+        )
         page_config["virtualDocumentsUri"] = virtual_documents_uri
         nbapp.log.debug("[lsp] virtualDocumentsUri will be %s", virtual_documents_uri)
     else:  # pragma: no cover
