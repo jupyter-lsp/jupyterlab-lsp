@@ -1,5 +1,6 @@
 """ A configurable frontend for stdio-based Language Servers
 """
+import os
 import traceback
 from typing import Dict, Text, Tuple
 
