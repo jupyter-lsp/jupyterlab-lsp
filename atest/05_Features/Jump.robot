@@ -17,6 +17,23 @@ Python Jumps between Files
     Wait Until Page Contains    ANOTHER_CONSTANT
     Capture Page Screenshot    10-jumped.png
 
+Ctrl Click And Jumping Back Works
+    [Setup]    Prepare File for Editing    Python    editor    jump.py
+    ${usage} =    Set Variable    a_variable
+    ${sel} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), '${usage}')])[last()]
+    Click Element    ${sel}
+    ${original} =    Measure Cursor Position
+    Capture Page Screenshot    01-ready-to-jump.png
+    Click Element    ${sel}    modifier=CTRL
+    Capture Page Screenshot    02-jumped.png
+    Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Jump    ${original}
+    ${new} =    Measure Cursor Position
+    Press Keys    None    ALT+o
+    Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Jump    ${new}
+    ${back} =    Measure Cursor Position
+    Should Be Equal    ${original}    ${back}
+    [Teardown]    Clean Up After Working With File    jump.py
+
 *** Keywords ***
 Copy Files to Folder With Spaces
     [Arguments]    @{files}
