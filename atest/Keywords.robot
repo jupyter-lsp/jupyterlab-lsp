@@ -279,6 +279,11 @@ Enter Cell Editor
     Click Element    css:.jp-Cell:nth-child(${cell_nr}) .CodeMirror-line:nth-child(${line})
     Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_nr}) .CodeMirror-focused
 
+Open Context Menu Over Cell Editor
+    [Arguments]    ${cell_nr}    ${line}=1
+    Enter Cell Editor    ${cell_nr}    line=${line}
+    Open Context Menu Over    css:.jp-Cell:nth-child(${cell_nr}) .CodeMirror-line:nth-child(${line})
+
 Place Cursor In Cell Editor At
     [Arguments]    ${cell_nr}    ${line}    ${character}
     Enter Cell Editor    ${cell_nr}    ${line}
@@ -300,6 +305,19 @@ Open Context Menu Over
     [Arguments]    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Mouse Over    ${sel}
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
+
+Context Menu Should Contain
+    [Arguments]    ${label}    ${timeout}=10s
+    ${entry}    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
+    Wait Until Page Contains Element    ${entry}    timeout=${timeout}
+
+Context Menu Should Not Contain
+    [Arguments]    ${label}    ${timeout}=10s
+    ${entry}    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
+    Wait Until Page Does Not Contain Element    ${entry}    timeout=${timeout}
+
+Close Context Menu
+    Press Keys    None    ESCAPE
 
 Prepare File for Editing
     [Arguments]    ${Language}    ${Screenshots}    ${file}

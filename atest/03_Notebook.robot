@@ -11,6 +11,39 @@ Python
     Capture Page Screenshot    01-python.png
     [Teardown]    Clean Up After Working With File    Python.ipynb
 
+Conversion Of Cell Types
+    [Setup]    Setup Notebook    Python    Python.ipynb
+    ${lsp_entry} =    Set Variable    Show diagnostics panel
+    # initial (code) cell
+    Open Context Menu Over Cell Editor    1
+    Capture Page Screenshot    01-initial-code-cell.png
+    Context Menu Should Contain    ${lsp_entry}
+    Close Context Menu
+    # raw cell
+    Lab Command    Change to Raw Cell Type
+    Open Context Menu Over Cell Editor    1
+    Capture Page Screenshot    02-as-raw-cell.png
+    Context Menu Should Not Contain    ${lsp_entry}
+    Close Context Menu
+    # code cell again
+    Lab Command    Change to Code Cell Type
+    Open Context Menu Over Cell Editor    1
+    Capture Page Screenshot    03-as-code-cell-again.png
+    Context Menu Should Contain    ${lsp_entry}
+    Close Context Menu
+    [Teardown]    Clean Up After Working With File    Python.ipynb
+
+Moving Cells Around
+    [Setup]    Setup Notebook    Python    Python.ipynb
+    ${diagnostic} =    Set Variable    undefined name 'test' (pyflakes)
+    Enter Cell Editor    1
+    Lab Command    Move Cells Down
+    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title="${diagnostic}"]    timeout=35s
+    Enter Cell Editor    1
+    Lab Command    Move Cells Down
+    Wait Until Page Does Not Contain Element    css:.cm-lsp-diagnostic[title="${diagnostic}"]    timeout=35s
+    [Teardown]    Clean Up After Working With File    Python.ipynb
+
 Foreign Extractors
     ${file} =    Set Variable    Foreign extractors.ipynb
     Configure JupyterLab Plugin
