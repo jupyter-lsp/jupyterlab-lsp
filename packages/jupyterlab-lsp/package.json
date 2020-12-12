@@ -42,7 +42,7 @@
     "test": "jlpm jest --coverage --coverageReporters=cobertura --coverageReporters=html --coverageReporters=text-summary"
   },
   "dependencies": {
-    "@krassowski/jupyterlab_go_to_definition": "~1.1.0",
+    "@krassowski/jupyterlab_go_to_definition": "~1.0.0",
     "lodash.mergewith": "^4.6.1",
     "lsp-ws-connection": "~0.5.1",
     "@krassowski/completion-theme": "~2.0.0",
