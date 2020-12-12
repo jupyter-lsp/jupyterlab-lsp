@@ -4,13 +4,18 @@
 
 - features
 
-  - The virtual document folder can be configured with `JP_LSP_VIRTUAL_DIR` or
-    `LanguageServerManager.virtual_documents_dir`. Its default value is kept
+  - the virtual documents' folder can be configured with `JP_LSP_VIRTUAL_DIR` or
+    `LanguageServerManager.virtual_documents_dir`; its default value is kept
     unchanged: _contents.root_dir_ / `.virtual_documents` ([#416])
 
 [#416]: https://github.com/krassowski/jupyterlab-lsp/issues/416
 
-### `@krassowski/jupyterlab-lsp 2.0.9` (???)
+### `@krassowski/jupyterlab-lsp 2.1.0` (???)
+
+- features
+
+  - added "click to jump" functionality (by default using <kbd>Ctrl</kbd> modifier) ([#423])
+  - added "jump back" command, by default activated with <kbd>Ctrl</kbd> + <kbd>o</kbd> ([#423])
 
 - bug fixes
 
@@ -21,10 +26,11 @@
 
 ### `@krassowski/code-jumpers 1.0.0` (???)
 
-- breaking change: split away from `@krassowski/go_to_definition`, rename to `@krassowski/code-jumpers` ([#423]):
-  - remove unused code
-  - refactor history operations to track files and always use global location data
-  - renames `uri` to `contents_path` to help avoid programmer issues
+- breaking changes
+  - split away from `@krassowski/jupyterlab_go_to_definition`, renamed to `@krassowski/code-jumpers` ([#423]):
+    - removed unused code
+    - refactored history operations to track files and always use global location data
+  - renamed `uri` to `contents_path` to help avoid programmer issues
     with characters requiring URI encoding ([#406])
 
 [#406]: https://github.com/krassowski/jupyterlab-lsp/pull/406
@@ -121,15 +127,15 @@
   - rename operation status reporting got improved ([#318])
   - replaced the generic status icons with code check icon (coloured differently according to the status) ([#318])
   - added icons for all the features and their commands ([#318])
-  - refactored the codebase with a new architecture which allows dynamic feature, document widget adapter, and code editor registration ([#318])
+  - refactored the codebase with a new architecture which allows dynamic features, document widget adapter, and code editor registration ([#318])
   - the document in the connections list in the statusbar popover are now represented by easy-to-understand DocumentLocator (breadcrumbs) widget rather than an internal id ([bacc006])
   - syntax highlighting mode is adjusted to the language with the majority of the code in an editor ([#319])
   - copy diagnostics message and filter diagnostics from context menu of Diagnostic Panel ([#330])
 
 - bug fixes
 
-  - path-autocompletion issues were resolved upstream an this release adopts these changes
-  - missing caret and document connection icons were restored in the statusbar popover ([#318])
+  - path-autocompletion issues were resolved upstream and this release adopts these changes
+  - the missing caret and document connection icons were restored in the statusbar popover ([#318])
   - pressing "Cancel" rename during rename now correctly aborts the rename operation ([#318])
   - when a language server for a foreign document is not available an explanation is displayed (rather than the "Connecting..." status as before) ([4e5b2ad])
   - when jump target is not found a message is now shown instead of raising an exception ([00448d0])

@@ -82,13 +82,13 @@ export abstract class CodeJumper {
 
         // protect external files from accidental edition
         if (is_symlink) {
-          this.protectFromAccidentalEdition(document_widget);
+          this.protectFromAccidentalEditing(document_widget);
         }
       })
       .catch(console.warn);
   }
 
-  private protectFromAccidentalEdition(document_widget: IDocumentWidget) {
+  private protectFromAccidentalEditing(document_widget: IDocumentWidget) {
     let editor_widget = document_widget as IDocumentWidget<FileEditor>;
     editor_widget.title.label = editor_widget.title.label + ' (external)';
     let editor = editor_widget.content.editor;
