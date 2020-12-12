@@ -38,8 +38,6 @@ const system_keys = [
 ];
 
 export abstract class CodeJumper {
-  abstract language: string;
-
   document_manager: IDocumentManager;
   widget: IDocumentWidget;
 
@@ -76,7 +74,6 @@ export abstract class CodeJumper {
       .then(() => {
         this.go_to_position(
           document_widget,
-          // TODO - not anymore!
           position.contents_path.endsWith('.ipynb') ? 'notebook' : 'fileeditor',
           position.column,
           position.line,
@@ -136,8 +133,6 @@ export abstract class CodeJumper {
       }
     );
   }
-
-  abstract get cwd(): string;
 
   protected abstract jump(position: ILocalPosition): void;
 

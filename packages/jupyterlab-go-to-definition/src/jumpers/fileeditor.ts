@@ -5,11 +5,9 @@ import { JumpHistory } from '../history';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { PathExt } from '@jupyterlab/coreutils';
 
 export class FileEditorJumper extends CodeJumper {
   editor: FileEditor;
-  language: string;
   widget: IDocumentWidget;
 
   constructor(
@@ -21,30 +19,10 @@ export class FileEditorJumper extends CodeJumper {
     this.document_manager = document_manager;
     this.editor = editor_widget.content;
     this.history = new JumpHistory(this.editor.model.modelDB);
-    this.setLanguageFromMime(this.editor.model.mimeType);
-
-    this.editor.model.mimeTypeChanged.connect((session, mimeChanged) => {
-      this.setLanguageFromMime(mimeChanged.newValue);
-    });
   }
 
   get path() {
     return this.widget.context.path;
-  }
-
-  get cwd() {
-    return PathExt.dirname(this.path);
-  }
-
-  setLanguageFromMime(mime: string) {
-    let type = mime.replace('text/x-', '');
-    switch (type) {
-      case 'rsrc':
-        this.language = 'R';
-        break;
-      default:
-        this.language = type;
-    }
   }
 
   get editors() {

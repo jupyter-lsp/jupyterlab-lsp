@@ -1,5 +1,4 @@
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
-import * as nbformat from '@jupyterlab/nbformat';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 
 import { CodeJumper, jumpers } from './jumper';
@@ -23,20 +22,8 @@ export class NotebookJumper extends CodeJumper {
     this.document_manager = document_manager;
   }
 
-  get cwd() {
-    return this.widget.model.modelDB.basePath.split('/').slice(0, -1).join('/');
-  }
-
   get editors() {
     return this.notebook.widgets.map(cell => cell.editor);
-  }
-
-  get language() {
-    let languageInfo = this.notebook.model.metadata.get(
-      'language_info'
-    ) as nbformat.ILanguageInfoMetadata;
-    // TODO: consider version of the language as well
-    return languageInfo.name;
   }
 
   jump(position: ILocalPosition) {
@@ -66,7 +53,7 @@ export class NotebookJumper extends CodeJumper {
     let position = this.editors[
       this.notebook.activeCellIndex
     ].getCursorPosition();
-    console.log('file path: ', this.widget.context.path);
+
     return {
       editor_index: this.notebook.activeCellIndex,
       line: position.line,
