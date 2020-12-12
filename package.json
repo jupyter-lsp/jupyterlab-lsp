@@ -45,7 +45,7 @@
     "build:theme-vscode": "lerna run build --stream --scope @krassowski/theme-vscode",
     "build:theme-material": "lerna run build --stream --scope @krassowski/theme-material",
     "build:ws": "lerna run build --stream --scope lsp-ws-connection",
-    "build:jump": "lerna run build --stream --scope @krassowski/jupyterlab_go_to_definition",
+    "build:jump": "lerna run build --stream --scope @krassowski/code-jumpers",
     "watch": "lerna run --parallel watch",
     "bundle": "lerna run --parallel bundle",
     "clean": "lerna run --parallel clean",

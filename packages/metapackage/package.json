@@ -30,7 +30,7 @@
     "@krassowski/completion-theme": "file:../completion-theme",
     "@krassowski/theme-material": "file:../theme-material",
     "@krassowski/theme-vscode": "file:../theme-vscode",
-    "@krassowski/jupyterlab_go_to_definition": "file:../jupyterlab-go-to-definition",
+    "@krassowski/code-jumpers": "file:../code-jumpers",
     "@krassowski/jupyterlab-lsp": "file:../jupyterlab-lsp"
   },
   "devDependencies": {

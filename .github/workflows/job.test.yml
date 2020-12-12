@@ -22,7 +22,7 @@ env:
 
   LINKED_EXTENSIONS: >-
     packages/lsp-ws-connection
-    packages/jupyterlab-go-to-definition
+    packages/code-jumpers
     packages/completion-theme
     packages/theme-vscode
     packages/theme-material
