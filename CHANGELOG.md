@@ -4,7 +4,7 @@
 
 - features
 
-  - The virtual document folder can be configure with `JP_LSP_VIRTUAL_DIR` or
+  - The virtual document folder can be configured with `JP_LSP_VIRTUAL_DIR` or
     `LanguageServerManager.virtual_documents_dir`. Its default value is kept
     unchanged: _contents.root_dir_ / `.virtual_documents` ([#416])
 
@@ -19,14 +19,16 @@
 
 [#403]: https://github.com/krassowski/jupyterlab-lsp/issues/403
 
-### `@krassowski/jupyterlab_go_to_definition 2.0.0` (???)
+### `@krassowski/code-jumpers 1.0.0` (???)
 
-- features
-
-  - breaking change: renames `uri` to `contents_path` to help avoid programmer issues
+- breaking change: split away from `@krassowski/go_to_definition`, rename to `@krassowski/code-jumpers` ([#423]):
+  - remove unused code
+  - refactor history operations to track files and always use global location data
+  - renames `uri` to `contents_path` to help avoid programmer issues
     with characters requiring URI encoding ([#406])
 
 [#406]: https://github.com/krassowski/jupyterlab-lsp/pull/406
+[#423]: https://github.com/krassowski/jupyterlab-lsp/pull/423
 
 ### `@krassowski/jupyterlab-lsp 2.0.8` (2020-10-25)
 
