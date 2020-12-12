@@ -1,4 +1,4 @@
-import { IJumpPosition } from './jump';
+import { IGlobalPosition } from './jump';
 import { IModelDB, IObservableUndoableList } from '@jupyterlab/observables';
 import { JSONValue } from '@lumino/coreutils';
 
@@ -24,12 +24,12 @@ export class JumpHistory {
     }
   }
 
-  store(position: IJumpPosition) {
+  store(position: IGlobalPosition) {
     this.ensure_history_is_ready();
     this.jump_history.push(JSON.stringify(position));
   }
 
-  recollect(): IJumpPosition {
+  recollect(): IGlobalPosition {
     this.ensure_history_is_ready();
     if (this.jump_history.length === 0) {
       return;
@@ -38,6 +38,6 @@ export class JumpHistory {
     // being lazy here - undo addition instead of removal ;)
     this.jump_history.undo();
 
-    return JSON.parse(last_position as string) as IJumpPosition;
+    return JSON.parse(last_position as string) as IGlobalPosition;
   }
 }

@@ -4,7 +4,15 @@
   "title": "Code Jump",
   "description": "Code Jump",
   "type": "object",
-  "properties": {},
+  "properties": {
+    "modifierKey": {
+      "title": "Modifier key",
+      "type": "string",
+      "enum": ["Alt", "Control", "Shift", "Meta", "AltGraph"],
+      "default": "Control",
+      "description": "Keyboard key which needs to be pressed with click to jump. The allowed keys are Alt, Control, Shift, and AltGraph. Linux user: Meta key is also supported. Safari users: Meta key is also supported, AltGraph is not supported. To see which physical keys are mapped, visit: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/getModifierState"
+    }
+  },
   "jupyter.lab.shortcuts": [
     {
       "command": "lsp:jump-to-definition-notebook",
@@ -12,8 +20,18 @@
       "selector": ".jp-Notebook .jp-CodeCell"
     },
     {
+      "command": "lsp:jump-back-notebook",
+      "keys": ["Alt O"],
+      "selector": ".jp-Notebook .jp-CodeCell"
+    },
+    {
       "command": "lsp:jump-to-definition-file_editor",
       "keys": ["Accel B"],
+      "selector": ".jp-FileEditor"
+    },
+    {
+      "command": "lsp:jump-back-file_editor",
+      "keys": ["Alt O"],
       "selector": ".jp-FileEditor"
     }
   ]

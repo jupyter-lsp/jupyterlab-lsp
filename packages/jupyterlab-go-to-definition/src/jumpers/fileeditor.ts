@@ -1,8 +1,7 @@
 import { FileEditor } from '@jupyterlab/fileeditor';
-import { IJump, IJumpPosition } from '../jump';
+import { IGlobalPosition, ILocalPosition } from '../jump';
 import { CodeJumper, jumpers } from './jumper';
 import { JumpHistory } from '../history';
-import { TokenContext } from '../languages/analyzer';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { CodeEditor } from '@jupyterlab/codeeditor';
@@ -52,7 +51,7 @@ export class FileEditorJumper extends CodeJumper {
     return [this.editor.editor];
   }
 
-  jump(jump_position: IJumpPosition) {
+  jump(jump_position: ILocalPosition) {
     let { token } = jump_position;
 
     // TODO: this is common
@@ -62,54 +61,29 @@ export class FileEditorJumper extends CodeJumper {
     this.editor.editor.focus();
   }
 
-  jump_to_definition(jump: IJump) {
-    let cell_of_origin_editor = this.editors[0];
-    let cell_of_origin_analyzer = this._getLanguageAnalyzerForCell(
-      cell_of_origin_editor
-    );
-
-    cell_of_origin_analyzer._maybe_setup_tokens();
-
-    let context = new TokenContext(
-      jump.token,
-      cell_of_origin_analyzer.tokens,
-      cell_of_origin_analyzer._get_token_index(jump.token)
-    );
-
-    if (cell_of_origin_analyzer.isCrossFileReference(context)) {
-      this.jump_to_cross_file_reference(context, cell_of_origin_analyzer);
-    } else {
-      let { token } = this._findLastDefinition(jump.token, 0);
-
-      // nothing found
-      if (!token) {
-        return;
-      }
-
-      this.history.store({ token: jump.token });
-
-      this.jump({ token: token });
-    }
-  }
-
-  jump_back() {
-    let previous_position = this.history.recollect();
-    if (previous_position) {
-      this.jump(previous_position);
-    }
-  }
-
   getOffset(position: CodeEditor.IPosition) {
     return this.editor.editor.getOffsetAt(position);
   }
 
-  getJumpPosition(position: CodeEditor.IPosition): IJumpPosition {
+  getJumpPosition(position: CodeEditor.IPosition): ILocalPosition {
     return {
       token: {
         offset: this.getOffset(position),
         value: ''
       },
       index: 0
+    };
+  }
+
+  getCurrentPosition(): IGlobalPosition {
+    let position = this.editor.editor.getCursorPosition();
+    console.log('file path: ', this.editor.context.path);
+    return {
+      editor_index: null,
+      line: position.line,
+      column: position.column,
+      contents_path: this.editor.context.path,
+      is_symlink: false
     };
   }
 }
