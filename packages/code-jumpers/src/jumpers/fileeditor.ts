@@ -55,7 +55,6 @@ export class FileEditorJumper extends CodeJumper {
 
   getCurrentPosition(): IGlobalPosition {
     let position = this.editor.editor.getCursorPosition();
-    console.log('file path: ', this.editor.context.path);
     return {
       editor_index: null,
       line: position.line,
