@@ -148,7 +148,7 @@ jobs:
         run: jlpm test
 
       #  js_cov_packages:
-      #    - jupyterlab-go-to-definition
+      #    - code-jumpers
       #    - jupyterlab-lsp
 
       #- task: PublishTestResults@2

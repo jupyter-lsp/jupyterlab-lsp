@@ -1,6 +1,6 @@
 import { CodeEditor } from '@jupyterlab/codeeditor';
 
-import { IGlobalPosition, ILocalPosition } from '../jump';
+import { IGlobalPosition, ILocalPosition } from '../positions';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { JumpHistory } from '../history';

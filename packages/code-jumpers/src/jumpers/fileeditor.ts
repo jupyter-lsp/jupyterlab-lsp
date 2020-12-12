@@ -1,5 +1,5 @@
 import { FileEditor } from '@jupyterlab/fileeditor';
-import { IGlobalPosition, ILocalPosition } from '../jump';
+import { IGlobalPosition, ILocalPosition } from '../positions';
 import { CodeJumper, jumpers } from './jumper';
 import { JumpHistory } from '../history';
 import { IDocumentManager } from '@jupyterlab/docmanager';

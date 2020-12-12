@@ -1,4 +1,4 @@
-import { IGlobalPosition } from './jump';
+import { IGlobalPosition } from './positions';
 import { IModelDB, IObservableUndoableList } from '@jupyterlab/observables';
 import { JSONValue } from '@lumino/coreutils';
 

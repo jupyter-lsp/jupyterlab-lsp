@@ -2,7 +2,7 @@ import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 
 import { CodeJumper, jumpers } from './jumper';
-import { IGlobalPosition, ILocalPosition } from '../jump';
+import { IGlobalPosition, ILocalPosition } from '../positions';
 import { _ensureFocus } from '../notebook_private';
 import { JumpHistory } from '../history';
 import { CodeEditor } from '@jupyterlab/codeeditor';
