@@ -16,8 +16,12 @@
 
   - handles characters that need escaping (spaces, non-ASCII characters) more
     robustly in files and folder names ([#403])
+  - moving cells now triggers the document update immediately leading to immediate diagnostics update ([#421])
+  - changing cell type to `raw` or `markdown` and then back to `code` properly unbinds/binds event handlers and updates document ([#421])
+  - pasted cells are added to the LSP document immediately, without the need for the user to enter them ([#421])
 
 [#403]: https://github.com/krassowski/jupyterlab-lsp/issues/403
+[#421]: https://github.com/krassowski/jupyterlab-lsp/issues/421
 
 ### `@krassowski/jupyterlab_go_to_definition 2.0.0` (???)
 
