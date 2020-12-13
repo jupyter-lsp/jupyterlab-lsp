@@ -19,6 +19,7 @@ Python Jumps between Files
 
 Ctrl Click And Jumping Back Works
     [Setup]    Prepare File for Editing    Python    editor    jump.py
+    Configure JupyterLab Plugin    {"modifierKey": "Accel"}    plugin id=${JUMP PLUGIN ID}
     Wait Until Fully Initialized
     ${usage} =    Set Variable    a_variable
     ${sel} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), '${usage}')])[last()]
@@ -34,6 +35,9 @@ Ctrl Click And Jumping Back Works
     Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Jump    ${new}
     ${back} =    Measure Cursor Position
     Should Be Equal    ${original}    ${back}
+    Configure JupyterLab Plugin    {"modifierKey": "Alt"}    plugin id=${JUMP PLUGIN ID}
+    Click Element    ${sel}    modifier=ALT
+    Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Jump    ${original}
     [Teardown]    Clean Up After Working With File    jump.py
 
 *** Keywords ***
