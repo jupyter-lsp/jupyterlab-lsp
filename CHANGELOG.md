@@ -1,34 +1,44 @@
 ## CHANGELOG
 
-### `jupyter-lsp 0.9.3` (???)
+### `jupyter-lsp 0.9.3` (2020-12-13)
 
 - features
 
   - the virtual documents' folder can be configured with `JP_LSP_VIRTUAL_DIR` or
-    `LanguageServerManager.virtual_documents_dir`; its default value is kept
-    unchanged: _contents.root_dir_ / `.virtual_documents` ([#416])
+    `LanguageServerManager.virtual_documents_dir`, with a potential benefit for
+    JupyterHub installations (the default value remains _contents.root_dir_ / `.virtual_documents`)
+    ([#416], thanks @fcollonval)
 
 [#416]: https://github.com/krassowski/jupyterlab-lsp/issues/416
 
-### `@krassowski/jupyterlab-lsp 2.1.0` (???)
+### `@krassowski/jupyterlab-lsp 2.1.0` (2020-12-13)
 
 - features
 
-  - added "click to jump" functionality (by default using <kbd>Ctrl</kbd> modifier) ([#423])
-  - added "jump back" command, by default activated with <kbd>Ctrl</kbd> + <kbd>o</kbd> ([#423])
+  - added "click to jump" functionality (by default using <kbd>Alt</kbd> modifier) ([#423])
+  - added "jump back" command, by default activated with <kbd>Alt</kbd> + <kbd>o</kbd> ([#423])
+  - `.virtual_documents` location can now be customized ([#416])
+  - tokens are now exported making them available for import from other extensions ([#414], thanks @martinRenou)
 
 - bug fixes
 
+  - context menu commands are now correctly registered where previously specific conditions were leading to race conditions ([#399], thanks @mnowacki-b)
   - handles characters that need escaping (spaces, non-ASCII characters) more
-    robustly in files and folder names ([#403])
+    robustly in files and folder names ([#403], thanks @bollwyvl and @avaissi)
   - moving cells now triggers the document update immediately leading to immediate diagnostics update ([#421])
   - changing cell type to `raw` or `markdown` and then back to `code` properly unbinds/binds event handlers and updates document ([#421])
   - pasted cells are added to the LSP document immediately, without the need for the user to enter them ([#421])
+  - improved error message when language server cannot be found ([#413], thanks @martinRenou)
+  - developer documentation got improved ([#412], thanks @karlaspuldaro)
 
+[#399]: https://github.com/krassowski/jupyterlab-lsp/issues/399
 [#403]: https://github.com/krassowski/jupyterlab-lsp/issues/403
+[#412]: https://github.com/krassowski/jupyterlab-lsp/issues/412
+[#413]: https://github.com/krassowski/jupyterlab-lsp/issues/413
+[#414]: https://github.com/krassowski/jupyterlab-lsp/issues/414
 [#421]: https://github.com/krassowski/jupyterlab-lsp/issues/421
 
-### `@krassowski/code-jumpers 1.0.0` (???)
+### `@krassowski/code-jumpers 1.0.0` (2020-12-13)
 
 - breaking changes
   - split away from `@krassowski/jupyterlab_go_to_definition`, renamed to `@krassowski/code-jumpers` ([#423]):

@@ -1,3 +1,3 @@
 """ single source of truth for jupyter_lsp version
 """
-__version__ = "0.9.2"
+__version__ = "0.9.3"
