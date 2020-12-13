@@ -24,7 +24,7 @@
       "path": "../lsp-ws-connection"
     },
     {
-      "path": "../jupyterlab-go-to-definition"
+      "path": "../code-jumpers"
     }
   ]
 }

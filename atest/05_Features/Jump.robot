@@ -17,6 +17,29 @@ Python Jumps between Files
     Wait Until Page Contains    ANOTHER_CONSTANT
     Capture Page Screenshot    10-jumped.png
 
+Ctrl Click And Jumping Back Works
+    [Setup]    Prepare File for Editing    Python    editor    jump.py
+    Configure JupyterLab Plugin    {"modifierKey": "Accel"}    plugin id=${JUMP PLUGIN ID}
+    Wait Until Fully Initialized
+    ${usage} =    Set Variable    a_variable
+    ${sel} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), '${usage}')])[last()]
+    Click Element    ${sel}
+    ${original} =    Measure Cursor Position
+    Capture Page Screenshot    01-ready-to-jump.png
+    ${key} =    Evaluate    'COMMAND' if platform.system() == 'Darwin' else 'CTRL'    platform
+    Click Element    ${sel}    modifier=${key}
+    Capture Page Screenshot    02-jumped.png
+    Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Jump    ${original}
+    ${new} =    Measure Cursor Position
+    Press Keys    None    ALT+o
+    Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Jump    ${new}
+    ${back} =    Measure Cursor Position
+    Should Be Equal    ${original}    ${back}
+    Configure JupyterLab Plugin    {"modifierKey": "Alt"}    plugin id=${JUMP PLUGIN ID}
+    Click Element    ${sel}    modifier=ALT
+    Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Jump    ${original}
+    [Teardown]    Clean Up After Working With File    jump.py
+
 *** Keywords ***
 Copy Files to Folder With Spaces
     [Arguments]    @{files}

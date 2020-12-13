@@ -56,8 +56,8 @@ META_NAME = "{}/jupyterlab-lsp-metapackage".format(NPM_NS)
 JS_LSP_NAME = "{}/jupyterlab-lsp".format(NPM_NS)
 JS_LSP_VERSION = PACKAGES[JS_LSP_NAME][1]["version"]
 
-JS_G2D_NAME = "{}/jupyterlab_go_to_definition".format(NPM_NS)
-JS_G2D_VERSION = PACKAGES[JS_G2D_NAME][1]["version"]
+JS_CJS_NAME = "{}/code-jumpers".format(NPM_NS)
+JS_CJS_VERSION = PACKAGES[JS_CJS_NAME][1]["version"]
 
 # py stuff
 PY_NAME = "jupyter-lsp"
@@ -117,7 +117,7 @@ def the_installation_notebook():
     [
         ["PY_JLSP_VERSION", PY_VERSION],
         ["JS_JLLSP_VERSION", JS_LSP_VERSION],
-        ["JS_JLG2D_VERSION", JS_G2D_VERSION],
+        ["JS_JLG2D_VERSION", JS_CJS_VERSION],
     ],
 )
 def test_ci_variables(name, version):
@@ -179,7 +179,7 @@ def test_jlab_versions(path):
     [
         [PY_NAME, PY_VERSION],
         [JS_LSP_NAME, JS_LSP_VERSION],
-        [JS_G2D_NAME, JS_G2D_VERSION],
+        [JS_CJS_NAME, JS_CJS_VERSION],
     ],
 )
 def test_changelog_versions(pkg, version):

@@ -8,3 +8,8 @@
 .lsp-document-locator span:not(:last-child)::after {
   content: ' > ';
 }
+
+.lsp-icon-flip-x {
+  transform: scaleX(-1);
+  transform-origin: center center;
+}

@@ -1,0 +1,59 @@
+{
+  "name": "@krassowski/code-jumpers",
+  "version": "1.0.0",
+  "description": "Implementation underlying the jump to definition functionality in JupyterLab-LSP",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "lsp",
+    "language-server-protocol"
+  ],
+  "homepage": "https://github.com/krassowski/jupyterlab-lsp",
+  "bugs": {
+    "url": "https://github.com/krassowski/jupyterlab-lsp/issues"
+  },
+  "license": "BSD-3-Clause",
+  "author": "JupyterLab-LSP Development Team",
+  "files": [
+    "{lib,style,schema,src}/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css,json,ts,tsx}"
+  ],
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krassowski/jupyterlab-lsp.git"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "bundle": "npm pack .",
+    "clean": "rimraf lib",
+    "lab:link": "jupyter labextension link . --no-build"
+  },
+  "peerDependencies": {
+    "@jupyterlab/apputils": "~2.2.0",
+    "@jupyterlab/codeeditor": "~2.2.0",
+    "@jupyterlab/coreutils": "~4.2.0",
+    "@jupyterlab/docmanager": "~2.2.0",
+    "@jupyterlab/docregistry": "~2.2.0",
+    "@jupyterlab/fileeditor": "~2.2.0",
+    "@jupyterlab/notebook": "~2.2.0",
+    "@jupyterlab/observables": "~3.2.0"
+  },
+  "devDependencies": {
+    "@jupyterlab/apputils": "~2.2.0",
+    "@jupyterlab/codeeditor": "~2.2.0",
+    "@jupyterlab/coreutils": "~4.2.0",
+    "@jupyterlab/docmanager": "~2.2.0",
+    "@jupyterlab/docregistry": "~2.2.0",
+    "@jupyterlab/fileeditor": "~2.2.0",
+    "@jupyterlab/notebook": "~2.2.0",
+    "@jupyterlab/observables": "~3.2.0",
+    "@jupyterlab/testutils": "~2.2.0",
+    "rimraf": "^2.6.1",
+    "typescript": "~4.0.2",
+    "@babel/preset-env": "^7.4.3"
+  },
+  "jupyterlab": {
+    "extension": false
+  }
+}

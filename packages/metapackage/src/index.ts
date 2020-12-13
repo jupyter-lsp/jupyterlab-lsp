@@ -1,4 +1,4 @@
-import '@krassowski/jupyterlab_go_to_definition';
+import '@krassowski/code-jumpers';
 import '@krassowski/jupyterlab-lsp';
 import '@krassowski/completion-theme';
 import '@krassowski/theme-material';

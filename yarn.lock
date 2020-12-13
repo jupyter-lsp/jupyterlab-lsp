@@ -1814,21 +1814,21 @@
     react-dom "~16.9.0"
     typestyle "^2.0.4"
 
+"@krassowski/code-jumpers@file:packages/code-jumpers":
+  version "1.0.0"
+
 "@krassowski/completion-theme@file:packages/completion-theme":
   version "2.0.0"
 
 "@krassowski/jupyterlab-lsp@file:packages/jupyterlab-lsp":
   version "2.0.8"
   dependencies:
+    "@krassowski/code-jumpers" "~1.0.0"
     "@krassowski/completion-theme" "~2.0.0"
-    "@krassowski/jupyterlab_go_to_definition" "~1.0.0"
     "@krassowski/theme-material" "~2.0.0"
     "@krassowski/theme-vscode" "~2.0.0"
     lodash.mergewith "^4.6.1"
     lsp-ws-connection "~0.5.1"
-
-"@krassowski/jupyterlab_go_to_definition@file:packages/jupyterlab-go-to-definition":
-  version "1.0.0"
 
 "@krassowski/theme-material@file:packages/theme-material":
   version "2.0.0"

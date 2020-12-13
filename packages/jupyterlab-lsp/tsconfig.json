@@ -9,7 +9,7 @@
   "include": ["src/**/*"],
   "references": [
     {
-      "path": "../jupyterlab-go-to-definition"
+      "path": "../code-jumpers"
     },
     {
       "path": "../completion-theme"

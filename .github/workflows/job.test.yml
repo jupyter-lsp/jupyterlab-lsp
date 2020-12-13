@@ -22,7 +22,7 @@ env:
 
   LINKED_EXTENSIONS: >-
     packages/lsp-ws-connection
-    packages/jupyterlab-go-to-definition
+    packages/code-jumpers
     packages/completion-theme
     packages/theme-vscode
     packages/theme-material
@@ -148,7 +148,7 @@ jobs:
         run: jlpm test
 
       #  js_cov_packages:
-      #    - jupyterlab-go-to-definition
+      #    - code-jumpers
       #    - jupyterlab-lsp
 
       #- task: PublishTestResults@2

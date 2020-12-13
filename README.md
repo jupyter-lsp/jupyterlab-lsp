@@ -27,7 +27,7 @@ over the underlined code to see a more detailed message
 
 ### Jump to Definition
 
-Use the context menu entries to jump to definitions
+Use the context menu entry, or <kbd>Alt</kbd> + :computer_mouse: to jump to definitions (you can change it to <kbd>Ctrl</kbd>/<kbd>⌘</kbd> in settings); use <kbd>Alt</kbd> + <kbd>o</kbd> to jump back
 
 ![jump](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/jump_to_definition.png)
 
