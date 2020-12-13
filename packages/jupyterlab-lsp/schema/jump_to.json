@@ -8,9 +8,9 @@
     "modifierKey": {
       "title": "Modifier key",
       "type": "string",
-      "enum": ["Alt", "Control", "Shift", "Meta", "AltGraph"],
-      "default": "Control",
-      "description": "Keyboard key which needs to be pressed with click to jump. The allowed keys are Alt, Control, Shift, and AltGraph. Linux user: Meta key is also supported. Safari users: Meta key is also supported, AltGraph is not supported. To see which physical keys are mapped, visit: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/getModifierState"
+      "enum": ["Alt", "Control", "Shift", "Meta", "AltGraph", "Accel"],
+      "default": "Accel",
+      "description": "Keyboard key which needs to be pressed with click to jump. The allowed keys are Alt, Control, Shift, Accel, and AltGraph. Accel corresponds to Control or Meta (⌘ Command on Mac). Linux user: Meta key is also supported. Safari users: Meta key is also supported, AltGraph is not supported. To see which physical keys are mapped, visit: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/getModifierState"
     }
   },
   "jupyter.lab.shortcuts": [
