@@ -5,6 +5,7 @@ channels:
   - defaults
 
 dependencies:
+  - typing_extensions
   - jupyterlab {lab}
   # build dependencies
   - nodejs {nodejs}
