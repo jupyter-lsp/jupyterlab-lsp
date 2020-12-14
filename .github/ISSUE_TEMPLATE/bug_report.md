@@ -73,7 +73,7 @@ Paste the output from your browser JavaScript console replacing the text in here
 
 To learn how to open the developer tools in your browser:
 https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_are_browser_developer_tools#How_to_open_the_devtools_in_your_browser
-If too many messagess accumulated after many hours of working in JupyterLab,
+If too many messages accumulated after many hours of working in JupyterLab,
 consider refreshing the window and then reproducing the bug to reduce the noise in the logs.
 
 </pre>
