@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 2.1.1` (2020-12-15)
+
+- bug fixes
+
+  - fix crash "blank screen" caused by Mac command character included in jump-to schema file ([#429])
+
+[#429]: https://github.com/krassowski/jupyterlab-lsp/issues/429
+
 ### `jupyter-lsp 0.9.3` (2020-12-13)
 
 - features
