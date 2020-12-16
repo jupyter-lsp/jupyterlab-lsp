@@ -1,5 +1,12 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 2.1.2` (2020-12-XX)
+
+- bug fixes
+  - improved performance of completion and highlights by minimising the number of highlight requests and GUI redraws (token checking, debouncing, acting on a single response only) ([#433])
+
+[#433]: https://github.com/krassowski/jupyterlab-lsp/issues/433
+
 ### `@krassowski/jupyterlab-lsp 2.1.1` (2020-12-15)
 
 - bug fixes
