@@ -28,7 +28,12 @@ def file_uri_to_path(file_uri):
     windows_path = os.name == "nt"
     file_uri_parsed = urlparse(file_uri)
     file_uri_path_unquoted = unquote(file_uri_parsed.path)
-    if windows_path and file_uri_path_unquoted.startswith("/"):
+    # when windows, and file is on a server
+    if windows_path and file_uri_parsed.netloc:
+        file_path = file_uri.split(":")[1]
+        result = unquote(file_path)
+    # when windows, and file is local
+    elif windows_path and file_uri_path_unquoted.startswith("/"):
         result = file_uri_path_unquoted[1:]  # pragma: no cover
     else:
         result = file_uri_path_unquoted  # pragma: no cover
