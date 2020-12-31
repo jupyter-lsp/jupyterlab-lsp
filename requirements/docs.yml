@@ -9,6 +9,7 @@ dependencies:
   - pandas
   - pip
   - pytest
+  - pytest-check-links
   - python-graphviz
   - recommonmark
   - sphinx
@@ -16,6 +17,4 @@ dependencies:
   - sphinx-autobuild
   - sphinx-autodoc-typehints
   - sphinx-copybutton
-  - pip:
-      - pytest-check-links
-      - sphinx-markdown-tables
+  - sphinx-markdown-tables

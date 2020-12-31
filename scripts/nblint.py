@@ -5,7 +5,6 @@ from pathlib import Path
 
 import black
 import isort
-from isort.api import sort_code_string
 import nbformat
 
 OK = 0
@@ -21,6 +20,7 @@ DOCS_IPYNB = [
 NODE = shutil.which("node")
 
 ISORT_CONFIG = isort.settings.Config(settings_path=ROOT / "setup.cfg")
+
 
 def blacken(source):
     return black.format_str(source, mode=black.FileMode(line_length=88))
@@ -63,7 +63,7 @@ def nblint():
                     changes += 1
                 if source.startswith("%"):
                     continue
-                new = isort.sort_code_string(source, config=ISORT_CONFIG)
+                new = isort.api.sort_code_string(source, config=ISORT_CONFIG)
                 new = blacken(new).rstrip()
                 if new != source:
                     cell["source"] = new.splitlines(True)
