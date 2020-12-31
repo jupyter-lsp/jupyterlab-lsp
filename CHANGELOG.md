@@ -5,8 +5,10 @@
 - bug fixes
   - improved performance of completion and highlights by minimising the number of highlight requests and GUI redraws (token checking, debouncing, acting on a single response only) ([#433])
   - highlights now update after cell focus/blur events even if those do not trigger cursor movement ([#433])
+  - trigger characters auto-invoke now works in continuous hinting mode again ([#434])
 
 [#433]: https://github.com/krassowski/jupyterlab-lsp/issues/433
+[#434]: https://github.com/krassowski/jupyterlab-lsp/issues/434
 
 ### `@krassowski/jupyterlab-lsp 2.1.1` (2020-12-15)
 
