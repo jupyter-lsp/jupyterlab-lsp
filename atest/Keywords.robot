@@ -52,7 +52,7 @@ Create Notebok Server Config
 
 Read Page Config
     ${script} =    Get Element Attribute    id:jupyter-config-data    innerHTML
-    ${config} =    Evaluate    __import__("json").loads("""${script}""")
+    ${config} =    Evaluate    __import__("json").loads(r"""${script}""")
     Set Global Variable    ${PAGE CONFIG}    ${config}
     Set Global Variable    ${LAB VERSION}    ${config["appVersion"]}
 
