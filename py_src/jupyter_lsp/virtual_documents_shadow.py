@@ -1,7 +1,9 @@
 # flake8: noqa: W503
+import atexit
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from shutil import rmtree
+from typing import Dict
 
 from tornado.concurrent import run_on_executor
 from tornado.gen import convert_yielded
@@ -28,6 +30,8 @@ class EditableFile:
     def __init__(self, path):
         # Python 3.5 relict:
         self.path = Path(path) if isinstance(path, str) else path
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.file = self.path.open("a+")
 
     async def read(self):
         self.lines = await convert_yielded(self.read_lines())
@@ -37,19 +41,18 @@ class EditableFile:
 
     @run_on_executor
     def read_lines(self):
-        # empty string required by the assumptions of the gluing algorithm
-        lines = [""]
-        try:
-            # TODO: what to do about bad encoding reads?
-            lines = self.path.read_text().splitlines()
-        except FileNotFoundError:
-            pass
+        # TODO: what to do about bad encoding reads?
+        self.file.seek(0)
+        lines = self.file.read().splitlines()
+        if not lines:
+            # empty string required by the assumptions of the gluing algorithm
+            lines = [""]
         return lines
 
     @run_on_executor
     def write_lines(self):
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text("\n".join(self.lines))
+        self.file.write("\n".join(self.lines))
+        self.file.flush()
 
     @staticmethod
     def trim(lines: list, character: int, side: int):
@@ -101,6 +104,9 @@ class ShadowFilesystemError(ValueError):
     """Error in the shadow file system."""
 
 
+FILES_CACHE: Dict[str, EditableFile] = {}
+
+
 def setup_shadow_filesystem(virtual_documents_uri):
 
     if not virtual_documents_uri.startswith("file:/"):
@@ -142,8 +148,14 @@ def setup_shadow_filesystem(virtual_documents_uri):
             return
 
         path = file_uri_to_path(uri)
-        editable_file = EditableFile(path)
 
+        if path in FILES_CACHE:
+            editable_file = FILES_CACHE[path]
+        else:
+            editable_file = EditableFile(path)
+            FILES_CACHE[path] = editable_file
+
+        # TODO: does not need to read if full-text change. But how to know if this is the case?
         await editable_file.read()
 
         text = extract_or_none(document, ["text"])
@@ -175,3 +187,12 @@ def setup_shadow_filesystem(virtual_documents_uri):
         return path
 
     return shadow_virtual_documents
+
+
+def close_cached_files():
+    for file in FILES_CACHE.values():
+        file.file.close()
+    FILES_CACHE.clear()
+
+
+atexit.register(close_cached_files)

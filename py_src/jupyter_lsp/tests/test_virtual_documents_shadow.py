@@ -5,7 +5,9 @@ import pytest
 
 from ..virtual_documents_shadow import (
     EditableFile,
+    FILES_CACHE,
     ShadowFilesystemError,
+    close_cached_files,
     extract_or_none,
     setup_shadow_filesystem,
 )
@@ -17,7 +19,6 @@ async def test_read(tmp_path):
     path.write_text("a\ntest")
 
     editable_file = EditableFile(path)
-
     await editable_file.read()
 
     assert editable_file.lines == ["a", "test"]
@@ -31,6 +32,17 @@ async def test_read_missing(tmp_path):
     await missing_file.read()
 
     assert missing_file.lines == [""]
+
+
+@pytest.mark.asyncio
+async def test_read_deleted(tmp_path):
+    path = tmp_path / "deleted.py"
+    deleted_file = EditableFile(path)
+    path.unlink()
+
+    await deleted_file.read()
+
+    assert deleted_file.lines == [""]
 
 
 @pytest.mark.asyncio
@@ -150,3 +162,15 @@ async def test_shadow_failures(shadow_path):
                 "params": {"textDocument": {"uri": ok_file_uri}},
             }
         )
+
+
+@pytest.mark.asyncio
+async def test_clean_cache(tmp_path):
+    path = tmp_path / "file.py"
+    editable_file = EditableFile(path)
+    FILES_CACHE[path] = editable_file
+
+    close_cached_files()
+
+    assert editable_file.file.closed
+    assert len(FILES_CACHE) == 0
