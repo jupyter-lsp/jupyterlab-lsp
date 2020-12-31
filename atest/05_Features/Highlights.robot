@@ -43,6 +43,19 @@ Highlights are added after typing
     Press Keys    None    a
     Should Highlight Token    testa
 
+Highlights are removed when no cell is focused
+    Enter Cell Editor    1    line=2
+    # Remove when turned on
+    Configure JupyterLab Plugin    {"removeOnBlur": true}    plugin id=${HIGHLIGHTS PLUGIN ID}
+    Should Highlight Token    test
+    Blur Cell Editor    1
+    Should Not Highlight Any Tokens
+    # Do not remove when turned off
+    Configure JupyterLab Plugin    {"removeOnBlur": false}    plugin id=${HIGHLIGHTS PLUGIN ID}
+    Should Highlight Token    test
+    Blur Cell Editor    1
+    Should Highlight Token    test
+
 *** Keywords ***
 Should Not Highlight Any Tokens
     Page Should Not Contain    css:.cm-lsp-highlight
@@ -59,3 +72,7 @@ Should Not Highlight Token
 
 Setup Highlights Test
     Setup Notebook    Python    Highlights.ipynb
+
+Blur Cell Editor
+    [Arguments]    ${cell_nr}
+    Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').blur()
