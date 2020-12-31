@@ -7,7 +7,8 @@ from difflib import context_diff
 from pathlib import Path
 from typing import List
 
-from integrity import CHANGELOG, PIPE_FILE as PIPELINE
+from integrity import CHANGELOG
+from integrity import PIPE_FILE as PIPELINE
 
 ROOT = Path.cwd()
 

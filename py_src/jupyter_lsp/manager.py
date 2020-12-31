@@ -6,7 +6,11 @@ from typing import Dict, Text, Tuple
 
 import entrypoints
 from notebook.transutils import _
-from traitlets import Bool, Dict as Dict_, Instance, List as List_, Unicode, default
+from traitlets import Bool
+from traitlets import Dict as Dict_
+from traitlets import Instance
+from traitlets import List as List_
+from traitlets import Unicode, default
 
 from .constants import (
     EP_LISTENER_ALL_V1,
