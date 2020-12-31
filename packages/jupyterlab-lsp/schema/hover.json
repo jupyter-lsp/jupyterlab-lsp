@@ -16,7 +16,7 @@
       "title": "Throttler delay",
       "type": "number",
       "default": 50,
-      "description": "Number of milliseconds to delay sending out the request hover request to the language server; you can get better responsiveness adjusting this value, but setting it to zero can actually slow it down as the server might get overwhelmed when moving the mose over the code."
+      "description": "Number of milliseconds to delay sending out the hover request to the language server; you can get better responsiveness adjusting this value, but setting it to zero can actually slow it down as the server might get overwhelmed when moving the mouse over the code."
     },
     "cacheSize": {
       "title": "Cache size",

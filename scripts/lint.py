@@ -52,7 +52,7 @@ def lint():
         map(
             call,
             [
-                ["isort", "-rc", *ALL_PY],
+                ["isort", *ALL_PY],
                 ["black", *ALL_PY],
                 ["flake8", *ALL_PY],
                 # ["pylint", *ALL_PY],

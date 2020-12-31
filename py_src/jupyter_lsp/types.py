@@ -20,7 +20,9 @@ from typing import (
 )
 
 from notebook.transutils import _
-from traitlets import Instance, List as List_, Unicode, default
+from traitlets import Instance
+from traitlets import List as List_
+from traitlets import Unicode, default
 from traitlets.config import LoggingConfigurable
 
 LanguageServerSpec = Dict[Text, Any]
