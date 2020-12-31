@@ -10,6 +10,12 @@
       "type": "number",
       "default": 250,
       "description": "Number of milliseconds to delay sending out the highlights request to the language server; you can get better responsiveness adjusting this value, but setting it to zero can actually slow it down as the server might get overwhelmed when moving the cursor."
+    },
+    "removeOnBlur": {
+      "title": "Remove highlights on editor (e.g. cell) blur",
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the highlights should disappear after the focus leaves the editor/cell"
     }
   },
   "jupyter.lab.shortcuts": []
