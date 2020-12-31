@@ -27,10 +27,8 @@ sys.path.insert(0, str(ROOT))
 if True:
     # a workaround for isort 4.0 limitations
     # see https://github.com/timothycrosley/isort/issues/468
-    from versions import (  # noqa
-        REQUIRED_JUPYTERLAB as LAB_SPEC,
-        JUPYTER_LSP_VERSION as PY_VERSION,
-    )
+    from versions import JUPYTER_LSP_VERSION as PY_VERSION
+    from versions import REQUIRED_JUPYTERLAB as LAB_SPEC  # noqa
 
 REQS = ROOT / "requirements"
 BINDER = ROOT / "binder"
