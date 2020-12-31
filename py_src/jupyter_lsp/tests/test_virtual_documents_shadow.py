@@ -35,17 +35,6 @@ async def test_read_missing(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_read_deleted(tmp_path):
-    path = tmp_path / "deleted.py"
-    deleted_file = EditableFile(path)
-    path.unlink()
-
-    await deleted_file.read()
-
-    assert deleted_file.lines == [""]
-
-
-@pytest.mark.asyncio
 async def test_apply_change(tmp_path):
     # inserting text
     path = tmp_path / "test.py"
