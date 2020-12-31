@@ -17,16 +17,13 @@ dependencies:
   # isort 5.0 has breaking API changes which affect (among others) pylint and nblint;
   # the pin should be removed once https://github.com/PyCQA/pylint/pull/3725 is merged
   # see https://github.com/krassowski/jupyterlab-lsp/pull/291
-  - isort <5
-  - mypy
   - pip
   - pylint
+  - pyls-black
+  - pyls-isort
+  - pyls-mypy
   - python-language-server
   - ruamel_yaml
-  - pip: # not-yet-appearing-in-conda-forge
-      - pyls-black
-      - pyls-isort
-      - pyls-mypy
   # for R language server and kernel
   - r
   - r-irkernel
@@ -36,3 +33,5 @@ dependencies:
   - tectonic
   - texlab
   - chktex
+  # TODO: remove when jedi vs IPython is resolved
+  - jedi <0.18
