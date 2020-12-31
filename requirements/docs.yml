@@ -2,7 +2,7 @@ name: jupyterlab-lsp-docs
 
 channels:
   - conda-forge
-  - defaults
+  - nodefaults
 
 dependencies:
   - nbsphinx
