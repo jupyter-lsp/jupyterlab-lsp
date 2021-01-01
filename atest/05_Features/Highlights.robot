@@ -37,10 +37,11 @@ Highlights are changed when moving cursor between cells
     Press Keys    None    DOWN    # cursor to third cell, second line (`|test `)
     Should Highlight Token    test
 
-Highlights are added after typing
+Highlights are modified after typing
     Enter Cell Editor    1    line=2
+    Press Keys    None    END    # cursor after the token in second line (`test|`)
     Should Highlight Token    test
-    Press Keys    None    a
+    Press Keys    None    a    # cursor after the token in second line (`testa|`)
     Should Highlight Token    testa
 
 Highlights are removed when no cell is focused
@@ -61,12 +62,12 @@ Should Not Highlight Any Tokens
     Page Should Not Contain    css:.cm-lsp-highlight
 
 Should Highlight Token
-    [Arguments]    ${token}    ${timeout}=10s
+    [Arguments]    ${token}    ${timeout}=15s
     ${token_element}    Set Variable    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
     Wait Until Page Contains Element    ${token_element}    timeout=${timeout}
 
 Should Not Highlight Token
-    [Arguments]    ${token}    ${timeout}=10s
+    [Arguments]    ${token}    ${timeout}=15s
     ${token_element}    Set Variable    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
     Wait Until Page Does Not Contain Element    ${token_element}    timeout=${timeout}
 
