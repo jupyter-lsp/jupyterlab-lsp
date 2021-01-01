@@ -54,6 +54,9 @@ Continious Hinting Works
     Capture Page Screenshot    01-editor-ready.png
     Press Keys    None    d
     Completer Should Suggest    addition
+    # gh430 - auto invoke after dot should work too
+    Press Keys    None    .
+    Completer Should Suggest    __doc__
 
 Autocompletes If Only One Option
     Enter Cell Editor    3    line=1
