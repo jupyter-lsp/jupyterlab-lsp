@@ -1,6 +1,10 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 2.1.2` (2020-12-XX)
+### `@krassowski/jupyterlab-lsp 2.1.2` (2021-01-XX)
+
+- features
+
+  - highlights can now be auto-removed from the cells/editors on blur (set `removeOnBlur` to `true` in settings) ([#446])
 
 - bug fixes
   - improved performance of completion and highlights by minimising the number of highlight requests and GUI redraws (token checking, debouncing, acting on a single response only) ([#433])
@@ -9,6 +13,7 @@
 
 [#433]: https://github.com/krassowski/jupyterlab-lsp/issues/433
 [#434]: https://github.com/krassowski/jupyterlab-lsp/issues/434
+[#446]: https://github.com/krassowski/jupyterlab-lsp/issues/446
 
 ### `@krassowski/jupyterlab-lsp 2.1.1` (2020-12-15)
 
