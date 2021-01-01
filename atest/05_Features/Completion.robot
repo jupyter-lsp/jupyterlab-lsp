@@ -215,7 +215,7 @@ Completer Should Suggest
 
 Completer Should Include Icon
     [Arguments]    ${icon}
-    Wait Until Page Contains Element    ${COMPLETER_BOX} svg[data-icon="${icon}"]
+    Wait Until Page Contains Element    ${COMPLETER_BOX} svg[data-icon="${icon}"]    timeout=10s
 
 Completer Should Not Suggest
     [Arguments]    ${text}

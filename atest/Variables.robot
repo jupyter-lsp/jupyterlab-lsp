@@ -45,6 +45,7 @@ ${CM CURSORS}     css:.jp-MainAreaWidget:not(.lm-mod-hidden) .CodeMirror-cursors
 # settings
 ${LSP PLUGIN ID}    @krassowski/jupyterlab-lsp:plugin
 ${COMPLETION PLUGIN ID}    @krassowski/jupyterlab-lsp:completion
+${HIGHLIGHTS PLUGIN ID}    @krassowski/jupyterlab-lsp:highlights
 ${JUMP PLUGIN ID}    @krassowski/jupyterlab-lsp:jump_to
 ${DIAGNOSTICS PLUGIN ID}    @krassowski/jupyterlab-lsp:diagnostics
 ${CSS USER SETTINGS}    .jp-SettingsRawEditor-user

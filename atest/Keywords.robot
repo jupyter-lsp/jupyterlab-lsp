@@ -201,7 +201,7 @@ Open Context Menu for File
     Ensure File Browser is Open
     Click Element    ${JLAB CSS REFRESH FILES}
     ${selector} =    Set Variable    xpath://span[@class='jp-DirListing-itemText']\[text() = '${file}']
-    Wait Until Page Contains Element    ${selector}
+    Wait Until Page Contains Element    ${selector}    timeout=10s
     Open Context Menu    ${selector}
 
 Rename Jupyter File
