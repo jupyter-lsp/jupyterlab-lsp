@@ -4,8 +4,8 @@ from typing import List
 import pytest
 
 from ..virtual_documents_shadow import (
-    EditableFile,
     FILES_CACHE,
+    EditableFile,
     ShadowFilesystemError,
     close_cached_files,
     extract_or_none,

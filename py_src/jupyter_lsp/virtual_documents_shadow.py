@@ -51,6 +51,7 @@ class EditableFile:
 
     @run_on_executor
     def write_lines(self):
+        self.file.seek(0)
         self.file.write("\n".join(self.lines))
         self.file.flush()
 
