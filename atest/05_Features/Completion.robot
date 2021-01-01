@@ -187,6 +187,14 @@ Works With Incorrect Theme
     Completer Should Suggest    TabError
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
 
+Completes Correctly With R Double Colon
+   Prepare File for Editing  R   completion    completion.R
+   Place Cursor In File Editor At    2    7
+   Trigger Completer
+   Completer Should Suggest    assertCondition
+   Select Completer Suggestion  assertCondition
+   Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    17    %R tools::assertCondition
+
 *** Keywords ***
 Setup Completion Test
     Setup Notebook    Python    Completion.ipynb
