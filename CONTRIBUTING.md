@@ -29,11 +29,11 @@ You can contribute to the project through:
 
 Development requires, at a minimum:
 
-- `nodejs >=10.12,<15`
+- `nodejs >=12,<15`
 - `python >=3.6,<3.9.0a0`
   - Python 3.6 and 3.8 are also tested on CI
   - Python 3.6 has issues on Windows
-- `jupyterlab >=2.2.0,<3.0.0a0`
+- `jupyterlab >=3.0.0rc10,<4.0.0a0`
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
 for development.
@@ -67,7 +67,7 @@ This performs all of the basic setup steps, and is used for the binder demo.
 Install `jupyter-lsp` from source in your virtual environment:
 
 ```bash
-python -m pip install -e .
+python -m pip install -e . --ignore-installed --no-deps -vv
 ```
 
 Enable the server extension:
@@ -80,9 +80,8 @@ Install `npm` dependencies, build TypeScript packages, and link
 to JupyterLab for development:
 
 ```bash
-jlpm
-jlpm build
-jlpm lab:link
+jlpm bootstrap
+pip install .
 ```
 
 ### Frontend Development

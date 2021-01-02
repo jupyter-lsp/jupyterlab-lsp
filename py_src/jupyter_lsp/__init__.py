@@ -12,3 +12,10 @@ from .types import (
 
 def _jupyter_server_extension_paths():
     return [{"module": "jupyter_lsp"}]
+
+
+def _jupyter_labextension_paths():
+    return [{
+        'src': 'labextensions/jupyterlab-lsp',
+        'dest': '@krassowski/jupyterlab-lsp'
+    }]

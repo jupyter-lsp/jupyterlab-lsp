@@ -2,6 +2,7 @@
 .mypy_cache
 .pytest_cache
 .yarn-packages
+**/_*.d.ts
 **/.ipynb_checkpoints
 **/*.egg-info
 **/build

@@ -17,6 +17,7 @@ module.exports = {
   ],
   ignorePatterns: [
     '**/node_modules/**/*',
+    'packages/jupyterlab-lsp/labextension/**/*',
     '**/lib/**/*',
     '**/_*.ts',
     '**/_*.d.ts',

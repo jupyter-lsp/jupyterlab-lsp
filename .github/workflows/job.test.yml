@@ -35,9 +35,9 @@ jobs:
       # TODO: maybe turn back on
       fail-fast: false
       matrix:
-        os: [ubuntu, macos, windows]
         python: [3.6, 3.7, 3.8]
-        lab: ['>=2.2.0,<3.0.0a0']
+        os: [ubuntu-16.04, macos-10.14, vs2017-win2016]
+        lab: ['>=3.0.0rc8,<4.0.0a0']
         include:
           # if using 3.6, use an old node
           - python: 3.6
@@ -110,9 +110,6 @@ jobs:
 
       - name: Build python distributions
         run: python setup.py sdist bdist_wheel
-
-      - name: Build npm bundles
-        run: jlpm lerna run bundle
 
       - name: Install python wheel
         run: cd dist && python -m pip install jupyter_lsp-${{ env.PY_JLSP_VERSION }}-py3-none-any.whl --no-deps
