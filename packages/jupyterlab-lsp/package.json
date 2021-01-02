@@ -84,7 +84,7 @@
     "@jupyterlab/testutils": "^3.0.0",
     "@jupyterlab/tooltip": "^3.0.0",
     "@lumino/algorithm": "*",
-    "@lumino/widgets": "*",
+    "@lumino/widgets": "^1.16.1",
     "@types/chai": "^4.1.7",
     "@types/codemirror": "^0.0.74",
     "@types/events": "^3.0.0",
@@ -121,7 +121,7 @@
     "@jupyterlab/tooltip": "^3.0.0",
     "@jupyterlab/ui-components": "^3.0.0",
     "@lumino/algorithm": "*",
-    "@lumino/widgets": "*",
+    "@lumino/widgets": "^1.16.1",
     "codemirror": "*",
     "react": "*"
   },
