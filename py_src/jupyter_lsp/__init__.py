@@ -15,7 +15,6 @@ def _jupyter_server_extension_paths():
 
 
 def _jupyter_labextension_paths():
-    return [{
-        'src': 'labextensions/jupyterlab-lsp',
-        'dest': '@krassowski/jupyterlab-lsp'
-    }]
+    return [
+        {"src": "labextensions/jupyterlab-lsp", "dest": "@krassowski/jupyterlab-lsp"}
+    ]
