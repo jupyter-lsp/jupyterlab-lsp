@@ -165,25 +165,13 @@ jobs:
       #      condition: always()
 
       - name: List server extensions
-        run: jupyter serverextension list
+        run: jupyter server extension list
+
+      - name: List labextensions
+        run: jupyter lab extension list
 
       - name: Run python tests
         run: python scripts/utest.py
-
-      - name: Install support packages
-        run: jupyter labextension link --debug --no-build ${{ env.LINKED_EXTENSIONS }}
-
-      - name: Install labextensions
-        run: jupyter labextension install --debug --no-build packages/jupyterlab-lsp/krassowski-jupyterlab-lsp-${{ env.JS_JLLSP_VERSION }}.tgz
-
-      - name: List labextensions before build
-        run: jupyter labextension list
-
-      - name: Build lab
-        run: jupyter lab build --debug --dev-build=False --minimize=True
-
-      - name: List labextensions after build
-        run: jupyter labextension list
 
       - name: Run browser tests
         run: python scripts/atest.py --exclude expect:fail
