@@ -15,8 +15,7 @@ def get_data_files():
         for file in LABEXTENSIONS_DIR.rglob("*.*")
     ]
 
-    extension_files.append(("etc/jupyter/jupyter_notebook_config.d", ["py_src/jupyter_lsp/etc/jupyter-lsp-serverextension.json"]))
-
+    extension_files.append(("etc/jupyter/jupyter_server_config.d", ["py_src/jupyter_lsp/etc/jupyter-lsp-serverextension.json"]))
     return extension_files
 
 
@@ -26,5 +25,5 @@ setuptools.setup(
         (Path(__file__).parent / "py_src" / "jupyter_lsp" / "_version.py").read_text(encoding="utf-8"),
     )[0],
     setup_requires=["pytest-runner"] if "test" in sys.argv else [],
-    data_files=get_data_files(),
+    data_files=get_data_files()
 )

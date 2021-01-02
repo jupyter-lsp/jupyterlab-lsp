@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 
 def test_serverextension_path(app):
@@ -28,7 +29,8 @@ def test_labextension_path(app):
 
     paths = jupyter_lsp._jupyter_labextension_paths()
     for path in paths:
-        assert Path(path["src"]).exists()
+        assert (Path(jupyter_lsp.__file__).parent / path["src"]).exists()
+
 
 def test_default_virtual_documents_dir(app):
     app.initialize(

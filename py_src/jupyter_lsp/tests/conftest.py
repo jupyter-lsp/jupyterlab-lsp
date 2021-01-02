@@ -3,7 +3,7 @@ import pathlib
 import shutil
 from typing import Text
 
-from notebook.notebookapp import NotebookApp
+from jupyter_server.serverapp import ServerApp
 from pytest import fixture
 from tornado.queues import Queue
 
@@ -81,7 +81,7 @@ def jsonrpc_init_msg():
 
 @fixture
 def app():
-    return MockNotebookApp()
+    return MockServerApp()
 
 
 # mocks
@@ -110,5 +110,5 @@ class MockHandler(LanguageServersHandler):
         self._payload = payload
 
 
-class MockNotebookApp(NotebookApp):
+class MockServerApp(ServerApp):
     pass
