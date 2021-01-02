@@ -38,7 +38,7 @@
   "private": true,
   "scripts": {
     "bootstrap": "jlpm --no-optional --prefer-offline && lerna bootstrap && jlpm lint && jlpm clean && jlpm build",
-    "build": "jlpm build:schema && jlpm build:completion-theme && jlpm build:theme-material && jlpm build:theme-vscode && jlpm build:meta && jlpm build:ws && jlpm build:jupyterlab-lsp",
+    "build": "jlpm build:schema && jlpm build:completion-theme && jlpm build:theme-material && jlpm build:theme-vscode && jlpm build:jump && jlpm build:meta && jlpm build:ws && jlpm build:jupyterlab-lsp",
     "build:schema": "lerna run build:schema --stream",
     "build:meta": "lerna run build --stream --scope @krassowski/jupyterlab-lsp-metapackage",
     "build:completion-theme": "lerna run build --stream --scope @krassowski/completion-theme",
