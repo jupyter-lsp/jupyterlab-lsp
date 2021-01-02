@@ -168,7 +168,7 @@ jobs:
         run: jupyter server extension list
 
       - name: List labextensions
-        run: jupyter lab extension list
+        run: jupyter labextension list
 
       - name: Run python tests
         run: python scripts/utest.py
