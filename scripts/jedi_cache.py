@@ -43,8 +43,8 @@ import time
 
 import IPython
 import jedi
-import jupyterlab
 import jupyter_server
+import jupyterlab
 import parso
 import pyls
 
