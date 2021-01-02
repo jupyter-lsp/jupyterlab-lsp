@@ -7,7 +7,7 @@ ENC = dict(encoding="utf-8")
 
 
 def update_jupyter_config(path, has_traits, **key_values):
-    """update an existing jupyter_notebook_config.json"""
+    """update an existing jupyter_server_config.json"""
     p = Path(path)
     conf = json.loads(p.read_text(**ENC))
 

@@ -46,7 +46,7 @@ https://jupyterlab.readthedocs.io/en/latest/getting_started/issue.html
 - Language Server Spec
 
 ```python
-# jupyter_notebook_config.json
+# jupyter_server_config.json
 {
   "LanguageServerManager": {
     "language_servers": {
