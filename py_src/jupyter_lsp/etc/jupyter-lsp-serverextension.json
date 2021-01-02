@@ -1,6 +1,6 @@
 {
-  "NotebookApp": {
-    "nbserver_extensions": {
+  "ServerApp": {
+    "jpserver_extensions": {
       "jupyter_lsp": true
     }
   }
