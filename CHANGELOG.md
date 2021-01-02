@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 2.1.2` (2021-01-XX)
+### `@krassowski/jupyterlab-lsp 2.1.2` (2021-01-02)
 
 - features
 
