@@ -19,7 +19,7 @@ jobs:
         os: [ubuntu-16.04]
         python: [3.8]
         nodejs: ['>=12,<13.0.0a0']
-        lab: ['>=2,<3.0.0a0']
+        lab: ['>=3.0.0,<4.0.0a0']
     steps:
       - uses: actions/checkout@v2
 

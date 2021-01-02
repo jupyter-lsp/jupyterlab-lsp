@@ -33,7 +33,7 @@ Development requires, at a minimum:
 - `python >=3.6,<3.9.0a0`
   - Python 3.6 and 3.8 are also tested on CI
   - Python 3.6 has issues on Windows
-- `jupyterlab >=3.0.0rc10,<4.0.0a0`
+- `jupyterlab >=3.0.0,<4.0.0a0`
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
 for development.
