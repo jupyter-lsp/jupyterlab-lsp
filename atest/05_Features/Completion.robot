@@ -154,7 +154,7 @@ VSCode Theme Works
 
 VSCode Dark Theme Works
     ${file} =    Set Variable    Completion.ipynb
-    Lab Command    Use JupyterLab Dark Theme
+    Lab Command    Use Theme: JupyterLab Dark
     Wait For Splash
     Capture Page Screenshot    00-theme-changed.png
     Configure JupyterLab Plugin    {"theme": "vscode"}    plugin id=${COMPLETION PLUGIN ID}
@@ -166,7 +166,7 @@ VSCode Dark Theme Works
     Capture Page Screenshot    02-completions-shown.png
     Completer Should Suggest    TabError
     Completer Should Include Icon    lsp:vscode-class-dark
-    Lab Command    Use JupyterLab Light Theme
+    Lab Command    Use Theme: JupyterLab Light
     Wait For Splash
 
 Works Without A Theme
