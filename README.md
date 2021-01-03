@@ -82,6 +82,8 @@ You will need to have all of the following installed:
 
 In addition, if you wish to use javascript, html, markdown or any other NodeJS-based language server you will need to have appropriate NodeJS version installed.
 
+> Note: Installation for JupyterLab 2.x requires a different procedure, please consult the documentation for the extension [version 2.x][version 2.x docs].
+
 ## Installation
 
 > For more extensive installation instructions, see the [documentation][installation-documentation].
@@ -228,3 +230,4 @@ This would not be possible without the fantastic initial work at
 
 [language-servers]: https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html
 [installation-documentation]: https://jupyterlab-lsp.readthedocs.io/en/latest/Installation.html
+[version 2.x docs]: https://jupyterlab-lsp.readthedocs.io/en/2.x/Installation.html
