@@ -1,2 +1,3 @@
 include LICENSE README.md
 recursive-include src *.json *.R
+include etc/jupyter_lsp.json
