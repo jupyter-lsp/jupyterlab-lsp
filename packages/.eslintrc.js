@@ -65,7 +65,9 @@ module.exports = {
     'jest/valid-expect': 'off',
     'no-async-promise-executor': 'off',
     'prefer-spread': 'off',
-    'react/display-name': 'off'
+    'react/display-name': 'off',
+    // TODO: re-enable once the lsp-ws-connection tests are re-written to jest
+    'jest/no-done-callback': 'off'
   },
   settings: {
     react: {
