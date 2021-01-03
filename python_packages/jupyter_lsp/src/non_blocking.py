@@ -9,8 +9,8 @@ import os
 
 if os.name == "nt":  # pragma: no cover
     import msvcrt
-    from ctypes import POINTER, WinError, byref, windll, wintypes
-    from ctypes.wintypes import BOOL, DWORD, HANDLE
+    from ctypes import POINTER, WinError, byref, windll, wintypes  # type: ignore
+    from ctypes.wintypes import BOOL, DWORD, HANDLE  # type: ignore
 else:  # pragma: no cover
     import fcntl
 
