@@ -203,7 +203,6 @@ def test_installation_versions(the_installation_notebook, pkg, sep, version, exp
     "pkg,count",
     [
         ["python", 2],
-        ["nodejs", 4],
         # ["jupyterlab", 2], # this is handled through template variables
     ],
 )
