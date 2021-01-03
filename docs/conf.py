@@ -104,10 +104,4 @@ html_context = {
 def setup(app):
     """Runs before the "normal business" of sphinx. Don't go too crazy here."""
     app.add_css_file("css/custom.css")
-    try:
-        result = subprocess.check_output(["jlpm", "--ignore-optional"])
-        print(result)
-    except subprocess.CalledProcessError as e:
-        print("Returned non-zero exit status:", e.returncode)
-        print(e.output)
-        raise e
+    subprocess.check_call(["jlpm", "--ignore-optional"])
