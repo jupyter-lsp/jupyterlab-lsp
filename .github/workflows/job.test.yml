@@ -42,14 +42,22 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: '{'
+          tokenSuffix: '}'
+          files: '["requirements/github-actions.yml"]'
+        env:
+          lab: '${{ matrix.lab }}'
+          nodejs: '${{ matrix.nodejs }}'
+
       - name: Cache conda
         uses: actions/cache@v1
         with:
           path: ~/conda_pkgs_dir
           key: |
-            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-build-${{ matrix.lab }}-${{ hashFiles('requirements/github-actions.yml') }}
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-build-${{ hashFiles('requirements/github-actions.yml') }}
           restore-keys: |
-            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-build-${{ matrix.lab }}-
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-build-
 
       - name: Cache yarn
