@@ -16,6 +16,7 @@ def get_data_files():
     ]
 
     extension_files.append(("etc/jupyter/jupyter_server_config.d", ["py_src/jupyter_lsp/etc/jupyter-lsp-serverextension.json"]))
+    extension_files.append((LABEXTENSIONS_INSTALL_DIR / '@krassowski' / 'jupyterlab-lsp', ['packages/jupyterlab-lsp/install.json']))
     return extension_files
 
 
