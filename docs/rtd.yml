@@ -5,7 +5,7 @@ channels:
   - conda-forge
 
 dependencies:
-  - nodejs >=11,<14
+  - nodejs >=12,<13
   - pip
   - python >=3.8,<3.9.0a0
   - pip:
