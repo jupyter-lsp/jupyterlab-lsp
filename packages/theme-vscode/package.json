@@ -41,6 +41,6 @@
   "jupyterlab": {
     "extension": true,
     "schemaDir": "schema",
-    "outputDir": "../../python_packages/jupyter_lsp/labextensions/@krassowski/theme-vscode"
+    "outputDir": "../../python_packages/jupyterlab_lsp/labextensions/@krassowski/theme-vscode"
   }
 }

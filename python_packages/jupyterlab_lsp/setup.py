@@ -1,5 +1,4 @@
 import json
-import sys
 from pathlib import Path
 
 import setuptools
@@ -29,6 +28,5 @@ def get_data_files():
 
 setuptools.setup(
     version=json.loads(LAB_PACKAGE_PATH.read_text(encoding="utf-8"))["version"],
-    setup_requires=["pytest-runner"] if "test" in sys.argv else [],
     data_files=get_data_files(),
 )

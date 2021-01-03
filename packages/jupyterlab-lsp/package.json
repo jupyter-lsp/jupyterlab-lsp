@@ -139,6 +139,6 @@
       }
     },
     "schemaDir": "schema",
-    "outputDir": "../../python_packages/jupyter_lsp/labextensions/@krassowski/jupyterlab-lsp"
+    "outputDir": "../../python_packages/jupyterlab_lsp/labextensions/@krassowski/jupyterlab-lsp"
   }
 }

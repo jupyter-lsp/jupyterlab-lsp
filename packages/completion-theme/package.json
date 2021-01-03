@@ -43,6 +43,6 @@
   "jupyterlab": {
     "extension": true,
     "schemaDir": "schema",
-    "outputDir": "../../python_packages/jupyter_lsp/labextensions/@krassowski/completion-theme"
+    "outputDir": "../../python_packages/jupyterlab_lsp/labextensions/@krassowski/completion-theme"
   }
 }

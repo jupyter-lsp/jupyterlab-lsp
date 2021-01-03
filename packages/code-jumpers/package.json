@@ -55,6 +55,6 @@
   },
   "jupyterlab": {
     "extension": false,
-    "outputDir": "../../python_packages/jupyter_lsp/labextensions/@krassowski/code-jumpers"
+    "outputDir": "../../python_packages/jupyterlab_lsp/labextensions/@krassowski/code-jumpers"
   }
 }
