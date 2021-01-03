@@ -17,12 +17,8 @@ sys.path.insert(0, str(ROOT))
 if True:
     # a workaround for isort 4.0 limitations
     # see https://github.com/timothycrosley/isort/issues/468
-    from versions import (  # noqa
-        JUPYTER_LSP_VERSION,
-        JUPYTERLAB_LSP_VERSION,
-        JUPYTERLAB_VERSION,
-        REQUIRED_JUPYTERLAB,
-    )
+    from versions import JUPYTERLAB_LSP_VERSION  # noqa
+    from versions import JUPYTER_LSP_VERSION, JUPYTERLAB_VERSION, REQUIRED_JUPYTERLAB
 
 
 META_PACKAGE = Path("packages/metapackage/package.json")
@@ -98,7 +94,7 @@ def update_versions(dry: bool):
             current_version=JUPYTER_LSP_VERSION,
             locations=[
                 VersionLocation(
-                    path=Path("py_src/jupyter_lsp/_version.py"),
+                    path=Path("python_packages/jupyter_lsp/src/_version.py"),
                     template='__version__ = "{version}"',
                 ),
                 VersionLocation(path=PIPELINE, template="PY_JLSP_VERSION: {version}"),

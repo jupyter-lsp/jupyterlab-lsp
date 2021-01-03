@@ -17,7 +17,7 @@
     "url": "https://github.com/krassowski/jupyterlab-lsp/issues"
   },
   "license": "BSD-3-Clause",
-  "author": "JupyterLab-LSP Developement Team",
+  "author": "JupyterLab-LSP Development Team",
   "files": [
     "{lib,style,schema,src}/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css,json,ts,tsx,txt,md}"
   ],
@@ -34,7 +34,7 @@
     "build:lib": "tsc",
     "build:prod": "jlpm run build:lib && jlpm run build:labextension",
     "build:schema": "jlpm build:schema-backend && jlpm build:schema-completion && jlpm build:schema-hover && jlpm build:schema-diagnostics && jlpm build:schema-syntax_highlighting && jlpm build:schema-jump_to && jlpm build:schema-highlights",
-    "build:schema-backend": "json2ts ../../py_src/jupyter_lsp/schema/schema.json --unreachableDefinitions | prettier --stdin-filepath _schema.d.ts > src/_schema.d.ts",
+    "build:schema-backend": "json2ts ../../python_packages/jupyter_lsp/src/schema/schema.json --unreachableDefinitions | prettier --stdin-filepath _schema.d.ts > src/_schema.d.ts",
     "build:schema-completion": "json2ts schema/completion.json | prettier --stdin-filepath _completion.d.ts > src/_completion.d.ts",
     "build:schema-diagnostics": "json2ts schema/diagnostics.json | prettier --stdin-filepath _diagnostics.d.ts > src/_diagnostics.d.ts",
     "build:schema-hover": "json2ts schema/hover.json | prettier --stdin-filepath _hover.d.ts > src/_hover.d.ts",
@@ -133,11 +133,12 @@
           "name": "jupyter-lsp"
         },
         "managers": [
-          "pip"
+          "pip",
+          "conda"
         ]
       }
     },
     "schemaDir": "schema",
-    "outputDir": "../../py_src/jupyter_lsp/labextensions/@krassowski/jupyterlab-lsp"
+    "outputDir": "../../python_packages/jupyter_lsp/labextensions/@krassowski/jupyterlab-lsp"
   }
 }

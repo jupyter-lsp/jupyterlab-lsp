@@ -17,7 +17,7 @@
     "url": "https://github.com/krassowski/jupyterlab-lsp/issues"
   },
   "license": "BSD-3-Clause",
-  "author": "JupyterLab-LSP Developement Team",
+  "author": "JupyterLab-LSP Development Team",
   "files": [
     "{lib,style,schema,src}/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css,json,ts,tsx,txt,md}"
   ],
@@ -41,6 +41,6 @@
   "jupyterlab": {
     "extension": true,
     "schemaDir": "schema",
-    "outputDir": "../../py_src/jupyter_lsp/labextensions/@krassowski/theme-vscode"
+    "outputDir": "../../python_packages/jupyter_lsp/labextensions/@krassowski/theme-vscode"
   }
 }

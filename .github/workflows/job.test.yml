@@ -108,11 +108,23 @@ jobs:
       - name: Build the extension
         run: jlpm build
 
-      - name: Build python distributions
-        run: python setup.py sdist bdist_wheel
+      - name: Build server extension (jupyter_lsp) distribution
+        run: cd python_packages/jupyter_lsp && python setup.py sdist bdist_wheel
 
-      - name: Install python wheel
-        run: cd dist && python -m pip install jupyter_lsp-${{ env.PY_JLSP_VERSION }}-py3-none-any.whl --no-deps
+      - name: Install server extension (jupyter_lsp) wheel
+        run: cd python_packages/jupyter_lsp/dist && python -m pip install jupyter_lsp-${{ env.PY_JLSP_VERSION }}-py3-none-any.whl --no-deps
+
+      - name: List server extensions
+        run: jupyter server extension list
+
+      - name: Build frontend extension (jupyterlab_lsp) distribution
+        run: cd python_packages/jupyterlab_lsp && python setup.py sdist bdist_wheel
+
+      - name: Install frontend extension (jupyterlab_lsp) wheel
+        run: cd python_packages/jupyterlab_lsp/dist && python -m pip install jupyterlab_lsp-${{ env.JS_JLLSP_VERSION }}-py3-none-any.whl --no-deps
+
+      - name: List frontend extensions
+        run: jupyter labextension list
 
       - name: Find out jedi cache location
         id: jedi-cache
@@ -163,12 +175,6 @@ jobs:
       #        codeCoverageTool: Cobertura
       #        summaryFileLocation: 'packages/${{ js_package }}/coverage/cobertura-coverage.xml'
       #      condition: always()
-
-      - name: List server extensions
-        run: jupyter server extension list
-
-      - name: List labextensions
-        run: jupyter labextension list
 
       - name: Run python tests
         run: python scripts/utest.py

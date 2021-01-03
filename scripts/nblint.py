@@ -11,6 +11,9 @@ OK = 0
 ERROR = 1
 
 ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT))
+
+from versions import JUPYTER_LSP_PATH
 
 DOCS_IPYNB = [
     nb
@@ -19,7 +22,7 @@ DOCS_IPYNB = [
 ]
 NODE = shutil.which("node")
 
-ISORT_CONFIG = isort.settings.Config(settings_path=ROOT / "setup.cfg")
+ISORT_CONFIG = isort.settings.Config(settings_path=JUPYTER_LSP_PATH / "setup.cfg")
 
 
 def blacken(source):

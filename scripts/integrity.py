@@ -49,12 +49,12 @@ PACKAGES = {
     ]
 }
 
-META_NAME = "{}/jupyterlab-lsp-metapackage".format(NPM_NS)
+META_NAME = f"{NPM_NS}/jupyterlab-lsp-metapackage"
 
-JS_LSP_NAME = "{}/jupyterlab-lsp".format(NPM_NS)
+JS_LSP_NAME = f"{NPM_NS}/jupyterlab-lsp"
 JS_LSP_VERSION = PACKAGES[JS_LSP_NAME][1]["version"]
 
-JS_CJS_NAME = "{}/code-jumpers".format(NPM_NS)
+JS_CJS_NAME = f"{NPM_NS}/code-jumpers"
 JS_CJS_VERSION = PACKAGES[JS_CJS_NAME][1]["version"]
 
 # py stuff
@@ -133,17 +133,15 @@ def test_ts_package_integrity(name, info, the_meta_package):
 
     assert (
         name in m_pkg["dependencies"]
-    ), "{} missing from metapackage/package.json".format(name)
+    ), f"{name} missing from metapackage/package.json"
 
     assert (
         "'{}'".format(name) in m_index
-    ), "{} missing from metapackage/src/index.ts".format(name)
+    ), f"{name} missing from metapackage/src/index.ts"
 
     assert [
-        ref
-        for ref in m_tsconfig["references"]
-        if ref["path"] == "../{}".format(path.name)
-    ], "{} missing from metapackage/tsconfig.json".format(name)
+        ref for ref in m_tsconfig["references"] if ref["path"] == f"../{path.name}"
+    ], f"{name} missing from metapackage/tsconfig.json"
 
     schemas = list(path.glob("schema/*.json"))
 
@@ -169,7 +167,7 @@ def test_jlab_versions(path):
     """is the version of jupyterlab consistent?"""
     assert (
         LAB_SPEC in pathlib.Path(path).read_text(encoding="utf-8").lower()
-    ), "{} lab version is out-of-sync vs {}".format(path, LAB_SPEC)
+    ), f"{path} lab version is out-of-sync vs {LAB_SPEC}"
 
 
 @pytest.mark.parametrize(
@@ -182,7 +180,7 @@ def test_jlab_versions(path):
 )
 def test_changelog_versions(pkg, version):
     """are the current versions represented in the changelog?"""
-    assert "## `{} {}`".format(pkg, version) in CHANGELOG.read_text(encoding="utf-8")
+    assert f"## `{pkg} {version}`" in CHANGELOG.read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize(

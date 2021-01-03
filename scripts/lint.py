@@ -9,12 +9,18 @@ OK = 0
 FAIL = 1
 
 ROOT = Path(__file__).parent.parent
+PYTHON_PACKAGES_PATH = ROOT / "python_packages"
 
-PY_SRC = [
-    path
-    for path in (ROOT / "py_src").rglob("*.py")
-    if ".ipynb_checkpoints" not in str(path)
-]
+PY_SRC_PACKAGES = {
+    package_path: [
+        path
+        for path in package_path.rglob("*.py")
+        if ".ipynb_checkpoints" not in str(path)
+    ]
+    for package_path in PYTHON_PACKAGES_PATH.glob("*")
+}
+
+PY_SRC = [path for paths in PY_SRC_PACKAGES.values() for path in paths]
 PY_SCRIPTS = list((ROOT / "scripts").rglob("*.py"))
 PY_DOCS = list((ROOT / "docs").rglob("*.py"))
 PY_ATEST = list((ROOT / "atest").glob("*.py"))
@@ -55,8 +61,12 @@ def lint():
                 ["isort", *ALL_PY],
                 ["black", *ALL_PY],
                 ["flake8", *ALL_PY],
+                *[
+                    # see https://github.com/python/mypy/issues/4008
+                    ["mypy", *paths]
+                    for paths in PY_SRC_PACKAGES.values()
+                ],
                 # ["pylint", *ALL_PY],
-                ["mypy", *PY_SRC],
                 ["python", "-m", "robot.tidy", "--inplace", *ALL_ROBOT],
                 ["rflint", *RFLINT, *ALL_ROBOT],
                 ["python", "scripts/atest.py", "--dryrun", "--console", "dotted"],

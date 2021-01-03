@@ -118,4 +118,4 @@ _build
 .virtual_documents/
 
 # Built labextensions
-py_src/jupyter_lsp/labextensions/
+python_packages/jupyterlab_lsp/labextensions/
