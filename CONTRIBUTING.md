@@ -327,8 +327,8 @@ server it will always win vs an auto-configured one.
 
 > See the built-in [specs][] for implementations and some [helpers][].
 
-[specs]: https://github.com/krassowski/jupyterlab-lsp/tree/master/python_packages/jupyter_lsp/src/specs
-[helpers]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/src/specs/utils.py
+[specs]: https://github.com/krassowski/jupyterlab-lsp/tree/master/python_packages/jupyter_lsp/jupyter_lsp/specs
+[helpers]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/utils.py
 
 A spec is a python function that accepts a single argument, the
 `LanguageServerManager`, and returns a dictionary of the form:
@@ -348,7 +348,7 @@ the server) and `languages` (which languages to respond to), but many number of
 other options to enrich the user experience are available in the
 [schema][] and are exercised by the current `entry_points`-based [specs][].
 
-[schema]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/src/schema/schema.json
+[schema]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/schema/schema.json
 
 The spec should only be advertised if the command _could actually_ be run:
 
@@ -367,7 +367,7 @@ The spec should only be advertised if the command _could actually_ be run:
   - use a helper script to encapsulate some complexity.
     - See the [r spec][] for an example
 
-[r spec]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/src/specs/r_languageserver.py
+[r spec]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/r_languageserver.py
 
 ##### Example: making a pip-installable `cool-language-server` spec
 

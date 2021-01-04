@@ -94,7 +94,7 @@ def update_versions(dry: bool):
             current_version=JUPYTER_LSP_VERSION,
             locations=[
                 VersionLocation(
-                    path=Path("python_packages/jupyter_lsp/src/_version.py"),
+                    path=Path("python_packages/jupyter_lsp/jupyter_lsp/_version.py"),
                     template='__version__ = "{version}"',
                 ),
                 VersionLocation(path=PIPELINE, template="PY_JLSP_VERSION: {version}"),

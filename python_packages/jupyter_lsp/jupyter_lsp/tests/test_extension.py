@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 
 def test_serverextension_path(app):
@@ -22,14 +21,6 @@ def test_serverextension(app):
                 found_lsp = True
 
     assert found_lsp, "apparently didn't install the /lsp/ route"
-
-
-def test_labextension_path(app):
-    import jupyter_lsp
-
-    paths = jupyter_lsp._jupyter_labextension_paths()
-    for path in paths:
-        assert (Path(jupyter_lsp.__file__).parent / path["src"]).exists()
 
 
 def test_default_virtual_documents_dir(app):
