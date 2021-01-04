@@ -246,10 +246,9 @@ jobs:
       - name: Describe conda
         shell: bash -l {0}
         run: |
-          conda info --no-banner
+          conda info
           conda config --show-sources
           conda config --show
-          printenv | sort
 
       - name: Install conda dependencies (unix)
         if: ${{ matrix.os != 'windows' }}
