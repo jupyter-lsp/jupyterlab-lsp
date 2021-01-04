@@ -281,8 +281,10 @@ jobs:
         run: jupyter labextension list
 
       - name: Run frontend unit tests
-        if: ${{ matrix.os != 'windows' }}
-        run: jlpm test
+        if: ${{ matrix.os == 'linux' }}
+        run: |
+          jlpm build
+          jlpm test
 
       - name: Run python tests
         run: python scripts/utest.py
