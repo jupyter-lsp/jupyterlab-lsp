@@ -76,13 +76,10 @@ jobs:
           condarc-file: .github/.condarc
 
       - name: install base conda dependencies
-        run: |
-          export MAMBA_ARGS="-n test --file requirements/github-actions.yml"
-          mamba env update --offline $MAMBA_ARGS || mamba env update $MAMBA_ARGS
+        run: mamba env update -n test --file requirements/github-actions.yml
+
       - name: install linting dependencies
-        run: |
-          export MAMBA_ARGS="-n test --file requirements/lint.yml"
-          mamba env update --offline $MAMBA_ARGS || mamba env update $MAMBA_ARGS
+        run: mamba env update -n test --file requirements/lint.yml
 
       - name: check integrity of package versions
         run: python scripts/integrity.py
@@ -147,9 +144,7 @@ jobs:
 
       - name: Install minimal build deps
         shell: bash -l {0}
-        run: |
-          export MAMBA_ARGS="-n test -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'"
-          mamba install --offline $MAMBA_ARGS || mamba install $MAMBA_ARGS
+        run: mamba install -n test -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
 
       - name: Install npm dependencies
         run: ${{ env.JLPM_CMD }}
@@ -261,9 +256,7 @@ jobs:
 
       - name: Install conda dependencies
         shell: bash -l {0}
-        run: |
-          export MAMBA_ARGS="-n test --file requirements/github-actions.yml"
-          mamba env update --offline $MAMBA_ARGS || mamba env update $MAMBA_ARGS
+        run: mamba env update -n test --file requirements/github-actions.yml
 
       - name: List all packages
         shell: bash -l {0}
