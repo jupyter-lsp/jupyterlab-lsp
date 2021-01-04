@@ -129,7 +129,7 @@
     "discovery": {
       "server": {
         "base": {
-          "name": "jupyter-lsp"
+          "name": "jupyterlab_lsp"
         },
         "managers": [
           "pip",
