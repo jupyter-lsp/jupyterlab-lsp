@@ -93,17 +93,20 @@ jobs:
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
 
-      - name: install npm dependencies
+      - name: Install npm dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: ${{ env.JLPM_CMD }}
 
-      - name: lint backend
+      - name: Build frontend
+        run: jlpm build
+
+      - name: Run frontend unit tests
+        run: jlpm test
+
+      - name: Lint backend
         run: python scripts/lint.py
 
-      - name: build schema so linting can complete
-        run: jlpm build:schema
-
-      - name: lint frontend
+      - name: Lint frontend
         run: jlpm lint:check
 
   build:
@@ -166,7 +169,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: ${{ env.JLPM_CMD }}
 
-      - name: Build the extension
+      - name: Build frontend
         run: |
           jlpm build
           jlpm bundle
@@ -306,12 +309,6 @@ jobs:
 
       - name: List frontend extensions
         run: jupyter labextension list
-
-      - name: Run frontend unit tests
-        if: ${{ matrix.os == 'ubuntu' }}
-        run: |
-          jlpm build
-          jlpm test
 
       - name: Run python tests
         run: python scripts/utest.py
