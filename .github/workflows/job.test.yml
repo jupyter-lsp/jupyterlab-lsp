@@ -95,7 +95,7 @@ jobs:
 
       - name: install npm dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: ${{ env.JLPM_COMMAND }}
+        run: ${{ env.JLPM_CMD }}
 
       - name: lint backend
         run: python scripts/lint.py
@@ -164,7 +164,7 @@ jobs:
 
       - name: install npm dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: ${{ env.JLPM_COMMAND }}
+        run: ${{ env.JLPM_CMD }}
 
       - name: Build the extension
         run: |
@@ -291,7 +291,7 @@ jobs:
 
       - name: install npm dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: ${{ env.JLPM_COMMAND }}
+        run: ${{ env.JLPM_CMD }}
 
       - uses: actions/download-artifact@v2
         with:
