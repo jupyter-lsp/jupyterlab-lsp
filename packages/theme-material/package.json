@@ -30,8 +30,7 @@
   "scripts": {
     "build": "tsc -b",
     "bundle": "npm pack .",
-    "clean": "rimraf lib",
-    "lab:link": "jupyter labextension link . --no-build"
+    "clean": "rimraf lib"
   },
   "dependencies": {
     "@krassowski/completion-theme": "~2.0.0"

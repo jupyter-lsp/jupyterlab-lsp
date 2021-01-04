@@ -49,7 +49,6 @@
     "eslint": "eslint . --ext .ts,.tsx --fix",
     "eslint:check": "eslint . --ext .ts,.tsx",
     "install:extension": "jupyter labextension develop --overwrite .",
-    "lab:link": "jupyter labextension link . --no-build",
     "prepare": "jlpm run clean && jlpm run build:prod",
     "test": "jlpm jest --coverage --coverageReporters=cobertura --coverageReporters=html --coverageReporters=text-summary",
     "watch": "run-p watch:src watch:labextension",
