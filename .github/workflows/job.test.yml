@@ -1,4 +1,5 @@
-name: tests
+name: CI
+
 on:
   push:
     branches:
@@ -15,6 +16,8 @@ env:
   # Increase this value to reset all caches
   CACHE_EPOCH: 0
 
+  JLPM_CMD: jlpm --ignore-optional --prefer-offline --frozen-lockfile
+
   PYTHONUNBUFFERED: 1
   ATEST_RETRIES: 3
 
@@ -29,6 +32,73 @@ env:
     packages/theme-material
 
 jobs:
+  lint:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        nodejs: ['>=14,<15.0.0a0']
+        lab: ['>=3.0.0,<4.0.0a0']
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: '{'
+          tokenSuffix: '}'
+          files: '["requirements/github-actions.yml"]'
+        env:
+          lab: '${{ matrix.lab }}'
+          nodejs: '${{ matrix.nodejs }}'
+
+      - name: Cache conda
+        uses: actions/cache@v1
+        with:
+          path: ~/conda_pkgs_dir
+          key: |
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-lint-${{ hashFiles('requirements/github-actions.yml', 'requirements/lint.yml') }}
+          restore-keys: |
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-lint-
+
+      - name: Cache yarn
+        uses: actions/cache@v1
+        with:
+          path: .yarn-packages
+          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
+            ${{ env.CACHE_EPOCH }}-yarn-
+
+      - name: Set up Python and mamba
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          installer-url: ${{ env.MAMBAFORGE_URL }}-Linux-x86_64.sh
+          condarc-file: .github/.condarc
+
+      - name: install base conda dependencies
+        run: |
+          export MAMBA_ARGS="-n test --file requirements/github-actions.yml"
+          mamba env update --offline $MAMBA_ARGS || mamba env update $MAMBA_ARGS
+      - name: install linting dependencies
+        run: |
+          export MAMBA_ARGS="-n test --file requirements/lint.yml"
+          mamba env update --offline $MAMBA_ARGS || mamba env update $MAMBA_ARGS
+
+      - name: check integrity of package versions
+        run: python scripts/integrity.py
+
+      - name: install npm dependencies
+        run: jlpm
+
+      - name: lint backend
+        run: python scripts/lint.py
+
+      - name: build schema so linting can complete
+        run: jlpm build:schema
+
+      - name: lint frontend
+        run: jlpm lint:check
+
   build:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -56,9 +126,9 @@ jobs:
         with:
           path: ~/conda_pkgs_dir
           key: |
-            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-build-${{ hashFiles('requirements/github-actions.yml') }}
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-build-${{ hashFiles('requirements/github-actions.yml') }}
           restore-keys: |
-            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-build-
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-build-
 
       - name: Cache yarn
         uses: actions/cache@v1
@@ -69,27 +139,20 @@ jobs:
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
 
-      - uses: cschleiden/replace-tokens@v1
-        with:
-          tokenPrefix: '{'
-          tokenSuffix: '}'
-          files: '["requirements/github-actions.yml"]'
-        env:
-          lab: '${{ matrix.lab }}'
-          nodejs: '${{ matrix.nodejs }}'
-
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
           installer-url: ${{ env.MAMBAFORGE_URL }}-Linux-x86_64.sh
-          use-only-tar-bz2: true # needs to be set for caching to work properly
+          condarc-file: .github/.condarc
 
       - name: Install minimal build deps
         shell: bash -l {0}
-        run: mamba install --no-banner -n test -c conda-forge -c nodefaults setuptools 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
+        run: |
+          export MAMBA_ARGS="-n test -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'"
+          mamba install --offline $MAMBA_ARGS || mamba install $MAMBA_ARGS
 
       - name: Install npm dependencies
-        run: jlpm --ignore-optional --prefer-offline --frozen-lockfile
+        run: ${{ env.JLPM_CMD }}
 
       - name: Build the extension
         run: |
@@ -186,8 +249,7 @@ jobs:
         with:
           installer-url: ${{ env.MAMBAFORGE_URL }}-${{ matrix.mambaforge }}
           python-version: ${{ matrix.python }}
-          channel-priority: true
-          use-only-tar-bz2: true # needs to be set for caching to work properly
+          condarc-file: .github/.condarc
 
       - name: Describe mamba and conda
         shell: bash -l {0}
@@ -199,14 +261,16 @@ jobs:
 
       - name: Install conda dependencies
         shell: bash -l {0}
-        run: mamba env update --no-banner -n test --file requirements/github-actions.yml
+        run: |
+          export MAMBA_ARGS="-n test --file requirements/github-actions.yml"
+          mamba env update --offline $MAMBA_ARGS || mamba env update $MAMBA_ARGS
 
       - name: List all packages
         shell: bash -l {0}
         run: mamba list --no-banner
 
       - name: Install npm dependencies
-        run: jlpm --ignore-optional --prefer-offline --frozen-lockfile
+        run: ${{ env.JLPM_CMD }}
 
       - uses: actions/download-artifact@v2
         with:
