@@ -19,7 +19,7 @@ env:
   ATEST_RETRIES: 3
 
   # TODO: replace once mambaforge "just works" with setup-miniconda
-  MAMBAFORGE_URL:  https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-
+  MAMBAFORGE_URL:  https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge
 
   LINKED_EXTENSIONS: >-
     packages/lsp-ws-connection
