@@ -7,6 +7,7 @@
 **/*.egg-info
 **/build
 **/dist
+**/labextensions
 **/lib
 **/node_modules
 **/package.json
@@ -19,5 +20,4 @@ docs/api
 envs
 htmlcov
 node_modules
-python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/
 tests/**/coverage
