@@ -3,9 +3,7 @@ from pathlib import Path
 
 import setuptools
 
-HERE = Path(__file__).parent
-
-LABEXTENSIONS_DIR = HERE / "jupyterlab_lsp" / "labextensions"
+LABEXTENSIONS_DIR = Path("jupyterlab_lsp/labextensions")
 LABEXTENSIONS_INSTALL_DIR = Path("share") / "jupyter" / "labextensions"
 LAB_PACKAGE_PATH = LABEXTENSIONS_DIR / "@krassowski" / "jupyterlab-lsp" / "package.json"
 
@@ -14,7 +12,7 @@ def get_data_files():
     extension_files = [
         (
             str(LABEXTENSIONS_INSTALL_DIR / file.relative_to(LABEXTENSIONS_DIR).parent),
-            [str(file)],
+            [str(file.as_posix())],
         )
         for file in LABEXTENSIONS_DIR.rglob("*.*")
     ]
@@ -25,6 +23,7 @@ def get_data_files():
             ["jupyterlab_lsp/install.json"],
         )
     )
+
     return extension_files
 
 
