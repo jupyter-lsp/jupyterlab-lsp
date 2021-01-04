@@ -86,7 +86,7 @@ jobs:
 
       - name: Install minimal build deps
         shell: bash -l {0}
-        run: mamba install -n test -c conda-forge -c nodefaults setuptools 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
+        run: mamba install --no-banner -n test -c conda-forge -c nodefaults setuptools 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
 
       - name: Install npm dependencies
         run: jlpm --ignore-optional --prefer-offline --frozen-lockfile
@@ -171,24 +171,6 @@ jobs:
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-atest-
 
-      - name: Set up Python and conda
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          installer-url: ${{ env.MAMBAFORGE_URL }}-${{ matrix.mambaforge }}
-          python-version: ${{ matrix.python }}
-          channel-priority: true
-          environment-file: requirements/github-actions.yml
-          use-only-tar-bz2: true # needs to be set for caching to work properly
-
-      - name: Describe mamba
-        shell: bash -l {0}
-        run: |
-          mamba info
-          mamba list
-          mamba config --show-sources
-          mamba config --show
-          printenv | sort
-
       - name: Cache yarn
         uses: actions/cache@v1
         with:
@@ -198,6 +180,30 @@ jobs:
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
+
+      - name: Set up Python and mamba
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          installer-url: ${{ env.MAMBAFORGE_URL }}-${{ matrix.mambaforge }}
+          python-version: ${{ matrix.python }}
+          channel-priority: true
+          use-only-tar-bz2: true # needs to be set for caching to work properly
+
+      - name: Describe mamba and conda
+        shell: bash -l {0}
+        run: |
+          mamba info --no-banner
+          conda config --show-sources
+          conda config --show
+          printenv | sort
+
+      - name: Install conda dependencies
+        shell: bash -l {0}
+        run: mamba env update --no-banner -n test --file requirements/github-actions.yml
+
+      - name: List all packages
+        shell: bash -l {0}
+        run: mamba list --no-banner
 
       - name: Install npm dependencies
         run: jlpm --ignore-optional --prefer-offline --frozen-lockfile
