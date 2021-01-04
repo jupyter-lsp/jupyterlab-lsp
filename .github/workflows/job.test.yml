@@ -143,11 +143,11 @@ jobs:
             nodejs: '>=14,<15.0.0.a0'
           # TODO: remove when mambaforge just works on setup-miniconda
           - os: ubuntu
-            mambaforge: -Linux-x86_64.sh
+            mambaforge: Linux-x86_64.sh
           - os: macos
-            mambaforge: -MacOSX-x86_64.sh
+            mambaforge: MacOSX-x86_64.sh
           - os: windows
-            mambaforge: -Windows-x86_64.exe
+            mambaforge: Windows-x86_64.exe
 
     steps:
       - uses: actions/checkout@v2
