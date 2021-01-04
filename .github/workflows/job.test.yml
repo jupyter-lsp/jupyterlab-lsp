@@ -24,13 +24,6 @@ env:
   # TODO: replace once mambaforge "just works" with setup-miniconda
   MAMBAFORGE_URL: https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge
 
-  LINKED_EXTENSIONS: >-
-    packages/lsp-ws-connection
-    packages/code-jumpers
-    packages/completion-theme
-    packages/theme-vscode
-    packages/theme-material
-
 jobs:
   lint:
     name: jstest/lint
