@@ -279,7 +279,7 @@ jobs:
         run: jupyter labextension list
 
       - name: Run frontend unit tests
-        if: ${{ matrix.os == 'linux' }}
+        if: ${{ matrix.os == 'ubuntu' }}
         run: |
           jlpm build
           jlpm test
