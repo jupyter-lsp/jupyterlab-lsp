@@ -33,6 +33,7 @@ env:
 
 jobs:
   lint:
+    name: jstest/lint
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -110,6 +111,7 @@ jobs:
         run: jlpm lint:check
 
   build:
+    name: build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -198,7 +200,7 @@ jobs:
 
   acceptance:
     runs-on: ${{ matrix.os }}-latest
-    name: ${{ matrix.os }} py${{ matrix.python }} node${{ matrix.nodejs }}
+    name: atest ${{ matrix.os }} py${{ matrix.python }}
     needs: [build]
     strategy:
       # TODO: maybe turn back on
