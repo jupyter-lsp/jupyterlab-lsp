@@ -10,7 +10,6 @@
   ],
   "types": "lib/index.d.ts",
   "scripts": {
-    "lab:link": "jupyter labextension link . --no-build",
     "build": "webpack",
     "watch": "webpack --watch",
     "bundle": "npm pack .",

@@ -1,4 +1,5 @@
-name: tests
+name: CI
+
 on:
   push:
     branches:
@@ -12,25 +13,188 @@ defaults:
     shell: bash -l {0}
 
 env:
-  # TODO extract these from files instead
-  PY_JLSP_VERSION: 1.0.0
-  JS_JLLSP_VERSION: 3.0.0
-  JS_JLG2D_VERSION: 1.0.0
+  # Increase this value to reset all caches
+  CACHE_EPOCH: 0
+
+  JLPM_CMD: jlpm --ignore-optional --prefer-offline --frozen-lockfile
 
   PYTHONUNBUFFERED: 1
   ATEST_RETRIES: 3
 
-  LINKED_EXTENSIONS: >-
-    packages/lsp-ws-connection
-    packages/code-jumpers
-    packages/completion-theme
-    packages/theme-vscode
-    packages/theme-material
+  # TODO: replace once mambaforge "just works" with setup-miniconda
+  MAMBAFORGE_URL: https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge
 
 jobs:
+  lint:
+    name: jstest/lint
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        nodejs: ['>=14,<15.0.0a0']
+        lab: ['>=3.0.0,<4.0.0a0']
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: '{'
+          tokenSuffix: '}'
+          files: '["requirements/github-actions.yml"]'
+        env:
+          lab: '${{ matrix.lab }}'
+          nodejs: '${{ matrix.nodejs }}'
+
+      - name: Cache conda
+        uses: actions/cache@v1
+        with:
+          path: ~/conda_pkgs_dir
+          key: |
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-lint-${{ hashFiles('requirements/github-actions.yml', 'requirements/lint.yml') }}
+          restore-keys: |
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-lint-
+
+      - name: Set up Python and mamba
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          installer-url: ${{ env.MAMBAFORGE_URL }}-Linux-x86_64.sh
+          condarc-file: .github/.condarc
+
+      - name: install base conda dependencies
+        run: mamba env update -n test --file requirements/github-actions.yml
+
+      - name: install linting dependencies
+        run: mamba env update -n test --file requirements/lint.yml
+
+      - name: check integrity of package versions
+        run: python scripts/integrity.py
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-lint-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+
+      - name: Cache yarn packages
+        id: cache-yarn-packages
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        uses: actions/cache@v1
+        with:
+          path: .yarn-packages
+          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
+            ${{ env.CACHE_EPOCH }}-yarn-
+
+      - name: Install npm dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: ${{ env.JLPM_CMD }}
+
+      - name: Build frontend
+        run: jlpm build
+
+      - name: Run frontend unit tests
+        run: jlpm test
+
+      - name: Lint backend
+        run: python scripts/lint.py
+
+      - name: Lint frontend
+        run: jlpm lint:check
+
+  build:
+    name: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        nodejs: ['>=14,<15.0.0a0']
+        lab: ['>=3.0.0,<4.0.0a0']
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: '{'
+          tokenSuffix: '}'
+          files: '["requirements/github-actions.yml"]'
+        env:
+          lab: '${{ matrix.lab }}'
+          nodejs: '${{ matrix.nodejs }}'
+
+      - name: Cache conda
+        uses: actions/cache@v1
+        with:
+          path: ~/conda_pkgs_dir
+          key: |
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-build-${{ hashFiles('requirements/github-actions.yml') }}
+          restore-keys: |
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-build-
+
+      - name: Set up Python and mamba
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          installer-url: ${{ env.MAMBAFORGE_URL }}-Linux-x86_64.sh
+          condarc-file: .github/.condarc
+
+      - name: Install minimal build deps
+        shell: bash -l {0}
+        run: mamba install -n test -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+
+      - name: Cache yarn packages
+        id: cache-yarn-packages
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        uses: actions/cache@v1
+        with:
+          path: .yarn-packages
+          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
+            ${{ env.CACHE_EPOCH }}-yarn-
+
+      - name: install npm dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: ${{ env.JLPM_CMD }}
+
+      - name: Build frontend
+        run: |
+          jlpm build
+          jlpm bundle
+
+      - name: Build python distributions
+        run: |
+          set -eux
+          cd python_packages/jupyter_lsp
+          python setup.py sdist bdist_wheel
+          cd ../jupyterlab_lsp
+          python setup.py sdist bdist_wheel
+
+      - name: Collect distributions
+        run: |
+          set -eux
+          mkdir dist
+          cp python_packages/*/dist/* packages/*/*.tgz dist/
+          cd dist
+          sha256sum * > SHA256SUMS
+
+      - name: Publish builds
+        uses: actions/upload-artifact@v2
+        with:
+          name: jupyterlab-lsp dist ${{ github.run_number }}
+          path: ./dist
+
   acceptance:
     runs-on: ${{ matrix.os }}-latest
-    name: ${{ matrix.os }} py${{ matrix.python }} node${{ matrix.nodejs }}
+    name: atest ${{ matrix.os }} py${{ matrix.python }}
+    needs: [build]
     strategy:
       # TODO: maybe turn back on
       fail-fast: false
@@ -50,6 +214,13 @@ jobs:
           - python: 3.8
             # Node 14 end-of-life: April 2023
             nodejs: '>=14,<15.0.0.a0'
+          # TODO: remove when mambaforge just works on setup-miniconda
+          - os: ubuntu
+            mambaforge: Linux-x86_64.sh
+          - os: macos
+            mambaforge: MacOSX-x86_64.sh
+          - os: windows
+            mambaforge: Windows-x86_64.exe
 
     steps:
       - uses: actions/checkout@v2
@@ -66,129 +237,79 @@ jobs:
 
       - name: Cache conda
         uses: actions/cache@v1
-        env:
-          # Increase this value to reset cache if requirements/github-actions.yml has not changed
-          CACHE_NUMBER: 0
         with:
           path: ~/conda_pkgs_dir
-          key: ${{ matrix.os }}-${{ matrix.python }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/github-actions.yml') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-atest-${{ hashFiles('requirements/github-actions.yml') }}
+          restore-keys: |
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-atest-
 
-      - name: Set up Python and conda
+      - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
+          installer-url: ${{ env.MAMBAFORGE_URL }}-${{ matrix.mambaforge }}
           python-version: ${{ matrix.python }}
-          channel-priority: true
-          auto-activate-base: true
-          activate-environment: jupyterlab-lsp
-          environment-file: requirements/github-actions.yml
-          auto-update-conda: true
-          use-only-tar-bz2: true # needs to be set for caching to work properly
+          condarc-file: .github/.condarc
 
       - name: Describe conda
-        shell: bash -l {0}
         run: |
           conda info
-          conda list
           conda config --show-sources
           conda config --show
-          printenv | sort
 
-      - name: Cache yarn
+      - name: Install conda dependencies (unix)
+        if: ${{ matrix.os != 'windows' }}
+        run: mamba env update -n test --file requirements/github-actions.yml
+
+      - name: Install conda dependencies (windows)
+        if: ${{ matrix.os == 'windows' }}
+        shell: cmd /C call {0}
+        run: mamba env update -n test --file requirements/github-actions.yml
+
+      - name: List all packages
+        run: conda list
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-test-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+
+      - name: Cache yarn packages
+        id: cache-yarn-packages
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: actions/cache@v1
         with:
           path: .yarn-packages
-          key: yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            yarn-${{ runner.os }}-
-            yarn-
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
+            ${{ env.CACHE_EPOCH }}-yarn-
 
-      - name: Install npm dependencies
-        run: jlpm --ignore-optional
+      - name: install npm dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: ${{ env.JLPM_CMD }}
 
-      - name: Build the extension
-        run: jlpm build
+      - uses: actions/download-artifact@v2
+        with:
+          name: jupyterlab-lsp dist ${{ github.run_number }}
+          path: ./dist
 
-      - name: Build server extension (jupyter_lsp) distribution
-        run: cd python_packages/jupyter_lsp && python setup.py sdist bdist_wheel
-
-      - name: Install server extension (jupyter_lsp) wheel
-        run: cd python_packages/jupyter_lsp/dist && python -m pip install jupyter_lsp-${{ env.PY_JLSP_VERSION }}-py3-none-any.whl --no-deps
+      - name: Install python packages
+        run: python -m pip install --find-links=dist --no-index --ignore-installed --no-deps jupyter_lsp jupyterlab_lsp
 
       - name: List server extensions
         run: jupyter server extension list
 
-      - name: Build frontend extension (jupyterlab_lsp) distribution
-        run: cd python_packages/jupyterlab_lsp && python setup.py sdist bdist_wheel
-
-      - name: Install frontend extension (jupyterlab_lsp) wheel
-        run: cd python_packages/jupyterlab_lsp/dist && python -m pip install jupyterlab_lsp-${{ env.JS_JLLSP_VERSION }}-py3-none-any.whl --no-deps
-
       - name: List frontend extensions
         run: jupyter labextension list
-
-      - name: Find out jedi cache location
-        id: jedi-cache
-        run: python -c 'import jedi; print("::set-output name=dir::" + jedi.settings.cache_directory)'
-
-      - name: Cache jedi cache
-        uses: actions/cache@v1
-        with:
-          path: ${{ steps.jedi-cache.outputs.dir }}
-          key: jedi-${{ matrix.os }}-${{ hashFiles('scripts/jedi_cache.py') }}-${{ hashFiles('requirements/github-actions.yml') }}
-
-      - name: Warm up jedi cache
-        run: python scripts/jedi_cache.py
-
-      - name: Cache tectonic cache
-        uses: actions/cache@v2
-        with:
-          # locations for: Linux, MacOS, Windows
-          path: |
-            ~/.cache/Tectonic
-            ~/Library/Caches/Tectonic
-            %LOCALAPPDATA%/TectonicProject/Tectonic
-          key: ${{ runner.os }}-${{ hashFiles('scripts/tectonic_cache.py') }}
-
-      - name: Warm up tectonic cache
-        run: python scripts/tectonic_cache.py
-
-      - name: Run frontend unit tests
-        if: ${{ !contains(matrix.os, 'windows') }}
-        run: jlpm test
-
-      #  js_cov_packages:
-      #    - code-jumpers
-      #    - jupyterlab-lsp
-
-      #- task: PublishTestResults@2
-      #  name: publish frontend test results
-      #  inputs:
-      #    testResultsFiles: packages/**/junit.xml
-      #    testRunTitle: 'Jest ${{ env.name }}${{ python.name }}'
-      #    mergeTestResults: true
-      #  condition: always()
-
-      #- ${{ each js_package in parameters.js_cov_packages }}:
-      #    - task: PublishCodeCoverageResults@1
-      #      name: 'publish ${{ js_package }} coverage'
-      #      inputs:
-      #        codeCoverageTool: Cobertura
-      #        summaryFileLocation: 'packages/${{ js_package }}/coverage/cobertura-coverage.xml'
-      #      condition: always()
 
       - name: Run python tests
         run: python scripts/utest.py
 
       - name: Run browser tests
         run: python scripts/atest.py --exclude expect:fail
-
-      #- task: PublishTestResults@2
-      #  name: publish browser test results
-      #  inputs:
-      #    testResultsFiles: atest/output/*.xunit.xml
-      #    testRunTitle: 'Robot ${{ env.name }}${{ python.name }}'
-      #    mergeTestResults: true
-      #  condition: always()
 
       - name: Publish browser test output
         uses: actions/upload-artifact@v2

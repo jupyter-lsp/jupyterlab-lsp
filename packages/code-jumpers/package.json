@@ -26,8 +26,7 @@
   "scripts": {
     "build": "tsc -b",
     "bundle": "npm pack .",
-    "clean": "rimraf lib",
-    "lab:link": "jupyter labextension link . --no-build"
+    "clean": "rimraf lib"
   },
   "peerDependencies": {
     "@jupyterlab/apputils": "^3.0.0",
@@ -55,6 +54,6 @@
   },
   "jupyterlab": {
     "extension": false,
-    "outputDir": "../../python_packages/jupyterlab_lsp/labextensions/@krassowski/code-jumpers"
+    "outputDir": "../../python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/@krassowski/code-jumpers"
   }
 }

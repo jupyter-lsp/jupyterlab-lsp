@@ -16,6 +16,7 @@ PY_SRC_PACKAGES = {
         path
         for path in package_path.rglob("*.py")
         if ".ipynb_checkpoints" not in str(path)
+        and "/build/" not in str(path.as_posix())
     ]
     for package_path in PYTHON_PACKAGES_PATH.glob("*")
 }

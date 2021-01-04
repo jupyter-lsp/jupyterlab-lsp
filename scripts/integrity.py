@@ -111,19 +111,6 @@ def the_installation_notebook():
 
 
 @pytest.mark.parametrize(
-    "name,version",
-    [
-        ["PY_JLSP_VERSION", PY_VERSION],
-        ["JS_JLLSP_VERSION", JS_LSP_VERSION],
-        ["JS_JLG2D_VERSION", JS_CJS_VERSION],
-    ],
-)
-def test_ci_variables(name, version):
-    """Are the CI version variables consistent?"""
-    assert PIPE_VARS[name] == version
-
-
-@pytest.mark.parametrize(
     "name,info", [p for p in PACKAGES.items() if p[0] != META_NAME]
 )
 def test_ts_package_integrity(name, info, the_meta_package):

@@ -49,7 +49,6 @@
     "eslint": "eslint . --ext .ts,.tsx --fix",
     "eslint:check": "eslint . --ext .ts,.tsx",
     "install:extension": "jupyter labextension develop --overwrite .",
-    "lab:link": "jupyter labextension link . --no-build",
     "prepare": "jlpm run clean && jlpm run build:prod",
     "test": "jlpm jest --coverage --coverageReporters=cobertura --coverageReporters=html --coverageReporters=text-summary",
     "watch": "run-p watch:src watch:labextension",
@@ -130,7 +129,7 @@
     "discovery": {
       "server": {
         "base": {
-          "name": "jupyter-lsp"
+          "name": "jupyterlab_lsp"
         },
         "managers": [
           "pip",
@@ -139,6 +138,6 @@
       }
     },
     "schemaDir": "schema",
-    "outputDir": "../../python_packages/jupyterlab_lsp/labextensions/@krassowski/jupyterlab-lsp"
+    "outputDir": "../../python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/@krassowski/jupyterlab-lsp"
   }
 }

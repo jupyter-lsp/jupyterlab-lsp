@@ -29,8 +29,7 @@
   "scripts": {
     "build": "tsc -b",
     "bundle": "npm pack .",
-    "clean": "rimraf lib",
-    "lab:link": "jupyter labextension link . --no-build"
+    "clean": "rimraf lib"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^3.0.0",
@@ -43,6 +42,6 @@
   "jupyterlab": {
     "extension": true,
     "schemaDir": "schema",
-    "outputDir": "../../python_packages/jupyterlab_lsp/labextensions/@krassowski/completion-theme"
+    "outputDir": "../../python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/@krassowski/completion-theme"
   }
 }
