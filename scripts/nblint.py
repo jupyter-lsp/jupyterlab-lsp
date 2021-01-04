@@ -13,7 +13,7 @@ ERROR = 1
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
-from versions import JUPYTER_LSP_PATH
+from versions import JUPYTER_LSP_PATH  # noqa: E402
 
 DOCS_IPYNB = [
     nb
