@@ -60,15 +60,6 @@ jobs:
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-lint-
 
-      - name: Cache yarn
-        uses: actions/cache@v1
-        with:
-          path: .yarn-packages
-          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
-            ${{ env.CACHE_EPOCH }}-yarn-
-
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
@@ -84,8 +75,27 @@ jobs:
       - name: check integrity of package versions
         run: python scripts/integrity.py
 
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-lint-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+
+      - name: Cache yarn packages
+        id: cache-yarn-packages
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        uses: actions/cache@v1
+        with:
+          path: .yarn-packages
+          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
+            ${{ env.CACHE_EPOCH }}-yarn-
+
       - name: install npm dependencies
-        run: jlpm
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: ${{ env.JLPM_COMMAND }}
 
       - name: lint backend
         run: python scripts/lint.py
@@ -124,15 +134,6 @@ jobs:
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-build-
 
-      - name: Cache yarn
-        uses: actions/cache@v1
-        with:
-          path: .yarn-packages
-          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
-            ${{ env.CACHE_EPOCH }}-yarn-
-
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
@@ -143,8 +144,27 @@ jobs:
         shell: bash -l {0}
         run: mamba install -n test -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
 
-      - name: Install npm dependencies
-        run: ${{ env.JLPM_CMD }}
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+
+      - name: Cache yarn packages
+        id: cache-yarn-packages
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        uses: actions/cache@v1
+        with:
+          path: .yarn-packages
+          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
+            ${{ env.CACHE_EPOCH }}-yarn-
+
+      - name: install npm dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: ${{ env.JLPM_COMMAND }}
 
       - name: Build the extension
         run: |
@@ -226,16 +246,6 @@ jobs:
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-atest-
 
-      - name: Cache yarn
-        uses: actions/cache@v1
-        with:
-          path: .yarn-packages
-          key: |
-            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
-            ${{ env.CACHE_EPOCH }}-yarn-
-
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
@@ -261,8 +271,27 @@ jobs:
       - name: List all packages
         run: conda list
 
-      - name: Install npm dependencies
-        run: ${{ env.JLPM_CMD }}
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-test-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+
+      - name: Cache yarn packages
+        id: cache-yarn-packages
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        uses: actions/cache@v1
+        with:
+          path: .yarn-packages
+          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
+            ${{ env.CACHE_EPOCH }}-yarn-
+
+      - name: install npm dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: ${{ env.JLPM_COMMAND }}
 
       - uses: actions/download-artifact@v2
         with:
