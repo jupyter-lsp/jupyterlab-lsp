@@ -244,7 +244,6 @@ jobs:
           condarc-file: .github/.condarc
 
       - name: Describe conda
-        shell: bash -l {0}
         run: |
           conda info
           conda config --show-sources
@@ -260,8 +259,7 @@ jobs:
         run: mamba env update -n test --file requirements/github-actions.yml
 
       - name: List all packages
-        shell: bash -l {0}
-        run: mamba list --no-banner
+        run: conda list
 
       - name: Install npm dependencies
         run: ${{ env.JLPM_CMD }}
