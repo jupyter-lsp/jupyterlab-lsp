@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 import setuptools
@@ -27,7 +28,16 @@ def get_data_files():
     return extension_files
 
 
+_version = json.loads(LAB_PACKAGE_PATH.read_text(encoding="utf-8"))["version"]
+_release = re.findall(
+    r"""__release__ = "([^"]+)"$""",
+    (Path(__file__).parent / "jupyterlab_lsp" / "_version.py").read_text(
+        encoding="utf-8"
+    ),
+    flags=re.MULTILINE,
+)[0]
+
 setuptools.setup(
-    version=json.loads(LAB_PACKAGE_PATH.read_text(encoding="utf-8"))["version"],
+    version=f"{_version}{_release}",
     data_files=get_data_files(),
 )

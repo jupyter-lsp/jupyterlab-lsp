@@ -2,7 +2,11 @@ import json
 
 from ._paths import MAIN_PACKAGE_PATH
 
-__all__ = ["__version__"]
-__version__ = json.loads(
+_js_version = json.loads(
     (MAIN_PACKAGE_PATH / "package.json").read_text(encoding="utf-8")
 )["version"]
+
+__all__ = ["__version__"]
+# value should conform to https://www.python.org/dev/peps/pep-0440/
+__release__ = "rc0"
+__version__ = f"{_js_version}{__release__}"
