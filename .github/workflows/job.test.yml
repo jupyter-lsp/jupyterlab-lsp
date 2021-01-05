@@ -172,6 +172,7 @@ jobs:
       - name: Build python distributions
         run: |
           set -eux
+          cp README.md python_packages/jupyterlab_lsp
           cd python_packages/jupyter_lsp
           python setup.py sdist bdist_wheel
           cd ../jupyterlab_lsp
