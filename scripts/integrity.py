@@ -14,6 +14,7 @@ import jsonschema
 import nbformat
 import pytest
 from nbconvert.preprocessors import ExecutePreprocessor
+from packaging.version import Version
 
 try:
     import ruamel.yaml as yaml
@@ -160,7 +161,7 @@ def test_jlab_versions(path):
 @pytest.mark.parametrize(
     "pkg,version",
     [
-        [PY_NAME, PY_VERSION],
+        [PY_NAME, Version(PY_VERSION).base_version],
         [JS_LSP_NAME, JS_LSP_VERSION],
         [JS_CJS_NAME, JS_CJS_VERSION],
     ],
