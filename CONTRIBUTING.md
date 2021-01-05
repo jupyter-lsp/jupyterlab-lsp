@@ -60,20 +60,20 @@ Once your environment is created and activated, on Linux/OSX you can run:
 bash binder/postBuild
 ```
 
-This performs all of the basic setup steps, and is used for the binder demo.
+This performs all the basic setup steps, and is used for the binder demo.
 
 #### The Hard Way
 
 Install `jupyter-lsp` from source in your virtual environment:
 
 ```bash
-python -m pip install -e . --ignore-installed --no-deps -vv
+python -m pip install -e python_packages/jupter_lsp --ignore-installed --no-deps -vv
 ```
 
 Enable the server extension:
 
 ```bash
-jupyter serverextension enable --sys-prefix --py jupyter_lsp
+jupyter server extension enable --sys-prefix --py jupyter_lsp
 ```
 
 Install `npm` dependencies, build TypeScript packages, and link
@@ -81,7 +81,8 @@ to JupyterLab for development:
 
 ```bash
 jlpm bootstrap
-pip install .
+# if you installed `jupyterlab_lsp` before uninstall it before running the next line
+jupyter labextension develop python_packages/jupyterlab_lsp/ --overwrite
 ```
 
 ### Frontend Development
@@ -99,6 +100,9 @@ To watch the files and build continuously:
 jlpm watch   # leave this running...
 jupyter lab --watch  # ...in another terminal
 ```
+
+Now after each change to TypesScript files wait until both watchers finish compilation,
+and then refresh the JupyterLab in your browser.
 
 > Note: the backend schema is not included in `watch`, and is only refreshed by `build`
 
@@ -226,7 +230,7 @@ python scripts/atest.py --test "Works With Kernel Running"
 
 ##### Run test with a tag
 
-Tags are preferrable to file names and test name matching in many settings, as
+Tags are preferable to file names and test name matching in many settings, as
 they are aggregated nicely between runs.
 
 ```bash
