@@ -34,6 +34,7 @@ _release = re.findall(
     (Path(__file__).parent / "jupyterlab_lsp" / "_version.py").read_text(
         encoding="utf-8"
     ),
+    flags=re.MULTILINE,
 )[0]
 
 setuptools.setup(
