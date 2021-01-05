@@ -7,4 +7,6 @@ _js_version = json.loads(
 )["version"]
 
 __all__ = ["__version__"]
-__version__ = _js_version + "rc0"
+# value should conform to https://www.python.org/dev/peps/pep-0440/
+__release__ = "rc0"
+__version__ = f"{_js_version}{__release__}"
