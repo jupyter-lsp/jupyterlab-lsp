@@ -20,6 +20,7 @@ env:
 
   PYTHONUNBUFFERED: 1
   ATEST_RETRIES: 3
+  PIP_DISABLE_PIP_VERSION_CHECK: 1
 
   # TODO: replace once mambaforge "just works" with setup-miniconda
   MAMBAFORGE_URL: https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge
@@ -184,7 +185,7 @@ jobs:
           mkdir dist
           cp python_packages/*/dist/* packages/*/*.tgz dist/
           cd dist
-          sha256sum * > SHA256SUMS
+          sha256sum * | tee SHA256SUMS
 
       - name: Publish builds
         uses: actions/upload-artifact@v2
@@ -321,3 +322,55 @@ jobs:
           name: ${{ job.status }} Robot ${{ matrix.os }} Python ${{ matrix.python }} ${{ github.run_number }}
           path: ./atest/output
         if: always()
+
+  smoke:
+    name: smoke ${{ matrix.os }} py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}-latest
+    needs: [build, lint]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+        python: ['3.6', '3.9', 'pypy3']
+        exclude:
+          - os: windows
+            python: pypy3
+        include:
+          - python: '3.6'
+            dist: 'jupyter*lsp*.tar.gz'
+          - python: 'pypy3'
+            dist: 'jupyter*lsp*.tar.gz'
+          - python: '3.9'
+            dist: 'jupyter*lsp*.whl'
+          - os: windows
+            py_cmd: python
+          - os: macos
+            py_cmd: python3
+          - os: ubuntu
+            py_cmd: python
+    steps:
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: 'x64'
+      - uses: actions/download-artifact@v2
+        with:
+          name: jupyterlab-lsp dist ${{ github.run_number }}
+          path: ./dist
+      - name: Install the prerequisites
+        run: ${{ matrix.py_cmd }} -m pip install pip wheel
+      - name: Install the package
+        run: cd dist && ${{ matrix.py_cmd }} -m pip install -vv ${{ matrix.dist }}
+      - name: Validate environment
+        run: |
+          set -eux
+          ${{ matrix.py_cmd }} -m pip freeze
+          ${{ matrix.py_cmd }} -m pip check
+      - name: Validate the install
+        run: |
+          set -eux
+          jupyter labextension list
+          jupyter server extension list
+          jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
+          jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
