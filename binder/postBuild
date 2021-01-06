@@ -1,24 +1,23 @@
 #!/usr/bin/env bash
 set -eux
 
-# do a dev install of the server side
-python -m pip install -e . --ignore-installed --no-deps -vv
-jupyter serverextension enable --sys-prefix --py jupyter_lsp
-
-# should have no extensions
-jupyter labextension list
-
-# do a dev build of the client side
+# Build labextensions
 jlpm bootstrap
 
-# link all pieces to lab (no build)
-jlpm lab:link && jupyter labextension list
+# Do a dev install of the server side
+pushd python_packages/jupyter_lsp
+python setup.py sdist bdist_wheel
+python -m pip install -e . --ignore-installed --no-deps -vv
+jupyter serverextension enable --sys-prefix --py jupyter_lsp
+popd
 
-# list extensions before build
-jupyter labextension list
+# Install the labextension
+pushd python_packages/jupyterlab_lsp
+python setup.py sdist bdist_wheel
+python -m pip install -e . --ignore-installed --no-deps -vv
+jupyter labextension develop . --overwrite
+popd
 
-# actually build
-jupyter lab build --debug --dev-build=False --minimize=True
-
-# list extensions again
+# List extensions
+jupyter serverextension list
 jupyter labextension list

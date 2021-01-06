@@ -10,10 +10,11 @@ Multi-[Language Server][language-server] WebSocket proxy for your Jupyter
 # Language Servers
 
 `jupyter-lsp` does not come with any Language Servers! Learn more about installing
-and configuring [language servers](../../docs/LANGUAGESERVERS.md)
+and configuring [language servers][language servers docs]
 
 [language-server]: https://microsoft.github.io/language-server-protocol/specification
 [langserver]: https://langserver.org
 [lsp-implementations]: https://microsoft.github.io/language-server-protocol/implementors/servers
 [jupyter-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
 [jupyterlab]: https://github.com/jupyterlab/jupyterlab
+[language servers docs]: https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html

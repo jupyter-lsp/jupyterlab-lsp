@@ -29,11 +29,11 @@ You can contribute to the project through:
 
 Development requires, at a minimum:
 
-- `nodejs >=10.12,<15`
+- `nodejs >=12,<15`
 - `python >=3.6,<3.9.0a0`
-  - Python 3.6 and 3.8 are also tested on CI
+  - Python 3.7 and 3.8 are also tested on CI
   - Python 3.6 has issues on Windows
-- `jupyterlab >=2.2.0,<3.0.0a0`
+- `jupyterlab >=3.0.0,<4.0.0a0`
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
 for development.
@@ -60,29 +60,29 @@ Once your environment is created and activated, on Linux/OSX you can run:
 bash binder/postBuild
 ```
 
-This performs all of the basic setup steps, and is used for the binder demo.
+This performs all the basic setup steps, and is used for the binder demo.
 
 #### The Hard Way
 
 Install `jupyter-lsp` from source in your virtual environment:
 
 ```bash
-python -m pip install -e .
+python -m pip install -e python_packages/jupter_lsp --ignore-installed --no-deps -vv
 ```
 
 Enable the server extension:
 
 ```bash
-jupyter serverextension enable --sys-prefix --py jupyter_lsp
+jupyter server extension enable --sys-prefix --py jupyter_lsp
 ```
 
 Install `npm` dependencies, build TypeScript packages, and link
 to JupyterLab for development:
 
 ```bash
-jlpm
-jlpm build
-jlpm lab:link
+jlpm bootstrap
+# if you installed `jupyterlab_lsp` before uninstall it before running the next line
+jupyter labextension develop python_packages/jupyterlab_lsp/ --overwrite
 ```
 
 ### Frontend Development
@@ -100,6 +100,9 @@ To watch the files and build continuously:
 jlpm watch   # leave this running...
 jupyter lab --watch  # ...in another terminal
 ```
+
+Now after each change to TypesScript files wait until both watchers finish compilation,
+and then refresh the JupyterLab in your browser.
 
 > Note: the backend schema is not included in `watch`, and is only refreshed by `build`
 
@@ -227,7 +230,7 @@ python scripts/atest.py --test "Works With Kernel Running"
 
 ##### Run test with a tag
 
-Tags are preferrable to file names and test name matching in many settings, as
+Tags are preferable to file names and test name matching in many settings, as
 they are aggregated nicely between runs.
 
 ```bash
@@ -328,8 +331,8 @@ server it will always win vs an auto-configured one.
 
 > See the built-in [specs][] for implementations and some [helpers][].
 
-[specs]: https://github.com/krassowski/jupyterlab-lsp/tree/master/py_src/jupyter_lsp/specs
-[helpers]: https://github.com/krassowski/jupyterlab-lsp/blob/master/py_src/jupyter_lsp/specs/utils.py
+[specs]: https://github.com/krassowski/jupyterlab-lsp/tree/master/python_packages/jupyter_lsp/jupyter_lsp/specs
+[helpers]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/utils.py
 
 A spec is a python function that accepts a single argument, the
 `LanguageServerManager`, and returns a dictionary of the form:
@@ -349,7 +352,7 @@ the server) and `languages` (which languages to respond to), but many number of
 other options to enrich the user experience are available in the
 [schema][] and are exercised by the current `entry_points`-based [specs][].
 
-[schema]: https://github.com/krassowski/jupyterlab-lsp/blob/master/py_src/jupyter_lsp/schema/schema.json
+[schema]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/schema/schema.json
 
 The spec should only be advertised if the command _could actually_ be run:
 
@@ -368,7 +371,7 @@ The spec should only be advertised if the command _could actually_ be run:
   - use a helper script to encapsulate some complexity.
     - See the [r spec][] for an example
 
-[r spec]: https://github.com/krassowski/jupyterlab-lsp/blob/master/py_src/jupyter_lsp/specs/r_languageserver.py
+[r spec]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/r_languageserver.py
 
 ##### Example: making a pip-installable `cool-language-server` spec
 

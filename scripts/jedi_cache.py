@@ -43,8 +43,8 @@ import time
 
 import IPython
 import jedi
+import jupyter_server
 import jupyterlab
-import notebook
 import parso
 import pyls
 
@@ -75,7 +75,7 @@ def print_versions():
     print(IPython.__version__, "\t", "ipython")
     print(jedi.__version__, "\t", "jedi")
     print(jupyterlab.__version__, "\t", "jupyterlab")
-    print(notebook.__version__, "\t", "notebook")
+    print(jupyter_server.__version__, "\t", "notebook")
     print(parso.__version__, "\t", "parso")
     print(pyls.__version__, "\t", "pyls")
 

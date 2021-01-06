@@ -53,6 +53,7 @@ Last Occurrence
 Trigger Via Hover With Modifier
     [Arguments]    ${sel}
     # bring the cursor to the element
+    Wokraround Visibility Problem    ${sel}
     Mouse Over    ${sel}
     # move it back and forth (wiggle) while hodling the ctrl modifier
     Mouse Over With Control    ${sel}    x_wiggle=5
@@ -62,6 +63,7 @@ Trigger Via Hover With Modifier
 Trigger Via Modifier Key Press
     [Arguments]    ${sel}
     # bring the cursor to the element
+    Wokraround Visibility Problem    ${sel}
     Mouse Over    ${sel}
     Wait Until Page Contains Element    ${HOVER_SIGNAL}    timeout=10s
     Mouse Over And Wiggle    ${sel}    5
@@ -76,3 +78,8 @@ Trigger Tooltip
 
 Setup Hover Test
     Setup Notebook    Python    Hover.ipynb
+
+Wokraround Visibility Problem
+    [Arguments]    ${sel}
+    ${width}    ${height} =    Get Element Size    ${sel}
+    Run Keyword If    ${width} == 0    Cover Element    ${sel}    # don't know why but otherwise it raises Message: TypeError: rect is undefined

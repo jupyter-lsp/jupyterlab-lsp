@@ -2,15 +2,15 @@
 """
 from typing import Optional, Text
 
-from notebook.base.handlers import IPythonHandler
-from notebook.base.zmqhandlers import WebSocketHandler, WebSocketMixin
-from notebook.utils import url_path_join as ujoin
+from jupyter_server.base.handlers import JupyterHandler
+from jupyter_server.base.zmqhandlers import WebSocketHandler, WebSocketMixin
+from jupyter_server.utils import url_path_join as ujoin
 
 from .manager import LanguageServerManager
 from .schema import SERVERS_RESPONSE
 
 
-class BaseHandler(IPythonHandler):
+class BaseHandler(JupyterHandler):
     manager = None  # type: LanguageServerManager
 
     def initialize(self, manager: LanguageServerManager):

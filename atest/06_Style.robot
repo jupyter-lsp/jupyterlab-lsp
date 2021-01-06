@@ -23,7 +23,7 @@ Screenshot Editor Themes with Lab Theme
     Set Screenshot Directory    ${SCREENSHOTS DIR}${/}style${/}${norm lab theme}
     Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
     Run Keyword If    "${THEME NAMES}" == ""    Wait Until Keyword Succeeds    3x    1s    Get Theme Names
-    Lab Command    Use ${lab theme} Theme
+    Lab Command    Use Theme: ${lab theme}
     Try to Close All Tabs
     Setup Notebook    python    ${notebook}    isolated=${False}
     Open ${file} in ${MENU EDITOR}

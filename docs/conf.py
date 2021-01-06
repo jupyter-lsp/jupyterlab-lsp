@@ -18,7 +18,12 @@ nbsphinx.RST_TEMPLATE = nbsphinx.RST_TEMPLATE.replace(
 
 
 sys.path.insert(
-    0, str((pathlib.Path.cwd().parent / "py_src" / "jupyter_lsp").resolve())
+    0,
+    str(
+        (
+            pathlib.Path.cwd().parent / "python_packages" / "jupyter_lsp" / "src"
+        ).resolve()
+    ),
 )
 
 project = "Jupyter[Lab] Language Server"

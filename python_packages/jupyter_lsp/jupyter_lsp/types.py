@@ -19,7 +19,7 @@ from typing import (
     Text,
 )
 
-from notebook.transutils import _
+from jupyter_server.transutils import _
 from traitlets import Instance
 from traitlets import List as List_
 from traitlets import Unicode, default

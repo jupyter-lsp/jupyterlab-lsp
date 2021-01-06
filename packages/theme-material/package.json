@@ -17,7 +17,7 @@
     "url": "https://github.com/krassowski/jupyterlab-lsp/issues"
   },
   "license": "BSD-3-Clause",
-  "author": "JupyterLab-LSP Developement Team",
+  "author": "JupyterLab-LSP Development Team",
   "files": [
     "{lib,style,schema,src}/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css,json,ts,tsx,txt,md}"
   ],
@@ -30,8 +30,7 @@
   "scripts": {
     "build": "tsc -b",
     "bundle": "npm pack .",
-    "clean": "rimraf lib",
-    "lab:link": "jupyter labextension link . --no-build"
+    "clean": "rimraf lib"
   },
   "dependencies": {
     "@krassowski/completion-theme": "~2.0.0"
@@ -40,6 +39,7 @@
   "peerDependencies": {},
   "jupyterlab": {
     "extension": true,
-    "schemaDir": "schema"
+    "schemaDir": "schema",
+    "outputDir": "../../python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/@krassowski/theme-material"
   }
 }
