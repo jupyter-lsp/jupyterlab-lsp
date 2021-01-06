@@ -8,6 +8,7 @@ import json
 import pathlib
 import sys
 import tempfile
+from configparser import ConfigParser
 from importlib.util import find_spec
 
 import jsonschema
@@ -28,7 +29,8 @@ sys.path.insert(0, str(ROOT))
 if True:
     # a workaround for isort 4.0 limitations
     # see https://github.com/timothycrosley/isort/issues/468
-    from versions import JUPYTER_LSP_VERSION as PY_VERSION
+    from versions import JUPYTER_LSP_VERSION as PY_SERVER_VERSION
+    from versions import REQUIRED_JUPYTER_SERVER  # noqa
     from versions import REQUIRED_JUPYTERLAB as LAB_SPEC  # noqa
 
 REQS = ROOT / "requirements"
@@ -57,6 +59,10 @@ JS_LSP_VERSION = PACKAGES[JS_LSP_NAME][1]["version"]
 
 JS_CJS_NAME = f"{NPM_NS}/code-jumpers"
 JS_CJS_VERSION = PACKAGES[JS_CJS_NAME][1]["version"]
+
+PY_PATH = ROOT / "python_packages"
+PY_SERVER_PATH = PY_PATH / "jupyter_lsp"
+PY_FRONT_PATH = PY_PATH / "jupyterlab_lsp"
 
 # py stuff
 PY_NAME = "jupyter-lsp"
@@ -161,7 +167,7 @@ def test_jlab_versions(path):
 @pytest.mark.parametrize(
     "pkg,version",
     [
-        [PY_NAME, Version(PY_VERSION).base_version],
+        [PY_NAME, Version(PY_SERVER_VERSION).base_version],
         [JS_LSP_NAME, JS_LSP_VERSION],
         [JS_CJS_NAME, JS_CJS_VERSION],
     ],
@@ -174,9 +180,9 @@ def test_changelog_versions(pkg, version):
 @pytest.mark.parametrize(
     "pkg,sep,version,expected",
     [
-        [PY_NAME, "=", PY_VERSION, 2],
-        [PY_NAME, "==", PY_VERSION, 1],
-        [PY_NAME + "-python", "=", PY_VERSION, 1],
+        [PY_NAME, "=", PY_SERVER_VERSION, 2],
+        [PY_NAME, "==", PY_SERVER_VERSION, 1],
+        [PY_NAME + "-python", "=", PY_SERVER_VERSION, 1],
         [JS_LSP_NAME, "@", JS_LSP_VERSION, 4],
     ],
 )
@@ -207,6 +213,21 @@ def test_contributing_versions(the_contributing_doc, the_binder_env, pkg):
     for spec in the_binder_env["dependencies"]:
         if isinstance(spec, str) and spec.startswith(f"{pkg} "):
             assert spec in the_contributing_doc
+
+
+@pytest.mark.parametrize(
+    "pkg,requirement,spec",
+    [
+        [PY_FRONT_PATH, "jupyter_lsp", f">={PY_SERVER_VERSION}"],
+        [PY_FRONT_PATH, "jupyterlab", LAB_SPEC],
+        [PY_SERVER_PATH, "jupyter_server", REQUIRED_JUPYTER_SERVER],
+    ],
+)
+def test_install_requires(pkg, requirement, spec):
+    """are python packages requirements consistent with other versions?"""
+    config = ConfigParser()
+    config.read(pkg / "setup.cfg")
+    assert f"{requirement} {spec}" in config["options"]["install_requires"]
 
 
 def check_integrity():
