@@ -75,7 +75,7 @@ Use context menu on rows in the panel to filter out diagnostics or copy their me
 
 ## Prerequisites
 
-You will need to have all of the following installed:
+You will need to have both of the following installed:
 
 - JupyterLab >=3.0.0,<4.0.0a0
 - Python 3.6+

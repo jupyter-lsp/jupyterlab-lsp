@@ -65,7 +65,8 @@ PY_SERVER_PATH = PY_PATH / "jupyter_lsp"
 PY_FRONT_PATH = PY_PATH / "jupyterlab_lsp"
 
 # py stuff
-PY_NAME = "jupyter-lsp"
+PY_SERVER_NAME = "jupyter-lsp"
+PY_FRONT_NAME = "jupyterlab-lsp"
 
 
 # CI stuff
@@ -167,7 +168,7 @@ def test_jlab_versions(path):
 @pytest.mark.parametrize(
     "pkg,version",
     [
-        [PY_NAME, Version(PY_SERVER_VERSION).base_version],
+        [PY_SERVER_NAME, Version(PY_SERVER_VERSION).base_version],
         [JS_LSP_NAME, JS_LSP_VERSION],
         [JS_CJS_NAME, JS_CJS_VERSION],
     ],
@@ -180,15 +181,22 @@ def test_changelog_versions(pkg, version):
 @pytest.mark.parametrize(
     "pkg,sep,version,expected",
     [
-        [PY_NAME, "=", PY_SERVER_VERSION, 2],
-        [PY_NAME, "==", PY_SERVER_VERSION, 1],
-        [PY_NAME + "-python", "=", PY_SERVER_VERSION, 1],
-        [JS_LSP_NAME, "@", JS_LSP_VERSION, 4],
+        [PY_SERVER_NAME, "=", PY_SERVER_VERSION, 1],  # TODO: update docker instructions
+        [
+            PY_SERVER_NAME,
+            "==",
+            PY_SERVER_VERSION,
+            0,
+        ],  # zero because jupyterlab-lsp is good enough
+        [PY_SERVER_NAME + "-python", "=", PY_SERVER_VERSION, 1],
+        [JS_LSP_NAME, "@", JS_LSP_VERSION, 1],  # TODO: update docker instructions
+        [PY_FRONT_NAME, "=", JS_LSP_VERSION, 3],
     ],
 )
 def test_installation_versions(the_installation_notebook, pkg, sep, version, expected):
     """are the first-party versions consistent with the package metadata?"""
-    assert the_installation_notebook.count(f"{pkg}{sep}{version}") == expected
+    spec = f"{pkg}{sep}{version}"
+    assert the_installation_notebook.count(spec) == expected, spec
 
 
 @pytest.mark.parametrize(
