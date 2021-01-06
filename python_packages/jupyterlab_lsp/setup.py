@@ -30,7 +30,7 @@ def get_data_files():
 
 _version = json.loads(LAB_PACKAGE_PATH.read_text(encoding="utf-8"))["version"]
 _release = re.findall(
-    r"""__release__ = "([^"]+)"$""",
+    r"""__release__ = "([^"]*)"$""",
     (Path(__file__).parent / "jupyterlab_lsp" / "_version.py").read_text(
         encoding="utf-8"
     ),
