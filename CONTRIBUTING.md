@@ -85,6 +85,8 @@ jlpm bootstrap
 jupyter labextension develop python_packages/jupyterlab_lsp/ --overwrite
 ```
 
+> Note: on Windows you may need to enable Developer Mode first, as discussed in [jupyterlab#9564](https://github.com/jupyterlab/jupyterlab/issues/9564)
+
 ### Frontend Development
 
 To rebuild the schemas, packages, and the JupyterLab app:

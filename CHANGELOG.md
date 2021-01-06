@@ -1,12 +1,12 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 3.0.0` (2021-01-XX)
+### `@krassowski/jupyterlab-lsp 3.0.0` (2021-01-06)
 
 - features
 
   - support for JupyterLab 3.0 ([#452], [#402])
 
-### `jupyter-lsp 1.0.0` (2021-XX-XX)
+### `jupyter-lsp 1.0.0` (2021-01-06)
 
 - features
 
