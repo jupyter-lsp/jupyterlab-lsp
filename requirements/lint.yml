@@ -10,3 +10,4 @@ dependencies:
   - mypy
   - robotframework-lint >=1.1
   - robotframework >=3.2
+  - pytest-tornasync

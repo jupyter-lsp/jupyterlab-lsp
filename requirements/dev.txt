@@ -1,5 +1,6 @@
 # development dependencies for jupyter_lsp for qa, with lab
 -r ./utest.txt
+packaging
 pyls-black
 pyls-isort
 pyls-mypy

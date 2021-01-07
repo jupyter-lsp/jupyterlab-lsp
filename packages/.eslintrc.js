@@ -17,6 +17,7 @@ module.exports = {
   ],
   ignorePatterns: [
     '**/node_modules/**/*',
+    'python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/**/*',
     '**/lib/**/*',
     '**/_*.ts',
     '**/_*.d.ts',
@@ -64,7 +65,9 @@ module.exports = {
     'jest/valid-expect': 'off',
     'no-async-promise-executor': 'off',
     'prefer-spread': 'off',
-    'react/display-name': 'off'
+    'react/display-name': 'off',
+    // TODO: re-enable once the lsp-ws-connection tests are re-written to jest
+    'jest/no-done-callback': 'off'
   },
   settings: {
     react: {

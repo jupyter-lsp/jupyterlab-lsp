@@ -75,11 +75,14 @@ Use context menu on rows in the panel to filter out diagnostics or copy their me
 
 ## Prerequisites
 
-You will need to have all of the following installed:
+You will need to have both of the following installed:
 
-- JupyterLab >=2.2.0,<3.0.0a0
+- JupyterLab >=3.0.0,<4.0.0a0
 - Python 3.6+
-- nodejs 10.12+
+
+In addition, if you wish to use javascript, html, markdown or any other NodeJS-based language server you will need to have appropriate NodeJS version installed.
+
+> Note: Installation for JupyterLab 2.x requires a different procedure, please consult the documentation for the extension [version 2.x][version 2.x docs].
 
 ## Installation
 
@@ -94,35 +97,18 @@ Use of a python `virtualenv` or a conda env is also recommended.
    conda install -c conda-forge python=3
    ```
 
-1. install JupyterLab and the server extension
+1. install JupyterLab and the extensions
 
    ```bash
-   conda install -c conda-forge 'jupyterlab>=2.2,<3.0.0a0' jupyter-lsp
+   conda install -c conda-forge 'jupyterlab>=3.0.0,<4.0.0a0' jupyterlab-lsp
    # or
-   pip install 'jupyterlab>=2.2,<3.0.0a0' jupyter-lsp
+   pip install 'jupyterlab>=3.0.0,<4.0.0a0' jupyterlab-lsp
    ```
+
+   > Note: `jupyterlab-lsp` provides both the server extension and the lab extension.
 
    > Note: With conda, you could take advantage of the bundles: `jupyter-lsp-python`
    > or `jupyter-lsp-r` to install both the server extension and the language server.
-
-1. install `nodejs`
-
-   ```bash
-   conda install -c conda-forge nodejs
-   # or one of the following, as an administrator
-   choco install nodejs            # Windows with Chocolatey
-   sudo apt-get install nodejs     # Debian/Ubuntu
-   sudo brew install nodejs        # MacOS with Homebrew
-   sudo dnf install nodejs         # Fedora
-   sudo yum install nodejs         # RHEL/CentOS
-   ```
-
-1. install the frontend extension:
-
-   ```bash
-   jupyter labextension install @krassowski/jupyterlab-lsp           # for JupyterLab 2.x
-   # jupyter labextension install @krassowski/jupyterlab-lsp@0.8.0   # for JupyterLab 1.x
-   ```
 
 1. install LSP servers for languages of your choice; for example, for Python
    ([pyls](https://github.com/palantir/python-language-server)) and
@@ -164,27 +150,6 @@ Use of a python `virtualenv` or a conda env is also recommended.
    you will not be able to open the file. A more detailed guide on symlinking
    (written for a related jupyterlab-go-to-definition extension) is available
    [here](https://github.com/krassowski/jupyterlab-go-to-definition/blob/master/README.md#which-directories-to-symlink).
-
-### Updating
-
-To update previously installed extensions:
-
-```bash
-conda update jupyter-lsp
-jupyter labextension update @krassowski/jupyterlab-lsp
-# or
-pip install -U jupyter-lsp
-jupyter labextension update @krassowski/jupyterlab-lsp
-```
-
-### Getting the latest alpha/beta/RC version
-
-Use `install` command (update does not seem to work) appending `@<0.x.y.rc-z>` to the
-extension name, like this:
-
-```bash
-jupyter labextension install @krassowski/jupyterlab-lsp@0.7.0-rc.0
-```
 
 ### Configuring the servers
 
@@ -265,3 +230,4 @@ This would not be possible without the fantastic initial work at
 
 [language-servers]: https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html
 [installation-documentation]: https://jupyterlab-lsp.readthedocs.io/en/latest/Installation.html
+[version 2.x docs]: https://jupyterlab-lsp.readthedocs.io/en/2.x/Installation.html

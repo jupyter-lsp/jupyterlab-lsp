@@ -6,7 +6,7 @@ about: Help us improve language servers we don't know about
 <!--
 Welcome! Before creating a new issue:
 * Search for relevant issues
-* Ensure your language server is not supported in LANGUAGESERVERS.md
+* Ensure your language server is not supported: https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html
 * Follow the issue reporting guidelines:
 https://jupyterlab.readthedocs.io/en/latest/getting_started/issue.html
 -->
@@ -39,14 +39,14 @@ https://jupyterlab.readthedocs.io/en/latest/getting_started/issue.html
 - Browser and version:
 - JupyterLab version:
 - `jupyter-lsp` version:
-- `@krassowski/jupyterlab-lsp` version:
+- `jupyterlab-lsp` version:
 - Language Server:
 - Language Server version:
 - Language Server installed with: <!-- e.g. system package manager, app package manager -->
 - Language Server Spec
 
 ```python
-# jupyter_notebook_config.json
+# jupyter_server_config.json
 {
   "LanguageServerManager": {
     "language_servers": {
