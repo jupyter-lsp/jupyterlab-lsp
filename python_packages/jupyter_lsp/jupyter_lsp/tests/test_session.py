@@ -70,3 +70,30 @@ async def test_start_unknown(known_unknown_server, handlers, jsonrpc_init_msg):
 
     assert not manager.sessions.get(ws_handler.language_server)
     assert_status_set(handler, {"not_started"})
+
+
+@pytest.mark.asyncio
+async def test_ping(handlers):
+    """see https://github.com/krassowski/jupyterlab-lsp/issues/458"""
+    a_server = "pyls"
+
+    handler, ws_handler = handlers
+    manager = handler.manager
+
+    manager.initialize()
+
+    assert ws_handler.ping_interval > 0
+    # the default ping interval is 30 seconds, too long for a test
+    ws_handler.settings["ws_ping_interval"] = 0.1
+    assert ws_handler.ping_interval == 0.1
+
+    assert ws_handler._ping_sent is False
+
+    ws_handler.open(a_server)
+
+    assert ws_handler.ping_callback is not None and ws_handler.ping_callback.is_running
+    await asyncio.sleep(ws_handler.ping_interval * 3)
+
+    assert ws_handler._ping_sent is True
+
+    ws_handler.on_close()

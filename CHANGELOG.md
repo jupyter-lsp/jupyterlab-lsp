@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### `jupyter-lsp 1.0.1` (unreleased)
+
+- bug fixes:
+
+  - send periodic pings on websocket channels to maintain connection ([#459], thanks @franckchen)
+
+[#459]: https://github.com/krassowski/jupyterlab-lsp/pull/459
+
 ### `@krassowski/jupyterlab-lsp 3.0.0` (2021-01-06)
 
 - features
