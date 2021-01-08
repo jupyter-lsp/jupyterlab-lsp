@@ -67,7 +67,7 @@ This performs all the basic setup steps, and is used for the binder demo.
 Install `jupyter-lsp` from source in your virtual environment:
 
 ```bash
-python -m pip install -e python_packages/jupter_lsp --ignore-installed --no-deps -vv
+python -m pip install -e python_packages/jupyter_lsp --ignore-installed --no-deps -vv
 ```
 
 Enable the server extension:
