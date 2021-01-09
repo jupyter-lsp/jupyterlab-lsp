@@ -187,14 +187,20 @@ Works With Incorrect Theme
     Completer Should Suggest    TabError
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
 
-Completes Correctly With R Double Colon
+Completes Correctly With R Double And Triple Colon
     [Setup]    Prepare File for Editing    R    completion    completion.R
     Place Cursor In File Editor At    2    7
     Wait Until Fully Initialized
     Trigger Completer
     Completer Should Suggest    assertCondition
     Select Completer Suggestion    assertCondition
-    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    1    %R tools::assertCondition
+    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    1    tools::assertCondition
+    # tripple colont
+    Place Cursor In File Editor At    4    11
+    Trigger Completer
+    Completer Should Suggest    .packageName
+    Select Completer Suggestion    .packageName
+    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    3    datasets:::.packageName
     [Teardown]    Clean Up After Working With File    completion.R
 
 *** Keywords ***
