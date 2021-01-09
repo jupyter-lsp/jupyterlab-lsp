@@ -2,7 +2,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from typing import List, Text
+from typing import List, Text, Union
 
 from ..schema import SPEC_VERSION
 from ..types import (
@@ -39,6 +39,9 @@ class ShellSpec(SpecBase):  # pragma: no cover
 
     cmd = ""
 
+    def is_installed(self, cmd: Union[str, None]) -> bool:
+        return bool(cmd)
+
     def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
         for ext in ["", ".cmd", ".bat", ".exe"]:
             cmd = shutil.which(self.cmd + ext)
@@ -48,7 +51,7 @@ class ShellSpec(SpecBase):  # pragma: no cover
         if not cmd and BUILDING_DOCS:  # pragma: no cover
             cmd = self.cmd
 
-        if not cmd:  # pragma: no cover
+        if not self.is_installed(cmd):  # pragma: no cover
             return {}
 
         return {

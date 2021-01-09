@@ -5,8 +5,10 @@
 - bug fixes:
 
   - send periodic pings on websocket channels to maintain connection ([#459], thanks @franckchen)
+  - R languageserver is no longer incorrectly shown as available when not installed ([#463])
 
 [#459]: https://github.com/krassowski/jupyterlab-lsp/pull/459
+[#463]: https://github.com/krassowski/jupyterlab-lsp/pull/463
 
 ### `@krassowski/jupyterlab-lsp 3.0.0` (2021-01-06)
 
