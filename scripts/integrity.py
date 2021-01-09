@@ -155,6 +155,7 @@ def test_ts_package_integrity(name, info, the_meta_package):
             CI / "job.test.yml",
             MAIN_README,
             BINDER / "environment.yml",
+            DOCS / "rtd.yml",
         ],
     ),
 )
