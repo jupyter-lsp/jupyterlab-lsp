@@ -40,7 +40,7 @@ Works When Kernel Is Shut Down
     Completer Should Not Suggest    %%timeit
 
 Works In File Editor
-    Prepare File for Editing    Python    completion    completion.py
+    [Setup]    Prepare File for Editing    Python    completion    completion.py
     Place Cursor In File Editor At    9    2
     Capture Page Screenshot    01-editor-ready.png
     Trigger Completer
@@ -188,12 +188,14 @@ Works With Incorrect Theme
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
 
 Completes Correctly With R Double Colon
-   Prepare File for Editing  R   completion    completion.R
-   Place Cursor In File Editor At    2    7
-   Trigger Completer
-   Completer Should Suggest    assertCondition
-   Select Completer Suggestion  assertCondition
-   Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    17    %R tools::assertCondition
+    [Setup]    Prepare File for Editing    R    completion    completion.R
+    Wait Until Fully Initialized
+    Place Cursor In File Editor At    2    7
+    Trigger Completer
+    Completer Should Suggest    assertCondition
+    Select Completer Suggestion    assertCondition
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    17    %R tools::assertCondition
+    [Teardown]    Clean Up After Working With File    completion.R
 
 *** Keywords ***
 Setup Completion Test
