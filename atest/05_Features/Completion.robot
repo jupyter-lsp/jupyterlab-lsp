@@ -40,7 +40,7 @@ Works When Kernel Is Shut Down
     Completer Should Not Suggest    %%timeit
 
 Works In File Editor
-    Prepare File for Editing    Python    completion    completion.py
+    [Setup]    Prepare File for Editing    Python    completion    completion.py
     Place Cursor In File Editor At    9    2
     Capture Page Screenshot    01-editor-ready.png
     Trigger Completer
@@ -187,6 +187,22 @@ Works With Incorrect Theme
     Completer Should Suggest    TabError
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
 
+Completes Correctly With R Double And Triple Colon
+    [Setup]    Prepare File for Editing    R    completion    completion.R
+    Place Cursor In File Editor At    2    7
+    Wait Until Fully Initialized
+    Trigger Completer
+    Completer Should Suggest    assertCondition
+    Select Completer Suggestion    assertCondition
+    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    1    tools::assertCondition
+    # tripple colont
+    Place Cursor In File Editor At    4    11
+    Trigger Completer
+    Completer Should Suggest    .packageName
+    Select Completer Suggestion    .packageName
+    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    3    datasets:::.packageName
+    [Teardown]    Clean Up After Working With File    completion.R
+
 *** Keywords ***
 Setup Completion Test
     Setup Notebook    Python    Completion.ipynb
@@ -196,10 +212,20 @@ Get Cell Editor Content
     ${content}    Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()
     [Return]    ${content}
 
+Get File Editor Content
+    ${content}    Execute JavaScript    return document.querySelector('.jp-FileEditorCodeWrapper .CodeMirror').CodeMirror.getValue()
+    [Return]    ${content}
+
 Cell Editor Should Equal
     [Arguments]    ${cell}    ${value}
     ${content} =    Get Cell Editor Content    ${cell}
     Should Be Equal    ${content}    ${value}
+
+File Editor Line Should Equal
+    [Arguments]    ${line}    ${value}
+    ${content} =    Get File Editor Content
+    ${line} =    Get Line    ${content}    ${line}
+    Should Be Equal    ${line}    ${value}
 
 Select Completer Suggestion
     [Arguments]    ${text}
