@@ -18,7 +18,7 @@ dependencies:
       - pytest-check-links
       - python-language-server
       - recommonmark
-      - sphinx
+      - sphinx <=3.4.0
       - sphinx_rtd_theme
       - sphinx-autodoc-typehints
       - sphinx-copybutton
