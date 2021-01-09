@@ -189,12 +189,12 @@ Works With Incorrect Theme
 
 Completes Correctly With R Double Colon
     [Setup]    Prepare File for Editing    R    completion    completion.R
-    Wait Until Fully Initialized
     Place Cursor In File Editor At    2    7
+    Wait Until Fully Initialized
     Trigger Completer
     Completer Should Suggest    assertCondition
     Select Completer Suggestion    assertCondition
-    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    17    %R tools::assertCondition
+    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    1    %R tools::assertCondition
     [Teardown]    Clean Up After Working With File    completion.R
 
 *** Keywords ***
@@ -206,10 +206,20 @@ Get Cell Editor Content
     ${content}    Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()
     [Return]    ${content}
 
+Get File Editor Content
+    ${content}    Execute JavaScript    return document.querySelector('.jp-FileEditorCodeWrapper .CodeMirror').CodeMirror.getValue()
+    [Return]    ${content}
+
 Cell Editor Should Equal
     [Arguments]    ${cell}    ${value}
     ${content} =    Get Cell Editor Content    ${cell}
     Should Be Equal    ${content}    ${value}
+
+File Editor Line Should Equal
+    [Arguments]    ${line}    ${value}
+    ${content} =    Get File Editor Content
+    ${line} =    Get Line    ${content}    ${line}
+    Should Be Equal    ${line}    ${value}
 
 Select Completer Suggestion
     [Arguments]    ${text}

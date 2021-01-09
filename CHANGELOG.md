@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 3.0.1` (unreleased)
+
+- bug fixes:
+
+  - fix completions with R double and triple colon prefix ([#449])
+
+[#449]: https://github.com/krassowski/jupyterlab-lsp/pull/449
+
 ### `jupyter-lsp 1.0.1` (unreleased)
 
 - bug fixes:
