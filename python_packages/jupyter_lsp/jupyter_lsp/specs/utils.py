@@ -2,7 +2,8 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from typing import List, Text
+from subprocess import check_output
+from typing import List, Text, Union
 
 from ..schema import SPEC_VERSION
 from ..types import (
@@ -17,13 +18,17 @@ HELPERS = Path(__file__).parent / "helpers"
 # when building docs, let all specs go through
 BUILDING_DOCS = os.environ.get("JUPYTER_LSP_BUILDING_DOCS") is not None
 
+# String corresponding to a fragment of a shell command
+# arguments list such as returned by `shlex.split`
+Token = Text
+
 
 class SpecBase:
     """Base for a spec finder that returns a spec for starting a language server"""
 
     key = ""
     languages = []  # type: List[Text]
-    args = []  # type: List[Text]
+    args = []  # type: List[Token]
     spec = {}  # type: LanguageServerSpec
 
     def __call__(
@@ -39,6 +44,23 @@ class ShellSpec(SpecBase):  # pragma: no cover
 
     cmd = ""
 
+    # [optional] arguments passed to `cmd` which upon execution should print
+    # out a non-empty string if the the required language server package
+    # is installed, or nothing if it is missing and user action is required.
+    is_installed_args = []  # type: List[Token]
+
+    def is_installed(self, cmd: Union[str, None]) -> bool:
+        if not cmd:
+            return False
+
+        if not self.is_installed_args:
+            return bool(cmd)
+        else:
+            check_result = check_output([cmd, *self.is_installed_args]).decode(
+                encoding="utf-8"
+            )
+            return check_result != ""
+
     def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
         for ext in ["", ".cmd", ".bat", ".exe"]:
             cmd = shutil.which(self.cmd + ext)
@@ -48,7 +70,7 @@ class ShellSpec(SpecBase):  # pragma: no cover
         if not cmd and BUILDING_DOCS:  # pragma: no cover
             cmd = self.cmd
 
-        if not cmd:  # pragma: no cover
+        if not self.is_installed(cmd):  # pragma: no cover
             return {}
 
         return {
