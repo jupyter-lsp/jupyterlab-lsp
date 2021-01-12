@@ -18,8 +18,7 @@ let local = {
     '\\.svg$': 'jest-raw-loader'
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(@jupyterlab/.*)/)',
-    '/node_modules/(?!(@jupyterlab-classic/.*)/)'
+    '/node_modules/(?!(@jupyterlab/.*|@jupyterlab-classic/.*)/)'
   ],
   testLocationInResults: true,
   reporters: [...upstream['reporters'], 'jest-github-actions-reporter']
