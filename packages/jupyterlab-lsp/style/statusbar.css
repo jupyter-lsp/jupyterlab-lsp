@@ -113,3 +113,7 @@ h5 {
 body[data-jp-theme-light='false'] .lsp-status-icon.ready svg g {
   fill: var(--jp-success-color1);
 }
+
+.lsp-statusbar-item.jp-mod-selected .jp-icon-selectable[fill] {
+  fill: #fff;
+}
