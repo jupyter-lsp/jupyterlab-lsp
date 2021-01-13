@@ -1193,10 +1193,10 @@
   resolved "https://registry.yarnpkg.com/@joe-re/sql-parser/-/sql-parser-0.11.5.tgz#8382dac1aaec3ebd1acd245bbbab1825e96e0648"
   integrity sha512-0WL/ibfrcY00MoDS/zffNTQqnvxpeWVwslODCLgMr96A6bC8huEzQh3byk1gEkSIjClCb1TLOjwr37mSbei6Fw==
 
-"@jupyterlab-classic/application@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@jupyterlab-classic/application/-/application-0.1.1.tgz#7df5de2db5c45f0d95672579ae8238a3b965b650"
-  integrity sha512-K/hPVXfHpphJbKxYejlquGBTfd6aMT0cd+hnZZXZ/RAOB82+9Vdx4EhzEDwoncP/CX0d8ZtnZIzjVyukatktaw==
+"@jupyterlab-classic/application@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@jupyterlab-classic/application/-/application-0.1.2.tgz#6b5946e13c705a1142ae9bb06e16b00658c237be"
+  integrity sha512-9XP3G35QI5hKpG09+51Kl5jDIXbbPkaVQwZiILYbao198LLlSzW6aYHJFjl9JNr2zEXOn4KmLA995BDraSNnIw==
   dependencies:
     "@jupyterlab/application" "^3.0.0"
     "@jupyterlab/coreutils" "^5.0.0"
