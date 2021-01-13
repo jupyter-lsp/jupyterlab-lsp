@@ -17,7 +17,9 @@ let local = {
     '\\.(js|jsx)?$': './transform.js',
     '\\.svg$': 'jest-raw-loader'
   },
-  transformIgnorePatterns: ['/node_modules/(?!(@jupyterlab/.*)/)'],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(@jupyterlab/.*|@jupyterlab-classic/.*)/)'
+  ],
   testLocationInResults: true,
   reporters: [...upstream['reporters'], 'jest-github-actions-reporter']
 };

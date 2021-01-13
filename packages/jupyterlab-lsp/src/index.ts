@@ -11,7 +11,7 @@ import { LanguageServerManager } from './manager';
 import '../style/index.css';
 import { ContextCommandManager } from './command_manager';
 import { IStatusBar } from '@jupyterlab/statusbar';
-import { LSPStatus } from './components/statusbar';
+import { StatusButtonExtension } from './components/statusbar';
 import { DocumentConnectionManager } from './connection_manager';
 import {
   IAdapterTypeOptions,
@@ -32,17 +32,14 @@ import { WIDGET_ADAPTER_MANAGER } from './adapter_manager';
 import { FILE_EDITOR_ADAPTER } from './adapters/file_editor';
 import { NOTEBOOK_ADAPTER } from './adapters/notebook';
 import { VIRTUAL_EDITOR_MANAGER } from './virtual/editor';
-import IPaths = JupyterFrontEnd.IPaths;
 import { CODEMIRROR_VIRTUAL_EDITOR } from './virtual/codemirror_editor';
-import { LabIcon } from '@jupyterlab/ui-components';
-import codeCheckSvg from '../style/icons/code-check.svg';
 import { DIAGNOSTICS_PLUGIN } from './features/diagnostics';
 import { COMPLETION_PLUGIN } from './features/completion';
 import { CODE_EXTRACTORS_MANAGER } from './extractors/manager';
 import { IForeignCodeExtractorsRegistry } from './extractors/types';
 import {
-  ILSPCodeOverridesManager,
-  ICodeOverridesRegistry
+  ICodeOverridesRegistry,
+  ILSPCodeOverridesManager
 } from './overrides/tokens';
 import { DEFAULT_TRANSCLUSIONS } from './transclusions/defaults';
 import { SYNTAX_HIGHLIGHTING_PLUGIN } from './features/syntax_highlighting';
@@ -50,13 +47,9 @@ import { COMPLETION_THEME_MANAGER } from '@krassowski/completion-theme';
 import { plugin as THEME_VSCODE } from '@krassowski/theme-vscode';
 import { plugin as THEME_MATERIAL } from '@krassowski/theme-material';
 import { CODE_OVERRIDES_MANAGER } from './overrides';
+import IPaths = JupyterFrontEnd.IPaths;
 
 export * from './tokens';
-
-export const codeCheckIcon = new LabIcon({
-  name: 'lsp:codeCheck',
-  svgstr: codeCheckSvg
-});
 
 export interface IFeatureOptions {
   /**
@@ -130,27 +123,33 @@ export class LSPExtension implements ILSPExtension {
     private palette: ICommandPalette,
     documentManager: IDocumentManager,
     paths: IPaths,
-    status_bar: IStatusBar,
     adapterManager: ILSPAdapterManager,
     public editor_type_manager: ILSPVirtualEditorManager,
     private code_extractors_manager: ILSPCodeExtractorsManager,
-    private code_overrides_manager: ILSPCodeOverridesManager
+    private code_overrides_manager: ILSPCodeOverridesManager,
+    status_bar: IStatusBar | null
   ) {
     this.language_server_manager = new LanguageServerManager({});
     this.connection_manager = new DocumentConnectionManager({
       language_server_manager: this.language_server_manager
     });
 
-    const status_bar_item = new LSPStatus(adapterManager);
-    status_bar_item.model.language_server_manager = this.language_server_manager;
-    status_bar_item.model.connection_manager = this.connection_manager;
-
-    status_bar.registerStatusItem(PLUGIN_ID + ':language-server-status', {
-      item: status_bar_item,
-      align: 'left',
-      rank: 1,
-      isActive: () => adapterManager.isAnyActive()
+    const statusButtonExtension = new StatusButtonExtension({
+      language_server_manager: this.language_server_manager,
+      connection_manager: this.connection_manager,
+      adapter_manager: adapterManager
     });
+
+    if (status_bar !== null) {
+      status_bar.registerStatusItem(PLUGIN_ID + ':language-server-status', {
+        item: statusButtonExtension.createItem(),
+        align: 'left',
+        rank: 1,
+        isActive: () => adapterManager.isAnyActive()
+      });
+    } else {
+      app.docRegistry.addWidgetExtension('Notebook', statusButtonExtension);
+    }
 
     this.feature_manager = new FeatureManager();
 
@@ -216,12 +215,12 @@ const plugin: JupyterFrontEndPlugin<ILSPFeatureManager> = {
     ICommandPalette,
     IDocumentManager,
     IPaths,
-    IStatusBar,
     ILSPAdapterManager,
     ILSPVirtualEditorManager,
     ILSPCodeExtractorsManager,
     ILSPCodeOverridesManager
   ],
+  optional: [IStatusBar],
   activate: (app, ...args) => {
     let extension = new LSPExtension(
       app,
@@ -230,11 +229,11 @@ const plugin: JupyterFrontEndPlugin<ILSPFeatureManager> = {
         ICommandPalette,
         IDocumentManager,
         IPaths,
-        IStatusBar,
         ILSPAdapterManager,
         ILSPVirtualEditorManager,
         ILSPCodeExtractorsManager,
-        ILSPCodeOverridesManager
+        ILSPCodeOverridesManager,
+        IStatusBar | null
       ])
     );
     return extension.feature_manager;
