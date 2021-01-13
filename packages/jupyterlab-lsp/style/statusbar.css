@@ -117,3 +117,7 @@ body[data-jp-theme-light='false'] .lsp-status-icon.ready svg g {
 .lsp-statusbar-item.jp-mod-selected .jp-icon-selectable[fill] {
   fill: #fff;
 }
+
+.jp-ToolbarButton .lsp-status-icon svg {
+  top: 5px;
+}
