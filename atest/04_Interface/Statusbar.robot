@@ -19,6 +19,18 @@ Statusbar Popup Opens
     Element Should Contain    ${POPOVER}    initialized
     [Teardown]    Clean Up After Working With File    Python.ipynb
 
+Status Changes Between Notebooks
+    Setup Notebook    Python    Python.ipynb
+    Wait Until Fully Initialized
+    Lab Command    New Notebook
+    # Kernel selection dialog shows up, accept Python as default kernel
+    Accept Default Dialog Option
+    Element Should Contain    ${STATUSBAR}    Waiting...
+    Wait Until Fully Initialized
+    Switch To Tab    Python.ipynb
+    Wait Until Fully Initialized
+    [Teardown]    Clean Up After Working With File    Python.ipynb
+
 Status Changes Correctly Between Editors
     Prepare File for Editing    Python    status    example.py
     Wait Until Fully Initialized
