@@ -128,7 +128,7 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
         // TODO: add a config buttons next to the language header
         let list = documents.map((document, i) => {
           let connection = this.model.connection_manager.connections.get(
-            document.id_path
+            document.uri
           );
 
           let status = '';
@@ -457,8 +457,8 @@ export namespace LSPStatus {
       // detected documents with LSP servers available
       let documents_with_servers = new Set<VirtualDocument>();
 
-      detected_documents.forEach((document, id_path) => {
-        let connection = this._connection_manager.connections.get(id_path);
+      detected_documents.forEach((document, uri) => {
+        let connection = this._connection_manager.connections.get(uri);
         if (!connection) {
           absent_documents.add(document);
           return;
@@ -572,7 +572,7 @@ export namespace LSPStatus {
 
     change_adapter(adapter: WidgetAdapter<IDocumentWidget> | null) {
       if (this._adapter != null) {
-        this._adapter.status_message.changed.connect(this._onChange);
+        this._adapter.status_message.changed.disconnect(this._onChange);
       }
 
       if (adapter != null) {
@@ -586,6 +586,9 @@ export namespace LSPStatus {
       return this._connection_manager;
     }
 
+    /**
+     * Note: it is ever only set once, as connection_manager is a singleton.
+     */
     set connection_manager(connection_manager) {
       if (this._connection_manager != null) {
         this._connection_manager.connected.disconnect(this._onChange);
