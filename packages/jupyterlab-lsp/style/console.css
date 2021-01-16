@@ -1,7 +1,8 @@
 .lsp-floating-console {
   position: absolute;
   width: 600px;
-  height: 350px;
+  min-height: 350px;
+  height: 25%;
   right: 0;
   bottom: 0;
   background: rgba(255, 255, 255, 0.8);
@@ -11,6 +12,7 @@
   margin: 0;
   list-style-type: none;
   padding: 5px;
+  z-index: 100;
 }
 
 .lsp-code {

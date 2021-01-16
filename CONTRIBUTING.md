@@ -292,9 +292,8 @@ python scripts/combine.py
 
   and re-run the tests.
 
-- To display logs on the screenshots, write logs with `virtual_editor.console.log` method,
-  and change `create_console('browser')` to `create_console('floating')` in `VirtualEditor`
-  constructor (please feel free to add a config option for this).
+- To display logs on the screenshots, configure the built-in `ILSPLogConsole` console,
+  to use the `'floating'` implementation.
 
 - If you see:
 
@@ -302,7 +301,7 @@ python scripts/combine.py
 
   `geckodriver >=0.27.0` requires an _actual_ Firefox executable. Several places
   will be checked (including where `conda-forge` installs, as in CI): to test
-  a Firefox _not_ on your `PATH`, set the following enviroment variable:
+  a Firefox _not_ on your `PATH`, set the following environment variable:
 
   ```bash
   export FIREFOX_BINARY=/path/to/firefox      # ... unix
@@ -436,3 +435,7 @@ Build it!
 ```bash
 python setup.py sdist bdist_wheel
 ```
+
+## Debugging
+
+Adjust `loggingLevel` in the `Advanced Settings Editor` -> `Language Server` to see more log messages.

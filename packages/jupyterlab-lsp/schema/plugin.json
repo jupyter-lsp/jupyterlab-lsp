@@ -33,6 +33,20 @@
       "additionalProperties": {
         "$ref": "#/definitions/language-server"
       }
+    },
+    "loggingConsole": {
+      "title": "Logging console type",
+      "type": "string",
+      "enum": ["browser", "floating"],
+      "default": "browser",
+      "description": "The console to use for debugging problems with this extension. Allowed values are: browser, floating."
+    },
+    "loggingLevel": {
+      "title": "Logging console verbosity level",
+      "type": "string",
+      "enum": ["debug", "log", "warn", "error"],
+      "default": "warn",
+      "description": "The verbosity of the console for debugging problems with this extension. Allowed values are: debug, log, warn, error."
     }
   },
   "jupyter.lab.shortcuts": []
