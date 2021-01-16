@@ -12,7 +12,7 @@ import asyncio
 import io
 import os
 from concurrent.futures import ThreadPoolExecutor
-from typing import Text
+from typing import List, Optional, Text
 
 from tornado.concurrent import run_on_executor
 from tornado.gen import convert_yielded
@@ -30,7 +30,9 @@ class LspStdIoBase(LoggingConfigurable):
 
     executor = None
 
-    stream = Instance(io.BufferedIOBase, help="the stream to read/write")
+    stream = Instance(
+        io.BufferedIOBase, help="the stream to read/write"
+    )  # type: io.BufferedIOBase
     queue = Instance(Queue, help="queue to get/put")
 
     def __repr__(self):  # pragma: no cover
@@ -95,6 +97,39 @@ class LspStdIoReader(LspStdIoBase):
                 self.log.exception("%s couldn't enqueue message: %s", self, message)
                 await self.sleep()
 
+    def _read_content(self, length: int, max_parts=1000) -> Optional[bytes]:
+        """Read the full length of the message unless exceeding max_parts.
+
+        See https://github.com/krassowski/jupyterlab-lsp/issues/450
+
+        Crucial docs or read():
+            "If the argument is positive, and the underlying raw
+             stream is not interactive, multiple raw reads may be issued
+             to satisfy the byte count (unless EOF is reached first)"
+
+        Args:
+           - length: the content length
+           - max_parts: prevent absurdly long messages (1000 parts is several MBs):
+             1 part is usually sufficent but not enough for some long
+             messages 2 or 3 parts are often needed.
+        """
+        raw_parts: List[bytes] = []
+        received_size = 0
+        while received_size < length and len(raw_parts) < max_parts:
+            part = self.stream.read(length)
+            if part is None:
+                break  # pragma: no cover
+            received_size += len(part)
+            raw_parts.append(part)
+
+        if raw_parts:
+            raw = b"".join(raw_parts)
+            if len(raw) != length:  # pragma: no cover
+                self.log.warning(
+                    f"Readout and content-length mismatch:" f" {len(raw)} vs {length}"
+                )
+        return raw
+
     async def read_one(self) -> Text:
         """Read a single message"""
         message = ""
@@ -114,7 +149,7 @@ class LspStdIoReader(LspStdIoBase):
                 retries = 5
                 while raw is None and retries:
                     try:
-                        raw = self.stream.read(content_length)
+                        raw = self._read_content(length=content_length)
                     except OSError:  # pragma: no cover
                         raw = None
                     if raw is None:  # pragma: no cover

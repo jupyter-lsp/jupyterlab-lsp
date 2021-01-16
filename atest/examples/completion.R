@@ -2,3 +2,5 @@
 tools::
 # `datasets:::<tab>` → select `.packageName` → `datasets:::.packageName`
 datasets:::
+# `base:::<tab>` → works
+base:::

@@ -9,14 +9,16 @@
 
 - bug fixes:
 
-  - fix completions with R double and triple colon prefix ([#449])
-  - fix contrast on status icon when status item is active ([#465])
-  - fix connection manager loosing track of notebooks when multiple were open ([#474])
+  - namespace completions in R (after double and triple colon) now work properly ([#449])
+  - improved status icon contrast when status item is active ([#465])
+  - connection manager now properly keeps track of notebooks when multiple notebooks are open ([#474])
+  - new cells added after kernel restart now work properly; kernel changes are handled correctly ([#478])
 
 [#449]: https://github.com/krassowski/jupyterlab-lsp/pull/449
 [#465]: https://github.com/krassowski/jupyterlab-lsp/pull/465
 [#474]: https://github.com/krassowski/jupyterlab-lsp/pull/474
 [#476]: https://github.com/krassowski/jupyterlab-lsp/pull/476
+[#478]: https://github.com/krassowski/jupyterlab-lsp/pull/478
 
 ### `jupyter-lsp 1.0.1` (unreleased)
 
@@ -24,9 +26,11 @@
 
   - send periodic pings on websocket channels to maintain connection ([#459], thanks @franckchen)
   - R languageserver is no longer incorrectly shown as available when not installed ([#463])
+  - fix completion of very large namespaces (e.g. in R's base or in JavaScript) due to truncated message relay ([#477])
 
 [#459]: https://github.com/krassowski/jupyterlab-lsp/pull/459
 [#463]: https://github.com/krassowski/jupyterlab-lsp/pull/463
+[#477]: https://github.com/krassowski/jupyterlab-lsp/pull/477
 
 ### `@krassowski/jupyterlab-lsp 3.0.0` (2021-01-06)
 
