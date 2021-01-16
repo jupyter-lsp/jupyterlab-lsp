@@ -22,9 +22,11 @@
 
   - send periodic pings on websocket channels to maintain connection ([#459], thanks @franckchen)
   - R languageserver is no longer incorrectly shown as available when not installed ([#463])
+  - fix completion of very large namespaces (e.g. in R's base or in JavaScript) due to truncated message relay ([#477])
 
 [#459]: https://github.com/krassowski/jupyterlab-lsp/pull/459
 [#463]: https://github.com/krassowski/jupyterlab-lsp/pull/463
+[#477]: https://github.com/krassowski/jupyterlab-lsp/pull/477
 
 ### `@krassowski/jupyterlab-lsp 3.0.0` (2021-01-06)
 
