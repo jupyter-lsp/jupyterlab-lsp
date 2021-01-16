@@ -23,6 +23,7 @@ Status Changes Between Notebooks
     Setup Notebook    Python    Python.ipynb
     Wait Until Fully Initialized
     Lab Command    New Notebook
+    Wait For Dialog
     # Kernel selection dialog shows up, accept Python as default kernel
     Accept Default Dialog Option
     Element Should Contain    ${STATUSBAR}    Waiting...
