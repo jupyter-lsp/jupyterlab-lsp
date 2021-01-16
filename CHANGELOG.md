@@ -5,6 +5,7 @@
 - features
 
   - make the extension work with `jupyterlab-classic` - experimental, not all features are functional yet ([#465])
+  - new status "Server extension missing" and a dialog with advice was added to help users with atypical configurations ([#476])
 
 - bug fixes:
 
@@ -16,6 +17,7 @@
 [#449]: https://github.com/krassowski/jupyterlab-lsp/pull/449
 [#465]: https://github.com/krassowski/jupyterlab-lsp/pull/465
 [#474]: https://github.com/krassowski/jupyterlab-lsp/pull/474
+[#476]: https://github.com/krassowski/jupyterlab-lsp/pull/476
 [#478]: https://github.com/krassowski/jupyterlab-lsp/pull/478
 
 ### `jupyter-lsp 1.0.1` (unreleased)
