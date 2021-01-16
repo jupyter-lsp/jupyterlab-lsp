@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 3.0.1` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.1.0` (unreleased)
 
 - features
 
@@ -10,9 +10,11 @@
 
   - fix completions with R double and triple colon prefix ([#449])
   - fix contrast on status icon when status item is active ([#465])
+  - fix connection manager loosing track of notebooks when multiple were open ([#474])
 
 [#449]: https://github.com/krassowski/jupyterlab-lsp/pull/449
 [#465]: https://github.com/krassowski/jupyterlab-lsp/pull/465
+[#474]: https://github.com/krassowski/jupyterlab-lsp/pull/474
 
 ### `jupyter-lsp 1.0.1` (unreleased)
 
