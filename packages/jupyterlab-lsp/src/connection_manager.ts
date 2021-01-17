@@ -283,7 +283,11 @@ export class DocumentConnectionManager {
     }
   }
 
-  async connect(options: ISocketConnectionOptions) {
+  async connect(
+    options: ISocketConnectionOptions,
+    firstTimeoutSeconds = 30,
+    secondTimeoutMinutes = 5
+  ) {
     this.console.log('connection requested', options);
     let connection = await this.connect_socket(options);
 
@@ -291,10 +295,31 @@ export class DocumentConnectionManager {
 
     if (!connection.isReady) {
       try {
-        await until_ready(() => connection.isReady, 200, 200);
+        // user feedback hinted that 40 seconds was too short and some users are willing to wait more;
+        // to make the best of both worlds we first check frequently (6.6 times a second) for the first
+        // 30 seconds, and show the warning early in case if something is wrong; we then continue retrying
+        // for another 5 minutes, but only once per second.
+        await until_ready(
+          () => connection.isReady,
+          Math.round((firstTimeoutSeconds * 1000) / 150),
+          150
+        );
       } catch {
-        this.console.warn(`Connect timed out for ${virtual_document.uri}`);
-        return;
+        this.console.warn(
+          `LSP: Connection to ${virtual_document.uri} timed out after ${firstTimeoutSeconds} seconds, will continue retrying for another ${secondTimeoutMinutes} minutes`
+        );
+        try {
+          await until_ready(
+            () => connection.isReady,
+            60 * secondTimeoutMinutes,
+            1000
+          );
+        } catch {
+          this.console.warn(
+            `LSP: Connection to ${virtual_document.uri} timed out again after ${secondTimeoutMinutes} minutes, giving up`
+          );
+          return;
+        }
       }
     }
 

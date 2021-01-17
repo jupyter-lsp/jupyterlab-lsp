@@ -15,12 +15,15 @@
   - improved status icon contrast when status item is active ([#465])
   - connection manager now properly keeps track of notebooks when multiple notebooks are open ([#474])
   - new cells added after kernel restart now work properly; kernel changes are handled correctly ([#478])
+  - increase total timeout for language server connection ([#479])
+  - fix status communication during initialization ([#479])
 
 [#449]: https://github.com/krassowski/jupyterlab-lsp/pull/449
 [#465]: https://github.com/krassowski/jupyterlab-lsp/pull/465
 [#474]: https://github.com/krassowski/jupyterlab-lsp/pull/474
 [#476]: https://github.com/krassowski/jupyterlab-lsp/pull/476
 [#478]: https://github.com/krassowski/jupyterlab-lsp/pull/478
+[#479]: https://github.com/krassowski/jupyterlab-lsp/pull/479
 [#480]: https://github.com/krassowski/jupyterlab-lsp/pull/480
 [#481]: https://github.com/krassowski/jupyterlab-lsp/pull/481
 
