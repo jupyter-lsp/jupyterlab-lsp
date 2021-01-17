@@ -68,5 +68,6 @@ Code Overrides
     Setup Notebook    Python    ${file}
     ${virtual_path} =    Set Variable    ${VIRTUALDOCS DIR}${/}Code overrides.ipynb
     Wait Until Created    ${virtual_path}
+    Wait Until Keyword Succeeds    10x    1s    File Should Not Be Empty    ${virtual_path}
     ${document} =    Get File    ${virtual_path}
     Should Be Equal    ${document}    get_ipython().run_line_magic("ls", "")\n\n\nget_ipython().run_line_magic("pip", " freeze")\n

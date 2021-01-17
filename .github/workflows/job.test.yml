@@ -62,13 +62,13 @@ jobs:
           installer-url: ${{ env.MAMBAFORGE_URL }}-Linux-x86_64.sh
           condarc-file: .github/.condarc
 
-      - name: install base conda dependencies
+      - name: Install base conda dependencies
         run: mamba env update -n test --file requirements/github-actions.yml
 
-      - name: install linting dependencies
+      - name: Install linting dependencies
         run: mamba env update -n test --file requirements/lint.yml
 
-      - name: check integrity of package versions
+      - name: Check integrity of package versions
         run: python scripts/integrity.py
 
       - name: Cache node_modules
@@ -227,6 +227,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - uses: julia-actions/setup-julia@v1
+
+      - name: Install Julia language server
+        run: julia -e 'using Pkg; Pkg.add("LanguageServer")'
 
       - name: Set JupyterLab and Node versions
         uses: cschleiden/replace-tokens@v1
