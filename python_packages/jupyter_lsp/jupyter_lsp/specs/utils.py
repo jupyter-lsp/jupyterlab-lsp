@@ -67,7 +67,7 @@ class ShellSpec(SpecBase):  # pragma: no cover
             if cmd:
                 break
 
-        if not self.is_installed(cmd):  # pragma: no cover
+        if not self.is_installed(cmd) and not BUILDING_DOCS:  # pragma: no cover
             return {}
 
         if not cmd and BUILDING_DOCS:  # pragma: no cover
