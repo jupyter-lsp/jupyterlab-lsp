@@ -1,6 +1,6 @@
 *** Settings ***
 Suite Setup       Setup Server and Browser    server_extension_enabled=${False}
-Suite Teardown    Setup Server and Browser    server_extension_enabled=${True}}
+Suite Teardown    Setup Server and Browser    server_extension_enabled=${True}
 Resource          ../Keywords.robot
 
 *** Variables ***
