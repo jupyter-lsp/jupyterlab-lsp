@@ -16,6 +16,7 @@ Python Jumps between Files
     Jump To Definition    ${sel}
     Wait Until Page Contains    ANOTHER_CONSTANT
     Capture Page Screenshot    10-jumped.png
+    Clean Up After Working With File    jump_b.py
 
 Ctrl Click And Jumping Back Works
     [Setup]    Prepare File for Editing    Python    editor    jump.py

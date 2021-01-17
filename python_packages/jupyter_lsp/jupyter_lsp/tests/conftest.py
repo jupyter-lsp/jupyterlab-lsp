@@ -30,6 +30,8 @@ KNOWN_SERVERS = [
 CMD_BASED_SERVERS = {
     "Rscript": ["r-languageserver"],
     "texlab": ["texlab"],
+    "jedi-language-server": ["jedi-language-server"],
+    "julia": ["julia-language-server"],
 }
 
 KNOWN_SERVERS += sum(
@@ -71,7 +73,10 @@ def jsonrpc_init_msg():
             "jsonrpc": "2.0",
             "method": "initialize",
             "params": {
-                "capabilities": {},
+                "capabilities": {
+                    # LanguageServer.jl assumes that it is not missing
+                    "workspace": {"didChangeConfiguration": {}}
+                },
                 "initializationOptions": None,
                 "processId": None,
                 "rootUri": pathlib.Path(__file__).parent.as_uri(),

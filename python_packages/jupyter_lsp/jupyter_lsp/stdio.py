@@ -113,6 +113,7 @@ class LspStdIoReader(LspStdIoBase):
              1 part is usually sufficent but not enough for some long
              messages 2 or 3 parts are often needed.
         """
+        raw = None
         raw_parts: List[bytes] = []
         received_size = 0
         while received_size < length and len(raw_parts) < max_parts:

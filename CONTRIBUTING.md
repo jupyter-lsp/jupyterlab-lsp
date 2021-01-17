@@ -439,3 +439,9 @@ python setup.py sdist bdist_wheel
 ## Debugging
 
 Adjust `loggingLevel` in the `Advanced Settings Editor` -> `Language Server` to see more log messages.
+
+For robot tests set:
+
+```robot
+Configure JupyterLab Plugin  {"loggingConsole": "floating", "loggingLevel": "debug"}
+```

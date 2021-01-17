@@ -5,6 +5,8 @@
 from .bash_language_server import BashLanguageServer
 from .dockerfile_language_server_nodejs import DockerfileLanguageServerNodeJS
 from .javascript_typescript_langserver import JavascriptTypescriptLanguageServer
+from .jedi_language_server import JediLanguageServer
+from .julia_language_server import JuliaLanguageServer
 from .pyls import PythonLanguageServer
 from .r_languageserver import RLanguageServer
 from .sql_language_server import SQLLanguageServer
@@ -19,7 +21,9 @@ bash = BashLanguageServer()
 css = VSCodeCSSLanguageServer()
 dockerfile = DockerfileLanguageServerNodeJS()
 html = VSCodeHTMLLanguageServer()
+jedi = JediLanguageServer()
 json = VSCodeJSONLanguageServer()
+julia = JuliaLanguageServer()
 md = UnifiedLanguageServer()
 py = PythonLanguageServer()
 r = RLanguageServer()

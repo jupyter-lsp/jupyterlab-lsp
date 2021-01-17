@@ -45,14 +45,15 @@ Highlights are modified after typing
     Should Highlight Token    testa
 
 Highlights are removed when no cell is focused
-    Enter Cell Editor    1    line=2
     # Remove when turned on
     Configure JupyterLab Plugin    {"removeOnBlur": true}    plugin id=${HIGHLIGHTS PLUGIN ID}
+    Enter Cell Editor    1    line=2
     Should Highlight Token    test
     Blur Cell Editor    1
     Should Not Highlight Any Tokens
     # Do not remove when turned off
     Configure JupyterLab Plugin    {"removeOnBlur": false}    plugin id=${HIGHLIGHTS PLUGIN ID}
+    Enter Cell Editor    1    line=2
     Should Highlight Token    test
     Blur Cell Editor    1
     Should Highlight Token    test
