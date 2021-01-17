@@ -5,6 +5,7 @@
 - features
 
   - make the extension work with `jupyterlab-classic` - experimental, not all features are functional yet ([#465])
+  - for developers: the verbosity of console logs is now controllable from settings and set to warn by default ([#480])
 
 - bug fixes:
 
@@ -17,6 +18,7 @@
 [#465]: https://github.com/krassowski/jupyterlab-lsp/pull/465
 [#474]: https://github.com/krassowski/jupyterlab-lsp/pull/474
 [#478]: https://github.com/krassowski/jupyterlab-lsp/pull/478
+[#480]: https://github.com/krassowski/jupyterlab-lsp/pull/480
 
 ### `jupyter-lsp 1.0.1` (unreleased)
 
