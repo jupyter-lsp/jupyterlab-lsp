@@ -1,10 +1,9 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 3.1.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.1.0` (2021-01-17)
 
 - features
 
-  - added experimental detection of Julia and Jedi language servers ([#481])
   - make the extension work with `jupyterlab-classic` - experimental, not all features are functional yet ([#465])
   - new status "Server extension missing" and a dialog with advice was added to help users with atypical configurations ([#476])
   - for developers: the verbosity of console logs is now controllable from settings and set to warn by default ([#480])
@@ -25,9 +24,12 @@
 [#478]: https://github.com/krassowski/jupyterlab-lsp/pull/478
 [#479]: https://github.com/krassowski/jupyterlab-lsp/pull/479
 [#480]: https://github.com/krassowski/jupyterlab-lsp/pull/480
-[#481]: https://github.com/krassowski/jupyterlab-lsp/pull/481
 
-### `jupyter-lsp 1.0.1` (unreleased)
+### `jupyter-lsp 1.1.0` (2021-01-17)
+
+- features
+
+  - added experimental detection of Julia and Jedi language servers ([#481])
 
 - bug fixes:
 
@@ -38,6 +40,7 @@
 [#459]: https://github.com/krassowski/jupyterlab-lsp/pull/459
 [#463]: https://github.com/krassowski/jupyterlab-lsp/pull/463
 [#477]: https://github.com/krassowski/jupyterlab-lsp/pull/477
+[#481]: https://github.com/krassowski/jupyterlab-lsp/pull/481
 
 ### `@krassowski/jupyterlab-lsp 3.0.0` (2021-01-06)
 
