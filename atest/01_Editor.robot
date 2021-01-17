@@ -27,10 +27,9 @@ JSON
 JSX
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'hello')])[last()]
     Editor Shows Features for Language    JSX    example.jsx    Diagnostics=Expression expected    Jump to Definition=${def}    Rename=${def}
-
-Julia
-    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-builtin')][contains(text(), 'add_together')])[last()]
-    Editor Shows Features for Language    Julia    example.jl    Jump to Definition=${def}    Rename=${def}
+#Julia
+#    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-builtin')][contains(text(), 'add_together')])[last()]
+#    Editor Shows Features for Language    Julia    example.jl    Jump to Definition=${def}    Rename=${def}
 
 LaTeX
     [Tags]    language:latex
@@ -74,9 +73,9 @@ YAML
 Editor Shows Features for Language
     [Arguments]    ${Language}    ${file}    &{features}
     Prepare File for Editing    ${Language}    editor    ${file}
-    Run Keyword If    "${Language}" == "Julia"    Sleep    35s
+    # Run Keyword If    "${Language}" == "Julia"    Sleep    35s
     Wait Until Fully Initialized
-    Run Keyword If    "${Language}" == "Julia"    Sleep    5s
+    # Run Keyword If    "${Language}" == "Julia"    Sleep    5s
     FOR    ${f}    IN    @{features}
         Run Keyword If    "${f}" == "Diagnostics"    Editor Should Show Diagnostics    ${features["${f}"]}
         ...    ELSE IF    "${f}" == "Jump to Definition"    Editor Should Jump To Definition    ${features["${f}"]}

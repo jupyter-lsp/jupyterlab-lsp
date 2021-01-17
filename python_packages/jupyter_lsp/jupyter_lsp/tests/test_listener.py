@@ -91,7 +91,7 @@ async def test_listeners(known_server, handlers, jsonrpc_init_msg):
             all_listened.get(),
             return_exceptions=True,
         ),
-        60 if known_server == "julia-language-server" else 20,
+        120 if known_server == "julia-language-server" else 20,
     )
     assert all([isinstance(res, dict) for res in results])
 

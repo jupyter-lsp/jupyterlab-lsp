@@ -41,7 +41,7 @@ async def test_start_known(known_server, handlers, jsonrpc_init_msg):
     try:
         await asyncio.wait_for(
             ws_handler._messages_wrote.get(),
-            60 if known_server == "julia-language-server" else 20,
+            120 if known_server == "julia-language-server" else 20,
         )
         ws_handler._messages_wrote.task_done()
     finally:
