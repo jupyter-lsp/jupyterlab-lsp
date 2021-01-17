@@ -106,6 +106,10 @@ h5 {
   fill: var(--jp-warn-color0);
 }
 
+.lsp-status-icon.error svg g {
+  fill: var(--jp-error-color0);
+}
+
 .lsp-status-icon.inactive svg g {
   fill: var(--jp-layout-color3);
 }
