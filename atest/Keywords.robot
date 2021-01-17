@@ -11,14 +11,17 @@ Library           ./config.py
 
 *** Keywords ***
 Setup Server and Browser
+    [Arguments]    ${server_extension_enabled}=${True}
     Initialize Global Variables
-    Create Notebok Server Config
+    Create Notebok Server Config    ${server_extension_enabled}
     Initialize User Settings
+    ${disable_global_config} =    Set Variable If    ${server_extension_enabled} != ${True}    '1'    ${EMPTY}
     ${server} =    Start Process    jupyter-lab
     ...    cwd=${NOTEBOOK DIR}
     ...    stdout=${LAB LOG}
     ...    stderr=STDOUT
     ...    env:HOME=${HOME}
+    ...    env:JUPYTER_NO_CONFIG=${disable_global_config}
     Set Global Variable    ${SERVER}    ${server}
     Open JupyterLab
     Read Page Config
@@ -34,6 +37,7 @@ Initialize Global Variables
     Set Screenshot Directory    ${SCREENSHOTS DIR}
 
 Create Notebok Server Config
+    [Arguments]    ${server_extension_enabled}=${True}
     [Documentation]    Copies in notebook server config file and updates accordingly
     ${conf} =    Set Variable    ${NOTEBOOK DIR}${/}${NBSERVER CONF}
     ${extra_node_roots} =    Create List    ${ROOT}
@@ -47,8 +51,19 @@ Create Notebok Server Config
     ...    token=${TOKEN}
     ...    user_settings_dir=${SETTINGS DIR}
     ...    workspaces_dir=${WORKSPACES DIR}
+    # should be automatically enabled, so do not enable manually:
+    Run Keyword Unless
+    ...    ${server_extension_enabled}
+    ...    Set Server Extension State    ${conf}    enabled=${server_extension_enabled}
     Update Jupyter Config    ${conf}    LanguageServerManager
     ...    extra_node_roots=@{extra_node_roots}
+
+Set Server Extension State
+    [Arguments]    ${conf}    ${enabled}=${True}
+    ${extension_state} =    Create Dictionary    enabled=${enabled}
+    ${extensions} =    Create Dictionary    jupyter_lsp=${extension_state}
+    Update Jupyter Config    ${conf}    LabApp
+    ...    jpserver_extensions=${extensions}
 
 Read Page Config
     ${script} =    Get Element Attribute    id:jupyter-config-data    innerHTML
@@ -249,14 +264,16 @@ Clean Up After Working With File
     Lab Log Should Not Contain Known Error Messages
 
 Setup Notebook
-    [Arguments]    ${Language}    ${file}    ${isolated}=${True}
+    [Arguments]    ${Language}    ${file}    ${isolated}=${True}    ${wait}=${True}
     Set Tags    language:${Language.lower()}
     Run Keyword If    ${isolated}    Set Screenshot Directory    ${SCREENSHOTS DIR}${/}notebook${/}${TEST NAME.replace(' ', '_')}
     Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
     Run Keyword If    ${isolated}    Try to Close All Tabs
     Open ${file} in ${MENU NOTEBOOK}
     Capture Page Screenshot    00-notebook-opened.png
-    Wait Until Fully Initialized
+    Run Keyword If
+    ...    ${wait}
+    ...    Wait Until Fully Initialized
     Capture Page Screenshot    01-notebook-initialized.png
 
 Open Diagnostics Panel
@@ -392,3 +409,7 @@ Measure Cursor Position
     Wait Until Page Contains Element    ${CM CURSORS}
     ${position} =    Wait Until Keyword Succeeds    20 x    0.05s    Get Vertical Position    ${CM CURSOR}
     [Return]    ${position}
+
+Switch To Tab
+    [Arguments]    ${file}
+    Click Element    ${JLAB XP DOCK TAB}\[contains(., '${file}')]
