@@ -13,3 +13,7 @@
   transform: scaleX(-1);
   transform-origin: center center;
 }
+
+.lsp-external-link {
+  color: var(--jp-content-link-color);
+}
