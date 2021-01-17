@@ -38,6 +38,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: julia-actions/setup-julia@v1
+
+      - name: install julia language server
+        run: julia -e 'using Pkg; Pkg.add("LanguageServer")'
+
       - uses: cschleiden/replace-tokens@v1
         with:
           tokenPrefix: '{'
