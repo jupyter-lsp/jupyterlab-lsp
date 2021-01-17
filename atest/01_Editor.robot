@@ -27,10 +27,9 @@ JSON
 JSX
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'hello')])[last()]
     Editor Shows Features for Language    JSX    example.jsx    Diagnostics=Expression expected    Jump to Definition=${def}    Rename=${def}
-
-Julia
-    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-builtin')][contains(text(), 'add_together')])[last()]
-    Editor Shows Features for Language    Julia    example.jl    Diagnostics=Possible method call error    Jump to Definition=${def}    Rename=${def}
+# Julia
+#    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-builtin')][contains(text(), 'add_together')])[last()]
+#    Editor Shows Features for Language    Julia    example.jl    Diagnostics=Possible method call error    Jump to Definition=${def}    Rename=${def}
 
 LaTeX
     [Tags]    language:latex
