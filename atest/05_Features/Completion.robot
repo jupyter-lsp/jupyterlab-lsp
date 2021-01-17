@@ -223,7 +223,7 @@ Completes Large Namespaces
     [Setup]    Prepare File for Editing    R    completion    completion.R
     Place Cursor In File Editor At    6    7
     Wait Until Fully Initialized
-    Trigger Completer
+    Wait Until Keyword Succeeds    3x    2s    Trigger Completer    timeout=45s
     Completer Should Suggest    abs    timeout=30s
     [Teardown]    Clean Up After Working With File    completion.R
 
@@ -272,5 +272,6 @@ Completer Should Not Suggest
     Wait Until Page Does Not Contain Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
 
 Trigger Completer
+    [Arguments]    ${timeout}=35s
     Press Keys    None    TAB
-    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=35s
+    Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=${timeout}
