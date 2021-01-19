@@ -32,17 +32,7 @@ def test_r_package_detection():
 
 
 def test_missing_python_module_spec():
-    """Prevent failure in module detection raising error:
-
-    Failed to fetch commands from language server spec finder`python-language-server`:
-        'NoneType' object has no attribute 'origin'
-    Traceback (most recent call last):
-      File "../lib/python3.8/site-packages/jupyter_lsp/manager.py", line 209, in _autodetect_language_servers
-        specs = spec_finder(self)
-      File "../lib/python3.8/site-packages/jupyter_lsp/specs/utils.py", line 96, in __call__
-        if not spec.origin:  # pragma: no cover
-    AttributeError: 'NoneType' object has no attribute 'origin'
-    """
+    """Prevent failure in module detection raising error"""
 
     class NonInstalledPythonServer(PythonModuleSpec):
         python_module = "not_installed_python_module"
