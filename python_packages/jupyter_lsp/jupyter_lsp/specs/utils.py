@@ -93,6 +93,9 @@ class PythonModuleSpec(SpecBase):
     def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
         spec = __import__("importlib").util.find_spec(self.python_module)
 
+        if not spec:
+            return {}
+
         if not spec.origin:  # pragma: no cover
             return {}
 
