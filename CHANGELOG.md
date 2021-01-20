@@ -1,5 +1,18 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 3.1.1` (unreleased)
+
+- bug fixes:
+
+- diagnostics panel works after kernel restart properly
+- workaround was added to enable jedi-language-server diagnostics
+
+### `jupyter-lsp 1.1.1` (unreleased)
+
+- bug fixes:
+
+  - PythonSpec no longer raises exception when the server module does not exist
+
 ### `@krassowski/jupyterlab-lsp 3.1.0` (2021-01-17)
 
 - features
