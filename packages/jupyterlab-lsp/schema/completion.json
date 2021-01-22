@@ -31,6 +31,54 @@
       "type": ["string", "null"],
       "default": "vscode",
       "description": "The identifier of a completer theme with icons which indicate the kind of completion. Set to null to disable icons."
+    },
+    "typesMap": {
+      "title": "Mapping of custom kernel types to valid completion kind names",
+      "description": "Mapping used for icon selection. Accepted values are the names of CompletionItemKind and 'Kernel' literal. The defaults aim to provide good initial experience for Julia, Python and R kernels.",
+      "type": "object",
+      "default": {
+        "<unknown>": "Kernel",
+        "instance": "Value",
+        "path": "File",
+        "param": "Variable",
+        "missing": "Constant",
+        "nothing": "Constant",
+        "undefinitializer": "Constant",
+        "base.devnull": "Constant"
+      },
+      "patternProperties": {
+        "^.*$": {
+          "type": "string",
+          "enum": [
+            "Kernel",
+            "Text",
+            "Method",
+            "Function",
+            "Constructor",
+            "Field",
+            "Variable",
+            "Class",
+            "Interface",
+            "Module",
+            "Property",
+            "Unit",
+            "Value",
+            "Enum",
+            "Keyword",
+            "Snippet",
+            "Color",
+            "File",
+            "Reference",
+            "Folder",
+            "EnumMember",
+            "Constant",
+            "Struct",
+            "Event",
+            "Operator",
+            "TypeParameter"
+          ]
+        }
+      }
     }
   },
   "jupyter.lab.shortcuts": []
