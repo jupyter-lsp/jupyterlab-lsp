@@ -223,7 +223,7 @@ Completes Large Namespaces
     [Setup]    Prepare File for Editing    R    completion    completion.R
     Place Cursor In File Editor At    6    7
     Wait Until Fully Initialized
-    Wait Until Keyword Succeeds    3x    2s    Trigger Completer    timeout=45s
+    Wait Until Keyword Succeeds    3x    2s    Trigger Completer    timeout=90s
     Completer Should Suggest    abs    timeout=30s
     [Teardown]    Clean Up After Working With File    completion.R
 

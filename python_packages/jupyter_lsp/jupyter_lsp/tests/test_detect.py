@@ -1,6 +1,7 @@
 import shutil
 
 from jupyter_lsp.specs.r_languageserver import RLanguageServer
+from jupyter_lsp.specs.utils import PythonModuleSpec
 
 
 def test_no_detect(manager):
@@ -28,3 +29,13 @@ def test_r_package_detection():
 
     non_installed_server = NonInstalledRServer()
     assert non_installed_server.is_installed(cmd=existing_runner) is False
+
+
+def test_missing_python_module_spec():
+    """Prevent failure in module detection raising error"""
+
+    class NonInstalledPythonServer(PythonModuleSpec):
+        python_module = "not_installed_python_module"
+
+    not_installed_server = NonInstalledPythonServer()
+    assert not_installed_server(mgr=None) == {}

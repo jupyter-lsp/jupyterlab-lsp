@@ -28,6 +28,16 @@ Diagnostics Panel Works After Rename
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_COUNT}
     Clean Up After Working With File    PanelRenamed.ipynb
 
+Diagnostics Panel Works After Kernel Restart
+    [Documentation]    Test for #475 bug
+    Close Diagnostics Panel
+    Lab Command    Restart Kernel…
+    Wait For Dialog
+    Accept Default Dialog Option
+    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="${DIAGNOSTIC}"]    timeout=20s
+    Open Diagnostics Panel
+    Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_COUNT}
+
 Diagnostics Panel Can Be Restored
     Close Diagnostics Panel
     Open Diagnostics Panel
