@@ -17,7 +17,6 @@ import {
 } from './types';
 import { render_themes_list } from './about';
 import '../style/index.css';
-import { ILSPLogConsole } from '@krassowski/jupyterlab-lsp';
 
 export class CompletionThemeManager implements ILSPCompletionThemeManager {
   protected current_icons: Map<string, LabIcon>;
@@ -164,7 +163,7 @@ const LSP_CATEGORY = 'Language server protocol';
 
 export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionThemeManager> = {
   id: PLUGIN_ID,
-  requires: [IThemeManager, ICommandPalette, ILSPLogConsole],
+  requires: [IThemeManager, ICommandPalette],
   activate: (
     app,
     themeManager: IThemeManager,
