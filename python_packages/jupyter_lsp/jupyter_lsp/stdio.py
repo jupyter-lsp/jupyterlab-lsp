@@ -8,9 +8,7 @@ Parts of this code are derived from:
 > > Copyright 2018 Palantir Technologies, Inc.
 """
 # pylint: disable=broad-except
-import asyncio
 import io
-import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Optional, Text
 
@@ -19,10 +17,8 @@ from tornado.gen import convert_yielded
 from tornado.httputil import HTTPHeaders
 from tornado.ioloop import IOLoop
 from tornado.queues import Queue
-from traitlets import Float, Instance, default
+from traitlets import Instance
 from traitlets.config import LoggingConfigurable
-
-from .non_blocking import make_non_blocking
 
 
 class LspStdIoBase(LoggingConfigurable):
@@ -49,48 +45,15 @@ class LspStdIoBase(LoggingConfigurable):
 
 
 class LspStdIoReader(LspStdIoBase):
-    """Language Server stdio Reader
-
-    Because non-blocking (but still synchronous) IO is used, rudimentary
-    exponential backoff is used.
-    """
-
-    max_wait = Float(help="maximum time to wait on idle stream").tag(config=True)
-    min_wait = Float(0.05, help="minimum time to wait on idle stream").tag(config=True)
-    next_wait = Float(0.05, help="next time to wait on idle stream").tag(config=True)
-
-    @default("max_wait")
-    def _default_max_wait(self):
-        return 2.0 if os.name == "nt" else self.min_wait
-
-    async def sleep(self):
-        """Simple exponential backoff for sleeping"""
-        if self.stream.closed:  # pragma: no cover
-            return
-        self.next_wait = min(self.next_wait * 2, self.max_wait)
-        try:
-            await asyncio.sleep(self.next_wait)
-        except Exception:  # pragma: no cover
-            pass
-
-    def wake(self):
-        """Reset the wait time"""
-        self.wait = self.min_wait
+    """Language Server stdio Reader"""
 
     async def read(self) -> None:
         """Read from a Language Server until it is closed"""
-        make_non_blocking(self.stream)
 
         while not self.stream.closed:
             message = None
             try:
                 message = await self.read_one()
-
-                if not message:
-                    await self.sleep()
-                    continue
-                else:
-                    self.wake()
 
                 IOLoop.current().add_callback(self.queue.put_nowait, message)
             except Exception:  # pragma: no cover
