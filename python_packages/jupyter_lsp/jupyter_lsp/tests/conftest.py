@@ -27,6 +27,15 @@ KNOWN_SERVERS = [
     "yaml-language-server",
 ]
 
+
+# not compatible with python 3.6
+try:
+    __import__("robotframework_ls")
+    KNOWN_SERVERS += ["robotframework_ls"]
+except (ImportError, AttributeError):  # pragma: no cover
+    pass
+
+
 CMD_BASED_SERVERS = {
     "Rscript": ["r-languageserver"],
     "texlab": ["texlab"],

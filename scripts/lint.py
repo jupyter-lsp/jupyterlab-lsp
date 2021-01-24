@@ -28,7 +28,9 @@ PY_ATEST = list((ROOT / "atest").glob("*.py"))
 
 ALL_PY = [*PY_SRC, *PY_SCRIPTS, *PY_ATEST, *PY_DOCS]
 
-ALL_ROBOT = list((ROOT / "atest").rglob("*.robot"))
+ALL_ROBOT = [
+    r for r in (ROOT / "atest").rglob("*.robot") if r.name not in ["example.robot"]
+]
 
 RFLINT_RULES = [
     "LineTooLong:200",
@@ -36,7 +38,7 @@ RFLINT_RULES = [
     "TooFewTestSteps:1",
     "TooManyTestSteps:30",
     "TooManyTestCases:30",
-    "FileTooLong:400",
+    "FileTooLong:500",
 ]
 
 RFLINT_IGNORES = [

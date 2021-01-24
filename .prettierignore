@@ -21,3 +21,4 @@ envs
 htmlcov
 node_modules
 tests/**/coverage
+requirements/github-actions.yml
