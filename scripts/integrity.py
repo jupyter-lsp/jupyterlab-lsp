@@ -10,11 +10,15 @@ import sys
 import tempfile
 from configparser import ConfigParser
 from importlib.util import find_spec
+from typing import Dict
+from warnings import warn
 
 import jsonschema
 import nbformat
 import pytest
 from nbconvert.preprocessors import ExecutePreprocessor
+from packaging.requirements import Requirement
+from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
 try:
@@ -225,18 +229,37 @@ def test_contributing_versions(the_contributing_doc, the_binder_env, pkg):
 
 
 @pytest.mark.parametrize(
-    "pkg,requirement,spec",
+    "pkg,requirement,version,has_specifier",
     [
-        [PY_FRONT_PATH, "jupyter_lsp", f">={PY_SERVER_VERSION}"],
-        [PY_FRONT_PATH, "jupyterlab", LAB_SPEC],
-        [PY_SERVER_PATH, "jupyter_server", REQUIRED_JUPYTER_SERVER],
+        [PY_FRONT_PATH, "jupyter_lsp", PY_SERVER_VERSION, False],
+        [PY_FRONT_PATH, "jupyterlab", LAB_SPEC, True],
+        [PY_SERVER_PATH, "jupyter_server", REQUIRED_JUPYTER_SERVER, True],
     ],
 )
-def test_install_requires(pkg, requirement, spec):
+def test_install_requires(pkg, requirement: str, version: str, has_specifier: bool):
     """are python packages requirements consistent with other versions?"""
     config = ConfigParser()
     config.read(pkg / "setup.cfg")
-    assert f"{requirement} {spec}" in config["options"]["install_requires"]
+    requirements: Dict[str, Requirement] = {
+        requirement.name: requirement
+        for line in config["options"]["install_requires"].splitlines()
+        if line.strip()
+        for requirement in [Requirement(line)]
+    }
+    assert requirement in requirements
+    parsed_specifier = str(requirements[requirement].specifier)
+    raw_specifier = version if has_specifier else f">={version}"
+    expected_specifier = str(SpecifierSet(raw_specifier))
+
+    if has_specifier:
+        assert expected_specifier == parsed_specifier
+    else:
+        assert Version(version) in requirements[requirement].specifier
+        if expected_specifier != parsed_specifier:
+            warn(
+                f"Version matches, but specifier might need updating:"
+                f" {requirement} {parsed_specifier}; version: {version}"
+            )
 
 
 def check_integrity():
