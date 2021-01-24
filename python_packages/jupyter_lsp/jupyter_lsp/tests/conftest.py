@@ -29,7 +29,7 @@ KNOWN_SERVERS = [
 
 
 # not compatible with python 3.6
-try:
+try:  # pragma: no cover
     __import__("robotframework_ls")
     KNOWN_SERVERS += ["robotframework_ls"]
 except (ImportError, AttributeError):  # pragma: no cover
