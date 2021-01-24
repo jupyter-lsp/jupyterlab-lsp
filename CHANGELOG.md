@@ -1,6 +1,11 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 3.1.1` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.2.0` (unreleased)
+
+- features:
+
+  - documentation panel in completer now works for R language too: implemented `completionItem/resolve` ([#487])
+  - kernel types returned by IPython and IJulia are now mapped to LSP types; you can customize the mappings in settings ([#487])
 
 - bug fixes:
 
@@ -14,6 +19,7 @@
   - `PythonModuleSpec` no longer raises exception when the server module does not exist ([#485])
 
 [#485]: https://github.com/krassowski/jupyterlab-lsp/pull/485
+[#487]: https://github.com/krassowski/jupyterlab-lsp/pull/487
 
 ### `@krassowski/jupyterlab-lsp 3.1.0` (2021-01-17)
 
