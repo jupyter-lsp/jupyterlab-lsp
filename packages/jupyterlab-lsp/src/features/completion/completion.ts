@@ -7,8 +7,8 @@ import * as CodeMirror from 'codemirror';
 import { CodeMirrorIntegration } from '../../editor_integration/codemirror';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { IEditorChangedData, WidgetAdapter } from '../../adapters/adapter';
-import { LSPConnector } from './completion_handler';
-import { ICompletionManager } from '@jupyterlab/completer';
+import { LazyCompletionItem, LSPConnector } from './completion_handler';
+import { CompletionHandler, ICompletionManager } from '@jupyterlab/completer';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { NotebookPanel } from '@jupyterlab/notebook';
@@ -19,6 +19,11 @@ import { IDocumentConnectionData } from '../../connection_manager';
 import { ILSPAdapterManager, ILSPLogConsole } from '../../tokens';
 import { NotebookAdapter } from '../../adapters/notebook/notebook';
 import { ILSPCompletionThemeManager } from '@krassowski/completion-theme/lib/types';
+import { LSPCompletionRenderer } from './renderer';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+
+const DOC_PANEL_SELECTOR = '.jp-Completer-docpanel';
+const DOC_PANEL_PLACEHOLDER_CLASS = 'lsp-completer-placeholder';
 
 export class CompletionCM extends CodeMirrorIntegration {
   private _completionCharacters: string[];
@@ -75,8 +80,9 @@ export class CompletionCM extends CodeMirrorIntegration {
 export class CompletionLabIntegration implements IFeatureLabIntegration {
   // TODO: maybe instead of creating it each time, keep a hash map instead?
   protected current_completion_connector: LSPConnector;
-  protected current_completion_handler: ICompletionManager.ICompletableAttributes;
+  protected current_completion_handler: CompletionHandler;
   protected current_adapter: WidgetAdapter<IDocumentWidget> = null;
+  protected renderer: LSPCompletionRenderer;
 
   constructor(
     private app: JupyterFrontEnd,
@@ -84,12 +90,54 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     public settings: FeatureSettings<LSPCompletionSettings>,
     private adapterManager: ILSPAdapterManager,
     private completionThemeManager: ILSPCompletionThemeManager,
-    private console: ILSPLogConsole
+    private console: ILSPLogConsole,
+    private renderMimeRegistry: IRenderMimeRegistry
   ) {
+    const markdown_renderer = this.renderMimeRegistry.createRenderer(
+      'text/markdown'
+    );
+    this.renderer = new LSPCompletionRenderer({
+      integrator: this,
+      markdownRenderer: markdown_renderer,
+      console: console.scope('renderer')
+    });
+    this.renderer.activeChanged.connect(this.active_completion_changed, this);
     adapterManager.adapterChanged.connect(this.swap_adapter, this);
     settings.changed.connect(() => {
       completionThemeManager.set_theme(this.settings.composite.theme);
+      completionThemeManager.set_icons_overrides(
+        this.settings.composite.typesMap
+      );
     });
+  }
+
+  active_completion_changed(
+    renderer: LSPCompletionRenderer,
+    item: LazyCompletionItem
+  ) {
+    if (!item.supportsResolution()) {
+      return;
+    }
+
+    if (item.needsResolution()) {
+      this.set_doc_panel_placeholder(true);
+      item.fetchDocumentation();
+    } else if (item.isResolved()) {
+      this.refresh_doc_panel(item);
+    }
+
+    // also fetch completion for the previous and the next item to prevent jitter
+    const index = this.current_index;
+    const items = this.current_items;
+
+    if (index - 1 >= 0) {
+      const previous = items[index - 1] as LazyCompletionItem;
+      previous?.self?.fetchDocumentation();
+    }
+    if (index + 1 < items.length) {
+      const next = items[index + 1] as LazyCompletionItem;
+      next?.self?.fetchDocumentation();
+    }
   }
 
   private swap_adapter(
@@ -130,11 +178,14 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
       return;
     }
     this.set_completion_connector(adapter, editor);
-    this.current_completion_handler = this.completionManager.register({
-      connector: this.current_completion_connector,
-      editor: editor,
-      parent: adapter.widget
-    });
+    this.current_completion_handler = this.completionManager.register(
+      {
+        connector: this.current_completion_connector,
+        editor: editor,
+        parent: adapter.widget
+      },
+      this.renderer
+    ) as CompletionHandler;
   }
 
   invoke_completer(kind: ExtendedCompletionTriggerKind) {
@@ -162,7 +213,68 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     }
     this.set_completion_connector(adapter, editor_changed.editor);
     this.current_completion_handler.editor = editor_changed.editor;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     this.current_completion_handler.connector = this.current_completion_connector;
+  }
+
+  private get current_items() {
+    // TODO upstream: make completer public?
+    let completer = this.current_completion_handler.completer;
+
+    // TODO upstream: allow to get completionItems() without markup
+    //   (note: not trivial as _markup() does filtering too)
+    return completer.model.completionItems();
+  }
+
+  private get current_index() {
+    let completer = this.current_completion_handler.completer;
+
+    // TODO upstream: add getActiveItem() to Completer
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return completer._activeIndex;
+  }
+
+  refresh_doc_panel(item: LazyCompletionItem) {
+    let completer = this.current_completion_handler.completer;
+
+    const active: CompletionHandler.ICompletionItem = this.current_items[
+      this.current_index
+    ];
+
+    if (!item || active.insertText != item.insertText) {
+      return;
+    }
+
+    const docPanel = completer.node.querySelector(DOC_PANEL_SELECTOR);
+    docPanel.classList.remove(DOC_PANEL_PLACEHOLDER_CLASS);
+
+    if (item.documentation) {
+      // remove all children
+      docPanel.textContent = '';
+      // TODO upstream: renderer should take care of the documentation rendering
+      //  sent PR: https://github.com/jupyterlab/jupyterlab/pull/9663
+
+      const node = this.renderer.createDocumentationNode(item);
+      docPanel.appendChild(node);
+
+      docPanel.setAttribute('style', '');
+    } else {
+      docPanel.setAttribute('style', 'display: none');
+    }
+  }
+
+  set_doc_panel_placeholder(enable: boolean) {
+    let completer = this.current_completion_handler.completer;
+    const docPanel = completer.node.querySelector(DOC_PANEL_SELECTOR);
+    if (enable) {
+      docPanel.setAttribute('style', '');
+      docPanel.classList.add(DOC_PANEL_PLACEHOLDER_CLASS);
+    } else if (docPanel.classList.contains(DOC_PANEL_PLACEHOLDER_CLASS)) {
+      docPanel.setAttribute('style', 'display: none');
+      docPanel.classList.remove(DOC_PANEL_PLACEHOLDER_CLASS);
+    }
   }
 
   private set_completion_connector(
@@ -178,6 +290,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
       connections: this.current_adapter.connection_manager.connections,
       virtual_editor: this.current_adapter.virtual_editor,
       settings: this.settings,
+      labIntegration: this,
       // it might or might not be a notebook panel (if it is not, the sessionContext and session will just be undefined)
       session: (this.current_adapter.widget as NotebookPanel)?.sessionContext
         ?.session,

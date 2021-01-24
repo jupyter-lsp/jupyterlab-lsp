@@ -12,7 +12,8 @@ import {
   ILSPCompletionThemeManager,
   PLUGIN_ID,
   COMPLETER_THEME_PREFIX,
-  KernelKind
+  KernelKind,
+  CompletionItemKindStrings
 } from './types';
 import { render_themes_list } from './about';
 import '../style/index.css';
@@ -22,10 +23,12 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   protected themes: Map<string, ICompletionTheme>;
   private current_theme_id: string;
   private icons_cache: Map<string, LabIcon>;
+  private icon_overrides: Record<string, CompletionItemKindStrings>;
 
   constructor(protected themeManager: IThemeManager) {
     this.themes = new Map();
     this.icons_cache = new Map();
+    this.icon_overrides = {};
     themeManager.themeChanged.connect(this.update_icons_set, this);
   }
 
@@ -78,12 +81,16 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     }
     let options = this.current_theme.icons.options || {};
     if (type) {
+      if (type in this.icon_overrides) {
+        type = this.icon_overrides[type];
+      }
       type =
         type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
     }
     if (this.current_icons.has(type)) {
       return this.current_icons.get(type).bindprops(options);
     }
+
     if (type === KernelKind) {
       return kernelIcon;
     }
@@ -143,6 +150,12 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
       }),
       buttons: [Dialog.okButton()]
     }).catch(console.warn);
+  }
+
+  set_icons_overrides(
+    iconOverrides: Record<string, CompletionItemKindStrings>
+  ) {
+    this.icon_overrides = iconOverrides;
   }
 }
 

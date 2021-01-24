@@ -1,5 +1,8 @@
 import * as events from 'events';
-import { LocationLink } from 'vscode-languageserver-protocol';
+import {
+  CompletionItemTag,
+  LocationLink
+} from 'vscode-languageserver-protocol';
 import * as protocol from 'vscode-languageserver-protocol';
 import { ConsoleLogger, listen, MessageConnection } from 'vscode-ws-jsonrpc';
 import {
@@ -163,8 +166,11 @@ export class LspWsConnection
               snippetSupport: false,
               commitCharactersSupport: true,
               documentationFormat: ['markdown', 'plaintext'],
-              deprecatedSupport: false,
-              preselectSupport: false
+              deprecatedSupport: true,
+              preselectSupport: false,
+              tagSupport: {
+                valueSet: [CompletionItemTag.Deprecated]
+              }
             },
             contextSupport: false
           },

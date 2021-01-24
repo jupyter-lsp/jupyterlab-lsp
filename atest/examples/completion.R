@@ -4,3 +4,5 @@ tools::
 datasets:::
 # `base:::<tab>` → works
 base:::
+# `print.defaul<tab>` → shows documentation for `print.default`
+print.defaul

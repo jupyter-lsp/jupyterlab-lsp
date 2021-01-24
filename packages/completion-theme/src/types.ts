@@ -116,6 +116,10 @@ export interface ILSPCompletionThemeManager {
   get_iconset(
     theme: ICompletionTheme
   ): Map<keyof ICompletionIconSet, LabIcon.ILabIcon>;
+
+  set_icons_overrides(
+    map: Record<string, CompletionItemKindStrings | 'Kernel'>
+  ): void;
 }
 
 export const ILSPCompletionThemeManager = new Token<ILSPCompletionThemeManager>(
