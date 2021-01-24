@@ -7,6 +7,7 @@ Resource          ../Keywords.robot
 
 *** Variables ***
 ${COMPLETER_BOX}    css:.jp-Completer.jp-HoverBox
+${DOCUMENTATION_PANEL}    css:.jp-Completer-docpanel
 
 *** Test Cases ***
 Works With Kernel Running
@@ -227,6 +228,15 @@ Completes Large Namespaces
     Completer Should Suggest    abs    timeout=30s
     [Teardown]    Clean Up After Working With File    completion.R
 
+Shows Documentation With CompletionItem Resolve
+    [Setup]    Prepare File for Editing    R    completion    completion.R
+    Place Cursor In File Editor At    8    12
+    Wait Until Fully Initialized
+    Trigger Completer
+    Completer Should Suggest    print.default
+    Completer Should Include Documentation    the default method of the
+    [Teardown]    Clean Up After Working With File    completion.R
+
 *** Keywords ***
 Setup Completion Test
     Setup Notebook    Python    Completion.ipynb
@@ -275,3 +285,8 @@ Trigger Completer
     [Arguments]    ${timeout}=35s
     Press Keys    None    TAB
     Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=${timeout}
+
+Completer Should Include Documentation
+    [Arguments]    ${text}
+    Wait Until Page Contains Element    ${DOCUMENTATION_PANEL}    timeout=10s
+    Element Should Contain    ${DOCUMENTATION_PANEL}    ${text}
