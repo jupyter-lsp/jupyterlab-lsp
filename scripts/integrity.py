@@ -6,6 +6,7 @@
 
 import json
 import pathlib
+import re
 import sys
 import tempfile
 from configparser import ConfigParser
@@ -36,6 +37,7 @@ if True:
     from versions import JUPYTER_LSP_VERSION as PY_SERVER_VERSION
     from versions import REQUIRED_JUPYTER_SERVER  # noqa
     from versions import REQUIRED_JUPYTERLAB as LAB_SPEC  # noqa
+    from versions import RF_LSP_VERSION as RFLSP  # noqa
 
 REQS = ROOT / "requirements"
 BINDER = ROOT / "binder"
@@ -226,6 +228,15 @@ def test_contributing_versions(the_contributing_doc, the_binder_env, pkg):
     for spec in the_binder_env["dependencies"]:
         if isinstance(spec, str) and spec.startswith(f"{pkg} "):
             assert spec in the_contributing_doc
+
+
+@pytest.mark.parametrize("path", [CI / "job.test.yml", REQS / "atest.yml", BINDER_ENV])
+def test_robotframework_lsp_version(path):
+    all_rflsp_version = re.findall(
+        r"""(robotframework-lsp .*?)(?=[$'#\n])""", path.read_text(encoding="utf-8")
+    )
+
+    assert set(all_rflsp_version) == {RFLSP}
 
 
 @pytest.mark.parametrize(

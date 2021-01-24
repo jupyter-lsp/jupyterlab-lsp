@@ -214,7 +214,7 @@ jobs:
           - python: 3.6
             # Node 10 end-of-life: April 2021
             nodejs: '>=10,<11.0.0.a0'
-            rflsp: '# robotframework-lsp not compatible with py36'
+            rflsp: '#robotframework-lsp >=0.7,<1.0# not compatible with py36'
           # if using 3.7, use newer node, etc...
           - python: 3.7
             # Node 12 end-of-life: April 2022
