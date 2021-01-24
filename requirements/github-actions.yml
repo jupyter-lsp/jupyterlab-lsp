@@ -21,7 +21,8 @@ dependencies:
   - rpy2
   # for robotframework
   - robotframework >=3.2,<4
-  - robotframework-lsp >=0.7,<1.0
+  # rflsp not available for python 3.6
+  {robotframework-lsp}
   - robotkernel
   - jupyterlab_robotmode
   # tex
