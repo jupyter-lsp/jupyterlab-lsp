@@ -22,6 +22,7 @@ env:
   PYTHONUNBUFFERED: 1
   ATEST_RETRIES: 3
   PIP_DISABLE_PIP_VERSION_CHECK: 1
+  RF_LSP: robotframework-lsp >=0.7,<1.0
 
   # TODO: replace once mambaforge "just works" with setup-miniconda
   MAMBAFORGE_URL: https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge
@@ -35,6 +36,7 @@ jobs:
         os: [ubuntu-latest]
         nodejs: ['>=14,<15.0.0a0']
         lab: ['>=3.0.0,<4.0.0a0']
+        rflsp: ['${{ env.RF_LSP }}']
     steps:
       - uses: actions/checkout@v2
 
@@ -46,6 +48,7 @@ jobs:
         env:
           lab: '${{ matrix.lab }}'
           nodejs: '${{ matrix.nodejs }}'
+          rflsp: '${{ matrix.rflsp }}'
 
       - name: Cache conda
         uses: actions/cache@v1
@@ -113,6 +116,7 @@ jobs:
         os: [ubuntu-latest]
         nodejs: ['>=14,<15.0.0a0']
         lab: ['>=3.0.0,<4.0.0a0']
+        rflsp: ['${{ env.RF_LSP }}']
     steps:
       - uses: actions/checkout@v2
 
@@ -124,6 +128,7 @@ jobs:
         env:
           lab: '${{ matrix.lab }}'
           nodejs: '${{ matrix.nodejs }}'
+          rflsp: '${{ matrix.rflsp }}'
 
       - name: Cache conda
         uses: actions/cache@v1
@@ -210,16 +215,16 @@ jobs:
           - python: 3.6
             # Node 10 end-of-life: April 2021
             nodejs: '>=10,<11.0.0.a0'
-            robotframework-lsp: '# robotframework-lsp not compatible with py36'
+            rflsp: '# robotframework-lsp not compatible with py36'
           # if using 3.7, use newer node, etc...
           - python: 3.7
             # Node 12 end-of-life: April 2022
             nodejs: '>=12,<13.0.0.a0'
-            robotframework-lsp: robotframework-lsp >=0.7,<1.0
+            rflsp: ${{ env.RF_LSP }}
           - python: 3.8
             # Node 14 end-of-life: April 2023
             nodejs: '>=14,<15.0.0.a0'
-            robotframework-lsp: robotframework-lsp >=0.7,<1.0
+            rflsp: ${{ env.RF_LSP }}
           # TODO: remove when mambaforge just works on setup-miniconda
           - os: ubuntu
             mambaforge: Linux-x86_64.sh
@@ -245,6 +250,7 @@ jobs:
         env:
           lab: '${{ matrix.lab }}'
           nodejs: '${{ matrix.nodejs }}'
+          rflsp: '${{ matrix.rflsp }}'
 
       - name: Cache conda
         uses: actions/cache@v1
