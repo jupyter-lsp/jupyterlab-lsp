@@ -23,3 +23,8 @@
 .jp-Completer-docpanel {
   overflow: auto;
 }
+
+.lsp-completer-placeholder:after {
+  content: 'Loading...';
+  color: #7f7f7f;
+}
