@@ -5,7 +5,10 @@ channels:
   - nodefaults
 
 dependencies:
-  - robotframework-seleniumlibrary
-  - robotframework >=3.2
   - firefox
   - geckodriver
+  - jupyterlab_robotmode
+  - robotframework >=3.2
+  - robotframework-lsp
+  - robotframework-seleniumlibrary
+  - robotkernel

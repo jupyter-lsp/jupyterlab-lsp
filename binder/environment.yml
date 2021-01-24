@@ -26,6 +26,10 @@ dependencies:
   - r-irkernel
   - r-languageserver
   - rpy2
+  # for robotframework
+  - robotframework-lsp
+  - robotkernel
+  - jupyterlab_robotmode
   # for tex
   - tectonic
   - texlab
