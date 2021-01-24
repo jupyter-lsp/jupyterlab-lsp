@@ -20,7 +20,8 @@ dependencies:
   - r-stringi >=1.4.6
   - rpy2
   # for robotframework
-  - robotframework-lsp
+  - robotframework >=3.2,<4
+  - robotframework-lsp >=0.7,<1.0
   - robotkernel
   - jupyterlab_robotmode
   # tex
@@ -38,7 +39,7 @@ dependencies:
   - bs4
   - firefox
   - geckodriver
-  - robotframework >=3.2
+  - robotframework >=3.2,<4
   - robotframework-seleniumlibrary
   # TODO: remove when jedi vs IPython is resolved
   - jedi <0.18

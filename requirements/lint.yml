@@ -9,5 +9,5 @@ dependencies:
   - isort
   - mypy
   - robotframework-lint >=1.1
-  - robotframework >=3.2
+  - robotframework >=3.2,<4
   - pytest-tornasync

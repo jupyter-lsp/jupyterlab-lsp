@@ -27,7 +27,8 @@ dependencies:
   - r-languageserver
   - rpy2
   # for robotframework
-  - robotframework-lsp
+  - robotframework >=3.2,<4
+  - robotframework-lsp >=0.7,<1.0
   - robotkernel
   - jupyterlab_robotmode
   # for tex
