@@ -22,7 +22,6 @@ env:
   PYTHONUNBUFFERED: 1
   ATEST_RETRIES: 3
   PIP_DISABLE_PIP_VERSION_CHECK: 1
-  RF_LSP: robotframework-lsp >=0.7,<1.0
 
   # TODO: replace once mambaforge "just works" with setup-miniconda
   MAMBAFORGE_URL: https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge
@@ -220,11 +219,11 @@ jobs:
           - python: 3.7
             # Node 12 end-of-life: April 2022
             nodejs: '>=12,<13.0.0.a0'
-            rflsp: '${{ env.RF_LSP }}'
+            rflsp: 'robotframework-lsp >=0.7,<1.0'
           - python: 3.8
             # Node 14 end-of-life: April 2023
             nodejs: '>=14,<15.0.0.a0'
-            rflsp: '${{ env.RF_LSP }}'
+            rflsp: 'robotframework-lsp >=0.7,<1.0'
           # TODO: remove when mambaforge just works on setup-miniconda
           - os: ubuntu
             mambaforge: Linux-x86_64.sh
