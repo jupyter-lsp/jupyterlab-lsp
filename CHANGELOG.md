@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 3.2.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.2.0` (2021-01-24)
 
 - features:
 
@@ -13,7 +13,7 @@
   - workaround was added to enable `jedi-language-server` diagnostics ([#485])
   - Julia language server will not crash when saving a non-Julia file: fixed sendSaved notification scope ([#491])
 
-### `jupyter-lsp 1.1.1` (unreleased)
+### `jupyter-lsp 1.1.1` (2021-01-24)
 
 - bug fixes:
 
