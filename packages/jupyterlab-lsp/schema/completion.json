@@ -34,7 +34,7 @@
     },
     "typesMap": {
       "title": "Mapping of custom kernel types to valid completion kind names",
-      "description": "Mapping used for icon selection. Accepted values are the names of CompletionItemKind and 'Kernel' literal. The defaults aim to provide good initial experience for Julia, Python and R kernels.",
+      "description": "Mapping used for icon selection. The kernel types (keys) are case-insensitive. Accepted values are the names of CompletionItemKind and 'Kernel' literal. The defaults aim to provide good initial experience for Julia, Python and R kernels.",
       "type": "object",
       "default": {
         "<unknown>": "Kernel",

@@ -23,12 +23,12 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   protected themes: Map<string, ICompletionTheme>;
   private current_theme_id: string;
   private icons_cache: Map<string, LabIcon>;
-  private icon_overrides: Record<string, CompletionItemKindStrings>;
+  private icon_overrides: Map<string, CompletionItemKindStrings>;
 
   constructor(protected themeManager: IThemeManager) {
     this.themes = new Map();
     this.icons_cache = new Map();
-    this.icon_overrides = {};
+    this.icon_overrides = new Map();
     themeManager.themeChanged.connect(this.update_icons_set, this);
   }
 
@@ -81,8 +81,8 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     }
     let options = this.current_theme.icons.options || {};
     if (type) {
-      if (type in this.icon_overrides) {
-        type = this.icon_overrides[type];
+      if (this.icon_overrides.has(type.toLowerCase())) {
+        type = this.icon_overrides.get(type.toLowerCase());
       }
       type =
         type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
@@ -155,7 +155,12 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   set_icons_overrides(
     iconOverrides: Record<string, CompletionItemKindStrings>
   ) {
-    this.icon_overrides = iconOverrides;
+    this.icon_overrides = new Map(
+      Object.keys(iconOverrides).map(kernelType => [
+        kernelType.toLowerCase(),
+        iconOverrides[kernelType]
+      ])
+    );
   }
 }
 
