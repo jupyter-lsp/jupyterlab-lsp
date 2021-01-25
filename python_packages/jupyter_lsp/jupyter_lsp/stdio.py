@@ -97,7 +97,9 @@ class LspStdIoReader(LspStdIoBase):
                 self.log.exception("%s couldn't enqueue message: %s", self, message)
                 await self.sleep()
 
-    def _read_content(self, length: int, max_parts=100, max_empty_parts_in_a_row=50) -> Optional[bytes]:
+    def _read_content(
+        self, length: int, max_parts=100, max_empty_parts_in_a_row=50
+    ) -> Optional[bytes]:
         """Read the full length of the message unless exceeding max_parts.
 
         See https://github.com/krassowski/jupyterlab-lsp/issues/450
@@ -116,7 +118,11 @@ class LspStdIoReader(LspStdIoBase):
         raw = None
         raw_parts: List[bytes] = []
         received_size = 0
-        while received_size < length and len(raw_parts) < max_parts and max_empty_parts_in_a_row > 0:
+        while (
+            received_size < length
+            and len(raw_parts) < max_parts
+            and max_empty_parts_in_a_row > 0
+        ):
             part = self.stream.read(length)
             if part is None:
                 max_empty_parts_in_a_row -= 1
