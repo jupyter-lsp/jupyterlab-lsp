@@ -119,7 +119,7 @@ class LspStdIoReader(LspStdIoBase):
         while received_size < length and len(raw_parts) < max_parts and max_empty_parts_in_a_row > 0:
             part = self.stream.read(length)
             if part is None:
-                --max_empty_parts_in_a_row 
+                max_empty_parts_in_a_row -= 1
                 continue  # pragma: no cover
             received_size += len(part)
             raw_parts.append(part)
