@@ -219,6 +219,14 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
       this
     );
 
+    // pretend that all editors were removed to trigger the disconnection of even handlers
+    // they will be connected again on new connection
+    for (let editor of this.editors) {
+      this.editorRemoved.emit({
+        editor: editor
+      });
+    }
+
     for (let adapter of this.adapters.values()) {
       adapter.dispose();
     }
@@ -369,6 +377,7 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
       return;
     }
     this.virtual_editor = virtual_editor;
+    this.connect_contentChanged_signal();
   }
 
   /**
@@ -515,7 +524,7 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
    * (range) updates this can be still implemented by comparison of before/after states of the
    * virtual documents, which is even more resilient and -obviously - editor-independent.
    */
-  connect_contentChanged_signal() {
+  private connect_contentChanged_signal() {
     this.widget.context.model.contentChanged.connect(
       this.onContentChanged,
       this
