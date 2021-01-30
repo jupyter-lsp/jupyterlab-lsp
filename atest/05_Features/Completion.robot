@@ -11,7 +11,7 @@ ${DOCUMENTATION_PANEL}    css:.jp-Completer-docpanel
 ${KERNEL_BUSY_INDICATOR}    css:.jp-NotebookPanel-toolbar div[title="Kernel Busy"]
 
 *** Test Cases ***
-Works With Kernel Is Idle
+Works When Kernel Is Idle
     [Documentation]    The suggestions from kernel and LSP should get integrated.
     Enter Cell Editor    1    line=2
     Capture Page Screenshot    01-entered-cell.png
@@ -29,12 +29,12 @@ Works With Kernel Is Idle
     Should Contain    ${content}    TabError
 
 Uses LSP Completions When Kernel Resoponse Times Out
-    Configure JupyterLab Plugin    {"kernelResponseTimeout": 1, "waitForKernelIfBusy": true}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": 1, "waitForBusyKernel": true}    plugin id=${COMPLETION PLUGIN ID}
     Should Complete While Kernel Is Busy
 
 Uses LSP Completions When Kernel Is Busy
     [Documentation]    When kernel is not available the best thing is to show some suggestions (LSP) rather than none.
-    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForKernelIfBusy": false}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
     Should Complete While Kernel Is Busy
 
 Works When Kernel Is Shut Down
@@ -309,18 +309,18 @@ Count Completer Hints
     [Return]    ${count}
 
 Should Complete While Kernel Is Busy
-    # Run the cell with sleep(10)
+    # Run the cell with sleep(20)
     Enter Cell Editor    17
     # for some reason the lab command selects another cell along the way...
     # Lab Command    Run Selected Cells And Don't Advance
     Press Keys    None    CTRL+ENTER
     # Confirm that the kernel is busy
-    Wait Until Page Contains Element    ${KERNEL_BUSY_INDICATOR}    timeout=3s
+    Wait Until Page Contains Element    ${KERNEL_BUSY_INDICATOR}    timeout=5s
     # Enter a cell with "t"
     Enter Cell Editor    18
     # Check if completion worked
     Enter Cell Editor    1    line=2
-    Trigger Completer    timeout=3s
-    Completer Should Suggest    test    timeout=3s
+    Trigger Completer    timeout=10s
+    Completer Should Suggest    test
     # Confirm that the kernel indicator was busy all along
     Page Should Contain Element    ${KERNEL_BUSY_INDICATOR}
