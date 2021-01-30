@@ -54,9 +54,14 @@ Advanced static-analysis autocompletion without a running kernel
 
 ![autocompletion](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.png)
 
-> When a kernel is available the suggestions from the kernel (such as keys of a
-> dict and columns of a DataFrame autocompletion) are merged with the suggestions
-> from the Language Server (currently only in notebook).
+#### The runtime kernel suggestions are still there
+
+When a kernel is available the suggestions from the kernel (such as keys of a
+dict and columns of a DataFrame autocompletion) are merged with the suggestions
+from the Language Server (currently only in notebook).
+
+If the kernel is too slow to respond promptly only the LSP static analysis suggestions will be shown (default threshold: 0.6s).
+You can configure the completer to not attempt to fetch the kernel completions if the kernel is busy (skipping the 0.6s timeout).
 
 ### Rename
 
