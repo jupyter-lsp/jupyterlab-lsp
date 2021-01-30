@@ -93,12 +93,14 @@ class LspStdIoReader(LspStdIoBase):
                     self.wake()
 
                 IOLoop.current().add_callback(self.queue.put_nowait, message)
-            except Exception:  # pragma: no cover
-                self.log.exception("%s couldn't enqueue message: %s", self, message)
+            except Exception as e:  # pragma: no cover
+                self.log.exception(
+                    "%s couldn't enqueue message: %s (%s)", self, message, e
+                )
                 await self.sleep()
 
-    def _read_content(
-        self, length: int, max_parts=100, max_empties=50
+    async def _read_content(
+        self, length: int, max_parts=500, max_empties=50
     ) -> Optional[bytes]:
         """Read the full length of the message unless exceeding max_parts or
            max_empties empty reads occur.
@@ -119,13 +121,16 @@ class LspStdIoReader(LspStdIoBase):
         raw = None
         raw_parts: List[bytes] = []
         received_size = 0
-        while (
-            received_size < length and len(raw_parts) < max_parts and max_empties > 0
-        ):
-            part = self.stream.read(length)
+        while received_size < length and len(raw_parts) < max_parts and max_empties > 0:
+            part = None
+            try:
+                part = self.stream.read(length)
+            except OSError:  # pragma: no cover
+                pass
             if part is None:
                 max_empties -= 1
-                continue  # pragma: no cover
+                await self.sleep()
+                continue
             received_size += len(part)
             raw_parts.append(part)
 
@@ -135,6 +140,7 @@ class LspStdIoReader(LspStdIoBase):
                 self.log.warning(
                     f"Readout and content-length mismatch:" f" {len(raw)} vs {length}"
                 )
+
         return raw
 
     async def read_one(self) -> Text:
@@ -152,24 +158,15 @@ class LspStdIoReader(LspStdIoBase):
             content_length = int(headers.get("content-length", "0"))
 
             if content_length:
-                raw = None
-                retries = 5
-                while raw is None and retries:
-                    try:
-                        raw = self._read_content(length=content_length)
-                    except OSError:  # pragma: no cover
-                        raw = None
-                    if raw is None:  # pragma: no cover
-                        self.log.warning(
-                            "%s failed to read message of length %s",
-                            self,
-                            content_length,
-                        )
-                        await self.sleep()
-                        retries -= 1
-                    else:
-                        message = raw.decode("utf-8").strip()
-                        break
+                raw = await self._read_content(length=content_length)
+                if raw is not None:
+                    message = raw.decode("utf-8").strip()
+                else:  # pragma: no cover
+                    self.log.warning(
+                        "%s failed to read message of length %s",
+                        self,
+                        content_length,
+                    )
 
         return message
 
