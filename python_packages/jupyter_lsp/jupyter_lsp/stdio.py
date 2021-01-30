@@ -100,7 +100,7 @@ class LspStdIoReader(LspStdIoBase):
                 await self.sleep()
 
     async def _read_content(
-        self, length: int, max_parts=500, max_empties=50
+        self, length: int, max_parts=1000, max_empties=200
     ) -> Optional[bytes]:
         """Read the full length of the message unless exceeding max_parts or
            max_empties empty reads occur.
