@@ -28,7 +28,7 @@ class CommunicatorSpawner:
     def spawn_writer(self, message: str, repeats: int = 1, interval=None):
         length = len(message) * repeats
         commands_file = self.tmp_path / "writer.py"
-        commands_file.write(
+        commands_file.write_text(
             WRITER_TEMPLATE.format(
                 length=length, repeats=repeats, interval=interval or 0, message=message
             )
