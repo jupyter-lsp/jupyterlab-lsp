@@ -11,6 +11,7 @@
 
   - delayed completion suggestions will no longer show up if cursor moved to another line ([#496])
   - changes in notebooks after kernel restart or file rename will now be recorded by the language server again ([#496])
+  - when either of kernel providers: kernel or LSP server fails, the completion from the other will still be shown ([#496])
 
 [#496]: https://github.com/krassowski/jupyterlab-lsp/pull/496
 
