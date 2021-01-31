@@ -66,8 +66,41 @@ Foreign Extractors
 Code Overrides
     ${file} =    Set Variable    Code overrides.ipynb
     Setup Notebook    Python    ${file}
-    ${virtual_path} =    Set Variable    ${VIRTUALDOCS DIR}${/}Code overrides.ipynb
+    ${virtual_path} =    Set Variable    ${VIRTUALDOCS DIR}${/}${file}
     Wait Until Created    ${virtual_path}
     Wait Until Keyword Succeeds    10x    1s    File Should Not Be Empty    ${virtual_path}
     ${document} =    Get File    ${virtual_path}
     Should Be Equal    ${document}    get_ipython().run_line_magic("ls", "")\n\n\nget_ipython().run_line_magic("pip", " freeze")\n
+    [Teardown]    Clean Up After Working With File    Code overrides.ipynb
+
+Adding Text To Cells Is Reflected In Virtual Document
+    ${file} =    Set Variable    Empty.ipynb
+    Setup Notebook    Python    ${file}
+    ${virtual_path} =    Set Variable    ${VIRTUALDOCS DIR}${/}${file}
+    Wait Until Created    ${virtual_path}
+    Enter Cell Editor    1
+    Press Keys    None    cell_1
+    Lab Command    Insert Cell Below
+    Enter Cell Editor    2
+    Press Keys    None    cell_2
+    Wait Until Keyword Succeeds    3x    1s    File Content Should Be Equal    ${virtual_path}    cell_1\n\n\ncell_2\n
+    [Teardown]    Clean Up After Working With File    Empty.ipynb
+
+Adding Text To Cells After Kernel Restart
+    ${file} =    Set Variable    Empty.ipynb
+    Setup Notebook    Python    ${file}
+    ${virtual_path} =    Set Variable    ${VIRTUALDOCS DIR}${/}${file}
+    Wait Until Created    ${virtual_path}
+    Enter Cell Editor    1
+    Lab Command    Insert Cell Below
+    Enter Cell Editor    2    line=1
+    Press Keys    None    text
+    Wait Until Keyword Succeeds    3x    1s    File Content Should Be Equal    ${virtual_path}    \n\n\ntext\n
+    [Teardown]    Clean Up After Working With File    Empty.ipynb
+
+*** Keywords ***
+File Content Should Be Equal
+    [Arguments]    ${file}    ${text}
+    Wait Until Keyword Succeeds    5x    1s    File Should Not Be Empty    ${file}
+    ${document} =    Get File    ${file}
+    Should Be Equal    ${document}    ${text}

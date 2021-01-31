@@ -1,5 +1,20 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 3.3.0` (unreleased)
+
+- features:
+
+  - added a timeout for kernel completion, with the default of 600ms ([#496])
+  - added an option to skip waiting for kernel completions if busy, off by default ([#496])
+
+- bug fixes:
+
+  - delayed completion suggestions will no longer show up if cursor moved to another line ([#496])
+  - changes in notebooks after kernel restart or file rename will now be recorded by the language server again ([#496])
+  - when either of kernel providers: kernel or LSP server fails, the completion from the other will still be shown ([#496])
+
+[#496]: https://github.com/krassowski/jupyterlab-lsp/pull/496
+
 ### `@krassowski/jupyterlab-lsp 3.2.0` (2021-01-24)
 
 - features:
