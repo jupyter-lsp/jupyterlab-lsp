@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 3.3.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.3.0` (2021-01-31)
 
 - features:
 
@@ -14,6 +14,14 @@
   - when either of kernel providers: kernel or LSP server fails, the completion from the other will still be shown ([#496])
 
 [#496]: https://github.com/krassowski/jupyterlab-lsp/pull/496
+
+### `jupyter-lsp 1.1.2` (2021-01-31)
+
+- bug fixes:
+
+  - fixed issues with language server messages being truncated in certain circumstances on Windows
+
+[#494]: https://github.com/krassowski/jupyterlab-lsp/pull/494
 
 ### `@krassowski/jupyterlab-lsp 3.2.0` (2021-01-24)
 
