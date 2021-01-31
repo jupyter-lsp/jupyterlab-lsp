@@ -32,7 +32,7 @@ class CommunicatorSpawner:
             )
         )
         return subprocess.Popen(
-            ["python", "-u", str(commands_file)], stdout=subprocess.PIPE
+            ["python", "-u", str(commands_file)], stdout=subprocess.PIPE, bufsize=0
         )
 
 

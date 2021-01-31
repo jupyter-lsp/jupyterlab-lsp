@@ -31,8 +31,8 @@ class LspStdIoBase(LoggingConfigurable):
     executor = None
 
     stream = Instance(
-        io.BufferedIOBase, help="the stream to read/write"
-    )  # type: io.BufferedIOBase
+        io.RawIOBase, help="the stream to read/write"
+    )  # type: io.RawIOBase
     queue = Instance(Queue, help="queue to get/put")
 
     def __repr__(self):  # pragma: no cover

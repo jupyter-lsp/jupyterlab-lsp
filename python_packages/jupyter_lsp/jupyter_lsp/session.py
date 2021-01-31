@@ -137,6 +137,7 @@ class LanguageServerSession(LoggingConfigurable):
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             env=self.substitute_env(self.spec.get("env", {}), os.environ),
+            bufsize=0,
         )
 
     def init_queues(self):
