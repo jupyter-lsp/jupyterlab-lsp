@@ -37,9 +37,9 @@ Place your cursor on a variable, function, etc and all the usages will be highli
 
 ### Automatic Completion and Continuous Hinting
 
-  - Certain characters, for example '.' (dot) in Python, will automatically trigger
-completion.
-  - You can choose to receive the completion suggestions continuously as you type by enabling `continiousHinting` setting.
+- Certain characters, for example '.' (dot) in Python, will automatically trigger
+  completion.
+- You can choose to receive the completion suggestions continuously as you type by enabling `continiousHinting` setting.
 
 ![invoke](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.gif)
 
@@ -54,7 +54,6 @@ Function signatures will automatically be displayed
 Advanced static-analysis autocompletion without a running kernel
 
 ![autocompletion](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/completions-Julia-Python-R.gif)
-
 
 #### The runtime kernel suggestions are still there
 
