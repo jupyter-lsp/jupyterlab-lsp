@@ -61,7 +61,7 @@ class LspStdIoReader(LspStdIoBase):
 
     @default("max_wait")
     def _default_max_wait(self):
-        return 2.0 if os.name == "nt" else self.min_wait
+        return 0.5 if os.name == "nt" else self.min_wait * 2
 
     async def sleep(self):
         """Simple exponential backoff for sleeping"""
