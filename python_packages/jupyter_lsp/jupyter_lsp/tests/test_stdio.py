@@ -15,6 +15,10 @@ print()
 for repeat in range({repeats}):
     sleep({interval})
     print('{message}', end='')
+
+if {add_excess}:
+    print("extra", end='')
+
 print()
 """
 
@@ -23,12 +27,18 @@ class CommunicatorSpawner:
     def __init__(self, tmp_path):
         self.tmp_path = tmp_path
 
-    def spawn_writer(self, message: str, repeats: int = 1, interval=None):
+    def spawn_writer(
+        self, message: str, repeats: int = 1, interval=None, add_excess=False
+    ):
         length = len(message) * repeats
         commands_file = self.tmp_path / "writer.py"
         commands_file.write_text(
             WRITER_TEMPLATE.format(
-                length=length, repeats=repeats, interval=interval or 0, message=message
+                length=length,
+                repeats=repeats,
+                interval=interval or 0,
+                message=message,
+                add_excess=add_excess,
             )
         )
         return subprocess.Popen(
@@ -50,21 +60,22 @@ async def join_process(process: subprocess.Popen, headstart=1, timeout=1):
 
 
 @pytest.mark.parametrize(
-    "message,repeats,interval",
+    "message,repeats,interval,add_excess",
     [
-        ["short", 1, None],
-        ["ab" * 10_0000, 1, None],
-        ["ab", 2, 0.01],
-        ["ab", 45, 0.01],
+        ["short", 1, None, False],
+        ["ab" * 10_0000, 1, None, False],
+        ["ab", 2, 0.01, False],
+        ["ab", 45, 0.01, False],
+        ["message", 2, 0.01, True],
     ],
-    ids=["short", "long", "intermittent", "intensive-intermittent"],
+    ids=["short", "long", "intermittent", "intensive-intermittent", "with-excess"],
 )
 @pytest.mark.asyncio
-async def test_reader(message, repeats, interval, communicator_spawner):
+async def test_reader(message, repeats, interval, add_excess, communicator_spawner):
     queue = Queue()
 
     process = communicator_spawner.spawn_writer(
-        message=message, repeats=repeats, interval=interval
+        message=message, repeats=repeats, interval=interval, add_excess=add_excess
     )
     reader = LspStdIoReader(stream=process.stdout, queue=queue)
 

@@ -124,7 +124,7 @@ class LspStdIoReader(LspStdIoBase):
         while received_size < length and len(raw_parts) < max_parts and max_empties > 0:
             part = None
             try:
-                part = self.stream.read(length)
+                part = self.stream.read(length - received_size)
             except OSError:  # pragma: no cover
                 pass
             if part is None:
