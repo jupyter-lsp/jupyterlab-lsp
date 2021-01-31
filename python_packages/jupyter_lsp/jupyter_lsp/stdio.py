@@ -61,7 +61,7 @@ class LspStdIoReader(LspStdIoBase):
 
     @default("max_wait")
     def _default_max_wait(self):
-        return 0.5 if os.name == "nt" else self.min_wait * 2
+        return 0.1 if os.name == "nt" else self.min_wait * 2
 
     async def sleep(self):
         """Simple exponential backoff for sleeping"""
@@ -138,7 +138,8 @@ class LspStdIoReader(LspStdIoBase):
             raw = b"".join(raw_parts)
             if len(raw) != length:  # pragma: no cover
                 self.log.warning(
-                    f"Readout and content-length mismatch:" f" {len(raw)} vs {length}"
+                    f"Readout and content-length mismatch: {len(raw)} vs {length};"
+                    f"remaining empties: {max_empties}; remaining parts: {max_parts}"
                 )
 
         return raw
