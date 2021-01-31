@@ -12,6 +12,7 @@ ${KERNEL_BUSY_INDICATOR}    css:.jp-NotebookPanel-toolbar div[title="Kernel Busy
 
 *** Test Cases ***
 Works When Kernel Is Idle
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
     [Documentation]    The suggestions from kernel and LSP should get integrated.
     Enter Cell Editor    1    line=2
     Capture Page Screenshot    01-entered-cell.png
