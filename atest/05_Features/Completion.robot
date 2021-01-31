@@ -299,6 +299,7 @@ Trigger Completer
 Completer Should Include Documentation
     [Arguments]    ${text}
     Wait Until Page Contains Element    ${DOCUMENTATION_PANEL}    timeout=10s
+    Wait Until Keyword Succeeds    10 x    1 s    Element Should Contain    ${DOCUMENTATION_PANEL}    ${text}
     Element Should Contain    ${DOCUMENTATION_PANEL}    ${text}
 
 Restart Kernel
