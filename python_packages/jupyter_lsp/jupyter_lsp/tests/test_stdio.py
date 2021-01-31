@@ -72,7 +72,7 @@ async def test_reader(message, repeats, interval, communicator_spawner):
         message=message, repeats=repeats, interval=interval
     )
     reader = LspStdIoReader(stream=process.stdout, queue=queue)
-    timeout = 2 + (interval or 1) * repeats * 10
+    timeout = 3 + reader.max_wait * repeats * 10
 
     communicate_and_close(process)
     await asyncio.wait_for(reader.read(), timeout=timeout)
