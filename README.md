@@ -35,12 +35,13 @@ Use the context menu entry, or <kbd>Alt</kbd> + :computer_mouse: to jump to defi
 
 Place your cursor on a variable, function, etc and all the usages will be highlighted
 
-### Automatic Completion
+### Automatic Completion and Continuous Hinting
 
-Certain characters, for example '.' (dot) in Python, will automatically trigger
-completion
+  - Certain characters, for example '.' (dot) in Python, will automatically trigger
+completion.
+  - You can choose to receive the completion suggestions continuously as you type by enabling `continiousHinting` setting.
 
-![invoke](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/auto_invoke.png)
+![invoke](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.gif)
 
 ### Automatic Signature Suggestions
 
@@ -52,7 +53,8 @@ Function signatures will automatically be displayed
 
 Advanced static-analysis autocompletion without a running kernel
 
-![autocompletion](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.png)
+![autocompletion](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/completions-Julia-Python-R.gif)
+
 
 #### The runtime kernel suggestions are still there
 
