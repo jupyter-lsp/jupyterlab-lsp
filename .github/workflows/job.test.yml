@@ -16,7 +16,7 @@ defaults:
 env:
   # TODO extract these from files instead
   PY_JLSP_VERSION: 0.9.3
-  JS_JLLSP_VERSION: 2.1.2
+  JS_JLLSP_VERSION: 2.1.3
   JS_JLG2D_VERSION: 1.0.0
 
   PYTHONUNBUFFERED: 1
