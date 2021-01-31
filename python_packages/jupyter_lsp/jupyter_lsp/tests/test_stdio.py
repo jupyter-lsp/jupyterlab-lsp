@@ -1,7 +1,5 @@
 import asyncio
 import subprocess
-import time
-from threading import Thread
 
 import pytest
 from tornado.queues import Queue
@@ -34,9 +32,7 @@ class CommunicatorSpawner:
             )
         )
         return subprocess.Popen(
-            ["python", "-u", str(commands_file)],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
+            ["python", "-u", str(commands_file)], stdout=subprocess.PIPE
         )
 
 
@@ -45,13 +41,12 @@ def communicator_spawner(tmp_path):
     return CommunicatorSpawner(tmp_path)
 
 
-def communicate_and_close(process, wait=1):
-    def communicate_and_close():
-        time.sleep(wait)
-        process.communicate()
-
-    thread = Thread(target=communicate_and_close)
-    thread.start()
+async def join_process(process: subprocess.Popen, headstart=1, timeout=1):
+    await asyncio.sleep(headstart)
+    result = process.wait(timeout=timeout)
+    if process.stdout:
+        process.stdout.close()
+    return result
 
 
 @pytest.mark.parametrize(
@@ -72,10 +67,8 @@ async def test_reader(message, repeats, interval, communicator_spawner):
         message=message, repeats=repeats, interval=interval
     )
     reader = LspStdIoReader(stream=process.stdout, queue=queue)
-    timeout = 3 + reader.max_wait * repeats * 10
 
-    communicate_and_close(process)
-    await asyncio.wait_for(reader.read(), timeout=timeout)
+    await asyncio.gather(join_process(process, headstart=3, timeout=1), reader.read())
 
     result = queue.get_nowait()
     assert result == message * repeats
