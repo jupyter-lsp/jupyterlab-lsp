@@ -39,7 +39,7 @@ Place your cursor on a variable, function, etc and all the usages will be highli
 
 - Certain characters, for example '.' (dot) in Python, will automatically trigger
   completion.
-- You can choose to receive the completion suggestions continuously as you type by enabling `continiousHinting` setting.
+- You can choose to receive the completion suggestions as you type by enabling `continiousHinting` setting.
 
 ![invoke](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.gif)
 
@@ -58,10 +58,10 @@ Advanced static-analysis autocompletion without a running kernel
 #### The runtime kernel suggestions are still there
 
 When a kernel is available the suggestions from the kernel (such as keys of a
-dict and columns of a DataFrame autocompletion) are merged with the suggestions
-from the Language Server (currently only in notebook).
+dict and columns of a DataFrame) are merged with the suggestions
+from the Language Server (in notebook).
 
-If the kernel is too slow to respond promptly only the LSP static analysis suggestions will be shown (default threshold: 0.6s).
+If the kernel is too slow to respond promptly only the Language Server suggestions will be shown (default threshold: 0.6s).
 You can configure the completer to not attempt to fetch the kernel completions if the kernel is busy (skipping the 0.6s timeout).
 
 ### Rename
