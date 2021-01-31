@@ -242,8 +242,20 @@ export class LSPConnector
     return this.options.session?.kernel != null;
   }
 
+  protected get _is_kernel_idle(): boolean {
+    return this.options.session?.kernel?.status == 'idle';
+  }
+
+  protected get _should_wait_for_busy_kernel(): boolean {
+    return this.lab_integration.settings.composite.waitForBusyKernel;
+  }
+
   protected async _kernel_language(): Promise<string> {
     return (await this.options.session.kernel.info).language_info.name;
+  }
+
+  protected get _kernel_timeout(): number {
+    return this.lab_integration.settings.composite.kernelResponseTimeout;
   }
 
   get fallback_connector() {
@@ -319,7 +331,14 @@ export class LSPConnector
     let promise: Promise<CompletionHandler.ICompletionItemsReply> = null;
 
     try {
-      if (this._kernel_connector && this._has_kernel) {
+      const kernelTimeout = this._kernel_timeout;
+
+      if (
+        this._kernel_connector &&
+        this._has_kernel &&
+        (this._is_kernel_idle || this._should_wait_for_busy_kernel) &&
+        kernelTimeout != 0
+      ) {
         // TODO: this would be awesome if we could connect to rpy2 for R suggestions in Python,
         //  but this is not the job of this extension; nevertheless its better to keep this in
         //  mind to avoid introducing design decisions which would make this impossible
@@ -329,9 +348,35 @@ export class LSPConnector
         const kernelLanguage = await this._kernel_language();
 
         if (document.language === kernelLanguage) {
+          let default_kernel_promise = this._kernel_connector.fetch(request);
+          let kernel_promise: Promise<CompletionHandler.IReply>;
+
+          if (kernelTimeout == -1) {
+            kernel_promise = default_kernel_promise;
+          } else {
+            // implement timeout for the kernel response using Promise.race:
+            // an empty completion result will resolve after the timeout
+            // if actual kernel response does not beat it to it
+            kernel_promise = Promise.race([
+              default_kernel_promise,
+              new Promise<CompletionHandler.IReply>(resolve => {
+                return setTimeout(
+                  () =>
+                    resolve({
+                      start: null,
+                      end: null,
+                      matches: [],
+                      metadata: null
+                    }),
+                  kernelTimeout
+                );
+              })
+            ]);
+          }
+
           promise = Promise.all([
-            this._kernel_connector.fetch(request),
-            lsp_promise
+            kernel_promise.catch(p => p),
+            lsp_promise.catch(p => p)
           ]).then(([kernel, lsp]) =>
             this.merge_replies(this.transform_reply(kernel), lsp, this._editor)
           );
@@ -352,8 +397,9 @@ export class LSPConnector
         .then(this.transform_reply);
     }
 
+    this.console.debug('All promises set up and ready.');
     return promise.then(reply => {
-      reply = this.suppress_if_needed(reply, token);
+      reply = this.suppress_if_needed(reply, token, cursor);
       this.items = reply.items;
       this.trigger_kind = CompletionTriggerKind.Invoked;
       return reply;
@@ -496,10 +542,17 @@ export class LSPConnector
   ): CompletionHandler.ICompletionItemsReply {
     this.console.debug('Merging completions:', lsp, kernel);
 
-    if (!kernel.items.length) {
+    if (kernel instanceof Error) {
+      this.console.warn('Caught kernel completions error', kernel);
+    }
+    if (lsp instanceof Error) {
+      this.console.warn('Caught LSP completions error', lsp);
+    }
+
+    if (kernel instanceof Error || !kernel.items.length) {
       return lsp;
     }
-    if (!lsp.items.length) {
+    if (lsp instanceof Error || !lsp.items.length) {
       return kernel;
     }
 
@@ -562,8 +615,24 @@ export class LSPConnector
 
   private suppress_if_needed(
     reply: CompletionHandler.ICompletionItemsReply,
-    token: CodeEditor.IToken
+    token: CodeEditor.IToken,
+    cursor_at_request: CodeEditor.IPosition
   ) {
+    const cursor_now = this._editor.getCursorPosition();
+
+    // if the cursor advanced in the same line, the previously retrieved completions may still be useful
+    // if the line changed or cursor moved backwards then no reason to keep the suggestions
+    if (
+      cursor_at_request.line != cursor_now.line ||
+      cursor_now.column < cursor_at_request.column
+    ) {
+      return {
+        start: reply.start,
+        end: reply.end,
+        items: []
+      };
+    }
+
     if (this.trigger_kind == AdditionalCompletionTriggerKinds.AutoInvoked) {
       if (
         // do not auto-invoke if no match found

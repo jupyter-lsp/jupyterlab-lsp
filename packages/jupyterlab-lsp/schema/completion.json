@@ -24,7 +24,19 @@
         "type": "string"
       },
       "default": ["comment", "string"],
-      "description": "An array of CodeMirror tokens for which the auto-invoke should be suppressed. The token names vary between languages (modes)."
+      "description": "An array of CodeMirror tokens for which the auto-invoke should be suppressed. Adding 'def' will prevent continuous hinting when writing a function name in Python, Julia, JavaScript and other languages. The token names vary between languages (modes)."
+    },
+    "kernelResponseTimeout": {
+      "title": "Kernel completion response timeout",
+      "default": 600,
+      "type": "number",
+      "description": "The time to wait for the kernel completions suggestions in milliseconds. Set to 0 to disable kernel completions, or to -1 to wait indefinitely (not recommended)."
+    },
+    "waitForBusyKernel": {
+      "title": "Wait for kernel if busy",
+      "default": true,
+      "type": "boolean",
+      "description": "Should an attempt to get the kernel response (with timeout as specified by kernelResponseTimeout) be made if kernel is busy? If you often write code in notebook while computations are running for long time (e.g. training models), turning this off might give you faster response times."
     },
     "theme": {
       "title": "Completer theme",

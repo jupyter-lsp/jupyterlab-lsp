@@ -413,3 +413,9 @@ Measure Cursor Position
 Switch To Tab
     [Arguments]    ${file}
     Click Element    ${JLAB XP DOCK TAB}\[contains(., '${file}')]
+
+Open New Notebook
+    Lab Command    New Notebook
+    Wait For Dialog
+    # Kernel selection dialog shows up, accept Python as default kernel
+    Accept Default Dialog Option

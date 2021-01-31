@@ -8,9 +8,11 @@ Resource          ../Keywords.robot
 *** Variables ***
 ${COMPLETER_BOX}    css:.jp-Completer.jp-HoverBox
 ${DOCUMENTATION_PANEL}    css:.jp-Completer-docpanel
+${KERNEL_BUSY_INDICATOR}    css:.jp-NotebookPanel-toolbar div[title="Kernel Busy"]
 
 *** Test Cases ***
-Works With Kernel Running
+Works When Kernel Is Idle
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
     [Documentation]    The suggestions from kernel and LSP should get integrated.
     Enter Cell Editor    1    line=2
     Capture Page Screenshot    01-entered-cell.png
@@ -27,6 +29,15 @@ Works With Kernel Running
     ${content} =    Get Cell Editor Content    1
     Should Contain    ${content}    TabError
 
+Uses LSP Completions When Kernel Resoponse Times Out
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": 1, "waitForBusyKernel": true}    plugin id=${COMPLETION PLUGIN ID}
+    Should Complete While Kernel Is Busy
+
+Uses LSP Completions When Kernel Is Busy
+    [Documentation]    When kernel is not available the best thing is to show some suggestions (LSP) rather than none.
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
+    Should Complete While Kernel Is Busy
+
 Works When Kernel Is Shut Down
     Lab Command    Shut Down All Kernels…
     Wait For Dialog
@@ -42,9 +53,7 @@ Works When Kernel Is Shut Down
     Completer Should Not Suggest    %%timeit
 
 Works After Kernel Restart In New Cells
-    Lab Command    Restart Kernel…
-    Wait For Dialog
-    Accept Default Dialog Option
+    Restart Kernel
     Enter Cell Editor    1    line=2
     # works in old cells
     Trigger Completer
@@ -134,6 +143,7 @@ Completion Works For Tokens Separated By Space
 
 Kernel And LSP Completions Merge Prefix Conflicts Are Resolved
     [Documentation]    Reconciliate Python kernel returning prefixed completions and LSP (pyls) not-prefixed ones
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
     # For more details see: https://github.com/krassowski/jupyterlab-lsp/issues/30#issuecomment-576003987
     # `import os.pat<tab>` → `import os.pathsep`
     Enter Cell Editor    15    line=1
@@ -290,3 +300,30 @@ Completer Should Include Documentation
     [Arguments]    ${text}
     Wait Until Page Contains Element    ${DOCUMENTATION_PANEL}    timeout=10s
     Wait Until Keyword Succeeds    10 x    1 s    Element Should Contain    ${DOCUMENTATION_PANEL}    ${text}
+    Element Should Contain    ${DOCUMENTATION_PANEL}    ${text}
+
+Restart Kernel
+    Lab Command    Restart Kernel…
+    Wait For Dialog
+    Accept Default Dialog Option
+
+Count Completer Hints
+    ${count} =    Get Element Count    css:.jp-Completer-item
+    [Return]    ${count}
+
+Should Complete While Kernel Is Busy
+    # Run the cell with sleep(20)
+    Enter Cell Editor    17
+    # for some reason the lab command selects another cell along the way...
+    # Lab Command    Run Selected Cells And Don't Advance
+    Press Keys    None    CTRL+ENTER
+    # Confirm that the kernel is busy
+    Wait Until Page Contains Element    ${KERNEL_BUSY_INDICATOR}    timeout=5s
+    # Enter a cell with "t"
+    Enter Cell Editor    18
+    # Check if completion worked
+    Enter Cell Editor    1    line=2
+    Trigger Completer    timeout=10s
+    Completer Should Suggest    test
+    # Confirm that the kernel indicator was busy all along
+    Page Should Contain Element    ${KERNEL_BUSY_INDICATOR}
