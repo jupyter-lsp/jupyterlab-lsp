@@ -148,7 +148,7 @@ export class NotebookAdapter extends WidgetAdapter<NotebookPanel> {
       // there is no default action that would trigger this,
       // its just a failsafe in case if another extension decides
       // to swap the notebook model
-      this.console.warn(
+      console.warn(
         'Model changed, connecting cell change handler; this is not something we were expecting'
       );
       notebook.model.cells.changed.connect(this.handle_cell_change, this);
