@@ -28,6 +28,7 @@ Works With Kernel Running
 
 Works When Kernel Is Shut Down
     Lab Command    Shut Down All Kernels…
+    Wait For Dialog
     Capture Page Screenshot    01-shutting-kernels.png
     Accept Default Dialog Option
     Capture Page Screenshot    02-kernels-shut.png
@@ -38,6 +39,21 @@ Works When Kernel Is Shut Down
     Completer Should Suggest    test
     # this comes from kernel:
     Completer Should Not Suggest    %%timeit
+
+Works After Kernel Restart In New Cells
+    Lab Command    Restart Kernel…
+    Wait For Dialog
+    Accept Default Dialog Option
+    Enter Cell Editor    1    line=2
+    # works in old cells
+    Trigger Completer
+    Completer Should Suggest    test
+    Lab Command    Insert Cell Below
+    Enter Cell Editor    2    line=1
+    # works in new cells
+    Press Keys    None    lis
+    Trigger Completer
+    Completer Should Suggest    list
 
 Works In File Editor
     Prepare File for Editing    Python    completion    completion.py
