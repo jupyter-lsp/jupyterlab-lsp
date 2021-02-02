@@ -36,5 +36,3 @@ dependencies:
   - geckodriver
   - robotframework >=3.2
   - robotframework-seleniumlibrary
-  # TODO: remove when jedi vs IPython is resolved
-  - jedi <0.18
