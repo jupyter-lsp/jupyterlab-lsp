@@ -315,6 +315,9 @@ jobs:
       - name: List server extensions
         run: jupyter server extension list
 
+      - name: List notebook server extensions
+        run: jupyter serverextension list
+
       - name: List frontend extensions
         run: jupyter labextension list
 
