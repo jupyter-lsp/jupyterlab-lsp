@@ -1,5 +1,11 @@
 ## CHANGELOG
 
+### `jupyter-lsp 1.1.3` (unreleased)
+
+- features:
+
+  - add config for the classic notebook server extension ([#504])
+
 ### `@krassowski/jupyterlab-lsp 3.3.0` (2021-01-31)
 
 - features:
