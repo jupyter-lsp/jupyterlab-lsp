@@ -24,6 +24,20 @@
   overflow: auto;
 }
 
+.jp-Completer-match {
+  max-width: 400px;
+  overflow-x: hidden;
+  white-space: nowrap;
+  display: block;
+  text-overflow: ellipsis;
+}
+
+.jp-mod-active .jp-Completer-match {
+  max-width: 600px;
+  white-space: break-spaces;
+  height: auto;
+}
+
 .lsp-completer-placeholder:after {
   content: 'Loading...';
   color: #7f7f7f;
