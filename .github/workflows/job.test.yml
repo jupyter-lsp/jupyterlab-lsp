@@ -313,7 +313,14 @@ jobs:
         run: python -m pip check
 
       - name: List server extensions
-        run: jupyter server extension list
+        run: |
+          jupyter server extension list
+          jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
+
+      - name: List notebook server extensions
+        run: |
+          jupyter serverextension list
+          jupyter serverextension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
 
       - name: List frontend extensions
         run: jupyter labextension list
