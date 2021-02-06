@@ -302,11 +302,6 @@ Completer Should Include Documentation
     Wait Until Keyword Succeeds    10 x    1 s    Element Should Contain    ${DOCUMENTATION_PANEL}    ${text}
     Element Should Contain    ${DOCUMENTATION_PANEL}    ${text}
 
-Restart Kernel
-    Lab Command    Restart Kernel…
-    Wait For Dialog
-    Accept Default Dialog Option
-
 Count Completer Hints
     ${count} =    Get Element Count    css:.jp-Completer-item
     [Return]    ${count}
