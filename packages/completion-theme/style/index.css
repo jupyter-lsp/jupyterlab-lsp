@@ -28,3 +28,8 @@
   content: 'Loading...';
   color: #7f7f7f;
 }
+
+/* a workaround for code being larger font size than text in markdown-rendered panel */
+.jp-Completer-docpanel pre code {
+  font-size: 90%;
+}
