@@ -16,3 +16,12 @@ Triggers Signature Help After A Keystroke
     Wait Until Keyword Succeeds    20x    0.5s    Page Should Contain Element    ${SIGNATURE_BOX}
     Element Should Contain    ${SIGNATURE_BOX}    Important docstring of abc()
     [Teardown]    Clean Up After Working With File    Signature.ipynb
+
+Invalidates On Cell Change
+    Setup Notebook    Python    Signature.ipynb
+    Enter Cell Editor    1    line=6
+    Press Keys    None    (
+    Enter Cell Editor    2
+    # just to increase chances of caching this on CI (which is slow)
+    Sleep    5s
+    Page Should Not Contain Element    ${SIGNATURE_BOX}
