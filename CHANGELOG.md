@@ -1,10 +1,22 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 3.3.1` (unreleased)
+
+- bug fixes:
+
+  - LaTeX is now rendered in documentation panel of completer ([#506])
+  - completion response returned as plain text use pre tag to retain whitespace formatting ([#506])
+  - pre-formatted code font size was reduced to match font-size of the text in completion panel ([#506])
+
+[#506]: https://github.com/krassowski/jupyterlab-lsp/pull/506
+
 ### `jupyter-lsp 1.1.3` (unreleased)
 
 - features:
 
   - add config for the classic notebook server extension ([#504])
+
+[#504]: https://github.com/krassowski/jupyterlab-lsp/pull/504
 
 ### `@krassowski/jupyterlab-lsp 3.3.0` (2021-01-31)
 

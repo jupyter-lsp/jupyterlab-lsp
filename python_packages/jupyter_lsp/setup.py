@@ -20,6 +20,6 @@ setuptools.setup(
         (
             "etc/jupyter/jupyter_notebook_config.d",
             ["jupyter_lsp/etc/jupyter_notebook_config.json"],
-        )
+        ),
     ],
 )
