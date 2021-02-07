@@ -4,11 +4,14 @@
 
 - bug fixes:
 
+  - completion and signature suggestions get invalidated when editor changes ([#507])
+  - signature suggestions now invalidate on cursor move to another line or backwards too ([#507])
   - LaTeX is now rendered in documentation panel of completer ([#506])
   - completion response returned as plain text use pre tag to retain whitespace formatting ([#506])
   - pre-formatted code font size was reduced to match font-size of the text in completion panel ([#506])
 
 [#506]: https://github.com/krassowski/jupyterlab-lsp/pull/506
+[#507]: https://github.com/krassowski/jupyterlab-lsp/pull/507
 
 ### `jupyter-lsp 1.1.3` (unreleased)
 
