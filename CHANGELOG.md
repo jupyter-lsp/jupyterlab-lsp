@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 3.3.1` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.3.1` (2020-02-07)
 
 - bug fixes:
 
@@ -9,11 +9,13 @@
   - LaTeX is now rendered in documentation panel of completer ([#506])
   - completion response returned as plain text use pre tag to retain whitespace formatting ([#506])
   - pre-formatted code font size was reduced to match font-size of the text in completion panel ([#506])
+  - completer no longer spans the entire screen if it has long entries ([#506])
 
 [#506]: https://github.com/krassowski/jupyterlab-lsp/pull/506
 [#507]: https://github.com/krassowski/jupyterlab-lsp/pull/507
+[#508]: https://github.com/krassowski/jupyterlab-lsp/pull/508
 
-### `jupyter-lsp 1.1.3` (unreleased)
+### `jupyter-lsp 1.1.3` (2020-02-07)
 
 - features:
 
