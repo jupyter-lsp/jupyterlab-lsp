@@ -91,6 +91,7 @@ Adding Text To Cells After Kernel Restart
     Setup Notebook    Python    ${file}
     ${virtual_path} =    Set Variable    ${VIRTUALDOCS DIR}${/}${file}
     Wait Until Created    ${virtual_path}
+    Restart Kernel
     Enter Cell Editor    1
     Lab Command    Insert Cell Below
     Enter Cell Editor    2    line=1

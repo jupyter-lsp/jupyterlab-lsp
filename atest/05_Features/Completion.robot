@@ -29,6 +29,22 @@ Works When Kernel Is Idle
     ${content} =    Get Cell Editor Content    1
     Should Contain    ${content}    TabError
 
+Invalidates On Cell Change
+    Enter Cell Editor    1    line=2
+    Press Keys    None    TAB
+    Enter Cell Editor    2
+    # just to increase chances of caching this on CI (which is slow)
+    Sleep    5s
+    Completer Should Not Suggest    test
+
+Invalidates On Focus Loss
+    Enter Cell Editor    1    line=2
+    Press Keys    None    TAB
+    Enter Cell Editor    2
+    # just to increase chances of caching this on CI (which is slow)
+    Sleep    5s
+    Completer Should Not Suggest    test
+
 Uses LSP Completions When Kernel Resoponse Times Out
     Configure JupyterLab Plugin    {"kernelResponseTimeout": 1, "waitForBusyKernel": true}    plugin id=${COMPLETION PLUGIN ID}
     Should Complete While Kernel Is Busy
@@ -87,7 +103,6 @@ Continious Hinting Works
 Autocompletes If Only One Option
     Enter Cell Editor    3    line=1
     Press Keys    None    cle
-    Wait Until Fully Initialized
     # First tab brings up the completer
     Press Keys    None    TAB
     Completer Should Suggest    clear
@@ -99,7 +114,6 @@ Autocompletes If Only One Option
 Does Not Autocomplete If Multiple Options
     Enter Cell Editor    3    line=1
     Press Keys    None    c
-    Wait Until Fully Initialized
     # First tab brings up the completer
     Press Keys    None    TAB
     Completer Should Suggest    copy
@@ -301,11 +315,6 @@ Completer Should Include Documentation
     Wait Until Page Contains Element    ${DOCUMENTATION_PANEL}    timeout=10s
     Wait Until Keyword Succeeds    10 x    1 s    Element Should Contain    ${DOCUMENTATION_PANEL}    ${text}
     Element Should Contain    ${DOCUMENTATION_PANEL}    ${text}
-
-Restart Kernel
-    Lab Command    Restart Kernel…
-    Wait For Dialog
-    Accept Default Dialog Option
 
 Count Completer Hints
     ${count} =    Get Element Count    css:.jp-Completer-item
