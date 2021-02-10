@@ -121,7 +121,7 @@ Use of a python `virtualenv` or a conda env is also recommended.
    R ([languageserver](https://github.com/REditorSupport/languageserver)) servers:
 
    ```bash
-   pip install python-language-server[all]
+   pip install 'python-language-server[all]'
    R -e 'install.packages("languageserver")'
    ```
 
