@@ -4,5 +4,5 @@ tools::
 datasets:::
 # `base:::<tab>` → works
 base:::
-# `print.defaul<tab>` → shows documentation for `print.default`
-print.defaul
+# `print.d<tab>` → shows documentation for `print.data.frame` → press `efa` → shows documentation for `print.default`
+print.d
