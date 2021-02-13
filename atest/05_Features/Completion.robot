@@ -22,12 +22,30 @@ Works When Kernel Is Idle
     Completer Should Suggest    TabError
     # this comes from LSP:
     Completer Should Suggest    test
-    # this comes from kernel; sometimes the kernel response may come a bit later
-    Wait Until Keyword Succeeds    20x    0.5s    Completer Should Suggest    %%timeit
+    # this comes from kernel
+    Completer Should Suggest    %%timeit
     Press Keys    None    ENTER
     Capture Page Screenshot    03-completion-confirmed.png
     ${content} =    Get Cell Editor Content    1
     Should Contain    ${content}    TabError
+
+Can Prioritize Kernel Completions
+    Configure JupyterLab Plugin    {"kernelCompletionsFirst": true, "kernelResponseTimeout": -1}    plugin id=${COMPLETION PLUGIN ID}
+    Enter Cell Editor    1    line=2
+    Trigger Completer
+    Completer Should Suggest    %%timeit
+    ${lsp_position} =    Get Completion Item Vertical Position    test
+    ${kernel_position} =    Get Completion Item Vertical Position    %%timeit
+    Should Be True    ${kernel_position} < ${lsp_position}
+
+Can Prioritize LSP Completions
+    Configure JupyterLab Plugin    {"kernelCompletionsFirst": false, "kernelResponseTimeout": -1}    plugin id=${COMPLETION PLUGIN ID}
+    Enter Cell Editor    1    line=2
+    Trigger Completer
+    Completer Should Suggest    %%timeit
+    ${lsp_position} =    Get Completion Item Vertical Position    test
+    ${kernel_position} =    Get Completion Item Vertical Position    %%timeit
+    Should Be True    ${kernel_position} > ${lsp_position}
 
 Invalidates On Cell Change
     Enter Cell Editor    1    line=2
@@ -233,10 +251,10 @@ Completes Correctly With R Double And Triple Colon
     Place Cursor In File Editor At    2    7
     Wait Until Fully Initialized
     Trigger Completer
-    Completer Should Suggest    assertCondition
-    Select Completer Suggestion    assertCondition
-    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    1    tools::assertCondition
-    # tripple colont
+    Completer Should Suggest    .print.via.format
+    Select Completer Suggestion    .print.via.format
+    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    1    tools::.print.via.format
+    # tripple colon
     Place Cursor In File Editor At    4    11
     Trigger Completer
     Completer Should Suggest    .packageName
@@ -254,9 +272,13 @@ Completes Large Namespaces
 
 Shows Documentation With CompletionItem Resolve
     [Setup]    Prepare File for Editing    R    completion    completion.R
-    Place Cursor In File Editor At    8    12
+    Place Cursor In File Editor At    8    7
     Wait Until Fully Initialized
     Trigger Completer
+    Completer Should Suggest    print.data.frame
+    Completer Should Include Documentation    Print a data frame.
+    # should remain visible after typing:
+    Press Keys    None    efa
     Completer Should Suggest    print.default
     Completer Should Include Documentation    the default method of the
     [Teardown]    Clean Up After Working With File    completion.R
@@ -296,6 +318,11 @@ Completer Should Suggest
     [Arguments]    ${text}    ${timeout}=10s
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]    timeout=${timeout}
     Capture Page Screenshot    ${text.replace(' ', '_')}.png
+
+Get Completion Item Vertical Position
+    [Arguments]    ${text}
+    ${position} =    Get Vertical Position    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
+    [Return]    ${position}
 
 Completer Should Include Icon
     [Arguments]    ${icon}
