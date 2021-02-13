@@ -1,4 +1,4 @@
-# `tools::<tab>` → select `assertCondition` → `tools::assertCondition`
+# `tools::<tab>` → select `.print.via.format` → `tools::.print.via.format`
 tools::
 # `datasets:::<tab>` → select `.packageName` → `datasets:::.packageName`
 datasets:::

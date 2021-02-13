@@ -251,10 +251,10 @@ Completes Correctly With R Double And Triple Colon
     Place Cursor In File Editor At    2    7
     Wait Until Fully Initialized
     Trigger Completer
-    Completer Should Suggest    assertCondition
-    Select Completer Suggestion    assertCondition
-    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    1    tools::assertCondition
-    # tripple colont
+    Completer Should Suggest    .print.via.format
+    Select Completer Suggestion    .print.via.format
+    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    1    tools::.print.via.format
+    # tripple colon
     Place Cursor In File Editor At    4    11
     Trigger Completer
     Completer Should Suggest    .packageName
