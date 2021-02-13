@@ -22,12 +22,30 @@ Works When Kernel Is Idle
     Completer Should Suggest    TabError
     # this comes from LSP:
     Completer Should Suggest    test
-    # this comes from kernel; sometimes the kernel response may come a bit later
-    Wait Until Keyword Succeeds    20x    0.5s    Completer Should Suggest    %%timeit
+    # this comes from kernel
+    Completer Should Suggest    %%timeit
     Press Keys    None    ENTER
     Capture Page Screenshot    03-completion-confirmed.png
     ${content} =    Get Cell Editor Content    1
     Should Contain    ${content}    TabError
+
+Can Prioritize Kernel Completions
+    Configure JupyterLab Plugin    {"kernelCompletionsFirst": true, "kernelResponseTimeout": -1}    plugin id=${COMPLETION PLUGIN ID}
+    Enter Cell Editor    1    line=2
+    Trigger Completer
+    Completer Should Suggest  %%timeit
+    ${lsp_position} =    Get Completion Item Vertical Position  test
+    ${kernel_position} =    Get Completion Item Vertical Position  %%timeit
+    Should Be True  ${kernel_position} < ${lsp_position}
+
+Can Prioritize LSP Completions
+    Configure JupyterLab Plugin    {"kernelCompletionsFirst": false, "kernelResponseTimeout": -1}    plugin id=${COMPLETION PLUGIN ID}
+    Enter Cell Editor    1    line=2
+    Trigger Completer
+    Completer Should Suggest  %%timeit
+    ${lsp_position} =    Get Completion Item Vertical Position  test
+    ${kernel_position} =    Get Completion Item Vertical Position  %%timeit
+    Should Be True  ${kernel_position} > ${lsp_position}
 
 Invalidates On Cell Change
     Enter Cell Editor    1    line=2
@@ -296,6 +314,11 @@ Completer Should Suggest
     [Arguments]    ${text}    ${timeout}=10s
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]    timeout=${timeout}
     Capture Page Screenshot    ${text.replace(' ', '_')}.png
+
+Get Completion Item Vertical Position
+    [Arguments]    ${text}
+    ${position} =  Get Vertical Position     ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
+    [Return]  ${position}
 
 Completer Should Include Icon
     [Arguments]    ${icon}

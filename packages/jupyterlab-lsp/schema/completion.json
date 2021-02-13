@@ -42,7 +42,12 @@
       "title": "Completer theme",
       "type": ["string", "null"],
       "default": "vscode",
-      "description": "The identifier of a completer theme with icons which indicate the kind of completion. Set to null to disable icons."
+      "description": "The identifier of a completer theme with icons which indicate the kind of completion. Set to null to disable icons. Search for 'completer themes' in the command palette for a command displaying available themes."
+    },
+    "kernelCompletionsFirst": {
+      "title": "Prioritize completions from kernel",
+      "default": false,
+      "description": "In case of ties when sorting completions, should the kernel completions receive higher priority than the language server completions?"
     },
     "typesMap": {
       "title": "Mapping of custom kernel types to valid completion kind names",
