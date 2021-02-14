@@ -10,6 +10,7 @@
   - the completer now uses `filterText` and `sortText` if available to better filter and sort completions ([#520], [#523])
   - completer `suppressInvokeIn` setting was removed; `suppressContinuousHintingIn` and `suppressTriggerCharacterIn` settings were added ([#521])
   - `suppressContinuousHintingIn` by default includes `def` to improve the experience when writing function names ([#521])
+  - long file paths are now collapsed if composed of more than two segments to avoid status popover and diagnostics panel getting too wide ([#524])
 
 - bug fixes:
   - user-invoked completion in strings works again ([#521])
@@ -21,6 +22,7 @@
 [#521]: https://github.com/krassowski/jupyterlab-lsp/pull/521
 [#522]: https://github.com/krassowski/jupyterlab-lsp/pull/522
 [#523]: https://github.com/krassowski/jupyterlab-lsp/pull/523
+[#524]: https://github.com/krassowski/jupyterlab-lsp/pull/524
 
 ### `@krassowski/jupyterlab-lsp 3.3.1` (2020-02-07)
 
