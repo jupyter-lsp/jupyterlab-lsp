@@ -102,9 +102,22 @@ Works After Kernel Restart In New Cells
 Works In File Editor
     [Setup]    Prepare File for Editing    Python    completion    completion.py
     Place Cursor In File Editor At    9    2
-    Capture Page Screenshot    01-editor-ready.png
+    Wait Until Fully Initialized
     Trigger Completer
     Completer Should Suggest    add
+    [Teardown]    Clean Up After Working With File    completion.py
+
+Completes In Strings Or Python Dictionaries
+    [Setup]    Prepare File for Editing    Python    completion    completion.py
+    Place Cursor In File Editor At    16    0
+    Wait Until Fully Initialized
+    Press Keys    None    test_dict['']
+    Place Cursor In File Editor At    16    11
+    Trigger Completer
+    # note: in jedi-language-server this would be key_a without '
+    Completer Should Suggest    'key_a
+    Select Completer Suggestion    'key_a
+    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    15    test_dict['key_a']
     [Teardown]    Clean Up After Working With File    completion.py
 
 Continious Hinting Works

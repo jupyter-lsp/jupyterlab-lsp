@@ -7,3 +7,9 @@ def add(a: int, b: int):
 
 
 ad
+
+
+test_dict = {
+    'key_a': 1,
+    'key_b': 2
+}
