@@ -15,9 +15,11 @@
   - user-invoked completion in strings works again ([#521])
   - completer documentation will now consistently show up after filtering the completion items ([#520])
   - completions containing HTML-like syntax will be displayed properly (an upstream issue) ([#520])
+  - diagnostics panel will no longer break when foreign documents (e.g. `%%R` cell magics) are removed ([#522])
 
 [#520]: https://github.com/krassowski/jupyterlab-lsp/pull/520
 [#521]: https://github.com/krassowski/jupyterlab-lsp/pull/521
+[#522]: https://github.com/krassowski/jupyterlab-lsp/pull/522
 
 ### `@krassowski/jupyterlab-lsp 3.3.1` (2020-02-07)
 
