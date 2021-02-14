@@ -17,14 +17,23 @@
       "default": false,
       "description": "Whether to enable continuous hinting (Hinterland mode)."
     },
-    "suppressInvokeIn": {
-      "title": "Suppress invoke in specific code fragments",
+    "suppressContinuousHintingIn": {
+      "title": "Suppress invoke continuous hinting in specific code fragments",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": ["comment", "string", "def"],
+      "description": "An array of CodeMirror tokens for which the continuous hinting should be suppressed. The token names vary between languages (modes)."
+    },
+    "suppressTriggerCharacterIn": {
+      "title": "Suppress invoke via trigger character in specific code fragments",
       "type": "array",
       "items": {
         "type": "string"
       },
       "default": ["comment", "string"],
-      "description": "An array of CodeMirror tokens for which the auto-invoke should be suppressed. Adding 'def' will prevent continuous hinting when writing a function name in Python, Julia, JavaScript and other languages. The token names vary between languages (modes)."
+      "description": "An array of CodeMirror tokens for which the auto-invoke after entering a trigger (e.g. `.` in Python or `::` in R) character should be suppressed. The token names vary between languages (modes)."
     },
     "kernelResponseTimeout": {
       "title": "Kernel completion response timeout",
