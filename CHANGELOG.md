@@ -8,12 +8,15 @@
   - completer panel will now always render markdown documentation if available ([#520])
     - the implementation re-renders the panel as it is the best we can do until [jupyterlab#9663](https://github.com/jupyterlab/jupyterlab/pull/9663) is merged
   - the completer now uses `filterText` and `sortText` if available to better filter and sort completions ([#520])
+  - completer `suppressInvokeIn` setting was removed; `suppressContinuousHintingIn` and `suppressTriggerCharacterIn` settings were added ([#521])
 
 - bug fixes:
+  - user-invoked completion in strings works again ([#521])
   - completer documentation will now consistently show up after filtering the completion items ([#520])
   - completions containing HTML-like syntax will be displayed properly (an upstream issue) ([#520])
 
 [#520]: https://github.com/krassowski/jupyterlab-lsp/pull/520
+[#521]: https://github.com/krassowski/jupyterlab-lsp/pull/521
 
 ### `@krassowski/jupyterlab-lsp 3.3.1` (2020-02-07)
 
