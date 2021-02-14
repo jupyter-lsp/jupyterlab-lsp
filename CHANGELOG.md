@@ -9,6 +9,7 @@
     - the implementation re-renders the panel as it is the best we can do until [jupyterlab#9663](https://github.com/jupyterlab/jupyterlab/pull/9663) is merged
   - the completer now uses `filterText` and `sortText` if available to better filter and sort completions ([#520])
   - completer `suppressInvokeIn` setting was removed; `suppressContinuousHintingIn` and `suppressTriggerCharacterIn` settings were added ([#521])
+  - `suppressContinuousHintingIn` by default includes `def` to improve the experience when writing function names ([#521])
 
 - bug fixes:
   - user-invoked completion in strings works again ([#521])
