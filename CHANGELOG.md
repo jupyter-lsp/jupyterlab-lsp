@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 3.4.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.4.0` (2020-02-14)
 
 - features:
 
