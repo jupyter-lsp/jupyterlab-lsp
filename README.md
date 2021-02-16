@@ -1,6 +1,6 @@
 # Language Server Protocol integration for Jupyter(Lab)
 
-![tests](https://github.com/krassowski/jupyterlab-lsp/workflows/tests/badge.svg) [![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
+![tests](https://github.com/krassowski/jupyterlab-lsp/workflows/CI/badge.svg) [![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
 
 > _This project is still maturing, but you are welcome to check it out, leave feedback and/or a PR_
 
@@ -121,6 +121,7 @@ Use of a python `virtualenv` or a conda env is also recommended.
    R ([languageserver](https://github.com/REditorSupport/languageserver)) servers:
 
    ```bash
+   # note: you may want to use our fork of python-language-server instead (see below)
    pip install 'python-language-server[all]'
    R -e 'install.packages("languageserver")'
    ```
@@ -138,8 +139,32 @@ Use of a python `virtualenv` or a conda env is also recommended.
    [Microsoft list](https://microsoft.github.io/language-server-protocol/implementors/servers/)
    should work after [some additional configuration](./CONTRIBUTING.md#specs).
 
-   Note: it is worth visiting the repository of each server you install as
+   Note 1: it is worth visiting the repository of each server you install as
    many provide additional configuration options.
+
+   Note 2: we are developing an improved (faster autocompletion, added features)
+   version of the `python-language-server`. It is experimental and should
+   not be used in production yet, but will likely benefit individual users
+   You can check it out with:
+
+   ```bash
+   pip install git+https://github.com/krassowski/python-language-server.git@main
+   ```
+
+   Please report any regressions [here](https://github.com/krassowski/jupyterlab-lsp/issues/272).
+
+1. (Optional, IPython users only) to improve the performance of autocompletion,
+   disable Jedi in IPython (the LSP servers for Python use Jedi too).
+   You can do that temporarily with:
+
+   ```ipython
+   %config Completer.use_jedi = False
+   ```
+
+   or permanently by setting `c.Completer.use_jedi = False` in your
+   [`ipython_kernel_config.py` file](https://ipython.readthedocs.io/en/stable/config/intro.html?highlight=ipython_kernel_config.py#systemwide-configuration).
+   You will also benefit from using experimental version of python-language-server
+   as described in the Note 2 (above).
 
 1. (Optional, Linux/OSX-only) to enable opening files outside of the root
    directory (the place where you start JupyterLab), create `.lsp_symlink` and
