@@ -127,6 +127,11 @@
     "codemirror": "*",
     "react": "*"
   },
+  "peerDependenciesMeta": {
+    "@jupyterlab-classic/application": {
+      "optional": true
+    }
+  },
   "jupyterlab": {
     "extension": true,
     "discovery": {
