@@ -197,6 +197,7 @@ jobs:
           path: ./dist
 
   acceptance:
+    if: ${{ false }}
     runs-on: ${{ matrix.os }}-latest
     name: atest ${{ matrix.os }} py${{ matrix.python }}
     needs: [build]
@@ -339,6 +340,7 @@ jobs:
         if: always()
 
   smoke:
+    if: ${{ false }}
     name: smoke ${{ matrix.os }} py${{ matrix.python }}
     runs-on: ${{ matrix.os }}-latest
     needs: [build, lint]
@@ -393,7 +395,7 @@ jobs:
   source:
     name: smoke source install ${{ matrix.os }}
     runs-on: ${{ matrix.os }}-latest
-    needs: [build, lint]
+    needs: [build]
     strategy:
       fail-fast: false
       matrix:
@@ -423,7 +425,7 @@ jobs:
       - name: Install the server package
         run: cd dist && python -m pip install -vv jupyter_lsp*.whl
       - name: install the source extension
-        run: cd dist && jupyter labextension install krassowski-jupyterlab-lsp-*.tgz
+        run: cd dist && jupyter labextension install krassowski-jupyterlab-lsp-*.tgz --log-level DEBUG
       - name: Validate the install
         run: |
           set -eux
