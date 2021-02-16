@@ -197,7 +197,6 @@ jobs:
           path: ./dist
 
   acceptance:
-    if: ${{ false }}
     runs-on: ${{ matrix.os }}-latest
     name: atest ${{ matrix.os }} py${{ matrix.python }}
     needs: [build]
