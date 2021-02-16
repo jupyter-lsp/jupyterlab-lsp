@@ -340,7 +340,6 @@ jobs:
         if: always()
 
   smoke:
-    if: ${{ false }}
     name: smoke ${{ matrix.os }} py${{ matrix.python }}
     runs-on: ${{ matrix.os }}-latest
     needs: [build, lint]
