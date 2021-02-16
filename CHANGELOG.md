@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 3.4.1` (2020-02-16)
+
+- bug fixes:
+
+  - fixed installation of the source version of the extension (causing build error if classic was not installed) ([#526])
+
+[#526]: https://github.com/krassowski/jupyterlab-lsp/pull/526
+
 ### `@krassowski/jupyterlab-lsp 3.4.0` (2020-02-14)
 
 - features:
@@ -13,6 +21,7 @@
   - long file paths are now collapsed if composed of more than two segments to avoid status popover and diagnostics panel getting too wide ([#524])
 
 - bug fixes:
+
   - user-invoked completion in strings works again ([#521])
   - completer documentation will now consistently show up after filtering the completion items ([#520])
   - completions containing HTML-like syntax will be displayed properly (an upstream issue) ([#520], [#523])
