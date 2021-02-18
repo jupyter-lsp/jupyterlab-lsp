@@ -164,7 +164,7 @@ Use of a python `virtualenv` or a conda env is also recommended.
    ```
 
    or permanently by setting `c.Completer.use_jedi = False` in your
-   [`ipython_kernel_config.py` file](https://ipython.readthedocs.io/en/stable/config/intro.html?highlight=ipython_kernel_config.py#systemwide-configuration).
+   [`ipython_config.py` file](https://ipython.readthedocs.io/en/stable/config/intro.html?highlight=ipython_config.py#systemwide-configuration).
    You will also benefit from using experimental version of python-language-server
    as described in the Note 2 (above).
 
