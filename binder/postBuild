@@ -17,10 +17,6 @@ python setup.py sdist bdist_wheel
 python -m pip install -e . --ignore-installed --no-deps -vv
 jupyter labextension develop . --overwrite
 popd
-
-# Clean up incompatible extension
-jupyter labextension uninstall --no-build jupyter-offlinenotebook || echo "ok"
-
 # List extensions
 jupyter serverextension list
 jupyter labextension list
