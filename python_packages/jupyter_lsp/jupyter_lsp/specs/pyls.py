@@ -13,7 +13,7 @@ class PythonLanguageServer(PythonModuleSpec):
             issues="https://github.com/palantir/python-language-server/issues",
         ),
         install=dict(
-            pip="pip install python-language-server[all]",
+            pip="pip install 'python-language-server[all]'",
             conda="conda install -c conda-forge python-language-server",
         ),
         extend=[

@@ -20,4 +20,5 @@ popd
 
 # List extensions
 jupyter serverextension list
+jupyter server extension list
 jupyter labextension list

@@ -15,7 +15,11 @@ setuptools.setup(
     data_files=[
         (
             "etc/jupyter/jupyter_server_config.d",
-            ["jupyter_lsp/etc/jupyter-lsp.json"],
-        )
+            ["jupyter_lsp/etc/jupyter_server_config.json"],
+        ),
+        (
+            "etc/jupyter/jupyter_notebook_config.d",
+            ["jupyter_lsp/etc/jupyter_notebook_config.json"],
+        ),
     ],
 )

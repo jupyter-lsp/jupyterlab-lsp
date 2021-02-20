@@ -7,7 +7,7 @@ import * as CodeMirror from 'codemirror';
 import { CodeMirrorIntegration } from '../../editor_integration/codemirror';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { IEditorChangedData, WidgetAdapter } from '../../adapters/adapter';
-import { LazyCompletionItem, LSPConnector } from './completion_handler';
+import { LSPConnector } from './completion_handler';
 import { CompletionHandler, ICompletionManager } from '@jupyterlab/completer';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
@@ -21,6 +21,8 @@ import { NotebookAdapter } from '../../adapters/notebook/notebook';
 import { ILSPCompletionThemeManager } from '@krassowski/completion-theme/lib/types';
 import { LSPCompletionRenderer } from './renderer';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { LSPCompleterModel } from './model';
+import { LazyCompletionItem } from './item';
 
 const DOC_PANEL_SELECTOR = '.jp-Completer-docpanel';
 const DOC_PANEL_PLACEHOLDER_CLASS = 'lsp-completer-placeholder';
@@ -61,7 +63,7 @@ export class CompletionCM extends CodeMirrorIntegration {
       );
       (this.feature.labIntegration as CompletionLabIntegration)
         .invoke_completer(CompletionTriggerKind.TriggerCharacter)
-        .catch(console.warn);
+        .catch(this.console.warn);
       return;
     }
 
@@ -72,7 +74,7 @@ export class CompletionCM extends CodeMirrorIntegration {
     ) {
       (this.feature.labIntegration as CompletionLabIntegration)
         .invoke_completer(AdditionalCompletionTriggerKinds.AutoInvoked)
-        .catch(console.warn);
+        .catch(this.console.warn);
     }
   }
 }
@@ -99,6 +101,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     this.renderer = new LSPCompletionRenderer({
       integrator: this,
       markdownRenderer: markdown_renderer,
+      latexTypesetter: this.renderMimeRegistry.latexTypesetter,
       console: console.scope('renderer')
     });
     this.renderer.activeChanged.connect(this.active_completion_changed, this);
@@ -116,6 +119,10 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     item: LazyCompletionItem
   ) {
     if (!item.supportsResolution()) {
+      if (item.isDocumentationMarkdown) {
+        // TODO: remove once https://github.com/jupyterlab/jupyterlab/pull/9663 is merged and released
+        this.refresh_doc_panel(item);
+      }
       return;
     }
 
@@ -186,9 +193,22 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
       },
       this.renderer
     ) as CompletionHandler;
+    let completer = this.completer;
+    completer.addClass('lsp-completer');
+    completer.model = new LSPCompleterModel();
+  }
+
+  protected get completer() {
+    // TODO upstream: make completer public?
+    return this.current_completion_handler.completer;
+  }
+
+  protected get model(): LSPCompleterModel {
+    return this.completer.model as LSPCompleterModel;
   }
 
   invoke_completer(kind: ExtendedCompletionTriggerKind) {
+    // TODO: ideally this would not re-trigger if list of items not isIncomplete
     let command: string;
     this.current_completion_connector.trigger_kind = kind;
 
@@ -219,12 +239,9 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
   }
 
   private get current_items() {
-    // TODO upstream: make completer public?
-    let completer = this.current_completion_handler.completer;
-
     // TODO upstream: allow to get completionItems() without markup
     //   (note: not trivial as _markup() does filtering too)
-    return completer.model.completionItems();
+    return this.model.completionItems();
   }
 
   private get current_index() {

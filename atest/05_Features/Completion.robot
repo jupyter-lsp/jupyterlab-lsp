@@ -8,9 +8,11 @@ Resource          ../Keywords.robot
 *** Variables ***
 ${COMPLETER_BOX}    css:.jp-Completer.jp-HoverBox
 ${DOCUMENTATION_PANEL}    css:.jp-Completer-docpanel
+${KERNEL_BUSY_INDICATOR}    css:.jp-NotebookPanel-toolbar div[title="Kernel Busy"]
 
 *** Test Cases ***
-Works With Kernel Running
+Works When Kernel Is Idle
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
     [Documentation]    The suggestions from kernel and LSP should get integrated.
     Enter Cell Editor    1    line=2
     Capture Page Screenshot    01-entered-cell.png
@@ -20,12 +22,55 @@ Works With Kernel Running
     Completer Should Suggest    TabError
     # this comes from LSP:
     Completer Should Suggest    test
-    # this comes from kernel; sometimes the kernel response may come a bit later
-    Wait Until Keyword Succeeds    20x    0.5s    Completer Should Suggest    %%timeit
+    # this comes from kernel
+    Completer Should Suggest    %%timeit
     Press Keys    None    ENTER
     Capture Page Screenshot    03-completion-confirmed.png
     ${content} =    Get Cell Editor Content    1
     Should Contain    ${content}    TabError
+
+Can Prioritize Kernel Completions
+    Configure JupyterLab Plugin    {"kernelCompletionsFirst": true, "kernelResponseTimeout": -1}    plugin id=${COMPLETION PLUGIN ID}
+    Enter Cell Editor    1    line=2
+    Trigger Completer
+    Completer Should Suggest    %%timeit
+    ${lsp_position} =    Get Completion Item Vertical Position    test
+    ${kernel_position} =    Get Completion Item Vertical Position    %%timeit
+    Should Be True    ${kernel_position} < ${lsp_position}
+
+Can Prioritize LSP Completions
+    Configure JupyterLab Plugin    {"kernelCompletionsFirst": false, "kernelResponseTimeout": -1}    plugin id=${COMPLETION PLUGIN ID}
+    Enter Cell Editor    1    line=2
+    Trigger Completer
+    Completer Should Suggest    %%timeit
+    ${lsp_position} =    Get Completion Item Vertical Position    test
+    ${kernel_position} =    Get Completion Item Vertical Position    %%timeit
+    Should Be True    ${kernel_position} > ${lsp_position}
+
+Invalidates On Cell Change
+    Enter Cell Editor    1    line=2
+    Press Keys    None    TAB
+    Enter Cell Editor    2
+    # just to increase chances of caching this on CI (which is slow)
+    Sleep    5s
+    Completer Should Not Suggest    test
+
+Invalidates On Focus Loss
+    Enter Cell Editor    1    line=2
+    Press Keys    None    TAB
+    Enter Cell Editor    2
+    # just to increase chances of caching this on CI (which is slow)
+    Sleep    5s
+    Completer Should Not Suggest    test
+
+Uses LSP Completions When Kernel Resoponse Times Out
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": 1, "waitForBusyKernel": true}    plugin id=${COMPLETION PLUGIN ID}
+    Should Complete While Kernel Is Busy
+
+Uses LSP Completions When Kernel Is Busy
+    [Documentation]    When kernel is not available the best thing is to show some suggestions (LSP) rather than none.
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
+    Should Complete While Kernel Is Busy
 
 Works When Kernel Is Shut Down
     Lab Command    Shut Down All Kernels…
@@ -42,9 +87,7 @@ Works When Kernel Is Shut Down
     Completer Should Not Suggest    %%timeit
 
 Works After Kernel Restart In New Cells
-    Lab Command    Restart Kernel…
-    Wait For Dialog
-    Accept Default Dialog Option
+    Restart Kernel
     Enter Cell Editor    1    line=2
     # works in old cells
     Trigger Completer
@@ -59,9 +102,22 @@ Works After Kernel Restart In New Cells
 Works In File Editor
     [Setup]    Prepare File for Editing    Python    completion    completion.py
     Place Cursor In File Editor At    9    2
-    Capture Page Screenshot    01-editor-ready.png
+    Wait Until Fully Initialized
     Trigger Completer
     Completer Should Suggest    add
+    [Teardown]    Clean Up After Working With File    completion.py
+
+Completes In Strings Or Python Dictionaries
+    [Setup]    Prepare File for Editing    Python    completion    completion.py
+    Place Cursor In File Editor At    16    0
+    Wait Until Fully Initialized
+    Press Keys    None    test_dict['']
+    Place Cursor In File Editor At    16    11
+    Trigger Completer
+    # note: in jedi-language-server this would be key_a without '
+    Completer Should Suggest    'key_a
+    Select Completer Suggestion    'key_a
+    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    15    test_dict['key_a']
     [Teardown]    Clean Up After Working With File    completion.py
 
 Continious Hinting Works
@@ -78,7 +134,6 @@ Continious Hinting Works
 Autocompletes If Only One Option
     Enter Cell Editor    3    line=1
     Press Keys    None    cle
-    Wait Until Fully Initialized
     # First tab brings up the completer
     Press Keys    None    TAB
     Completer Should Suggest    clear
@@ -90,7 +145,6 @@ Autocompletes If Only One Option
 Does Not Autocomplete If Multiple Options
     Enter Cell Editor    3    line=1
     Press Keys    None    c
-    Wait Until Fully Initialized
     # First tab brings up the completer
     Press Keys    None    TAB
     Completer Should Suggest    copy
@@ -134,6 +188,7 @@ Completion Works For Tokens Separated By Space
 
 Kernel And LSP Completions Merge Prefix Conflicts Are Resolved
     [Documentation]    Reconciliate Python kernel returning prefixed completions and LSP (pyls) not-prefixed ones
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
     # For more details see: https://github.com/krassowski/jupyterlab-lsp/issues/30#issuecomment-576003987
     # `import os.pat<tab>` → `import os.pathsep`
     Enter Cell Editor    15    line=1
@@ -209,10 +264,10 @@ Completes Correctly With R Double And Triple Colon
     Place Cursor In File Editor At    2    7
     Wait Until Fully Initialized
     Trigger Completer
-    Completer Should Suggest    assertCondition
-    Select Completer Suggestion    assertCondition
-    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    1    tools::assertCondition
-    # tripple colont
+    Completer Should Suggest    .print.via.format
+    Select Completer Suggestion    .print.via.format
+    Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    1    tools::.print.via.format
+    # tripple colon
     Place Cursor In File Editor At    4    11
     Trigger Completer
     Completer Should Suggest    .packageName
@@ -230,9 +285,13 @@ Completes Large Namespaces
 
 Shows Documentation With CompletionItem Resolve
     [Setup]    Prepare File for Editing    R    completion    completion.R
-    Place Cursor In File Editor At    8    12
+    Place Cursor In File Editor At    8    7
     Wait Until Fully Initialized
     Trigger Completer
+    Completer Should Suggest    print.data.frame
+    Completer Should Include Documentation    Print a data frame.
+    # should remain visible after typing:
+    Press Keys    None    efa
     Completer Should Suggest    print.default
     Completer Should Include Documentation    the default method of the
     [Teardown]    Clean Up After Working With File    completion.R
@@ -273,6 +332,11 @@ Completer Should Suggest
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]    timeout=${timeout}
     Capture Page Screenshot    ${text.replace(' ', '_')}.png
 
+Get Completion Item Vertical Position
+    [Arguments]    ${text}
+    ${position} =    Get Vertical Position    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
+    [Return]    ${position}
+
 Completer Should Include Icon
     [Arguments]    ${icon}
     Wait Until Page Contains Element    ${COMPLETER_BOX} svg[data-icon="${icon}"]    timeout=10s
@@ -289,4 +353,26 @@ Trigger Completer
 Completer Should Include Documentation
     [Arguments]    ${text}
     Wait Until Page Contains Element    ${DOCUMENTATION_PANEL}    timeout=10s
+    Wait Until Keyword Succeeds    10 x    1 s    Element Should Contain    ${DOCUMENTATION_PANEL}    ${text}
     Element Should Contain    ${DOCUMENTATION_PANEL}    ${text}
+
+Count Completer Hints
+    ${count} =    Get Element Count    css:.jp-Completer-item
+    [Return]    ${count}
+
+Should Complete While Kernel Is Busy
+    # Run the cell with sleep(20)
+    Enter Cell Editor    17
+    # for some reason the lab command selects another cell along the way...
+    # Lab Command    Run Selected Cells And Don't Advance
+    Press Keys    None    CTRL+ENTER
+    # Confirm that the kernel is busy
+    Wait Until Page Contains Element    ${KERNEL_BUSY_INDICATOR}    timeout=5s
+    # Enter a cell with "t"
+    Enter Cell Editor    18
+    # Check if completion worked
+    Enter Cell Editor    1    line=2
+    Trigger Completer    timeout=10s
+    Completer Should Suggest    test
+    # Confirm that the kernel indicator was busy all along
+    Page Should Contain Element    ${KERNEL_BUSY_INDICATOR}

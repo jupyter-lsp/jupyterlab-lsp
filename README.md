@@ -1,6 +1,8 @@
 # Language Server Protocol integration for Jupyter(Lab)
 
-![tests](https://github.com/krassowski/jupyterlab-lsp/workflows/tests/badge.svg) [![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
+[![tests](https://github.com/krassowski/jupyterlab-lsp/workflows/CI/badge.svg)](https://github.com/krassowski/jupyterlab-lsp/actions?query=workflow%3ACI+branch%3Amaster)
+[![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
 
 > _This project is still maturing, but you are welcome to check it out, leave feedback and/or a PR_
 
@@ -35,12 +37,13 @@ Use the context menu entry, or <kbd>Alt</kbd> + :computer_mouse: to jump to defi
 
 Place your cursor on a variable, function, etc and all the usages will be highlighted
 
-### Automatic Completion
+### Automatic Completion and Continuous Hinting
 
-Certain characters, for example '.' (dot) in Python, will automatically trigger
-completion
+- Certain characters, for example '.' (dot) in Python, will automatically trigger
+  completion.
+- You can choose to receive the completion suggestions as you type by enabling `continiousHinting` setting.
 
-![invoke](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/auto_invoke.png)
+![invoke](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.gif)
 
 ### Automatic Signature Suggestions
 
@@ -52,11 +55,16 @@ Function signatures will automatically be displayed
 
 Advanced static-analysis autocompletion without a running kernel
 
-![autocompletion](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.png)
+![autocompletion](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/completions-Julia-Python-R.gif)
 
-> When a kernel is available the suggestions from the kernel (such as keys of a
-> dict and columns of a DataFrame autocompletion) are merged with the suggestions
-> from the Language Server (currently only in notebook).
+#### The runtime kernel suggestions are still there
+
+When a kernel is available the suggestions from the kernel (such as keys of a
+dict and columns of a DataFrame) are merged with the suggestions
+from the Language Server (in notebook).
+
+If the kernel is too slow to respond promptly only the Language Server suggestions will be shown (default threshold: 0.6s).
+You can configure the completer to not attempt to fetch the kernel completions if the kernel is busy (skipping the 0.6s timeout).
 
 ### Rename
 
@@ -115,7 +123,8 @@ Use of a python `virtualenv` or a conda env is also recommended.
    R ([languageserver](https://github.com/REditorSupport/languageserver)) servers:
 
    ```bash
-   pip install python-language-server[all]
+   # note: you may want to use our fork of python-language-server instead (see below)
+   pip install 'python-language-server[all]'
    R -e 'install.packages("languageserver")'
    ```
 
@@ -132,8 +141,32 @@ Use of a python `virtualenv` or a conda env is also recommended.
    [Microsoft list](https://microsoft.github.io/language-server-protocol/implementors/servers/)
    should work after [some additional configuration](./CONTRIBUTING.md#specs).
 
-   Note: it is worth visiting the repository of each server you install as
+   Note 1: it is worth visiting the repository of each server you install as
    many provide additional configuration options.
+
+   Note 2: we are developing an improved (faster autocompletion, added features)
+   version of the `python-language-server`. It is experimental and should
+   not be used in production yet, but will likely benefit individual users
+   You can check it out with:
+
+   ```bash
+   pip install git+https://github.com/krassowski/python-language-server.git@main
+   ```
+
+   Please report any regressions [here](https://github.com/krassowski/jupyterlab-lsp/issues/272).
+
+1. (Optional, IPython users only) to improve the performance of autocompletion,
+   disable Jedi in IPython (the LSP servers for Python use Jedi too).
+   You can do that temporarily with:
+
+   ```ipython
+   %config Completer.use_jedi = False
+   ```
+
+   or permanently by setting `c.Completer.use_jedi = False` in your
+   [`ipython_config.py` file](https://ipython.readthedocs.io/en/stable/config/intro.html?highlight=ipython_config.py#systemwide-configuration).
+   You will also benefit from using experimental version of python-language-server
+   as described in the Note 2 (above).
 
 1. (Optional, Linux/OSX-only) to enable opening files outside of the root
    directory (the place where you start JupyterLab), create `.lsp_symlink` and

@@ -227,7 +227,7 @@ python scripts/atest.py --suite "05_Features.Completion"
 ##### Run a single test
 
 ```bash
-python scripts/atest.py --test "Works With Kernel Running"
+python scripts/atest.py --test "Works When Kernel Is Idle"
 ```
 
 ##### Run test with a tag

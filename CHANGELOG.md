@@ -1,5 +1,84 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 3.4.1` (2020-02-16)
+
+- bug fixes:
+
+  - fixed installation of the source version of the extension (causing build error if classic was not installed) ([#526])
+
+[#526]: https://github.com/krassowski/jupyterlab-lsp/pull/526
+
+### `@krassowski/jupyterlab-lsp 3.4.0` (2020-02-14)
+
+- features:
+
+  - the priority of the completions from kernel can now be changed by switching new `kernelCompletionsFirst` setting ([#520])
+  - completer panel will now always render markdown documentation if available ([#520])
+    - the implementation re-renders the panel as it is the best we can do until [jupyterlab#9663](https://github.com/jupyterlab/jupyterlab/pull/9663) is merged
+  - the completer now uses `filterText` and `sortText` if available to better filter and sort completions ([#520], [#523])
+  - completer `suppressInvokeIn` setting was removed; `suppressContinuousHintingIn` and `suppressTriggerCharacterIn` settings were added ([#521])
+  - `suppressContinuousHintingIn` by default includes `def` to improve the experience when writing function names ([#521])
+  - long file paths are now collapsed if composed of more than two segments to avoid status popover and diagnostics panel getting too wide ([#524])
+
+- bug fixes:
+
+  - user-invoked completion in strings works again ([#521])
+  - completer documentation will now consistently show up after filtering the completion items ([#520])
+  - completions containing HTML-like syntax will be displayed properly (an upstream issue) ([#520], [#523])
+  - diagnostics panel will no longer break when foreign documents (e.g. `%%R` cell magics) are removed ([#522])
+
+[#520]: https://github.com/krassowski/jupyterlab-lsp/pull/520
+[#521]: https://github.com/krassowski/jupyterlab-lsp/pull/521
+[#522]: https://github.com/krassowski/jupyterlab-lsp/pull/522
+[#523]: https://github.com/krassowski/jupyterlab-lsp/pull/523
+[#524]: https://github.com/krassowski/jupyterlab-lsp/pull/524
+
+### `@krassowski/jupyterlab-lsp 3.3.1` (2020-02-07)
+
+- bug fixes:
+
+  - completion and signature suggestions get invalidated when editor changes ([#507])
+  - signature suggestions now invalidate on cursor move to another line or backwards too ([#507])
+  - LaTeX is now rendered in documentation panel of completer ([#506])
+  - completion response returned as plain text use pre tag to retain whitespace formatting ([#506])
+  - pre-formatted code font size was reduced to match font-size of the text in completion panel ([#506])
+  - completer no longer spans the entire screen if it has long entries ([#506])
+
+[#506]: https://github.com/krassowski/jupyterlab-lsp/pull/506
+[#507]: https://github.com/krassowski/jupyterlab-lsp/pull/507
+[#508]: https://github.com/krassowski/jupyterlab-lsp/pull/508
+
+### `jupyter-lsp 1.1.3` (2020-02-07)
+
+- features:
+
+  - add config for the classic notebook server extension ([#504])
+
+[#504]: https://github.com/krassowski/jupyterlab-lsp/pull/504
+
+### `@krassowski/jupyterlab-lsp 3.3.0` (2021-01-31)
+
+- features:
+
+  - added a timeout for kernel completion, with the default of 600ms ([#496])
+  - added an option to skip waiting for kernel completions if busy, off by default ([#496])
+
+- bug fixes:
+
+  - delayed completion suggestions will no longer show up if cursor moved to another line ([#496])
+  - changes in notebooks after kernel restart or file rename will now be recorded by the language server again ([#496])
+  - when either of kernel providers: kernel or LSP server fails, the completion from the other will still be shown ([#496])
+
+[#496]: https://github.com/krassowski/jupyterlab-lsp/pull/496
+
+### `jupyter-lsp 1.1.2` (2021-01-31)
+
+- bug fixes:
+
+  - fixed issues with language server messages being truncated in certain circumstances on Windows
+
+[#494]: https://github.com/krassowski/jupyterlab-lsp/pull/494
+
 ### `@krassowski/jupyterlab-lsp 3.2.0` (2021-01-24)
 
 - features:
