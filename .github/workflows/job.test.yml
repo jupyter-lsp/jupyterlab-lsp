@@ -429,5 +429,7 @@ jobs:
           set -eux
           jupyter labextension list
           jupyter server extension list
+          jupyter serverextension list
           jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
           jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
+          jupyter serverextension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -

@@ -5,6 +5,8 @@ import traceback
 from typing import Dict, Text, Tuple
 
 import entrypoints
+from jupyter_core.paths import jupyter_config_path
+from jupyter_server.services.config import ConfigManager
 from jupyter_server.transutils import _
 from traitlets import Bool
 from traitlets import Dict as Dict_
@@ -31,6 +33,11 @@ from .types import (
 
 class LanguageServerManager(LanguageServerManagerAPI):
     """Manage language servers"""
+
+    conf_d_language_servers = Schema(
+        validator=LANGUAGE_SERVER_SPEC_MAP,
+        help=_("extra language server specs, keyed by implementation, from conf.d"),
+    )  # type: KeyedLanguageServerSpecs
 
     language_servers = Schema(
         validator=LANGUAGE_SERVER_SPEC_MAP,
@@ -72,6 +79,21 @@ class LanguageServerManager(LanguageServerManagerAPI):
     def _default_virtual_documents_dir(self):
         return os.getenv("JP_LSP_VIRTUAL_DIR", ".virtual_documents")
 
+    @default("conf_d_language_servers")
+    def _default_conf_d_language_servers(self):
+        language_servers = {}  # type: KeyedLanguageServerSpecs
+
+        manager = ConfigManager(read_config_path=jupyter_config_path())
+
+        for app in ["_", "_notebook_", "_server_"]:
+            language_servers.update(
+                **manager.get(f"jupyter{app}config")
+                .get(self.__class__.__name__, {})
+                .get("language_servers", {})
+            )
+
+        return language_servers
+
     def __init__(self, **kwargs):
         """Before starting, perform all necessary configuration"""
         super().__init__(**kwargs)
@@ -87,6 +109,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
         # copy the language servers before anybody monkeys with them
         language_servers_from_config = dict(self.language_servers)
+        language_servers_from_config.update(self.conf_d_language_servers)
 
         if self.autodetect:
             language_servers.update(self._autodetect_language_servers())
