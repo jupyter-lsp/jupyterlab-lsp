@@ -9,6 +9,6 @@ dependencies:
   - geckodriver
   - jupyterlab_robotmode
   - robotframework >=3.2,<4
-  - robotframework-lsp >=0.7,<1.0
+  - robotframework-lsp >=0.8,<1.0
   - robotframework-seleniumlibrary
   - robotkernel
