@@ -416,7 +416,8 @@ def cool(app):
         "cool-language-server": {
             "version": 1,
             "argv": [cool_language_server],
-            "languages": ["cool"]
+            "languages": ["cool"],
+            "mime_types": ["text/cool", "text/x-cool"]
         }
     }
 ```
