@@ -325,15 +325,16 @@ python scripts/lint.py
 While language servers can be configured by the user using a simple JSON or Python [configuration file](./Configuring.ipynb#language_servers),
 it is preferable to provide users with an option that does not require manual configuration. The language server specifications (specs)
 wrap the configuration (as would be defined by the user) into a Python class or function that can be either:
-
 - distributed using PyPI/conda-forge and made conveniently available to users for `pip install` and/or `conda install`
 - contributed to the collection of built-in specs of jupyter-lsp by opening a PR (preferable for popular language servers, say >100 users)
+
+In either case the detection of available specifications uses Python `entry_points` (see the `[options.entry_points]` section in jupyter-lsp [setup.cfg]).
 
 > If an advanced user installs, locates, and configures, their own language server it will always win vs an auto-configured one.
 
 #### Writing a spec
 
-A spec is a Python callable (a function or class with `__call__` method) that accepts a single argument, the
+A spec is a Python callable (a function, or a class with `__call__` method) that accepts a single argument, the
 `LanguageServerManager` instance, and returns a dictionary of the form:
 
 ```python
@@ -351,7 +352,6 @@ For details on the dictionary contents, see the [schema][] definition and [built
 Basic concepts (meaning of the `argv` and `languages` arguments) are also explained in the [configuration files](./Configuring.ipynb#language_servers) documentation.
 
 When contributing a specification we recommend to make use of the helper classes and other [utilities][] that take care of the common use-cases:
-
 - `ShellSpec` helps to create specs for servers that can be started from command-line
 - `PythonModuleSpec` is useful for servers which are Python modules
 - `NodeModuleSpec` will take care of finding Node.js modules
@@ -366,6 +366,7 @@ The spec should only be advertised if the command _could actually_ be run:
 otherwise an empty dictionary (`{}`) should be returned.
 
 [built-in specs]: https://github.com/krassowski/jupyterlab-lsp/tree/master/python_packages/jupyter_lsp/jupyter_lsp/specs
+[setup.cfg]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/setup.cfg
 [schema]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/schema/schema.json
 [utilities]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/utils.py
 
