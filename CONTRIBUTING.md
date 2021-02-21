@@ -379,9 +379,10 @@ otherwise an empty dictionary (`{}`) should be returned.
     guess at where a user's `nodejs` might be found
 - some language servers are hard to start purely from the command line
   - use a helper script to encapsulate some complexity, or
-  - use a command argument of the interpreter is available (see the [r spec][] and julia spec for examples)
+  - use a command argument of the interpreter is available (see the [r spec][] and [julia spec] for examples)
 
 [r spec]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/r_languageserver.py
+[julia spec]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/julia_language_server.py
 
 ##### Example: making a pip-installable `cool-language-server` spec
 
