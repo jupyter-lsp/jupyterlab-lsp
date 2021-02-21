@@ -1,5 +1,16 @@
 ## CHANGELOG
 
+### `jupyter-lsp 1.1.4` (unreleased)
+
+- bug fixes:
+
+  - ensures `jupyter*_config.d` paths are searched for `language_servers`
+    as documented in _Configuring_ ([#535])
+  - uses more explicit file name for enabling `jupyter-lsp` in `notebook` and
+    `jupyter_server ([#535])
+
+[#535]: https://github.com/krassowski/jupyterlab-lsp/pull/535
+
 ### `@krassowski/jupyterlab-lsp 3.4.1` (2020-02-16)
 
 - bug fixes:
