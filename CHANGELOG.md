@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### `jupyter-lsp 1.1.4` (unreleased)
+### `jupyter-lsp 1.1.4` (2020-02-21)
 
 - bug fixes:
 
