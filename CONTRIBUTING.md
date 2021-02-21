@@ -343,7 +343,8 @@ A spec is a Python callable (a function, or a class with `__call__` method) that
   "python-language-server": {            # the name of the implementation
       "version":  SPEC_VERSION,          # the version of the spec schema (an integer)
       "argv": ["python", "-m", "pyls"],  # a list of command line arguments
-      "languages": ["python"]            # a list of languages it supports
+      "languages": ["python"],           # a list of languages it supports
+      "mime_types": ["text/python", "text/x-ipython"]
   }
 }
 ```
