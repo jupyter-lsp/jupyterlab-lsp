@@ -8,7 +8,9 @@ Parts of this code are derived from:
 > > Copyright 2018 Palantir Technologies, Inc.
 """
 # pylint: disable=broad-except
-import asyncio
+import anyio
+from anyio.streams.buffered import BufferedByteReceiveStream
+from anyio.streams.text import TextSendStream
 import io
 import os
 from concurrent.futures import ThreadPoolExecutor
@@ -24,15 +26,14 @@ from traitlets.config import LoggingConfigurable
 
 from .non_blocking import make_non_blocking
 
-
 class LspStdIoBase(LoggingConfigurable):
     """Non-blocking, queued base for communicating with stdio Language Servers"""
 
     executor = None
 
     stream = Instance(
-        io.RawIOBase, help="the stream to read/write"
-    )  # type: io.RawIOBase
+        anyio.abc.AsyncResource, help="the stream to read/write"
+    )  # type: anyio.abc.AsyncResource
     queue = Instance(Queue, help="queue to get/put")
 
     def __repr__(self):  # pragma: no cover
@@ -43,8 +44,8 @@ class LspStdIoBase(LoggingConfigurable):
         self.log.debug("%s initialized", self)
         self.executor = ThreadPoolExecutor(max_workers=1)
 
-    def close(self):
-        self.stream.close()
+    async def close(self):
+        await self.stream.aclose()
         self.log.debug("%s closed", self)
 
 
@@ -59,13 +60,17 @@ class LspStdIoReader(LspStdIoBase):
     min_wait = Float(0.05, help="minimum time to wait on idle stream").tag(config=True)
     next_wait = Float(0.05, help="next time to wait on idle stream").tag(config=True)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.stream = BufferedByteReceiveStream(self.stream)
+
     @default("max_wait")
     def _default_max_wait(self):
         return 0.1 if os.name == "nt" else self.min_wait * 2
 
     async def sleep(self):
         """Simple exponential backoff for sleeping"""
-        if self.stream.closed:  # pragma: no cover
+        if self.stream._closed:  # pragma: no cover
             return
         self.next_wait = min(self.next_wait * 2, self.max_wait)
         try:
@@ -79,9 +84,7 @@ class LspStdIoReader(LspStdIoBase):
 
     async def read(self) -> None:
         """Read from a Language Server until it is closed"""
-        make_non_blocking(self.stream)
-
-        while not self.stream.closed:
+        while True:
             message = None
             try:
                 message = await self.read_one()
@@ -93,6 +96,9 @@ class LspStdIoReader(LspStdIoBase):
                     self.wake()
 
                 IOLoop.current().add_callback(self.queue.put_nowait, message)
+            except (anyio.ClosedResourceError, anyio.EndOfStream):
+                # stream was closed -> terminate
+                break
             except Exception as e:  # pragma: no cover
                 self.log.exception(
                     "%s couldn't enqueue message: %s (%s)", self, message, e
@@ -124,8 +130,8 @@ class LspStdIoReader(LspStdIoBase):
         while received_size < length and len(raw_parts) < max_parts and max_empties > 0:
             part = None
             try:
-                part = self.stream.read(length - received_size)
-            except OSError:  # pragma: no cover
+                part = await self.stream.receive_exactly(length - received_size)
+            except anyio.IncompleteRead:  # pragma: no cover
                 pass
             if part is None:
                 max_empties -= 1
@@ -171,32 +177,43 @@ class LspStdIoReader(LspStdIoBase):
 
         return message
 
-    @run_on_executor
-    def _readline(self) -> Text:
+    async def _readline(self) -> Text:
         """Read a line (or immediately return None)"""
         try:
-            return self.stream.readline().decode("utf-8").strip()
-        except OSError:  # pragma: no cover
+            # use same max_bytes as is default for receive for now. It seems there is no way of getting
+            # the bytes read until max_bytes is reached, so we cannot iterate the receive_until call
+            # with smaller max_bytes values
+            async with anyio.move_on_after(0.2) as moa:
+                line = await self.stream.receive_until(b'\r\n', 65536)
+                return line.decode("utf-8").strip()
+        except anyio.IncompleteRead:
             return ""
-
+        except anyio.DelimiterNotFound:
+            self.log.error("Readline hit max_bytes before newline character was encountered")
+            return ""
 
 class LspStdIoWriter(LspStdIoBase):
     """Language Server stdio Writer"""
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.stream = TextSendStream(self.stream, encoding='utf-8')
+
     async def write(self) -> None:
         """Write to a Language Server until it closes"""
-        while not self.stream.closed:
+        while True:
             message = await self.queue.get()
             try:
-                body = message.encode("utf-8")
-                response = "Content-Length: {}\r\n\r\n{}".format(len(body), message)
-                await convert_yielded(self._write_one(response.encode("utf-8")))
-            except Exception:  # pragma: no cover
+                nBytes = len(message.encode("utf-8"))
+                response = "Content-Length: {}\r\n\r\n{}".format(nBytes, message)
+                await convert_yielded(self._write_one(response))
+            except (anyio.ClosedResourceError, anyio.BrokenResourceError): # pragma: no cover
+                # stream was closed -> terminate
+                break
+            except Exception:
                 self.log.exception("%s couldn't write message: %s", self, response)
             finally:
                 self.queue.task_done()
 
-    @run_on_executor
-    def _write_one(self, message) -> None:
-        self.stream.write(message)
-        self.stream.flush()
+    async def _write_one(self, message) -> None:
+        await self.stream.send(message)

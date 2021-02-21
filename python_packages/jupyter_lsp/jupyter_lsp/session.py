@@ -1,6 +1,6 @@
 """ A session for managing a language server process
 """
-import asyncio
+import anyio
 import atexit
 import os
 import string
@@ -8,6 +8,8 @@ import subprocess
 from copy import copy
 from datetime import datetime, timezone
 
+from concurrent.futures import ThreadPoolExecutor
+from tornado.concurrent import run_on_executor
 from tornado.ioloop import IOLoop
 from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
@@ -31,8 +33,11 @@ class LanguageServerSession(LoggingConfigurable):
 
     # run-time specifics
     process = Instance(
-        subprocess.Popen, help="the language server subprocess", allow_none=True
+        anyio.abc.Process, help="the language server subprocess", allow_none=True
     )
+    executor = None
+    portal = None
+    cancelscope = None
     writer = Instance(stdio.LspStdIoWriter, help="the JSON-RPC writer", allow_none=True)
     reader = Instance(stdio.LspStdIoReader, help="the JSON-RPC reader", allow_none=True)
     from_lsp = Instance(
@@ -50,14 +55,15 @@ class LanguageServerSession(LoggingConfigurable):
     last_handler_message_at = Instance(datetime, allow_none=True)
     last_server_message_at = Instance(datetime, allow_none=True)
 
-    _tasks = None
-
     _skip_serialize = ["argv", "debug_argv"]
 
     def __init__(self, *args, **kwargs):
         """set up the required traitlets and exit behavior for a session"""
         super().__init__(*args, **kwargs)
         atexit.register(self.stop)
+        self.executor = ThreadPoolExecutor(max_workers=1)
+        self.portal = anyio.start_blocking_portal()
+
 
     def __repr__(self):  # pragma: no cover
         return (
@@ -82,15 +88,12 @@ class LanguageServerSession(LoggingConfigurable):
         self.stop()
         self.status = SessionStatus.STARTING
         self.init_queues()
-        self.init_process()
+        self.portal.call(self.init_process)
         self.init_writer()
         self.init_reader()
 
-        loop = asyncio.get_event_loop()
-        self._tasks = [
-            loop.create_task(coro())
-            for coro in [self._read_lsp, self._write_lsp, self._broadcast_from_lsp]
-        ]
+        # start listening on the executor in a different event loop
+        self.listen()
 
         self.status = SessionStatus.STARTED
 
@@ -103,14 +106,15 @@ class LanguageServerSession(LoggingConfigurable):
             self.process.terminate()
             self.process = None
         if self.reader:
-            self.reader.close()
+            self.portal.call(self.reader.close)
             self.reader = None
         if self.writer:
-            self.writer.close()
+            self.portal.call(self.writer.close)
             self.writer = None
 
-        if self._tasks:
-            [task.cancel() for task in self._tasks]
+        if self.cancelscope:
+           self.portal.call(self.cancelscope.cancel)
+           self.cancelscope = None
 
         self.status = SessionStatus.STOPPED
 
@@ -130,14 +134,13 @@ class LanguageServerSession(LoggingConfigurable):
     def now(self):
         return datetime.now(timezone.utc)
 
-    def init_process(self):
+    async def init_process(self):
         """start the language server subprocess"""
-        self.process = subprocess.Popen(
+        self.substitute_env(self.spec.get("env", {}), os.environ)
+        self.process = await anyio.open_process(
             self.spec["argv"],
             stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            env=self.substitute_env(self.spec.get("env", {}), os.environ),
-            bufsize=0,
+            stdout=subprocess.PIPE
         )
 
     def init_queues(self):
@@ -158,12 +161,23 @@ class LanguageServerSession(LoggingConfigurable):
         )
 
     def substitute_env(self, env, base):
-        final_env = copy(os.environ)
-
         for key, value in env.items():
-            final_env.update({key: string.Template(value).safe_substitute(base)})
+            os.environ.update({key: string.Template(value).safe_substitute(base)})
 
-        return final_env
+    @run_on_executor
+    def listen(self):
+        self.portal.call(self._listen)
+
+    async def _listen(self):
+        try:
+            async with anyio.create_task_group() as tg:
+                async with anyio.open_cancel_scope() as scope:
+                    self.cancelscope = scope
+                    await tg.spawn(self._read_lsp)
+                    await tg.spawn(self._write_lsp)
+                    await tg.spawn(self._broadcast_from_lsp)
+        except Exception as e:
+            self.log.exception("Execption while listening {}", e)
 
     async def _read_lsp(self):
         await self.reader.read()
