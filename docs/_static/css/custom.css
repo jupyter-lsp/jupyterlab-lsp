@@ -32,7 +32,9 @@ body div.nboutput.container div[class*='highlight'] pre {
 }
 
 .wy-nav-content {
-  max-width: 100%;
+  /* Increase the width of the content from the default 800px;
+  not using 100% as it makes reading sentences unbearable on 4K screens */
+  max-width: 900px;
 }
 
 .nbinput .prompt,
