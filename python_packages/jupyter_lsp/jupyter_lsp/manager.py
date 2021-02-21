@@ -15,6 +15,7 @@ from traitlets import List as List_
 from traitlets import Unicode, default
 
 from .constants import (
+    APP_CONFIG_D_SECTIONS,
     EP_LISTENER_ALL_V1,
     EP_LISTENER_CLIENT_V1,
     EP_LISTENER_SERVER_V1,
@@ -85,7 +86,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
         manager = ConfigManager(read_config_path=jupyter_config_path())
 
-        for app in ["_", "_notebook_", "_server_"]:
+        for app in APP_CONFIG_D_SECTIONS:
             language_servers.update(
                 **manager.get(f"jupyter{app}config")
                 .get(self.__class__.__name__, {})
