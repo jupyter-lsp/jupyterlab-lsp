@@ -325,6 +325,7 @@ python scripts/lint.py
 While language servers can be configured by the user using a simple JSON or Python [configuration file](./Configuring.ipynb#language_servers),
 it is preferable to provide users with an option that does not require manual configuration. The language server specifications (specs)
 wrap the configuration (as would be defined by the user) into a Python class or function that can be either:
+
 - distributed using PyPI/conda-forge and made conveniently available to users for `pip install` and/or `conda install`
 - contributed to the collection of built-in specs of jupyter-lsp by opening a PR (preferable for popular language servers, say >100 users)
 
@@ -352,11 +353,12 @@ For details on the dictionary contents, see the [schema][] definition and [built
 Basic concepts (meaning of the `argv` and `languages` arguments) are also explained in the [configuration files](./Configuring.ipynb#language_servers) documentation.
 
 When contributing a specification we recommend to make use of the helper classes and other [utilities][] that take care of the common use-cases:
+
 - `ShellSpec` helps to create specs for servers that can be started from command-line
 - `PythonModuleSpec` is useful for servers which are Python modules
 - `NodeModuleSpec` will take care of finding Node.js modules
 
-See the built-in [specs][] for example implementations.
+See the built-in [built-in specs][] for example implementations.
 
 The spec should only be advertised if the command _could actually_ be run:
 
