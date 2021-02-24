@@ -146,7 +146,7 @@ export class HighlightsCM extends CodeMirrorIntegration {
     }
 
     if (root_position == null) {
-      this.console.warn('no root position available');
+      console.warn('no root position available');
       return;
     }
 
