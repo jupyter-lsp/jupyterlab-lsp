@@ -17,6 +17,7 @@ import {
 } from './types';
 import { render_themes_list } from './about';
 import '../style/index.css';
+import { ITranslator } from '@jupyterlab/translation';
 
 export class CompletionThemeManager implements ILSPCompletionThemeManager {
   protected current_icons: Map<string, LabIcon>;
@@ -168,16 +169,18 @@ const LSP_CATEGORY = 'Language server protocol';
 
 export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionThemeManager> = {
   id: PLUGIN_ID,
-  requires: [IThemeManager, ICommandPalette],
+  requires: [IThemeManager, ICommandPalette, ITranslator],
   activate: (
     app,
     themeManager: IThemeManager,
-    commandPalette: ICommandPalette
+    commandPalette: ICommandPalette,
+    translator: ITranslator
   ) => {
     let manager = new CompletionThemeManager(themeManager);
     const command_id = 'lsp:completer-about-themes';
+    const trans = translator.load('jupyterlab-lsp');
     app.commands.addCommand(command_id, {
-      label: 'Display the completer themes',
+      label: trans.__('Display the completer themes'),
       execute: () => {
         manager.display_themes();
       }
