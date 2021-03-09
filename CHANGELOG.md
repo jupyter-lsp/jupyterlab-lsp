@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 2.1.4` (2021-03-09)
+
+- bug fixes:
+  - backported: Handle case where getCursor() returns null in highlighter ([#544], [#546])
+
+[#544]: https://github.com/krassowski/jupyterlab-lsp/pull/544
+[#546]: https://github.com/krassowski/jupyterlab-lsp/pull/546
+
 ### `@krassowski/jupyterlab-lsp 2.1.3` (2021-02-01)
 
 - bug fixes:
