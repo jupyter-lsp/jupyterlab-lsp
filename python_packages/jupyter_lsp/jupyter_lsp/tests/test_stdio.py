@@ -4,7 +4,7 @@ import subprocess
 import pytest
 from tornado.queues import Queue
 
-from jupyter_lsp.stdio import LspStdIoReader
+from jupyter_lsp.connection import LspStdIoReader
 
 WRITER_TEMPLATE = """
 from time import sleep

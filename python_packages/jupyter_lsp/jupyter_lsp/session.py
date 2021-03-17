@@ -16,10 +16,11 @@ from tornado.websocket import WebSocketHandler
 from traitlets import Bunch, Instance, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
 
-from . import stdio
+from .connection import LspStreamWriter, LspStreamReader
 from .schema import LANGUAGE_SERVER_SPEC
 from .trait_types import Schema
 from .types import SessionStatus
+from .utils import get_unused_port
 
 # these are not desirable to publish to the frontend
 SKIP_JSON_SPEC = ["argv", "debug_argv", "env"]
@@ -38,8 +39,9 @@ class LanguageServerSession(LoggingConfigurable):
     executor = None
     portal = None
     cancelscope = None
-    writer = Instance(stdio.LspStdIoWriter, help="the JSON-RPC writer", allow_none=True)
-    reader = Instance(stdio.LspStdIoReader, help="the JSON-RPC reader", allow_none=True)
+    writer = Instance(LspStreamWriter, help="the JSON-RPC writer", allow_none=True)
+    reader = Instance(LspStreamReader, help="the JSON-RPC reader", allow_none=True)
+    tcp_con = Instance(anyio.abc.SocketStream, help="the tcp connection", allow_none=True)
     from_lsp = Instance(
         Queue, help="a queue for string messages from the server", allow_none=True
     )
@@ -111,6 +113,9 @@ class LanguageServerSession(LoggingConfigurable):
         if self.writer:
             self.portal.call(self.writer.close)
             self.writer = None
+        if self.tcp_con:
+            self.portal.call(self.tcp_con.aclose)
+            self.tcp_con = None
 
         if self.cancelscope:
            self.portal.call(self.cancelscope.cancel)
@@ -137,27 +142,86 @@ class LanguageServerSession(LoggingConfigurable):
     async def init_process(self):
         """start the language server subprocess"""
         self.substitute_env(self.spec.get("env", {}), os.environ)
+
+        argv = self.spec["argv"]
+
+        host = None
+        port = None
+        mode = self.spec.get("mode")
+        if mode == "tcp":
+            host, port = self.get_tcp_server()
+            argv = [arg.format(host=host, port=port) for arg in argv]
+
         self.process = await anyio.open_process(
-            self.spec["argv"],
+            argv,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE
         )
+
+        if mode == "tcp":
+            self.tcp_con = await self.init_tcp_connection(host, port)
 
     def init_queues(self):
         """create the queues"""
         self.from_lsp = Queue()
         self.to_lsp = Queue()
 
+    def get_tcp_server(self):
+        host = self.spec.get("host", "127.0.0.1")
+        port = self.spec.get("port")
+
+        if not port:
+            if host in ["127.0.0.1", "localhost"]:
+                port = get_unused_port()
+            else:
+                raise ValueError("A port must be given explicitly for hosts other than localhost")
+        return (host, port)
+
+    async def init_tcp_connection(self, host, port, retries=12, sleep=5.0):
+        server = '{}:{}'.format(host, port)
+
+        tries = 0
+        while tries < retries:
+            tries = tries + 1
+            try:
+                return await anyio.connect_tcp(host, port)
+            except OSError:
+                if tries < retries:
+                    self.log.warning('Connection to server {} refused! Attempt {}/{}. Retrying in {}s'.format(server, tries, retries, sleep))
+                    await anyio.sleep(sleep)
+                else:
+                    self.log.warning('Connection to server {} refused! Attempt {}/{}.'.format(server, tries, retries))
+
+        raise OSError("Unable to connect to server {}".format(server))
+
     def init_reader(self):
         """create the stdout reader (from the language server)"""
-        self.reader = stdio.LspStdIoReader(
-            stream=self.process.stdout, queue=self.from_lsp, parent=self
+        stream = None
+        mode = self.spec.get("mode", "stdio")
+        if mode == "tcp":
+            stream = self.tcp_con
+        elif mode == "stdio":
+            stream = self.process.stdout
+        else:
+            raise ValueError("Unknown mode: " + mode)
+
+        self.reader = LspStreamReader(
+            stream=stream, queue=self.from_lsp, parent=self
         )
 
     def init_writer(self):
         """create the stdin writer (to the language server)"""
-        self.writer = stdio.LspStdIoWriter(
-            stream=self.process.stdin, queue=self.to_lsp, parent=self
+        stream = None
+        mode = self.spec.get("mode", "stdio")
+        if mode == "tcp":
+            stream = self.tcp_con
+        elif mode == "stdio":
+            stream = self.process.stdin
+        else:
+            raise ValueError("Unknown mode: " + mode)
+
+        self.writer = LspStreamWriter(
+            stream=stream, queue=self.to_lsp, parent=self
         )
 
     def substitute_env(self, env, base):

@@ -1,4 +1,4 @@
-""" A configurable frontend for stdio-based Language Servers
+""" A configurable frontend for stream-based Language Servers
 """
 import os
 import traceback

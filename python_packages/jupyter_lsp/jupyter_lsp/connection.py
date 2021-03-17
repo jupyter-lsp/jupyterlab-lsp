@@ -1,4 +1,4 @@
-""" Language Server stdio-mode readers
+""" Language Server readers and writers
 
 Parts of this code are derived from:
 
@@ -26,8 +26,8 @@ from traitlets.config import LoggingConfigurable
 
 from .non_blocking import make_non_blocking
 
-class LspStdIoBase(LoggingConfigurable):
-    """Non-blocking, queued base for communicating with stdio Language Servers"""
+class LspStreamBase(LoggingConfigurable):
+    """Non-blocking, queued base for communicating with Language Servers through anyio streams"""
 
     executor = None
 
@@ -49,8 +49,8 @@ class LspStdIoBase(LoggingConfigurable):
         self.log.debug("%s closed", self)
 
 
-class LspStdIoReader(LspStdIoBase):
-    """Language Server stdio Reader
+class LspStreamReader(LspStreamBase):
+    """Language Server Reader
 
     Because non-blocking (but still synchronous) IO is used, rudimentary
     exponential backoff is used.
@@ -192,8 +192,8 @@ class LspStdIoReader(LspStdIoBase):
             self.log.error("Readline hit max_bytes before newline character was encountered")
             return ""
 
-class LspStdIoWriter(LspStdIoBase):
-    """Language Server stdio Writer"""
+class LspStreamWriter(LspStreamBase):
+    """Language Server Writer"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
