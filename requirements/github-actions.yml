@@ -36,3 +36,5 @@ dependencies:
   - geckodriver
   - robotframework >=3.2
   - robotframework-seleniumlibrary
+  - pycodestyle >=2.7.0
+  - flake8 >=3.9.0
