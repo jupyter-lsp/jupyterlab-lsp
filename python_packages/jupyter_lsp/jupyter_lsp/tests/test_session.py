@@ -1,8 +1,12 @@
 import asyncio
+import logging
+import subprocess
 
 import pytest
 
+from ..handlers import LanguageServerWebSocketHandler
 from ..schema import SERVERS_RESPONSE
+from ..session import LanguageServerSession
 
 
 def assert_status_set(handler, expected_statuses, language_server=None):
@@ -98,5 +102,50 @@ async def test_ping(handlers):
     await asyncio.sleep(ws_handler.ping_interval * 3)
 
     assert ws_handler._ping_sent is True
+
+    ws_handler.on_close()
+
+
+@pytest.mark.asyncio
+async def test_broken_pipe(handlers, jsonrpc_init_msg, did_open_message, caplog):
+    """If the pipe breaks (server dies), can we recover by restarting the server?"""
+    a_server = "pyls"
+
+    # use real handler in this test rather than a mock
+    # -> testing broken pipe requires that here
+    handler, ws_handler = handlers
+    manager = handler.manager
+
+    manager.initialize()
+
+    assert_status_set(handler, {"not_started"}, a_server)
+
+    ws_handler.open(a_server)
+
+    await ws_handler.on_message(jsonrpc_init_msg)
+    assert_status_set(handler, {"started"}, a_server)
+
+    session: LanguageServerSession = manager.sessions[a_server]
+    process: subprocess.Popen = session.process
+    process.kill()
+
+    with caplog.at_level(logging.WARNING):
+        # an attempt to write should raise BrokenPipeError
+        await ws_handler.on_message(did_open_message)
+        await asyncio.sleep(1)
+
+        # which should be caught
+        assert "Encountered pyls language server failure" in caplog.text
+        assert "exception: [Errno 32] Broken pipe" in caplog.text
+
+        # and the server should get restarted
+        assert "restarting session..." in caplog.text
+
+    assert_status_set(handler, {"started"}, a_server)
+
+    with caplog.at_level(logging.WARNING):
+        # we should be able to send a message now
+        await ws_handler.on_message(did_open_message)
+        assert caplog.text == ""
 
     ws_handler.on_close()

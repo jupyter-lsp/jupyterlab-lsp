@@ -110,6 +110,25 @@ def jsonrpc_init_msg():
 
 
 @fixture
+def did_open_message():
+    return json.dumps(
+        {
+            "id": 0,
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+                "textDocument": {
+                    "uri": pathlib.Path(__file__).as_uri(),
+                    "languageId": "python",
+                    "version": 0,
+                    "text": "",
+                }
+            },
+        }
+    )
+
+
+@fixture
 def app():
     return MockServerApp()
 

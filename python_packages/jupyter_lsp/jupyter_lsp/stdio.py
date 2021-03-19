@@ -139,7 +139,7 @@ class LspStdIoReader(LspStdIoBase):
             if len(raw) != length:  # pragma: no cover
                 self.log.warning(
                     f"Readout and content-length mismatch: {len(raw)} vs {length};"
-                    f"remaining empties: {max_empties}; remaining parts: {max_parts}"
+                    f" remaining empties: {max_empties}; remaining parts: {max_parts}"
                 )
 
         return raw
@@ -191,7 +191,12 @@ class LspStdIoWriter(LspStdIoBase):
                 body = message.encode("utf-8")
                 response = "Content-Length: {}\r\n\r\n{}".format(len(body), message)
                 await convert_yielded(self._write_one(response.encode("utf-8")))
+            except BrokenPipeError:
+                self.queue.task_done()
+                # propagate broken pipe errors
+                raise
             except Exception:  # pragma: no cover
+                # catch other (hopefully mild) exceptions
                 self.log.exception("%s couldn't write message: %s", self, response)
             finally:
                 self.queue.task_done()

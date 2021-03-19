@@ -6,7 +6,7 @@ import os
 import string
 import subprocess
 from copy import copy
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from tornado.ioloop import IOLoop
 from tornado.queues import Queue
@@ -49,8 +49,12 @@ class LanguageServerSession(LoggingConfigurable):
     status = UseEnum(SessionStatus, default_value=SessionStatus.NOT_STARTED)
     last_handler_message_at = Instance(datetime, allow_none=True)
     last_server_message_at = Instance(datetime, allow_none=True)
+    allow_server_failure_not_more_often_than = Instance(
+        timedelta, allow_none=False, default_value=timedelta(minutes=20)
+    )
 
     _tasks = None
+    _last_failure = None
 
     _skip_serialize = ["argv", "debug_argv"]
 
@@ -169,7 +173,12 @@ class LanguageServerSession(LoggingConfigurable):
         await self.reader.read()
 
     async def _write_lsp(self):
-        await self.writer.write()
+        task = self.writer.write()
+        results = await asyncio.gather(task, return_exceptions=True)
+        for result in results:
+            if isinstance(result, BrokenPipeError):
+                self._handle_server_failure(result)
+        return results
 
     async def _broadcast_from_lsp(self):
         """loop for reading messages from the queue of messages from the language
@@ -179,3 +188,34 @@ class LanguageServerSession(LoggingConfigurable):
             self.last_server_message_at = self.now()
             await self.parent.on_server_message(message, self)
             self.from_lsp.task_done()
+
+    def _handle_server_failure(self, error):
+        description: str
+        action: str
+        now = datetime.now()
+
+        allowed = self.allow_server_failure_not_more_often_than
+        if self._last_failure and now - self._last_failure > allowed:
+            delta = now - self._last_failure
+            description = (
+                f"giving up as the previous failure was {delta} ago"
+                f" which is less than te minimum allowed interval ({allowed})"
+            )
+            action = "raise"
+        else:
+            action = "restart"
+            description = "restarting session..."
+
+        text = (
+            f"Encountered {self.language_server} language server failure;"
+            f" {description}"
+            f" (exception: {error})"
+            f" (faulty process: {self.process})"
+        )
+        self.log.warning(text)
+
+        if action == "raise":
+            raise
+        elif action == "restart":
+            self.stop()
+            self.initialize()
