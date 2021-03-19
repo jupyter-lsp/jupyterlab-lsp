@@ -235,6 +235,16 @@ describe('VirtualDocument', () => {
       // 1st editor line is '1st test line in R cell magic 2'
       //                     01
       expect(editor_position.ch).to.equal(1);
+
+      // Between the two cell magics (in fourth and fifth block)
+      // there is an empty space of two new lines; these lines
+      // do not exist in any of the editors
+      editor_position = foreign_document.transform_virtual_to_editor({
+        line: 11,
+        ch: 0
+      } as IVirtualPosition);
+      expect(editor_position).to.be(null);
+
     });
   });
 });

@@ -72,6 +72,11 @@ export class MockLanguageServerManager extends LanguageServerManager {
         languages: ['python']
       }
     } as any);
+    this._sessions.set('r-language-server', {
+      spec: {
+        languages: ['r']
+      }
+    } as any);
     this._sessionsChanged.emit(void 0);
   }
 }

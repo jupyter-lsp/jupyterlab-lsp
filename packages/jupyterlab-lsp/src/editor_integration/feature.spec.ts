@@ -10,7 +10,8 @@ import {
 import * as lsProtocol from 'vscode-languageserver-protocol';
 import * as nbformat from '@jupyterlab/nbformat';
 import { overrides } from '../transclusions/ipython/overrides';
-import { foreign_code_extractors } from '../transclusions/ipython/extractors';
+import { foreign_code_extractors as ipython_extractors } from '../transclusions/ipython/extractors';
+import { foreign_code_extractors as rpy2_extractors } from '../transclusions/ipython-rpy2/extractors';
 import { NotebookModel } from '@jupyterlab/notebook';
 import { PageConfig } from '@jupyterlab/coreutils';
 import { CodeMirrorIntegration } from './codemirror';
@@ -189,7 +190,12 @@ describe('Feature', () => {
               line: overrides.filter(override => override.scope == 'line')
             }
           },
-          foreign_code_extractors: foreign_code_extractors
+          foreign_code_extractors: {
+            python: [
+              ...ipython_extractors['python'],
+              ...rpy2_extractors['python']
+            ]
+          }
         });
 
         feature = environment.init_integration({
@@ -321,6 +327,72 @@ print(x)""")
           'source',
           '%%python\ny = x\nprint(x)'
         );
+      });
+
+      it('handles edits in foreign documents', async () => {
+        let test_notebook = {
+          cells: [
+            code_cell(['%%R\n', 'test = 1\n', 'test']),
+            code_cell(['test = 2']),
+            code_cell(['%%R\n', 'test'])
+          ],
+          metadata: python_notebook_metadata
+        } as nbformat.INotebookContent;
+
+        let notebook = environment.notebook;
+
+        notebook.model = new NotebookModel();
+        notebook.model.fromJSON(test_notebook);
+        showAllCells(notebook);
+
+        let main_document = environment.virtual_editor.virtual_document;
+
+        await synchronizeContent();
+        expect(main_document.foreign_documents.size).to.be.equal(1);
+        let foreign_document = [...main_document.foreign_documents.values()][0];
+
+        let foreign_feature = environment.init_integration<
+          EditApplyingFeatureCM
+        >({
+          constructor: EditApplyingFeatureCM,
+          id: 'EditApplyingFeature',
+          document: foreign_document
+        });
+
+        await foreign_feature.do_apply_edit({
+          changes: {
+            [foreign_document.document_info.uri]: [
+              {
+                range: {
+                  start: { line: 0, character: 0 },
+                  end: { line: 0, character: 4 }
+                },
+                newText: 'x'
+              },
+              {
+                range: {
+                  start: { line: 1, character: 0 },
+                  end: { line: 1, character: 4 }
+                },
+                newText: 'x'
+              },
+              {
+                range: {
+                  start: { line: 4, character: 0 },
+                  end: { line: 4, character: 4 }
+                },
+                newText: 'x'
+              }
+            ]
+          }
+        });
+
+        await synchronizeContent();
+
+        let code_cells = getCellsJSON(notebook);
+
+        expect(code_cells[0]).to.have.property('source', '%%R\nx = 1\nx');
+        expect(code_cells[2]).to.have.property('source', '%%R\nx');
       });
     });
   });

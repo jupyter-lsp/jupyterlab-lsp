@@ -363,6 +363,10 @@ export class LspWsConnection
       params
     );
 
+    // TODO: return completion list { isIncomplete: false, items } instead to avoid loosing isIncomplete information
+    // TODO: who should be responsible for fetching extra items if isIncomplete?
+    // TODO: we will need to append the extras to the model (and remember previous completionLists)
+    // TODO: this is why some geom_x do not show in r-language-server!
     const itemList = items && 'items' in items ? items.items : items;
 
     if (emit) {

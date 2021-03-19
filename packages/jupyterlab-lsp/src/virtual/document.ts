@@ -659,6 +659,7 @@ export class VirtualDocument {
       this.virtual_lines.set(this.last_virtual_line + i, {
         skip_inspect: [this.id_path],
         editor: ce_editor,
+        // TODO: this will be problematic for conversion; how can this be tested better?
         source_line: null
       });
     }
@@ -757,10 +758,22 @@ export class VirtualDocument {
     } as IEditorPosition;
   }
 
+  /**
+   * Note: Some lines do not exist in the actual editor:
+   *   - blank lines added in between cells
+   *   - new lines added by the server at the end of the file
+   *   such positions will result in 'null'
+   */
   transform_virtual_to_editor(
     virtual_position: IVirtualPosition
-  ): IEditorPosition {
+  ): IEditorPosition | null {
+    console.log('virtual position', virtual_position)
+    console.log('virtual lines', this.virtual_lines)
     let source_position = this.transform_virtual_to_source(virtual_position);
+    //console.log('source_position', source_position)
+    if (source_position.line === null) {
+      return null;
+    }
     return this.transform_source_to_editor(source_position);
   }
 
@@ -778,11 +791,16 @@ export class VirtualDocument {
     return this.parent.root;
   }
 
-  get_editor_at_virtual_line(pos: IVirtualPosition): CodeEditor.IEditor {
+  get_editor_at_virtual_line(pos: IVirtualPosition, tolerate_overshot=true): CodeEditor.IEditor | null {
     let line = pos.line;
     // tolerate overshot by one (the hanging blank line at the end)
     if (!this.virtual_lines.has(line)) {
-      line -= 1;
+      if (tolerate_overshot && this.virtual_lines.has(line - 1)) {
+        line -= 1;
+      }
+      else {
+        return null;
+      }
     }
     return this.virtual_lines.get(line).editor;
   }

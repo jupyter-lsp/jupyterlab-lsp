@@ -26,6 +26,7 @@ import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { IEditorChange } from '../virtual/editor';
 import { ILSPLogConsole } from '../tokens';
 
+
 function toDocumentChanges(changes: {
   [uri: string]: lsProtocol.TextEdit[];
 }): lsProtocol.TextDocumentEdit[] {
@@ -267,7 +268,9 @@ export abstract class CodeMirrorIntegration
     workspaceEdit: lsProtocol.WorkspaceEdit
   ): Promise<IEditOutcome> {
     let current_uri = this.virtual_document.document_info.uri;
+    console.log(workspaceEdit);
 
+    // TODO: move as much logic out of code-mirror, into the generic code editor space;
     // Specs: documentChanges are preferred over changes
     let changes = workspaceEdit.documentChanges
       ? workspaceEdit.documentChanges.map(
@@ -278,6 +281,7 @@ export abstract class CodeMirrorIntegration
     let edited_cells: number;
     let is_whole_document_edit: boolean;
     let errors: string[] = [];
+    console.log('converted', changes);
 
     for (let change of changes) {
       let uri = change.textDocument.uri;
@@ -360,6 +364,7 @@ export abstract class CodeMirrorIntegration
           edit = change.edits[0];
           applied_changes += 1;
         }
+        console.log('applying', edit);
         edited_cells = this.apply_single_edit(edit);
       }
     }
@@ -372,20 +377,15 @@ export abstract class CodeMirrorIntegration
     };
   }
 
-  protected replace_fragment(
-    newText: string,
+
+  protected replace_lines(
+    newFragmentText: string,
     editor: CodeEditor.IEditor,
-    fragment_start: CodeMirror.Position,
-    fragment_end: CodeMirror.Position,
-    start: CodeMirror.Position,
-    end: CodeMirror.Position,
+    start: IEditorPosition | null,
+    end: IEditorPosition | null,
     is_whole_document_edit = false
   ): number {
     let document = this.virtual_document;
-    let newFragmentText = newText
-      .split('\n')
-      .slice(fragment_start.line - start.line, fragment_end.line - start.line)
-      .join('\n');
 
     if (newFragmentText.endsWith('\n')) {
       newFragmentText = newFragmentText.slice(0, -1);
@@ -402,16 +402,22 @@ export abstract class CodeMirrorIntegration
     });
     let old_value = lines.join('\n');
 
-    if (is_whole_document_edit) {
-      // partial edit
-      let cm_to_ce = PositionConverter.cm_to_ce;
-      let up_to_offset = offset_at_position(cm_to_ce(start), lines);
-      let from_offset = offset_at_position(cm_to_ce(end), lines);
-      newFragmentText =
-        old_value.slice(0, up_to_offset) +
-        newText +
-        old_value.slice(from_offset);
-    }
+    console.log('old value', old_value);
+
+    let cm_to_ce = PositionConverter.cm_to_ce;
+
+    const prefix = start === null ? old_value : old_value.slice(
+      0, offset_at_position(cm_to_ce(start), lines)
+    ) + '\n';
+    const suffix = end === null ? '' : '\n' + old_value.slice(
+      offset_at_position(cm_to_ce(end), lines)
+    )
+    console.log('prefix', prefix, 'suffix', suffix)
+
+    newFragmentText =
+      prefix +
+      newFragmentText +
+      suffix;
 
     if (old_value === newFragmentText) {
       return 0;
@@ -425,7 +431,7 @@ export abstract class CodeMirrorIntegration
       new_value,
       { line: 0, ch: 0 },
       {
-        line: fragment_end.line - fragment_start.line + 1,
+        line: raw_value.split('\n').length,
         ch: 0
       }
     );
@@ -451,74 +457,51 @@ export abstract class CodeMirrorIntegration
   protected apply_single_edit(edit: lsProtocol.TextEdit): number {
     let document = this.virtual_document;
     let applied_changes = 0;
-    let start = PositionConverter.lsp_to_cm(edit.range.start);
-    let end = PositionConverter.lsp_to_cm(edit.range.end);
 
-    let start_editor = document.get_editor_at_virtual_line(
-      start as IVirtualPosition
-    );
-    let end_editor = document.get_editor_at_virtual_line(
-      end as IVirtualPosition
-    );
-    if (start_editor !== end_editor) {
-      let last_editor = start_editor;
-      let fragment_start = start;
-      let fragment_end = { ...start };
+    let start = PositionConverter.lsp_to_cm(edit.range.start) as IVirtualPosition;
+    let end = PositionConverter.lsp_to_cm(edit.range.end) as IVirtualPosition;
 
-      let line = start.line;
-      let recently_replaced = false;
-      while (line <= end.line) {
-        line++;
-        let editor = document.get_editor_at_virtual_line({
-          line: line,
-          ch: 0
-        } as IVirtualPosition);
+    let start_in_editor: IEditorPosition;
+    let end_in_editor: IEditorPosition;
 
-        if (editor === last_editor) {
-          fragment_end.line = line;
-          fragment_end.ch = 0;
-          recently_replaced = false;
-        } else {
-          applied_changes += this.replace_fragment(
-            edit.newText,
-            last_editor,
-            fragment_start,
-            fragment_end,
-            start,
-            end
-          );
-          recently_replaced = true;
-          fragment_start = {
-            line: line,
-            ch: 0
-          };
-          fragment_end = {
-            line: line,
-            ch: 0
-          };
-          last_editor = editor;
-        }
+    const new_lines = edit.newText.split('\n');
+
+    let virtual_line = start.line;
+    let line_index = 0;
+    let previous_editor: CodeEditor.IEditor = null;
+
+    while (virtual_line <= end.line) {
+      const new_line_content = new_lines[line_index];
+
+      const virtual_line_start = {line: virtual_line, ch: 0} as IVirtualPosition
+      const virtual_line_end = {line: virtual_line + 1, ch: 0} as IVirtualPosition
+
+      let editor = document.get_editor_at_virtual_line(virtual_line_start);
+
+      if (editor === null) {
+        // if new contents were added at the end of the cell, try to add them to the last editor
+        // TODO: this will still cause issues if more than two lines added as those will go to the other editor
+        // what we need is comments with cell identifiers!
+        editor = previous_editor;
+      } else {
+        previous_editor = editor;
       }
-      if (!recently_replaced) {
-        applied_changes += this.replace_fragment(
-          edit.newText,
-          last_editor,
-          fragment_start,
-          fragment_end,
-          start,
-          end
-        );
-      }
-    } else {
-      applied_changes += this.replace_fragment(
-        edit.newText,
-        start_editor,
-        start,
-        end,
-        start,
-        end
+
+      start_in_editor = document.transform_virtual_to_editor(virtual_line_start);
+      //console.log('start_in_editor', start_in_editor)
+      end_in_editor = document.transform_virtual_to_editor(virtual_line_end);
+      //console.log('end_in_editor', end_in_editor)
+
+      applied_changes += this.replace_lines(
+        new_line_content + '\n',
+        editor,
+        start_in_editor,
+        end_in_editor
       );
+      virtual_line++;
+      line_index++;
     }
+
     return applied_changes;
   }
 }
