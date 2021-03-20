@@ -279,10 +279,6 @@ jobs:
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
 
-      - name: install npm dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: ${{ env.JLPM_CMD }}
-
       - uses: actions/download-artifact@v2
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
@@ -306,6 +302,10 @@ jobs:
 
       - name: List frontend extensions
         run: jupyter labextension list
+
+      - name: install npm dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: ${{ env.JLPM_CMD }}
 
       - name: Run python tests
         run: python scripts/utest.py
