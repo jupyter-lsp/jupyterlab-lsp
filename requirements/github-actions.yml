@@ -39,3 +39,4 @@ dependencies:
   - jedi <0.18
   - python-language-server ==0.36.2
   - ipython <7.20
+  - pycodestyle >=2.7.0
