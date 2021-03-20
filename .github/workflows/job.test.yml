@@ -16,15 +16,17 @@ defaults:
     shell: bash -l {0}
 
 env:
-  # Increase this value to reset all caches
-  CACHE_EPOCH: 1
+  JULIA_NUM_THREADS: 2
+  MAMBA_NO_BANNER: 1
+  PIP_DISABLE_PIP_VERSION_CHECK: 1
+  PYTHONUNBUFFERED: 1
 
+  ATEST_RETRIES: 3
   JLPM_CMD: jlpm --ignore-optional --prefer-offline --frozen-lockfile
 
-  PYTHONUNBUFFERED: 1
-  ATEST_RETRIES: 3
-  PIP_DISABLE_PIP_VERSION_CHECK: 1
-  MAMBA_NO_BANNER: 1
+  # Increase this value to reset all caches
+  CACHE_EPOCH: 1
+  JULIA_LANGSERVER: 3.2.0
 
 jobs:
   lint:
@@ -75,7 +77,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-lint-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-lint-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
 
       - name: Cache yarn packages
         id: cache-yarn-packages
@@ -83,7 +86,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .yarn-packages
-          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
@@ -148,7 +152,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
 
       - name: Cache yarn packages
         id: cache-yarn-packages
@@ -156,7 +161,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .yarn-packages
-          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
@@ -227,11 +233,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: julia-actions/setup-julia@v1
-
-      - name: Install Julia language server
-        run: julia -e 'using Pkg; Pkg.add("LanguageServer")'
-
       - name: Set JupyterLab and Node versions
         uses: cschleiden/replace-tokens@v1
         with:
@@ -263,22 +264,17 @@ jobs:
         run: conda list
 
       - name: Cache node_modules
-        id: cache-node-modules
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-test-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-atest-${{ hashFiles('yarn.lock') }}
 
-      - name: Cache yarn packages
-        id: cache-yarn-packages
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache@v2
+      - uses: actions/cache@v2
         with:
-          path: .yarn-packages
-          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
-            ${{ env.CACHE_EPOCH }}-yarn-
+          path: ~/.julia/artifacts
+          key: |
+            ${{ env.CACHE_EPOCH }}-julia-test-${{ runner.os }}-${{ env.JULIA_LANGSERVER }}
 
       - uses: actions/download-artifact@v2
         with:
@@ -304,9 +300,15 @@ jobs:
       - name: List frontend extensions
         run: jupyter labextension list
 
-      - name: install npm dependencies
+      - name: install node-based language servers
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: ${{ env.JLPM_CMD }}
+
+      - name: Install Julia
+        uses: julia-actions/setup-julia@v1
+
+      - name: Install Julia language server
+        run: julia -e 'using Pkg; Pkg.add(Pkg.PackageSpec(;name="LanguageServer", version="${{ env.JULIA_LANGSERVER }}"))'
 
       - name: Run python tests
         run: python scripts/utest.py
