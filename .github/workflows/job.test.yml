@@ -17,7 +17,7 @@ defaults:
 
 env:
   # Increase this value to reset all caches
-  CACHE_EPOCH: 0
+  CACHE_EPOCH: 1
 
   JLPM_CMD: jlpm --ignore-optional --prefer-offline --frozen-lockfile
 
@@ -47,7 +47,7 @@ jobs:
           nodejs: '${{ matrix.nodejs }}'
 
       - name: Cache conda
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/conda_pkgs_dir
           key: |
@@ -79,7 +79,7 @@ jobs:
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: .yarn-packages
           key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
@@ -124,7 +124,7 @@ jobs:
           nodejs: '${{ matrix.nodejs }}'
 
       - name: Cache conda
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/conda_pkgs_dir
           key: |
@@ -152,7 +152,7 @@ jobs:
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: .yarn-packages
           key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
@@ -242,7 +242,7 @@ jobs:
           nodejs: '${{ matrix.nodejs }}'
 
       - name: Cache conda
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/conda_pkgs_dir
           key: |
@@ -271,7 +271,7 @@ jobs:
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: .yarn-packages
           key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
