@@ -1,6 +1,10 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 3.4.2` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.5.0` (unreleased)
+
+- features:
+
+  - adds `%%bigquery` IPython cell magic support for BigQuery ([#553], thanks @julioyildo)
 
 - bug fixes:
 
@@ -9,6 +13,7 @@
 
 [#544]: https://github.com/krassowski/jupyterlab-lsp/pull/544
 [#547]: https://github.com/krassowski/jupyterlab-lsp/pull/547
+[#553]: https://github.com/krassowski/jupyterlab-lsp/pull/553
 
 ### `jupyter-lsp 1.1.4` (2020-02-21)
 
