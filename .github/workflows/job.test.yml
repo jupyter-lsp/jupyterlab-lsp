@@ -264,11 +264,24 @@ jobs:
         run: conda list
 
       - name: Cache node_modules
+        id: cache-node-modules
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
           key: |
             ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-atest-${{ hashFiles('yarn.lock') }}
+
+      - name: Cache yarn packages
+        id: cache-yarn-packages
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        uses: actions/cache@v2
+        with:
+          path: .yarn-packages
+          key: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
+            ${{ env.CACHE_EPOCH }}-yarn-
 
       - uses: actions/cache@v2
         with:
