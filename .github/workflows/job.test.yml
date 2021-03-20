@@ -25,9 +25,6 @@ env:
   ATEST_RETRIES: 3
   PIP_DISABLE_PIP_VERSION_CHECK: 1
 
-  # TODO: replace once mambaforge "just works" with setup-miniconda
-  MAMBAFORGE_URL: https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge
-
 jobs:
   lint:
     name: jstest/lint
@@ -59,13 +56,12 @@ jobs:
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-lint-
 
       - name: Set up Python and mamba
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@master
         with:
-          installer-url: ${{ env.MAMBAFORGE_URL }}-Linux-x86_64.sh
           condarc-file: .github/.condarc
-
-      - name: Install base conda dependencies
-        run: mamba env update -n test --file requirements/github-actions.yml
+          environment-file: requirements/github-actions.yml
+          miniforge-variant: Mambaforge
+          use-mamba: true
 
       - name: Install linting dependencies
         run: mamba env update -n test --file requirements/lint.yml
@@ -137,10 +133,10 @@ jobs:
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-build-
 
       - name: Set up Python and mamba
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@master
         with:
-          installer-url: ${{ env.MAMBAFORGE_URL }}-Linux-x86_64.sh
           condarc-file: .github/.condarc
+          miniforge-variant: Mambaforge
 
       - name: Install minimal build deps
         shell: bash -l {0}
@@ -255,26 +251,12 @@ jobs:
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-atest-
 
       - name: Set up Python and mamba
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@master
         with:
-          installer-url: ${{ env.MAMBAFORGE_URL }}-${{ matrix.mambaforge }}
-          python-version: ${{ matrix.python }}
           condarc-file: .github/.condarc
-
-      - name: Describe conda
-        run: |
-          conda info
-          conda config --show-sources
-          conda config --show
-
-      - name: Install conda dependencies (unix)
-        if: ${{ matrix.os != 'windows' }}
-        run: mamba env update -n test --file requirements/github-actions.yml
-
-      - name: Install conda dependencies (windows)
-        if: ${{ matrix.os == 'windows' }}
-        shell: cmd /C call {0}
-        run: mamba env update -n test --file requirements/github-actions.yml
+          environment-file: requirements/github-actions.yml
+          miniforge-variant: Mambaforge
+          use-mamba: true
 
       - name: List all packages
         run: conda list
