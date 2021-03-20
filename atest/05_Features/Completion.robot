@@ -296,6 +296,28 @@ Shows Documentation With CompletionItem Resolve
     Completer Should Include Documentation    the default method of the
     [Teardown]    Clean Up After Working With File    completion.R
 
+Shows Only Relevant Suggestions In Known Magics
+    # https://github.com/krassowski/jupyterlab-lsp/issues/559
+    # h<tab>
+    Enter Cell Editor    20    line=2
+    Trigger Completer
+    Completer Should Suggest    help
+    Completer Should Not Suggest  from
+    Completer Should Suggest    hash
+
+Completes In R Magics
+    # Proper completion in R magics needs to be tested as:
+    # - R magic extractor uses a tailor-made replacer function, not tested elsewhere
+    # - R lanugage server is very sensitive to off-by-one errors (see https://github.com/REditorSupport/languageserver/issues/395)
+    # '%%R\n librar<tab>'
+    Enter Cell Editor    22    line=2
+    Trigger Completer
+    Completer Should Suggest    library
+    # '%R lib<tab>'
+    Enter Cell Editor    24    line=1
+    Trigger Completer
+    Completer Should Suggest    library
+
 *** Keywords ***
 Setup Completion Test
     Setup Notebook    Python    Completion.ipynb
