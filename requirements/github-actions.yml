@@ -37,6 +37,6 @@ dependencies:
   - robotframework-seleniumlibrary
   # TODO: remove when jedi vs IPython vs python-language-server is resolved
   - jedi <0.18
-  - ipython <7.20  # higher basically broken _without_ jedi 0.18
+  - ipython <7.20 # higher basically broken _without_ jedi 0.18
   - python-language-server ==0.36.2
-  - autopep8 <1.5.6  # higher requires pycodestyle incompatible with python-language-server
+  - autopep8 <1.5.6 # higher requires pycodestyle incompatible with python-language-server
