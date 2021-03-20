@@ -302,7 +302,7 @@ Shows Only Relevant Suggestions In Known Magics
     Enter Cell Editor    20    line=2
     Trigger Completer
     Completer Should Suggest    help
-    Completer Should Not Suggest  from
+    Completer Should Not Suggest    from
     Completer Should Suggest    hash
 
 Completes In R Magics
