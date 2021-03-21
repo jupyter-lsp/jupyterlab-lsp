@@ -11,9 +11,14 @@
   - prevents throwing a highlights error when adding new cell with <kbd>Shift</kbd> + <kbd>Enter</kbd> ([#544])
   - fixes IPython `pinfo` and `pinfo2` (`?` and `??`) for identifiers containing `s` ([#547])
 
+- for extension authors:
+
+  - minimal functional extractor and code overrides APIs are now exported; these APIs cab be subject to change in future releases ([#562])
+
 [#544]: https://github.com/krassowski/jupyterlab-lsp/pull/544
 [#547]: https://github.com/krassowski/jupyterlab-lsp/pull/547
 [#553]: https://github.com/krassowski/jupyterlab-lsp/pull/553
+[#562]: https://github.com/krassowski/jupyterlab-lsp/pull/562
 
 ### `jupyter-lsp 1.1.4` (2020-02-21)
 
