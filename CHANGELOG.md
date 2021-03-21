@@ -10,6 +10,7 @@
 
   - prevents throwing a highlights error when adding new cell with <kbd>Shift</kbd> + <kbd>Enter</kbd> ([#544])
   - fixes IPython `pinfo` and `pinfo2` (`?` and `??`) for identifiers containing `s` ([#547])
+  - fixes incorrect behaviour of LSP features in some IPython magics with single line of content ([#560])
 
 - for extension authors:
 
@@ -18,6 +19,7 @@
 [#544]: https://github.com/krassowski/jupyterlab-lsp/pull/544
 [#547]: https://github.com/krassowski/jupyterlab-lsp/pull/547
 [#553]: https://github.com/krassowski/jupyterlab-lsp/pull/553
+[#560]: https://github.com/krassowski/jupyterlab-lsp/pull/560
 [#562]: https://github.com/krassowski/jupyterlab-lsp/pull/562
 
 ### `jupyter-lsp 1.1.4` (2020-02-21)
