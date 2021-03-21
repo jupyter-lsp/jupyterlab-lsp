@@ -5,6 +5,9 @@
 - features:
 
   - adds `%%bigquery` IPython cell magic support for BigQuery ([#553], thanks @julioyildo)
+  - completions filtering can be set to case-insensitive in settings ([#549])
+  - completions filtering can hide exact matches ([#549])
+  - the extra information displayed next to the completion label now can include 'detail' (usually module/package of origin), and can be customized in settings ([#549])
 
 - bug fixes:
 
@@ -18,6 +21,7 @@
 
 [#544]: https://github.com/krassowski/jupyterlab-lsp/pull/544
 [#547]: https://github.com/krassowski/jupyterlab-lsp/pull/547
+[#549]: https://github.com/krassowski/jupyterlab-lsp/pull/549
 [#553]: https://github.com/krassowski/jupyterlab-lsp/pull/553
 [#560]: https://github.com/krassowski/jupyterlab-lsp/pull/560
 [#562]: https://github.com/krassowski/jupyterlab-lsp/pull/562
