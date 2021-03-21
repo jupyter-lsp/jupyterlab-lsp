@@ -58,6 +58,18 @@
       "default": false,
       "description": "In case of ties when sorting completions, should the kernel completions receive higher priority than the language server completions?"
     },
+    "caseSensitive": {
+      "title": "Case-sensitive filtering",
+      "default": true,
+      "type": "boolean",
+      "description": "Should completion filtering be case-sensitive?"
+    },
+    "includePerfectMatches": {
+      "title": "Include perfect matches",
+      "default": true,
+      "type": "boolean",
+      "description": "Should perfect matches be included in the completion suggestions list?"
+    },
     "typesMap": {
       "title": "Mapping of custom kernel types to valid completion kind names",
       "description": "Mapping used for icon selection. The kernel types (keys) are case-insensitive. Accepted values are the names of CompletionItemKind and 'Kernel' literal. The defaults aim to provide good initial experience for Julia, Python and R kernels.",
