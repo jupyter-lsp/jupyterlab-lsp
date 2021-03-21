@@ -25,6 +25,9 @@
     },
     {
       "path": "../code-jumpers"
+    },
+    {
+      "path": "../example-extractor"
     }
   ]
 }

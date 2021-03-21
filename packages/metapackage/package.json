@@ -31,7 +31,8 @@
     "@krassowski/theme-material": "file:../theme-material",
     "@krassowski/theme-vscode": "file:../theme-vscode",
     "@krassowski/code-jumpers": "file:../code-jumpers",
-    "@krassowski/jupyterlab-lsp": "file:../jupyterlab-lsp"
+    "@krassowski/jupyterlab-lsp": "file:../jupyterlab-lsp",
+    "@krassowski/jupyterlab-lsp-example-extractor": "file:../example-extractor"
   },
   "devDependencies": {
     "fs-extra": "^8.0.1",
