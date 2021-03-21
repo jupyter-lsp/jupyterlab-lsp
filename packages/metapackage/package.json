@@ -32,7 +32,7 @@
     "@krassowski/theme-vscode": "file:../theme-vscode",
     "@krassowski/code-jumpers": "file:../code-jumpers",
     "@krassowski/jupyterlab-lsp": "file:../jupyterlab-lsp",
-    "@krassowski/jupyterlab-lsp-example-extractor": "file:../example-extractor"
+    "@krassowski/jupyterlab-lsp-example-extractor": "file:../_example-extractor"
   },
   "devDependencies": {
     "fs-extra": "^8.0.1",
