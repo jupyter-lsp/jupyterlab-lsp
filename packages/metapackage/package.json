@@ -23,7 +23,7 @@
     "build": "tsc -b",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build",
-    "watch": "tsc -b --watch"
+    "watch": "tsc -b --watch --preserveWatchOutput"
   },
   "dependencies": {
     "lsp-ws-connection": "file:../lsp-ws-connection",
