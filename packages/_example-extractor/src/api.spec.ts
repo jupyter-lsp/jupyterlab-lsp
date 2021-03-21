@@ -25,10 +25,12 @@ const NOT_EXPECTED: IExtractedCode = {
 describe('The foo extractor', () => {
   it('extracts %%foo bar', () => {
     const extracted = extractor.extract_foreign_code(EXAMPLE);
-    expect(extracted).to.equal([EXPECTED]);
+    expect(extracted).to.have.length(1);
+    expect(extracted[0]).to.equal(EXPECTED);
   });
   it('does not extract baz', () => {
     const extracted = extractor.extract_foreign_code('baz');
-    expect(extracted).to.equal([NOT_EXPECTED]);
+    expect(extracted).to.have.length(1);
+    expect(extracted[0]).to.equal(NOT_EXPECTED);
   });
 });
