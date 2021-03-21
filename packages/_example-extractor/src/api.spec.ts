@@ -8,29 +8,39 @@ const EXAMPLE = `%%foo
 bar
 `;
 
-const EXPECTED: IExtractedCode = {
-  foreign_code: 'bar\n',
-  host_code: EXAMPLE,
-  range: { end: { column: 0, line: 2 }, start: { column: 0, line: 1 } },
-  virtual_shift: null
+let FIXTURES: { [key: string]: IExtractedCode } = {
+  'does extract foo': {
+    foreign_code: 'bar\n',
+    host_code: EXAMPLE,
+    range: { end: { column: 0, line: 2 }, start: { column: 0, line: 1 } },
+    virtual_shift: null
+  },
+  'does NOT extract bar': {
+    foreign_code: null,
+    host_code: 'baz',
+    range: null,
+    virtual_shift: null
+  },
+  'does NOT extract foobar': {
+    foreign_code: null,
+    host_code: EXAMPLE.replace('foo', 'foobar'),
+    range: null,
+    virtual_shift: null
+  }
 };
 
-const NOT_EXPECTED: IExtractedCode = {
-  foreign_code: null,
-  host_code: 'baz',
-  range: null,
-  virtual_shift: null
+FIXTURES['does extract foo -v bar'] = {
+  ...FIXTURES['does extract foo'],
+  host_code: EXAMPLE.replace('foo', 'foo -v')
 };
 
 describe('The foo extractor', () => {
-  it('extracts %%foo bar', () => {
-    const extracted = extractor.extract_foreign_code(EXAMPLE);
-    expect(extracted).to.have.length(1);
-    expect(extracted[0]).to.deep.equal(EXPECTED);
-  });
-  it('does not extract baz', () => {
-    const extracted = extractor.extract_foreign_code('baz');
-    expect(extracted).to.have.length(1);
-    expect(extracted[0]).to.deep.equal(NOT_EXPECTED);
-  });
+  test.each(Object.entries(FIXTURES))(
+    '%s',
+    (_: string, expected: IExtractedCode) => {
+      const extracted = extractor.extract_foreign_code(expected.host_code);
+      expect(extracted).to.have.length(1);
+      expect(extracted[0]).to.deep.equal(expected);
+    }
+  );
 });
