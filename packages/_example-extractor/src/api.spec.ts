@@ -9,19 +9,26 @@ bar
 `;
 
 const EXPECTED: IExtractedCode = {
-  foreign_code: 'bar',
+  foreign_code: 'bar\n',
   host_code: EXAMPLE,
   range: { end: { column: 0, line: 2 }, start: { column: 0, line: 1 } },
+  virtual_shift: null
+};
+
+const NOT_EXPECTED: IExtractedCode = {
+  foreign_code: null,
+  host_code: 'baz',
+  range: null,
   virtual_shift: null
 };
 
 describe('The foo extractor', () => {
   it('extracts %%foo bar', () => {
     const extracted = extractor.extract_foreign_code(EXAMPLE);
-    expect(extracted[0]).to.equal(EXPECTED);
+    expect(extracted).to.equal([EXPECTED]);
   });
   it('does not extract baz', () => {
     const extracted = extractor.extract_foreign_code('baz');
-    expect(extracted).to.equal([]);
+    expect(extracted).to.equal([NOT_EXPECTED]);
   });
 });
