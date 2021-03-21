@@ -6,6 +6,7 @@ module.exports = {
     node: true,
     'jest/globals': true
   },
+  globals: { JSX: 'readonly' },
   root: true,
   extends: [
     'eslint:recommended',

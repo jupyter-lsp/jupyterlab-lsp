@@ -25,7 +25,7 @@ env:
   JLPM_CMD: jlpm --ignore-optional --prefer-offline --frozen-lockfile
 
   # Increase this value to reset all caches
-  CACHE_EPOCH: 1
+  CACHE_EPOCH: 2
   JULIA_LANGSERVER: 3.2.0
 
 jobs:
