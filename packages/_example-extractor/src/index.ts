@@ -13,7 +13,7 @@ const NS = '@krassowski/jupyterlab-lsp-example-extractor';
 export const extractor = new RegExpForeignCodeExtractor({
   language: 'foo',
   pattern: '^%%(foo)( .*?)?\n([^]*)',
-  extract_to_foreign: '$3',
+  foreign_capture_groups: [3],
   is_standalone: true,
   file_extension: 'foo'
 });
