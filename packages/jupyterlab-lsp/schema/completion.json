@@ -70,6 +70,13 @@
       "type": "boolean",
       "description": "Should perfect matches be included in the completion suggestions list?"
     },
+    "labelExtra": {
+      "title": "Text to display next to completion label",
+      "default": "auto",
+      "type": "string",
+      "enum": ["detail", "type", "source", "auto"],
+      "description": "What to display next to the completion label, one of: 'detail', 'type', 'source', 'auto'. The default 'auto' will display whichever information is available."
+    },
     "typesMap": {
       "title": "Mapping of custom kernel types to valid completion kind names",
       "description": "Mapping used for icon selection. The kernel types (keys) are case-insensitive. Accepted values are the names of CompletionItemKind and 'Kernel' literal. The defaults aim to provide good initial experience for Julia, Python and R kernels.",
