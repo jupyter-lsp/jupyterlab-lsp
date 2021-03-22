@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 3.5.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.5.0` (2020-03-22)
 
 - features:
 
