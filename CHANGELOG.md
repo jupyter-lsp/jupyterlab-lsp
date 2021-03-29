@@ -14,6 +14,7 @@
   - prevents throwing a highlights error when adding new cell with <kbd>Shift</kbd> + <kbd>Enter</kbd> ([#544])
   - fixes IPython `pinfo` and `pinfo2` (`?` and `??`) for identifiers containing `s` ([#547])
   - fixes incorrect behaviour of LSP features in some IPython magics with single line of content ([#560])
+  - fixes name of jupyterlab-lsp package in JupyterLab
 
 - for extension authors:
 
