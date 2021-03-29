@@ -1,5 +1,13 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 3.5.1` (unreleased)
+
+- bug fixes:
+
+  - fixes name of jupyterlab-lsp package displayed in JupyterLab UI ([#570])
+
+[#570]: https://github.com/krassowski/jupyterlab-lsp/pull/570
+
 ### `@krassowski/jupyterlab-lsp 3.5.0` (2020-03-22)
 
 - features:
