@@ -28,7 +28,7 @@ Use "fixes" and "closes" linking phrases as appropriate. -->
 
 ## Chores
 
-- [ ] linted  <!-- Required: Run "jlpm lint" and "python scripts/lint.py" from the root of the repository, then check this box like this: [x] -->
-- [ ] tested  <!-- Recommended: Let us know if you already added a test case (if relevant). -->
-- [ ] documented  <!-- Optional: Would it be good to improve the documentation? If yes, please consider doing this and checking this box. -->
-- [ ] changelog entry  <!-- Required: Add a note in the CHANGELOG.md file under the most recent >unreleased< version; if one does not exist, feel free to create one by increasing the version number (no worries if you are not certain of the details - we can improve it later; let's just have something to work with) -->
+- [ ] linted <!-- Required: Run "jlpm lint" and "python scripts/lint.py" from the root of the repository, then check this box like this: [x] -->
+- [ ] tested <!-- Recommended: Let us know if you already added a test case (if relevant). -->
+- [ ] documented <!-- Optional: Would it be good to improve the documentation? If yes, please consider doing this and checking this box. -->
+- [ ] changelog entry <!-- Recommended: Add a note in the CHANGELOG.md file under the most recent >unreleased< version; if one does not exist, feel free to create one by increasing the version number (no worries if you are not certain of the details - we can improve it later; let's just have something to work with) -->
