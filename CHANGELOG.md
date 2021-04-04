@@ -5,8 +5,10 @@
 - bug fixes:
 
   - fixes name of jupyterlab-lsp package displayed in JupyterLab UI ([#570])
+  - remove vendored CodeMirror from distribution ([#576])
 
 [#570]: https://github.com/krassowski/jupyterlab-lsp/pull/570
+[#576]: https://github.com/krassowski/jupyterlab-lsp/pull/576
 
 ### `@krassowski/jupyterlab-lsp 3.5.0` (2020-03-22)
 

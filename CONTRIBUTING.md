@@ -126,6 +126,12 @@ To run tests matching specific phrase, forward `-t` argument over yarn and lerna
 jlpm test -- -- -t match_phrase
 ```
 
+To verify the webpack build wouldn't include problematic vendored dependencies:
+
+```bash
+python scripts/distcheck.py
+```
+
 ### Server Development
 
 #### Testing `jupyter-lsp`
