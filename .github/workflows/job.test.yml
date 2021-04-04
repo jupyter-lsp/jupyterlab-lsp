@@ -107,6 +107,9 @@ jobs:
       - name: Lint frontend
         run: jlpm lint:check
 
+      - name: Check distributions
+        run: python scripts/distcheck.py
+
   build:
     name: build
     runs-on: ${{ matrix.os }}
