@@ -59,9 +59,8 @@ jobs:
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-lint-
 
       - name: Set up Python and mamba
-        uses: conda-incubator/setup-miniconda@master
+        uses: conda-incubator/setup-miniconda@v2
         with:
-          condarc-file: .github/.condarc
           environment-file: requirements/github-actions.yml
           miniforge-variant: Mambaforge
           use-mamba: true
@@ -138,9 +137,8 @@ jobs:
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-build-
 
       - name: Set up Python and mamba
-        uses: conda-incubator/setup-miniconda@master
+        uses: conda-incubator/setup-miniconda@v2
         with:
-          condarc-file: .github/.condarc
           miniforge-variant: Mambaforge
 
       - name: Install minimal build deps
@@ -253,9 +251,8 @@ jobs:
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-atest-
 
       - name: Set up Python and mamba
-        uses: conda-incubator/setup-miniconda@master
+        uses: conda-incubator/setup-miniconda@v2
         with:
-          condarc-file: .github/.condarc
           environment-file: requirements/github-actions.yml
           miniforge-variant: Mambaforge
           use-mamba: true
