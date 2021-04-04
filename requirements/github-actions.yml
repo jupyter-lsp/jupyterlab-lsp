@@ -33,7 +33,7 @@ dependencies:
   - bs4
   - firefox
   - geckodriver
-  - robotframework >=3.2
+  - robotframework >=4
   - robotframework-seleniumlibrary
   # TODO: remove when jedi vs IPython vs python-language-server is resolved
   - jedi <0.18

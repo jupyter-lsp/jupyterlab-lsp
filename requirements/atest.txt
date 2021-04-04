@@ -1,5 +1,5 @@
 # acceptance test dependencies for jupyter_lsp
 -r ./lab.txt
 bs4
-robotframework >=3.2
+robotframework >=4
 robotframework-seleniumlibrary
