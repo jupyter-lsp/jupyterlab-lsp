@@ -10,10 +10,9 @@ BAD_CHUNK_PATTERNS = {
     (
         "codemirror_codemirror",
         "codemirror_lib",
-    ): """
-    Please ensure is CodeMirror is imported by type, e.g.
+    ): """Please ensure CodeMirror is imported by type _only_, e.g.
 
-        import type * as CodeMirror from 'codemirror'
+        import type * as CodeMirror from 'codemirror';
 
     see https://github.com/krassowski/jupyterlab-lsp/issues/575
     """
