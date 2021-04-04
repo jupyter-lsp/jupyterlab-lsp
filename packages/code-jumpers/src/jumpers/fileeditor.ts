@@ -1,10 +1,12 @@
-import { FileEditor } from '@jupyterlab/fileeditor';
-import { IGlobalPosition, ILocalPosition } from '../positions';
-import { CodeJumper, jumpers } from './jumper';
-import { JumpHistory } from '../history';
+import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
-import { CodeEditor } from '@jupyterlab/codeeditor';
+import { FileEditor } from '@jupyterlab/fileeditor';
+
+import { JumpHistory } from '../history';
+import { IGlobalPosition, ILocalPosition } from '../positions';
+
+import { CodeJumper, jumpers } from './jumper';
 
 export class FileEditorJumper extends CodeJumper {
   editor: FileEditor;

@@ -1,10 +1,11 @@
-import React, { ReactElement } from 'react';
-import {
-  ICompletionTheme,
-  ILicenseInfo,
-  COMPLETER_THEME_PREFIX
-} from './types';
 import { LabIcon } from '@jupyterlab/ui-components';
+import React, { ReactElement } from 'react';
+
+import {
+  COMPLETER_THEME_PREFIX,
+  ICompletionTheme,
+  ILicenseInfo
+} from './types';
 
 function render_licence(licence: ILicenseInfo): ReactElement {
   return (

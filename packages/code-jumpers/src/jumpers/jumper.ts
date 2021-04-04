@@ -1,12 +1,13 @@
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-
-import { IGlobalPosition, ILocalPosition } from '../positions';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
-import { JumpHistory } from '../history';
 import { FileEditor } from '@jupyterlab/fileeditor';
+
+import { JumpHistory } from '../history';
+import { IGlobalPosition, ILocalPosition } from '../positions';
+
 import IEditor = CodeEditor.IEditor;
-import { Dialog, showDialog } from '@jupyterlab/apputils';
 
 const movement_keys = [
   'ArrowRight',

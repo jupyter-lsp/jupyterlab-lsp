@@ -1,6 +1,7 @@
-import { IGlobalPosition } from './positions';
 import { IModelDB, IObservableUndoableList } from '@jupyterlab/observables';
 import { JSONValue } from '@lumino/coreutils';
+
+import { IGlobalPosition } from './positions';
 
 const DB_ENTRY = 'jumpy_history';
 
