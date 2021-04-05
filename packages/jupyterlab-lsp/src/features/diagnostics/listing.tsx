@@ -1,6 +1,7 @@
 import { VDomModel, VDomRenderer } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
+import { TranslationBundle } from '@jupyterlab/translation';
 import { caretDownIcon, caretUpIcon } from '@jupyterlab/ui-components';
 import type * as CodeMirror from 'codemirror';
 import React, { ReactElement } from 'react';
@@ -112,7 +113,7 @@ function SortableTH(props: {
       className={is_sort_key ? 'lsp-sorted-header' : null}
     >
       <div>
-        <label>{props.name}</label>
+        <label>{trans.__(props.name)}</label>
         <sortIcon.react tag="span" className="lsp-sort-icon" />
       </div>
     </th>
@@ -169,7 +170,9 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
       name: 'Severity',
       // TODO: use default diagnostic severity
       render_cell: row => (
-        <td key={3}>{DiagnosticSeverity[row.data.diagnostic.severity || 1]}</td>
+        <td key={3}>
+          {trans.__(DiagnosticSeverity[row.data.diagnostic.severity || 1])}
+        </td>
       ),
       sort: (a, b) =>
         a.data.diagnostic.severity > b.data.diagnostic.severity ? 1 : -1
@@ -224,7 +227,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
     const editor = this.model.virtual_editor;
     const adapter = this.model.adapter;
     if (!diagnostics_db || editor == null) {
-      return <div>No issues detected, great job!</div>;
+      return <div>{trans.__('No issues detected, great job!')}</div>;
     }
 
     let by_document = Array.from(diagnostics_db).map(
@@ -315,6 +318,8 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
   }
 }
 
+let trans: TranslationBundle;
+
 export namespace DiagnosticsListing {
   /**
    * A VDomModel for the LSP of current file editor/notebook.
@@ -326,8 +331,9 @@ export namespace DiagnosticsListing {
     settings: FeatureSettings<LSPDiagnosticsSettings>;
     status_message: StatusMessage;
 
-    constructor() {
+    constructor(translator_bundle: TranslationBundle) {
       super();
+      trans = translator_bundle;
     }
   }
 }

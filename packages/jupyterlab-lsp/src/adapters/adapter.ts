@@ -1,6 +1,7 @@
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
+import { nullTranslator, TranslationBundle } from '@jupyterlab/translation';
 import { JSONObject } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 
@@ -93,6 +94,7 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
   public isConnected: boolean;
   public connection_manager: DocumentConnectionManager;
   public status_message: StatusMessage;
+  public trans: TranslationBundle;
   protected isDisposed = false;
   console: ILSPLogConsole;
 
@@ -128,6 +130,9 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     this.status_message = new StatusMessage();
     this.isConnected = false;
     this.console = extension.console.scope('WidgetAdapter');
+    this.trans = (extension.translator || nullTranslator).load(
+      'jupyterlab-lsp'
+    );
 
     // set up signal connections
     this.widget.context.saveState.connect(this.on_save_state, this);
@@ -580,7 +585,8 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
         connection: connection,
         status_message: this.status_message,
         settings: feature.settings,
-        adapter: this
+        adapter: this,
+        trans: this.trans
       });
       adapter_features.push(integration);
     }

@@ -2,11 +2,16 @@
 
 ### `@krassowski/jupyterlab-lsp 3.5.1` (unreleased)
 
+- features:
+
+  - added translation support ([#557], thanks @JessicaBarh)
+
 - bug fixes:
 
-  - fixes name of jupyterlab-lsp package displayed in JupyterLab UI ([#570])
-  - remove vendored CodeMirror from distribution ([#576])
+  - fixed name of jupyterlab-lsp package displayed in JupyterLab UI ([#570], thanks @marimeireles)
+  - removed vendored CodeMirror from distribution ([#576])
 
+[#557]: https://github.com/krassowski/jupyterlab-lsp/pull/557
 [#570]: https://github.com/krassowski/jupyterlab-lsp/pull/570
 [#576]: https://github.com/krassowski/jupyterlab-lsp/pull/576
 

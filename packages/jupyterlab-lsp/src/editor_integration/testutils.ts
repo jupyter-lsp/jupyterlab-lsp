@@ -21,6 +21,7 @@ import {
 } from '@jupyterlab/notebook';
 import { ServiceManager } from '@jupyterlab/services';
 import { NBTestUtils } from '@jupyterlab/testutils';
+import { ITranslator } from '@jupyterlab/translation';
 import { Signal } from '@lumino/signaling';
 
 import { WidgetAdapter } from '../adapters/adapter';
@@ -104,6 +105,7 @@ export class MockExtension implements ILSPExtension {
   foreign_code_extractors: IForeignCodeExtractorsRegistry;
   code_overrides: ICodeOverridesRegistry;
   console: ILSPLogConsole;
+  translator: ITranslator;
 
   constructor() {
     this.app = null;

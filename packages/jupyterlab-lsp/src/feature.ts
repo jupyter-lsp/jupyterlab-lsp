@@ -1,6 +1,7 @@
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
 import { Signal } from '@lumino/signaling';
 
@@ -201,6 +202,7 @@ export interface IEditorIntegrationOptions {
   connection: LSPConnection;
   status_message: StatusMessage;
   settings: IFeatureSettings<any>;
+  trans: TranslationBundle;
 }
 
 export interface IFeatureLabIntegration {

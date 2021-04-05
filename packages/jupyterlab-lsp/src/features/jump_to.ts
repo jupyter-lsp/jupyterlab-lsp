@@ -8,6 +8,7 @@ import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IEditorTracker } from '@jupyterlab/fileeditor';
 import { INotebookTracker } from '@jupyterlab/notebook';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
 import {
   CodeJumper,
@@ -41,6 +42,8 @@ const jumpBackIcon = new LabIcon({
 });
 
 const FEATURE_ID = PLUGIN_ID + ':jump_to';
+
+let trans: TranslationBundle;
 
 export class CMJumpToDefinition extends CodeMirrorIntegration {
   get jumper() {
@@ -123,7 +126,7 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
     const target_info = this.get_uri_and_range(location_or_locations);
 
     if (!target_info) {
-      this.status_message.set('No jump targets found', 2 * 1000);
+      this.status_message.set(trans.__('No jump targets found'), 2 * 1000);
       return;
     }
 
@@ -241,7 +244,7 @@ class JumperLabIntegration implements IFeatureLabIntegration {
   }
 }
 
-const COMMANDS: IFeatureCommand[] = [
+const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
   {
     id: 'jump-to-definition',
     execute: async ({ connection, virtual_position, document, features }) => {
@@ -254,7 +257,7 @@ const COMMANDS: IFeatureCommand[] = [
       await jump_feature.handle_jump(targets, document.document_info.uri);
     },
     is_enabled: ({ connection }) => connection.isDefinitionSupported(),
-    label: 'Jump to definition',
+    label: trans.__('Jump to definition'),
     icon: jumpToIcon
   },
   {
@@ -264,7 +267,7 @@ const COMMANDS: IFeatureCommand[] = [
       jump_feature.jumper.global_jump_back();
     },
     is_enabled: ({ connection }) => connection.isDefinitionSupported(),
-    label: 'Jump back',
+    label: trans.__('Jump back'),
     icon: jumpBackIcon,
     // do not attach to any of the context menus
     attach_to: new Set<CommandEntryPoint>()
@@ -278,7 +281,8 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
     ISettingRegistry,
     ILSPAdapterManager,
     INotebookTracker,
-    IDocumentManager
+    IDocumentManager,
+    ITranslator
   ],
   optional: [IEditorTracker],
   autoStart: true,
@@ -289,9 +293,11 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
     adapterManager: ILSPAdapterManager,
     notebookTracker: INotebookTracker,
     documentManager: IDocumentManager,
+    translator: ITranslator,
     fileEditorTracker: IEditorTracker | null
   ) => {
     const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
+    trans = translator.load('jupyterlab-lsp');
     let labIntegration = new JumperLabIntegration(
       settings,
       adapterManager,
@@ -305,7 +311,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
         editorIntegrationFactory: new Map([
           ['CodeMirrorEditor', CMJumpToDefinition]
         ]),
-        commands: COMMANDS,
+        commands: COMMANDS(trans),
         id: FEATURE_ID,
         name: 'Jump to definition',
         labIntegration: labIntegration,

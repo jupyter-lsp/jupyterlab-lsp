@@ -6,6 +6,7 @@ import {
   IThemeManager,
   showDialog
 } from '@jupyterlab/apputils';
+import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon, kernelIcon } from '@jupyterlab/ui-components';
 
 import { render_themes_list } from './about';
@@ -25,12 +26,14 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   private current_theme_id: string;
   private icons_cache: Map<string, LabIcon>;
   private icon_overrides: Map<string, CompletionItemKindStrings>;
+  private trans: TranslationBundle;
 
-  constructor(protected themeManager: IThemeManager) {
+  constructor(protected themeManager: IThemeManager, trans: TranslationBundle) {
     this.themes = new Map();
     this.icons_cache = new Map();
     this.icon_overrides = new Map();
     themeManager.themeChanged.connect(this.update_icons_set, this);
+    this.trans = trans;
   }
 
   protected is_theme_light() {
@@ -143,13 +146,13 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
    */
   display_themes() {
     showDialog({
-      title: 'LSP Completer Themes',
-      body: render_themes_list({
+      title: this.trans.__('LSP Completer Themes'),
+      body: render_themes_list(this.trans, {
         themes: [...this.themes.values()],
         current: this.current_theme,
         get_set: this.get_iconset.bind(this)
       }),
-      buttons: [Dialog.okButton()]
+      buttons: [Dialog.okButton({ label: this.trans.__('OK') })]
     }).catch(console.warn);
   }
 
@@ -169,16 +172,18 @@ const LSP_CATEGORY = 'Language server protocol';
 
 export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionThemeManager> = {
   id: PLUGIN_ID,
-  requires: [IThemeManager, ICommandPalette],
+  requires: [IThemeManager, ICommandPalette, ITranslator],
   activate: (
     app,
     themeManager: IThemeManager,
-    commandPalette: ICommandPalette
+    commandPalette: ICommandPalette,
+    translator: ITranslator
   ) => {
-    let manager = new CompletionThemeManager(themeManager);
+    const trans = translator.load('jupyterlab-lsp');
+    let manager = new CompletionThemeManager(themeManager, trans);
     const command_id = 'lsp:completer-about-themes';
     app.commands.addCommand(command_id, {
-      label: 'Display the completer themes',
+      label: trans.__('Display the completer themes'),
       execute: () => {
         manager.display_themes();
       }

@@ -8,6 +8,7 @@ import {
 } from '@jupyterlab/codeeditor';
 import { CodeMirrorEditor, ICodeMirror } from '@jupyterlab/codemirror';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { ITranslator } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
 
 import syntaxSvg from '../../style/icons/syntax-highlight.svg';
@@ -124,7 +125,8 @@ export const SYNTAX_HIGHLIGHTING_PLUGIN: JupyterFrontEndPlugin<void> = {
     ILSPFeatureManager,
     IEditorServices,
     ISettingRegistry,
-    ICodeMirror
+    ICodeMirror,
+    ITranslator
   ],
   autoStart: true,
   activate: (
@@ -132,9 +134,11 @@ export const SYNTAX_HIGHLIGHTING_PLUGIN: JupyterFrontEndPlugin<void> = {
     featureManager: ILSPFeatureManager,
     editorServices: IEditorServices,
     settingRegistry: ISettingRegistry,
-    codeMirror: ICodeMirror
+    codeMirror: ICodeMirror,
+    translator: ITranslator
   ) => {
     const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
+    const trans = translator.load('jupyterlab-lsp');
 
     featureManager.register({
       feature: {
@@ -143,7 +147,7 @@ export const SYNTAX_HIGHLIGHTING_PLUGIN: JupyterFrontEndPlugin<void> = {
         ]),
         commands: [],
         id: FEATURE_ID,
-        name: 'Syntax highlighting',
+        name: trans.__('Syntax highlighting'),
         labIntegration: new SyntaxLabIntegration(
           editorServices.mimeTypeService,
           codeMirror
