@@ -1,4 +1,5 @@
 import * as sinon from 'sinon';
+
 import { ILspConnection } from '..';
 
 interface IListeners {

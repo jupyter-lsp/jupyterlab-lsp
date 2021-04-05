@@ -1,14 +1,41 @@
 ## CHANGELOG
 
-### `@krassowski/jupyterlab-lsp 3.4.2` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.5.1` (unreleased)
+
+- bug fixes:
+
+  - fixes name of jupyterlab-lsp package displayed in JupyterLab UI ([#570])
+  - remove vendored CodeMirror from distribution ([#576])
+
+[#570]: https://github.com/krassowski/jupyterlab-lsp/pull/570
+[#576]: https://github.com/krassowski/jupyterlab-lsp/pull/576
+
+### `@krassowski/jupyterlab-lsp 3.5.0` (2020-03-22)
+
+- features:
+
+  - adds `%%bigquery` IPython cell magic support for BigQuery ([#553], thanks @julioyildo)
+  - completions filtering can be set to case-insensitive in settings ([#549])
+  - completions filtering can hide exact matches ([#549])
+  - the extra information displayed next to the completion label now can include 'detail' (usually module/package of origin), and can be customized in settings ([#549])
 
 - bug fixes:
 
   - prevents throwing a highlights error when adding new cell with <kbd>Shift</kbd> + <kbd>Enter</kbd> ([#544])
   - fixes IPython `pinfo` and `pinfo2` (`?` and `??`) for identifiers containing `s` ([#547])
+  - fixes incorrect behaviour of LSP features in some IPython magics with single line of content ([#560])
+  - fixes name of jupyterlab-lsp package in JupyterLab
+
+- for extension authors:
+
+  - minimal functional extractor and code overrides APIs are now exported; these APIs cab be subject to change in future releases ([#562])
 
 [#544]: https://github.com/krassowski/jupyterlab-lsp/pull/544
 [#547]: https://github.com/krassowski/jupyterlab-lsp/pull/547
+[#549]: https://github.com/krassowski/jupyterlab-lsp/pull/549
+[#553]: https://github.com/krassowski/jupyterlab-lsp/pull/553
+[#560]: https://github.com/krassowski/jupyterlab-lsp/pull/560
+[#562]: https://github.com/krassowski/jupyterlab-lsp/pull/562
 
 ### `jupyter-lsp 1.1.4` (2020-02-21)
 

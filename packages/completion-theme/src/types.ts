@@ -1,5 +1,5 @@
-import { Token } from '@lumino/coreutils';
 import { LabIcon } from '@jupyterlab/ui-components';
+import { Token } from '@lumino/coreutils';
 
 export const COMPLETER_THEME_PREFIX = 'lsp-completer-theme-';
 

@@ -1,6 +1,6 @@
 {
   "name": "@krassowski/jupyterlab-lsp",
-  "version": "3.4.1",
+  "version": "3.5.0",
   "description": "Language Server Protocol integration for JupyterLab",
   "keywords": [
     "jupyter",
@@ -131,7 +131,7 @@
     "discovery": {
       "server": {
         "base": {
-          "name": "jupyterlab_lsp"
+          "name": "jupyterlab-lsp"
         },
         "managers": [
           "pip",

@@ -1,23 +1,24 @@
-import { kernelIcon, LabIcon } from '@jupyterlab/ui-components';
+import '../style/index.css';
+import { JupyterFrontEndPlugin } from '@jupyterlab/application';
 import {
   Dialog,
   ICommandPalette,
   IThemeManager,
   showDialog
 } from '@jupyterlab/apputils';
-import { JupyterFrontEndPlugin } from '@jupyterlab/application';
 import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
+import { LabIcon, kernelIcon } from '@jupyterlab/ui-components';
+
+import { render_themes_list } from './about';
 import {
+  COMPLETER_THEME_PREFIX,
+  CompletionItemKindStrings,
   ICompletionIconSet,
   ICompletionTheme,
   ILSPCompletionThemeManager,
-  PLUGIN_ID,
-  COMPLETER_THEME_PREFIX,
   KernelKind,
-  CompletionItemKindStrings
+  PLUGIN_ID
 } from './types';
-import { render_themes_list } from './about';
-import '../style/index.css';
 
 export class CompletionThemeManager implements ILSPCompletionThemeManager {
   protected current_icons: Map<string, LabIcon>;
