@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as lsProtocol from 'vscode-languageserver-protocol';
+
 import { LspWsConnection } from '..';
 
 const serverUri = 'ws://localhost:8080';

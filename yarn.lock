@@ -1755,10 +1755,10 @@
 "@krassowski/jupyterlab-lsp-example-extractor@file:packages/_example-extractor":
   version "0.0.0"
   dependencies:
-    "@krassowski/jupyterlab-lsp" "^3.4"
+    "@krassowski/jupyterlab-lsp" "^3.5"
 
 "@krassowski/jupyterlab-lsp@file:packages/jupyterlab-lsp":
-  version "3.4.1"
+  version "3.5.0"
   dependencies:
     "@krassowski/code-jumpers" "~1.0.0"
     "@krassowski/completion-theme" "~2.0.0"

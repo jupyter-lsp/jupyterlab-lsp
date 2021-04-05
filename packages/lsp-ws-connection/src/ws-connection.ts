@@ -1,22 +1,24 @@
 import * as events from 'events';
+
+import * as protocol from 'vscode-languageserver-protocol';
 import {
   CompletionItemTag,
   LocationLink
 } from 'vscode-languageserver-protocol';
-import * as protocol from 'vscode-languageserver-protocol';
-import { ConsoleLogger, listen, MessageConnection } from 'vscode-ws-jsonrpc';
+import { ConsoleLogger, MessageConnection, listen } from 'vscode-ws-jsonrpc';
+
 import {
   registerServerCapability,
   unregisterServerCapability
 } from './server-capability-registration';
 import {
+  AnyCompletion,
+  AnyLocation,
+  IDocumentInfo,
   ILspConnection,
   ILspOptions,
   IPosition,
-  ITokenInfo,
-  IDocumentInfo,
-  AnyLocation,
-  AnyCompletion
+  ITokenInfo
 } from './types';
 
 /**

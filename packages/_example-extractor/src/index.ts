@@ -2,7 +2,6 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-
 import {
   ILSPCodeExtractorsManager,
   RegExpForeignCodeExtractor

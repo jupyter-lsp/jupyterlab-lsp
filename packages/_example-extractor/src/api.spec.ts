@@ -1,8 +1,7 @@
+import { IExtractedCode } from '@krassowski/jupyterlab-lsp';
 import { expect } from 'chai';
 
 import { extractor } from '.';
-
-import { IExtractedCode } from '@krassowski/jupyterlab-lsp';
 
 const EXAMPLE = `%%foo
 bar
