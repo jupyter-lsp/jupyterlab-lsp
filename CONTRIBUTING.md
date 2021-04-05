@@ -438,8 +438,7 @@ setuptools.setup(
     py_modules=["jupyter_lsp_my_cool_language_server"],
     entry_points={
         "jupyter_lsp_spec_v1": [
-            "cool-language-server":
-              "jupyter_lsp_my_cool_language_server:cool"
+            "cool-language-server = jupyter_lsp_my_cool_language_server:cool"
         ]
     }
 )
