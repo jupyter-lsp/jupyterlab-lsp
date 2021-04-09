@@ -6,9 +6,13 @@ module.exports = {
     node: true,
     'jest/globals': true
   },
+  globals: { JSX: 'readonly' },
   root: true,
   extends: [
     'eslint:recommended',
+    'plugin:import/errors',
+    'plugin:import/warnings',
+    'plugin:import/typescript',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
     'prettier/@typescript-eslint',
@@ -54,12 +58,32 @@ module.exports = {
     'no-undef': 'warn',
     'no-useless-escape': 'off',
     'prefer-const': 'off',
-    // deviations from jupyterlab, should not be changed
-    // a pitfall of enums is that they do not work correctly
-    // when circular dependencies are present
-    // (see https://stackoverflow.com/a/59665223/)
-    'import/no-cycle': 'error',
+    // the default, but for reference...
+    'import/order': [
+      'warn',
+      {
+        groups: [
+          'builtin',
+          'external',
+          'parent',
+          'sibling',
+          'index',
+          'object',
+          'unknown'
+        ],
+        pathGroups: [
+          { pattern: 'react/**', group: 'builtin', order: 'after' },
+          { pattern: 'codemirror/**', group: 'external', order: 'before' },
+          { pattern: '@lumino/**', group: 'external', order: 'before' },
+          { pattern: '@jupyterlab/**', group: 'external', order: 'after' }
+        ],
+        'newlines-between': 'always',
+        alphabetize: { order: 'asc' }
+      }
+    ],
     // deviations from jupyterlab, should probably be fixed
+    'import/no-cycle': 'off', // somehow we lapsed here... ~200 cycles now
+    'import/export': 'off', // we do class/interface + NS pun exports _all over_
     '@typescript-eslint/triple-slash-reference': 'off',
     'jest/no-test-callback': 'off',
     'jest/valid-expect': 'off',

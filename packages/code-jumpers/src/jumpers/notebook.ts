@@ -1,11 +1,12 @@
-import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
+import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentManager } from '@jupyterlab/docmanager';
+import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
+
+import { JumpHistory } from '../history';
+import { _ensureFocus } from '../notebook_private';
+import { IGlobalPosition, ILocalPosition } from '../positions';
 
 import { CodeJumper, jumpers } from './jumper';
-import { IGlobalPosition, ILocalPosition } from '../positions';
-import { _ensureFocus } from '../notebook_private';
-import { JumpHistory } from '../history';
-import { CodeEditor } from '@jupyterlab/codeeditor';
 
 export class NotebookJumper extends CodeJumper {
   notebook: Notebook;
