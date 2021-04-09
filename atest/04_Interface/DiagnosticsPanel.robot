@@ -9,6 +9,8 @@ Test Teardown     Clean Up
 ${EXPECTED_COUNT}    1
 ${DIAGNOSTIC}     W291 trailing whitespace (pycodestyle)
 ${DIAGNOSTIC MESSAGE}    trailing whitespace
+${DIAGNOSTIC MESSAGE R}    Closing curly-braces should always be on their own line
+${R CELL}         %%R\n{}
 ${MENU COLUMNS}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "columns")]
 ${LAB MENU}       css:.lm-Menu
 
@@ -77,6 +79,22 @@ Diagnostic Message Can Be Copied
     Select Menu Entry    Copy diagnostic
     Close Diagnostics Panel
     Wait Until Element Contains    css:.lsp-statusbar-item    Successfully copied    timeout=10s
+
+Diagnostics Panel Works After Removing Foreign Document
+    Enter Cell Editor    2
+    Lab Command    Insert Cell Below
+    Enter Cell Editor    3
+    Press Keys    None    ${R CELL}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE R}
+    Lab Command    Delete Cells
+    # regain focus by entering cell
+    Enter Cell Editor    2
+    # trigger 7 document updates to trigger the garbage collector that removes unused documents
+    # (search for VirtualDocument.remainining_lifetime for more)
+    Press Keys    None    1234567
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE R}
 
 *** Keywords ***
 Expand Menu Entry

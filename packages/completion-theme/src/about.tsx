@@ -1,10 +1,12 @@
-import React, { ReactElement } from 'react';
-import {
-  ICompletionTheme,
-  ILicenseInfo,
-  COMPLETER_THEME_PREFIX
-} from './types';
+import { TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
+import React, { ReactElement } from 'react';
+
+import {
+  COMPLETER_THEME_PREFIX,
+  ICompletionTheme,
+  ILicenseInfo
+} from './types';
 
 function render_licence(licence: ILicenseInfo): ReactElement {
   return (
@@ -20,6 +22,7 @@ function render_licence(licence: ILicenseInfo): ReactElement {
 type IconSetGetter = (theme: ICompletionTheme) => Map<string, LabIcon>;
 
 function render_theme(
+  trans: TranslationBundle,
   theme: ICompletionTheme,
   get_set: IconSetGetter,
   is_current: boolean
@@ -41,17 +44,20 @@ function render_theme(
     >
       <h4>
         {theme.name}
-        {is_current ? ' (current)' : ''}
+        {is_current ? trans.__(' (current)') : ''}
       </h4>
       <ul>
         <li key={'id'}>
           ID: <code>{theme.id}</code>
         </li>
-        <li key={'licence'}>Licence: {render_licence(theme.icons.licence)}</li>
+        <li key={'licence'}>
+          {trans.__('Licence: ')}
+          {render_licence(theme.icons.licence)}
+        </li>
         <li key={'dark'}>
           {typeof theme.icons.dark === 'undefined'
             ? ''
-            : 'Includes dedicated dark mode icons set'}
+            : trans.__('Includes dedicated dark mode icons set')}
         </li>
       </ul>
       <div className={'lsp-completer-theme-icons'}>{icons}</div>
@@ -59,13 +65,16 @@ function render_theme(
   );
 }
 
-export function render_themes_list(props: {
-  themes: ICompletionTheme[];
-  current: ICompletionTheme;
-  get_set: IconSetGetter;
-}): React.ReactElement {
+export function render_themes_list(
+  trans: TranslationBundle,
+  props: {
+    themes: ICompletionTheme[];
+    current: ICompletionTheme;
+    get_set: IconSetGetter;
+  }
+): React.ReactElement {
   let themes = props.themes.map(theme =>
-    render_theme(theme, props.get_set, theme == props.current)
+    render_theme(trans, theme, props.get_set, theme == props.current)
   );
   return <div>{themes}</div>;
 }

@@ -48,7 +48,7 @@
     "karma-webpack": "^4.0.2",
     "mocha": "^6.1.4",
     "puppeteer": "^1.17.0",
-    "rimraf": "^2.6.3",
+    "rimraf": "^3.0.2",
     "sinon": "^7.3.2",
     "source-map-loader": "~0.2.1",
     "typescript": "~4.1.3",

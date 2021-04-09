@@ -126,6 +126,12 @@ To run tests matching specific phrase, forward `-t` argument over yarn and lerna
 jlpm test -- -- -t match_phrase
 ```
 
+To verify the webpack build wouldn't include problematic vendored dependencies:
+
+```bash
+python scripts/distcheck.py
+```
+
 ### Server Development
 
 #### Testing `jupyter-lsp`
@@ -227,7 +233,7 @@ python scripts/atest.py --suite "05_Features.Completion"
 ##### Run a single test
 
 ```bash
-python scripts/atest.py --test "Works With Kernel Running"
+python scripts/atest.py --test "Works When Kernel Is Idle"
 ```
 
 ##### Run test with a tag
@@ -322,43 +328,56 @@ python scripts/lint.py
 
 ### Specs
 
-It is convenient to collect common patterns for connecting to installed language
-servers as `pip`-installable packages that Just Work with `jupyter-lsp`.
+While language servers can be configured by the user using a simple JSON or Python [configuration file](./Configuring.ipynb#language_servers),
+it is preferable to provide users with an option that does not require manual configuration. The language server specifications (specs)
+wrap the configuration (as would be defined by the user) into a Python class or function that can be either:
 
-If an advanced user installs, locates, and configures, their own language
-server it will always win vs an auto-configured one.
+- distributed using PyPI/conda-forge and made conveniently available to users for `pip install` and/or `conda install`
+- contributed to the collection of built-in specs of jupyter-lsp by opening a PR (preferable for popular language servers, say >100 users)
+
+In either case the detection of available specifications uses Python `entry_points` (see the `[options.entry_points]` section in jupyter-lsp [setup.cfg]).
+
+> If an advanced user installs, locates, and configures, their own language server it will always win vs an auto-configured one.
 
 #### Writing a spec
 
-> See the built-in [specs][] for implementations and some [helpers][].
-
-[specs]: https://github.com/krassowski/jupyterlab-lsp/tree/master/python_packages/jupyter_lsp/jupyter_lsp/specs
-[helpers]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/utils.py
-
-A spec is a python function that accepts a single argument, the
-`LanguageServerManager`, and returns a dictionary of the form:
+A spec is a Python callable (a function, or a class with `__call__` method) that accepts a single argument, the
+`LanguageServerManager` instance, and returns a dictionary of the form:
 
 ```python
 {
   "python-language-server": {            # the name of the implementation
-      "version": 1,                      # the version of the spec schema
+      "version":  SPEC_VERSION,          # the version of the spec schema (an integer)
       "argv": ["python", "-m", "pyls"],  # a list of command line arguments
-      "languages": ["python"]            # a list of languages it supports
+      "languages": ["python"],           # a list of languages it supports
+      "mime_types": ["text/python", "text/x-ipython"]
   }
 }
 ```
 
-The absolute minimum listing requires `argv` (a list of shell tokens to launch
-the server) and `languages` (which languages to respond to), but many number of
-other options to enrich the user experience are available in the
-[schema][] and are exercised by the current `entry_points`-based [specs][].
+The above example is only intended as an illustration and not as an up-to-date guide.
+For details on the dictionary contents, see the [schema][] definition and [built-in specs][].
+Basic concepts (meaning of the `argv` and `languages` arguments) are also explained in the [configuration files](./Configuring.ipynb#language_servers) documentation.
 
-[schema]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/schema/schema.json
+When contributing a specification we recommend to make use of the helper classes and other [utilities][] that take care of the common use-cases:
+
+- `ShellSpec` helps to create specs for servers that can be started from command-line
+- `PythonModuleSpec` is useful for servers which are Python modules
+- `NodeModuleSpec` will take care of finding Node.js modules
+
+See the built-in [built-in specs][] for example implementations.
 
 The spec should only be advertised if the command _could actually_ be run:
 
-- its runtime (e.g. `julia`, `nodejs`, `python`, `r`, `ruby`) is installed
+- its runtime/interpreter (e.g. `julia`, `nodejs`, `python`, `r`, `ruby`) is installed
 - the language server itself is installed (e.g. `python-language-server`)
+
+otherwise an empty dictionary (`{}`) should be returned.
+
+[built-in specs]: https://github.com/krassowski/jupyterlab-lsp/tree/master/python_packages/jupyter_lsp/jupyter_lsp/specs
+[setup.cfg]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/setup.cfg
+[schema]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/schema/schema.json
+[utilities]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/utils.py
 
 ##### Common Concerns
 
@@ -369,10 +388,11 @@ The spec should only be advertised if the command _could actually_ be run:
   - `LanguageServerManager.nodejs` will provide the location of our best
     guess at where a user's `nodejs` might be found
 - some language servers are hard to start purely from the command line
-  - use a helper script to encapsulate some complexity.
-    - See the [r spec][] for an example
+  - use a helper script to encapsulate some complexity, or
+  - use a command argument of the interpreter is available (see the [r spec][] and [julia spec] for examples)
 
 [r spec]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/r_languageserver.py
+[julia spec]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/julia_language_server.py
 
 ##### Example: making a pip-installable `cool-language-server` spec
 
@@ -402,7 +422,8 @@ def cool(app):
         "cool-language-server": {
             "version": 1,
             "argv": [cool_language_server],
-            "languages": ["cool"]
+            "languages": ["cool"],
+            "mime_types": ["text/cool", "text/x-cool"]
         }
     }
 ```
@@ -417,8 +438,7 @@ setuptools.setup(
     py_modules=["jupyter_lsp_my_cool_language_server"],
     entry_points={
         "jupyter_lsp_spec_v1": [
-            "cool-language-server":
-              "jupyter_lsp_my_cool_language_server:cool"
+            "cool-language-server = jupyter_lsp_my_cool_language_server:cool"
         ]
     }
 )

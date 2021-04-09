@@ -1,30 +1,32 @@
+import { CodeEditor } from '@jupyterlab/codeeditor';
+import { IDocumentWidget } from '@jupyterlab/docregistry';
+import { TranslationBundle } from '@jupyterlab/translation';
+import type * as CodeMirror from 'codemirror';
+import type * as lsProtocol from 'vscode-languageserver-protocol';
+
+import { StatusMessage, WidgetAdapter } from '../adapters/adapter';
+import { LSPConnection } from '../connection';
+import { PositionConverter } from '../converter';
 import {
-  IFeatureEditorIntegration,
   IEditorIntegrationOptions,
   IFeature,
+  IFeatureEditorIntegration,
   IFeatureSettings
 } from '../feature';
-import { VirtualDocument } from '../virtual/document';
-import { LSPConnection } from '../connection';
-import * as CodeMirror from 'codemirror';
 import {
   IEditorPosition,
   IRootPosition,
   IVirtualPosition,
   offset_at_position
 } from '../positioning';
-import * as lsProtocol from 'vscode-languageserver-protocol';
-import { PositionConverter } from '../converter';
+import { ILSPLogConsole } from '../tokens';
 import { DefaultMap, uris_equal } from '../utils';
-import { CodeEditor } from '@jupyterlab/codeeditor';
 import {
   CodeMirrorHandler,
   CodeMirrorVirtualEditor
 } from '../virtual/codemirror_editor';
-import { StatusMessage, WidgetAdapter } from '../adapters/adapter';
-import { IDocumentWidget } from '@jupyterlab/docregistry';
+import { VirtualDocument } from '../virtual/document';
 import { IEditorChange } from '../virtual/editor';
-import { ILSPLogConsole } from '../tokens';
 
 function toDocumentChanges(changes: {
   [uri: string]: lsProtocol.TextEdit[];
@@ -114,6 +116,8 @@ export abstract class CodeMirrorIntegration
   protected adapter: WidgetAdapter<IDocumentWidget>;
   protected console: ILSPLogConsole;
 
+  protected trans: TranslationBundle;
+
   get settings(): IFeatureSettings<any> {
     return this.feature.settings;
   }
@@ -130,6 +134,7 @@ export abstract class CodeMirrorIntegration
     this.status_message = options.status_message;
     this.adapter = options.adapter;
     this.console = this.adapter.console.scope(options.feature.name);
+    this.trans = options.trans;
 
     this.editor_handlers = new Map();
     this.connection_handlers = new Map();

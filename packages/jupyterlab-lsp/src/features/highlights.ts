@@ -1,22 +1,24 @@
-import * as CodeMirror from 'codemirror';
-import * as lsProtocol from 'vscode-languageserver-protocol';
-import { DocumentHighlightKind } from '../lsp';
-import { VirtualDocument } from '../virtual/document';
-import { IRootPosition, IVirtualPosition } from '../positioning';
-import { FeatureSettings, IFeatureCommand } from '../feature';
-import { CodeMirrorIntegration } from '../editor_integration/codemirror';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { ILSPFeatureManager, PLUGIN_ID } from '../tokens';
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { LabIcon } from '@jupyterlab/ui-components';
-import highlightSvg from '../../style/icons/highlight.svg';
-import highlightTypeSvg from '../../style/icons/highlight-type.svg';
-import { Debouncer } from '@lumino/polling';
-import { CodeHighlights as LSPHighlightsSettings } from '../_highlights';
 import { CodeEditor } from '@jupyterlab/codeeditor';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
+import { LabIcon } from '@jupyterlab/ui-components';
+import { Debouncer } from '@lumino/polling';
+import type * as CodeMirror from 'codemirror';
+import type * as lsProtocol from 'vscode-languageserver-protocol';
+
+import highlightTypeSvg from '../../style/icons/highlight-type.svg';
+import highlightSvg from '../../style/icons/highlight.svg';
+import { CodeHighlights as LSPHighlightsSettings } from '../_highlights';
+import { CodeMirrorIntegration } from '../editor_integration/codemirror';
+import { FeatureSettings, IFeatureCommand } from '../feature';
+import { DocumentHighlightKind } from '../lsp';
+import { IRootPosition, IVirtualPosition } from '../positioning';
+import { ILSPFeatureManager, PLUGIN_ID } from '../tokens';
+import { VirtualDocument } from '../virtual/document';
 
 export const highlightIcon = new LabIcon({
   name: 'lsp:highlight',
@@ -28,13 +30,13 @@ export const highlightTypeIcon = new LabIcon({
   svgstr: highlightTypeSvg
 });
 
-const COMMANDS: IFeatureCommand[] = [
+const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
   {
     id: 'highlight-references',
     execute: ({ connection, virtual_position, document }) =>
       connection.getReferences(virtual_position, document.document_info),
     is_enabled: ({ connection }) => connection.isReferencesSupported(),
-    label: 'Highlight references',
+    label: trans.__('Highlight references'),
     icon: highlightIcon
   },
   {
@@ -42,7 +44,7 @@ const COMMANDS: IFeatureCommand[] = [
     execute: ({ connection, virtual_position, document }) =>
       connection.getTypeDefinition(virtual_position, document.document_info),
     is_enabled: ({ connection }) => connection.isTypeDefinitionSupported(),
-    label: 'Highlight type definition',
+    label: trans.__('Highlight type definition'),
     icon: highlightTypeIcon
   }
 ];
@@ -145,6 +147,11 @@ export class HighlightsCM extends CodeMirrorIntegration {
       return;
     }
 
+    if (root_position == null) {
+      this.console.warn('no root position available');
+      return;
+    }
+
     const token = this.virtual_editor.get_token_at(root_position);
 
     // if token has not changed, no need to update highlight, unless it is an empty token
@@ -230,14 +237,16 @@ const FEATURE_ID = PLUGIN_ID + ':highlights';
 
 export const HIGHLIGHTS_PLUGIN: JupyterFrontEndPlugin<void> = {
   id: FEATURE_ID,
-  requires: [ILSPFeatureManager, ISettingRegistry],
+  requires: [ILSPFeatureManager, ISettingRegistry, ITranslator],
   autoStart: true,
   activate: (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
-    settingRegistry: ISettingRegistry
+    settingRegistry: ISettingRegistry,
+    translator: ITranslator
   ) => {
     const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
+    const trans = translator.load('jupyterlab-lsp');
 
     featureManager.register({
       feature: {
@@ -245,7 +254,7 @@ export const HIGHLIGHTS_PLUGIN: JupyterFrontEndPlugin<void> = {
         id: FEATURE_ID,
         name: 'LSP Highlights',
         settings: settings,
-        commands: COMMANDS
+        commands: COMMANDS(trans)
       }
     });
   }

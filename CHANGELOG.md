@@ -1,5 +1,91 @@
 ## CHANGELOG
 
+### `@krassowski/jupyterlab-lsp 3.5.1` (unreleased)
+
+- features:
+
+  - added translation support ([#557], thanks @JessicaBarh)
+
+- bug fixes:
+
+  - fixed name of jupyterlab-lsp package displayed in JupyterLab UI ([#570], thanks @marimeireles)
+  - removed vendored CodeMirror from distribution ([#576])
+
+[#557]: https://github.com/krassowski/jupyterlab-lsp/pull/557
+[#570]: https://github.com/krassowski/jupyterlab-lsp/pull/570
+[#576]: https://github.com/krassowski/jupyterlab-lsp/pull/576
+
+### `@krassowski/jupyterlab-lsp 3.5.0` (2020-03-22)
+
+- features:
+
+  - adds `%%bigquery` IPython cell magic support for BigQuery ([#553], thanks @julioyildo)
+  - completions filtering can be set to case-insensitive in settings ([#549])
+  - completions filtering can hide exact matches ([#549])
+  - the extra information displayed next to the completion label now can include 'detail' (usually module/package of origin), and can be customized in settings ([#549])
+
+- bug fixes:
+
+  - prevents throwing a highlights error when adding new cell with <kbd>Shift</kbd> + <kbd>Enter</kbd> ([#544])
+  - fixes IPython `pinfo` and `pinfo2` (`?` and `??`) for identifiers containing `s` ([#547])
+  - fixes incorrect behaviour of LSP features in some IPython magics with single line of content ([#560])
+  - fixes name of jupyterlab-lsp package in JupyterLab
+
+- for extension authors:
+
+  - minimal functional extractor and code overrides APIs are now exported; these APIs cab be subject to change in future releases ([#562])
+
+[#544]: https://github.com/krassowski/jupyterlab-lsp/pull/544
+[#547]: https://github.com/krassowski/jupyterlab-lsp/pull/547
+[#549]: https://github.com/krassowski/jupyterlab-lsp/pull/549
+[#553]: https://github.com/krassowski/jupyterlab-lsp/pull/553
+[#560]: https://github.com/krassowski/jupyterlab-lsp/pull/560
+[#562]: https://github.com/krassowski/jupyterlab-lsp/pull/562
+
+### `jupyter-lsp 1.1.4` (2020-02-21)
+
+- bug fixes:
+
+  - ensures `jupyter*_config.d` paths are searched for `language_servers`
+    as documented in _Configuring_ ([#535])
+  - uses more explicit file name for enabling `jupyter-lsp` in `notebook` and
+    `jupyter_server ([#535])
+
+[#535]: https://github.com/krassowski/jupyterlab-lsp/pull/535
+
+### `@krassowski/jupyterlab-lsp 3.4.1` (2020-02-16)
+
+- bug fixes:
+
+  - fixed installation of the source version of the extension (causing build error if classic was not installed) ([#526])
+
+[#526]: https://github.com/krassowski/jupyterlab-lsp/pull/526
+
+### `@krassowski/jupyterlab-lsp 3.4.0` (2020-02-14)
+
+- features:
+
+  - the priority of the completions from kernel can now be changed by switching new `kernelCompletionsFirst` setting ([#520])
+  - completer panel will now always render markdown documentation if available ([#520])
+    - the implementation re-renders the panel as it is the best we can do until [jupyterlab#9663](https://github.com/jupyterlab/jupyterlab/pull/9663) is merged
+  - the completer now uses `filterText` and `sortText` if available to better filter and sort completions ([#520], [#523])
+  - completer `suppressInvokeIn` setting was removed; `suppressContinuousHintingIn` and `suppressTriggerCharacterIn` settings were added ([#521])
+  - `suppressContinuousHintingIn` by default includes `def` to improve the experience when writing function names ([#521])
+  - long file paths are now collapsed if composed of more than two segments to avoid status popover and diagnostics panel getting too wide ([#524])
+
+- bug fixes:
+
+  - user-invoked completion in strings works again ([#521])
+  - completer documentation will now consistently show up after filtering the completion items ([#520])
+  - completions containing HTML-like syntax will be displayed properly (an upstream issue) ([#520], [#523])
+  - diagnostics panel will no longer break when foreign documents (e.g. `%%R` cell magics) are removed ([#522])
+
+[#520]: https://github.com/krassowski/jupyterlab-lsp/pull/520
+[#521]: https://github.com/krassowski/jupyterlab-lsp/pull/521
+[#522]: https://github.com/krassowski/jupyterlab-lsp/pull/522
+[#523]: https://github.com/krassowski/jupyterlab-lsp/pull/523
+[#524]: https://github.com/krassowski/jupyterlab-lsp/pull/524
+
 ### `@krassowski/jupyterlab-lsp 3.3.1` (2020-02-07)
 
 - bug fixes:

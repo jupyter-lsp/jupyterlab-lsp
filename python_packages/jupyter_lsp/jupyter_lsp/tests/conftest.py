@@ -11,9 +11,10 @@ from tornado.web import Application
 
 # local imports
 from jupyter_lsp import LanguageServerManager
+from jupyter_lsp.constants import APP_CONFIG_D_SECTIONS
 from jupyter_lsp.handlers import LanguageServersHandler, LanguageServerWebSocketHandler
 
-# these should always be available in a test environment ()
+# these should always be available in a test environment
 KNOWN_SERVERS = [
     "bash-language-server",
     "dockerfile-language-server-nodejs",
@@ -44,6 +45,28 @@ KNOWN_UNKNOWN_SERVERS = ["foo-language-server"]
 @fixture
 def manager() -> LanguageServerManager:
     return LanguageServerManager()
+
+
+@fixture
+def echo_spec():
+    return {"argv": ["echo", "no server here"], "languages": ["klingon"], "version": 2}
+
+
+@fixture
+def echo_conf_json(echo_spec) -> str:
+    return json.dumps(
+        {"LanguageServerManager": {"language_servers": {"_echo_": echo_spec}}},
+        indent=2,
+        sort_keys=True,
+    )
+
+
+@fixture(params=sorted(APP_CONFIG_D_SECTIONS))
+def app_config_d(request, tmp_path, monkeypatch) -> pathlib.Path:
+    conf_d = tmp_path / f"jupyter{request.param}config.d"
+    conf_d.mkdir()
+    monkeypatch.setenv("JUPYTER_CONFIG_PATH", f"{tmp_path}")
+    return conf_d
 
 
 @fixture(params=sorted(KNOWN_SERVERS))
