@@ -10,10 +10,12 @@
 
   - fixed name of jupyterlab-lsp package displayed in JupyterLab UI ([#570], thanks @marimeireles)
   - removed vendored CodeMirror from distribution ([#576])
+  - fix encoding on Windows for non-conda installs ([#580], thanks @stonebig)
 
 [#557]: https://github.com/krassowski/jupyterlab-lsp/pull/557
 [#570]: https://github.com/krassowski/jupyterlab-lsp/pull/570
 [#576]: https://github.com/krassowski/jupyterlab-lsp/pull/576
+[#580]: https://github.com/krassowski/jupyterlab-lsp/pull/580
 
 ### `@krassowski/jupyterlab-lsp 3.5.0` (2020-03-22)
 
