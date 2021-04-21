@@ -74,7 +74,7 @@ def atest(attempt, extra_args):
     stem = get_stem(attempt, extra_args)
 
     for non_critical in NON_CRITICAL:
-        extra_args += ["--noncritical", "AND".join(non_critical)]
+        extra_args += ["--skiponfailure", "AND".join(non_critical)]
 
     if attempt != 1:
         previous = OUT / f"{get_stem(attempt - 1, extra_args)}.robot.xml"
@@ -94,7 +94,6 @@ def atest(attempt, extra_args):
         OUT / f"{stem}.log.html",
         "--report",
         OUT / f"{stem}.report.html",
-        "--xunitskipnoncritical",
         "--xunit",
         OUT / f"{stem}.xunit.xml",
         "--variable",

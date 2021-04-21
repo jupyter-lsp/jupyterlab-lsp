@@ -1,6 +1,6 @@
 {
   "name": "@krassowski/jupyterlab-lsp-metapackage",
-  "version": "3.4.1",
+  "version": "3.5.0",
   "description": "JupyterLab LSP - Meta Package. All of the packages used by JupyterLab LSP",
   "homepage": "https://github.com/krassowski/jupyterlab-lsp",
   "bugs": {
@@ -23,7 +23,7 @@
     "build": "tsc -b",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build",
-    "watch": "tsc -b --watch"
+    "watch": "tsc -b --watch --preserveWatchOutput"
   },
   "dependencies": {
     "lsp-ws-connection": "file:../lsp-ws-connection",
@@ -31,11 +31,12 @@
     "@krassowski/theme-material": "file:../theme-material",
     "@krassowski/theme-vscode": "file:../theme-vscode",
     "@krassowski/code-jumpers": "file:../code-jumpers",
-    "@krassowski/jupyterlab-lsp": "file:../jupyterlab-lsp"
+    "@krassowski/jupyterlab-lsp": "file:../jupyterlab-lsp",
+    "@krassowski/jupyterlab-lsp-example-extractor": "file:../_example-extractor"
   },
   "devDependencies": {
     "fs-extra": "^8.0.1",
-    "rimraf": "~2.6.2",
+    "rimraf": "^3.0.2",
     "typedoc": "^0.14.2",
     "typescript": "~4.1.3"
   },

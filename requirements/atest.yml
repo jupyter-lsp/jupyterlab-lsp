@@ -8,7 +8,7 @@ dependencies:
   - firefox
   - geckodriver
   - jupyterlab_robotmode
-  - robotframework >=3.2,<4
-  - robotframework-lsp >=0.8,<1.0
+  - robotframework >=4,<5
+    - robotframework-lsp >=0.14,<0.15
   - robotframework-seleniumlibrary
   - robotkernel

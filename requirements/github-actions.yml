@@ -11,7 +11,6 @@ dependencies:
   - nodejs {nodejs}
   # for python language server (and development)
   - flake8 >=3.5
-  - python-language-server
   # for R language server and kernel
   # TODO: try r 4.0 soon
   - r <4
@@ -20,7 +19,7 @@ dependencies:
   - r-stringi >=1.4.6
   - rpy2
   # for robotframework
-  - robotframework >=3.2,<4
+  - robotframework >=4,<5
   # rflsp not available for python 3.6
   {robotframework-lsp}
   - robotkernel
@@ -40,7 +39,10 @@ dependencies:
   - bs4
   - firefox
   - geckodriver
-  - robotframework >=3.2,<4
+  - robotframework >=4,<5
   - robotframework-seleniumlibrary
-  # TODO: remove when jedi vs IPython is resolved
+  # TODO: remove when jedi vs IPython vs python-language-server is resolved
   - jedi <0.18
+  - ipython <7.20 # higher basically broken _without_ jedi 0.18
+  - python-language-server ==0.36.2
+  - autopep8 <1.5.6 # higher requires pycodestyle incompatible with python-language-server

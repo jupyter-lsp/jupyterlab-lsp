@@ -41,7 +41,7 @@ Place your cursor on a variable, function, etc and all the usages will be highli
 
 - Certain characters, for example '.' (dot) in Python, will automatically trigger
   completion.
-- You can choose to receive the completion suggestions as you type by enabling `continiousHinting` setting.
+- You can choose to receive the completion suggestions as you type by enabling `continuousHinting` setting.
 
 ![invoke](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.gif)
 

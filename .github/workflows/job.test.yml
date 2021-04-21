@@ -16,17 +16,17 @@ defaults:
     shell: bash -l {0}
 
 env:
-  # Increase this value to reset all caches
-  CACHE_EPOCH: 0
+  JULIA_NUM_THREADS: 2
+  MAMBA_NO_BANNER: 1
+  PIP_DISABLE_PIP_VERSION_CHECK: 1
+  PYTHONUNBUFFERED: 1
 
+  ATEST_RETRIES: 3
   JLPM_CMD: jlpm --ignore-optional --prefer-offline --frozen-lockfile
 
-  PYTHONUNBUFFERED: 1
-  ATEST_RETRIES: 3
-  PIP_DISABLE_PIP_VERSION_CHECK: 1
-
-  # TODO: replace once mambaforge "just works" with setup-miniconda
-  MAMBAFORGE_URL: https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge
+  # Increase this value to reset all caches
+  CACHE_EPOCH: 2
+  JULIA_LANGSERVER: 3.2.0
 
 jobs:
   lint:
@@ -37,7 +37,7 @@ jobs:
         os: [ubuntu-latest]
         nodejs: ['>=14,<15.0.0a0']
         lab: ['>=3.0.0,<4.0.0a0']
-        rflsp: ['- robotframework-lsp >=0.8,<1.0']
+        rflsp: [' - robotframework-lsp >=0.14,<0.15']
     steps:
       - uses: actions/checkout@v2
 
@@ -52,7 +52,7 @@ jobs:
           rflsp: '${{ matrix.rflsp }}'
 
       - name: Cache conda
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/conda_pkgs_dir
           key: |
@@ -63,11 +63,9 @@ jobs:
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
-          installer-url: ${{ env.MAMBAFORGE_URL }}-Linux-x86_64.sh
-          condarc-file: .github/.condarc
-
-      - name: Install base conda dependencies
-        run: mamba env update -n test --file requirements/github-actions.yml
+          environment-file: requirements/github-actions.yml
+          miniforge-variant: Mambaforge
+          use-mamba: true
 
       - name: Install linting dependencies
         run: mamba env update -n test --file requirements/lint.yml
@@ -80,15 +78,17 @@ jobs:
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-lint-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-lint-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
 
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: .yarn-packages
-          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
@@ -109,6 +109,9 @@ jobs:
       - name: Lint frontend
         run: jlpm lint:check
 
+      - name: Check distributions
+        run: python scripts/distcheck.py
+
   build:
     name: build
     runs-on: ${{ matrix.os }}
@@ -117,7 +120,7 @@ jobs:
         os: [ubuntu-latest]
         nodejs: ['>=14,<15.0.0a0']
         lab: ['>=3.0.0,<4.0.0a0']
-        rflsp: ['- robotframework-lsp >=0.8,<1.0']
+        rflsp: [' - robotframework-lsp >=0.14,<0.15']
     steps:
       - uses: actions/checkout@v2
 
@@ -132,7 +135,7 @@ jobs:
           rflsp: '${{ matrix.rflsp }}'
 
       - name: Cache conda
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/conda_pkgs_dir
           key: |
@@ -143,8 +146,7 @@ jobs:
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
-          installer-url: ${{ env.MAMBAFORGE_URL }}-Linux-x86_64.sh
-          condarc-file: .github/.condarc
+          miniforge-variant: Mambaforge
 
       - name: Install minimal build deps
         shell: bash -l {0}
@@ -155,15 +157,17 @@ jobs:
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
 
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: .yarn-packages
-          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
@@ -216,16 +220,16 @@ jobs:
           - python: 3.6
             # Node 10 end-of-life: April 2021
             nodejs: '>=10,<11.0.0.a0'
-            rflsp: '#- robotframework-lsp >=0.8,<1.0# not compatible with py36'
+            rflsp: '# - robotframework-lsp >=0.14,<0.15# not compatible with py36'
           # if using 3.7, use newer node, etc...
           - python: 3.7
             # Node 12 end-of-life: April 2022
             nodejs: '>=12,<13.0.0.a0'
-            rflsp: '- robotframework-lsp >=0.8,<1.0'
+            rflsp: ' - robotframework-lsp >=0.14,<0.15'
           - python: 3.8
             # Node 14 end-of-life: April 2023
             nodejs: '>=14,<15.0.0.a0'
-            rflsp: '- robotframework-lsp >=0.8,<1.0'
+            rflsp: ' - robotframework-lsp >=0.14,<0.15'
           # TODO: remove when mambaforge just works on setup-miniconda
           - os: ubuntu
             mambaforge: Linux-x86_64.sh
@@ -236,11 +240,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
-      - uses: julia-actions/setup-julia@v1
-
-      - name: Install Julia language server
-        run: julia -e 'using Pkg; Pkg.add("LanguageServer")'
 
       - name: Set JupyterLab and Node versions
         uses: cschleiden/replace-tokens@v1
@@ -254,7 +253,7 @@ jobs:
           rflsp: '${{ matrix.rflsp }}'
 
       - name: Cache conda
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/conda_pkgs_dir
           key: |
@@ -265,24 +264,9 @@ jobs:
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
-          installer-url: ${{ env.MAMBAFORGE_URL }}-${{ matrix.mambaforge }}
-          python-version: ${{ matrix.python }}
-          condarc-file: .github/.condarc
-
-      - name: Describe conda
-        run: |
-          conda info
-          conda config --show-sources
-          conda config --show
-
-      - name: Install conda dependencies (unix)
-        if: ${{ matrix.os != 'windows' }}
-        run: mamba env update -n test --file requirements/github-actions.yml
-
-      - name: Install conda dependencies (windows)
-        if: ${{ matrix.os == 'windows' }}
-        shell: cmd /C call {0}
-        run: mamba env update -n test --file requirements/github-actions.yml
+          environment-file: requirements/github-actions.yml
+          miniforge-variant: Mambaforge
+          use-mamba: true
 
       - name: List all packages
         run: conda list
@@ -292,22 +276,26 @@ jobs:
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-test-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-atest-${{ hashFiles('yarn.lock') }}
 
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: .yarn-packages
-          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
 
-      - name: install npm dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: ${{ env.JLPM_CMD }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.julia/artifacts
+          key: |
+            ${{ env.CACHE_EPOCH }}-julia-test-${{ runner.os }}-${{ env.JULIA_LANGSERVER }}
 
       - uses: actions/download-artifact@v2
         with:
@@ -332,6 +320,16 @@ jobs:
 
       - name: List frontend extensions
         run: jupyter labextension list
+
+      - name: install node-based language servers
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: ${{ env.JLPM_CMD }}
+
+      - name: Install Julia
+        uses: julia-actions/setup-julia@v1
+
+      - name: Install Julia language server
+        run: julia -e 'using Pkg; Pkg.add(Pkg.PackageSpec(;name="LanguageServer", version="${{ env.JULIA_LANGSERVER }}"))'
 
       - name: Run python tests
         run: python scripts/utest.py
@@ -437,5 +435,7 @@ jobs:
           set -eux
           jupyter labextension list
           jupyter server extension list
+          jupyter serverextension list
           jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
           jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
+          jupyter serverextension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -

@@ -197,7 +197,8 @@ def test_changelog_versions(pkg, version):
         ],  # zero because jupyterlab-lsp is good enough
         [PY_SERVER_NAME + "-python", "=", PY_SERVER_VERSION, 1],
         [JS_LSP_NAME, "@", JS_LSP_VERSION, 1],  # TODO: update docker instructions
-        [PY_FRONT_NAME, "=", JS_LSP_VERSION, 3],
+        [PY_FRONT_NAME, "=", JS_LSP_VERSION, 2],  # conda install
+        [PY_FRONT_NAME, "==", JS_LSP_VERSION, 1],  # pip install
     ],
 )
 def test_installation_versions(the_installation_notebook, pkg, sep, version, expected):
