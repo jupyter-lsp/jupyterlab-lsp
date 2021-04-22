@@ -5,6 +5,7 @@ channels:
   - nodefaults
 
 dependencies:
+  - python {python}
   - jupyterlab {lab}
   # build dependencies
   - pip
