@@ -19,7 +19,6 @@
 
   - removed vendored CodeMirror from distribution ([#576])
 
-
 [#493]: https://github.com/krassowski/jupyterlab-lsp/pull/493
 [#557]: https://github.com/krassowski/jupyterlab-lsp/pull/557
 [#570]: https://github.com/krassowski/jupyterlab-lsp/pull/570
