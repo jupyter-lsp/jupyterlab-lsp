@@ -6,7 +6,7 @@
 
 > _This project is still maturing, but you are welcome to check it out, leave feedback and/or a PR_
 
-Quick Links: **[Installation](#installation) | [Configuring](./docs/Configuring.ipynb) | [Updating](#updating) | [Changelog](./CHANGELOG.md) | [Roadmap](./docs/Roadmap.ipynb) | [Contributing](./CONTRIBUTING.md) | [Extending](./docs/Extending.ipynb)**
+Quick Links: **[Installation](#installation) | [Configuring](./docs/Configuring.ipynb) | [Changelog](./CHANGELOG.md) | [Roadmap](./docs/Roadmap.ipynb) | [Contributing](./CONTRIBUTING.md) | [Extending](./docs/Extending.ipynb)**
 
 ## Features
 
