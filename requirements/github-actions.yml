@@ -23,7 +23,7 @@ dependencies:
   - robotframework >=4,<5
   # rflsp not available for python 3.6
   {robotframework-lsp}
-  - xeus-robot
+  {xeus_robot}
   - jupyterlab_robotmode
   # tex
   - tectonic
