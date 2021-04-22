@@ -12,4 +12,4 @@ dependencies:
   - robotframework-lsp >=0.14,<0.15
   - robotframework-robocop
   - robotframework-seleniumlibrary
-  - robotkernel
+  - xeus-robot

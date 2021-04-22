@@ -37,7 +37,7 @@ jobs:
         os: [ubuntu-latest]
         nodejs: ['>=14,<15.0.0a0']
         lab: ['>=3.0.0,<4.0.0a0']
-        rflsp: [' - robotframework-lsp >=0.14,<0.15']
+        rflsp: ['- robotframework-lsp >=0.14,<0.15']
     steps:
       - uses: actions/checkout@v2
 
@@ -120,7 +120,7 @@ jobs:
         os: [ubuntu-latest]
         nodejs: ['>=14,<15.0.0a0']
         lab: ['>=3.0.0,<4.0.0a0']
-        rflsp: [' - robotframework-lsp >=0.14,<0.15']
+        rflsp: ['- robotframework-lsp >=0.14,<0.15']
     steps:
       - uses: actions/checkout@v2
 
@@ -220,16 +220,16 @@ jobs:
           - python: 3.6
             # Node 10 end-of-life: April 2021
             nodejs: '>=10,<11.0.0.a0'
-            rflsp: '# - robotframework-lsp >=0.14,<0.15# not compatible with py36'
+            rflsp: '# - robotframework-lsp >=0.14,<0.15 # is not compatible with py36'
           # if using 3.7, use newer node, etc...
           - python: 3.7
             # Node 12 end-of-life: April 2022
             nodejs: '>=12,<13.0.0.a0'
-            rflsp: ' - robotframework-lsp >=0.14,<0.15'
+            rflsp: '- robotframework-lsp >=0.14,<0.15'
           - python: 3.8
             # Node 14 end-of-life: April 2023
             nodejs: '>=14,<15.0.0.a0'
-            rflsp: ' - robotframework-lsp >=0.14,<0.15'
+            rflsp: '- robotframework-lsp >=0.14,<0.15'
           # TODO: remove when mambaforge just works on setup-miniconda
           - os: ubuntu
             mambaforge: Linux-x86_64.sh
