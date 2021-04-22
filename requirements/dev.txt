@@ -6,5 +6,5 @@ pyls-isort
 pyls-mypy
 pytest-cov
 ruamel.yaml
-robotframework-lint >=1.1
-robotframework >=3.2
+robotframework >=4,<5
+robotframework-robocop

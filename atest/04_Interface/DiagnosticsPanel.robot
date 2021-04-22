@@ -113,7 +113,7 @@ Menus Count Equal
 
 Select Menu Entry
     [Arguments]    ${label}
-    ${entry}    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
+    ${entry} =    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
     Wait Until Page Contains Element    ${entry}    timeout=10s
     Mouse Over    ${entry}
     Click Element    ${entry}

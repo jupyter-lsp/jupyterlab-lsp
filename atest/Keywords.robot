@@ -1,10 +1,10 @@
 *** Settings ***
 Resource          Variables.robot
-Library           SeleniumLibrary
+Library           Collections
 Library           OperatingSystem
 Library           Process
 Library           String
-Library           Collections
+Library           SeleniumLibrary
 Library           ./logcheck.py
 Library           ./ports.py
 Library           ./config.py
@@ -328,12 +328,12 @@ Open Context Menu Over
 
 Context Menu Should Contain
     [Arguments]    ${label}    ${timeout}=10s
-    ${entry}    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
+    ${entry} =    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
     Wait Until Page Contains Element    ${entry}    timeout=${timeout}
 
 Context Menu Should Not Contain
     [Arguments]    ${label}    ${timeout}=10s
-    ${entry}    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
+    ${entry} =    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
     Wait Until Page Does Not Contain Element    ${entry}    timeout=${timeout}
 
 Close Context Menu

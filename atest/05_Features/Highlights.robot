@@ -64,12 +64,12 @@ Should Not Highlight Any Tokens
 
 Should Highlight Token
     [Arguments]    ${token}    ${timeout}=15s
-    ${token_element}    Set Variable    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
+    ${token_element} =    Set Variable    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
     Wait Until Page Contains Element    ${token_element}    timeout=${timeout}
 
 Should Not Highlight Token
     [Arguments]    ${token}    ${timeout}=15s
-    ${token_element}    Set Variable    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
+    ${token_element} =    Set Variable    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
     Wait Until Page Does Not Contain Element    ${token_element}    timeout=${timeout}
 
 Setup Highlights Test

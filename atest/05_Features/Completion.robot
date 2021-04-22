@@ -324,11 +324,11 @@ Setup Completion Test
 
 Get Cell Editor Content
     [Arguments]    ${cell_nr}
-    ${content}    Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()
+    ${content} =    Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()
     [Return]    ${content}
 
 Get File Editor Content
-    ${content}    Execute JavaScript    return document.querySelector('.jp-FileEditorCodeWrapper .CodeMirror').CodeMirror.getValue()
+    ${content} =    Execute JavaScript    return document.querySelector('.jp-FileEditorCodeWrapper .CodeMirror').CodeMirror.getValue()
     [Return]    ${content}
 
 Cell Editor Should Equal
