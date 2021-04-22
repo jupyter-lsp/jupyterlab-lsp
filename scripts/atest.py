@@ -31,6 +31,8 @@ NON_CRITICAL = [
     # ["language:yaml", "feature:config"],
     # TODO: restore when we figure out win36 vs jedi on windows
     ["language:python", "py:36", "os:windows"],
+    # TODO: need to make an upstream issue to clean "plain", or fix test
+    ["gh-493:rflsp-claims-plain"],
 ]
 
 
