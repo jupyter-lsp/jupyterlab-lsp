@@ -30,7 +30,7 @@ Status Changes Between Notebooks
     [Teardown]    Clean Up After Working With File    Python.ipynb
 
 Status Changes Correctly Between Editors
-    [Tags]   gh-493:rflsp-claims-plains
+    [Tags]    gh-493:rflsp-claims-plains
     Prepare File for Editing    Python    status    example.py
     Wait Until Fully Initialized
     Open File    example.plain

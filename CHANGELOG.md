@@ -9,9 +9,18 @@
 - bug fixes:
 
   - fixed name of jupyterlab-lsp package displayed in JupyterLab UI ([#570], thanks @marimeireles)
-  - removed vendored CodeMirror from distribution ([#576])
   - fix encoding on Windows for non-conda installs ([#580], thanks @stonebig)
 
+- experiments
+
+  - added `robotframework-lsp` to tests, demo, and documentation [#493]
+
+- for extension authors:
+
+  - removed vendored CodeMirror from distribution ([#576])
+
+
+[#493]: https://github.com/krassowski/jupyterlab-lsp/pull/493
 [#557]: https://github.com/krassowski/jupyterlab-lsp/pull/557
 [#570]: https://github.com/krassowski/jupyterlab-lsp/pull/570
 [#576]: https://github.com/krassowski/jupyterlab-lsp/pull/576
