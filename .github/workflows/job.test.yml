@@ -221,13 +221,13 @@ jobs:
             # Node 10 end-of-life: April 2021
             nodejs: '>=10,<11.0.0.a0'
             rflsp: '# - robotframework-lsp >=0.14,<0.15 # is not compatible with py36'
-            xeus_robot: '# - xeus-robot also not supported'
+            xeus_robot: '# - xeus-robot # not supported because rflsp'
           # if using 3.7, use newer node, etc...
           - python: 3.7
             # Node 12 end-of-life: April 2022
             nodejs: '>=12,<13.0.0.a0'
             rflsp: '- robotframework-lsp >=0.14,<0.15'
-            xeus_robot: '- xeus-robot'
+            xeus_robot: '# - xeus-robot # not supported because xeus-python'
           - python: 3.8
             # Node 14 end-of-life: April 2023
             nodejs: '>=14,<15.0.0.a0'
