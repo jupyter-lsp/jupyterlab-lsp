@@ -53,8 +53,8 @@ R
 
 Robot Framework
     [Tags]    gh:332
-    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'abc')])[last()]
-    Editor Shows Features for Language    Robot Framework    example.robot    Jump to Definition=${def}
+    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-keyword')][contains(text(), 'Special Log')])[last()]
+    Editor Shows Features for Language    Robot Framework    example.robot    Diagnostics=Undefined keyword    Jump to Definition=${def}
 
 SCSS
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable-2')][contains(text(), 'primary-color')])[last()]

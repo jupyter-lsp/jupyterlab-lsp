@@ -14,3 +14,4 @@ Special Log
 *** Test Cases ***
 Log Something
     Special Log    ${ABC}
+    Something that doesn't exist
