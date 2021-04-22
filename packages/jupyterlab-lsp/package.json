@@ -82,7 +82,7 @@
     "@jupyterlab/rendermime": "^3.0.0",
     "@jupyterlab/services": "^6.0.0",
     "@jupyterlab/statusbar": "^3.0.0",
-    "@jupyterlab/testutils": "^3.0.0",
+    "@jupyterlab/testutils": "3.0.7",
     "@jupyterlab/tooltip": "^3.0.0",
     "@lumino/algorithm": "*",
     "@lumino/widgets": "^1.16.1",
