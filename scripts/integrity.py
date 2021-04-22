@@ -234,7 +234,7 @@ def test_contributing_versions(the_contributing_doc, the_binder_env, pkg):
 @pytest.mark.parametrize("path", [CI / "job.test.yml", REQS / "atest.yml", BINDER_ENV])
 def test_robotframework_lsp_version(path):
     all_rflsp_version = re.findall(
-        r"""(robotframework-lsp .*?)(?=[$'#\n])""", path.read_text(encoding="utf-8")
+        r"""(robotframework-lsp .*?)(?=\s*[$'#\n])""", path.read_text(encoding="utf-8")
     )
 
     assert set(all_rflsp_version) == {RFLSP}
