@@ -6,17 +6,6 @@ import pathlib
 import subprocess
 import sys
 
-import nbsphinx
-
-HERE = pathlib.Path(__file__).parent
-ROOT = HERE.parent
-
-nbsphinx.RST_TEMPLATE = nbsphinx.RST_TEMPLATE.replace(
-    """{% block input -%}""",
-    """{% block input -%}""" """{% if not cell.metadata.get("hide_input", False) -%}""",
-).replace("""{% endblock input %}""", """{%- endif -%}{%- endblock input %}""")
-
-
 sys.path.insert(
     0,
     str(
@@ -27,16 +16,14 @@ sys.path.insert(
 )
 
 project = "Jupyter[Lab] Language Server"
-copyright = "2020, Jupyter[Lab] Language Server Contributors"
+copyright = "2021, Jupyter[Lab] Language Server Contributors"
 author = "Jupyter[Lab] Language Server Contributors"
 
-version = "0.7.0"
+version = ""
 release = ""
 
 extensions = [
-    "recommonmark",
-    "nbsphinx",
-    "sphinx_markdown_tables",
+    "myst_nb",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.coverage",
@@ -67,9 +54,7 @@ exclude_patterns = [
     "_build/**",
 ]
 
-pygments_style = "monokai"
-
-html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx_book_theme"
 
 html_static_path = ["_static"]
 
@@ -104,6 +89,33 @@ html_context = {
     "github_version": "master",
     "conf_py_path": "/docs/",
 }
+
+html_logo = "images/logo.png"
+html_title = "Language Server Protocol integration for Jupyter[Lab]"
+
+
+html_theme_options = {
+    "repository_url": github_repo_url,
+    "path_to_docs": "docs",
+    "use_fullscreen_button": True,
+    "use_repository_button": True,
+    "use_issues_button": True,
+    "use_edit_page_button": True,
+    "use_download_button": True,
+}
+
+# MyST-{NB}
+
+jupyter_execute_notebooks = "force"
+nb_output_stderr = "remove-warn"
+myst_enable_extensions = [
+    "amsmath",
+    "deflist",
+    "dollarmath",
+    "html_admonition",
+    "html_image",
+    "smartquotes",
+]
 
 
 def setup(app):

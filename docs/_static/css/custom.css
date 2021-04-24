@@ -1,47 +1,18 @@
-:root {
-  --code-bg: rgb(39, 40, 34);
-  --border-width: 1px;
-  --border-radius: 5px;
-}
-
-div.nbinput div.prompt,
-div.nboutput div.prompt {
+#site-navigation h1.site-logo {
   display: none;
 }
 
-body div.nboutput.container div[class*='highlight'] {
-  background: var(--code-bg) !important;
+table.langservers thead th {
+  text-align: center !important;
 }
 
-.rst-content div[class^='highlight'] {
-  border-radius: var(--border-radius);
+table.langservers tbody td,
+table.langservers tbody th {
+  text-align: left !important;
 }
 
-body div.nboutput.container div[class*='highlight'] {
-  margin-bottom: 1em;
-}
-
-body div.nboutput.container div[class*='highlight'] div[class*='highlight'] {
+table.langservers tbody ul {
+  list-style: none;
   margin: 0;
   padding: 0;
-}
-
-body div.nboutput.container div[class*='highlight'] pre {
-  background-color: transparent !important;
-  padding: 1em;
-}
-
-.wy-nav-content {
-  /* Increase the width of the content from the default 800px;
-  not using 100% as it makes reading sentences unbearable on 4K screens */
-  max-width: 1100px;
-}
-
-.wy-nav-content p {
-  max-width: 950px;
-}
-
-.nbinput .prompt,
-.nboutput .prompt {
-  display: none;
 }

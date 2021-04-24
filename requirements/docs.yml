@@ -5,16 +5,14 @@ channels:
   - nodefaults
 
 dependencies:
-  - nbsphinx
   - pandas
   - pip
   - pytest
   - pytest-check-links
   - python-graphviz
-  - recommonmark
   - sphinx
-  - sphinx_rtd_theme
+  - myst-nb
   - sphinx-autobuild
   - sphinx-autodoc-typehints
   - sphinx-copybutton
-  - sphinx-markdown-tables
+  - sphinx-book-theme
