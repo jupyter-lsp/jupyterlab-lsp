@@ -7,8 +7,8 @@ Resource          ./Keywords.robot
 *** Test Cases ***
 Python
     [Documentation]    pyflakes is enabled by default, but flake8 is not
-    Settings Should Change Editor Diagnostics    Python    style.py    pyls
-    ...    {"pyls": {"plugins": {"flake8": {"enabled": true},"pyflakes": {"enabled": false}}}}
+    Settings Should Change Editor Diagnostics    Python    style.py    pylsp
+    ...    {"pylsp": {"plugins": {"flake8": {"enabled": true},"pyflakes": {"enabled": false}}}}
     ...    undefined name 'foo' (pyflakes)
     ...    undefined name 'foo' (flake8)
 

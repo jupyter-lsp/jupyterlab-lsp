@@ -3,7 +3,8 @@ from .utils import PythonModuleSpec
 
 
 class PythonLSPServer(PythonModuleSpec):
-    python_module = key = "python-lsp-server"
+    python_module = "pylsp"
+    key = "python-lsp-server"
     languages = ["python"]
     spec = dict(
         display_name="python-lsp-server",
