@@ -19,7 +19,6 @@ KNOWN_SERVERS = [
     "bash-language-server",
     "dockerfile-language-server-nodejs",
     "javascript-typescript-langserver",
-    "pyls",
     "python-lsp-server",
     "unified-language-server",
     "sql-language-server",
