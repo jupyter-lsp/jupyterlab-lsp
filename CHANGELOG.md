@@ -3,6 +3,7 @@
 ### `jupyter-lsp 1.2.0` (2021-04-26)
 
 - features:
+
   - add support for python-lsp-server, a community fork of pyls ([#584] and [#582], thanks @maresb)
 
 - bug fixes:
