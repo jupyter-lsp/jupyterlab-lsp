@@ -2,7 +2,7 @@ from .config import load_config_schema
 from .utils import PythonModuleSpec
 
 
-class PythonLanguageServer(PythonModuleSpec):
+class PalantirPythonLanguageServer(PythonModuleSpec):
     python_module = key = "pyls"
     languages = ["python"]
     spec = dict(

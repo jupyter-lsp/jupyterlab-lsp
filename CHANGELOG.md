@@ -5,6 +5,7 @@
 - features:
 
   - added translation support ([#557], thanks @JessicaBarh)
+  - add support for python-lsp-server, a community fork of pyls ([#582], thanks @maresb)
 
 - bug fixes:
 
@@ -16,6 +17,7 @@
 [#570]: https://github.com/krassowski/jupyterlab-lsp/pull/570
 [#576]: https://github.com/krassowski/jupyterlab-lsp/pull/576
 [#580]: https://github.com/krassowski/jupyterlab-lsp/pull/580
+[#582]: https://github.com/krassowski/jupyterlab-lsp/pull/582
 
 ### `@krassowski/jupyterlab-lsp 3.5.0` (2020-03-22)
 
