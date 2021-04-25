@@ -17,7 +17,7 @@ dependencies:
       - pandas
       - pytest-check-links
       - myst-nb
-      - python-language-server
+      - python-lsp-server
       - sphinx
       - sphinx-autodoc-typehints
       - sphinx-copybutton
