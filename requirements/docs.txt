@@ -1,12 +1,10 @@
 # development dependencies for jupyter_lsp for docs
 -r dev.txt
 graphviz
-nbsphinx
 pytest-check-links
-recommonmark
+myst-nb
 sphinx
 sphinx_autodoc_typehints
 sphinx-autobuild
 sphinx-copybutton
-sphinx-markdown-tables
-sphinx-rtd-theme
+sphinx-book-theme

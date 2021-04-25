@@ -1,4 +1,4 @@
-## CHANGELOG
+## Changelog
 
 ### `@krassowski/jupyterlab-lsp 3.5.1` (unreleased)
 
