@@ -41,7 +41,7 @@ class EditableFile:
         lines = [""]
         try:
             # TODO: what to do about bad encoding reads?
-            lines = self.path.read_text(encoding='utf-8').splitlines()
+            lines = self.path.read_text(encoding="utf-8").splitlines()
         except FileNotFoundError:
             pass
         return lines
@@ -49,7 +49,7 @@ class EditableFile:
     @run_on_executor
     def write_lines(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text("\n".join(self.lines), encoding='utf-8')
+        self.path.write_text("\n".join(self.lines), encoding="utf-8")
 
     @staticmethod
     def trim(lines: list, character: int, side: int):
