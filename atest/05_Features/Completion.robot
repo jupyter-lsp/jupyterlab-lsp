@@ -267,7 +267,7 @@ Completes Correctly With R Double And Triple Colon
     Completer Should Suggest    .print.via.format
     Select Completer Suggestion    .print.via.format
     Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    1    tools::.print.via.format
-    # tripple colon
+    # triple colon
     Place Cursor In File Editor At    4    11
     Trigger Completer
     Completer Should Suggest    .packageName
@@ -289,6 +289,8 @@ Shows Documentation With CompletionItem Resolve
     Wait Until Fully Initialized
     Trigger Completer
     Completer Should Suggest    print.data.frame
+    # if data.frame is not active, activate it (it should be in top 10 on any platform)
+    Activate Completer Suggestion    print.data.frame    max_steps_down=10
     Completer Should Include Documentation    Print a data frame.
     # should remain visible after typing:
     Press Keys    None    efa
@@ -341,6 +343,21 @@ File Editor Line Should Equal
     ${content} =    Get File Editor Content
     ${line} =    Get Line    ${content}    ${line}
     Should Be Equal    ${line}    ${value}
+
+Activate Completer Suggestion
+    [Arguments]    ${text}    ${max_steps_down}=100
+    ${suggestion} =    Set Variable    css:.jp-Completer-item[data-value="${text}"]
+    Wait Until Page Contains Element    ${suggestion}
+    ${active_suggestion} =    Set Variable    css:.jp-mod-active.jp-Completer-item[data-value="${text}"]
+    FOR    ${i}    IN RANGE    ${max_steps_down}
+        Capture Page Screenshot    ${i}-completions.png
+        ${matching_active_elements} =    Get Element Count    ${active_suggestion}
+        LOG    ${matching_active_elements}
+        Exit For Loop If    ${matching_active_elements} == 1
+        Press Keys    None    DOWN
+        Sleep    0.1s
+    END
+    Wait Until Page Contains Element    ${active_suggestion}
 
 Select Completer Suggestion
     [Arguments]    ${text}
