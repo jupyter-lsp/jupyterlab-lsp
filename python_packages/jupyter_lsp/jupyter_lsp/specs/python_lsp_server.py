@@ -3,10 +3,10 @@ from .utils import PythonModuleSpec
 
 
 class PythonLSPServer(PythonModuleSpec):
-    python_module = key = "python-lsp-server"
+    python_module = key = "pylsp"
     languages = ["python"]
     spec = dict(
-        display_name="python-lsp-server",
+        display_name="python-lsp-server (pylsp)",
         mime_types=["text/python", "text/x-ipython"],
         urls=dict(
             home="https://github.com/python-lsp/python-lsp-server",

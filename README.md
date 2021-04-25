@@ -119,19 +119,19 @@ Use of a python `virtualenv` or a conda env is also recommended.
    > or `jupyter-lsp-r` to install both the server extension and the language server.
 
 1. install LSP servers for languages of your choice; for example, for Python
-   ([pyls](https://github.com/palantir/python-language-server)) and
+   ([pylsp](https://github.com/python-lsp/python-lsp-server)) and
    R ([languageserver](https://github.com/REditorSupport/languageserver)) servers:
 
    ```bash
    # note: you may want to use our fork of python-language-server instead (see below)
-   pip install 'python-language-server[all]'
+   pip install 'python-lsp-server[all]'
    R -e 'install.packages("languageserver")'
    ```
 
    or from `conda-forge`
 
    ```bash
-   conda install -c conda-forge python-language-server r-languageserver
+   conda install -c conda-forge python-lsp-server r-languageserver
    ```
 
    Please see our full list of
@@ -187,6 +187,8 @@ Use of a python `virtualenv` or a conda env is also recommended.
 ### Configuring the servers
 
 Server configurations can be edited using the Advanced Settings editor in JupyterLab (_Settings > Advanced Settings Editor_). For settings specific to each server, please see the [table of language servers][language-servers]. Example settings might include:
+
+> Note: for the new (currently recommended) python-lsp-server replace `pyls` occurrences with `pyslp`
 
 ```json
 {
