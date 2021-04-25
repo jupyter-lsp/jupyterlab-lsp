@@ -16,3 +16,12 @@ table.langservers tbody ul {
   margin: 0;
   padding: 0;
 }
+
+.tag_wide-table {
+  padding: 0;
+  width: 110%;
+}
+
+.tag_wide-table .cell_output {
+  padding: 0;
+}
