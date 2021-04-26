@@ -57,10 +57,10 @@
     "watch:src": "tsc -w"
   },
   "dependencies": {
-    "@krassowski/code-jumpers": "~1.0.0",
+    "@krassowski/code-jumpers": "~1.1.0",
     "@krassowski/completion-theme": "~3.0.0",
-    "@krassowski/theme-material": "~2.0.0",
-    "@krassowski/theme-vscode": "~2.0.0",
+    "@krassowski/theme-material": "~2.1.0",
+    "@krassowski/theme-vscode": "~2.1.0",
     "lodash.mergewith": "^4.6.1",
     "lsp-ws-connection": "~0.5.1"
   },

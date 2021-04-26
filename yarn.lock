@@ -1749,43 +1749,33 @@
 "@krassowski/code-jumpers@file:packages/code-jumpers":
   version "1.1.0"
 
-"@krassowski/code-jumpers@~1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@krassowski/code-jumpers/-/code-jumpers-1.0.0.tgz#89068cd4e38bc0d5cfd93d102ec66fc9ea1480b4"
-  integrity sha512-5gATvEV56hFnJEsJRB7D074rHgy9B6MK7vZ3knXzwpkCgpDrGco6qXQcO/DezPaa//OHD2wITefBVcWuRyRmxw==
-
 "@krassowski/completion-theme@file:packages/completion-theme":
   version "3.0.0"
-
-"@krassowski/completion-theme@~2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@krassowski/completion-theme/-/completion-theme-2.0.0.tgz#2a924368c261b80c1ca96ce0934250c3dea0d429"
-  integrity sha512-5LEyUHqjMCHE5PR0o9vuKuPygvFuhtB+W1BnjjsaGWIeVyqYFhwUI0e/kuRy0qTaFe1vnJVN4y9zHbFUVHbqYA==
 
 "@krassowski/jupyterlab-lsp-example-extractor@file:packages/_example-extractor":
   version "0.0.0"
   dependencies:
-    "@krassowski/jupyterlab-lsp" "^3.5"
+    "@krassowski/jupyterlab-lsp" "^3.6"
 
 "@krassowski/jupyterlab-lsp@file:packages/jupyterlab-lsp":
   version "3.6.0"
   dependencies:
-    "@krassowski/code-jumpers" "~1.0.0"
+    "@krassowski/code-jumpers" "~1.1.0"
     "@krassowski/completion-theme" "~3.0.0"
-    "@krassowski/theme-material" "~2.0.0"
-    "@krassowski/theme-vscode" "~2.0.0"
+    "@krassowski/theme-material" "~2.1.0"
+    "@krassowski/theme-vscode" "~2.1.0"
     lodash.mergewith "^4.6.1"
     lsp-ws-connection "~0.5.1"
 
 "@krassowski/theme-material@file:packages/theme-material":
-  version "2.0.0"
+  version "2.1.0"
   dependencies:
-    "@krassowski/completion-theme" "~2.0.0"
+    "@krassowski/completion-theme" "~3.0.0"
 
 "@krassowski/theme-vscode@file:packages/theme-vscode":
-  version "2.0.0"
+  version "2.1.0"
   dependencies:
-    "@krassowski/completion-theme" "~2.0.0"
+    "@krassowski/completion-theme" "~3.0.0"
 
 "@lerna/add@3.21.0":
   version "3.21.0"

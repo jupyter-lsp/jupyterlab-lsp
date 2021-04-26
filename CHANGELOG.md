@@ -13,6 +13,12 @@
 [#582]: https://github.com/krassowski/jupyterlab-lsp/pull/582
 [#584]: https://github.com/krassowski/jupyterlab-lsp/pull/584
 
+### `@krassowski/code-jumpers 1.1.0` (2021-04-26)
+
+- features:
+
+  - added translation support ([#557], thanks @JessicaBarh)
+
 ### `@krassowski/jupyterlab-lsp 3.6.0` (2021-04-26)
 
 - features:
