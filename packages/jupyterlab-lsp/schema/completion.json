@@ -42,7 +42,7 @@
       "description": "The time to wait for the kernel completions suggestions in milliseconds. Set to 0 to disable kernel completions, or to -1 to wait indefinitely (not recommended)."
     },
     "disableCompletionsFrom": {
-      "description": "The sources from which to exclude completion from. Possible values include 'kernel', 'languageServer'.",
+      "description": "The sources from which to exclude completion from. Possible values include 'Kernel', 'LSP'.",
       "type": "array",
       "default": [],
       "uniqueItems": true

@@ -66,8 +66,8 @@ from the Language Server (in notebook).
 If the kernel is too slow to respond promptly only the Language Server suggestions will be shown (default threshold: 0.6s).
 You can configure the completer to not attempt to fetch the kernel completions if the kernel is busy (skipping the 0.6s timeout).
 
-You can deactivate the kernel suggestions by adding `"kenel"` to the `disableCompletionsFrom` in the `completion` section
-of _Advanced Settings_. Alternatively if you _only_ want kernel completions you can add `"languageServer"` to the same
+You can deactivate the kernel suggestions by adding `"Kernel"` to the `disableCompletionsFrom` in the `completion` section
+of _Advanced Settings_. Alternatively if you _only_ want kernel completions you can add `"LSP"` to the same
 setting; Or add both if you like to code in hardcore mode and get no completions, or if another provider has been added.
 
 ### Rename
