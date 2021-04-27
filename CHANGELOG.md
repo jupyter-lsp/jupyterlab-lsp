@@ -1,5 +1,9 @@
 ## Changelog
 
+### (unreleased)
+
+- Add ability to deactivate Kernel completions or LSP completion through the settings.
+
 ### `jupyter-lsp 1.2.0` (2021-04-26)
 
 - features:
