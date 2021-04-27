@@ -41,17 +41,11 @@
       "type": "number",
       "description": "The time to wait for the kernel completions suggestions in milliseconds. Set to 0 to disable kernel completions, or to -1 to wait indefinitely (not recommended)."
     },
-    "useKernelCompletions": {
-      "title": "Request Kernel Completion",
-      "type": "boolean",
-      "default": true,
-      "description": "Whether to send completions request to the kernel."
-    },
-    "useLspCompletions": {
-      "title": "Request LSP Completion",
-      "type": "boolean",
-      "default": true,
-      "description": "Whether to send completions request to the lsp server."
+    "disableCompletionsFrom": {
+      "description": "The sources from which to exclude completion from. Possible values include 'kernel', 'languageServer'.",
+      "type": "array",
+      "default": [],
+      "uniqueItems": true
     },
     "waitForBusyKernel": {
       "title": "Wait for kernel if busy",
