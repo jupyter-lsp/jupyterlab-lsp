@@ -16,6 +16,12 @@
           "description": "Configuration to be sent to language server over LSP when initialized: see the specific language server's documentation for more",
           "type": "object",
           "default": {}
+        },
+        "priority": {
+          "title": "Priority of the server",
+          "description": "When multiple servers match specific document/language, the server with higher priority will be used",
+          "type": "number",
+          "default": 50
         }
       }
     }

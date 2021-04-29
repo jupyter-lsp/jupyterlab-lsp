@@ -34,7 +34,7 @@
       "type": "string"
     },
     "language-list": {
-      "description": "languages supported by this Language Server",
+      "description": "languages supported by this Language Server; lowercase names",
       "items": {
         "type": "string"
       },
