@@ -8,8 +8,8 @@ from .javascript_typescript_langserver import JavascriptTypescriptLanguageServer
 from .jedi_language_server import JediLanguageServer
 from .julia_language_server import JuliaLanguageServer
 from .pyls import PalantirPythonLanguageServer
-from .python_lsp_server import PythonLSPServer
 from .pyright import PyrightLanguageServer
+from .python_lsp_server import PythonLSPServer
 from .r_languageserver import RLanguageServer
 from .sql_language_server import SQLLanguageServer
 from .texlab import Texlab
