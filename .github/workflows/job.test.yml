@@ -44,7 +44,7 @@ jobs:
         with:
           tokenPrefix: '{'
           tokenSuffix: '}'
-          files: '["requirements/github-actions.yml"]'
+          files: '["requirements/no-lab.yml"]'
         env:
           lab: '${{ matrix.lab }}'
           nodejs: '${{ matrix.nodejs }}'
@@ -54,17 +54,24 @@ jobs:
         with:
           path: ~/conda_pkgs_dir
           key: |
-            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-lint-${{ hashFiles('requirements/github-actions.yml', 'requirements/lint.yml') }}
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-lint-${{ hashFiles('requirements/no-lab.yml', 'requirements/lint.yml') }}
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-lint-
-
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
-          environment-file: requirements/github-actions.yml
+          environment-file: requirements/no-lab.yml
           miniforge-variant: Mambaforge
           use-mamba: true
 
+      - name: Checkout JupyterLab RTC
+        uses: actions/checkout@master
+        with:
+          repository: jupyter-rtc/jupyterlab
+          path: ./jupyterlab
+      - name: Install JupyterLab RTC
+        run: pip install ./jupyterlab/
+        
       - name: Install linting dependencies
         run: mamba env update -n test --file requirements/lint.yml
 
@@ -77,8 +84,7 @@ jobs:
         with:
           path: '**/node_modules'
           key: |
-            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-lint-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
-
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-lint-${{ hashFiles('yarn.lock', 'requirements/no-lab.yml') }}
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -90,7 +96,6 @@ jobs:
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
-
       - name: Install npm dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: ${{ env.JLPM_CMD }}
@@ -100,12 +105,6 @@ jobs:
 
       - name: Run frontend unit tests
         run: jlpm test
-
-      - name: Lint backend
-        run: python scripts/lint.py
-
-      - name: Lint frontend
-        run: jlpm lint:check
 
       - name: Check distributions
         run: python scripts/distcheck.py
@@ -125,7 +124,7 @@ jobs:
         with:
           tokenPrefix: '{'
           tokenSuffix: '}'
-          files: '["requirements/github-actions.yml"]'
+          files: '["requirements/no-lab.yml"]'
         env:
           lab: '${{ matrix.lab }}'
           nodejs: '${{ matrix.nodejs }}'
@@ -135,10 +134,9 @@ jobs:
         with:
           path: ~/conda_pkgs_dir
           key: |
-            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-build-${{ hashFiles('requirements/github-actions.yml') }}
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-build-${{ hashFiles('requirements/no-lab.yml') }}
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-build-
-
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
@@ -146,7 +144,15 @@ jobs:
 
       - name: Install minimal build deps
         shell: bash -l {0}
-        run: mamba install -n test -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
+        run: mamba install -n test -c conda-forge setuptools wheel 'nodejs${{ matrix.nodejs }}'
+      
+      - name: Checkout JupyterLab RTC
+        uses: actions/checkout@master
+        with:
+          repository: jupyter-rtc/jupyterlab
+          path: ./jupyterlab
+      - name: Install JupyterLab RTC
+        run: pip install ./jupyterlab/
 
       - name: Cache node_modules
         id: cache-node-modules
@@ -154,8 +160,7 @@ jobs:
         with:
           path: '**/node_modules'
           key: |
-            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
-
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/no-lab.yml') }}
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -167,7 +172,6 @@ jobs:
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
-
       - name: install npm dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: ${{ env.JLPM_CMD }}
@@ -176,7 +180,6 @@ jobs:
         run: |
           jlpm build
           jlpm bundle
-
       - name: Build python distributions
         run: |
           set -eux
@@ -185,7 +188,6 @@ jobs:
           python setup.py sdist bdist_wheel
           cd ../jupyterlab_lsp
           python setup.py sdist bdist_wheel
-
       - name: Collect distributions
         run: |
           set -eux
@@ -193,7 +195,6 @@ jobs:
           cp python_packages/*/dist/* packages/*/*.tgz dist/
           cd dist
           sha256sum * | tee SHA256SUMS
-
       - name: Publish builds
         uses: actions/upload-artifact@v2
         with:
@@ -209,13 +210,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, macos, windows]
-        python: [3.6, 3.7, 3.8]
+        python: [3.7, 3.8]
         lab: ['>=3.0.0,<4.0.0a0']
         include:
-          # if using 3.6, use an old node
-          - python: 3.6
-            # Node 10 end-of-life: April 2021
-            nodejs: '>=10,<11.0.0.a0'
           # if using 3.7, use newer node, etc...
           - python: 3.7
             # Node 12 end-of-life: April 2022
@@ -239,7 +236,7 @@ jobs:
         with:
           tokenPrefix: '{'
           tokenSuffix: '}'
-          files: '["requirements/github-actions.yml"]'
+          files: '["requirements/no-lab.yml"]'
         env:
           lab: '${{ matrix.lab }}'
           nodejs: '${{ matrix.nodejs }}'
@@ -249,16 +246,23 @@ jobs:
         with:
           path: ~/conda_pkgs_dir
           key: |
-            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-atest-${{ hashFiles('requirements/github-actions.yml') }}
+            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-atest-${{ hashFiles('requirements/no-lab.yml') }}
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-atest-
-
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
-          environment-file: requirements/github-actions.yml
+          environment-file: requirements/no-lab.yml
           miniforge-variant: Mambaforge
           use-mamba: true
+
+      - name: Checkout JupyterLab RTC
+        uses: actions/checkout@master
+        with:
+          repository: jupyter-rtc/jupyterlab
+          path: ./jupyterlab
+      - name: Install JupyterLab RTC
+        run: pip install ./jupyterlab/
 
       - name: List all packages
         run: conda list
@@ -270,7 +274,6 @@ jobs:
           path: '**/node_modules'
           key: |
             ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-atest-${{ hashFiles('yarn.lock') }}
-
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -282,13 +285,11 @@ jobs:
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
-
       - uses: actions/cache@v2
         with:
           path: ~/.julia/artifacts
           key: |
             ${{ env.CACHE_EPOCH }}-julia-test-${{ runner.os }}-${{ env.JULIA_LANGSERVER }}
-
       - uses: actions/download-artifact@v2
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
@@ -304,12 +305,10 @@ jobs:
         run: |
           jupyter server extension list
           jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
-
       - name: List notebook server extensions
         run: |
           jupyter serverextension list
           jupyter serverextension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
-
       - name: List frontend extensions
         run: jupyter labextension list
 
@@ -367,6 +366,13 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: 'x64'
+      - name: Checkout JupyterLab RTC
+        uses: actions/checkout@master
+        with:
+          repository: jupyter-rtc/jupyterlab
+          path: ./jupyterlab
+      - name: Install JupyterLab RTC
+        run: pip install ./jupyterlab/
       - uses: actions/download-artifact@v2
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
@@ -387,7 +393,6 @@ jobs:
           jupyter server extension list
           jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
           jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
-
   source:
     name: smoke source install ${{ matrix.os }}
     runs-on: ${{ matrix.os }}-latest
@@ -415,9 +420,13 @@ jobs:
           path: ./dist
       - name: Install the prerequisites
         run: python -m pip install pip wheel
-      - name: Install JupyterLab
-        shell: bash -l {0}
-        run: python -m pip install 'jupyterlab${{ matrix.lab }}'
+      - name: Checkout JupyterLab RTC
+        uses: actions/checkout@master
+        with:
+          repository: jupyter-rtc/jupyterlab
+          path: ./jupyterlab
+      - name: Install JupyterLab RTC
+        run: pip install ./jupyterlab/
       - name: Install the server package
         run: cd dist && python -m pip install -vv jupyter_lsp*.whl
       - name: install the source extension

@@ -1,0 +1,37 @@
+name: jupyterlab-lsp
+
+channels:
+  - conda-forge
+  - nodefaults
+
+dependencies:
+  # build dependencies
+  - pip
+  - nodejs {nodejs}
+  # for python language server (and development)
+  - flake8 >=3.5
+  # for R language server and kernel
+  # TODO: try r 4.0 soon
+  - r <4
+  - r-irkernel
+  - r-languageserver
+  - r-stringi >=1.4.6
+  - rpy2
+  # tex
+  - tectonic
+  - texlab
+  - chktex
+  # test tools
+  - pytest-asyncio
+  - pytest-cov
+  - pytest-flake8
+  - pytest-runner
+  - ruamel_yaml
+  - pytest-github-actions-annotate-failures
+  # browser testing
+  - bs4
+  - firefox
+  - geckodriver
+  - robotframework >=4
+  - robotframework-seleniumlibrary
+  - python-lsp-server
