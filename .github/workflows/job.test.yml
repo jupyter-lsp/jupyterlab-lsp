@@ -70,7 +70,7 @@ jobs:
           repository: jupyter-rtc/jupyterlab
           path: ./jupyterlab
       - name: Install JupyterLab RTC
-        run: pip install ./jupyterlab/
+        run: python -m pip install ./jupyterlab/
         
       - name: Install linting dependencies
         run: mamba env update -n test --file requirements/lint.yml
@@ -152,7 +152,7 @@ jobs:
           repository: jupyter-rtc/jupyterlab
           path: ./jupyterlab
       - name: Install JupyterLab RTC
-        run: pip install ./jupyterlab/
+        run: python -m pip install ./jupyterlab/
 
       - name: Cache node_modules
         id: cache-node-modules
@@ -262,7 +262,7 @@ jobs:
           repository: jupyter-rtc/jupyterlab
           path: ./jupyterlab
       - name: Install JupyterLab RTC
-        run: pip install ./jupyterlab/
+        run: python -m pip install ./jupyterlab/
 
       - name: List all packages
         run: conda list
@@ -372,7 +372,7 @@ jobs:
           repository: jupyter-rtc/jupyterlab
           path: ./jupyterlab
       - name: Install JupyterLab RTC
-        run: pip install ./jupyterlab/
+        run: python -m pip install ./jupyterlab/
       - uses: actions/download-artifact@v2
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
@@ -426,7 +426,7 @@ jobs:
           repository: jupyter-rtc/jupyterlab
           path: ./jupyterlab
       - name: Install JupyterLab RTC
-        run: pip install ./jupyterlab/
+        run: python -m pip install ./jupyterlab/
       - name: Install the server package
         run: cd dist && python -m pip install -vv jupyter_lsp*.whl
       - name: install the source extension

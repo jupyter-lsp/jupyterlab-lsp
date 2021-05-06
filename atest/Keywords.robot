@@ -16,7 +16,7 @@ Setup Server and Browser
     Create Notebok Server Config    ${server_extension_enabled}
     Initialize User Settings
     ${disable_global_config} =    Set Variable If    ${server_extension_enabled} != ${True}    '1'    ${EMPTY}
-    ${server} =    Start Process    jupyter-lab
+    ${server} =    Start Process    jupyter-lab --dev-mode
     ...    cwd=${NOTEBOOK DIR}
     ...    stdout=${LAB LOG}
     ...    stderr=STDOUT
