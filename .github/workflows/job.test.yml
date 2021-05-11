@@ -64,13 +64,8 @@ jobs:
           miniforge-variant: Mambaforge
           use-mamba: true
 
-      - name: Checkout JupyterLab RTC
-        uses: actions/checkout@master
-        with:
-          repository: jupyter-rtc/jupyterlab
-          path: ./jupyterlab
       - name: Install JupyterLab RTC
-        run: python -m pip install ./jupyterlab/
+        run: python -m pip install jupyterlab --pre
         
       - name: Install linting dependencies
         run: mamba env update -n test --file requirements/lint.yml
@@ -146,13 +141,8 @@ jobs:
         shell: bash -l {0}
         run: mamba install -n test -c conda-forge setuptools wheel 'nodejs${{ matrix.nodejs }}'
       
-      - name: Checkout JupyterLab RTC
-        uses: actions/checkout@master
-        with:
-          repository: jupyter-rtc/jupyterlab
-          path: ./jupyterlab
       - name: Install JupyterLab RTC
-        run: python -m pip install ./jupyterlab/
+        run: python -m pip install jupyterlab --pre
 
       - name: Cache node_modules
         id: cache-node-modules
@@ -256,13 +246,8 @@ jobs:
           miniforge-variant: Mambaforge
           use-mamba: true
 
-      - name: Checkout JupyterLab RTC
-        uses: actions/checkout@master
-        with:
-          repository: jupyter-rtc/jupyterlab
-          path: ./jupyterlab
       - name: Install JupyterLab RTC
-        run: python -m pip install ./jupyterlab/
+        run: python -m pip install jupyterlab --pre
 
       - name: List all packages
         run: conda list
@@ -366,13 +351,8 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: 'x64'
-      - name: Checkout JupyterLab RTC
-        uses: actions/checkout@master
-        with:
-          repository: jupyter-rtc/jupyterlab
-          path: ./jupyterlab
       - name: Install JupyterLab RTC
-        run: python -m pip install ./jupyterlab/
+        run: python -m pip install jupyterlab --pre
       - uses: actions/download-artifact@v2
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
@@ -420,13 +400,8 @@ jobs:
           path: ./dist
       - name: Install the prerequisites
         run: python -m pip install pip wheel
-      - name: Checkout JupyterLab RTC
-        uses: actions/checkout@master
-        with:
-          repository: jupyter-rtc/jupyterlab
-          path: ./jupyterlab
       - name: Install JupyterLab RTC
-        run: python -m pip install ./jupyterlab/
+        run: python -m pip install jupyterlab --pre
       - name: Install the server package
         run: cd dist && python -m pip install -vv jupyter_lsp*.whl
       - name: install the source extension
