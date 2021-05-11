@@ -19,7 +19,7 @@
         },
         "priority": {
           "title": "Priority of the server",
-          "description": "When multiple servers match specific document/language, the server with higher priority will be used",
+          "description": "When multiple servers match specific document/language, the server with the highest priority will be used",
           "type": "number",
           "default": 50
         }
