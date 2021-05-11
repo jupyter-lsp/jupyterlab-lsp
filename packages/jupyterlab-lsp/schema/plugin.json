@@ -21,7 +21,8 @@
           "title": "Priority of the server",
           "description": "When multiple servers match specific document/language, the server with the highest priority will be used",
           "type": "number",
-          "default": 50
+          "default": 50,
+          "minimum": 1
         }
       }
     }
