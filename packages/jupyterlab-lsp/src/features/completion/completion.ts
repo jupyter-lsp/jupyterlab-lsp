@@ -1,28 +1,32 @@
-import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { CompletionHandler, ICompletionManager } from '@jupyterlab/completer';
+import { CompletionHandler } from '@jupyterlab/completer';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { ILSPCompletionThemeManager } from '@krassowski/completion-theme/lib/types';
+import { LabIcon } from '@jupyterlab/ui-components';
+import {
+  CompletionTriggerKind,
+  ICompletionProviderManager
+} from '@krassowski/completion-manager';
+import {
+  ILSPCompletionThemeManager,
+  KernelKind
+} from '@krassowski/completion-theme/lib/types';
 import type * as CodeMirror from 'codemirror';
 
 import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
 import { IEditorChangedData, WidgetAdapter } from '../../adapters/adapter';
-import { NotebookAdapter } from '../../adapters/notebook/notebook';
 import { IDocumentConnectionData } from '../../connection_manager';
 import { CodeMirrorIntegration } from '../../editor_integration/codemirror';
 import { FeatureSettings, IFeatureLabIntegration } from '../../feature';
-import {
-  AdditionalCompletionTriggerKinds,
-  CompletionTriggerKind,
-  ExtendedCompletionTriggerKind
-} from '../../lsp';
 import { ILSPAdapterManager, ILSPLogConsole } from '../../tokens';
 
-import { LSPConnector } from './completion_handler';
 import { LazyCompletionItem } from './item';
 import { LSPCompleterModel } from './model';
+import {
+  LSPCompletionProvider,
+  LSPKernelCompletionProvider
+} from './providers';
 import { ICompletionData, LSPCompletionRenderer } from './renderer';
 
 const DOC_PANEL_SELECTOR = '.jp-Completer-docpanel';
@@ -74,7 +78,7 @@ export class CompletionCM extends CodeMirrorIntegration {
       this.settings.composite.continuousHinting
     ) {
       (this.feature.labIntegration as CompletionLabIntegration)
-        .invoke_completer(AdditionalCompletionTriggerKinds.AutoInvoked)
+        .invoke_completer(CompletionTriggerKind.AutoInvoked)
         .catch(this.console.warn);
     }
   }
@@ -82,16 +86,30 @@ export class CompletionCM extends CodeMirrorIntegration {
 
 export class CompletionLabIntegration implements IFeatureLabIntegration {
   // TODO: maybe instead of creating it each time, keep a hash map instead?
-  protected current_completion_connector: LSPConnector;
+  protected current_completion_connector: LSPCompletionProvider;
   protected current_completion_handler: CompletionHandler;
   protected current_adapter: WidgetAdapter<IDocumentWidget> = null;
   protected renderer: LSPCompletionRenderer;
+  protected model: LSPCompleterModel;
+
+  protected iconFor(iconType: string) {
+    if (!this.settings.composite.theme) {
+      return undefined;
+    }
+    if (typeof iconType === 'undefined') {
+      iconType = KernelKind;
+    }
+    return (
+      (this.completionThemeManager.get_icon(iconType) as LabIcon) || undefined
+    );
+  }
+  protected kernelCompletionProvider: LSPKernelCompletionProvider;
+  protected lspCompletionProvider: LSPCompletionProvider;
 
   constructor(
-    private app: JupyterFrontEnd,
-    private completionManager: ICompletionManager,
+    private completionManager: ICompletionProviderManager,
     public settings: FeatureSettings<LSPCompletionSettings>,
-    private adapterManager: ILSPAdapterManager,
+    adapterManager: ILSPAdapterManager,
     private completionThemeManager: ILSPCompletionThemeManager,
     private console: ILSPLogConsole,
     private renderMimeRegistry: IRenderMimeRegistry
@@ -107,16 +125,51 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     });
     this.renderer.activeChanged.connect(this.active_completion_changed, this);
     this.renderer.itemShown.connect(this.resolve_and_update, this);
+
+    this.lspCompletionProvider = new LSPCompletionProvider({
+      console: console.scope('lsp-provider'),
+      renderer: this.renderer,
+      settings: settings
+    });
+    this.kernelCompletionProvider = new LSPKernelCompletionProvider({
+      waitForBusyKernel: this.settings.composite.waitForBusyKernel
+    });
+
+    completionManager.setIconSource({ iconFor: this.iconFor });
+    completionManager.registerProvider(this.lspCompletionProvider);
+    completionManager.overrideProvider(this.kernelCompletionProvider);
+
     adapterManager.adapterChanged.connect(this.swap_adapter, this);
     settings.changed.connect(() => {
-      completionThemeManager.set_theme(this.settings.composite.theme);
-      completionThemeManager.set_icons_overrides(
-        this.settings.composite.typesMap
-      );
+      const settings = this.settings.composite;
+
+      completionThemeManager.set_theme(settings.theme);
+      completionThemeManager.set_icons_overrides(settings.typesMap);
       if (this.current_completion_handler) {
-        this.model.settings.caseSensitive = this.settings.composite.caseSensitive;
-        this.model.settings.includePerfectMatches = this.settings.composite.includePerfectMatches;
+        this.model.settings.caseSensitive = settings.caseSensitive;
+        this.model.settings.includePerfectMatches =
+          settings.includePerfectMatches;
       }
+      this.kernelCompletionProvider.settings = {
+        waitForBusyKernel: settings.waitForBusyKernel
+      };
+      this.kernelCompletionProvider.setFallbackIcon(
+        completionThemeManager.get_icon('Kernel') as LabIcon
+      );
+      completionManager.configure({
+        providers: {
+          kernel: {
+            enabled: settings.disableCompletionsFrom.indexOf('Kernel') == -1,
+            timeout: settings.kernelResponseTimeout
+          },
+          lsp: {
+            enabled: settings.disableCompletionsFrom.indexOf('LSP') == -1,
+            timeout: -1
+          }
+        },
+        suppressContinuousHintingIn: settings.suppressContinuousHintingIn,
+        suppressTriggerCharacterIn: settings.suppressTriggerCharacterIn
+      });
     });
   }
 
@@ -245,46 +298,26 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     if (editor == null) {
       return;
     }
-    this.set_completion_connector(adapter, editor);
-    this.current_completion_handler = this.completionManager.register(
-      {
-        connector: this.current_completion_connector,
-        editor: editor,
-        parent: adapter.widget
-      },
-      this.renderer
-    ) as CompletionHandler;
-    let completer = this.completer;
-    completer.addClass('lsp-completer');
-    completer.model = new LSPCompleterModel({
+    this.model = new LSPCompleterModel({
       caseSensitive: this.settings.composite.caseSensitive,
       includePerfectMatches: this.settings.composite.includePerfectMatches
     });
+
+    this.completionManager.connect(
+      {
+        widget: adapter.widget,
+        editor: editor,
+        sessionContext: (this.current_adapter.widget as NotebookPanel)
+          ?.sessionContext
+      },
+      this.model
+    );
+
+    this.set_completion_connector(adapter, editor);
   }
 
-  protected get completer() {
-    // TODO upstream: make completer public?
-    return this.current_completion_handler.completer;
-  }
-
-  protected get model(): LSPCompleterModel {
-    return this.completer.model as LSPCompleterModel;
-  }
-
-  invoke_completer(kind: ExtendedCompletionTriggerKind) {
-    // TODO: ideally this would not re-trigger if list of items not isIncomplete
-    let command: string;
-    this.current_completion_connector.trigger_kind = kind;
-
-    if (this.adapterManager.currentAdapter instanceof NotebookAdapter) {
-      command = 'completer:invoke-notebook';
-    } else {
-      command = 'completer:invoke-file';
-    }
-    return this.app.commands.execute(command).catch(() => {
-      this.current_completion_connector.trigger_kind =
-        CompletionTriggerKind.Invoked;
-    });
+  invoke_completer(kind: CompletionTriggerKind) {
+    return this.completionManager.invoke(kind);
   }
 
   set_connector(
@@ -295,7 +328,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
       // workaround for current_completion_handler not being there yet
       this.connect_completion(adapter);
     }
-    this.set_completion_connector(adapter, editor_changed.editor);
+    // this.set_completion_connector(adapter, editor_changed.editor);
     this.current_completion_handler.editor = editor_changed.editor;
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -362,20 +395,9 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     adapter: WidgetAdapter<IDocumentWidget>,
     editor: CodeEditor.IEditor
   ) {
-    if (this.current_completion_connector) {
-      delete this.current_completion_connector;
-    }
-    this.current_completion_connector = new LSPConnector({
-      editor: editor,
-      themeManager: this.completionThemeManager,
-      connections: this.current_adapter.connection_manager.connections,
-      virtual_editor: this.current_adapter.virtual_editor,
-      settings: this.settings,
-      labIntegration: this,
-      // it might or might not be a notebook panel (if it is not, the sessionContext and session will just be undefined)
-      session: (this.current_adapter.widget as NotebookPanel)?.sessionContext
-        ?.session,
-      console: this.console
-    });
+    this.kernelCompletionProvider.virtualEditor = adapter.virtual_editor;
+
+    this.lspCompletionProvider.virtualEditor = adapter.virtual_editor;
+    this.lspCompletionProvider.connections = this.current_adapter.connection_manager.connections;
   }
 }

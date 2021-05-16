@@ -39,20 +39,6 @@ export enum DocumentHighlightKind {
   Write = 3
 }
 
-export enum CompletionTriggerKind {
-  Invoked = 1,
-  TriggerCharacter = 2,
-  TriggerForIncompleteCompletions = 3
-}
-
-export enum AdditionalCompletionTriggerKinds {
-  AutoInvoked = 9999
-}
-
-export type ExtendedCompletionTriggerKind =
-  | CompletionTriggerKind
-  | AdditionalCompletionTriggerKinds;
-
 export type CompletionItemKindStrings = keyof typeof CompletionItemKind;
 
 /**

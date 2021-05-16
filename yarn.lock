@@ -1749,6 +1749,12 @@
 "@krassowski/code-jumpers@file:packages/code-jumpers":
   version "1.1.0"
 
+"@krassowski/completion-manager@file:packages/completion-manager":
+  version "0.0.1"
+  dependencies:
+    "@jupyterlab/application" "^3.0.0"
+    "@jupyterlab/completer" "^3.0.0"
+
 "@krassowski/completion-theme@file:packages/completion-theme":
   version "3.0.0"
 
@@ -1761,6 +1767,7 @@
   version "3.6.0"
   dependencies:
     "@krassowski/code-jumpers" "~1.1.0"
+    "@krassowski/completion-manager" "~0.0.1"
     "@krassowski/completion-theme" "~3.0.0"
     "@krassowski/theme-material" "~2.1.0"
     "@krassowski/theme-vscode" "~2.1.0"

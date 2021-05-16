@@ -35,7 +35,7 @@ enum CompletionItemKind {
 
 export type CompletionItemKindStrings = keyof typeof CompletionItemKind;
 
-export const PLUGIN_ID = '@krassowski/completion-manager';
+export const PLUGIN_ID = '@krassowski/completion-theme';
 
 export type SvgString = string;
 
