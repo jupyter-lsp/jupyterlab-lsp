@@ -1,38 +1,13 @@
-import { CompletionHandler } from '@jupyterlab/completer';
 import { LabIcon } from '@jupyterlab/ui-components';
+import {
+  ICompletionsSource,
+  IExtendedCompletionItem
+} from '@krassowski/completion-manager';
 import * as lsProtocol from 'vscode-languageserver-types';
 
 import { until_ready } from '../../utils';
 
-import { LSPConnector } from './completion_handler';
-
-/**
- * To be upstreamed
- */
-export interface ICompletionsSource {
-  /**
-   * The name displayed in the GUI
-   */
-  name: string;
-  /**
-   * The higher the number the higher the priority
-   */
-  priority: number;
-  /**
-   * The icon to be displayed if no type icon is present
-   */
-  fallbackIcon?: LabIcon;
-}
-
-/**
- * To be upstreamed
- */
-export interface IExtendedCompletionItem
-  extends CompletionHandler.ICompletionItem {
-  insertText: string;
-  sortText: string;
-  source?: ICompletionsSource;
-}
+import { LSPCompletionProvider } from './providers';
 
 export class LazyCompletionItem implements IExtendedCompletionItem {
   private _detail: string;
@@ -71,7 +46,7 @@ export class LazyCompletionItem implements IExtendedCompletionItem {
      */
     public icon: LabIcon,
     private match: lsProtocol.CompletionItem,
-    private connector: LSPConnector,
+    private connector: LSPCompletionProvider,
     private uri: string
   ) {
     this.label = match.label;

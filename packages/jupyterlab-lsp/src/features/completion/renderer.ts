@@ -3,6 +3,7 @@
 
 import { Completer } from '@jupyterlab/completer';
 import { IRenderMime } from '@jupyterlab/rendermime';
+import { ICompleterRenderer } from '@krassowski/completion-manager';
 import { Signal } from '@lumino/signaling';
 
 import { ILSPLogConsole } from '../../tokens';
@@ -17,7 +18,7 @@ export interface ICompletionData {
 
 export class LSPCompletionRenderer
   extends Completer.Renderer
-  implements Completer.IRenderer {
+  implements ICompleterRenderer<LazyCompletionItem> {
   // signals
   public activeChanged: Signal<LSPCompletionRenderer, ICompletionData>;
   public itemShown: Signal<LSPCompletionRenderer, ICompletionData>;
@@ -28,7 +29,6 @@ export class LSPCompletionRenderer
   private elementToItem: WeakMap<HTMLLIElement, LazyCompletionItem>;
   private wasActivated: WeakMap<HTMLLIElement, boolean>;
 
-  protected ITEM_PLACEHOLDER_CLASS = 'lsp-detail-placeholder';
   protected EXTRA_INFO_CLASS = 'jp-Completer-typeExtended';
 
   constructor(protected options: LSPCompletionRenderer.IOptions) {
@@ -120,7 +120,6 @@ export class LSPCompletionRenderer
   ): HTMLLIElement {
     const li = super.createCompletionItemNode(item, orderedTypes);
 
-    // make sure that an instance reference, and not an object copy is being used;
     const lsp_item = item.self;
 
     // only monitor nodes that have item.self as others are not our completion items

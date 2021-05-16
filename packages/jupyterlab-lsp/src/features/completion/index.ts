@@ -2,10 +2,10 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { ICompletionManager } from '@jupyterlab/completer';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { LabIcon } from '@jupyterlab/ui-components';
+import { ICompletionProviderManager } from '@krassowski/completion-manager';
 import { ILSPCompletionThemeManager } from '@krassowski/completion-theme/lib/types';
 
 import completionSvg from '../../../style/icons/completion.svg';
@@ -31,7 +31,7 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
   requires: [
     ILSPFeatureManager,
     ISettingRegistry,
-    ICompletionManager,
+    ICompletionProviderManager,
     ILSPAdapterManager,
     ILSPCompletionThemeManager,
     ILSPLogConsole,
@@ -42,7 +42,7 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
-    completionManager: ICompletionManager,
+    completionManager: ICompletionProviderManager,
     adapterManager: ILSPAdapterManager,
     iconsThemeManager: ILSPCompletionThemeManager,
     logConsole: ILSPLogConsole,
@@ -50,7 +50,6 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
   ) => {
     const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
     const labIntegration = new CompletionLabIntegration(
-      app,
       completionManager,
       settings,
       adapterManager,

@@ -1986,6 +1986,12 @@
 "@krassowski/code-jumpers@file:packages/code-jumpers":
   version "1.1.0"
 
+"@krassowski/completion-manager@file:packages/completion-manager":
+  version "0.0.1"
+  dependencies:
+    "@jupyterlab/application" "^3.0.0"
+    "@jupyterlab/completer" "^3.0.0"
+
 "@krassowski/completion-theme@file:packages/completion-theme":
   version "3.1.0"
 
@@ -2006,6 +2012,7 @@
     "@krassowski/completion-theme" "~3.1.0"
     "@krassowski/theme-material" "~2.1.1"
     "@krassowski/theme-vscode" "~2.1.1"
+    "@krassowski/completion-manager" "~0.0.1"
     lodash.mergewith "^4.6.1"
     lsp-ws-connection "~0.6.0"
 

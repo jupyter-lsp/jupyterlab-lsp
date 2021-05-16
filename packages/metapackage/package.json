@@ -28,6 +28,7 @@
   "dependencies": {
     "lsp-ws-connection": "file:../lsp-ws-connection",
     "@krassowski/completion-theme": "file:../completion-theme",
+    "@krassowski/completion-manager": "file:../completion-manager",
     "@krassowski/theme-material": "file:../theme-material",
     "@krassowski/theme-vscode": "file:../theme-vscode",
     "@krassowski/code-jumpers": "file:../code-jumpers",

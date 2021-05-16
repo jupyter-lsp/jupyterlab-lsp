@@ -45,6 +45,7 @@
     "build:meta": "lerna run build --stream --scope @krassowski/jupyterlab-lsp-metapackage",
     "build:labextension": "lerna run build:labextension --stream",
     "build:completion-theme": "lerna run build --stream --scope @krassowski/completion-theme",
+    "build:completion-manager": "lerna run build --stream --scope @krassowski/completion-manager",
     "build:theme-vscode": "lerna run build --stream --scope @krassowski/theme-vscode",
     "build:theme-material": "lerna run build --stream --scope @krassowski/theme-material",
     "build:jupyterlab-lsp": "lerna run build --stream --scope @krassowski/jupyterlab-lsp",

@@ -61,6 +61,7 @@
     "@krassowski/completion-theme": "~3.1.0",
     "@krassowski/theme-material": "~2.1.1",
     "@krassowski/theme-vscode": "~2.1.1",
+    "@krassowski/completion-manager": "~0.0.1",
     "lodash.mergewith": "^4.6.1",
     "lsp-ws-connection": "~0.6.0"
   },
