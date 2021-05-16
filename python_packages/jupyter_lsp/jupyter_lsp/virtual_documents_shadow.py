@@ -101,6 +101,15 @@ class ShadowFilesystemError(ValueError):
     """Error in the shadow file system."""
 
 
+# TODO: remove once https://github.com/unshiftio/url-parse/pull/204 gets merged and released
+def _strip_file_protocol_prefix(uri):
+    if uri.startswith("file:///"):
+        return uri[8:]
+    if uri.startswith("file://"):
+        return uri[7:]
+    return uri
+
+
 def setup_shadow_filesystem(virtual_documents_uri):
 
     if not virtual_documents_uri.startswith("file:/"):
@@ -116,6 +125,8 @@ def setup_shadow_filesystem(virtual_documents_uri):
     rmtree(str(shadow_filesystem))
     # create again
     shadow_filesystem.mkdir(parents=True, exist_ok=True)
+
+    stripped_virtual_documents_uri = _strip_file_protocol_prefix(virtual_documents_uri)
 
     @lsp_message_listener("client")
     async def shadow_virtual_documents(scope, message, language_server, manager):
@@ -138,7 +149,9 @@ def setup_shadow_filesystem(virtual_documents_uri):
         if not uri:
             raise ShadowFilesystemError("Could not get URI from: {}".format(message))
 
-        if not uri.startswith(virtual_documents_uri):
+        if not _strip_file_protocol_prefix(uri).startswith(
+            stripped_virtual_documents_uri
+        ):
             return
 
         path = file_uri_to_path(uri)
