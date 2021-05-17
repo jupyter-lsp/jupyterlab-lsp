@@ -7,8 +7,12 @@
   - add ability to deactivate Kernel completions or LSP completion through the settings ([#586], thanks @Carreau)
   - allow to set a priority for LSP server, allowing to choose which server to use when multiple servers are installed ([#588])
 
+- bug fixes:
+  - workaround url-parse issue causing problems when using JupyterLab 3.0.15 [#599]
+
 [#586]: https://github.com/krassowski/jupyterlab-lsp/pull/586
 [#588]: https://github.com/krassowski/jupyterlab-lsp/pull/588
+[#599]: https://github.com/krassowski/jupyterlab-lsp/pull/599
 
 ### `jupyter-lsp 1.2.0` (2021-04-26)
 
