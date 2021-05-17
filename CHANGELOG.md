@@ -9,10 +9,11 @@
   - add auto-detection of pyright server ([#587], thanks @yuntan)
 
 - bug fixes:
+
   - workaround url-parse issue causing problems when using JupyterLab 3.0.15 ([#599])
 
 - other changes:
-  - drop Node 10 (EOL 2 weeks ago) testing on CI, add Node 16 ([#587])
+  - drop Node 10 (EOL 2 weeks ago) testing on CI, add Node 15 ([#587])
 
 [#586]: https://github.com/krassowski/jupyterlab-lsp/pull/586
 [#587]: https://github.com/krassowski/jupyterlab-lsp/pull/587

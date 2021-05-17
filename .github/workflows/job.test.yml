@@ -221,8 +221,9 @@ jobs:
             # Node 14 end-of-life: April 2023
             nodejs: '>=14,<15.0.0.a0'
           - python: 3.8
-            # Node 16 end-of-life: April 2024
-            nodejs: '>=16,<17.0.0.a0'
+            # TODO: switch to Node 16 once gets merged https://github.com/conda-forge/nodejs-feedstock/pull/189
+            # Node 15 end-of-life: June 2021
+            nodejs: '>=15,<16.0.0.a0'
           # TODO: remove when mambaforge just works on setup-miniconda
           - os: ubuntu
             mambaforge: Linux-x86_64.sh
