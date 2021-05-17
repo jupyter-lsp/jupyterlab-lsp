@@ -68,7 +68,6 @@ export class KernelCompletionProvider implements ICompletionProvider {
   }
 
   _getConnector(context: ICompletionContext) {
-    // TODO: cache
     if (this._previousSession != context.sessionContext) {
       this._previousConnector = new KernelConnector({
         session: context.sessionContext.session
