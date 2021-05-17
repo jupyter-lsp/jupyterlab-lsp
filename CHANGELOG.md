@@ -3,6 +3,9 @@
 ### (unreleased)
 
 - Add ability to deactivate Kernel completions or LSP completion through the settings.
+- workaround url-parse issue causing problems when using JupyterLab 3.0.15 [#599]
+
+[#599]: https://github.com/krassowski/jupyterlab-lsp/pull/599
 
 ### `jupyter-lsp 1.2.0` (2021-04-26)
 

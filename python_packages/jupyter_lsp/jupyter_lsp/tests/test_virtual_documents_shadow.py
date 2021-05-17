@@ -6,7 +6,6 @@ import pytest
 from ..virtual_documents_shadow import (
     EditableFile,
     ShadowFilesystemError,
-    _strip_file_protocol_prefix,
     extract_or_none,
     setup_shadow_filesystem,
 )
@@ -110,12 +109,6 @@ async def test_shadow(shadow_path, message_func, content, expected_content):
 
     with open(str(ok_file_path)) as f:  # str is a Python 3.5 relict
         assert f.read() == expected_content
-
-
-def test_strip_file_prefix():
-    assert _strip_file_protocol_prefix("file:///test") == "test"
-    assert _strip_file_protocol_prefix("file://test") == "test"
-    assert _strip_file_protocol_prefix("http://test") == "http://test"
 
 
 @pytest.mark.asyncio
