@@ -54,6 +54,8 @@ import { EditorAdapter } from './editor_adapter';
 import createNotebookPanel = NBTestUtils.createNotebookPanel;
 import IEditor = CodeEditor.IEditor;
 
+const DEFAULT_SERVER_ID = 'pylsp';
+
 export interface ITestEnvironment {
   document_options: VirtualDocument.IOptions;
 
@@ -71,7 +73,7 @@ export interface ITestEnvironment {
 export class MockLanguageServerManager extends LanguageServerManager {
   async fetchSessions() {
     this._sessions = new Map();
-    this._sessions.set('pyls', {
+    this._sessions.set(DEFAULT_SERVER_ID, {
       spec: {
         languages: ['python']
       }
@@ -111,7 +113,9 @@ export class MockExtension implements ILSPExtension {
     this.app = null;
     this.feature_manager = new FeatureManager();
     this.editor_type_manager = new VirtualEditorManager();
-    this.language_server_manager = new MockLanguageServerManager({});
+    this.language_server_manager = new MockLanguageServerManager({
+      console: new BrowserConsole()
+    });
     this.connection_manager = new DocumentConnectionManager({
       language_server_manager: this.language_server_manager,
       console: new BrowserConsole()
@@ -240,7 +244,8 @@ function FeatureSupport<TBase extends TestEnvironmentConstructor>(Base: TBase) {
       return new LSPConnection({
         languageId: this.document_options.language,
         serverUri: 'ws://localhost:8080',
-        rootUri: 'file:///unit-test'
+        rootUri: 'file:///unit-test',
+        serverIdentifier: DEFAULT_SERVER_ID
       });
     }
 
