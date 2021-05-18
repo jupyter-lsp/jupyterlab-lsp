@@ -49,7 +49,7 @@ Python (pylsp)
 
 Python (pyright)
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
-    Editor Shows Features for Server    pyright    Python    example.py    Diagnostics=is not defined (Pyright)    Jump to Definition=${def}    Rename=${def}
+    Editor Shows Features for Server    pyright    Python    example.py    Diagnostics=is not defined (Pyright)    Jump to Definition=${def}
 
 R
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
@@ -77,7 +77,7 @@ YAML
 Editor Shows Features for Server
     [Arguments]    ${server}    ${Language}    ${file}    &{features}
     Configure JupyterLab Plugin
-    ...    {"language_servers": {"${server}": {"priority": 10000}}
+    ...    {"language_servers": {"${server}": {"priority": 10000}}}
     Editor Shows Features for Language    ${Language}    ${file}    &{features}
 
 Editor Shows Features for Language
