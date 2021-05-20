@@ -1,0 +1,45 @@
+{
+  "name": "code-snippet-completion",
+  "version": "1.0.0",
+  "description": "Code Snippet Completion for Jupyter-lsp",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension",
+    "lsp",
+    "language-server-protocol",
+    "code snippet",
+    "completer"
+  ],
+  "homepage": "https://github.com/krassowski/jupyterlab-lsp",
+  "bugs": {
+    "url": "https://github.com/krassowski/jupyterlab-lsp/issues"
+  },
+  "author": "Jay Ahn, Kiran Pinnipati",
+  "license": "BSD-3-Clause",
+  "files": [
+    "{lib,style,schema,src}/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css,json,ts,tsx,txt,md}"
+  ],
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krassowski/jupyterlab-lsp.git"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "bundle": "npm pack .",
+    "clean": "rimraf lib"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@krassowski/completion-manager": "~0.0.1",
+    "@jupyterlab/builder": "^3.0.8"
+  },
+  "peerDependencies": {},
+  "jupyterlab": {
+    "extension": true,
+    "schemaDir": "schema",
+    "outputDir": "../../python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/@krassowski/code-snippet-completion"
+  }
+}
