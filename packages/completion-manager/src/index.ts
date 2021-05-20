@@ -19,12 +19,14 @@ export * from './manager';
 export * from './tokens';
 export * from './model';
 
-export const COMPLETION_MANAGER_PLUGIN: JupyterFrontEndPlugin<ICompletionProviderManager> = {
-  id: PLUGIN_ID + ':extension',
-  requires: [ICompletionManager],
-  autoStart: true,
-  activate: (app: JupyterFrontEnd, completionManager: ICompletionManager) => {
-    return new CompletionProviderManager(app, completionManager);
-  }
-};
+export const COMPLETION_MANAGER_PLUGIN: JupyterFrontEndPlugin<ICompletionProviderManager> =
+  {
+    id: PLUGIN_ID + ':extension',
+    requires: [ICompletionManager],
+    autoStart: true,
+    provides: ICompletionProviderManager,
+    activate: (app: JupyterFrontEnd, completionManager: ICompletionManager) => {
+      return new CompletionProviderManager(app, completionManager);
+    }
+  };
 export { DispatchRenderer } from './renderer';
