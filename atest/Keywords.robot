@@ -375,6 +375,7 @@ Configure JupyterLab Plugin
     Set Editor Content    ${settings json}    ${CSS USER SETTINGS}
     Wait Until Page Contains    No errors found
     Click Element    css:button[title\='Save User Settings']
+    Wait Until Page Contains    No errors found
     Click Element    ${JLAB XP CLOSE SETTINGS}
 
 Clean Up After Working with File and Settings

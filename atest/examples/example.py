@@ -2,7 +2,6 @@
 
 from itertools import  (accumulate, chain); accumulate
 
-
 # fibs :: Integer :: [Integer]
 def fibs(n):
     '''An accumulation of the first n integers in
@@ -27,5 +26,6 @@ if __name__ == '__main__':
     print(
         'First twenty: ' + repr(
             fibs(20)
-        )
+        ),
+        result
     )
