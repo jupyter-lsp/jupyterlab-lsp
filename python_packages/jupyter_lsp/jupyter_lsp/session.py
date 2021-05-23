@@ -104,6 +104,9 @@ class LanguageServerSession(LoggingConfigurable):
 
         self.status = SessionStatus.STOPPING
 
+        if self.cancelscope is not None:
+            self.portal.call(self.cancelscope.cancel)
+            self.cancelscope = None
         if self.process:
             self.process.terminate()
             self.process = None
@@ -116,10 +119,6 @@ class LanguageServerSession(LoggingConfigurable):
         if self.tcp_con:
             self.portal.call(self.tcp_con.aclose)
             self.tcp_con = None
-
-        if self.cancelscope:
-           self.portal.call(self.cancelscope.cancel)
-           self.cancelscope = None
 
         self.status = SessionStatus.STOPPED
 
@@ -235,11 +234,10 @@ class LanguageServerSession(LoggingConfigurable):
     async def _listen(self):
         try:
             async with anyio.create_task_group() as tg:
-                async with anyio.open_cancel_scope() as scope:
-                    self.cancelscope = scope
-                    await tg.spawn(self._read_lsp)
-                    await tg.spawn(self._write_lsp)
-                    await tg.spawn(self._broadcast_from_lsp)
+                self.cancelscope = tg.cancel_scope
+                await tg.spawn(self._read_lsp)
+                await tg.spawn(self._write_lsp)
+                await tg.spawn(self._broadcast_from_lsp)
         except Exception as e:
             self.log.exception("Execption while listening {}", e)
 

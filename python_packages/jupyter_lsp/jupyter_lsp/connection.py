@@ -187,7 +187,8 @@ class LspStreamReader(LspStreamBase):
                 line = await self.stream.receive_until(b'\r\n', 65536)
                 return line.decode("utf-8").strip()
         except anyio.IncompleteRead:
-            return ""
+            # resource has been closed before the requested bytes could be retrieved -> signal recource closed
+            raise anyio.ClosedResourceError
         except anyio.DelimiterNotFound:
             self.log.error("Readline hit max_bytes before newline character was encountered")
             return ""
