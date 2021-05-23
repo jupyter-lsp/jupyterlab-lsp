@@ -182,8 +182,6 @@ class LanguageServerManager(LanguageServerManagerAPI):
             )
             return
 
-        self.log.warn("[%s] Handling a client message: %s", handler, message)
-
         session.write(message)
 
     async def on_server_message(self, message, session):
@@ -195,8 +193,6 @@ class LanguageServerManager(LanguageServerManagerAPI):
             await self.wait_for_listeners(
                 MessageScope.SERVER, message, language_servers
             )
-
-        self.log.warn("[%s] Handling a server message: %s", session, message)
 
         for handler in session.handlers:
             handler.write_message(message)

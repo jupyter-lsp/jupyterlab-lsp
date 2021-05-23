@@ -29,7 +29,7 @@ class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, BaseHandl
         super().open()
 
     async def on_message(self, message):
-        self.log.warn("[%s] Handling a message: %s", self.language_server, message)
+        self.log.debug("[{}] Handling a message".format(self.language_server))
         await self.manager.on_client_message(message, self)
 
     def on_close(self):
