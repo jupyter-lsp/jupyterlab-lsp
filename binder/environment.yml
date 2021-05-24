@@ -19,7 +19,7 @@ dependencies:
   - pyls-black
   - pyls-isort
   - pyls-mypy
-  - python-language-server
+  - python-lsp-server
   - ruamel_yaml
   # for R language server and kernel
   - r

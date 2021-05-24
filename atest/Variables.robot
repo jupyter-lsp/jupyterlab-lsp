@@ -54,5 +54,5 @@ ${JLAB XP CLOSE SETTINGS}    ${JLAB XP DOCK TAB}\[contains(., 'Settings')]/*[con
 ${CSS DIAGNOSTIC}    css:.cm-lsp-diagnostic
 # log messages
 @{KNOWN BAD ERRORS}
-...               pyls_jsonrpc.endpoint - Failed to handle notification
-...               pyls_jsonrpc.endpoint - Failed to handle request
+...               pylsp_jsonrpc.endpoint - Failed to handle notification
+...               pylsp_jsonrpc.endpoint - Failed to handle request

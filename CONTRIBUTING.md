@@ -1,4 +1,4 @@
-## Contribute to jupyterlab-lsp and jupyter-lsp :heart:
+## Contributing
 
 `jupyter-lsp` and `jupyterlab-lsp` are [open source][license] software, and
 all contributions conforming to good sense, good taste, and the
@@ -19,9 +19,11 @@ You can contribute to the project through:
 - improving testing
 - reviewing pull requests
 
+Thank you for all your contributions :heart:
+
 [license]: https://github.com/krassowski/jupyterlab-lsp/blob/master/LICENSE
-[extending]: ./docs/Extending.ipynb
-[roadmap]: ./docs/Roadmap.ipynb
+[extending]: ./docs/Extending.html
+[roadmap]: ./docs/Roadmap.html
 [jupyterlab-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
 [code-of-conduct]: https://github.com/jupyter/governance/blob/master/conduct/code_of_conduct.md
 
@@ -328,7 +330,7 @@ python scripts/lint.py
 
 ### Specs
 
-While language servers can be configured by the user using a simple JSON or Python [configuration file](./Configuring.ipynb#language_servers),
+While language servers can be configured by the user using a simple JSON or Python [configuration file](./Configuring.html#language-servers),
 it is preferable to provide users with an option that does not require manual configuration. The language server specifications (specs)
 wrap the configuration (as would be defined by the user) into a Python class or function that can be either:
 
@@ -357,7 +359,7 @@ A spec is a Python callable (a function, or a class with `__call__` method) that
 
 The above example is only intended as an illustration and not as an up-to-date guide.
 For details on the dictionary contents, see the [schema][] definition and [built-in specs][].
-Basic concepts (meaning of the `argv` and `languages` arguments) are also explained in the [configuration files](./Configuring.ipynb#language_servers) documentation.
+Basic concepts (meaning of the `argv` and `languages` arguments) are also explained in the [configuration files](./Configuring.html#language-servers) documentation.
 
 When contributing a specification we recommend to make use of the helper classes and other [utilities][] that take care of the common use-cases:
 

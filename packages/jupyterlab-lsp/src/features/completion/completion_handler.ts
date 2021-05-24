@@ -78,6 +78,21 @@ export class LSPConnector
     return this.options.settings.composite.kernelCompletionsFirst;
   }
 
+  protected get use_lsp_completions(): boolean {
+    return (
+      this.options.settings.composite.disableCompletionsFrom.indexOf('LSP') ==
+      -1
+    );
+  }
+
+  protected get use_kernel_completions(): boolean {
+    return (
+      this.options.settings.composite.disableCompletionsFrom.indexOf(
+        'Kernel'
+      ) == -1
+    );
+  }
+
   protected get suppress_continuous_hinting_in(): string[] {
     return this.options.settings.composite.suppressContinuousHintingIn;
   }
@@ -212,22 +227,26 @@ export class LSPConnector
     let virtual_cursor = virtual_editor.root_position_to_virtual_position(
       cursor_in_root
     );
+    const lsp_promise: Promise<CompletionHandler.ICompletionItemsReply> = this
+      .use_lsp_completions
+      ? this.fetch_lsp(
+          token,
+          typed_character,
+          virtual_start,
+          virtual_end,
+          virtual_cursor,
+          document,
+          position_in_token
+        )
+      : Promise.resolve(null);
 
-    const lsp_promise = this.fetch_lsp(
-      token,
-      typed_character,
-      virtual_start,
-      virtual_end,
-      virtual_cursor,
-      document,
-      position_in_token
-    );
     let promise: Promise<CompletionHandler.ICompletionItemsReply> = null;
 
     try {
       const kernelTimeout = this._kernel_timeout;
 
       if (
+        this.use_kernel_completions &&
         this._kernel_connector &&
         this._has_kernel &&
         (this._is_kernel_idle || this._should_wait_for_busy_kernel) &&
@@ -271,12 +290,16 @@ export class LSPConnector
           promise = Promise.all([
             kernel_promise.catch(p => p),
             lsp_promise.catch(p => p)
-          ]).then(([kernel, lsp]) =>
-            this.merge_replies(
-              [this.transform_reply(kernel), lsp],
-              this._editor
-            )
-          );
+          ]).then(([kernel, lsp]) => {
+            let replies = [];
+            if (kernel != null) {
+              replies.push(this.transform_reply(kernel));
+            }
+            if (lsp != null) {
+              replies.push(lsp);
+            }
+            return this.merge_replies(replies, this._editor);
+          });
         }
       }
       if (!promise) {
