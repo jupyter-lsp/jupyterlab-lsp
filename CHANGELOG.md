@@ -1,6 +1,45 @@
-## CHANGELOG
+## Changelog
 
-### `@krassowski/jupyterlab-lsp 3.5.1` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.7.0` (unreleased)
+
+- features:
+
+  - add ability to deactivate Kernel completions or LSP completion through the settings ([#586], thanks @Carreau)
+  - allow to set a priority for LSP server, allowing to choose which server to use when multiple servers are installed ([#588])
+  - add auto-detection of pyright server ([#587], thanks @yuntan)
+
+- bug fixes:
+
+  - workaround url-parse issue causing problems when using JupyterLab 3.0.15 ([#599])
+
+- other changes:
+  - drop Node 10 (EOL 2 weeks ago) testing on CI, add Node 15 ([#587])
+
+[#586]: https://github.com/krassowski/jupyterlab-lsp/pull/586
+[#587]: https://github.com/krassowski/jupyterlab-lsp/pull/587
+[#588]: https://github.com/krassowski/jupyterlab-lsp/pull/588
+[#599]: https://github.com/krassowski/jupyterlab-lsp/pull/599
+
+### `jupyter-lsp 1.2.0` (2021-04-26)
+
+- features:
+
+  - add support for python-lsp-server, a community fork of pyls ([#584] and [#582], thanks @maresb)
+
+- bug fixes:
+  - fix encoding on Windows for non-conda installs ([#580], thanks @stonebig)
+
+[#580]: https://github.com/krassowski/jupyterlab-lsp/pull/580
+[#582]: https://github.com/krassowski/jupyterlab-lsp/pull/582
+[#584]: https://github.com/krassowski/jupyterlab-lsp/pull/584
+
+### `@krassowski/code-jumpers 1.1.0` (2021-04-26)
+
+- features:
+
+  - added translation support ([#557], thanks @JessicaBarh)
+
+### `@krassowski/jupyterlab-lsp 3.6.0` (2021-04-26)
 
 - features:
 
@@ -15,7 +54,7 @@
 [#570]: https://github.com/krassowski/jupyterlab-lsp/pull/570
 [#576]: https://github.com/krassowski/jupyterlab-lsp/pull/576
 
-### `@krassowski/jupyterlab-lsp 3.5.0` (2020-03-22)
+### `@krassowski/jupyterlab-lsp 3.5.0` (2021-03-22)
 
 - features:
 
@@ -42,7 +81,7 @@
 [#560]: https://github.com/krassowski/jupyterlab-lsp/pull/560
 [#562]: https://github.com/krassowski/jupyterlab-lsp/pull/562
 
-### `jupyter-lsp 1.1.4` (2020-02-21)
+### `jupyter-lsp 1.1.4` (2021-02-21)
 
 - bug fixes:
 
@@ -53,7 +92,7 @@
 
 [#535]: https://github.com/krassowski/jupyterlab-lsp/pull/535
 
-### `@krassowski/jupyterlab-lsp 3.4.1` (2020-02-16)
+### `@krassowski/jupyterlab-lsp 3.4.1` (2021-02-16)
 
 - bug fixes:
 
@@ -61,7 +100,7 @@
 
 [#526]: https://github.com/krassowski/jupyterlab-lsp/pull/526
 
-### `@krassowski/jupyterlab-lsp 3.4.0` (2020-02-14)
+### `@krassowski/jupyterlab-lsp 3.4.0` (2021-02-14)
 
 - features:
 
@@ -86,7 +125,7 @@
 [#523]: https://github.com/krassowski/jupyterlab-lsp/pull/523
 [#524]: https://github.com/krassowski/jupyterlab-lsp/pull/524
 
-### `@krassowski/jupyterlab-lsp 3.3.1` (2020-02-07)
+### `@krassowski/jupyterlab-lsp 3.3.1` (2021-02-07)
 
 - bug fixes:
 

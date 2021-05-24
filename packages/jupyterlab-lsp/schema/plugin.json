@@ -16,6 +16,13 @@
           "description": "Configuration to be sent to language server over LSP when initialized: see the specific language server's documentation for more",
           "type": "object",
           "default": {}
+        },
+        "priority": {
+          "title": "Priority of the server",
+          "description": "When multiple servers match specific document/language, the server with the highest priority will be used",
+          "type": "number",
+          "default": 50,
+          "minimum": 1
         }
       }
     }
@@ -24,7 +31,13 @@
     "language_servers": {
       "title": "Language Server",
       "description": "Language-server specific configuration, keyed by implementation, e.g: \n\npyls: {\n  serverSettings: {\n    pyls: {\n      plugins: {\n        pydocstyle: {\n          enabled: true\n        },\n        pyflakes: {\n          enabled: false\n        },\n        flake8: {\n          enabled: true\n        }\n      }\n    }\n  }\n}\n\nAlternatively, using VSCode's naming convention:\n\npyls: {\n  serverSettings: {\n    \"pyls.plugins.pydocstyle.enabled\": true,\n    \"pyls.plugins.pyflakes.enabled\": false,\n    \"pyls.plugins.flake8.enabled\": true\n  }\n}",
-      "default": {},
+      "default": {
+        "pyright": {
+          "serverSettings": {
+            "python.analysis.useLibraryCodeForTypes": true
+          }
+        }
+      },
       "patternProperties": {
         ".*": {
           "$ref": "#/definitions/language-server"

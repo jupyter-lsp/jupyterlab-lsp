@@ -6,7 +6,7 @@
 
 > _This project is still maturing, but you are welcome to check it out, leave feedback and/or a PR_
 
-Quick Links: **[Installation](#installation) | [Configuring](./docs/Configuring.ipynb) | [Updating](#updating) | [Changelog](./CHANGELOG.md) | [Roadmap](./docs/Roadmap.ipynb) | [Contributing](./CONTRIBUTING.md) | [Extending](./docs/Extending.ipynb)**
+Quick Links: **[Installation](#installation) | [Configuring](./docs/Configuring.ipynb) | [Changelog](./CHANGELOG.md) | [Roadmap](./docs/Roadmap.ipynb) | [Contributing](./CONTRIBUTING.md) | [Extending](./docs/Extending.ipynb)**
 
 ## Features
 
@@ -66,6 +66,10 @@ from the Language Server (in notebook).
 If the kernel is too slow to respond promptly only the Language Server suggestions will be shown (default threshold: 0.6s).
 You can configure the completer to not attempt to fetch the kernel completions if the kernel is busy (skipping the 0.6s timeout).
 
+You can deactivate the kernel suggestions by adding `"Kernel"` to the `disableCompletionsFrom` in the `completion` section
+of _Advanced Settings_. Alternatively if you _only_ want kernel completions you can add `"LSP"` to the same
+setting; Or add both if you like to code in hardcore mode and get no completions, or if another provider has been added.
+
 ### Rename
 
 Rename variables, functions and more, in both: notebooks and the file editor.
@@ -119,19 +123,19 @@ Use of a python `virtualenv` or a conda env is also recommended.
    > or `jupyter-lsp-r` to install both the server extension and the language server.
 
 1. install LSP servers for languages of your choice; for example, for Python
-   ([pyls](https://github.com/palantir/python-language-server)) and
+   ([pylsp](https://github.com/python-lsp/python-lsp-server)) and
    R ([languageserver](https://github.com/REditorSupport/languageserver)) servers:
 
    ```bash
    # note: you may want to use our fork of python-language-server instead (see below)
-   pip install 'python-language-server[all]'
+   pip install 'python-lsp-server[all]'
    R -e 'install.packages("languageserver")'
    ```
 
    or from `conda-forge`
 
    ```bash
-   conda install -c conda-forge python-language-server r-languageserver
+   conda install -c conda-forge python-lsp-server r-languageserver
    ```
 
    Please see our full list of
@@ -187,6 +191,8 @@ Use of a python `virtualenv` or a conda env is also recommended.
 ### Configuring the servers
 
 Server configurations can be edited using the Advanced Settings editor in JupyterLab (_Settings > Advanced Settings Editor_). For settings specific to each server, please see the [table of language servers][language-servers]. Example settings might include:
+
+> Note: for the new (currently recommended) python-lsp-server replace `pyls` occurrences with `pyslp`
 
 ```json
 {
