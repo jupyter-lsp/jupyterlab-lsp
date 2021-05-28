@@ -2714,9 +2714,9 @@
     "@types/node" ">= 8"
 
 "@retrolab/application@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@retrolab/application/-/application-0.2.0.tgz#526d8c624c5836a549c6253f471d397b921a7dfd"
-  integrity sha512-1yUdHjB0IkqSRR+w5k58y3XyvsPn5L9TIJe6SL2TEC8whQAnnDE7kmdniBOSzJ7yOCJvb/LbjubZ44ehhJwmtw==
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@retrolab/application/-/application-0.2.1.tgz#8194a4e0b5ab284e327014a2d3c1c5a1daa4732f"
+  integrity sha512-5mi1rvPvwUFhbZH5ESdSxW7mL//pbFqHGBysvLa7S5muWllRe4KsVm0EgZSU8XOlEwGuDtnyGguBjc5P8CFfIg==
   dependencies:
     "@jupyterlab/application" "^3.0.0"
     "@jupyterlab/coreutils" "^5.0.0"
