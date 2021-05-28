@@ -8,8 +8,8 @@ dependencies:
   # runtime dependencies
   - python >=3.6,<3.9.0a0
   - jupyterlab >=3.0.0,<4.0.0a0
-  - jupyterlab-classic >=0.1.3,<0.2
   - jupyter_server >=1.1.2
+  - retrolab >=0.2.0,<0.3
   # build dependencies
   - nodejs >=12,<15
   # for python language server (and development)

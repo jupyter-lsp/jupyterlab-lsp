@@ -7,6 +7,7 @@
   - add ability to deactivate Kernel completions or LSP completion through the settings ([#586], thanks @Carreau)
   - allow to set a priority for LSP server, allowing to choose which server to use when multiple servers are installed ([#588])
   - add auto-detection of pyright server ([#587], thanks @yuntan)
+  - update from JupyterLab Classic to RetroLab ([#603])
 
 - bug fixes:
 
@@ -19,6 +20,7 @@
 [#587]: https://github.com/krassowski/jupyterlab-lsp/pull/587
 [#588]: https://github.com/krassowski/jupyterlab-lsp/pull/588
 [#599]: https://github.com/krassowski/jupyterlab-lsp/pull/599
+[#602]: https://github.com/krassowski/jupyterlab-lsp/pull/602
 
 ### `jupyter-lsp 1.2.0` (2021-04-26)
 
