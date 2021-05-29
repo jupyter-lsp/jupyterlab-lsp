@@ -375,6 +375,7 @@ Configure JupyterLab Plugin
     Set Editor Content    ${settings json}    ${CSS USER SETTINGS}
     Wait Until Page Contains    No errors found
     Click Element    css:button[title\='Save User Settings']
+    Wait Until Page Contains    No errors found
     Click Element    ${JLAB XP CLOSE SETTINGS}
 
 Clean Up After Working with File and Settings
@@ -418,4 +419,9 @@ Open New Notebook
     Lab Command    New Notebook
     Wait For Dialog
     # Kernel selection dialog shows up, accept Python as default kernel
+    Accept Default Dialog Option
+
+Restart Kernel
+    Lab Command    Restart Kernel…
+    Wait For Dialog
     Accept Default Dialog Option

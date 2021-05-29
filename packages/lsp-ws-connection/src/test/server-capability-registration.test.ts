@@ -4,6 +4,7 @@ import {
   ServerCapabilities,
   Unregistration
 } from 'vscode-languageserver-protocol';
+
 import {
   registerServerCapability,
   unregisterServerCapability

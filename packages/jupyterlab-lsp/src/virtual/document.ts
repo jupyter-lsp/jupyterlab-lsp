@@ -1,24 +1,26 @@
+import { CodeEditor } from '@jupyterlab/codeeditor';
+import { Signal } from '@lumino/signaling';
+import { IDocumentInfo } from 'lsp-ws-connection/src';
+
+import { DocumentConnectionManager } from '../connection_manager';
 import {
   IForeignCodeExtractor,
   IForeignCodeExtractorsRegistry
 } from '../extractors/types';
+import { LanguageIdentifier } from '../lsp';
+import { ReversibleOverridesMap } from '../overrides/maps';
 import { ICodeOverridesRegistry } from '../overrides/tokens';
-import { DefaultMap, until_ready } from '../utils';
-import { Signal } from '@lumino/signaling';
-import { CodeEditor } from '@jupyterlab/codeeditor';
 import {
   IEditorPosition,
   ISourcePosition,
   IVirtualPosition
 } from '../positioning';
-import { IDocumentInfo } from 'lsp-ws-connection/src';
-
-import { DocumentConnectionManager } from '../connection_manager';
-import IRange = CodeEditor.IRange;
-import { ReversibleOverridesMap } from '../overrides/maps';
-import { LanguageIdentifier } from '../lsp';
 import { ILSPLogConsole } from '../tokens';
+import { DefaultMap, until_ready } from '../utils';
+
 import { BrowserConsole } from './console';
+
+import IRange = CodeEditor.IRange;
 
 type language = string;
 
@@ -252,7 +254,7 @@ export class VirtualDocument {
     this.unused_standalone_documents = new DefaultMap(
       () => new Array<VirtualDocument>()
     );
-    this._remaining_lifetime = 10;
+    this._remaining_lifetime = 6;
     this.foreign_document_closed = new Signal(this);
     this.foreign_document_opened = new Signal(this);
     this.changed = new Signal(this);

@@ -1,18 +1,51 @@
+/** The Public API, as exposed in the `main` field of package.json */
+
+/** General public tokens, including lumino Tokens and namespaces */
+export * from './tokens';
+
+/** Component- and feature-specific APIs */
+export * from './api';
+
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
-import { Signal } from '@lumino/signaling';
-import { LanguageServerManager } from './manager';
-import '../style/index.css';
-import { ContextCommandManager } from './command_manager';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStatusBar } from '@jupyterlab/statusbar';
+import { ITranslator, nullTranslator } from '@jupyterlab/translation';
+import { COMPLETION_THEME_MANAGER } from '@krassowski/completion-theme';
+import { plugin as THEME_MATERIAL } from '@krassowski/theme-material';
+import { plugin as THEME_VSCODE } from '@krassowski/theme-vscode';
+import { Signal } from '@lumino/signaling';
+
+import '../style/index.css';
+
+import { WIDGET_ADAPTER_MANAGER } from './adapter_manager';
+import { FILE_EDITOR_ADAPTER } from './adapters/file_editor';
+import { NOTEBOOK_ADAPTER } from './adapters/notebook';
+import { ContextCommandManager } from './command_manager';
 import { StatusButtonExtension } from './components/statusbar';
 import { DocumentConnectionManager } from './connection_manager';
+import { CODE_EXTRACTORS_MANAGER } from './extractors/manager';
+import { IForeignCodeExtractorsRegistry } from './extractors/types';
+import { IFeature } from './feature';
+import { COMPLETION_PLUGIN } from './features/completion';
+import { DIAGNOSTICS_PLUGIN } from './features/diagnostics';
+import { HIGHLIGHTS_PLUGIN } from './features/highlights';
+import { HOVER_PLUGIN } from './features/hover';
+import { JUMP_PLUGIN } from './features/jump_to';
+import { RENAME_PLUGIN } from './features/rename';
+import { SIGNATURE_PLUGIN } from './features/signature';
+import { SYNTAX_HIGHLIGHTING_PLUGIN } from './features/syntax_highlighting';
+import { LanguageServerManager } from './manager';
+import { CODE_OVERRIDES_MANAGER } from './overrides';
+import {
+  ICodeOverridesRegistry,
+  ILSPCodeOverridesManager
+} from './overrides/tokens';
 import {
   IAdapterTypeOptions,
   ILSPAdapterManager,
@@ -23,35 +56,12 @@ import {
   PLUGIN_ID,
   TLanguageServerConfigurations
 } from './tokens';
-import { IFeature } from './feature';
-import { JUMP_PLUGIN } from './features/jump_to';
-import { SIGNATURE_PLUGIN } from './features/signature';
-import { HOVER_PLUGIN } from './features/hover';
-import { RENAME_PLUGIN } from './features/rename';
-import { HIGHLIGHTS_PLUGIN } from './features/highlights';
-import { WIDGET_ADAPTER_MANAGER } from './adapter_manager';
-import { FILE_EDITOR_ADAPTER } from './adapters/file_editor';
-import { NOTEBOOK_ADAPTER } from './adapters/notebook';
-import { VIRTUAL_EDITOR_MANAGER } from './virtual/editor';
-import { CODEMIRROR_VIRTUAL_EDITOR } from './virtual/codemirror_editor';
-import { DIAGNOSTICS_PLUGIN } from './features/diagnostics';
-import { COMPLETION_PLUGIN } from './features/completion';
-import { CODE_EXTRACTORS_MANAGER } from './extractors/manager';
-import { IForeignCodeExtractorsRegistry } from './extractors/types';
-import {
-  ICodeOverridesRegistry,
-  ILSPCodeOverridesManager
-} from './overrides/tokens';
 import { DEFAULT_TRANSCLUSIONS } from './transclusions/defaults';
-import { SYNTAX_HIGHLIGHTING_PLUGIN } from './features/syntax_highlighting';
-import { COMPLETION_THEME_MANAGER } from '@krassowski/completion-theme';
-import { plugin as THEME_VSCODE } from '@krassowski/theme-vscode';
-import { plugin as THEME_MATERIAL } from '@krassowski/theme-material';
-import { CODE_OVERRIDES_MANAGER } from './overrides';
-import IPaths = JupyterFrontEnd.IPaths;
+import { CODEMIRROR_VIRTUAL_EDITOR } from './virtual/codemirror_editor';
 import { LOG_CONSOLE } from './virtual/console';
+import { VIRTUAL_EDITOR_MANAGER } from './virtual/editor';
 
-export * from './tokens';
+import IPaths = JupyterFrontEnd.IPaths;
 
 export interface IFeatureOptions {
   /**
@@ -113,6 +123,7 @@ export interface ILSPExtension {
   foreign_code_extractors: IForeignCodeExtractorsRegistry;
   code_overrides: ICodeOverridesRegistry;
   console: ILSPLogConsole;
+  translator: ITranslator;
 }
 
 export class LSPExtension implements ILSPExtension {
@@ -131,18 +142,23 @@ export class LSPExtension implements ILSPExtension {
     private code_extractors_manager: ILSPCodeExtractorsManager,
     private code_overrides_manager: ILSPCodeOverridesManager,
     public console: ILSPLogConsole,
+    public translator: ITranslator,
     status_bar: IStatusBar | null
   ) {
-    this.language_server_manager = new LanguageServerManager({});
+    const trans = (translator || nullTranslator).load('jupyterlab-lsp');
+    this.language_server_manager = new LanguageServerManager({
+      console: this.console.scope('LanguageServerManager')
+    });
     this.connection_manager = new DocumentConnectionManager({
       language_server_manager: this.language_server_manager,
-      console: this.console
+      console: this.console.scope('DocumentConnectionManager')
     });
 
     const statusButtonExtension = new StatusButtonExtension({
       language_server_manager: this.language_server_manager,
       connection_manager: this.connection_manager,
-      adapter_manager: adapterManager
+      adapter_manager: adapterManager,
+      translator_bundle: trans
     });
 
     if (status_bar !== null) {
@@ -163,8 +179,11 @@ export class LSPExtension implements ILSPExtension {
       .then(settings => {
         // Store the initial server settings, to be sent asynchronously
         // when the servers are initialized.
-        this.connection_manager.initial_configurations = (settings.composite
-          .language_servers || {}) as TLanguageServerConfigurations;
+        const initial_configuration = (settings.composite.language_servers ||
+          {}) as TLanguageServerConfigurations;
+        this.connection_manager.initial_configurations = initial_configuration;
+        // update the server-independent part of configuration immediately
+        this.connection_manager.updateConfiguration(initial_configuration);
 
         settings.changed.connect(() => {
           this.updateOptions(settings);
@@ -207,6 +226,10 @@ export class LSPExtension implements ILSPExtension {
 
     const languageServerSettings = (options.language_servers ||
       {}) as TLanguageServerConfigurations;
+
+    this.connection_manager.initial_configurations = languageServerSettings;
+    // TODO: if priorities changed reset connections
+    this.connection_manager.updateConfiguration(languageServerSettings);
     this.connection_manager.updateServerConfigurations(languageServerSettings);
   }
 }
@@ -225,7 +248,8 @@ const plugin: JupyterFrontEndPlugin<ILSPFeatureManager> = {
     ILSPVirtualEditorManager,
     ILSPCodeExtractorsManager,
     ILSPCodeOverridesManager,
-    ILSPLogConsole
+    ILSPLogConsole,
+    ITranslator
   ],
   optional: [IStatusBar],
   activate: (app, ...args) => {
@@ -241,6 +265,7 @@ const plugin: JupyterFrontEndPlugin<ILSPFeatureManager> = {
         ILSPCodeExtractorsManager,
         ILSPCodeOverridesManager,
         ILSPLogConsole,
+        ITranslator,
         IStatusBar | null
       ])
     );

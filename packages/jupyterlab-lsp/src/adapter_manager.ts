@@ -1,15 +1,17 @@
+import { ILabShell, JupyterFrontEndPlugin } from '@jupyterlab/application';
+import { IDocumentWidget } from '@jupyterlab/docregistry';
+import { Signal } from '@lumino/signaling';
+import type { IRetroShell } from '@retrolab/application';
+
+import { WidgetAdapter } from './adapters/adapter';
 import {
   IAdapterRegistration,
   IAdapterTypeOptions,
   ILSPAdapterManager,
   PLUGIN_ID
 } from './tokens';
-import { Signal } from '@lumino/signaling';
-import { IDocumentWidget } from '@jupyterlab/docregistry';
-import { WidgetAdapter } from './adapters/adapter';
-import { ILabShell, JupyterFrontEndPlugin } from '@jupyterlab/application';
+
 import { LSPExtension } from './index';
-import { IClassicShell } from '@jupyterlab-classic/application';
 
 export class WidgetAdapterManager implements ILSPAdapterManager {
   adapterTypeAdded: Signal<
@@ -27,7 +29,7 @@ export class WidgetAdapterManager implements ILSPAdapterManager {
     return this.adapterTypes;
   }
 
-  constructor(protected shell: ILabShell | IClassicShell) {
+  constructor(protected shell: ILabShell | IRetroShell) {
     this.adapterChanged = new Signal(this);
     this.adapterDisposed = new Signal(this);
     this.adapterTypeAdded = new Signal(this);
@@ -143,23 +145,8 @@ export class WidgetAdapterManager implements ILSPAdapterManager {
 
 export const WIDGET_ADAPTER_MANAGER: JupyterFrontEndPlugin<ILSPAdapterManager> = {
   id: PLUGIN_ID + ':ILSPAdapterManager',
-  optional: [ILabShell, IClassicShell],
-  activate: (
-    app,
-    labShell: ILabShell | null,
-    classicShell: IClassicShell | null
-  ) => {
-    let shell: ILabShell | IClassicShell;
-    if (labShell === null && classicShell === null) {
-      console.log(
-        'Neither ILabShell not or IClassicShell was resolved, using app.shell'
-      );
-      shell = app.shell as IClassicShell;
-    } else if (labShell === null) {
-      shell = classicShell;
-    } else {
-      shell = labShell;
-    }
+  activate: app => {
+    let shell = app.shell as ILabShell | IRetroShell;
     return new WidgetAdapterManager(shell);
   },
   provides: ILSPAdapterManager,

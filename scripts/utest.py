@@ -26,6 +26,7 @@ def run_tests():
         "jupyter_lsp",
         "--cov-report",
         "term-missing:skip-covered",
+        "--no-cov-on-fail",
         "-p",
         "no:warnings",
         "--flake8",

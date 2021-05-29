@@ -1,10 +1,12 @@
 # Language Server Protocol integration for Jupyter(Lab)
 
-![tests](https://github.com/krassowski/jupyterlab-lsp/workflows/tests/badge.svg) [![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
+[![tests](https://github.com/krassowski/jupyterlab-lsp/workflows/CI/badge.svg)](https://github.com/krassowski/jupyterlab-lsp/actions?query=workflow%3ACI+branch%3Amaster)
+[![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/krassowski/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
 
 > _This project is still maturing, but you are welcome to check it out, leave feedback and/or a PR_
 
-Quick Links: **[Installation](#installation) | [Configuring](./docs/Configuring.ipynb) | [Updating](#updating) | [Changelog](./CHANGELOG.md) | [Roadmap](./docs/Roadmap.ipynb) | [Contributing](./CONTRIBUTING.md) | [Extending](./docs/Extending.ipynb)**
+Quick Links: **[Installation](#installation) | [Configuring](./docs/Configuring.ipynb) | [Changelog](./CHANGELOG.md) | [Roadmap](./docs/Roadmap.ipynb) | [Contributing](./CONTRIBUTING.md) | [Extending](./docs/Extending.ipynb)**
 
 ## Features
 
@@ -39,7 +41,7 @@ Place your cursor on a variable, function, etc and all the usages will be highli
 
 - Certain characters, for example '.' (dot) in Python, will automatically trigger
   completion.
-- You can choose to receive the completion suggestions as you type by enabling `continiousHinting` setting.
+- You can choose to receive the completion suggestions as you type by enabling `continuousHinting` setting.
 
 ![invoke](https://raw.githubusercontent.com/krassowski/jupyterlab-lsp/master/examples/screenshots/autocompletion.gif)
 
@@ -63,6 +65,10 @@ from the Language Server (in notebook).
 
 If the kernel is too slow to respond promptly only the Language Server suggestions will be shown (default threshold: 0.6s).
 You can configure the completer to not attempt to fetch the kernel completions if the kernel is busy (skipping the 0.6s timeout).
+
+You can deactivate the kernel suggestions by adding `"Kernel"` to the `disableCompletionsFrom` in the `completion` section
+of _Advanced Settings_. Alternatively if you _only_ want kernel completions you can add `"LSP"` to the same
+setting; Or add both if you like to code in hardcore mode and get no completions, or if another provider has been added.
 
 ### Rename
 
@@ -117,18 +123,19 @@ Use of a python `virtualenv` or a conda env is also recommended.
    > or `jupyter-lsp-r` to install both the server extension and the language server.
 
 1. install LSP servers for languages of your choice; for example, for Python
-   ([pyls](https://github.com/palantir/python-language-server)) and
+   ([pylsp](https://github.com/python-lsp/python-lsp-server)) and
    R ([languageserver](https://github.com/REditorSupport/languageserver)) servers:
 
    ```bash
-   pip install python-language-server[all]
+   # note: you may want to use our fork of python-language-server instead (see below)
+   pip install 'python-lsp-server[all]'
    R -e 'install.packages("languageserver")'
    ```
 
    or from `conda-forge`
 
    ```bash
-   conda install -c conda-forge python-language-server r-languageserver
+   conda install -c conda-forge python-lsp-server r-languageserver
    ```
 
    Please see our full list of
@@ -138,8 +145,32 @@ Use of a python `virtualenv` or a conda env is also recommended.
    [Microsoft list](https://microsoft.github.io/language-server-protocol/implementors/servers/)
    should work after [some additional configuration](./CONTRIBUTING.md#specs).
 
-   Note: it is worth visiting the repository of each server you install as
+   Note 1: it is worth visiting the repository of each server you install as
    many provide additional configuration options.
+
+   Note 2: we are developing an improved (faster autocompletion, added features)
+   version of the `python-language-server`. It is experimental and should
+   not be used in production yet, but will likely benefit individual users
+   You can check it out with:
+
+   ```bash
+   pip install git+https://github.com/krassowski/python-language-server.git@main
+   ```
+
+   Please report any regressions [here](https://github.com/krassowski/jupyterlab-lsp/issues/272).
+
+1. (Optional, IPython users only) to improve the performance of autocompletion,
+   disable Jedi in IPython (the LSP servers for Python use Jedi too).
+   You can do that temporarily with:
+
+   ```ipython
+   %config Completer.use_jedi = False
+   ```
+
+   or permanently by setting `c.Completer.use_jedi = False` in your
+   [`ipython_config.py` file](https://ipython.readthedocs.io/en/stable/config/intro.html?highlight=ipython_config.py#systemwide-configuration).
+   You will also benefit from using experimental version of python-language-server
+   as described in the Note 2 (above).
 
 1. (Optional, Linux/OSX-only) to enable opening files outside of the root
    directory (the place where you start JupyterLab), create `.lsp_symlink` and
@@ -160,6 +191,8 @@ Use of a python `virtualenv` or a conda env is also recommended.
 ### Configuring the servers
 
 Server configurations can be edited using the Advanced Settings editor in JupyterLab (_Settings > Advanced Settings Editor_). For settings specific to each server, please see the [table of language servers][language-servers]. Example settings might include:
+
+> Note: for the new (currently recommended) python-lsp-server replace `pyls` occurrences with `pyslp`
 
 ```json
 {

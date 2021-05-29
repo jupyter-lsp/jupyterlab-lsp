@@ -1,5 +1,7 @@
 import { expect } from 'chai';
+
 import { ReversibleOverridesMap } from '../../overrides/maps';
+
 import { overrides } from './overrides';
 
 const CELL_MAGIC_EXISTS = `%%MAGIC
@@ -205,6 +207,13 @@ describe('Default IPython overrides', () => {
 
       reverse = line_magics_map.reverse.override_for(override);
       expect(reverse).to.equal('int??');
+
+      override = line_magics_map.override_for('some_func??');
+      expect(override).to.equal(
+        "get_ipython().run_line_magic('pinfo2',  'some_func')"
+      );
+      reverse = line_magics_map.reverse.override_for(override);
+      expect(reverse).to.equal('some_func??');
     });
 
     it('does not override standalone question marks', () => {

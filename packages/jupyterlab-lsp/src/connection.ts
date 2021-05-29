@@ -2,22 +2,27 @@
 // ISC licence is, quote, "functionally equivalent to the simplified BSD and MIT licenses,
 // but without language deemed unnecessary following the Berne Convention." (Wikipedia).
 // Introduced modifications are BSD licenced, copyright JupyterLab development team.
-import * as lsProtocol from 'vscode-languageserver-protocol';
 import {
   IDocumentInfo,
   ILspOptions,
   IPosition,
   LspWsConnection
 } from 'lsp-ws-connection';
+import * as lsProtocol from 'vscode-languageserver-protocol';
+
 import { until_ready } from './utils';
 
-interface ILSPOptions extends ILspOptions {}
+interface ILSPOptions extends ILspOptions {
+  serverIdentifier?: string;
+}
 
 export class LSPConnection extends LspWsConnection {
   protected documentsToOpen: IDocumentInfo[];
+  public serverIdentifier: string;
 
   constructor(options: ILSPOptions) {
     super(options);
+    this.serverIdentifier = options?.serverIdentifier;
     this.documentsToOpen = [];
   }
 

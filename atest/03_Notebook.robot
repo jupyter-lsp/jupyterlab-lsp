@@ -47,7 +47,7 @@ Moving Cells Around
 Foreign Extractors
     ${file} =    Set Variable    Foreign extractors.ipynb
     Configure JupyterLab Plugin
-    ...    {"language_servers": {"texlab": {"serverSettings": {"latex.lint.onChange": true}}, "bash-langauge-server": {"bashIde.highlightParsingErrors": true}}}
+    ...    {"language_servers": {"texlab": {"serverSettings": {"latex.lint.onChange": true}}, "bash-langauge-server": {"bashIde.highlightParsingErrors": true}}, "pylsp": {"priority": 1000}}
     Capture Page Screenshot    10-configured.png
     Reset Application State
     Setup Notebook    Python    ${file}
@@ -91,6 +91,7 @@ Adding Text To Cells After Kernel Restart
     Setup Notebook    Python    ${file}
     ${virtual_path} =    Set Variable    ${VIRTUALDOCS DIR}${/}${file}
     Wait Until Created    ${virtual_path}
+    Restart Kernel
     Enter Cell Editor    1
     Lab Command    Insert Cell Below
     Enter Cell Editor    2    line=1

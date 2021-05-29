@@ -1,177 +1,56 @@
+import { CodeEditor } from '@jupyterlab/codeeditor';
 import {
   CompletionConnector,
   CompletionHandler,
   ContextConnector,
   KernelConnector
 } from '@jupyterlab/completer';
-import { CodeEditor } from '@jupyterlab/codeeditor';
+import { Session } from '@jupyterlab/services';
+import { LabIcon } from '@jupyterlab/ui-components';
+import {
+  ILSPCompletionThemeManager,
+  KernelKind
+} from '@krassowski/completion-theme/lib/types';
 import { JSONArray, JSONObject } from '@lumino/coreutils';
+import * as lsProtocol from 'vscode-languageserver-types';
+
+import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
+import { LSPConnection } from '../../connection';
+import { PositionConverter } from '../../converter';
+import { FeatureSettings } from '../../feature';
 import {
   AdditionalCompletionTriggerKinds,
   CompletionItemKind,
   CompletionTriggerKind,
   ExtendedCompletionTriggerKind
 } from '../../lsp';
-import * as lsProtocol from 'vscode-languageserver-types';
-import { VirtualDocument } from '../../virtual/document';
-import { IVirtualEditor } from '../../virtual/editor';
 import {
   IEditorPosition,
   IRootPosition,
   IVirtualPosition
 } from '../../positioning';
-import { LSPConnection } from '../../connection';
-import { Session } from '@jupyterlab/services';
-
-import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
-import { FeatureSettings } from '../../feature';
-import { PositionConverter } from '../../converter';
-import {
-  ILSPCompletionThemeManager,
-  KernelKind
-} from '@krassowski/completion-theme/lib/types';
-import { LabIcon } from '@jupyterlab/ui-components';
 import { ILSPLogConsole } from '../../tokens';
+import { VirtualDocument } from '../../virtual/document';
+import { IVirtualEditor } from '../../virtual/editor';
+
 import { CompletionLabIntegration } from './completion';
+import {
+  ICompletionsSource,
+  IExtendedCompletionItem,
+  LazyCompletionItem
+} from './item';
+
 import ICompletionItemsResponseType = CompletionHandler.ICompletionItemsResponseType;
 
-export class LazyCompletionItem implements CompletionHandler.ICompletionItem {
-  private _documentation: string;
-  private _is_documentation_markdown: boolean;
-  private _requested_resolution: boolean;
-  private _resolved: boolean;
-  /**
-   * Self-reference to make sure that the instance for will remain accessible
-   * after any copy operation (whether via spread syntax or Object.assign)
-   * performed by the JupyterLab completer internals.
-   */
-  public self: LazyCompletionItem;
-
-  get isDocumentationMarkdown(): boolean {
-    return this._is_documentation_markdown;
-  }
-
-  constructor(
-    /**
-     * User facing completion.
-     * If insertText is not set, this will be inserted.
-     */
-    public label: string,
-    /**
-     * Type of this completion item.
-     */
-    public type: string,
-    /**
-     * LabIcon object for icon to be rendered with completion type.
-     */
-    public icon: LabIcon,
-    private match: lsProtocol.CompletionItem,
-    private connector: LSPConnector,
-    private uri: string
-  ) {
-    this._setDocumentation(match.documentation);
-    this._requested_resolution = false;
-    this._resolved = false;
-    this.self = this;
-  }
-
-  private _setDocumentation(documentation: string | lsProtocol.MarkupContent) {
-    if (lsProtocol.MarkupContent.is(documentation)) {
-      this._documentation = documentation.value;
-      this._is_documentation_markdown = documentation.kind === 'markdown';
-    } else {
-      this._documentation = documentation;
-      this._is_documentation_markdown = false;
-    }
-  }
-
-  /**
-   * Completion to be inserted.
-   */
-  get insertText(): string {
-    return this.match.insertText || this.match.label;
-  }
-
-  public supportsResolution() {
-    const connection = this.connector.get_connection(this.uri);
-
-    return connection.isCompletionResolveProvider();
-  }
-
-  public needsResolution(): boolean {
-    if (this.documentation) {
-      return false;
-    }
-
-    if (this._resolved) {
-      return false;
-    }
-
-    if (this._requested_resolution) {
-      return false;
-    }
-
-    return this.supportsResolution();
-  }
-
-  public isResolved() {
-    return this._resolved;
-  }
-
-  public fetchDocumentation(): void {
-    if (!this.needsResolution()) {
-      return;
-    }
-
-    const connection = this.connector.get_connection(this.uri);
-
-    this._requested_resolution = true;
-
-    connection
-      .getCompletionResolve(this.match)
-      .then(resolvedCompletionItem => {
-        this.connector.lab_integration.set_doc_panel_placeholder(false);
-        if (resolvedCompletionItem === null) {
-          return;
-        }
-        this._setDocumentation(resolvedCompletionItem.documentation);
-        this._resolved = true;
-        this.connector.lab_integration.refresh_doc_panel(this);
-      })
-      .catch(e => {
-        this.connector.lab_integration.set_doc_panel_placeholder(false);
-        console.warn(e);
-      });
-  }
-
-  /**
-   * A human-readable string with additional information
-   * about this item, like type or symbol information.
-   */
-  get documentation(): string {
-    if (!this.connector.should_show_documentation) {
-      return null;
-    }
-    if (this._documentation) {
-      return this._documentation;
-    }
-    return null;
-  }
-
-  /**
-   * Indicates if the item is deprecated.
-   */
-  get deprecated(): boolean {
-    if (this.match.deprecated) {
-      return this.match.deprecated;
-    }
-    return (
-      this.match.tags &&
-      this.match.tags.some(
-        tag => tag == lsProtocol.CompletionItemTag.Deprecated
-      )
-    );
-  }
+/**
+ * Completion items reply from a specific source
+ */
+export interface ICompletionsReply
+  extends CompletionHandler.ICompletionItemsReply {
+  // TODO: it is not clear when the source is set here and when on IExtendedCompletionItem.
+  //  it might be good to separate the two stages for both interfaces
+  source: ICompletionsSource;
+  items: IExtendedCompletionItem[];
 }
 
 /**
@@ -195,8 +74,31 @@ export class LSPConnector
   lab_integration: CompletionLabIntegration;
   items: CompletionHandler.ICompletionItems;
 
-  protected get suppress_auto_invoke_in(): string[] {
-    return this.options.settings.composite.suppressInvokeIn;
+  get kernel_completions_first(): boolean {
+    return this.options.settings.composite.kernelCompletionsFirst;
+  }
+
+  protected get use_lsp_completions(): boolean {
+    return (
+      this.options.settings.composite.disableCompletionsFrom.indexOf('LSP') ==
+      -1
+    );
+  }
+
+  protected get use_kernel_completions(): boolean {
+    return (
+      this.options.settings.composite.disableCompletionsFrom.indexOf(
+        'Kernel'
+      ) == -1
+    );
+  }
+
+  protected get suppress_continuous_hinting_in(): string[] {
+    return this.options.settings.composite.suppressContinuousHintingIn;
+  }
+
+  protected get suppress_trigger_character_in(): string[] {
+    return this.options.settings.composite.suppressTriggerCharacterIn;
   }
 
   get should_show_documentation(): boolean {
@@ -289,9 +191,16 @@ export class LSPConnector
     const cursor = editor.getCursorPosition();
     const token = editor.getTokenForPosition(cursor);
 
-    if (this.suppress_auto_invoke_in.indexOf(token.type) !== -1) {
-      this.console.log('Suppressing completer auto-invoke in', token.type);
-      return;
+    if (this.trigger_kind == AdditionalCompletionTriggerKinds.AutoInvoked) {
+      if (this.suppress_continuous_hinting_in.indexOf(token.type) !== -1) {
+        this.console.debug('Suppressing completer auto-invoke in', token.type);
+        return;
+      }
+    } else if (this.trigger_kind == CompletionTriggerKind.TriggerCharacter) {
+      if (this.suppress_trigger_character_in.indexOf(token.type) !== -1) {
+        this.console.debug('Suppressing completer auto-invoke in', token.type);
+        return;
+      }
     }
 
     const start = editor.getPositionAt(token.offset);
@@ -318,22 +227,26 @@ export class LSPConnector
     let virtual_cursor = virtual_editor.root_position_to_virtual_position(
       cursor_in_root
     );
+    const lsp_promise: Promise<CompletionHandler.ICompletionItemsReply> = this
+      .use_lsp_completions
+      ? this.fetch_lsp(
+          token,
+          typed_character,
+          virtual_start,
+          virtual_end,
+          virtual_cursor,
+          document,
+          position_in_token
+        )
+      : Promise.resolve(null);
 
-    const lsp_promise = this.fetch_lsp(
-      token,
-      typed_character,
-      virtual_start,
-      virtual_end,
-      virtual_cursor,
-      document,
-      position_in_token
-    );
     let promise: Promise<CompletionHandler.ICompletionItemsReply> = null;
 
     try {
       const kernelTimeout = this._kernel_timeout;
 
       if (
+        this.use_kernel_completions &&
         this._kernel_connector &&
         this._has_kernel &&
         (this._is_kernel_idle || this._should_wait_for_busy_kernel) &&
@@ -377,9 +290,16 @@ export class LSPConnector
           promise = Promise.all([
             kernel_promise.catch(p => p),
             lsp_promise.catch(p => p)
-          ]).then(([kernel, lsp]) =>
-            this.merge_replies(this.transform_reply(kernel), lsp, this._editor)
-          );
+          ]).then(([kernel, lsp]) => {
+            let replies = [];
+            if (kernel != null) {
+              replies.push(this.transform_reply(kernel));
+            }
+            if (lsp != null) {
+              replies.push(lsp);
+            }
+            return this.merge_replies(replies, this._editor);
+          });
         }
       }
       if (!promise) {
@@ -418,7 +338,7 @@ export class LSPConnector
     cursor: IVirtualPosition,
     document: VirtualDocument,
     position_in_token: number
-  ): Promise<CompletionHandler.ICompletionItemsReply> {
+  ): Promise<ICompletionsReply> {
     let connection = this.get_connection(document.uri);
 
     this.console.debug('Fetching');
@@ -445,11 +365,10 @@ export class LSPConnector
     this.console.debug('Transforming');
     let prefix = token.value.slice(0, position_in_token + 1);
     let all_non_prefixed = true;
-    let items: CompletionHandler.ICompletionItem[] = [];
+    let items: IExtendedCompletionItem[] = [];
     lspCompletionItems.forEach(match => {
       let kind = match.kind ? CompletionItemKind[match.kind] : '';
       let completionItem = new LazyCompletionItem(
-        match.label,
         kind,
         this.icon_for(kind),
         match,
@@ -478,9 +397,15 @@ export class LSPConnector
     this.console.debug('Transformed');
     // required to make the repetitive trigger characters like :: or ::: work for R with R languageserver,
     // see https://github.com/krassowski/jupyterlab-lsp/issues/436
-    const prefix_offset = token.value.length;
+    let prefix_offset = token.value.length;
+    // completion of dictionaries for Python with jedi-language-server was
+    // causing an issue for dic['<tab>'] case; to avoid this let's make
+    // sure that prefix.length >= prefix.offset
+    if (all_non_prefixed && prefix_offset > prefix.length) {
+      prefix_offset = prefix.length;
+    }
 
-    return {
+    let response = {
       // note in the ContextCompleter it was:
       // start: token.offset,
       // end: token.offset + token.value.length,
@@ -492,8 +417,20 @@ export class LSPConnector
       // but it did not work for "from statistics <tab>" and lead to "from statisticsimport" (no space)
       start: token.offset + (all_non_prefixed ? prefix_offset : 0),
       end: token.offset + prefix.length,
-      items: items
+      items: items,
+      source: {
+        name: 'LSP',
+        priority: 2
+      }
     };
+    if (response.start > response.end) {
+      console.warn(
+        'Response contains start beyond end; this should not happen!',
+        response
+      );
+    }
+
+    return response;
   }
 
   protected icon_for(type: string): LabIcon {
@@ -506,11 +443,9 @@ export class LSPConnector
     return (this.options.themeManager.get_icon(type) as LabIcon) || undefined;
   }
 
-  private transform_reply(
-    reply: CompletionHandler.IReply
-  ): CompletionHandler.ICompletionItemsReply {
+  private transform_reply(reply: CompletionHandler.IReply): ICompletionsReply {
     this.console.log('Transforming kernel reply:', reply);
-    let items: CompletionHandler.ICompletionItem[];
+    let items: IExtendedCompletionItem[];
     const metadata = reply.metadata || {};
     const types = metadata._jupyter_types_experimental as JSONArray;
 
@@ -519,8 +454,9 @@ export class LSPConnector
         return {
           label: item.text as string,
           insertText: item.text as string,
-          type: item.type as string,
-          icon: this.icon_for(item.type as string)
+          type: item.type === '<unknown>' ? undefined : (item.type as string),
+          icon: this.icon_for(item.type as string),
+          sortText: this.kernel_completions_first ? 'a' : 'z'
         };
       });
     } else {
@@ -528,72 +464,113 @@ export class LSPConnector
         return {
           label: match,
           insertText: match,
-          icon: this.icon_for('Kernel')
+          sortText: this.kernel_completions_first ? 'a' : 'z'
         };
       });
     }
-    return { start: reply.start, end: reply.end, items };
+    return {
+      start: reply.start,
+      end: reply.end,
+      source: {
+        name: 'Kernel',
+        priority: 1,
+        fallbackIcon: this.icon_for('Kernel')
+      },
+      items
+    };
   }
 
-  private merge_replies(
-    kernel: CompletionHandler.ICompletionItemsReply,
-    lsp: CompletionHandler.ICompletionItemsReply,
+  protected merge_replies(
+    replies: ICompletionsReply[],
     editor: CodeEditor.IEditor
-  ): CompletionHandler.ICompletionItemsReply {
-    this.console.debug('Merging completions:', lsp, kernel);
+  ): ICompletionsReply {
+    this.console.debug('Merging completions:', replies);
 
-    if (kernel instanceof Error) {
-      this.console.warn('Caught kernel completions error', kernel);
-    }
-    if (lsp instanceof Error) {
-      this.console.warn('Caught LSP completions error', lsp);
-    }
+    replies = replies.filter(reply => {
+      if (reply instanceof Error) {
+        this.console.warn(
+          `Caught ${reply.source.name} completions error`,
+          reply
+        );
+        return false;
+      }
+      // ignore if no matches
+      if (!reply.items.length) {
+        return false;
+      }
+      // otherwise keep
+      return true;
+    });
 
-    if (kernel instanceof Error || !kernel.items.length) {
-      return lsp;
-    }
-    if (lsp instanceof Error || !lsp.items.length) {
-      return kernel;
-    }
+    replies.sort((a, b) => b.source.priority - a.source.priority);
 
-    let prefix = '';
+    this.console.debug('Sorted replies:', replies);
 
-    // if the kernel used a wider range, get the previous characters to strip the prefix off,
-    // so that both use the same range
-    if (lsp.start > kernel.start) {
+    const minEnd = Math.min(...replies.map(reply => reply.end));
+
+    // if any of the replies uses a wider range, we need to align them
+    // so that all responses use the same range
+    const minStart = Math.min(...replies.map(reply => reply.start));
+    const maxStart = Math.max(...replies.map(reply => reply.start));
+
+    if (minStart != maxStart) {
       const cursor = editor.getCursorPosition();
       const line = editor.getLine(cursor.line);
-      prefix = line.substring(kernel.start, lsp.start);
-      this.console.debug('Removing kernel prefix: ', prefix);
-    } else if (lsp.start < kernel.start) {
-      this.console.warn('Kernel start > LSP start');
+
+      replies = replies.map(reply => {
+        // no prefix to strip, return as-is
+        if (reply.start == maxStart) {
+          return reply;
+        }
+        let prefix = line.substring(reply.start, maxStart);
+        this.console.debug(`Removing ${reply.source.name} prefix: `, prefix);
+        return {
+          ...reply,
+          items: reply.items.map(item => {
+            item.insertText = item.insertText.startsWith(prefix)
+              ? item.insertText.substr(prefix.length)
+              : item.insertText;
+            return item;
+          })
+        };
+      });
     }
 
-    // combine completions, de-duping by insertText; LSP completions will show up first, kernel second.
-    const aggregatedItems = lsp.items.concat(
-      kernel.items.map(item => {
-        return {
-          ...item,
-          insertText: item.insertText.startsWith(prefix)
-            ? item.insertText.substr(prefix.length)
-            : item.insertText
-        };
-      })
-    );
     const insertTextSet = new Set<string>();
-    const processedItems = new Array<CompletionHandler.ICompletionItem>();
+    const processedItems = new Array<IExtendedCompletionItem>();
 
-    aggregatedItems.forEach(item => {
-      if (insertTextSet.has(item.insertText)) {
-        return;
-      }
-      insertTextSet.add(item.insertText);
-      processedItems.push(item);
-    });
-    // TODO: Sort items
+    for (const reply of replies) {
+      reply.items.forEach(item => {
+        // trimming because:
+        // IPython returns 'import' and 'import '; while the latter is more useful,
+        // user should not see two suggestions with identical labels and nearly-identical
+        // behaviour as they could not distinguish the two either way
+        let text = item.insertText.trim();
+        if (insertTextSet.has(text)) {
+          return;
+        }
+        insertTextSet.add(text);
+        // extra processing (adding icon/source name) is delayed until
+        // we are sure that the item will be kept (as otherwise it could
+        // lead to processing hundreds of suggestions - e.g. from numpy
+        // multiple times if multiple sources provide them).
+        let processedItem = item as IExtendedCompletionItem;
+        processedItem.source = reply.source;
+        if (!processedItem.icon) {
+          processedItem.icon = reply.source.fallbackIcon;
+        }
+        processedItems.push(processedItem);
+      });
+    }
+
     // Return reply with processed items.
-    this.console.debug('Merged: ', { ...lsp, items: processedItems });
-    return { ...lsp, items: processedItems };
+    this.console.debug('Merged: ', processedItems);
+    return {
+      start: maxStart,
+      end: minEnd,
+      source: null,
+      items: processedItems
+    };
   }
 
   list(
@@ -618,6 +595,17 @@ export class LSPConnector
     token: CodeEditor.IToken,
     cursor_at_request: CodeEditor.IPosition
   ) {
+    if (!this._editor.hasFocus()) {
+      this.console.debug(
+        'Ignoring completion response: the corresponding editor lost focus'
+      );
+      return {
+        start: reply.start,
+        end: reply.end,
+        items: []
+      };
+    }
+
     const cursor_now = this._editor.getCursorPosition();
 
     // if the cursor advanced in the same line, the previously retrieved completions may still be useful
@@ -626,6 +614,9 @@ export class LSPConnector
       cursor_at_request.line != cursor_now.line ||
       cursor_now.column < cursor_at_request.column
     ) {
+      this.console.debug(
+        'Ignoring completion response: cursor has receded or changed line'
+      );
       return {
         start: reply.start,
         end: reply.end,

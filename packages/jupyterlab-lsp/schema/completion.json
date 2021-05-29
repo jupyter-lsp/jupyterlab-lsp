@@ -17,20 +17,35 @@
       "default": false,
       "description": "Whether to enable continuous hinting (Hinterland mode)."
     },
-    "suppressInvokeIn": {
-      "title": "Suppress invoke in specific code fragments",
+    "suppressContinuousHintingIn": {
+      "title": "Suppress invoke continuous hinting in specific code fragments",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": ["comment", "string", "def"],
+      "description": "An array of CodeMirror tokens for which the continuous hinting should be suppressed. The token names vary between languages (modes)."
+    },
+    "suppressTriggerCharacterIn": {
+      "title": "Suppress invoke via trigger character in specific code fragments",
       "type": "array",
       "items": {
         "type": "string"
       },
       "default": ["comment", "string"],
-      "description": "An array of CodeMirror tokens for which the auto-invoke should be suppressed. Adding 'def' will prevent continuous hinting when writing a function name in Python, Julia, JavaScript and other languages. The token names vary between languages (modes)."
+      "description": "An array of CodeMirror tokens for which the auto-invoke after entering a trigger (e.g. `.` in Python or `::` in R) character should be suppressed. The token names vary between languages (modes)."
     },
     "kernelResponseTimeout": {
       "title": "Kernel completion response timeout",
       "default": 600,
       "type": "number",
       "description": "The time to wait for the kernel completions suggestions in milliseconds. Set to 0 to disable kernel completions, or to -1 to wait indefinitely (not recommended)."
+    },
+    "disableCompletionsFrom": {
+      "description": "The sources from which to exclude completion from. Possible values include 'Kernel', 'LSP'.",
+      "type": "array",
+      "default": [],
+      "uniqueItems": true
     },
     "waitForBusyKernel": {
       "title": "Wait for kernel if busy",
@@ -42,7 +57,31 @@
       "title": "Completer theme",
       "type": ["string", "null"],
       "default": "vscode",
-      "description": "The identifier of a completer theme with icons which indicate the kind of completion. Set to null to disable icons."
+      "description": "The identifier of a completer theme with icons which indicate the kind of completion. Set to null to disable icons. Search for 'completer themes' in the command palette for a command displaying available themes."
+    },
+    "kernelCompletionsFirst": {
+      "title": "Prioritize completions from kernel",
+      "default": false,
+      "description": "In case of ties when sorting completions, should the kernel completions receive higher priority than the language server completions?"
+    },
+    "caseSensitive": {
+      "title": "Case-sensitive filtering",
+      "default": true,
+      "type": "boolean",
+      "description": "Should completion filtering be case-sensitive?"
+    },
+    "includePerfectMatches": {
+      "title": "Include perfect matches",
+      "default": true,
+      "type": "boolean",
+      "description": "Should perfect matches be included in the completion suggestions list?"
+    },
+    "labelExtra": {
+      "title": "Text to display next to completion label",
+      "default": "auto",
+      "type": "string",
+      "enum": ["detail", "type", "source", "auto"],
+      "description": "What to display next to the completion label, one of: 'detail', 'type', 'source', 'auto'. The default 'auto' will display whichever information is available."
     },
     "typesMap": {
       "title": "Mapping of custom kernel types to valid completion kind names",

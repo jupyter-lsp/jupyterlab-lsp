@@ -1,15 +1,16 @@
-import * as lsProtocol from 'vscode-languageserver-protocol';
-import { IRootPosition } from '../positioning';
-import { CodeMirrorIntegration } from '../editor_integration/codemirror';
-import { FeatureSettings, IFeatureLabIntegration } from '../feature';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { ILSPFeatureManager, PLUGIN_ID } from '../tokens';
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import * as lsProtocol from 'vscode-languageserver-protocol';
+
 import { EditorTooltipManager } from '../components/free_tooltip';
+import { CodeMirrorIntegration } from '../editor_integration/codemirror';
+import { FeatureSettings, IFeatureLabIntegration } from '../feature';
+import { IRootPosition } from '../positioning';
+import { ILSPFeatureManager, PLUGIN_ID } from '../tokens';
 import { IEditorChange } from '../virtual/editor';
 
 export class SignatureCM extends CodeMirrorIntegration {
@@ -92,16 +93,41 @@ export class SignatureCM extends CodeMirrorIntegration {
     return markdown;
   }
 
-  private handleSignature(response: lsProtocol.SignatureHelp) {
+  private handleSignature(
+    response: lsProtocol.SignatureHelp,
+    position_at_request: IRootPosition
+  ) {
     this.lab_integration.tooltip.remove();
 
     this.console.log('Signature received', response);
+
     if (!this.signature_character || !response || !response.signatures.length) {
+      this.console.debug(
+        'Ignoring signature response: cursor lost or response empty'
+      );
       return;
     }
 
-    let root_position = this.signature_character;
+    let root_position = position_at_request;
+
+    // if the cursor advanced in the same line, the previously retrieved signature may still be useful
+    // if the line changed or cursor moved backwards then no reason to keep the suggestions
+    if (
+      position_at_request.line != root_position.line ||
+      root_position.ch < position_at_request.ch
+    ) {
+      this.console.debug(
+        'Ignoring signature response: cursor has receded or changed line'
+      );
+    }
+
     let cm_editor = this.get_cm_editor(root_position);
+    if (!cm_editor.hasFocus()) {
+      this.console.debug(
+        'Ignoring signature response: the corresponding editor lost focus'
+      );
+      return;
+    }
     let editor_position = this.virtual_editor.root_position_to_editor(
       root_position
     );
@@ -152,7 +178,7 @@ export class SignatureCM extends CodeMirrorIntegration {
         this.virtual_document.document_info,
         false
       )
-      .then(help => this.handleSignature(help))
+      .then(help => this.handleSignature(help, root_position))
       .catch(this.console.warn);
   }
 }

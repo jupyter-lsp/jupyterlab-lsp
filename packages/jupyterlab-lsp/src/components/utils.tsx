@@ -1,11 +1,13 @@
-import { VirtualDocument } from '../virtual/document';
-import { WidgetAdapter } from '../adapters/adapter';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import React from 'react';
 
+import { WidgetAdapter } from '../adapters/adapter';
+import { VirtualDocument } from '../virtual/document';
+
 export function get_breadcrumbs(
   document: VirtualDocument,
-  adapter: WidgetAdapter<IDocumentWidget>
+  adapter: WidgetAdapter<IDocumentWidget>,
+  collapse = true
 ): JSX.Element[] {
   return document.ancestry.map((document: VirtualDocument) => {
     if (!document.parent) {
@@ -16,7 +18,18 @@ export function get_breadcrumbs(
       ) {
         path = path.slice(0, -document.file_extension.length - 1);
       }
-      return <span key={document.uri}>{path}</span>;
+      const full_path = path;
+      if (collapse) {
+        let parts = path.split('/');
+        if (parts.length > 2) {
+          path = parts[0] + '/.../' + parts[parts.length - 1];
+        }
+      }
+      return (
+        <span key={document.uri} title={full_path}>
+          {path}
+        </span>
+      );
     }
     if (!document.virtual_lines.size) {
       return <span key={document.uri}>Empty document</span>;
@@ -65,7 +78,11 @@ export function DocumentLocator(props: {
   let target: HTMLElement = null;
   if (adapter.has_multiple_editors) {
     let first_line = document.virtual_lines.get(0);
-    target = adapter.get_editor_wrapper(first_line.editor);
+    if (first_line) {
+      target = adapter.get_editor_wrapper(first_line.editor);
+    } else {
+      console.warn('Could not get first line of ', document);
+    }
   }
   let breadcrumbs = get_breadcrumbs(document, adapter);
   return (

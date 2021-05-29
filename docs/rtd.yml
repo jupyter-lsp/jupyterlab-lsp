@@ -16,10 +16,9 @@ dependencies:
       - nbsphinx >=0.5.0,<0.5.1a0
       - pandas
       - pytest-check-links
-      - python-language-server
-      - recommonmark
+      - myst-nb
+      - python-lsp-server
       - sphinx
-      - sphinx_rtd_theme
       - sphinx-autodoc-typehints
       - sphinx-copybutton
-      - sphinx-markdown-tables
+      - sphinx-book-theme

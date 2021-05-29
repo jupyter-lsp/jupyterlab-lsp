@@ -1,10 +1,23 @@
-import * as CodeMirror from 'codemirror';
-import * as lsProtocol from 'vscode-languageserver-protocol';
-import { PositionConverter } from '../../converter';
-import { IEditorPosition, IVirtualPosition } from '../../positioning';
-import { DiagnosticSeverity } from '../../lsp';
-import { DefaultMap, uris_equal } from '../../utils';
+import { JupyterFrontEnd } from '@jupyterlab/application';
 import { MainAreaWidget } from '@jupyterlab/apputils';
+import { TranslationBundle } from '@jupyterlab/translation';
+import { LabIcon, copyIcon } from '@jupyterlab/ui-components';
+import { Menu } from '@lumino/widgets';
+import type * as CodeMirror from 'codemirror';
+import type * as lsProtocol from 'vscode-languageserver-protocol';
+
+import diagnosticsSvg from '../../../style/icons/diagnostics.svg';
+import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
+import { PositionConverter } from '../../converter';
+import { CodeMirrorIntegration } from '../../editor_integration/codemirror';
+import { FeatureSettings } from '../../feature';
+import { DiagnosticSeverity } from '../../lsp';
+import { IEditorPosition, IVirtualPosition } from '../../positioning';
+import { DefaultMap, uris_equal } from '../../utils';
+import { CodeMirrorVirtualEditor } from '../../virtual/codemirror_editor';
+import { VirtualDocument } from '../../virtual/document';
+import { jumpToIcon } from '../jump_to';
+
 import {
   DIAGNOSTICS_LISTING_CLASS,
   DiagnosticsDatabase,
@@ -12,16 +25,6 @@ import {
   IDiagnosticsRow,
   IEditorDiagnostic
 } from './listing';
-import { VirtualDocument } from '../../virtual/document';
-import { FeatureSettings } from '../../feature';
-import { CodeMirrorIntegration } from '../../editor_integration/codemirror';
-import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
-import { CodeMirrorVirtualEditor } from '../../virtual/codemirror_editor';
-import { copyIcon, LabIcon } from '@jupyterlab/ui-components';
-import diagnosticsSvg from '../../../style/icons/diagnostics.svg';
-import { Menu } from '@lumino/widgets';
-import { JupyterFrontEnd } from '@jupyterlab/application';
-import { jumpToIcon } from '../jump_to';
 
 export const diagnosticsIcon = new LabIcon({
   name: 'lsp:diagnostics',
@@ -50,6 +53,7 @@ class DiagnosticsPanel {
   private _widget: MainAreaWidget<DiagnosticsListing> = null;
   feature: DiagnosticsCM;
   is_registered = false;
+  trans: TranslationBundle;
 
   get widget() {
     if (this._widget == null || this._widget.content.model == null) {
@@ -66,12 +70,14 @@ class DiagnosticsPanel {
   }
 
   protected init_widget() {
-    this._content = new DiagnosticsListing(new DiagnosticsListing.Model());
+    this._content = new DiagnosticsListing(
+      new DiagnosticsListing.Model(this.trans)
+    );
     this._content.model.diagnostics = new DiagnosticsDatabase();
     this._content.addClass('lsp-diagnostics-panel-content');
     const widget = new MainAreaWidget({ content: this._content });
     widget.id = 'lsp-diagnostics-panel';
-    widget.title.label = 'Diagnostics Panel';
+    widget.title.label = this.trans?.__('Diagnostics Panel');
     widget.title.closable = true;
     widget.title.icon = diagnosticsIcon;
     return widget;
@@ -99,7 +105,7 @@ class DiagnosticsPanel {
 
     /** Columns Menu **/
     let columns_menu = new Menu({ commands: app.commands });
-    columns_menu.title.label = 'Panel columns';
+    columns_menu.title.label = this.trans.__('Panel columns');
 
     app.commands.addCommand(CMD_COLUMN_VISIBILITY, {
       execute: args => {
@@ -107,7 +113,7 @@ class DiagnosticsPanel {
         column.is_visible = !column.is_visible;
         widget.update();
       },
-      label: args => args['name'] as string,
+      label: args => this.trans.__(`${args['name']}`) as string,
       isToggled: args => {
         let column = get_column(args['name'] as string);
         return column.is_visible;
@@ -128,7 +134,9 @@ class DiagnosticsPanel {
 
     /** Diagnostics Menu **/
     let ignore_diagnostics_menu = new Menu({ commands: app.commands });
-    ignore_diagnostics_menu.title.label = 'Ignore diagnostics like this';
+    ignore_diagnostics_menu.title.label = this.trans.__(
+      'Ignore diagnostics like this'
+    );
 
     let get_row = (): IDiagnosticsRow => {
       let tr = app.contextMenuHitTest(
@@ -170,7 +178,10 @@ class DiagnosticsPanel {
           return '';
         }
         const diagnostic = row.data.diagnostic;
-        return `Ignore diagnostics with "${diagnostic.code}" code`;
+        return this.trans.__(
+          'Ignore diagnostics with "%1" code',
+          diagnostic.code
+        );
       }
     });
     app.commands.addCommand(CMD_IGNORE_DIAGNOSTIC_MSG, {
@@ -199,7 +210,10 @@ class DiagnosticsPanel {
           return '';
         }
         const diagnostic = row.data.diagnostic;
-        return `Ignore diagnostics with "${diagnostic.message}" message`;
+        return this.trans.__(
+          'Ignore diagnostics with "%1" message',
+          diagnostic.message
+        );
       }
     });
 
@@ -208,7 +222,7 @@ class DiagnosticsPanel {
         const row = get_row();
         this.widget.content.jump_to(row);
       },
-      label: 'Jump to location',
+      label: this.trans.__('Jump to location'),
       icon: jumpToIcon
     });
 
@@ -223,7 +237,7 @@ class DiagnosticsPanel {
           .writeText(message)
           .then(() => {
             this.content.model.status_message.set(
-              `Successfully copied "${message}" to clipboard`
+              this.trans.__(`Successfully copied "%1" to clipboard`, message)
             );
           })
           .catch(() => {
@@ -231,12 +245,14 @@ class DiagnosticsPanel {
               'Could not copy with clipboard.writeText interface, falling back'
             );
             window.prompt(
-              'Your browser protects clipboard from write operations; please copy the message manually',
+              this.trans.__(
+                'Your browser protects clipboard from write operations; please copy the message manually'
+              ),
               message
             );
           });
       },
-      label: "Copy diagnostics' message",
+      label: this.trans.__("Copy diagnostics' message"),
       icon: copyIcon
     });
 
@@ -279,7 +295,16 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
     this.adapter.adapterConnected.connect(() =>
       this.switchDiagnosticsPanelSource()
     );
+    this.virtual_document.foreign_document_closed.connect(
+      (document, context) => {
+        this.clearDocumentDiagnostics(context.foreign_document);
+      }
+    );
     super.register();
+  }
+
+  clearDocumentDiagnostics(document: VirtualDocument) {
+    this.diagnostics_db.set(document, []);
   }
 
   private unique_editor_ids: DefaultMap<CodeMirror.Editor, number>;
@@ -302,6 +327,7 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
   }
 
   switchDiagnosticsPanelSource = () => {
+    diagnostics_panel.trans = this.adapter.trans;
     if (
       diagnostics_panel.content.model.virtual_editor === this.virtual_editor &&
       diagnostics_panel.content.model.diagnostics == this.diagnostics_db

@@ -2,7 +2,7 @@ from .config import load_config_schema
 from .utils import PythonModuleSpec
 
 
-class PythonLanguageServer(PythonModuleSpec):
+class PalantirPythonLanguageServer(PythonModuleSpec):
     python_module = key = "pyls"
     languages = ["python"]
     spec = dict(
@@ -13,7 +13,7 @@ class PythonLanguageServer(PythonModuleSpec):
             issues="https://github.com/palantir/python-language-server/issues",
         ),
         install=dict(
-            pip="pip install python-language-server[all]",
+            pip="pip install 'python-language-server[all]'",
             conda="conda install -c conda-forge python-language-server",
         ),
         extend=[

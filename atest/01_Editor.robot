@@ -43,9 +43,13 @@ Less
 Markdown
     Editor Shows Features for Language    Markdown    example.md    Diagnostics=`Color` is misspelt
 
-Python
+Python (pylsp)
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
-    Editor Shows Features for Language    Python    example.py    Diagnostics=multiple spaces after keyword    Jump to Definition=${def}    Rename=${def}
+    Editor Shows Features for Server    pylsp    Python    example.py    Diagnostics=undefined name 'result' (pyflakes)    Jump to Definition=${def}    Rename=${def}
+
+Python (pyright)
+    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
+    Editor Shows Features for Server    pyright    Python    example.py    Diagnostics=is not defined (Pyright)    Jump to Definition=${def}
 
 R
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
@@ -70,6 +74,12 @@ YAML
     Editor Shows Features for Language    YAML    example.yaml    Diagnostics=duplicate key
 
 *** Keywords ***
+Editor Shows Features for Server
+    [Arguments]    ${server}    ${Language}    ${file}    &{features}
+    Configure JupyterLab Plugin
+    ...    {"language_servers": {"${server}": {"priority": 10000}}}
+    Editor Shows Features for Language    ${Language}    ${file}    &{features}
+
 Editor Shows Features for Language
     [Arguments]    ${Language}    ${file}    &{features}
     Prepare File for Editing    ${Language}    editor    ${file}
