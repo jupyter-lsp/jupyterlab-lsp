@@ -7,6 +7,8 @@
   - add ability to deactivate Kernel completions or LSP completion through the settings ([#586], thanks @Carreau)
   - allow to set a priority for LSP server, allowing to choose which server to use when multiple servers are installed ([#588])
   - add auto-detection of pyright server ([#587], thanks @yuntan)
+  - log server messages in user-accessible console ([#606])
+  - old emit-based API of lsp-ws-connection is new deprecated and will be removed in the next major version; please use `serverNotifications`, `clientNotifications`, `clientRequests` and `serverRequests` instead ([#606])
 
 - bug fixes:
 
@@ -14,11 +16,13 @@
 
 - other changes:
   - drop Node 10 (EOL 2 weeks ago) testing on CI, add Node 15 ([#587])
+  - update lsp-ws-connection dependencies ([#606])
 
 [#586]: https://github.com/krassowski/jupyterlab-lsp/pull/586
 [#587]: https://github.com/krassowski/jupyterlab-lsp/pull/587
 [#588]: https://github.com/krassowski/jupyterlab-lsp/pull/588
 [#599]: https://github.com/krassowski/jupyterlab-lsp/pull/599
+[#606]: https://github.com/krassowski/jupyterlab-lsp/pull/606
 
 ### `jupyter-lsp 1.2.0` (2021-04-26)
 
