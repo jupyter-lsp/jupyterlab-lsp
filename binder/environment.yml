@@ -30,5 +30,3 @@ dependencies:
   - tectonic
   - texlab
   - chktex
-  # TODO: remove when jedi vs IPython is resolved
-  - jedi <0.18
