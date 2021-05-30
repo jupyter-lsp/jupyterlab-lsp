@@ -1,10 +1,7 @@
 import * as events from 'events';
 
-import * as protocol from 'vscode-languageserver-protocol';
-import {
-  CompletionItemTag,
-  LocationLink
-} from 'vscode-languageserver-protocol';
+import type * as protocol from 'vscode-languageserver-protocol';
+import { CompletionItemTag, LocationLink } from 'vscode-languageserver-types';
 import { ConsoleLogger, MessageConnection, listen } from 'vscode-ws-jsonrpc';
 
 import {
@@ -14,6 +11,7 @@ import {
 import {
   AnyCompletion,
   AnyLocation,
+  CompletionTriggerKind,
   IDocumentInfo,
   ILspConnection,
   ILspOptions,
@@ -355,7 +353,7 @@ export class LspWsConnection
         character: location.ch
       },
       context: {
-        triggerKind: triggerKind || protocol.CompletionTriggerKind.Invoked,
+        triggerKind: triggerKind || CompletionTriggerKind.Invoked,
         triggerCharacter
       }
     };
