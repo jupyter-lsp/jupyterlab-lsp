@@ -1,6 +1,6 @@
 ## Changelog
 
-### `@krassowski/jupyterlab-lsp 3.7.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.7.0` (2021-05-31)
 
 - features:
 
@@ -9,7 +9,6 @@
   - add auto-detection of pyright server ([#587], thanks @yuntan)
   - update from JupyterLab Classic to RetroLab ([#603])
   - log server messages in user-accessible console ([#606])
-  - old emit-based API of lsp-ws-connection is new deprecated and will be removed in the next major version; please use `serverNotifications`, `clientNotifications`, `clientRequests` and `serverRequests` instead ([#606])
 
 - bug fixes:
 
@@ -18,6 +17,7 @@
 - other changes:
   - drop Node 10 (EOL 2 weeks ago) testing on CI, add Node 15 ([#587])
   - update lsp-ws-connection dependencies ([#606])
+  - old emit-based API of lsp-ws-connection is new deprecated and will be removed in the next major version; please use `serverNotifications`, `clientNotifications`, `clientRequests` and `serverRequests` instead ([#606])
 
 [#586]: https://github.com/krassowski/jupyterlab-lsp/pull/586
 [#587]: https://github.com/krassowski/jupyterlab-lsp/pull/587
