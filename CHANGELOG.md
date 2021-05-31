@@ -7,7 +7,7 @@
   - add ability to deactivate Kernel completions or LSP completion through the settings ([#586], thanks @Carreau)
   - allow to set a priority for LSP server, allowing to choose which server to use when multiple servers are installed ([#588])
   - add auto-detection of pyright server ([#587], thanks @yuntan)
-  - update from JupyterLab Classic to RetroLab ([#603])
+  - update from JupyterLab Classic to RetroLab ([#602])
   - log server messages in user-accessible console ([#606])
 
 - bug fixes:
