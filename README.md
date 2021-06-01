@@ -192,7 +192,7 @@ Use of a python `virtualenv` or a conda env is also recommended.
 
 Server configurations can be edited using the Advanced Settings editor in JupyterLab (_Settings > Advanced Settings Editor_). For settings specific to each server, please see the [table of language servers][language-servers]. Example settings might include:
 
-> Note: for the new (currently recommended) python-lsp-server replace `pyls` occurrences with `pyslp`
+> Note: for the new (currently recommended) python-lsp-server replace `pyls` occurrences with `pylsp`
 
 ```json
 {
