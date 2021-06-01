@@ -1,5 +1,12 @@
 ## Changelog
 
+### `@krassowski/jupyterlab-lsp 3.7.1` (unreleased)
+
+- bug fixes:
+  - fix rename shortcut registration in file browser ([#614])
+
+[#614]: https://github.com/krassowski/jupyterlab-lsp/pull/614
+
 ### `jupyter-lsp 1.3.0` (2021-06-02)
 
 - features:
