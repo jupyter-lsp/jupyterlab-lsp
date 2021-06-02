@@ -1,5 +1,12 @@
 ## Changelog
 
+### `jupyter-lsp 1.3.0` (2021-06-02)
+
+- features:
+  - add auto-detection of pyright server ([#587], thanks @yuntan)
+
+[#587]: https://github.com/krassowski/jupyterlab-lsp/pull/587
+
 ### `@krassowski/jupyterlab-lsp 3.7.0` (2021-05-31)
 
 - features:
@@ -20,7 +27,6 @@
   - old emit-based API of lsp-ws-connection is new deprecated and will be removed in the next major version; please use `serverNotifications`, `clientNotifications`, `clientRequests` and `serverRequests` instead ([#606])
 
 [#586]: https://github.com/krassowski/jupyterlab-lsp/pull/586
-[#587]: https://github.com/krassowski/jupyterlab-lsp/pull/587
 [#588]: https://github.com/krassowski/jupyterlab-lsp/pull/588
 [#599]: https://github.com/krassowski/jupyterlab-lsp/pull/599
 [#602]: https://github.com/krassowski/jupyterlab-lsp/pull/602
