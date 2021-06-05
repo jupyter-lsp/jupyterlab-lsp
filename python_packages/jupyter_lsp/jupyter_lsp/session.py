@@ -5,8 +5,10 @@ import atexit
 import os
 import string
 import subprocess
+import threading
 from copy import copy
 from datetime import datetime, timezone
+from typing import cast
 
 from concurrent.futures import ThreadPoolExecutor
 from tornado.concurrent import run_on_executor
@@ -64,7 +66,7 @@ class LanguageServerSession(LoggingConfigurable):
         super().__init__(*args, **kwargs)
         atexit.register(self.stop)
         self.executor = ThreadPoolExecutor(max_workers=1)
-        self.portal = anyio.start_blocking_portal()
+        self.start_blocking_portal()
 
 
     def __repr__(self):  # pragma: no cover
@@ -137,6 +139,21 @@ class LanguageServerSession(LoggingConfigurable):
 
     def now(self):
         return datetime.now(timezone.utc)
+
+    # old definition of start_blocking_portal() prior to anyio3
+    def start_blocking_portal(self):
+        async def run_portal():
+            nonlocal portal
+            async with anyio.create_blocking_portal() as portal:
+                event.set()
+                await portal.sleep_until_stopped()
+
+        portal: Optional[anyio.abc.BlockingPortal]
+        event = threading.Event()
+        thread = threading.Thread(target=anyio.run, kwargs={"func": run_portal})
+        thread.start()
+        event.wait()
+        self.portal = cast(anyio.abc.BlockingPortal, portal)
 
     async def init_process(self):
         """start the language server subprocess"""
