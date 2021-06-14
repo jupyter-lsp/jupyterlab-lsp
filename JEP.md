@@ -120,7 +120,7 @@ The current implementation can be improved by:
    - see futher discussion in [#467](https://github.com/krassowski/jupyterlab-lsp/issues/467)
 2. formalizing grammar of substituting magics with equivalent or placeholder (which allows for one-to-one mapping of magics to code that can be understood by standard refactoring tools and back to the magics after the code was transformed by the refactoring tools, for example moved to another file), see [#347](https://github.com/krassowski/jupyterlab-lsp/issues/347)
 3. abstracting the communication layer between client and server so that different mechanisms can be used for such communication, for example:
-   - custom, manually managed websocket between by client and jupyter server extension (existing solution),
+   - custom, manually managed websocket between the client and jupyter server extension (existing solution),
    - websocket managed reusing the kernel comms (acting as a transparent proxy but reducing the number of dependencies since in the context of Jupyter the kernel comms are expected to be present either way), see the proposed implementation in [#278](https://github.com/krassowski/jupyterlab-lsp/pull/278)
    - direct connection to a cloud service providing language intelligence as a service, e.g. [sourcegraph](https://about.sourcegraph.com/).
 
