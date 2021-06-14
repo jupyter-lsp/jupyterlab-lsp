@@ -18,7 +18,7 @@ date-started: 2021-06-dd
 
 A common criticism of the Jupyter environment (regardless of the front-end editor) and of the official Jupyter frontends (in light of recent, experimental support of feature-rich notebook edition under development by some of the major IDE developers) is the lack of advanced code assistance tooling. The proper tooling can improve code quality, validity of computation and increase development speed and we therefore believe that it is a key ingredient of a good computational notebooks environment, which from the beginning aimed at improving the workflow of users.
 
-Providing support for advanced coding assistance for each language separatly is a daunting task, challenging not only for volunteer-driven projects, but also for large companies. Microsoft recognised the problem creating the Language Server Protocol with reference implementation in VSCode(TM).
+Providing support for advanced coding assistance for each language separately is a daunting task, challenging not only for volunteer-driven projects, but also for large companies. Microsoft recognized the problem creating the Language Server Protocol with reference implementation in VSCode(TM).
 
 - many language servers are community supported and available for free.
 
@@ -51,7 +51,7 @@ The key component of the repository, [@krassowski/jupyterlab-lsp](https://www.np
 > 
 > The section should return to the examples given in the previous section, and explain more fully how the detailed proposal makes those examples work.
 
-The current implementation of the LSP integration is a barely a proof of concept. We belive that a different implementation should be developed to take the more comprehensive use cases and diversity of the Jupyter ecosystem into account; we created detailed proposals for improvement and refactoring of our code as explained later.
+The current implementation of the LSP integration is a barely a proof of concept. We believe that a different implementation should be developed to take the more comprehensive use cases and diversity of the Jupyter ecosystem into account; we created detailed proposals for improvement and refactoring of our code as explained later.
 
 ## Dealing with Jupyter notebooks complexity
 
@@ -82,12 +82,12 @@ Currently:
 
 > - What other designs have been considered and what is the rationale for not choosing them?
 
-A previous (stale) JEP proposed to integrate LSP and to adopt Monaco editor, which would entail bringing a heavy dependency and large reliance on continious developement of Monaco by Microsoft; it was not clear whether Monaco would allow efficient use in multi-editor notebook setting and the work on the integration stalled a few years ago. Differently to that previous proposal we **do not** propose to adopt any specific implementation, yet we bring a working implementation for CodeMirror editor, which is already in use by two of the official front-ends for Jupyter (Jupyter Notebook and JupyterLab). 
+A previous (stale) JEP proposed to integrate LSP and to adopt Monaco editor, which would entail bringing a heavy dependency and large reliance on continuous development of Monaco by Microsoft; it was not clear whether Monaco would allow efficient use in multi-editor notebook setting and the work on the integration stalled a few years ago. Differently to that previous proposal we **do not** propose to adopt any specific implementation, yet we bring a working implementation for CodeMirror editor, which is already in use by two of the official front-ends for Jupyter (Jupyter Notebook and JupyterLab). 
 
 
 > - What is the impact of not doing this?
 
-The Jupyter originally driving innovation in the field is now in some communities perecieved as a driver behind bad coding practices due to the lack of available toolset in the official frontends. Alternative formats to ipynb were proposed and sometimes the only motivation was a better IDE-features support.
+The Jupyter originally driving innovation in the field is now in some communities perceived as a driver behind bad coding practices due to the lack of available toolset in the official frontends. Alternative formats to ipynb were proposed and sometimes the only motivation was a better IDE-features support.
 
 # Prior art
 
@@ -114,14 +114,14 @@ Multiple proprietary notebook interfaces attempted integration of language featu
 
 
 The current implementation can be improved by:
-1. embedding cell identifiers (and possibly metadata) as comments in the virual document at a place corresponding to the start of each cell (in jupytext-compatible way), to enable easier calculation of positions and implementation of refactoring features (e.g. linting with black) that add or remove lines (which is not currently possible),
+1. embedding cell identifiers (and possibly metadata) as comments in the virtual document at a place corresponding to the start of each cell (in jupytext-compatible way), to enable easier calculation of positions and implementation of refactoring features (e.g. linting with black) that add or remove lines (which is not currently possible),
    - adding metadata might be required to enable polyglot SOS notebooks, see discussion in [#282](https://github.com/krassowski/jupyterlab-lsp/issues/282)
-   - one might consider if it is worth to delegate this task to jupytext; this would necessitate moving the notebook concatenation logic to the server extension, with a positive side effect of exposing it for re-use by other clients, but with a potential downsides of the need to frequently transfer the entire notebook (on each debounced keypress) to the server extension (which could be alleviated if implemented via delta/diffs; this adds more logic but given that notebooks is just a JSON it might be feasible to use an existing tool) and with a downside of having the notebook-virtual document position transformation code on both backend and frontend as the frontend part cannot be easily (or at al?) eliminated; as this option looks promising it will be investiagated once current performance shortcomings are resolved.
+   - one might consider if it is worth to delegate this task to jupytext; this would necessitate moving the notebook concatenation logic to the server extension, with a positive side effect of exposing it for re-use by other clients, but with a potential downsides of the need to frequently transfer the entire notebook (on each debounced keypress) to the server extension (which could be alleviated if implemented via delta/diffs; this adds more logic but given that notebooks is just a JSON it might be feasible to use an existing tool) and with a downside of having the notebook-virtual document position transformation code on both backend and frontend as the frontend part cannot be easily (or at al?) eliminated; as this option looks promising it will be investigated once current performance shortcomings are resolved.
    - see futher discussion in [#467](https://github.com/krassowski/jupyterlab-lsp/issues/467)
-2. formalizing grammar of substituting magics with equivalent or placeholder (which is allows for one-to-one mapping of magics to code that can be understood by standard refactoring tools and back to the magics after the code was transformed by the refactoring tools, for examle moved to another file), see [#347](https://github.com/krassowski/jupyterlab-lsp/issues/347)
+2. formalizing grammar of substituting magics with equivalent or placeholder (which allows for one-to-one mapping of magics to code that can be understood by standard refactoring tools and back to the magics after the code was transformed by the refactoring tools, for example moved to another file), see [#347](https://github.com/krassowski/jupyterlab-lsp/issues/347)
 3. abstracting the communication layer between client and server so that different mechanisms can be used for such communication, for example:
    - custom, manually managed websocket between by client and jupyter server extension (existing solution),
-   - websocket managed reusing the kernel comms (acting as a transparent proxy but reducing the number of dependencies since in the context of Jupter the kernel comms are expected to be present either way), see the propsed implementation in [#278](https://github.com/krassowski/jupyterlab-lsp/pull/278)
+   - websocket managed reusing the kernel comms (acting as a transparent proxy but reducing the number of dependencies since in the context of Jupyter the kernel comms are expected to be present either way), see the proposed implementation in [#278](https://github.com/krassowski/jupyterlab-lsp/pull/278)
    - direct connection to a cloud service providing language intelligence as a service, e.g. [sourcegraph](https://about.sourcegraph.com/).
 
 There are also smaller fires to put out in the current implementation which we believe do not warrant further discussion; however, we want to enumerate those to assure a potentially concerned reader that those topics are being looked at and considered a priority due to the immediate impact on user and/or developer experience:
@@ -152,6 +152,6 @@ There are also smaller fires to put out in the current implementation which we b
 
 - Amending the kernel messaging protocol to ask only for runtime (e.g. keys in a dictionary, columns in a data frame) and kernel-specific completions (e.g. magics), this is excluding static-analysis based completions, to improve the performance of the completer
 - Seeding existing linting tools with plugins to support notebook-specific features (empty cells, out of order execution, largely as envisioned by pioneering work of [JuLynter](https://dew-uff.github.io/julynter/index.html) experiment)
-- Encouraging contributions to existing language-servers and offering platform for developement of Jupyter-optimized langauge servers
+- Encouraging contributions to existing language-servers and offering platform for development of Jupyter-optimized language servers
 - Enabling LSP features in markdown cells
 - Implementing support for related Language Server Index Format (LSIF), a protocol closely related to LSP and defined on the [specification page](https://microsoft.github.io/language-server-protocol/specifications/lsif/0.5.0/specification/) for even faster IDE features for the retrieval of immutable (or infrequently mutable) information, such as documentation of built-in functions.
