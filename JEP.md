@@ -16,7 +16,7 @@ date-started: 2021-06-dd
 
 > Why are we doing this? What use cases does it support? What is the expected outcome?
 
-A common criticism of the Jupyter environment (regardless of the front-end editor) and of the official Jupyter frontends (in light of recent, experimental support of feature-reich notebook edition under developement by some of the major IDE developers) is the lack of advanced code assistance tooling. The proper tooling can improve code quality, validity of computation and increase developement speed and we therefore belive that it is a key ingredient of a good computational notebooks environment, which from teh beginning aimed at improving the workflow of users.
+A common criticism of the Jupyter environment (regardless of the front-end editor) and of the official Jupyter frontends (in light of recent, experimental support of feature-rich notebook edition under development by some of the major IDE developers) is the lack of advanced code assistance tooling. The proper tooling can improve code quality, validity of computation and increase development speed and we therefore believe that it is a key ingredient of a good computational notebooks environment, which from the beginning aimed at improving the workflow of users.
 
 Providing support for advanced coding assistance for each language separatly is a daunting task, challenging not only for volunteer-driven projects, but also for large companies. Microsoft recognised the problem creating the Language Server Protocol with reference implementation in VSCode(TM).
 
