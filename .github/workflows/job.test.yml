@@ -68,6 +68,9 @@ jobs:
       - name: Install linting dependencies
         run: mamba env update -n test --file requirements/lint.yml
 
+      - name: Install mypy types
+        run: mypy --install-types
+
       - name: Check integrity of package versions
         run: python scripts/integrity.py
 
