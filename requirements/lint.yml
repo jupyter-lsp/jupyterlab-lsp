@@ -5,6 +5,7 @@ channels:
   - nodefaults
 
 dependencies:
+  - pip
   - black
   - isort
   - mypy
