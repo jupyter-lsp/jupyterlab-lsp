@@ -69,7 +69,7 @@ jobs:
         run: mamba env update -n test --file requirements/lint.yml
 
       - name: Install mypy types
-        run: mypy --install-types
+        run: python3 -m pip install types-six
 
       - name: Check integrity of package versions
         run: python scripts/integrity.py
