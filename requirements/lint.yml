@@ -11,3 +11,4 @@ dependencies:
   - robotframework-lint >=1.1
   - robotframework >=4
   - pytest-tornasync
+  - types-six
