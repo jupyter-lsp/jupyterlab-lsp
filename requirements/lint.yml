@@ -13,4 +13,4 @@ dependencies:
   - robotframework >=4
   - pytest-tornasync
   - pip:
-    - types-six
+      - types-six
