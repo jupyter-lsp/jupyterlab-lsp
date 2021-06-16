@@ -5,9 +5,11 @@
 - bug fixes:
   - fix rename shortcut registration in file editor ([#614])
   - add a note on manually enabling backend extension ([#621], thanks @icankeep)
+  - improve performance of icon rendering in completer ([#625])
 
 [#614]: https://github.com/krassowski/jupyterlab-lsp/pull/614
 [#621]: https://github.com/krassowski/jupyterlab-lsp/pull/621
+[#625]: https://github.com/krassowski/jupyterlab-lsp/pull/625
 
 ### `jupyter-lsp 1.3.0` (2021-06-02)
 
