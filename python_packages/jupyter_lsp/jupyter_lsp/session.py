@@ -110,7 +110,7 @@ class LanguageServerSession(LoggingConfigurable):
             self.portal.call(self.cancelscope.cancel)
             self.cancelscope = None
         if self.process:
-            self.process.terminate()
+            self.portal.call(self.stop_process, 5)
             self.process = None
         if self.reader:
             self.portal.call(self.reader.close)
@@ -176,6 +176,21 @@ class LanguageServerSession(LoggingConfigurable):
 
         if mode == "tcp":
             self.tcp_con = await self.init_tcp_connection(host, port)
+
+    async def stop_process(self, timeout: int=5):
+        if self.process is None:
+            return
+
+        # try to stop the process gracefully
+        self.process.terminate()
+        with anyio.move_on_after(timeout) as scope:
+            self.log.debug("Waiting for process to terminate")
+            await self.process.wait()
+            return
+
+        self.log.debug("Process did not terminate within {} seconds. Bringing it down the hard way!".format(timeout))
+        self.process.kill()
+
 
     def init_queues(self):
         """create the queues"""
