@@ -1987,7 +1987,7 @@
   version "1.1.0"
 
 "@krassowski/completion-theme@file:packages/completion-theme":
-  version "3.0.0"
+  version "3.1.0"
 
 "@krassowski/jupyterlab-lsp-example-extractor@file:packages/_example-extractor":
   version "0.0.0"
@@ -1998,7 +1998,7 @@
   version "3.7.0"
   dependencies:
     "@krassowski/code-jumpers" "~1.1.0"
-    "@krassowski/completion-theme" "~3.0.0"
+    "@krassowski/completion-theme" "~3.1.0"
     "@krassowski/theme-material" "~2.1.0"
     "@krassowski/theme-vscode" "~2.1.0"
     lodash.mergewith "^4.6.1"
@@ -2007,12 +2007,12 @@
 "@krassowski/theme-material@file:packages/theme-material":
   version "2.1.0"
   dependencies:
-    "@krassowski/completion-theme" "~3.0.0"
+    "@krassowski/completion-theme" "^3.0.0"
 
 "@krassowski/theme-vscode@file:packages/theme-vscode":
   version "2.1.0"
   dependencies:
-    "@krassowski/completion-theme" "~3.0.0"
+    "@krassowski/completion-theme" "^3.0.0"
 
 "@lerna/add@3.21.0":
   version "3.21.0"
