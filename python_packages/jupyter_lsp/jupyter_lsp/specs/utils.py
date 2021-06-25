@@ -10,6 +10,8 @@ from ..types import (
     KeyedLanguageServerSpecs,
     LanguageServerManagerAPI,
     LanguageServerSpec,
+    SpecBase,
+    Token,
 )
 
 # helper scripts for known tricky language servers
@@ -17,24 +19,6 @@ HELPERS = Path(__file__).parent / "helpers"
 
 # when building docs, let all specs go through
 BUILDING_DOCS = os.environ.get("JUPYTER_LSP_BUILDING_DOCS") is not None
-
-# String corresponding to a fragment of a shell command
-# arguments list such as returned by `shlex.split`
-Token = Text
-
-
-class SpecBase:
-    """Base for a spec finder that returns a spec for starting a language server"""
-
-    key = ""
-    languages = []  # type: List[Text]
-    args = []  # type: List[Token]
-    spec = {}  # type: LanguageServerSpec
-
-    def __call__(
-        self, mgr: LanguageServerManagerAPI
-    ) -> KeyedLanguageServerSpecs:  # pragma: no cover
-        return {}
 
 
 class ShellSpec(SpecBase):  # pragma: no cover
@@ -47,9 +31,11 @@ class ShellSpec(SpecBase):  # pragma: no cover
     # [optional] arguments passed to `cmd` which upon execution should print
     # out a non-empty string if the the required language server package
     # is installed, or nothing if it is missing and user action is required.
-    is_installed_args = []  # type: List[Token]
+    is_installed_args: List[Token] = []
 
-    def is_installed(self, cmd: Union[str, None]) -> bool:
+    def is_installed(self, mgr: LanguageServerManagerAPI) -> bool:
+        cmd = self.solve()
+
         if not cmd:
             return False
 
@@ -61,21 +47,23 @@ class ShellSpec(SpecBase):  # pragma: no cover
             )
             return check_result != ""
 
-    def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
+    def solve(self) -> Union[str, None]:
+        cmd = None
         for ext in ["", ".cmd", ".bat", ".exe"]:
             cmd = shutil.which(self.cmd + ext)
             if cmd:
                 break
+        return cmd
 
-        if not self.is_installed(cmd) and not BUILDING_DOCS:  # pragma: no cover
-            return {}
+    def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
+        cmd = self.solve()
 
         if not cmd and BUILDING_DOCS:  # pragma: no cover
             cmd = self.cmd
 
         return {
             self.key: {
-                "argv": [cmd, *self.args],
+                "argv": [cmd, *self.args] if cmd else [],
                 "languages": self.languages,
                 "version": SPEC_VERSION,
                 **self.spec,
@@ -90,14 +78,22 @@ class PythonModuleSpec(SpecBase):
 
     python_module = ""
 
-    def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
-        spec = __import__("importlib").util.find_spec(self.python_module)
+    def is_installed(self, mgr: LanguageServerManagerAPI) -> bool:
+        spec = self.solve()
 
         if not spec:
-            return {}
+            return False
 
         if not spec.origin:  # pragma: no cover
-            return {}
+            return False
+
+        return True
+
+    def solve(self):
+        return __import__("importlib").util.find_spec(self.python_module)
+
+    def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
+        spec = self.solve()
 
         return {
             self.key: {
@@ -115,13 +111,17 @@ class NodeModuleSpec(SpecBase):
     """
 
     node_module = ""
-    script = []  # type: List[Text]
+    script: List[Text] = []
+
+    def is_installed(self, mgr: LanguageServerManagerAPI) -> bool:
+        node_module = self.solve(mgr)
+        return bool(node_module)
+
+    def solve(self, mgr: LanguageServerManagerAPI):
+        return mgr.find_node_module(self.node_module, *self.script)
 
     def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
-        node_module = mgr.find_node_module(self.node_module, *self.script)
-
-        if not node_module:  # pragma: no cover
-            return {}
+        node_module = self.solve(mgr)
 
         return {
             self.key: {
@@ -131,3 +131,11 @@ class NodeModuleSpec(SpecBase):
                 **self.spec,
             }
         }
+
+
+# these are not desirable to publish to the frontend
+SKIP_JSON_SPEC = ["argv", "debug_argv", "env"]
+
+
+def censored_spec(spec: LanguageServerSpec) -> LanguageServerSpec:
+    return {k: v for k, v in spec.items() if k not in SKIP_JSON_SPEC}

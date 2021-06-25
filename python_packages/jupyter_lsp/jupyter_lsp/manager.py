@@ -2,7 +2,7 @@
 """
 import os
 import traceback
-from typing import Dict, Text, Tuple
+from typing import Dict, Text, Tuple, cast
 
 import entrypoints
 from jupyter_core.paths import jupyter_config_path
@@ -28,6 +28,7 @@ from .types import (
     KeyedLanguageServerSpecs,
     LanguageServerManagerAPI,
     MessageScope,
+    SpecBase,
     SpecMaker,
 )
 
@@ -97,6 +98,8 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
     def __init__(self, **kwargs):
         """Before starting, perform all necessary configuration"""
+        self.all_language_servers: KeyedLanguageServerSpecs = {}
+        self._language_servers_from_config = {}
         super().__init__(**kwargs)
 
     def initialize(self, *args, **kwargs):
@@ -106,22 +109,29 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
     def init_language_servers(self) -> None:
         """determine the final language server configuration."""
-        language_servers = {}  # type: KeyedLanguageServerSpecs
-
         # copy the language servers before anybody monkeys with them
-        language_servers_from_config = dict(self.language_servers)
+        self._language_servers_from_config = dict(self.language_servers)
+        self.language_servers = self._collect_language_servers(only_installed=True)
+        self.all_language_servers = self._collect_language_servers(only_installed=False)
+
+    def _collect_language_servers(
+        self, only_installed: bool
+    ) -> KeyedLanguageServerSpecs:
+        language_servers: KeyedLanguageServerSpecs = {}
+
+        language_servers_from_config = dict(self._language_servers_from_config)
         language_servers_from_config.update(self.conf_d_language_servers)
 
         if self.autodetect:
-            language_servers.update(self._autodetect_language_servers())
+            language_servers.update(
+                self._autodetect_language_servers(only_installed=only_installed)
+            )
 
         # restore config
         language_servers.update(language_servers_from_config)
 
         # coalesce the servers, allowing a user to opt-out by specifying `[]`
-        self.language_servers = {
-            key: spec for key, spec in language_servers.items() if spec.get("argv")
-        }
+        return {key: spec for key, spec in language_servers.items() if spec.get("argv")}
 
     def init_sessions(self):
         """create, but do not initialize all sessions"""
@@ -210,8 +220,8 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
         session.handlers = [h for h in session.handlers if h != handler]
 
-    def _autodetect_language_servers(self):
-        entry_points = []
+    def _autodetect_language_servers(self, only_installed: bool):
+        entry_points = {}
 
         try:
             entry_points = entrypoints.get_group_named(EP_SPEC_V1)
@@ -222,7 +232,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
             try:
                 spec_finder = ep.load()  # type: SpecMaker
             except Exception as err:  # pragma: no cover
-                self.log.warn(
+                self.log.warning(
                     _("Failed to load language server spec finder `{}`: \n{}").format(
                         ep_name, err
                     )
@@ -230,12 +240,20 @@ class LanguageServerManager(LanguageServerManagerAPI):
                 continue
 
             try:
-                specs = spec_finder(self)
+                if only_installed:
+                    if hasattr(spec_finder, "is_installed"):
+                        spec_finder_from_base = cast(SpecBase, spec_finder)
+                        if not spec_finder_from_base.is_installed(self):
+                            self.log.info(
+                                _("Skipping non-installed server: `{}`").format(ep.name)
+                            )
+                            continue
+                specs = spec_finder(self) or {}
             except Exception as err:  # pragma: no cover
                 self.log.warning(
                     _(
                         "Failed to fetch commands from language server spec finder"
-                        "`{}`:\n{}"
+                        " `{}`:\n{}"
                     ).format(ep.name, err)
                 )
                 traceback.print_exc()
@@ -248,7 +266,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
                 self.log.warning(
                     _(
                         "Failed to validate commands from language server spec finder"
-                        "`{}`:\n{}"
+                        " `{}`:\n{}"
                     ).format(ep.name, errors)
                 )
                 continue
