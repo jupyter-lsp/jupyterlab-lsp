@@ -1,6 +1,6 @@
 ---
 title: Jupter integration with the Language Server Protocol
-authors: Nicholas Bollweg, Michał Krassowski
+authors: Nicholas Bollweg, Jeremy Tuloup, Michał Krassowski
 issue-number: 67
 pr-number: <proposal-pull-request-number>
 date-started: 2021-06-dd
