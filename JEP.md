@@ -10,7 +10,7 @@ date-started: 2021-06-dd
 
 > One paragraph explanation of the proposal.
 
-[jupyter(lab)-lsp](https://github.com/krassowski/jupyterlab-lsp) is a project bringing integration of language-specific IDE features (such as diagnostics, linting, autocompletion, refactoring) to the Jupyter ecosystem by leveraging the established [Language Server Protocol](https://langserver.org) (LSP). We would like to propose its incorporation as an official sub-project of Project Jupyter. We feel this would benefit Jupyter users through better discoverability of advanced interactive computing features, supported by the  (LSP), but otherwise missing in a user's Jupyter experience. While our repository currently features a working implementation, the proposal is not tied to it (beyond a proposal for migration of the repository to a Jupyter-managed GitHub organization) but rather aimed to guide the process of formalizing and evolving the way of integrating Jupyter with LSP in general.
+[jupyter(lab)-lsp](https://github.com/krassowski/jupyterlab-lsp) is a project bringing integration of language-specific IDE features (such as diagnostics, linting, autocompletion, refactoring) to the Jupyter ecosystem by leveraging the established [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) (LSP), with a good overview on the [community knowledge site](https://langserver.org). We would like to propose its incorporation as an official sub-project of Project Jupyter. We feel this would benefit Jupyter users through better discoverability of advanced interactive computing features, supported by the  (LSP), but otherwise missing in a user's Jupyter experience. While our repository currently features a working implementation, the proposal is not tied to it (beyond a proposal for migration of the repository to a Jupyter-managed GitHub organization) but rather aimed to guide the process of formalizing and evolving the way of integrating Jupyter with LSP in general.
 
 # Motivation
 
@@ -20,7 +20,7 @@ A common criticism of the Jupyter environment (regardless of the front-end edito
 
 Providing support for advanced coding assistance for each language separately is a daunting task, challenging not only for volunteer-driven projects, but also for large companies. Microsoft recognized the problem creating the Language Server Protocol with reference implementation in VSCode(TM).
 
-- many language servers are community supported and available for free.
+Many language servers are community supported and available for free (see the community-maintained list of [language servers](https://langserver.org/)).
 
 # Guide-level explanation
 
@@ -102,7 +102,7 @@ The Jupyter originally driving innovation in the field is now in some communitie
 > This section is intended to encourage you as an author to think about the lessons from other languages, provide readers of your JEP with a fuller picture.
 > If there is no prior art, that is fine - your ideas are interesting to us whether they are brand new or if it is an adaptation from other languages.
 
-Multiple editors already support the Language Server Protocol, whether directly or via extension points, including VSCode, Atom, Brackets (Adobe), Spyder, Visual Studio and many more. The list of clients and their capabilities is described at https://langserver.org/ in the "LSP clients" section and at https://microsoft.github.io/language-server-protocol/implementors/tools/.
+Multiple editors already support the Language Server Protocol, whether directly or via extension points, including VSCode, Atom, Brackets (Adobe), Spyder, Visual Studio and many more. The list of clients and their capabilities is described at the community-maintained [knowledge site](https://langserver.org/) in the "LSP clients" section and at official website of the [LSP protocol](https://microsoft.github.io/language-server-protocol/implementors/tools/).
 
 Multiple proprietary notebook interfaces attempted integration of language features such as those provided by LSP, including Google Colab, Datalore, Deepnote, and Polynote; due to proprietary implementation details it is not clear how many of the existing solutions employ LSP (or its subset) under the hood.
 
