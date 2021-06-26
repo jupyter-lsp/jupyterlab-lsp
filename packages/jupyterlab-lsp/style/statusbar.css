@@ -131,8 +131,13 @@ body[data-jp-theme-light='false'] .lsp-status-icon.ready svg g {
 }
 
 .lsp-help-button {
+  background: var(--jp-layout-color2);
   border: 1px solid var(--jp-brand-color0);
   float: right;
+}
+
+.lsp-help-button:hover {
+  background: var(--jp-layout-color3);
 }
 
 .lsp-server-links-list a {

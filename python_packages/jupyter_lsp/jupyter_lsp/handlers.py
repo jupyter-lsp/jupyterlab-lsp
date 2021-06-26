@@ -66,7 +66,7 @@ class LanguageServersHandler(BaseHandler):
         errors = list(self.validator.iter_errors(response))
 
         if errors:  # pragma: no cover
-            self.log.warn("{} validation errors: {}", len(errors), errors)
+            self.log.warning("{} validation errors: {}".format(len(errors), errors))
 
         self.finish(response)
 

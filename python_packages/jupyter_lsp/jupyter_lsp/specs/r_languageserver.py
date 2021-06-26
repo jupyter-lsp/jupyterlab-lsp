@@ -8,7 +8,8 @@ but will require manual configuration when using the default R installer on Wind
 For more details please consult documentation:
 https://cran.r-project.org/bin/windows/base/rw-FAQ.html#Rcmd-is-not-found-in-my-PATH_0021
 
-If Rscript is already in the PATH, you can check whether the language server package is properly installed with:
+If Rscript is already in the PATH, you can check whether \
+the language server package is properly installed with:
 
   Rscript -e "cat(system.file(package='languageserver'))"
 

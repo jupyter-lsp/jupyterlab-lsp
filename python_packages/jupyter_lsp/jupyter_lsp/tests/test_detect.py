@@ -1,5 +1,3 @@
-import shutil
-
 from jupyter_lsp.specs.r_languageserver import RLanguageServer
 from jupyter_lsp.specs.utils import PythonModuleSpec
 
@@ -18,17 +16,14 @@ def test_detect(manager):
 
 
 def test_r_package_detection():
-    existing_runner = shutil.which("Rscript")
-
     with_installed_server = RLanguageServer()
-    assert with_installed_server.is_installed(cmd=existing_runner) is True
-    assert with_installed_server.is_installed(cmd=None) is False
+    assert with_installed_server.is_installed(mgr=None) is True
 
     class NonInstalledRServer(RLanguageServer):
         package = "languageserver-fork"
 
     non_installed_server = NonInstalledRServer()
-    assert non_installed_server.is_installed(cmd=existing_runner) is False
+    assert non_installed_server.is_installed(mgr=None) is False
 
 
 def test_missing_python_module_spec():
@@ -36,6 +31,11 @@ def test_missing_python_module_spec():
 
     class NonInstalledPythonServer(PythonModuleSpec):
         python_module = "not_installed_python_module"
+        key = "a_module"
 
     not_installed_server = NonInstalledPythonServer()
-    assert not_installed_server(mgr=None) == {}
+
+    assert not_installed_server.is_installed(mgr=None) is False
+
+    # we ant the spec even when not installed
+    assert "languages" in not_installed_server(mgr=None)["a_module"]

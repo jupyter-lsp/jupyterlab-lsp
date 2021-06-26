@@ -272,7 +272,10 @@ class SpecBase:
     args: List[Token] = []
     spec: LanguageServerSpec = {}
 
-    def is_installed(self, mgr: LanguageServerManagerAPI) -> bool:
+    def is_installed(self, mgr: LanguageServerManagerAPI) -> bool:  # pragma: no cover
+        """Whether the language server is installed or not.
+
+        This method may become abstract in the next major release."""
         return True
 
     def __call__(

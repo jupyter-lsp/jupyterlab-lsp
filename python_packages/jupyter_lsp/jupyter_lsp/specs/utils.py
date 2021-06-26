@@ -48,7 +48,6 @@ class ShellSpec(SpecBase):  # pragma: no cover
             return check_result != ""
 
     def solve(self) -> Union[str, None]:
-        cmd = None
         for ext in ["", ".cmd", ".bat", ".exe"]:
             cmd = shutil.which(self.cmd + ext)
             if cmd:
@@ -58,6 +57,14 @@ class ShellSpec(SpecBase):  # pragma: no cover
     def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
         cmd = self.solve()
 
+        spec = dict(self.spec)
+
+        if not cmd:
+            troubleshooting = [f"{self.cmd} not found."]
+            if "troubleshoot" in spec:
+                troubleshooting.append(spec["troubleshoot"])
+            spec["troubleshoot"] = "\n\n".join(troubleshooting)
+
         if not cmd and BUILDING_DOCS:  # pragma: no cover
             cmd = self.cmd
 
@@ -66,7 +73,7 @@ class ShellSpec(SpecBase):  # pragma: no cover
                 "argv": [cmd, *self.args] if cmd else [],
                 "languages": self.languages,
                 "version": SPEC_VERSION,
-                **self.spec,
+                **spec,
             }
         }
 
@@ -93,11 +100,15 @@ class PythonModuleSpec(SpecBase):
         return __import__("importlib").util.find_spec(self.python_module)
 
     def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
-        spec = self.solve()
+        is_installed = self.is_installed(mgr)
 
         return {
             self.key: {
-                "argv": [sys.executable, "-m", self.python_module, *self.args],
+                "argv": (
+                    [sys.executable, "-m", self.python_module, *self.args]
+                    if is_installed
+                    else []
+                ),
                 "languages": self.languages,
                 "version": SPEC_VERSION,
                 **self.spec,
@@ -123,19 +134,27 @@ class NodeModuleSpec(SpecBase):
     def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
         node_module = self.solve(mgr)
 
+        spec = dict(self.spec)
+
+        troubleshooting = ["Node.js is required to install this server."]
+        if "troubleshoot" in spec:  # pragma: no cover
+            troubleshooting.append(spec["troubleshoot"])
+        spec["troubleshoot"] = "\n\n".join(troubleshooting)
+
         return {
             self.key: {
                 "argv": [mgr.nodejs, node_module, *self.args],
                 "languages": self.languages,
                 "version": SPEC_VERSION,
-                **self.spec,
+                **spec,
             }
         }
 
 
 # these are not desirable to publish to the frontend
-SKIP_JSON_SPEC = ["argv", "debug_argv", "env"]
+# and will be replaced with the simplest schema-compliant values
+SKIP_JSON_SPEC = {"argv": [""], "debug_argv": [""], "env": {}}
 
 
 def censored_spec(spec: LanguageServerSpec) -> LanguageServerSpec:
-    return {k: v for k, v in spec.items() if k not in SKIP_JSON_SPEC}
+    return {k: SKIP_JSON_SPEC.get(k, v) for k, v in spec.items()}
