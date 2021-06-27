@@ -59,7 +59,7 @@ The following features need to be considered in the design:
 
 The interactive, data-driven computing paradigm provides additional convenience features on top of existing languages:
 - cell and line magics
-- tranclusions: "foregin" code in the document, often implemented as magics which uses a different language or scope than the rest of the document (e.g. `%%html` magic in IPython)
+- tranclusions: "foreign" code in the document, often implemented as magics which uses a different language or scope than the rest of the document (e.g. `%%html` magic in IPython)
 - polyglot notebooks using cell metadata to define language
 - the concept of cells, including cell outputs and cell metadata (e.g. enabling LSP extensions to warn users about unused empty cells, out of order execution markers, etc., as briefly discussed in [#467](https://github.com/krassowski/jupyterlab-lsp/issues/467))
 
@@ -69,8 +69,8 @@ The interactive, data-driven computing paradigm provides additional convenience 
 Currently:
 - the notebook cells are concatenated into a single temporary ("virtual") document on the frontend, which is then sent to the backend,
    - the navigation between coordinate system is performed by the frontend and is based solely on the total number of lines after concatenation
-- as a workaround for some language servers requiring actual presence of the file on the filesystem (against the LSP spec, but common in some less advanced servers), our backend jupyter server extension creates a temporary file on the file system (by default in the `.virtual_documents` directory); this is scheduled for deprecation,
-- jupyter server extension serves as:
+- as a workaround for some language servers requiring actual presence of the file on the filesystem (against the LSP spec, but common in some less advanced servers), our backend Jupyter server extension creates a temporary file on the file system (by default in the `.virtual_documents` directory); this is scheduled for deprecation,
+- Jupyter server extension serves as:
    - a transparent proxy between LSP language servers and frontend, speaking over websocket connection
    - a manager of language servers, determining whether specific LSP servers are installed and starting their processes
       - JSON files or declarative Python classes registered via entry points are used to define specification of the LSP servers (where to look for an executable of the LSP server, for which languages/kernels given LSP server should be used, what is its display name, etc.)
@@ -82,7 +82,7 @@ Currently:
 
 > - What other designs have been considered and what is the rationale for not choosing them?
 
-A previous (stale) JEP proposed to integrate LSP and to adopt Monaco editor, which would entail bringing a heavy dependency and large reliance on continuous development of Monaco by Microsoft; it was not clear whether Monaco would allow efficient use in multi-editor notebook setting and the work on the integration stalled a few years ago. Differently to that previous proposal we **do not** propose to adopt any specific implementation, yet we bring a working implementation for CodeMirror editor, which is already in use by two of the official front-ends for Jupyter (Jupyter Notebook and JupyterLab). 
+A previous (stale) JEP proposed to integrate LSP and to adopt Monaco editor, which would entail bringing a heavy dependency and large reliance on continuous development of Monaco by Microsoft; it was not clear whether Monaco would allow efficient use in multi-editor notebook setting and the work on the integration stalled a few years ago. Differently to that previous proposal we **do not** propose to adopt any specific implementation, yet we bring a working implementation for CodeMirror 5 editor, which is already in use by two of the official front-ends for Jupyter (Jupyter Notebook and JupyterLab). While the nearly-feature-complete CodeMirror 6 has specifically declared LSP integration to be a non-goal, it does however provide a number of features which would allow for cleaner integration of multiple sources of editor annotation, such as named bundles of marks.
 
 
 > - What is the impact of not doing this?
@@ -106,6 +106,12 @@ Multiple editors already support the Language Server Protocol, whether directly 
 
 Multiple proprietary notebook interfaces attempted integration of language features such as those provided by LSP, including Google Colab, Datalore, Deepnote, and Polynote; due to proprietary implementation details it is not clear how many of the existing solutions employ LSP (or its subset) under the hood.
 
+The on-going integration of the [Debug Adapter Protocol][dap] has demonstrated both the 
+user benefits, and kernel maintainer costs, of "embracing and extending" existing, non-Jupyter 
+protocols rather than re-implementing. 
+
+[dap]: https://github.com/jupyter/enhancement-proposals/blob/master/jupyter-debugger-protocol/jupyter-debugger-protocol.md
+
 
 # Unresolved questions
 
@@ -122,13 +128,14 @@ The current implementation can be improved by:
 3. abstracting the communication layer between client and server so that different mechanisms can be used for such communication, for example:
    - custom, manually managed websocket between the client and jupyter server extension (existing solution),
    - websocket managed reusing the kernel comms (acting as a transparent proxy but reducing the number of dependencies since in the context of Jupyter the kernel comms are expected to be present either way), see the proposed implementation in [#278](https://github.com/krassowski/jupyterlab-lsp/pull/278)
-   - direct connection to a cloud service providing language intelligence as a service, e.g. [sourcegraph](https://about.sourcegraph.com/).
+   - direct connection to a cloud or self-hosted service providing language intelligence as a service, e.g. [sourcegraph](https://about.sourcegraph.com/)
+   - (potentially) in-client language servers, such a JSON Schema-aware language server to assist in configuration
 
 There are also smaller fires to put out in the current implementation which we believe do not warrant further discussion; however, we want to enumerate those to assure a potentially concerned reader that those topics are being looked at and considered a priority due to the immediate impact on user and/or developer experience:
 - reorganizing deeply nested code into shallower structure of multiple packages, one per each feature (with the current state of the repository in half a monorepo, half complex project being an annoyance to maintainers and contributors alike)
 - improving performance of completer and overall robustness of the features
 - enabling integration with other packages providing completion suggestions
-- enabling use of multiple LSP servers for a single server
+- enabling use of multiple LSP servers for a single document
 
 
 # Future possibilities
@@ -152,6 +159,9 @@ There are also smaller fires to put out in the current implementation which we b
 
 - Amending the kernel messaging protocol to ask only for runtime (e.g. keys in a dictionary, columns in a data frame) and kernel-specific completions (e.g. magics), this is excluding static-analysis based completions, to improve the performance of the completer
 - Seeding existing linting tools with plugins to support notebook-specific features (empty cells, out of order execution, largely as envisioned by pioneering work of [JuLynter](https://dew-uff.github.io/julynter/index.html) experiment)
+   - also see [lintotype]
 - Encouraging contributions to existing language-servers and offering platform for development of Jupyter-optimized language servers
 - Enabling LSP features in markdown cells
 - Implementing support for related Language Server Index Format (LSIF), a protocol closely related to LSP and defined on the [specification page](https://microsoft.github.io/language-server-protocol/specifications/lsif/0.5.0/specification/) for even faster IDE features for the retrieval of immutable (or infrequently mutable) information, such as documentation of built-in functions.
+
+[lintotype]: https://github.com/deathbeds/lintotype/
