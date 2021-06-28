@@ -8,3 +8,4 @@ pytest-cov
 ruamel.yaml
 robotframework-lint >=1.1
 robotframework >=3.2
+types-six

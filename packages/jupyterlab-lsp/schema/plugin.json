@@ -60,6 +60,19 @@
       "enum": ["debug", "log", "warn", "error"],
       "default": "warn",
       "description": "The verbosity of the console for debugging problems with this extension. Allowed values are: debug, log, warn, error."
+    },
+    "logAllCommunication": {
+      "title": "Log all LSP communication with the LSP servers",
+      "type": "boolean",
+      "default": false,
+      "description": "Whether all messages sent to and received from LSP servers should be logged into the console. To see these messages, set loggingLevel to debug or log. Note: Only messages handled by the new API will be shown."
+    },
+    "setTrace": {
+      "title": "Ask servers to send trace notifications",
+      "type": ["string", "null"],
+      "enum": ["off", "messages", "verbose", null],
+      "default": null,
+      "description": "Whether to ask server to send logs with execution trace (for debugging). To see these messages, set loggingLevel to debug or log. Accepted values are: \"off\", \"messages\", \"verbose\". Servers are allowed to ignore this request."
     }
   },
   "jupyter.lab.shortcuts": []

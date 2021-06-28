@@ -17,7 +17,6 @@ python setup.py sdist bdist_wheel
 python -m pip install -e . --ignore-installed --no-deps -vv
 jupyter labextension develop . --overwrite
 popd
-
 # List extensions
 jupyter serverextension list
 jupyter server extension list

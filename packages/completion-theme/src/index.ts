@@ -53,6 +53,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
       ? icons_sets.dark
       : icons_sets.light;
     const icons: Map<keyof ICompletionIconSet, LabIcon> = new Map();
+    let options = this.current_theme.icons.options || {};
     const mode = this.is_theme_light() ? 'light' : 'dark';
     for (let [completion_kind, svg] of Object.entries(set)) {
       let name =
@@ -67,7 +68,10 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
         });
         this.icons_cache.set(name, icon);
       }
-      icons.set(completion_kind as keyof ICompletionIconSet, icon);
+      icons.set(
+        completion_kind as keyof ICompletionIconSet,
+        icon.bindprops(options)
+      );
     }
     return icons;
   }
@@ -83,7 +87,6 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     if (this.current_theme === null) {
       return null;
     }
-    let options = this.current_theme.icons.options || {};
     if (type) {
       if (this.icon_overrides.has(type.toLowerCase())) {
         type = this.icon_overrides.get(type.toLowerCase());
@@ -92,7 +95,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
         type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
     }
     if (this.current_icons.has(type)) {
-      return this.current_icons.get(type).bindprops(options);
+      return this.current_icons.get(type);
     }
 
     if (type === KernelKind) {
