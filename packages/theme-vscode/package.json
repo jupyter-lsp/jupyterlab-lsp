@@ -1,6 +1,6 @@
 {
   "name": "@krassowski/theme-vscode",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "VSCode theme for JupyterLab-LSP",
   "keywords": [
     "jupyter",
@@ -33,7 +33,7 @@
     "clean": "rimraf lib"
   },
   "dependencies": {
-    "@krassowski/completion-theme": "~3.0.0"
+    "@krassowski/completion-theme": "^3.0.0"
   },
   "devDependencies": {},
   "peerDependencies": {},

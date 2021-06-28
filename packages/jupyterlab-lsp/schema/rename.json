@@ -12,7 +12,7 @@
       "selector": ".jp-Notebook .jp-CodeCell"
     },
     {
-      "command": "lsp:rename-symbol-file_editor'",
+      "command": "lsp:rename-symbol-file_editor",
       "keys": ["F2"],
       "selector": ".jp-FileEditor"
     }

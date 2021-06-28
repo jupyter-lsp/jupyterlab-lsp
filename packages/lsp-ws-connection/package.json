@@ -1,6 +1,6 @@
 {
   "name": "lsp-ws-connection",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Utility for adapting editors to language server protocol",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -27,11 +27,10 @@
   "homepage": "https://github.com/krassowski/jupyterlab-lsp/tree/master/packages/lsp-ws-connection",
   "repository": "github:krassowski/jupyterlab-lsp",
   "dependencies": {
-    "vscode-jsonrpc": "^4.1.0-next",
-    "vscode-languageclient": "^5.2.1",
-    "vscode-languageserver-protocol": "^3.14.1",
-    "vscode-languageserver-types": "^3.14.0",
-    "vscode-ws-jsonrpc": "0.1.1"
+    "vscode-jsonrpc": "^6.0.0",
+    "vscode-languageserver-protocol": "^3.16.0",
+    "vscode-languageserver-types": "^3.16.0",
+    "vscode-ws-jsonrpc": "0.2.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
