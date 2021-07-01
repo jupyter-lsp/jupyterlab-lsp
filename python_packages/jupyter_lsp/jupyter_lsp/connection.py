@@ -7,16 +7,14 @@ Parts of this code are derived from:
 > > MIT License   https://github.com/palantir/python-jsonrpc-server/blob/0.2.0/LICENSE
 > > Copyright 2018 Palantir Technologies, Inc.
 """
-# pylint: disable=broad-except
-import anyio
-from anyio.streams.buffered import BufferedByteReceiveStream
-from anyio.streams.text import TextSendStream
-import io
 import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Optional, Text
 
-from tornado.concurrent import run_on_executor
+# pylint: disable=broad-except
+import anyio
+from anyio.streams.buffered import BufferedByteReceiveStream
+from anyio.streams.text import TextSendStream
 from tornado.gen import convert_yielded
 from tornado.httputil import HTTPHeaders
 from tornado.ioloop import IOLoop
@@ -24,10 +22,11 @@ from tornado.queues import Queue
 from traitlets import Float, Instance, default
 from traitlets.config import LoggingConfigurable
 
-from .non_blocking import make_non_blocking
 
 class LspStreamBase(LoggingConfigurable):
-    """Non-blocking, queued base for communicating with Language Servers through anyio streams"""
+    """Non-blocking, queued base for communicating with Language Servers through anyio
+    streams
+    """
 
     executor = None
 
@@ -74,7 +73,7 @@ class LspStreamReader(LspStreamBase):
             return
         self.next_wait = min(self.next_wait * 2, self.max_wait)
         try:
-            await asyncio.sleep(self.next_wait)
+            await anyio.sleep(self.next_wait)
         except Exception:  # pragma: no cover
             pass
 
@@ -180,25 +179,29 @@ class LspStreamReader(LspStreamBase):
     async def _readline(self) -> Text:
         """Read a line (or immediately return None)"""
         try:
-            # use same max_bytes as is default for receive for now. It seems there is no way of getting
-            # the bytes read until max_bytes is reached, so we cannot iterate the receive_until call
-            # with smaller max_bytes values
-            async with anyio.move_on_after(0.2) as moa:
-                line = await self.stream.receive_until(b'\r\n', 65536)
+            # use same max_bytes as is default for receive for now. It seems there is no
+            # way of getting the bytes read until max_bytes is reached, so we cannot
+            # iterate the receive_until call with smaller max_bytes values
+            async with anyio.move_on_after(0.2):
+                line = await self.stream.receive_until(b"\r\n", 65536)
                 return line.decode("utf-8").strip()
         except anyio.IncompleteRead:
-            # resource has been closed before the requested bytes could be retrieved -> signal recource closed
+            # resource has been closed before the requested bytes could be retrieved
+            # -> signal recource closed
             raise anyio.ClosedResourceError
         except anyio.DelimiterNotFound:
-            self.log.error("Readline hit max_bytes before newline character was encountered")
+            self.log.error(
+                "Readline hit max_bytes before newline character was encountered"
+            )
             return ""
+
 
 class LspStreamWriter(LspStreamBase):
     """Language Server Writer"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.stream = TextSendStream(self.stream, encoding='utf-8')
+        self.stream = TextSendStream(self.stream, encoding="utf-8")
 
     async def write(self) -> None:
         """Write to a Language Server until it closes"""
@@ -208,7 +211,10 @@ class LspStreamWriter(LspStreamBase):
                 nBytes = len(message.encode("utf-8"))
                 response = "Content-Length: {}\r\n\r\n{}".format(nBytes, message)
                 await convert_yielded(self._write_one(response))
-            except (anyio.ClosedResourceError, anyio.BrokenResourceError): # pragma: no cover
+            except (
+                anyio.ClosedResourceError,
+                anyio.BrokenResourceError,
+            ):  # pragma: no cover
                 # stream was closed -> terminate
                 break
             except Exception:

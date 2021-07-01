@@ -1,16 +1,15 @@
 """ A session for managing a language server process
 """
-import anyio
 import atexit
 import os
 import string
 import subprocess
 import threading
-from copy import copy
-from datetime import datetime, timezone
-from typing import cast
-
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
+from typing import Optional, cast
+
+import anyio
 from tornado.concurrent import run_on_executor
 from tornado.ioloop import IOLoop
 from tornado.queues import Queue
@@ -18,7 +17,7 @@ from tornado.websocket import WebSocketHandler
 from traitlets import Bunch, Instance, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
 
-from .connection import LspStreamWriter, LspStreamReader
+from .connection import LspStreamReader, LspStreamWriter
 from .schema import LANGUAGE_SERVER_SPEC
 from .trait_types import Schema
 from .types import SessionStatus
@@ -43,7 +42,9 @@ class LanguageServerSession(LoggingConfigurable):
     cancelscope = None
     writer = Instance(LspStreamWriter, help="the JSON-RPC writer", allow_none=True)
     reader = Instance(LspStreamReader, help="the JSON-RPC reader", allow_none=True)
-    tcp_con = Instance(anyio.abc.SocketStream, help="the tcp connection", allow_none=True)
+    tcp_con = Instance(
+        anyio.abc.SocketStream, help="the tcp connection", allow_none=True
+    )
     from_lsp = Instance(
         Queue, help="a queue for string messages from the server", allow_none=True
     )
@@ -67,7 +68,6 @@ class LanguageServerSession(LoggingConfigurable):
         atexit.register(self.stop)
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.start_blocking_portal()
-
 
     def __repr__(self):  # pragma: no cover
         return (
@@ -169,28 +169,30 @@ class LanguageServerSession(LoggingConfigurable):
             argv = [arg.format(host=host, port=port) for arg in argv]
 
         self.process = await anyio.open_process(
-            argv,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE
+            argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE
         )
 
         if mode == "tcp":
             self.tcp_con = await self.init_tcp_connection(host, port)
 
-    async def stop_process(self, timeout: int=5):
+    async def stop_process(self, timeout: int = 5):
         if self.process is None:
             return
 
         # try to stop the process gracefully
         self.process.terminate()
-        with anyio.move_on_after(timeout) as scope:
+        with anyio.move_on_after(timeout):
             self.log.debug("Waiting for process to terminate")
             await self.process.wait()
             return
 
-        self.log.debug("Process did not terminate within {} seconds. Bringing it down the hard way!".format(timeout))
+        self.log.debug(
+            (
+                "Process did not terminate within {} seconds. "
+                "Bringing it down the hard way!"
+            ).format(timeout)
+        )
         self.process.kill()
-
 
     def init_queues(self):
         """create the queues"""
@@ -205,11 +207,13 @@ class LanguageServerSession(LoggingConfigurable):
             if host in ["127.0.0.1", "localhost"]:
                 port = get_unused_port()
             else:
-                raise ValueError("A port must be given explicitly for hosts other than localhost")
+                raise ValueError(
+                    "A port must be given explicitly for hosts other than localhost"
+                )
         return (host, port)
 
     async def init_tcp_connection(self, host, port, retries=12, sleep=5.0):
-        server = '{}:{}'.format(host, port)
+        server = "{}:{}".format(host, port)
 
         tries = 0
         while tries < retries:
@@ -218,10 +222,20 @@ class LanguageServerSession(LoggingConfigurable):
                 return await anyio.connect_tcp(host, port)
             except OSError:
                 if tries < retries:
-                    self.log.warning('Connection to server {} refused! Attempt {}/{}. Retrying in {}s'.format(server, tries, retries, sleep))
+                    self.log.warning(
+                        (
+                            "Connection to server {} refused! "
+                            "Attempt {}/{}. "
+                            "Retrying in {}s"
+                        ).format(server, tries, retries, sleep)
+                    )
                     await anyio.sleep(sleep)
                 else:
-                    self.log.warning('Connection to server {} refused! Attempt {}/{}.'.format(server, tries, retries))
+                    self.log.warning(
+                        "Connection to server {} refused! Attempt {}/{}.".format(
+                            server, tries, retries
+                        )
+                    )
 
         raise OSError("Unable to connect to server {}".format(server))
 
@@ -236,9 +250,7 @@ class LanguageServerSession(LoggingConfigurable):
         else:
             raise ValueError("Unknown mode: " + mode)
 
-        self.reader = LspStreamReader(
-            stream=stream, queue=self.from_lsp, parent=self
-        )
+        self.reader = LspStreamReader(stream=stream, queue=self.from_lsp, parent=self)
 
     def init_writer(self):
         """create the stdin writer (to the language server)"""
@@ -251,9 +263,7 @@ class LanguageServerSession(LoggingConfigurable):
         else:
             raise ValueError("Unknown mode: " + mode)
 
-        self.writer = LspStreamWriter(
-            stream=stream, queue=self.to_lsp, parent=self
-        )
+        self.writer = LspStreamWriter(stream=stream, queue=self.to_lsp, parent=self)
 
     def substitute_env(self, env, base):
         for key, value in env.items():
