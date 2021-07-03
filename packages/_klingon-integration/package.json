@@ -1,0 +1,27 @@
+{
+  "name": "@krassowski/jupyterlab-lsp-klingon-integration",
+  "description": "Klingon language integration for testing @krassowski/jupyterlab-lsp",
+  "version": "0.0.0",
+  "private": true,
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "author": "JupyterLab-LSP Development Team",
+  "files": [
+    "lib/**/*.{js,ts}"
+  ],
+  "dependencies": {
+    "@jupyterlab/application": "^3.0.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.4.3",
+    "@jupyterlab/application": "^3.0.0",
+    "typescript": "~4.1.3"
+  },
+  "jupyterlab": {
+    "extension": true
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean:lib": "rimraf lib"
+  }
+}

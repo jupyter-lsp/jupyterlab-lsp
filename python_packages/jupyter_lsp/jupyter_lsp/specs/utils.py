@@ -70,7 +70,7 @@ class ShellSpec(SpecBase):  # pragma: no cover
 
         return {
             self.key: {
-                "argv": [cmd, *self.args] if cmd else [],
+                "argv": [cmd, *self.args] if cmd else [self.cmd, *self.args],
                 "languages": self.languages,
                 "version": SPEC_VERSION,
                 **spec,

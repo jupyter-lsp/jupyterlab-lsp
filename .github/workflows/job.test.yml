@@ -311,6 +311,19 @@ jobs:
           jupyter serverextension list
           jupyter serverextension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
 
+      - name: Install Klingon integration extension (for testing languages without language servers)
+        run: |
+          cd packages/_klingon-integration
+          jlpm
+          jlpm build
+          jupyter labextension install
+          jupyter labextension list 2>&1 | grep -ie "klingon-integration.*enabled" -
+          jupyter lab build
+
+      - name: Install specification for (non-existent) Klingon language server
+        run: |
+          python -m pip install python_packages/klingon_ls_specification
+
       - name: List frontend extensions
         run: jupyter labextension list
 
