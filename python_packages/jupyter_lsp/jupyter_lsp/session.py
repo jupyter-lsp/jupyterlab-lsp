@@ -119,6 +119,7 @@ class LanguageServerSession(LoggingConfigurable):
             self.portal.call(self.writer.close)
             self.writer = None
         if self.tcp_con:
+            self.log.warning("Closing TCP connection")
             self.portal.call(self.tcp_con.aclose)
             self.tcp_con = None
 
@@ -165,13 +166,22 @@ class LanguageServerSession(LoggingConfigurable):
         port = None
         mode = self.spec.get("mode")
         if mode == "tcp":
-            host, port = self.get_tcp_server()
+            host, port, ext = self.get_tcp_server()
+            # if server is already running in different process
+            if ext:
+                self.log.warning("Opening TCP connection to external process")
+                # just connect to it and be done
+                self.tcp_con = await self.init_tcp_connection(host, port)
+                return
+            # else substitute arguments for host and port into the environment
             argv = [arg.format(host=host, port=port) for arg in argv]
 
+        # and start the process
         self.process = await anyio.open_process(
             argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE
         )
 
+        # finally connect to the now running process if in tcp mode
         if mode == "tcp":
             self.tcp_con = await self.init_tcp_connection(host, port)
 
@@ -200,17 +210,32 @@ class LanguageServerSession(LoggingConfigurable):
         self.to_lsp = Queue()
 
     def get_tcp_server(self):
-        host = self.spec.get("host", "127.0.0.1")
-        port = self.spec.get("port")
+        """ Reads the TCP configuration parameters from the specification
 
-        if not port:
-            if host in ["127.0.0.1", "localhost"]:
+        Returns a triple (host, port, ext), where ext is a boolean specifying whether
+        the sever is running externaly.
+        If neither a host nor a port is specified a randomly selected free port and
+        host="127.0.0.1" will be returned.
+        If a host but no port is specified a ValueError is raised.
+        In all other cases the specified port and host will be returned.
+        """
+        host = self.spec.get("host")
+        port = self.spec.get("port")
+        ext = True
+
+        if port is None:
+            if host is None:
+                host = "127.0.0.1"
                 port = get_unused_port()
+                ext = False
             else:
                 raise ValueError(
-                    "A port must be given explicitly for hosts other than localhost"
+                    "A port must be given explicitly if a host was specified"
                 )
-        return (host, port)
+        else:
+            if host is None:
+                host = "127.0.0.1"
+        return (host, port, ext)
 
     async def init_tcp_connection(self, host, port, retries=12, sleep=5.0):
         server = "{}:{}".format(host, port)
