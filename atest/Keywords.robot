@@ -113,6 +113,7 @@ Open JupyterLab
     Set Environment Variable    MOZ_HEADLESS    ${HEADLESS}
     ${firefox} =    Get Firefox Binary
     ${geckodriver} =    Which    geckodriver
+    Should Not Be Equal As Strings    ${geckodriver}    None    geckodriver not found, do you need to install firefox-geckodriver?
     ${service args} =    Create List    --log    debug
     Create WebDriver    Firefox
     ...    executable_path=${geckodriver}

@@ -321,7 +321,7 @@ jobs:
       - name: List frontend extensions
         run: |
           jupyter labextension list
-          jupyter labextension list 2>&1 | grep -ie "jupyterlab_lsp.*enabled" -
+          jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled" -
           jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp-klingon-integration.*enabled" -
 
       - name: install node-based language servers

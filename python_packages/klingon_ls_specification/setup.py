@@ -5,7 +5,10 @@ from setuptools import setup
 LABEXTENSIONS_DIR = Path("klingon_ls_specification/labextensions")
 LABEXTENSIONS_INSTALL_DIR = Path("share") / "jupyter" / "labextensions"
 LAB_PACKAGE_PATH = (
-    LABEXTENSIONS_DIR / "@krassowski" / "_klingon-integration" / "package.json"
+    LABEXTENSIONS_DIR
+    / "@krassowski"
+    / "jupyterlab-lsp-klingon-integration"
+    / "package.json"
 )
 
 

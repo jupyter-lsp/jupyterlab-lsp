@@ -20,7 +20,7 @@
   },
   "jupyterlab": {
     "extension": true,
-    "outputDir": "../../python_packages/klingon_ls_specification/klingon_ls_specification/labextensions/@krassowski/_klingon-integration"
+    "outputDir": "../../python_packages/klingon_ls_specification/klingon_ls_specification/labextensions/@krassowski/jupyterlab-lsp-klingon-integration"
   },
   "scripts": {
     "build": "jlpm run build:lib && jlpm run build:labextension",
