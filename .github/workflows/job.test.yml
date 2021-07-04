@@ -185,6 +185,8 @@ jobs:
           python setup.py sdist bdist_wheel
           cd ../jupyterlab_lsp
           python setup.py sdist bdist_wheel
+          cd ../klingon_ls_specification
+          python setup.py sdist bdist_wheel
 
       - name: Collect distributions
         run: |
@@ -298,8 +300,13 @@ jobs:
       - name: Install python packages
         run: python -m pip install --find-links=dist --no-index --ignore-installed --no-deps jupyter_lsp jupyterlab_lsp
 
+      - name: Install Klingon file type extension and server specification (for testing languages without language servers)
+        run: python -m pip install --find-links=dist --no-index --ignore-installed --no-deps klingon_ls_specification
+
       - name: Pip check
-        run: python -m pip check
+        run: |
+          python -m pip check
+          python -m pip list | grep -ie klingon-ls-specification
 
       - name: List server extensions
         run: |
@@ -311,21 +318,11 @@ jobs:
           jupyter serverextension list
           jupyter serverextension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
 
-      - name: Install Klingon integration extension (for testing languages without language servers)
-        run: |
-          cd packages/_klingon-integration
-          jlpm
-          jlpm build
-          jupyter labextension install
-          jupyter labextension list 2>&1 | grep -ie "klingon-integration.*enabled" -
-          jupyter lab build
-
-      - name: Install specification for (non-existent) Klingon language server
-        run: |
-          python -m pip install python_packages/klingon_ls_specification
-
       - name: List frontend extensions
-        run: jupyter labextension list
+        run: |
+          jupyter labextension list
+          jupyter labextension list 2>&1 | grep -ie "jupyterlab_lsp.*enabled" -
+          jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp-klingon-integration.*enabled" -
 
       - name: install node-based language servers
         if: steps.cache-node-modules.outputs.cache-hit != 'true'

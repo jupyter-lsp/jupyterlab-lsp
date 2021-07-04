@@ -15,13 +15,21 @@
   "devDependencies": {
     "@babel/preset-env": "^7.4.3",
     "@jupyterlab/application": "^3.0.0",
+    "@jupyterlab/builder": "^3.0.0",
     "typescript": "~4.1.3"
   },
   "jupyterlab": {
-    "extension": true
+    "extension": true,
+    "outputDir": "../../python_packages/klingon_ls_specification/klingon_ls_specification/labextensions/@krassowski/_klingon-integration"
   },
   "scripts": {
-    "build": "tsc -b",
-    "clean:lib": "rimraf lib"
+    "build": "jlpm run build:lib && jlpm run build:labextension",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "build:lib": "tsc",
+    "clean:lib": "rimraf lib",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:labextension": "jupyter labextension watch .",
+    "watch:src": "tsc -w"
   }
 }
