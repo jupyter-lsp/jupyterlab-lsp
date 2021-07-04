@@ -17,6 +17,7 @@ from typing import (
     Optional,
     Pattern,
     Text,
+    Union,
 )
 
 from jupyter_server.transutils import _
@@ -256,5 +257,32 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
         return roots
 
 
+SimpleSpecMaker = Callable[[LanguageServerManagerAPI], KeyedLanguageServerSpecs]
+
+# String corresponding to a fragment of a shell command
+# arguments list such as returned by `shlex.split`
+Token = Text
+
+
+class SpecBase:
+    """Base for a spec finder that returns a spec for starting a language server"""
+
+    key = ""
+    languages: List[Text] = []
+    args: List[Token] = []
+    spec: LanguageServerSpec = {}
+
+    def is_installed(self, mgr: LanguageServerManagerAPI) -> bool:  # pragma: no cover
+        """Whether the language server is installed or not.
+
+        This method may become abstract in the next major release."""
+        return True
+
+    def __call__(
+        self, mgr: LanguageServerManagerAPI
+    ) -> KeyedLanguageServerSpecs:  # pragma: no cover
+        return {}
+
+
 # Gotta be down here so it can by typed... really should have a IL
-SpecMaker = Callable[[LanguageServerManagerAPI], KeyedLanguageServerSpecs]
+SpecMaker = Union[SpecBase, SimpleSpecMaker]

@@ -5,6 +5,7 @@
 - improvements:
 
   - add a note on manually enabling backend extension ([#621], thanks @icankeep)
+  - in-app troubleshooting/installation help is now offered for servers which are needed but could not be detected (if auto-detection specification for those is present) ([#634])
 
 - bug fixes:
   - fix rename shortcut registration in file editor ([#614])
@@ -15,6 +16,7 @@
 [#621]: https://github.com/krassowski/jupyterlab-lsp/pull/621
 [#625]: https://github.com/krassowski/jupyterlab-lsp/pull/625
 [#630]: https://github.com/krassowski/jupyterlab-lsp/pull/630
+[#634]: https://github.com/krassowski/jupyterlab-lsp/pull/634
 
 ### `jupyter-lsp 1.3.0` (2021-06-02)
 

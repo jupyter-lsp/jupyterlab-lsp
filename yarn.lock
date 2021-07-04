@@ -1994,23 +1994,28 @@
   dependencies:
     "@krassowski/jupyterlab-lsp" "^3.6"
 
+"@krassowski/jupyterlab-lsp-klingon-integration@file:packages/_klingon-integration":
+  version "0.0.0"
+  dependencies:
+    "@jupyterlab/application" "^3.0.0"
+
 "@krassowski/jupyterlab-lsp@file:packages/jupyterlab-lsp":
   version "3.7.0"
   dependencies:
     "@krassowski/code-jumpers" "~1.1.0"
     "@krassowski/completion-theme" "~3.1.0"
-    "@krassowski/theme-material" "~2.1.0"
-    "@krassowski/theme-vscode" "~2.1.0"
+    "@krassowski/theme-material" "~2.1.1"
+    "@krassowski/theme-vscode" "~2.1.1"
     lodash.mergewith "^4.6.1"
     lsp-ws-connection "~0.6.0"
 
 "@krassowski/theme-material@file:packages/theme-material":
-  version "2.1.0"
+  version "2.1.1"
   dependencies:
     "@krassowski/completion-theme" "^3.0.0"
 
 "@krassowski/theme-vscode@file:packages/theme-vscode":
-  version "2.1.0"
+  version "2.1.1"
   dependencies:
     "@krassowski/completion-theme" "^3.0.0"
 

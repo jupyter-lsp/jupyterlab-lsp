@@ -1,5 +1,21 @@
 from .utils import ShellSpec
 
+TROUBLESHOOT = """\
+Please ensure that RScript executable is in the PATH; \
+this should happen automatically when using Linux, Mac OS or Conda, \
+but will require manual configuration when using the default R installer on Windows.
+
+For more details please consult documentation:
+https://cran.r-project.org/bin/windows/base/rw-FAQ.html#Rcmd-is-not-found-in-my-PATH_0021
+
+If Rscript is already in the PATH, you can check whether \
+the language server package is properly installed with:
+
+  Rscript -e "cat(system.file(package='languageserver'))"
+
+which should return the path to the installed package.
+"""
+
 
 class RLanguageServer(ShellSpec):
     package = "languageserver"
@@ -26,4 +42,5 @@ class RLanguageServer(ShellSpec):
             cran=f'install.packages("{package}")',
             conda="conda install -c conda-forge r-languageserver",
         ),
+        troubleshoot=TROUBLESHOOT,
     )

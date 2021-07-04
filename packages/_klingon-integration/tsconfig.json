@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfigbase",
+  "compilerOptions": {
+    "outDir": "lib",
+    "rootDir": "src",
+    "tsBuildInfoFile": "lib/.tsbuildinfo"
+  },
+  "include": ["src/**/*"],
+  "references": [
+    {
+      "path": "../jupyterlab-lsp"
+    }
+  ]
+}
