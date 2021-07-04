@@ -7,7 +7,7 @@ import subprocess
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
-from typing import Optional, cast
+from typing import List, Optional, cast
 
 import anyio
 from tornado.concurrent import run_on_executor
@@ -27,7 +27,7 @@ from .utils import get_unused_port
 SKIP_JSON_SPEC = ["argv", "debug_argv", "env"]
 
 
-class LanguageServerSession(LoggingConfigurable):
+class LanguageServerSessionBase(LoggingConfigurable):
     """Manage a session for a connection to a language server"""
 
     language_server = Unicode(help="the language server implementation name")
@@ -42,9 +42,6 @@ class LanguageServerSession(LoggingConfigurable):
     cancelscope = None
     writer = Instance(LspStreamWriter, help="the JSON-RPC writer", allow_none=True)
     reader = Instance(LspStreamReader, help="the JSON-RPC reader", allow_none=True)
-    tcp_con = Instance(
-        anyio.abc.SocketStream, help="the tcp connection", allow_none=True
-    )
     from_lsp = Instance(
         Queue, help="a queue for string messages from the server", allow_none=True
     )
@@ -109,19 +106,15 @@ class LanguageServerSession(LoggingConfigurable):
         if self.cancelscope is not None:
             self.portal.call(self.cancelscope.cancel)
             self.cancelscope = None
-        if self.process:
-            self.portal.call(self.stop_process, 5)
-            self.process = None
         if self.reader:
             self.portal.call(self.reader.close)
             self.reader = None
         if self.writer:
             self.portal.call(self.writer.close)
             self.writer = None
-        if self.tcp_con:
-            self.log.warning("Closing TCP connection")
-            self.portal.call(self.tcp_con.aclose)
-            self.tcp_con = None
+        if self.process:
+            self.portal.call(self.stop_process, 5)
+            self.process = None
 
         self.status = SessionStatus.STOPPED
 
@@ -158,34 +151,25 @@ class LanguageServerSession(LoggingConfigurable):
 
     async def init_process(self):
         """start the language server subprocess"""
+        # must be implemented by the base classes
+        pass
+
+    async def start_process(self, argv: List[str]):
+        """start the language server subprocess giben in argv"""
+
         self.substitute_env(self.spec.get("env", {}), os.environ)
-
-        argv = self.spec["argv"]
-
-        host = None
-        port = None
-        mode = self.spec.get("mode")
-        if mode == "tcp":
-            host, port, ext = self.get_tcp_server()
-            # if server is already running in different process
-            if ext:
-                self.log.warning("Opening TCP connection to external process")
-                # just connect to it and be done
-                self.tcp_con = await self.init_tcp_connection(host, port)
-                return
-            # else substitute arguments for host and port into the environment
-            argv = [arg.format(host=host, port=port) for arg in argv]
 
         # and start the process
         self.process = await anyio.open_process(
             argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE
         )
 
-        # finally connect to the now running process if in tcp mode
-        if mode == "tcp":
-            self.tcp_con = await self.init_tcp_connection(host, port)
-
     async def stop_process(self, timeout: int = 5):
+        """stop the language server subprocess
+
+        If the process does not terminate within timeout seconds it will be killed
+        forcefully.
+        """
         if self.process is None:
             return
 
@@ -209,8 +193,100 @@ class LanguageServerSession(LoggingConfigurable):
         self.from_lsp = Queue()
         self.to_lsp = Queue()
 
+    def init_reader(self):
+        """create the stream reader (from the language server)"""
+        # must be implemented by the base classes
+        pass
+
+    def init_writer(self):
+        """create the stream writer (to the language server)"""
+        # must be implemented by the base classes
+        pass
+
+    def substitute_env(self, env, base):
+        for key, value in env.items():
+            os.environ.update({key: string.Template(value).safe_substitute(base)})
+
+    @run_on_executor
+    def listen(self):
+        self.portal.call(self._listen)
+
+    async def _listen(self):
+        try:
+            async with anyio.create_task_group() as tg:
+                self.cancelscope = tg.cancel_scope
+                await tg.spawn(self._read_lsp)
+                await tg.spawn(self._write_lsp)
+                await tg.spawn(self._broadcast_from_lsp)
+        except Exception as e:
+            self.log.exception("Execption while listening {}", e)
+
+    async def _read_lsp(self):
+        await self.reader.read()
+
+    async def _write_lsp(self):
+        await self.writer.write()
+
+    async def _broadcast_from_lsp(self):
+        """loop for reading messages from the queue of messages from the language
+        server
+        """
+        async for message in self.from_lsp:
+            self.last_server_message_at = self.now()
+            await self.parent.on_server_message(message, self)
+            self.from_lsp.task_done()
+
+
+class LanguageServerSessionStdio(LanguageServerSessionBase):
+    async def init_process(self):
+        await self.start_process(self.spec["argv"])
+
+    def init_reader(self):
+        self.reader = LspStreamReader(
+            stream=self.process.stdout, queue=self.from_lsp, parent=self
+        )
+
+    def init_writer(self):
+        self.writer = LspStreamWriter(
+            stream=self.process.stdin, queue=self.to_lsp, parent=self
+        )
+
+
+class LanguageServerSessionTCP(LanguageServerSessionBase):
+
+    tcp_con = Instance(
+        anyio.abc.SocketStream, help="the tcp connection", allow_none=True
+    )
+
+    async def init_process(self):
+        """start the language server subprocess"""
+        argv = self.spec["argv"]
+
+        host, port, ext = self.get_tcp_server()
+        # if server is already running in different process
+        if ext:
+            self.log.warning("Opening TCP connection to external process")
+            # just connect to it and be done
+            self.tcp_con = await self.init_tcp_connection(host, port)
+            return
+
+        # else substitute arguments for host and port into the environment
+        argv = [arg.format(host=host, port=port) for arg in argv]
+
+        # and start the process
+        await self.start_process(argv)
+
+        # finally connect to the now running process if in tcp mode
+        self.tcp_con = await self.init_tcp_connection(host, port)
+
+    async def stop_process(self, timeout: int = 5):
+        await self.tcp_con.aclose()
+        self.tcp_con = None
+
+        await super().stop_process(timeout)
+
     def get_tcp_server(self):
-        """ Reads the TCP configuration parameters from the specification
+        """Reads the TCP configuration parameters from the specification
 
         Returns a triple (host, port, ext), where ext is a boolean specifying whether
         the sever is running externaly.
@@ -261,64 +337,14 @@ class LanguageServerSession(LoggingConfigurable):
                             server, tries, retries
                         )
                     )
-
         raise OSError("Unable to connect to server {}".format(server))
 
     def init_reader(self):
-        """create the stdout reader (from the language server)"""
-        stream = None
-        mode = self.spec.get("mode", "stdio")
-        if mode == "tcp":
-            stream = self.tcp_con
-        elif mode == "stdio":
-            stream = self.process.stdout
-        else:
-            raise ValueError("Unknown mode: " + mode)
-
-        self.reader = LspStreamReader(stream=stream, queue=self.from_lsp, parent=self)
+        self.reader = LspStreamReader(
+            stream=self.tcp_con, queue=self.from_lsp, parent=self
+        )
 
     def init_writer(self):
-        """create the stdin writer (to the language server)"""
-        stream = None
-        mode = self.spec.get("mode", "stdio")
-        if mode == "tcp":
-            stream = self.tcp_con
-        elif mode == "stdio":
-            stream = self.process.stdin
-        else:
-            raise ValueError("Unknown mode: " + mode)
-
-        self.writer = LspStreamWriter(stream=stream, queue=self.to_lsp, parent=self)
-
-    def substitute_env(self, env, base):
-        for key, value in env.items():
-            os.environ.update({key: string.Template(value).safe_substitute(base)})
-
-    @run_on_executor
-    def listen(self):
-        self.portal.call(self._listen)
-
-    async def _listen(self):
-        try:
-            async with anyio.create_task_group() as tg:
-                self.cancelscope = tg.cancel_scope
-                await tg.spawn(self._read_lsp)
-                await tg.spawn(self._write_lsp)
-                await tg.spawn(self._broadcast_from_lsp)
-        except Exception as e:
-            self.log.exception("Execption while listening {}", e)
-
-    async def _read_lsp(self):
-        await self.reader.read()
-
-    async def _write_lsp(self):
-        await self.writer.write()
-
-    async def _broadcast_from_lsp(self):
-        """loop for reading messages from the queue of messages from the language
-        server
-        """
-        async for message in self.from_lsp:
-            self.last_server_message_at = self.now()
-            await self.parent.on_server_message(message, self)
-            self.from_lsp.task_done()
+        self.writer = LspStreamWriter(
+            stream=self.tcp_con, queue=self.to_lsp, parent=self
+        )
