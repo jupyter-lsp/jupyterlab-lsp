@@ -30,9 +30,6 @@ class LspStreamBase(LoggingConfigurable):
 
     executor = None
 
-    stream = Instance(
-        anyio.abc.AsyncResource, help="the stream to read/write"
-    )  # type: anyio.abc.AsyncResource
     queue = Instance(Queue, help="queue to get/put")
 
     def __repr__(self):  # pragma: no cover
@@ -44,8 +41,8 @@ class LspStreamBase(LoggingConfigurable):
         self.executor = ThreadPoolExecutor(max_workers=1)
 
     async def close(self):
-        await self.stream.aclose()
-        self.log.debug("%s closed", self)
+        # must be implemented by the base classes
+        pass
 
 
 class LspStreamReader(LspStreamBase):
@@ -59,9 +56,17 @@ class LspStreamReader(LspStreamBase):
     min_wait = Float(0.05, help="minimum time to wait on idle stream").tag(config=True)
     next_wait = Float(0.05, help="next time to wait on idle stream").tag(config=True)
 
-    def __init__(self, **kwargs):
+    stream = Instance(
+        BufferedByteReceiveStream, help="the stream to read from"
+    )  # type: BufferedByteReceiveStream
+
+    def __init__(self, stream: anyio.abc.AsyncResource, **kwargs):
         super().__init__(**kwargs)
-        self.stream = BufferedByteReceiveStream(self.stream)
+        self.stream = BufferedByteReceiveStream(stream)
+
+    async def close(self):
+        await self.stream.aclose()
+        self.log.debug("%s closed", self)
 
     @default("max_wait")
     def _default_max_wait(self):
@@ -199,17 +204,25 @@ class LspStreamReader(LspStreamBase):
 class LspStreamWriter(LspStreamBase):
     """Language Server Writer"""
 
-    def __init__(self, **kwargs):
+    stream = Instance(
+        TextSendStream, help="the stream to write to"
+    )  # type: TextSendStream
+
+    def __init__(self, stream: anyio.abc.AsyncResource, **kwargs):
         super().__init__(**kwargs)
-        self.stream = TextSendStream(self.stream, encoding="utf-8")
+        self.stream = TextSendStream(stream, encoding="utf-8")
+
+    async def close(self):
+        await self.stream.aclose()
+        self.log.debug("%s closed", self)
 
     async def write(self) -> None:
         """Write to a Language Server until it closes"""
         while True:
             message = await self.queue.get()
             try:
-                nBytes = len(message.encode("utf-8"))
-                response = "Content-Length: {}\r\n\r\n{}".format(nBytes, message)
+                n_bytes = len(message.encode("utf-8"))
+                response = "Content-Length: {}\r\n\r\n{}".format(n_bytes, message)
                 await convert_yielded(self._write_one(response))
             except (
                 anyio.ClosedResourceError,
