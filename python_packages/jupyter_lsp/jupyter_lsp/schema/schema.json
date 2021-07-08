@@ -146,6 +146,11 @@
           "enum": ["stdio", "tcp"],
           "default": "stdio"
         },
+        "troubleshoot": {
+          "type": "string",
+          "description": "information on troubleshooting the installation or auto-detection of the language server",
+          "title": "Troubleshooting"
+        },
         "urls": {
           "additionalProperties": {
             "format": "uri",
@@ -171,6 +176,9 @@
       "properties": {
         "sessions": {
           "$ref": "#/definitions/sessions"
+        },
+        "specs": {
+          "$ref": "#/definitions/language-server-specs-implementation-map"
         },
         "version": {
           "$ref": "#/definitions/current-version"

@@ -114,6 +114,10 @@ h5 {
   fill: var(--jp-layout-color3);
 }
 
+.lsp-status-message {
+  user-select: none;
+}
+
 body[data-jp-theme-light='false'] .lsp-status-icon.ready svg g {
   fill: var(--jp-success-color1);
 }
@@ -124,4 +128,23 @@ body[data-jp-theme-light='false'] .lsp-status-icon.ready svg g {
 
 .jp-ToolbarButton .lsp-status-icon svg {
   top: 5px;
+}
+
+.lsp-help-button {
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-brand-color0);
+  float: right;
+}
+
+.lsp-help-button:hover {
+  background: var(--jp-layout-color3);
+}
+
+.lsp-server-links-list a {
+  color: var(--jp-content-link-color);
+}
+
+.lsp-troubleshoot-section {
+  white-space: pre-wrap;
+  margin: 10px 0;
 }

@@ -8,6 +8,7 @@ from jupyter_server.utils import url_path_join as ujoin
 
 from .manager import LanguageServerManager
 from .schema import SERVERS_RESPONSE
+from .specs.utils import censored_spec
 
 
 class BaseHandler(JupyterHandler):
@@ -56,12 +57,16 @@ class LanguageServersHandler(BaseHandler):
                 language_server: session.to_json()
                 for language_server, session in self.manager.sessions.items()
             },
+            "specs": {
+                key: censored_spec(spec)
+                for key, spec in self.manager.all_language_servers.items()
+            },
         }
 
         errors = list(self.validator.iter_errors(response))
 
         if errors:  # pragma: no cover
-            self.log.warn("{} validation errors: {}", len(errors), errors)
+            self.log.warning("{} validation errors: {}".format(len(errors), errors))
 
         self.finish(response)
 
