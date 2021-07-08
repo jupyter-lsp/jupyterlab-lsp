@@ -262,21 +262,16 @@ class LanguageServerSessionTCP(LanguageServerSessionBase):
         """start the language server subprocess"""
         argv = self.spec["argv"]
 
-        host, port, ext = self.get_tcp_server()
-        # if server is already running in different process
-        if ext:
-            self.log.warning("Opening TCP connection to external process")
-            # just connect to it and be done
-            self.tcp_con = await self.init_tcp_connection(host, port)
-            return
+        host = "127.0.0.1"
+        port = get_unused_port()
 
-        # else substitute arguments for host and port into the environment
+        # substitute arguments for host and port into the environment
         argv = [arg.format(host=host, port=port) for arg in argv]
 
-        # and start the process
+        # start the process
         await self.start_process(argv)
 
-        # finally connect to the now running process if in tcp mode
+        # finally open the tcp connection to the now running process
         self.tcp_con = await self.init_tcp_connection(host, port)
 
     async def stop_process(self, timeout: int = 5):
@@ -284,34 +279,6 @@ class LanguageServerSessionTCP(LanguageServerSessionBase):
         self.tcp_con = None
 
         await super().stop_process(timeout)
-
-    def get_tcp_server(self):
-        """Reads the TCP configuration parameters from the specification
-
-        Returns a triple (host, port, ext), where ext is a boolean specifying whether
-        the sever is running externaly.
-        If neither a host nor a port is specified a randomly selected free port and
-        host="127.0.0.1" will be returned.
-        If a host but no port is specified a ValueError is raised.
-        In all other cases the specified port and host will be returned.
-        """
-        host = self.spec.get("host")
-        port = self.spec.get("port")
-        ext = True
-
-        if port is None:
-            if host is None:
-                host = "127.0.0.1"
-                port = get_unused_port()
-                ext = False
-            else:
-                raise ValueError(
-                    "A port must be given explicitly if a host was specified"
-                )
-        else:
-            if host is None:
-                host = "127.0.0.1"
-        return (host, port, ext)
 
     async def init_tcp_connection(self, host, port, retries=12, sleep=5.0):
         server = "{}:{}".format(host, port)

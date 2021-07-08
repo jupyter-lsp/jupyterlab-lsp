@@ -139,36 +139,13 @@
           "description": "list of MIME types supported by the language server",
           "title": "MIME Types"
         },
-	"mode": {
-	  "description": "connection mode used, e.g. stdio (default), tcp",
-	  "title": "Mode",
-	  "type": "string",
-	  "enum": ["stdio", "tcp"]
-	},
-	"port": {
-	  "description": "the port for tcp mode connections. a null value will select a random, unused port",
-	  "title": "Port",
-	  "oneOf": [
-	    {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ]
-	},
-	"host": {
-	  "description": "the host for tcp mode connections. a null value will assume '127.0.0.1'",
-	  "title": "Host",
-	  "oneOf": [
-	    {
-	      "type": "string"
-	    },
-	    {
-	      "type": "null"
-	    }
-	  ]
-	},
+        "mode": {
+          "description": "connection mode used, e.g. stdio (default), tcp",
+          "title": "Mode",
+          "type": "string",
+          "enum": ["stdio", "tcp"],
+          "default": "stdio"
+        },
         "urls": {
           "additionalProperties": {
             "format": "uri",
