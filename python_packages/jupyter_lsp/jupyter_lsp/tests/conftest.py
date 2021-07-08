@@ -109,6 +109,12 @@ def jsonrpc_init_msg():
     )
 
 
+# only run tests with asyncio
+@fixture
+def anyio_backend():
+    return "asyncio"
+
+
 @fixture
 def app():
     return MockServerApp()

@@ -1,7 +1,7 @@
 import pytest
 import traitlets
 
-from jupyter_lsp.session import LanguageServerSession
+from jupyter_lsp.session import LanguageServerSessionStdio
 
 
 @pytest.mark.parametrize(
@@ -16,4 +16,4 @@ from jupyter_lsp.session import LanguageServerSession
 )
 def test_bad_spec(spec):
     with pytest.raises(traitlets.TraitError):
-        LanguageServerSession(spec=spec)
+        LanguageServerSessionStdio(spec=spec)
