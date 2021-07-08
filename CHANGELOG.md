@@ -1,10 +1,12 @@
 ## Changelog
 
-### `@krassowski/jupyterlab-lsp 3.7.1` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.8.0` (2021-07-04)
 
 - improvements:
 
   - add a note on manually enabling backend extension ([#621], thanks @icankeep)
+  - in-app troubleshooting/installation help is now offered for servers which are needed but could not be detected
+    (if auto-detection specification for those is present) ([#634])
 
 - bug fixes:
   - fix rename shortcut registration in file editor ([#614])
@@ -15,6 +17,26 @@
 [#621]: https://github.com/krassowski/jupyterlab-lsp/pull/621
 [#625]: https://github.com/krassowski/jupyterlab-lsp/pull/625
 [#630]: https://github.com/krassowski/jupyterlab-lsp/pull/630
+[#634]: https://github.com/krassowski/jupyterlab-lsp/pull/634
+
+### `jupyter-lsp 1.4.0` (2021-07-04)
+
+- features:
+
+  - `troubleshoot` property was added to the language server spec, allowing to describe auto-detection troubleshooting
+    ([#634])
+  - new endpoint `specs` will list all language server specifications known to `jupyter-lsp` allowing frontends
+    to suggest installation of specific language servers ([#634])
+
+- changes:
+  - `ShellSpec.is_installed()` signature changed; it now accepts the `LanguageServerManagerAPI` rather than the resolved
+    command location (of `str` type); the specs using only `is_installed_args` are not affected; as this method was only
+    used by internally by the `__call__` implementation (which was adjusted accordingly) this change should not break
+    existing specs unless any of these methods were overridden in sub-classes.
+  - `SpecBase` was moved to `types.py`; it can still be imported from `utils`, but doing so is discouraged
+  - `ShellSpec.solve()` was added to facilitate discovery of command location
+
+[#634]: https://github.com/krassowski/jupyterlab-lsp/pull/634
 
 ### `jupyter-lsp 1.3.0` (2021-06-02)
 

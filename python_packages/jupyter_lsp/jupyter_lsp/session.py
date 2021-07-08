@@ -16,11 +16,9 @@ from traitlets.config import LoggingConfigurable
 
 from . import stdio
 from .schema import LANGUAGE_SERVER_SPEC
+from .specs.utils import censored_spec
 from .trait_types import Schema
 from .types import SessionStatus
-
-# these are not desirable to publish to the frontend
-SKIP_JSON_SPEC = ["argv", "debug_argv", "env"]
 
 
 class LanguageServerSession(LoggingConfigurable):
@@ -74,7 +72,7 @@ class LanguageServerSession(LoggingConfigurable):
             last_handler_message_at=self.last_handler_message_at.isoformat()
             if self.last_handler_message_at
             else None,
-            spec={k: v for k, v in self.spec.items() if k not in SKIP_JSON_SPEC},
+            spec=censored_spec(self.spec),
         )
 
     def initialize(self):

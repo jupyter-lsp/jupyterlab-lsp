@@ -16,9 +16,12 @@ dependencies:
   - flake8 >=3.5
   - pip
   - pylint
-  - pyls-black
-  - pyls-isort
-  - pyls-mypy
+  # pyls-black was not migrated to pylsp yet
+  # - pyls-black
+  # pyls-isort already migrated to pylsp but there is no point enabling
+  # it right now as we do not support actions support yet (PRs welcome)
+  # - pyls-isort
+  - pylsp-mypy
   - python-lsp-server
   - ruamel_yaml
   # for R language server and kernel

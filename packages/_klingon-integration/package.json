@@ -1,0 +1,35 @@
+{
+  "name": "@krassowski/jupyterlab-lsp-klingon-integration",
+  "description": "Klingon language integration for testing @krassowski/jupyterlab-lsp",
+  "version": "0.0.0",
+  "private": true,
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "author": "JupyterLab-LSP Development Team",
+  "files": [
+    "lib/**/*.{js,ts}"
+  ],
+  "dependencies": {
+    "@jupyterlab/application": "^3.0.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.4.3",
+    "@jupyterlab/application": "^3.0.0",
+    "@jupyterlab/builder": "^3.0.0",
+    "typescript": "~4.1.3"
+  },
+  "jupyterlab": {
+    "extension": true,
+    "outputDir": "../../python_packages/klingon_ls_specification/klingon_ls_specification/labextensions/@krassowski/jupyterlab-lsp-klingon-integration"
+  },
+  "scripts": {
+    "build": "jlpm run build:lib && jlpm run build:labextension",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "build:lib": "tsc",
+    "clean:lib": "rimraf lib",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:labextension": "jupyter labextension watch .",
+    "watch:src": "tsc -w"
+  }
+}
