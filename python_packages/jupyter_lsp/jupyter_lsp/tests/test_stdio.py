@@ -1,6 +1,6 @@
-import anyio
 import subprocess
 
+import anyio
 import pytest
 from tornado.queues import Queue
 
