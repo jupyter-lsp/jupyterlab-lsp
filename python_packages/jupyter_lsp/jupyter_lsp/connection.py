@@ -19,7 +19,7 @@ from tornado.gen import convert_yielded
 from tornado.httputil import HTTPHeaders
 from tornado.ioloop import IOLoop
 from tornado.queues import Queue
-from traitlets import Float, Instance, default
+from traitlets import Float, Instance, Int, default
 from traitlets.config import LoggingConfigurable
 
 
@@ -55,6 +55,10 @@ class LspStreamReader(LspStreamBase):
     max_wait = Float(help="maximum time to wait on idle stream").tag(config=True)
     min_wait = Float(0.05, help="minimum time to wait on idle stream").tag(config=True)
     next_wait = Float(0.05, help="next time to wait on idle stream").tag(config=True)
+    receive_max_bytes = Int(
+        65536,
+        help="the maximum size a header line send by the language server may have",
+    ).tag(config=True)
 
     stream = Instance(
         BufferedByteReceiveStream, help="the stream to read from"
@@ -188,7 +192,7 @@ class LspStreamReader(LspStreamBase):
             # way of getting the bytes read until max_bytes is reached, so we cannot
             # iterate the receive_until call with smaller max_bytes values
             async with anyio.move_on_after(0.2):
-                line = await self.stream.receive_until(b"\r\n", 65536)
+                line = await self.stream.receive_until(b"\r\n", self.receive_max_bytes)
                 return line.decode("utf-8").strip()
         except anyio.IncompleteRead:
             # resource has been closed before the requested bytes could be retrieved
