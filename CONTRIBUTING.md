@@ -387,8 +387,8 @@ otherwise an empty dictionary (`{}`) should be returned.
 
 - some language servers need to have their connection mode specified
   - `jupyter_lsp` currently supports the `stdio` and `tcp` interface
-  - the mode used by `jupyter_lsp` to connect to the language server can be specified by including `mode="stdio"` or `mode="tcp"` in the language sever `spec`-dictionary
-  - currently it is not possible to connect externally running language servers via tcp, but only to servers spawned by `jupyter_lsp` as given by the `argv` specs entry
+  - the mode used by `jupyter_lsp` to connect to the language server can be specified by including `mode="stdio"` or `mode="tcp"` in the language server `spec`-dictionary
+  - currently it is not possible to connect to externally running language servers via tcp, but only to servers spawned by `jupyter_lsp` as given by the `argv` specs entry
     - PRs welcome to support externally running language servers!
 - because of its VSCode heritage, many language servers use `nodejs`
   - `LanguageServerManager.nodejs` will provide the location of our best
