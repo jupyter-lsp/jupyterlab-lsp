@@ -5,6 +5,7 @@ import os
 import string
 import subprocess
 import threading
+from abc import ABC, ABCMeta, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import List, Optional, cast
@@ -16,6 +17,7 @@ from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
 from traitlets import Bunch, Instance, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
+from traitlets.traitlets import MetaHasTraits
 
 from .connection import LspStreamReader, LspStreamWriter
 from .schema import LANGUAGE_SERVER_SPEC
@@ -25,7 +27,13 @@ from .types import SessionStatus
 from .utils import get_unused_port
 
 
-class LanguageServerSessionBase(LoggingConfigurable):
+class LanguageServerSessionMeta(MetaHasTraits, ABCMeta):
+    pass
+
+
+class LanguageServerSessionBase(
+    LoggingConfigurable, ABC, metaclass=LanguageServerSessionMeta
+):
     """Manage a session for a connection to a language server"""
 
     language_server = Unicode(help="the language server implementation name")
@@ -147,11 +155,6 @@ class LanguageServerSessionBase(LoggingConfigurable):
         event.wait()
         self.portal = cast(anyio.abc.BlockingPortal, portal)
 
-    async def init_process(self):
-        """start the language server subprocess"""
-        # must be implemented by the base classes
-        pass
-
     async def start_process(self, argv: List[str]):
         """start the language server subprocess giben in argv"""
 
@@ -191,19 +194,28 @@ class LanguageServerSessionBase(LoggingConfigurable):
         self.from_lsp = Queue()
         self.to_lsp = Queue()
 
-    def init_reader(self):
-        """create the stream reader (from the language server)"""
-        # must be implemented by the base classes
-        pass
-
-    def init_writer(self):
-        """create the stream writer (to the language server)"""
-        # must be implemented by the base classes
-        pass
-
     def substitute_env(self, env, base):
         for key, value in env.items():
             os.environ.update({key: string.Template(value).safe_substitute(base)})
+
+    @abstractmethod
+    async def init_process(self):
+        """start the language server subprocess and store it in self.process"""
+        pass
+
+    @abstractmethod
+    def init_reader(self):
+        """create the stream reader (from the language server) and store it in
+        self.reader
+        """
+        pass
+
+    @abstractmethod
+    def init_writer(self):
+        """create the stream writer (to the language server) and store it in
+        self.writer
+        """
+        pass
 
     @run_on_executor
     def listen(self):

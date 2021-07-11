@@ -8,6 +8,7 @@ Parts of this code are derived from:
 > > Copyright 2018 Palantir Technologies, Inc.
 """
 import os
+from abc import ABC, ABCMeta, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Optional, Text
 
@@ -21,9 +22,14 @@ from tornado.ioloop import IOLoop
 from tornado.queues import Queue
 from traitlets import Float, Instance, Int, default
 from traitlets.config import LoggingConfigurable
+from traitlets.traitlets import MetaHasTraits
 
 
-class LspStreamBase(LoggingConfigurable):
+class LspStreamMeta(MetaHasTraits, ABCMeta):
+    pass
+
+
+class LspStreamBase(LoggingConfigurable, ABC, metaclass=LspStreamMeta):
     """Non-blocking, queued base for communicating with Language Servers through anyio
     streams
     """
@@ -40,8 +46,8 @@ class LspStreamBase(LoggingConfigurable):
         self.log.debug("%s initialized", self)
         self.executor = ThreadPoolExecutor(max_workers=1)
 
+    @abstractmethod
     async def close(self):
-        # must be implemented by the base classes
         pass
 
 
