@@ -142,14 +142,10 @@ class NodeModuleSpec(SpecBase):
         spec["troubleshoot"] = "\n\n".join(troubleshooting)
 
         is_installed = self.is_installed(mgr)
-        
+
         return {
             self.key: {
-                "argv": (
-                    [mgr.nodejs, node_module, *self.args]
-                    if is_installed
-                    else []
-                ),
+                "argv": ([mgr.nodejs, node_module, *self.args] if is_installed else []),
                 "languages": self.languages,
                 "version": SPEC_VERSION,
                 **spec,
