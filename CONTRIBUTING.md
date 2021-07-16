@@ -390,6 +390,7 @@ otherwise an empty dictionary (`{}`) should be returned.
   - the mode used by `jupyter_lsp` to connect to the language server can be specified by including `mode="stdio"` or `mode="tcp"` in the language server `spec`-dictionary
   - currently it is not possible to connect to externally running language servers via tcp, but only to servers spawned by `jupyter_lsp` as given by the `argv` specs entry
     - PRs welcome to support externally running language servers!
+  - use the placeholder `{port}` within the `argv` entry to allow `jupyter_lsp` to specify the port on which to launch the language server
 - because of its VSCode heritage, many language servers use `nodejs`
   - `LanguageServerManager.nodejs` will provide the location of our best
     guess at where a user's `nodejs` might be found
