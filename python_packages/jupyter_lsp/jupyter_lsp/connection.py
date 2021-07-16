@@ -70,7 +70,7 @@ class LspStreamReader(LspStreamBase):
         BufferedByteReceiveStream, help="the stream to read from"
     )  # type: BufferedByteReceiveStream
 
-    def __init__(self, stream: anyio.abc.AsyncResource, **kwargs):
+    def __init__(self, stream: anyio.abc.ByteReceiveStream, **kwargs):
         super().__init__(**kwargs)
         self.stream = BufferedByteReceiveStream(stream)
 
@@ -219,7 +219,7 @@ class LspStreamWriter(LspStreamBase):
         TextSendStream, help="the stream to write to"
     )  # type: TextSendStream
 
-    def __init__(self, stream: anyio.abc.AsyncResource, **kwargs):
+    def __init__(self, stream: anyio.abc.ByteSendStream, **kwargs):
         super().__init__(**kwargs)
         self.stream = TextSendStream(stream, encoding="utf-8")
 
