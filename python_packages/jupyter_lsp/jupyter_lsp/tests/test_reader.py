@@ -81,7 +81,7 @@ class CommunicatorSpawner:
                 interval=interval or 0,
                 message=message,
                 add_excess=add_excess,
-                port=port
+                port=port,
             )
         )
         return await anyio.open_process(
@@ -112,25 +112,30 @@ async def join_process(process: anyio.abc.Process, headstart=1, timeout=1):
         ["ab" * 100_000, 1, None, False],
         ["ab", 2, 0.01, False],
         ["ab", 45, 0.01, False],
-        ["message", 2, 0.01, True]
+        ["message", 2, 0.01, True],
     ],
-    ids=["short",
-         "long",
-         "intermittent",
-         "intensive-intermittent",
-         "with-excess",
-         ],
+    ids=[
+        "short",
+        "long",
+        "intermittent",
+        "intensive-intermittent",
+        "with-excess",
+    ],
 )
 @pytest.mark.parametrize("mode", ["stdio", "tcp"], ids=["stdio", "tcp"])
 @pytest.mark.anyio
-async def test_reader(message, repeats, interval, add_excess, mode,
-                      communicator_spawner):
+async def test_reader(
+    message, repeats, interval, add_excess, mode, communicator_spawner
+):
     queue = Queue()
 
     port = get_unused_port() if mode == "tcp" else None
     process = await communicator_spawner.spawn_writer(
-        message=message, repeats=repeats, interval=interval, add_excess=add_excess,
-        port=port
+        message=message,
+        repeats=repeats,
+        interval=interval,
+        add_excess=add_excess,
+        port=port,
     )
     stream = None
     if port is None:
