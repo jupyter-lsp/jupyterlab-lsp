@@ -110,8 +110,9 @@ class LspStreamReader(LspStreamBase):
                     self.wake()
 
                 IOLoop.current().add_callback(self.queue.put_nowait, message)
-            except (anyio.ClosedResourceError, anyio.EndOfStream):
+            except anyio.ClosedResourceError:
                 # stream was closed -> terminate
+                self.log.debug("Stream closed while a read was still in progress")
                 break
             except Exception as e:  # pragma: no cover
                 self.log.exception(
@@ -239,8 +240,9 @@ class LspStreamWriter(LspStreamBase):
                 anyio.BrokenResourceError,
             ):  # pragma: no cover
                 # stream was closed -> terminate
+                self.log.debug("Stream closed while a write was still in progress")
                 break
-            except Exception:
+            except Exception:  # pragma: no cover
                 self.log.exception("%s couldn't write message: %s", self, response)
             finally:
                 self.queue.task_done()
