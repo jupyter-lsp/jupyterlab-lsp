@@ -9,7 +9,6 @@ Parts of this code are derived from:
 """
 import os
 from abc import ABC, ABCMeta, abstractmethod
-from concurrent.futures import ThreadPoolExecutor
 from typing import List, Optional, Text
 
 # pylint: disable=broad-except
@@ -34,8 +33,6 @@ class LspStreamBase(LoggingConfigurable, ABC, metaclass=LspStreamMeta):
     streams
     """
 
-    executor = None
-
     queue = Instance(Queue, help="queue to get/put")
 
     def __repr__(self):  # pragma: no cover
@@ -44,7 +41,6 @@ class LspStreamBase(LoggingConfigurable, ABC, metaclass=LspStreamMeta):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.log.debug("%s initialized", self)
-        self.executor = ThreadPoolExecutor(max_workers=1)
 
     @abstractmethod
     async def close(self):
