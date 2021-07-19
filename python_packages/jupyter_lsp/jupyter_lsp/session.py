@@ -7,6 +7,7 @@ import subprocess
 import threading
 from abc import ABC, ABCMeta, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
+from copy import copy
 from datetime import datetime, timezone
 from typing import List, Optional, cast
 
@@ -157,12 +158,11 @@ class LanguageServerSessionBase(
 
     async def start_process(self, argv: List[str]):
         """start the language server subprocess giben in argv"""
-
-        self.substitute_env(self.spec.get("env", {}), os.environ)
-
-        # and start the process
         self.process = await anyio.open_process(
-            argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE
+            argv,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            env=self.substitute_env(self.spec.get("env", {}), os.environ),
         )
 
     async def stop_process(self, timeout: int = 5):
@@ -195,8 +195,12 @@ class LanguageServerSessionBase(
         self.to_lsp = Queue()
 
     def substitute_env(self, env, base):
+        final_env = copy(os.environ)
+
         for key, value in env.items():
-            os.environ.update({key: string.Template(value).safe_substitute(base)})
+            final_env.update({key: string.Template(value).safe_substitute(base)})
+
+        return final_env
 
     @abstractmethod
     async def init_process(self):
