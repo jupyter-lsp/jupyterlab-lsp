@@ -205,21 +205,21 @@ class LanguageServerSessionBase(
     @abstractmethod
     async def init_process(self):
         """start the language server subprocess and store it in self.process"""
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def init_reader(self):
         """create the stream reader (from the language server) and store it in
         self.reader
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def init_writer(self):
         """create the stream writer (to the language server) and store it in
         self.writer
         """
-        pass
+        pass  # pragma: no cover
 
     @run_on_executor
     def listen(self):

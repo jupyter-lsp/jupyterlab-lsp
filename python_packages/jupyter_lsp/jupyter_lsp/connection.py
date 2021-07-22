@@ -44,7 +44,7 @@ class LspStreamBase(LoggingConfigurable, ABC, metaclass=LspStreamMeta):
 
     @abstractmethod
     async def close(self):
-        pass
+        pass  # pragma: no cover
 
 
 class LspStreamReader(LspStreamBase):
