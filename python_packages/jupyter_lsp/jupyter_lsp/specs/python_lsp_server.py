@@ -47,3 +47,11 @@ class PythonLSPServer(PythonModuleSpec):
         config_schema=load_config_schema(key),
         env=dict(PYTHONUNBUFFERED="1"),
     )
+
+
+class PythonLSPServerTCP(PythonLSPServer):
+    key = "pylsp-tcp"
+    args = ["--tcp", "--port", "{port}"]
+    spec = PythonLSPServer.spec.copy()
+    spec["display_name"] = "python-lsp-server (pylsp) over tcp"
+    spec["mode"] = "tcp"

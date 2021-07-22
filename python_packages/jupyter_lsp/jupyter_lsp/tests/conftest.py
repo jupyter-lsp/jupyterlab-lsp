@@ -20,6 +20,7 @@ KNOWN_SERVERS = [
     "dockerfile-language-server-nodejs",
     "javascript-typescript-langserver",
     "pylsp",
+    "pylsp-tcp",
     "unified-language-server",
     "sql-language-server",
     "vscode-css-languageserver-bin",
