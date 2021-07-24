@@ -143,7 +143,7 @@ async def test_reader(
     else:
         # give the server some time to start
         await anyio.sleep(2)
-        stream = await anyio.connect_tcp("localhost", port)
+        stream = await anyio.connect_tcp("127.0.0.1", port)
 
     reader = LspStreamReader(stream=stream, queue=queue)
 
