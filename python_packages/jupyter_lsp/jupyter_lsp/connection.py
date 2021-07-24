@@ -144,7 +144,7 @@ class LspStreamReader(LspStreamBase):
                 part = await self.stream.receive_exactly(length - received_size)
             except anyio.IncompleteRead:  # pragma: no cover
                 pass
-            if part is None:
+            if part is None:  # pragma: no cover
                 max_empties -= 1
                 await self.sleep()
                 continue
@@ -201,7 +201,7 @@ class LspStreamReader(LspStreamBase):
             # resource has been closed before the requested bytes could be retrieved
             # -> signal recource closed
             raise anyio.ClosedResourceError
-        except anyio.DelimiterNotFound:
+        except anyio.DelimiterNotFound:  # pragma: no cover
             self.log.error(
                 "Readline hit max_bytes before newline character was encountered"
             )

@@ -176,7 +176,7 @@ class LanguageServerSessionBase(
         If the process does not terminate within timeout seconds it will be killed
         forcefully.
         """
-        if self.process is None:
+        if self.process is None:  # pragma: no cover
             return
 
         # try to stop the process gracefully
@@ -237,7 +237,7 @@ class LanguageServerSessionBase(
                 await tg.spawn(self._read_lsp)
                 await tg.spawn(self._write_lsp)
                 await tg.spawn(self._broadcast_from_lsp)
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             self.log.exception("Execption while listening {}", e)
 
     async def _read_lsp(self):
@@ -317,13 +317,15 @@ class LanguageServerSessionTCP(LanguageServerSessionBase):
                         ).format(server, tries, retries, sleep)
                     )
                     await anyio.sleep(sleep)
-                else:
+                else:  # pragma: no cover
                     self.log.warning(
                         "Connection to server {} refused! Attempt {}/{}.".format(
                             server, tries, retries
                         )
                     )
-        raise OSError("Unable to connect to server {}".format(server))
+        raise OSError(
+            "Unable to connect to server {}".format(server)
+        )  # pragma: no cover
 
     def init_reader(self):
         self.reader = LspStreamReader(

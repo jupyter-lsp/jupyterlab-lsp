@@ -150,7 +150,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
                 sessions[language_server] = LanguageServerSessionTCP(
                     language_server=language_server, spec=spec, parent=self
                 )
-            else:
+            else:  # pragma: no cover
                 raise ValueError(
                     "Unknown session mode {} for language server '{}'".format(
                         mode, language_server
