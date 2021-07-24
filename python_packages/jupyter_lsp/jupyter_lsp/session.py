@@ -16,7 +16,7 @@ from tornado.concurrent import run_on_executor
 from tornado.ioloop import IOLoop
 from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
-from traitlets import Bunch, Instance, Set, Unicode, UseEnum, observe
+from traitlets import Bunch, Float, Instance, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
 from traitlets.traitlets import MetaHasTraits
 
@@ -63,6 +63,11 @@ class LanguageServerSessionBase(
     status = UseEnum(SessionStatus, default_value=SessionStatus.NOT_STARTED)
     last_handler_message_at = Instance(datetime, allow_none=True)
     last_server_message_at = Instance(datetime, allow_none=True)
+
+    stop_timeout = Float(
+        5,
+        help="timeout after which a process will be terminated forcefully",
+    ).tag(config=True)
 
     _skip_serialize = ["argv", "debug_argv"]
 
@@ -120,7 +125,7 @@ class LanguageServerSessionBase(
             self.portal.call(self.writer.close)
             self.writer = None
         if self.process:
-            self.portal.call(self.stop_process, 5)
+            self.portal.call(self.stop_process, self.stop_timeout)
             self.process = None
 
         self.status = SessionStatus.STOPPED
