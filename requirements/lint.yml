@@ -10,7 +10,6 @@ dependencies:
   - isort
   - mypy
   - robotframework-lint >=1.1
-  - robotframework >=4
+  - robotframework >=4,<4.1
   - pytest-tornasync
-  - pip:
-      - types-six
+  - types-six
