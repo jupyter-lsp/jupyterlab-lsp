@@ -4,15 +4,15 @@ import atexit
 import os
 import string
 import subprocess
-import threading
 from abc import ABC, ABCMeta, abstractmethod
-from concurrent.futures import ThreadPoolExecutor
 from copy import copy
 from datetime import datetime, timezone
-from typing import List, Optional, cast
+from threading import Event, Thread
+from typing import List
 
 import anyio
-from tornado.concurrent import run_on_executor
+from anyio import CancelScope
+from anyio.abc import Process, SocketStream
 from tornado.ioloop import IOLoop
 from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
@@ -42,11 +42,21 @@ class LanguageServerSessionBase(
 
     # run-time specifics
     process = Instance(
-        anyio.abc.Process, help="the language server subprocess", allow_none=True
+        Process, help="the language server subprocess", allow_none=True
     )
-    executor = None
-    portal = None
-    cancelscope = None
+    cancelscope = Instance(
+        CancelScope, help="scope used for stopping the session", allow_none=True)
+    started = Instance(
+        Event,
+        args=(),
+        help="event signaling that the session has finished starting",
+        allow_none=False
+    )
+    thread = Instance(
+        Thread,
+        help="worker thread for running an event loop",
+        allow_none=True
+    )
     writer = Instance(LspStreamWriter, help="the JSON-RPC writer", allow_none=True)
     reader = Instance(LspStreamReader, help="the JSON-RPC reader", allow_none=True)
     from_lsp = Instance(
@@ -75,8 +85,6 @@ class LanguageServerSessionBase(
         """set up the required traitlets and exit behavior for a session"""
         super().__init__(*args, **kwargs)
         atexit.register(self.stop)
-        self.executor = ThreadPoolExecutor(max_workers=1)
-        self.start_blocking_portal()
 
     def __repr__(self):  # pragma: no cover
         return (
@@ -96,36 +104,72 @@ class LanguageServerSessionBase(
             spec=censored_spec(self.spec),
         )
 
-    def initialize(self):
-        """(re)initialize a language server session"""
-        self.stop()
+    def start(self):
+        """run a language server session asynchronously inside a worker thread
+
+           will return as soon as the session is ready for communication
+        """
+        self.started.clear()
+        self.thread = Thread(target=anyio.run, kwargs={"func": self.run})
+        self.thread.start()
+        self.started.wait()
+
+    def stop(self):
+        """shut down the session"""
+        if self.cancelscope is not None:
+            self.cancelscope.cancel()
+            self.cancelscope = None
+
+        # wait for the session to get cleaned up
+        if self.thread and self.thread.is_alive():
+            self.thread.join()
+
+    async def run(self):
+        """run this session in a cancel scope and clean everything up on cancellation
+
+        the event `self.started` will be set when everything is set up and the session
+        will be ready for communication
+        """
+        async with CancelScope() as scope:
+            self.cancelscope = scope
+            await self.initialize()
+            self.started.set()
+            await self.listen()
+        await self.cleanup()
+
+    async def initialize(self):
+        """initialize a language server session"""
         self.status = SessionStatus.STARTING
+
         self.init_queues()
-        self.portal.call(self.init_process)
+        await self.init_process()
         self.init_writer()
         self.init_reader()
 
-        # start listening on the executor in a different event loop
-        self.listen()
-
         self.status = SessionStatus.STARTED
 
-    def stop(self):
-        """clean up all of the state of the session"""
+    async def listen(self):
+        """start the actual read/write tasks"""
+        try:
+            async with anyio.create_task_group() as tg:
+                await tg.spawn(self._read_lsp)
+                await tg.spawn(self._write_lsp)
+                await tg.spawn(self._broadcast_from_lsp)
+        except Exception as e:  # pragma: no cover
+            self.log.exception("Execption while listening {}", e)
 
+    async def cleanup(self):
+        """clean up all of the state of the session"""
         self.status = SessionStatus.STOPPING
 
-        if self.cancelscope is not None:
-            self.portal.call(self.cancelscope.cancel)
-            self.cancelscope = None
-        if self.reader:
-            self.portal.call(self.reader.close)
+        if self.reader is not None:
+            await self.reader.close()
             self.reader = None
-        if self.writer:
-            self.portal.call(self.writer.close)
+        if self.writer is not None:
+            await self.writer.close()
             self.writer = None
-        if self.process:
-            self.portal.call(self.stop_process, self.stop_timeout)
+        if self.process is not None:
+            await self.stop_process(self.stop_timeout)
             self.process = None
 
         self.status = SessionStatus.STOPPED
@@ -134,7 +178,7 @@ class LanguageServerSessionBase(
     def _on_handlers(self, change: Bunch):
         """re-initialize if someone starts listening, or stop if nobody is"""
         if change["new"] and not self.process:
-            self.initialize()
+            self.start()
         elif not change["new"] and self.process:
             self.stop()
 
@@ -145,21 +189,6 @@ class LanguageServerSessionBase(
 
     def now(self):
         return datetime.now(timezone.utc)
-
-    # old definition of start_blocking_portal() prior to anyio3
-    def start_blocking_portal(self):
-        async def run_portal():
-            nonlocal portal
-            async with anyio.create_blocking_portal() as portal:
-                event.set()
-                await portal.sleep_until_stopped()
-
-        portal: Optional[anyio.abc.BlockingPortal]
-        event = threading.Event()
-        thread = threading.Thread(target=anyio.run, kwargs={"func": run_portal})
-        thread.start()
-        event.wait()
-        self.portal = cast(anyio.abc.BlockingPortal, portal)
 
     async def start_process(self, argv: List[str]):
         """start the language server subprocess giben in argv"""
@@ -226,20 +255,6 @@ class LanguageServerSessionBase(
         """
         pass  # pragma: no cover
 
-    @run_on_executor
-    def listen(self):
-        self.portal.call(self._listen)
-
-    async def _listen(self):
-        try:
-            async with anyio.create_task_group() as tg:
-                self.cancelscope = tg.cancel_scope
-                await tg.spawn(self._read_lsp)
-                await tg.spawn(self._write_lsp)
-                await tg.spawn(self._broadcast_from_lsp)
-        except Exception as e:  # pragma: no cover
-            self.log.exception("Execption while listening {}", e)
-
     async def _read_lsp(self):
         await self.reader.read()
 
@@ -274,7 +289,7 @@ class LanguageServerSessionStdio(LanguageServerSessionBase):
 class LanguageServerSessionTCP(LanguageServerSessionBase):
 
     tcp_con = Instance(
-        anyio.abc.SocketStream, help="the tcp connection", allow_none=True
+        SocketStream, help="the tcp connection", allow_none=True
     )
 
     async def init_process(self):
