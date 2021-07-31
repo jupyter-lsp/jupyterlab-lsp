@@ -41,21 +41,18 @@ class LanguageServerSessionBase(
     spec = Schema(LANGUAGE_SERVER_SPEC)
 
     # run-time specifics
-    process = Instance(
-        Process, help="the language server subprocess", allow_none=True
-    )
+    process = Instance(Process, help="the language server subprocess", allow_none=True)
     cancelscope = Instance(
-        CancelScope, help="scope used for stopping the session", allow_none=True)
+        CancelScope, help="scope used for stopping the session", allow_none=True
+    )
     started = Instance(
         Event,
         args=(),
         help="event signaling that the session has finished starting",
-        allow_none=False
+        allow_none=False,
     )
     thread = Instance(
-        Thread,
-        help="worker thread for running an event loop",
-        allow_none=True
+        Thread, help="worker thread for running an event loop", allow_none=True
     )
     writer = Instance(LspStreamWriter, help="the JSON-RPC writer", allow_none=True)
     reader = Instance(LspStreamReader, help="the JSON-RPC reader", allow_none=True)
@@ -107,7 +104,7 @@ class LanguageServerSessionBase(
     def start(self):
         """run a language server session asynchronously inside a worker thread
 
-           will return as soon as the session is ready for communication
+        will return as soon as the session is ready for communication
         """
         self.started.clear()
         self.thread = Thread(target=anyio.run, kwargs={"func": self.run})
@@ -288,9 +285,7 @@ class LanguageServerSessionStdio(LanguageServerSessionBase):
 
 class LanguageServerSessionTCP(LanguageServerSessionBase):
 
-    tcp_con = Instance(
-        SocketStream, help="the tcp connection", allow_none=True
-    )
+    tcp_con = Instance(SocketStream, help="the tcp connection", allow_none=True)
 
     async def init_process(self):
         """start the language server subprocess"""
