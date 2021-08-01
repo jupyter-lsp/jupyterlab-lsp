@@ -1,5 +1,12 @@
 ## Changelog
 
+### `@krassowski/jupyterlab-lsp 3.8.1` (unreleased)
+
+- bug fixes:
+  - `%Rdevice` magic is now properly overridden and won't be extracted to R code [(#646)]
+
+[#646]: https://github.com/krassowski/jupyterlab-lsp/pull/646
+
 ### `@krassowski/jupyterlab-lsp 3.8.0` (2021-07-04)
 
 - improvements:

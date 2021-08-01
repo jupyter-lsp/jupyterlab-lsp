@@ -332,7 +332,7 @@ python scripts/lint.py
 
 ### Specs
 
-While language servers can be configured by the user using a simple JSON or Python [configuration file](./Configuring.html#language-servers),
+While language servers can be configured by the user using a simple JSON or Python [configuration file](./docs/Configuring.ipynb),
 it is preferable to provide users with an option that does not require manual configuration. The language server specifications (specs)
 wrap the configuration (as would be defined by the user) into a Python class or function that can be either:
 
@@ -361,7 +361,7 @@ A spec is a Python callable (a function, or a class with `__call__` method) that
 
 The above example is only intended as an illustration and not as an up-to-date guide.
 For details on the dictionary contents, see the [schema][] definition and [built-in specs][].
-Basic concepts (meaning of the `argv` and `languages` arguments) are also explained in the [configuration files](./Configuring.html#language-servers) documentation.
+Basic concepts (meaning of the `argv` and `languages` arguments) are also explained in the [configuration files](./docs/Configuring.ipynb) documentation.
 
 When contributing a specification we recommend to make use of the helper classes and other [utilities][] that take care of the common use-cases:
 
