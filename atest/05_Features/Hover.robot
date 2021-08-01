@@ -57,7 +57,6 @@ Trigger Via Hover With Modifier
     Mouse Over    ${sel}
     # move it back and forth (wiggle) while hodling the ctrl modifier
     Mouse Over With Control    ${sel}    x_wiggle=5
-    Wait Until Page Contains Element    ${HOVER_SIGNAL}
     Wait Until Keyword Succeeds    4x    0.1s    Page Should Contain Element    ${HOVER_BOX}
 
 Trigger Via Modifier Key Press
