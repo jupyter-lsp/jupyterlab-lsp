@@ -3,9 +3,9 @@
 ### `@krassowski/jupyterlab-lsp 3.8.1` (unreleased)
 
 - bug fixes:
-  - remove spurious `ValidationError` warnings for non-installed servers ([(#645)], thanks @karlaspuldaro)
-  - `%Rdevice` magic is now properly overridden and won't be extracted to R code ([(#646)])
-  - Fix hover rendering for MarkedStrings, fix hover disappearing when moving mouse towards it ([(#653)])
+  - remove spurious `ValidationError` warnings for non-installed servers ([#645)], thanks @karlaspuldaro)
+  - `%Rdevice` magic is now properly overridden and won't be extracted to R code ([#646)])
+  - Fix hover rendering for MarkedStrings, fix hover disappearing when moving mouse towards it ([#653)])
 
 [#645]: https://github.com/krassowski/jupyterlab-lsp/pull/645
 [#646]: https://github.com/krassowski/jupyterlab-lsp/pull/646
