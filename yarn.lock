@@ -11756,9 +11756,9 @@ puppeteer@^1.17.0:
     ws "^6.1.0"
 
 pyright@^1.1:
-  version "1.1.140"
-  resolved "https://registry.yarnpkg.com/pyright/-/pyright-1.1.140.tgz#2692f67b2769e664983dff3fefee4c0e4d12f4fa"
-  integrity sha512-isJj7cahjEK7xAy5/aLJ4TfzLJGA4SCWqPk1pLJA3k8S6VUo4FIiPrvHOd1LM2gxImqgef4rwUeHRC+vrOKLRQ==
+  version "1.1.159"
+  resolved "https://registry.yarnpkg.com/pyright/-/pyright-1.1.159.tgz#185228546adbaff6dbac6127e91a16aa6846e319"
+  integrity sha512-KCKxW9MWLTTmM6CMHixpgX0H+eZO40aAQwXs1qji4Ru+Yq/KJCGb2b7eTqXMoRxEqz1cIinvpaoH11R54gUBGQ==
 
 q@^1.5.1:
   version "1.5.1"

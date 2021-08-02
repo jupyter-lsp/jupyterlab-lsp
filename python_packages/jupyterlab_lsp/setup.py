@@ -40,4 +40,7 @@ _release = re.findall(
 setuptools.setup(
     version=f"{_version}{_release}",
     data_files=get_data_files(),
+    # explicit name as a workaround for GitHub dependency analyzer
+    # not discovering Python packages otherwise
+    name="jupyterlab-lsp",
 )
