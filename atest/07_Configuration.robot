@@ -58,7 +58,7 @@ Settings Should Change Editor Diagnostics
     Set Editor Content    {"language_servers": {"${server}": {"serverSettings": ${settings}}}}    ${CSS USER SETTINGS}
     Wait Until Page Contains    No errors found
     Capture Page Screenshot    02-default-diagnostics-and-unsaved-settings.png
-    Click Element    css:button[title\='Save User Settings']
+    Click Element    css:button[title^\='Save User Settings']
     Click Element    ${JLAB XP CLOSE SETTINGS}
     Drag and Drop By Offset    ${tab}    0    100
     Lab Command    ${save command}

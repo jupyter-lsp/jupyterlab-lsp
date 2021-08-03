@@ -1,11 +1,21 @@
 ## Changelog
 
-### `@krassowski/jupyterlab-lsp 3.8.1` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.8.1` (2021-08-02)
 
 - bug fixes:
-  - `%Rdevice` magic is now properly overridden and won't be extracted to R code [(#646)]
+  - `%Rdevice` magic is now properly overridden and won't be extracted to R code ([#646])
+  - Fix hover rendering for 1MarkedString1s, fix hover disappearing when moving mouse towards it ([#653])
 
 [#646]: https://github.com/krassowski/jupyterlab-lsp/pull/646
+[#653]: https://github.com/krassowski/jupyterlab-lsp/pull/653
+
+### `jupyter-lsp 1.4.1` (2021-08-02)
+
+- bug fixes:
+  - remove spurious `ValidationError` warnings for non-installed servers ([#645], thanks @karlaspuldaro)
+  - reduce number and verbosity of logs on startup
+
+[#645]: https://github.com/krassowski/jupyterlab-lsp/pull/645
 
 ### `@krassowski/jupyterlab-lsp 3.8.0` (2021-07-04)
 

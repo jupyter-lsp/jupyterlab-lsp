@@ -5,6 +5,7 @@ from pathlib import Path
 import setuptools
 
 setuptools.setup(
+    name="jupyter-lsp",
     version=re.findall(
         r"""__version__ = "([^"]+)"$""",
         (Path(__file__).parent / "jupyter_lsp" / "_version.py").read_text(
