@@ -41,6 +41,27 @@ interface IResponseData {
   ce_editor: CodeEditor.IEditor;
 }
 
+/**
+ * Check whether mouse is close to given element (within a specified number of pixels)
+ * @param what target element
+ * @param who mouse event determining position and target
+ * @param cushion number of pixels on each side defining "closeness" boundary
+ */
+function isCloseTo(what: HTMLElement, who: MouseEvent, cushion = 50): boolean {
+  const target = who.type === 'mouseleave' ? who.relatedTarget : who.target;
+
+  if (what === target || what.contains(target as HTMLElement)) {
+    return true;
+  }
+  const whatRect = what.getBoundingClientRect();
+  return !(
+    who.x < whatRect.left - cushion ||
+    who.x > whatRect.right + cushion ||
+    who.y < whatRect.top - cushion ||
+    who.y > whatRect.bottom + cushion
+  );
+}
+
 class ResponseCache {
   protected _data: Array<IResponseData>;
   get data() {
@@ -79,9 +100,11 @@ function to_markup(
   content: string | lsProtocol.MarkedString
 ): lsProtocol.MarkupContent {
   if (typeof content === 'string') {
-    // coerce to MarkedString  object
+    // coerce deprecated MarkedString to an MarkupContent; if given as a string it is markdown too,
+    // quote: "It is either a markdown string or a code-block that provides a language and a code snippet."
+    // (https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#markedString)
     return {
-      kind: 'plaintext',
+      kind: 'markdown',
       value: content
     };
   } else {
@@ -158,7 +181,7 @@ export class HoverCM extends CodeMirrorIntegration {
       this.updateUnderlineAndTooltip(event)
         .then(keep_tooltip => {
           if (!keep_tooltip) {
-            this.maybeHideTooltip(event.target);
+            this.maybeHideTooltip(event);
           }
         })
         .catch(this.console.warn);
@@ -213,13 +236,13 @@ export class HoverCM extends CodeMirrorIntegration {
 
   protected onMouseLeave = (event: MouseEvent) => {
     this.remove_range_highlight();
-    this.maybeHideTooltip(event.relatedTarget);
+    this.maybeHideTooltip(event);
   };
 
-  protected maybeHideTooltip(mouse_target: EventTarget) {
+  protected maybeHideTooltip(mouseEvent: MouseEvent) {
     if (
       typeof this.tooltip !== 'undefined' &&
-      mouse_target !== this.tooltip.node
+      !isCloseTo(this.tooltip.node, mouseEvent)
     ) {
       this.tooltip.dispose();
     }

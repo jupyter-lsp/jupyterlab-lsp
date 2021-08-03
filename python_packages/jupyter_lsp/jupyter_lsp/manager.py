@@ -228,6 +228,8 @@ class LanguageServerManager(LanguageServerManagerAPI):
         except Exception:  # pragma: no cover
             self.log.exception("Failed to load entry_points")
 
+        skipped_servers = []
+
         for ep_name, ep in entry_points.items():
             try:
                 spec_finder = ep.load()  # type: SpecMaker
@@ -244,9 +246,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
                     if hasattr(spec_finder, "is_installed"):
                         spec_finder_from_base = cast(SpecBase, spec_finder)
                         if not spec_finder_from_base.is_installed(self):
-                            self.log.info(
-                                _("Skipping non-installed server: `{}`").format(ep.name)
-                            )
+                            skipped_servers.append(ep.name)
                             continue
                 specs = spec_finder(self) or {}
             except Exception as err:  # pragma: no cover
@@ -273,6 +273,13 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
             for key, spec in specs.items():
                 yield key, spec
+
+        if skipped_servers:
+            self.log.info(
+                _("Skipped non-installed server(s): {}").format(
+                    ", ".join(skipped_servers)
+                )
+            )
 
 
 # the listener decorator
