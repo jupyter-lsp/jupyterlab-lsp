@@ -1,5 +1,12 @@
 ## Changelog
 
+### `@krassowski/jupyterlab-lsp 3.9.0` (unreleased)
+
+- improvements:
+  - add support for language servers that can (only) communicate through TCP rather than stdio (there is no support yet for servers already running on another machine and/or port) [(#636)]
+
+[#636]: https://github.com/krassowski/jupyterlab-lsp/pull/636
+
 ### `@krassowski/jupyterlab-lsp 3.8.1` (2021-08-02)
 
 - bug fixes:
