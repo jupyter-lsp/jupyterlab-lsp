@@ -4,7 +4,7 @@
 
 - bug fixes:
   - `%Rdevice` magic is now properly overridden and won't be extracted to R code ([#646])
-  - Fix hover rendering for 1MarkedString1s, fix hover disappearing when moving mouse towards it ([#653])
+  - Fix hover rendering for `MarkedString`s, fix hover disappearing when moving mouse towards it ([#653])
 
 [#646]: https://github.com/krassowski/jupyterlab-lsp/pull/646
 [#653]: https://github.com/krassowski/jupyterlab-lsp/pull/653
