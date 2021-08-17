@@ -44,7 +44,7 @@ To use the same environment as the binder demo (recommended):
 
 ```bash
 conda env update -n jupyterlab-lsp --file binder/environment.yml # create a conda env
-source activate jupyterlab-lsp                                   # activate it
+conda activate jupyterlab-lsp                                    # activate it
 ```
 
 Or with `pip`:
