@@ -88,7 +88,7 @@
     "@lumino/widgets": "^1.16.1",
     "@retrolab/application": "^0.2.0",
     "@types/chai": "^4.1.7",
-    "@types/codemirror": "^0.0.74",
+    "@types/codemirror": "^5.6.20",
     "@types/events": "^3.0.0",
     "@types/jest": "^23.3.11",
     "@types/lodash.mergewith": "^4.6.1",
