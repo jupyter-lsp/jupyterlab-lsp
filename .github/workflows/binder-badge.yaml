@@ -20,7 +20,7 @@ jobs:
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: `[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/${PR_HEAD_USERREPO}/${PR_HEAD_REF}) :point_left: Launch a binder notebook on branch _${PR_HEAD_USERREPO}/${PR_HEAD_REF}_`
+            body: `[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/${PR_HEAD_USERREPO}/${PR_HEAD_REF}?urlpath=lab) :point_left: Launch a binder notebook on branch _${PR_HEAD_USERREPO}/${PR_HEAD_REF}_`
           })
       env:
         PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
