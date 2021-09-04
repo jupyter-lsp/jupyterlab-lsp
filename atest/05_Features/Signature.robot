@@ -17,7 +17,7 @@ Triggers Signature Help After A Keystroke
     Capture Page Screenshot    02-signature-shown.png
     Wait Until Keyword Succeeds    20x    0.5s    Page Should Contain Element    ${SIGNATURE_BOX}
     Wait Until Keyword Succeeds    10x    0.5s    Element Should Contain    ${SIGNATURE_BOX}    Important docstring of abc()
-    Element Should Contain    ${SIGNATURE_HIGHLIGHTED_ARG}   x
+    Element Should Contain    ${SIGNATURE_HIGHLIGHTED_ARG}    x
     # should remain visible after typing an argument
     Press Keys    None    x=2,
     Element Should Contain    ${SIGNATURE_BOX}    Important docstring of abc()
@@ -30,8 +30,16 @@ Triggers Signature Help After A Keystroke
     Press Keys    None    )
     Wait Until Keyword Succeeds    20x    0.5s    Page Should Not Contain Element    ${SIGNATURE_BOX}
 
+Should Close After Moving Cursor Prior To Start
+    Enter Cell Editor    1    line=6
+    Press Keys    None    (
+    Wait Until Keyword Succeeds    20x    0.5s    Page Should Contain Element    ${SIGNATURE_BOX}
+    Press Keys    None    LEFT
+    Wait Until Keyword Succeeds    20x    0.5s    Page Should Not Contain Element    ${SIGNATURE_BOX}
+
 Invalidates On Cell Change
     Enter Cell Editor    1    line=6
     Press Keys    None    (
+    Wait Until Keyword Succeeds    20x    0.5s    Page Should Contain Element    ${SIGNATURE_BOX}
     Enter Cell Editor    2
     Wait Until Keyword Succeeds    20x    0.5s    Page Should Not Contain Element    ${SIGNATURE_BOX}
