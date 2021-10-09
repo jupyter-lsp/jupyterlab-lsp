@@ -37,6 +37,13 @@ Should Close After Moving Cursor Prior To Start
     Press Keys    None    LEFT
     Wait Until Keyword Succeeds    20x    0.5s    Page Should Not Contain Element    ${SIGNATURE_BOX}
 
+Should Close After Executing The Cell
+    Enter Cell Editor    1    line=6
+    Press Keys    None    (
+    Wait Until Keyword Succeeds    20x    0.5s    Page Should Contain Element    ${SIGNATURE_BOX}
+    Press Keys    None    SHIFT+ENTER
+    Wait Until Keyword Succeeds    20x    0.5s    Page Should Not Contain Element    ${SIGNATURE_BOX}
+
 Invalidates On Cell Change
     Enter Cell Editor    1    line=6
     Press Keys    None    (
