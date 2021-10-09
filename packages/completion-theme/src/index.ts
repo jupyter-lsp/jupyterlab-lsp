@@ -182,7 +182,7 @@ export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionTheme
     commandPalette: ICommandPalette,
     translator: ITranslator
   ) => {
-    const trans = translator.load('jupyterlab-lsp');
+    const trans = translator.load('jupyterlab_lsp');
     let manager = new CompletionThemeManager(themeManager, trans);
     const command_id = 'lsp:completer-about-themes';
     app.commands.addCommand(command_id, {

@@ -1,6 +1,6 @@
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { MainAreaWidget } from '@jupyterlab/apputils';
-import { TranslationBundle } from '@jupyterlab/translation';
+import { nullTranslator, TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon, copyIcon } from '@jupyterlab/ui-components';
 import { Menu } from '@lumino/widgets';
 import type * as CodeMirror from 'codemirror';
@@ -56,12 +56,16 @@ class DiagnosticsPanel {
   is_registered = false;
   trans: TranslationBundle;
 
+  constructor(trans: TranslationBundle) {
+    this.trans = trans;
+  }
+
   get widget() {
     if (this._widget == null || this._widget.content.model == null) {
       if (this._widget && !this._widget.isDisposed) {
         this._widget.dispose();
       }
-      this._widget = this.init_widget();
+      this._widget = this.initWidget();
     }
     return this._widget;
   }
@@ -70,7 +74,7 @@ class DiagnosticsPanel {
     return this.widget.content;
   }
 
-  protected init_widget() {
+  protected initWidget() {
     this._content = new DiagnosticsListing(
       new DiagnosticsListing.Model(this.trans)
     );
@@ -78,7 +82,7 @@ class DiagnosticsPanel {
     this._content.addClass('lsp-diagnostics-panel-content');
     const widget = new MainAreaWidget({ content: this._content });
     widget.id = 'lsp-diagnostics-panel';
-    widget.title.label = this.trans?.__('Diagnostics Panel');
+    widget.title.label = this.trans.__('Diagnostics Panel');
     widget.title.closable = true;
     widget.title.icon = diagnosticsIcon;
     return widget;
@@ -95,10 +99,10 @@ class DiagnosticsPanel {
   register(app: JupyterFrontEnd) {
     const widget = this.widget;
 
-    let get_column = (name: string) => {
+    let get_column = (id: string) => {
       // TODO: a hashmap in the panel itself?
       for (let column of widget.content.columns) {
-        if (column.name === name) {
+        if (column.id === id) {
           return column;
         }
       }
@@ -110,13 +114,13 @@ class DiagnosticsPanel {
 
     app.commands.addCommand(CMD_COLUMN_VISIBILITY, {
       execute: args => {
-        let column = get_column(args['name'] as string);
+        let column = get_column(args['id'] as string);
         column.is_visible = !column.is_visible;
         widget.update();
       },
-      label: args => this.trans.__(`${args['name']}`) as string,
+      label: args => this.trans.__(args['id'] as string),
       isToggled: args => {
-        let column = get_column(args['name'] as string);
+        let column = get_column(args['id'] as string);
         return column.is_visible;
       }
     });
@@ -124,7 +128,7 @@ class DiagnosticsPanel {
     for (let column of widget.content.columns) {
       columns_menu.addItem({
         command: CMD_COLUMN_VISIBILITY,
-        args: { name: column.name }
+        args: { id: column.id }
       });
     }
     app.contextMenu.addItem({
@@ -238,7 +242,7 @@ class DiagnosticsPanel {
           .writeText(message)
           .then(() => {
             this.content.model.status_message.set(
-              this.trans.__(`Successfully copied "%1" to clipboard`, message)
+              this.trans.__('Successfully copied "%1" to clipboard', message)
             );
           })
           .catch(() => {
@@ -275,7 +279,9 @@ class DiagnosticsPanel {
   }
 }
 
-export const diagnostics_panel = new DiagnosticsPanel();
+export const diagnostics_panel = new DiagnosticsPanel(
+  nullTranslator.load('jupyterlab_lsp')
+);
 export const diagnostics_databases = new WeakMap<
   CodeMirrorVirtualEditor,
   DiagnosticsDatabase
@@ -349,7 +355,7 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
     diagnostics_panel.update();
   };
 
-  protected collapse_overlapping_diagnostics(
+  protected collapseOverlappingDiagnostics(
     diagnostics: lsProtocol.Diagnostic[]
   ): Map<lsProtocol.Range, lsProtocol.Diagnostic[]> {
     // because Range is not a primitive type, the equality of the objects having
@@ -447,7 +453,7 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
 
     // TODO: test case for severity class always being set, even if diagnostic has no severity
 
-    let diagnostics_by_range = this.collapse_overlapping_diagnostics(
+    let diagnostics_by_range = this.collapseOverlappingDiagnostics(
       this.filterDiagnostics(response.diagnostics)
     );
 
@@ -607,7 +613,7 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
     );
 
     // remove the markers which were not included in the new message
-    this.remove_unused_diagnostic_markers(markers_to_retain);
+    this.removeUnusedDiagnosticMarkers(markers_to_retain);
 
     this.diagnostics_db.set(this.virtual_document, diagnostics_list);
   }
@@ -641,7 +647,7 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
     diagnostics_panel.update();
   }
 
-  protected remove_unused_diagnostic_markers(to_retain: Set<string>) {
+  protected removeUnusedDiagnosticMarkers(to_retain: Set<string>) {
     this.marked_diagnostics.forEach(
       (marker: CodeMirror.TextMarker, diagnostic_hash: string) => {
         if (!to_retain.has(diagnostic_hash)) {
@@ -655,7 +661,7 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
   remove(): void {
     this.settings.changed.disconnect(this.refreshDiagnostics, this);
     // remove all markers
-    this.remove_unused_diagnostic_markers(new Set());
+    this.removeUnusedDiagnosticMarkers(new Set());
     this.diagnostics_db.clear();
     diagnostics_databases.delete(this.virtual_editor);
     this.unique_editor_ids.clear();
