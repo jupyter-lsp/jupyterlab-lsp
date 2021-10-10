@@ -13,6 +13,7 @@
 - bug fixes:
   - fix missing translation strings ([#675])
   - fix kernel completions not showing up for R ()
+  - fix tab completions not showing up in strings due to incomplete trigger kind invalidation ()
 
 [#671]: https://github.com/krassowski/jupyterlab-lsp/pull/671
 [#675]: https://github.com/krassowski/jupyterlab-lsp/pull/675
