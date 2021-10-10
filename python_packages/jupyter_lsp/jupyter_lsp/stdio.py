@@ -105,7 +105,7 @@ class LspStdIoReader(LspStdIoBase):
         """Read the full length of the message unless exceeding max_parts or
            max_empties empty reads occur.
 
-        See https://github.com/krassowski/jupyterlab-lsp/issues/450
+        See https://github.com/jupyter-lsp/jupyterlab-lsp/issues/450
 
         Crucial docs or read():
             "If the argument is positive, and the underlying raw
@@ -115,7 +115,7 @@ class LspStdIoReader(LspStdIoBase):
         Args:
            - length: the content length
            - max_parts: prevent absurdly long messages (1000 parts is several MBs):
-             1 part is usually sufficent but not enough for some long
+             1 part is usually sufficient but not enough for some long
              messages 2 or 3 parts are often needed.
         """
         raw = None
