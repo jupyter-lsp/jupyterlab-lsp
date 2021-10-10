@@ -320,6 +320,13 @@ Completes In R Magics
     Trigger Completer
     Completer Should Suggest    library
 
+Completes Paths In Strings
+    Enter Cell Editor    26
+    Press Keys    None    LEFT
+    Trigger Completer
+    Press Keys    None    ENTER
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    26    '../Completion.ipynb'
+
 *** Keywords ***
 Setup Completion Test
     Setup Notebook    Python    Completion.ipynb

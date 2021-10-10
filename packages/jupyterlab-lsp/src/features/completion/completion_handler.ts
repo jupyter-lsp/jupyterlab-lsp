@@ -194,11 +194,13 @@ export class LSPConnector
     if (this.trigger_kind == AdditionalCompletionTriggerKinds.AutoInvoked) {
       if (this.suppress_continuous_hinting_in.indexOf(token.type) !== -1) {
         this.console.debug('Suppressing completer auto-invoke in', token.type);
+        this.trigger_kind = CompletionTriggerKind.Invoked;
         return;
       }
     } else if (this.trigger_kind == CompletionTriggerKind.TriggerCharacter) {
       if (this.suppress_trigger_character_in.indexOf(token.type) !== -1) {
         this.console.debug('Suppressing completer auto-invoke in', token.type);
+        this.trigger_kind = CompletionTriggerKind.Invoked;
         return;
       }
     }
@@ -260,7 +262,9 @@ export class LSPConnector
         // TODO: should it be cashed?
         const kernelLanguage = await this._kernel_language();
 
-        if (document.language === kernelLanguage) {
+        if (
+          document.language.toLocaleLowerCase() === kernelLanguage.toLowerCase()
+        ) {
           let default_kernel_promise = this._kernel_connector.fetch(request);
           let kernel_promise: Promise<CompletionHandler.IReply>;
 
@@ -368,16 +372,11 @@ export class LSPConnector
     let items: IExtendedCompletionItem[] = [];
     lspCompletionItems.forEach(match => {
       let kind = match.kind ? CompletionItemKind[match.kind] : '';
-      let completionItem = new LazyCompletionItem(
-        kind,
-        this.icon_for(kind),
-        match,
-        this,
-        document.uri
-      );
 
       // Update prefix values
       let text = match.insertText ? match.insertText : match.label;
+
+      // declare prefix presence if needed and update it
       if (text.toLowerCase().startsWith(prefix.toLowerCase())) {
         all_non_prefixed = false;
         if (prefix !== token.value) {
@@ -391,6 +390,34 @@ export class LSPConnector
           }
         }
       }
+      // add prefix if needed
+      else if (token.type === 'string' && prefix.includes('/')) {
+        // special case for path completion in strings, ensuring that:
+        //     '/Com<tab> → '/Completion.ipynb
+        // when the returned insert text is `Completion.ipynb` (the token here is `'/Com`)
+        // developed against pyls and pylsp server, may not work well in other cases
+        const parts = prefix.split('/');
+        if (
+          text.toLowerCase().startsWith(parts[parts.length - 1].toLowerCase())
+        ) {
+          let pathPrefix = parts.slice(0, -1).join('/') + '/';
+          match.insertText = pathPrefix + match.insertText;
+          // for label removing the prefix quote if present
+          if (pathPrefix.startsWith("'") || pathPrefix.startsWith('"')) {
+            pathPrefix = pathPrefix.substr(1);
+          }
+          match.label = pathPrefix + match.label;
+          all_non_prefixed = false;
+        }
+      }
+
+      let completionItem = new LazyCompletionItem(
+        kind,
+        this.icon_for(kind),
+        match,
+        this,
+        document.uri
+      );
 
       items.push(completionItem);
     });
