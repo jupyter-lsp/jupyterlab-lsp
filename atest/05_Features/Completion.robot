@@ -189,7 +189,7 @@ Completion Works For Tokens Separated By Space
 Kernel And LSP Completions Merge Prefix Conflicts Are Resolved
     [Documentation]    Reconciliate Python kernel returning prefixed completions and LSP (pylsp) not-prefixed ones
     Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
-    # For more details see: https://github.com/krassowski/jupyterlab-lsp/issues/30#issuecomment-576003987
+    # For more details see: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/30#issuecomment-576003987
     # `import os.pat<tab>` → `import os.pathsep`
     Enter Cell Editor    15    line=1
     Trigger Completer
@@ -299,7 +299,7 @@ Shows Documentation With CompletionItem Resolve
     [Teardown]    Clean Up After Working With File    completion.R
 
 Shows Only Relevant Suggestions In Known Magics
-    # https://github.com/krassowski/jupyterlab-lsp/issues/559
+    # https://github.com/jupyter-lsp/jupyterlab-lsp/issues/559
     # h<tab>
     Enter Cell Editor    20    line=2
     Trigger Completer
