@@ -15,10 +15,12 @@
   - fix kernel completions not showing up for R ([#686])
   - fix tab completions not showing up in strings due to incomplete trigger kind invalidation ([#686])
   - fix path completions reconciliation for `pyls`/`pylsp` with `IPython` ([#686])
+  - improve escaping rule for IPython magics overrides ([#688])
 
 [#671]: https://github.com/krassowski/jupyterlab-lsp/pull/671
 [#675]: https://github.com/krassowski/jupyterlab-lsp/pull/675
 [#686]: https://github.com/krassowski/jupyterlab-lsp/pull/686
+[#688]: https://github.com/krassowski/jupyterlab-lsp/pull/688
 
 ### `@krassowski/jupyterlab-lsp 3.8.1` (2021-08-02)
 
