@@ -19,6 +19,12 @@
       "type": "number",
       "default": 12,
       "description": "The number of documentation lines to show without collapsing into the details section."
+    },
+    "disable": {
+      "title": "Disable",
+      "type": "boolean",
+      "default": false,
+      "description": "Disable this feature. Requires reloading JupyterLab to apply changes."
     }
   },
   "jupyter.lab.shortcuts": []
