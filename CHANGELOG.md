@@ -1,5 +1,18 @@
 ## Changelog
 
+### `@krassowski/jupyterlab-lsp 3.9.0` (unreleased)
+
+- features:
+  - signature help box will now persist while typing the arguments of a function ([#671])
+  - the currently active argument will be highlighted in the signature help box
+  - if the documentation exceeds a user-configurable number of lines the signature
+    help box will only display the first line of the documentation and the following
+    lines will be collapsed into an expandable details section.
+  - the signature box is now displayed above the current line
+  - the signature box takes up less space
+
+[#671]: https://github.com/krassowski/jupyterlab-lsp/pull/671
+
 ### `@krassowski/jupyterlab-lsp 3.8.1` (2021-08-02)
 
 - bug fixes:

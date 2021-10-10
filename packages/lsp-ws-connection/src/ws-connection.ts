@@ -385,6 +385,9 @@ export class LspWsConnection
       });
   }
 
+  /**
+   * @deprecated
+   */
   public async getSignatureHelp(
     location: IPosition,
     documentInfo: IDocumentInfo,
