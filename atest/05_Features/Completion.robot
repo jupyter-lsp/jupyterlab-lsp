@@ -321,11 +321,11 @@ Completes In R Magics
     Completer Should Suggest    library
 
 Completes Paths In Strings
-    Enter Cell Editor    26    line=1
+    Enter Cell Editor    26
+    Press Keys    None    LEFT
     Trigger Completer
-    Completer Should Suggest    Completion.ipynb'
     Press Keys    None    ENTER
-    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    26    'Completion.ipynb'
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    26    '../Completion.ipynb'
 
 *** Keywords ***
 Setup Completion Test
