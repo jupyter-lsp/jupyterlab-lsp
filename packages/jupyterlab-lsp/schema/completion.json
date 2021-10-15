@@ -130,6 +130,12 @@
           ]
         }
       }
+    },
+    "disable": {
+      "title": "Disable",
+      "type": "boolean",
+      "default": false,
+      "description": "Disable this feature. Requires reloading JupyterLab to apply changes."
     }
   },
   "jupyter.lab.shortcuts": []

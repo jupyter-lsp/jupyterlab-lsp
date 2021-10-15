@@ -23,6 +23,12 @@
       "type": "number",
       "default": 25,
       "description": "Up to how many hover responses should be cached at any given time. The cache being is invalidated after any change in the editor."
+    },
+    "disable": {
+      "title": "Disable",
+      "type": "boolean",
+      "default": false,
+      "description": "Disable this feature. Requires reloading JupyterLab to apply changes."
     }
   },
   "jupyter.lab.shortcuts": []
