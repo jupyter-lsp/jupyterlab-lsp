@@ -8,9 +8,9 @@
     "lsp",
     "language-server-protocol"
   ],
-  "homepage": "https://github.com/krassowski/jupyterlab-lsp",
+  "homepage": "https://github.com/jupyter-lsp/jupyterlab-lsp",
   "bugs": {
-    "url": "https://github.com/krassowski/jupyterlab-lsp/issues"
+    "url": "https://github.com/jupyter-lsp/jupyterlab-lsp/issues"
   },
   "license": "BSD-3-Clause",
   "author": "JupyterLab-LSP Development Team",
@@ -21,7 +21,7 @@
   "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/krassowski/jupyterlab-lsp.git"
+    "url": "https://github.com/jupyter-lsp/jupyterlab-lsp.git"
   },
   "scripts": {
     "build": "tsc -b",

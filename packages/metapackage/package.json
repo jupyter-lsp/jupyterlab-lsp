@@ -2,9 +2,9 @@
   "name": "@krassowski/jupyterlab-lsp-metapackage",
   "version": "3.8.1",
   "description": "JupyterLab LSP - Meta Package. All of the packages used by JupyterLab LSP",
-  "homepage": "https://github.com/krassowski/jupyterlab-lsp",
+  "homepage": "https://github.com/jupyter-lsp/jupyterlab-lsp",
   "bugs": {
-    "url": "https://github.com/krassowski/jupyterlab-lsp/issues"
+    "url": "https://github.com/jupyter-lsp/jupyterlab-lsp/issues"
   },
   "license": "BSD-3-Clause",
   "author": "Michał Krassowski",
