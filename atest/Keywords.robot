@@ -322,9 +322,14 @@ Place Cursor In File Editor At
 Wait Until Fully Initialized
     Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=60s
 
+Wait For Ready State
+    Wait For Condition                 return document.readyState=="complete"
+
 Open Context Menu Over
     [Arguments]    ${sel}
+    Wait For Ready State
     Wait Until Keyword Succeeds    10 x    0.1 s    Mouse Over    ${sel}
+    Wait For Ready State
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
 
 Context Menu Should Contain

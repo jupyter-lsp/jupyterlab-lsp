@@ -393,6 +393,7 @@ Completer Should Not Suggest
 
 Trigger Completer
     [Arguments]    ${timeout}=35s
+    Wait For Ready State
     Press Keys    None    TAB
     Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=${timeout}
 
