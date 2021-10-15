@@ -10,6 +10,7 @@
     lines will be collapsed into an expandable details section.
   - the signature box is now displayed above the current line
   - the signature box takes up less space
+  - you can now disable specific features in settings ([#689])
 - bug fixes:
   - fix missing translation strings ([#675])
   - fix kernel completions not showing up for R ([#686])
@@ -19,6 +20,7 @@
 [#671]: https://github.com/krassowski/jupyterlab-lsp/pull/671
 [#675]: https://github.com/krassowski/jupyterlab-lsp/pull/675
 [#686]: https://github.com/krassowski/jupyterlab-lsp/pull/686
+[#689]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/689
 
 ### `@krassowski/jupyterlab-lsp 3.8.1` (2021-08-02)
 
