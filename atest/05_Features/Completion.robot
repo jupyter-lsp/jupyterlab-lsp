@@ -120,16 +120,18 @@ Completes In Strings Or Python Dictionaries
     Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    15    test_dict['key_a']
     [Teardown]    Clean Up After Working With File    completion.py
 
-Continious Hinting Works
+Continuous Hinting Works
+    [Setup]    Prepare File for Editing    Python    completion    completion.py
     Configure JupyterLab Plugin    {"continuousHinting": true}    plugin id=${COMPLETION PLUGIN ID}
-    Prepare File for Editing    Python    completion    completion.py
     Place Cursor In File Editor At    9    2
-    Capture Page Screenshot    01-editor-ready.png
+    Wait For Ready State
     Press Keys    None    d
+    Wait For Ready State
     Completer Should Suggest    addition
     # gh430 - auto invoke after dot should work too
     Press Keys    None    .
     Completer Should Suggest    __doc__
+    [Teardown]    Clean Up After Working With File    completion.py
 
 Autocompletes If Only One Option
     Enter Cell Editor    3    line=1
