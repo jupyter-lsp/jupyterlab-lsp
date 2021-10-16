@@ -176,7 +176,9 @@ Mid Token Completions Do Not Overwrite
     # `disp<tab>lay` → `display_table<cursor>`
     Place Cursor In Cell Editor At    11    line=1    character=4
     Trigger Completer
+    Wait For Ready State
     Completer Should Suggest    display_table
+    Wait For Ready State
     Select Completer Suggestion    display_table
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    11    display_table
 
@@ -378,7 +380,6 @@ Select Completer Suggestion
 Completer Should Suggest
     [Arguments]    ${text}    ${timeout}=10s
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]    timeout=${timeout}
-    Capture Page Screenshot    ${text.replace(' ', '_')}.png
 
 Get Completion Item Vertical Position
     [Arguments]    ${text}
