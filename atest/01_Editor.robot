@@ -79,6 +79,9 @@ Editor Shows Features for Server
     Configure JupyterLab Plugin
     ...    {"language_servers": {"${server}": {"priority": 10000}}}
     Editor Shows Features for Language    ${Language}    ${file}    &{features}
+    # reset to empty settings
+    Configure JupyterLab Plugin
+    ...    {}
 
 Editor Shows Features for Language
     [Arguments]    ${Language}    ${file}    &{features}
