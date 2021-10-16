@@ -245,6 +245,7 @@ Open Folder
     FOR    ${path}    IN    @{paths}
         ${sel} =    Set Variable    css:li.jp-DirListing-item\[title^='Name: ${path}']
         Wait Until Page Contains Element    ${sel}
+        Wait Until Element Is Visible    ${sel}    timeout=5s
         Double Click Element    ${sel}
     END
 
@@ -395,6 +396,7 @@ Jump To Definition
     Open Context Menu Over    ${sel}
     ${cursor} =    Measure Cursor Position
     Capture Page Screenshot    02-jump-to-definition-0.png
+    Wait Until Element Is Visible    ${MENU JUMP}    timeout=5s
     Mouse Over    ${MENU JUMP}
     Capture Page Screenshot    02-jump-to-definition-1.png
     Click Element    ${MENU JUMP}

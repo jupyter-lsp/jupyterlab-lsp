@@ -373,7 +373,8 @@ Activate Completer Suggestion
 Select Completer Suggestion
     [Arguments]    ${text}
     ${suggestion} =    Set Variable    css:.jp-Completer-item[data-value="${text}"]
-    Wait Until Element Is Visible    ${suggestion}    timeout=10s
+    Wait Until Element Is Visible    ${suggestion}    timeout=15s
+    Scroll Element Into View    ${suggestion}
     Mouse Over    ${suggestion}
     Click Element    ${suggestion} code
 
