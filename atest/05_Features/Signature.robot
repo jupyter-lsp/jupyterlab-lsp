@@ -20,7 +20,8 @@ Triggers Signature Help After A Keystroke
     Element Should Contain    ${SIGNATURE_HIGHLIGHTED_ARG}    x
     # should remain visible after typing an argument
     Press Keys    None    x=2,
-    Element Should Contain    ${SIGNATURE_BOX}    Important docstring of abc()
+    Wait For Ready State
+    Wait Until Keyword Succeeds    10x    0.5s    Element Should Contain    ${SIGNATURE_BOX}    Important docstring of abc()
     # and should switch highlight to y
     Wait Until Keyword Succeeds    20x    0.5s    Element Should Contain    ${SIGNATURE_HIGHLIGHTED_ARG}    y
     Press Keys    None    LEFT

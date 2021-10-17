@@ -17,12 +17,14 @@
   - fix tab completions not showing up in strings due to incomplete trigger kind invalidation ([#686])
   - fix path completions reconciliation for `pyls`/`pylsp` with `IPython` ([#686])
   - improve escaping rule for IPython magics overrides ([#688])
+  - fix documentation panel not showing up when typing fast ([#692])
 
 [#671]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/671
 [#675]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/675
 [#686]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/686
 [#688]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/688
 [#689]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/689
+[#692]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/692
 
 ### `@krassowski/jupyterlab-lsp 3.8.1` (2021-08-02)
 

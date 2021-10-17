@@ -35,6 +35,8 @@ Screenshot Editor Themes with Lab Theme
     FOR    ${editor theme}    IN    @{THEME NAMES}
         Capture Theme Screenshot    ${editor theme}
     END
+    # Reset theme
+    Lab Command    Use Theme: JupyterLab Light
     [Teardown]    Clean Up After Working With File    ${file}
 
 Capture Theme Screenshot

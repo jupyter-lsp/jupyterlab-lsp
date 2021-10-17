@@ -184,7 +184,7 @@ Click JupyterLab Menu
     [Arguments]    ${label}
     [Documentation]    Click a top-level JupyterLab menu bar item with by ``label``,
     ...    e.g. File, Help, etc.
-    ${xpath} =    Set Variable    ${JLAB XP TOP}${JLAB XP MENU LABEL}\[text() = '${label}']
+    ${xpath} =    Set Variable    xpath:${JLAB XP TOP}${JLAB XP MENU LABEL}\[text() = '${label}']
     Wait Until Page Contains Element    ${xpath}
     Mouse Over    ${xpath}
     Click Element    ${xpath}
@@ -245,6 +245,7 @@ Open Folder
     FOR    ${path}    IN    @{paths}
         ${sel} =    Set Variable    css:li.jp-DirListing-item\[title^='Name: ${path}']
         Wait Until Page Contains Element    ${sel}
+        Wait Until Element Is Visible    ${sel}    timeout=5s
         Double Click Element    ${sel}
     END
 
@@ -322,9 +323,14 @@ Place Cursor In File Editor At
 Wait Until Fully Initialized
     Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=60s
 
+Wait For Ready State
+    Wait For Condition                 return document.readyState=="complete"
+
 Open Context Menu Over
     [Arguments]    ${sel}
+    Wait For Ready State
     Wait Until Keyword Succeeds    10 x    0.1 s    Mouse Over    ${sel}
+    Wait For Ready State
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${sel}
 
 Context Menu Should Contain
@@ -390,6 +396,7 @@ Jump To Definition
     Open Context Menu Over    ${sel}
     ${cursor} =    Measure Cursor Position
     Capture Page Screenshot    02-jump-to-definition-0.png
+    Wait Until Element Is Visible    ${MENU JUMP}    timeout=5s
     Mouse Over    ${MENU JUMP}
     Capture Page Screenshot    02-jump-to-definition-1.png
     Click Element    ${MENU JUMP}
