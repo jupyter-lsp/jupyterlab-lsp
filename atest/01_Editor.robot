@@ -100,7 +100,7 @@ Editor Shows Features for Language
 Editor Should Show Diagnostics
     [Arguments]    ${diagnostic}
     Set Tags    feature:diagnostics
-    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="${diagnostic}"]    timeout=20s
+    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="${diagnostic}"]    timeout=25s
     Capture Page Screenshot    01-diagnostics.png
     Open Diagnostics Panel
     Capture Page Screenshot    02-diagnostics.png
