@@ -14,7 +14,7 @@ CSS
 
 Docker
     ${def} =    Set Variable    xpath://span[contains(@class, 'cm-string')][contains(text(), 'PLANET')]
-    Wait Until Keyword Succeeds    3x    100ms    Editor Shows Features for Language    Docker    Dockerfile    Diagnostics=Instruction has no arguments
+    Wait Until Keyword Succeeds    3x    100ms    Editor Shows Features for Language    Docker    Dockerfile    Diagnostics=Instructions should be written in uppercase letters
     ...    Jump to Definition=${def}    Rename=${def}
 
 JS
@@ -71,7 +71,7 @@ SQL
     Editor Shows Features for Language    SQL    example.sql    Diagnostics=Expected
 
 YAML
-    Editor Shows Features for Language    YAML    example.yaml    Diagnostics=duplicate key
+    Editor Shows Features for Language    YAML    example.yaml    Diagnostics=Map keys must be unique
 
 *** Keywords ***
 Editor Shows Features for Server

@@ -51,9 +51,8 @@ export class NotebookJumper extends CodeJumper {
   }
 
   getCurrentPosition(): IGlobalPosition {
-    let position = this.editors[
-      this.notebook.activeCellIndex
-    ].getCursorPosition();
+    let position =
+      this.editors[this.notebook.activeCellIndex].getCursorPosition();
 
     return {
       editor_index: this.notebook.activeCellIndex,

@@ -1,6 +1,6 @@
 ## Changelog
 
-### `@krassowski/jupyterlab-lsp 3.9.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.9.0` (2021-10-17)
 
 - features:
   - signature help box will now persist while typing the arguments of a function ([#671])
