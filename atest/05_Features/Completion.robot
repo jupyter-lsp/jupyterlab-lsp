@@ -48,19 +48,22 @@ Can Prioritize LSP Completions
     Should Be True    ${kernel_position} > ${lsp_position}
 
 Invalidates On Cell Change
+    # this test seems to crash Jedi (highlights crash on
+    # `usages = document.jedi_script().get_references(**code_position)`
     Enter Cell Editor    1    line=2
     Press Keys    None    TAB
     Enter Cell Editor    2
-    # just to increase chances of caching this on CI (which is slow)
-    Sleep    5s
+    # just to increase chances of catching this on CI (which is slow)
+    Sleep    4s
     Completer Should Not Suggest    test
 
 Invalidates On Focus Loss
     Enter Cell Editor    1    line=2
     Press Keys    None    TAB
-    Enter Cell Editor    2
-    # just to increase chances of caching this on CI (which is slow)
-    Sleep    5s
+    Click JupyterLab Menu      Menu
+    Enter Cell Editor    1    line=2
+    # just to increase chances of catching this on CI (which is slow)
+    Sleep    4s
     Completer Should Not Suggest    test
 
 Uses LSP Completions When Kernel Resoponse Times Out
