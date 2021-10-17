@@ -184,7 +184,7 @@ Click JupyterLab Menu
     [Arguments]    ${label}
     [Documentation]    Click a top-level JupyterLab menu bar item with by ``label``,
     ...    e.g. File, Help, etc.
-    ${xpath} =    Set Variable    ${JLAB XP TOP}${JLAB XP MENU LABEL}\[text() = '${label}']
+    ${xpath} =    Set Variable    xpath:${JLAB XP TOP}${JLAB XP MENU LABEL}\[text() = '${label}']
     Wait Until Page Contains Element    ${xpath}
     Mouse Over    ${xpath}
     Click Element    ${xpath}
