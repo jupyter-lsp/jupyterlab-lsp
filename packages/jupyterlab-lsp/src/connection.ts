@@ -54,7 +54,8 @@ export namespace Method {
   export enum ServerRequest {
     REGISTER_CAPABILITY = 'client/registerCapability',
     SHOW_MESSAGE_REQUEST = 'window/showMessageRequest',
-    UNREGISTER_CAPABILITY = 'client/unregisterCapability'
+    UNREGISTER_CAPABILITY = 'client/unregisterCapability',
+    WORKSPACE_CONFIGURATION = 'workspace/configuration'
   }
 
   /** Client requests */
@@ -95,12 +96,14 @@ export interface IServerRequestParams {
   [Method.ServerRequest.REGISTER_CAPABILITY]: lsp.RegistrationParams;
   [Method.ServerRequest.SHOW_MESSAGE_REQUEST]: lsp.ShowMessageRequestParams;
   [Method.ServerRequest.UNREGISTER_CAPABILITY]: lsp.UnregistrationParams;
+  [Method.ServerRequest.WORKSPACE_CONFIGURATION]: lsp.ConfigurationParams;
 }
 
 export interface IServerResult {
   [Method.ServerRequest.REGISTER_CAPABILITY]: void;
   [Method.ServerRequest.SHOW_MESSAGE_REQUEST]: lsp.MessageActionItem | null;
   [Method.ServerRequest.UNREGISTER_CAPABILITY]: void;
+  [Method.ServerRequest.WORKSPACE_CONFIGURATION]: any[];
 }
 
 export interface IClientRequestParams {
@@ -181,13 +184,15 @@ export type ServerRequests<
 
 class ClientRequestHandler<
   T extends keyof IClientRequestParams = keyof IClientRequestParams
-> implements IClientRequestHandler {
+> implements IClientRequestHandler
+{
   constructor(
     protected connection: MessageConnection,
     protected method: T,
     protected emitter: LSPConnection
   ) {}
   request(params: IClientRequestParams[T]): Promise<IClientResult[T]> {
+    // TODO check if is ready?
     this.emitter.log(MessageKind.client_requested, {
       method: this.method,
       message: params
@@ -206,7 +211,8 @@ class ClientRequestHandler<
 
 class ServerRequestHandler<
   T extends keyof IServerRequestParams = keyof IServerRequestParams
-> implements IServerRequestHandler {
+> implements IServerRequestHandler
+{
   private _handler: (
     params: IServerRequestParams[T],
     connection?: LSPConnection
@@ -351,7 +357,7 @@ export class LSPConnection extends LspWsConnection {
     return createMethodMap<T, IClientRequestHandler>(
       methods,
       method =>
-        new ClientRequestHandler(this.connection, (method as U) as any, this)
+        new ClientRequestHandler(this.connection, method as U as any, this)
     );
   }
 
@@ -362,7 +368,7 @@ export class LSPConnection extends LspWsConnection {
     return createMethodMap<T, IServerRequestHandler>(
       methods,
       method =>
-        new ServerRequestHandler(this.connection, (method as U) as any, this)
+        new ServerRequestHandler(this.connection, method as U as any, this)
     );
   }
 
@@ -372,12 +378,14 @@ export class LSPConnection extends LspWsConnection {
     this.serverIdentifier = options?.serverIdentifier;
     this.console = options.console.scope(this.serverIdentifier + ' connection');
     this.documentsToOpen = [];
-    this.clientNotifications = this.constructNotificationHandlers<
-      ClientNotifications
-    >(Method.ClientNotification);
-    this.serverNotifications = this.constructNotificationHandlers<
-      ServerNotifications
-    >(Method.ServerNotification);
+    this.clientNotifications =
+      this.constructNotificationHandlers<ClientNotifications>(
+        Method.ClientNotification
+      );
+    this.serverNotifications =
+      this.constructNotificationHandlers<ServerNotifications>(
+        Method.ServerNotification
+      );
   }
 
   sendOpenWhenReady(documentInfo: IDocumentInfo) {
@@ -459,6 +467,17 @@ export class LSPConnection extends LspWsConnection {
         );
       }
     );
+
+    this.serverRequests['workspace/configuration'].setHandler(async params => {
+      return params.items.map(item => {
+        // LSP: "If the client can’t provide a configuration setting for a given scope
+        // then `null` needs to be present in the returned array."
+
+        // for now we do not support configuration, but yaml server does not respect
+        // client capability so we have a handler just for that
+        return null;
+      });
+    });
   }
 
   public sendSelectiveChange(

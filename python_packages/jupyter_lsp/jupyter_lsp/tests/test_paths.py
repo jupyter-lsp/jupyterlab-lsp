@@ -62,7 +62,7 @@ def test_file_uri_to_path_posix(file_uri, expected_posix_path):  # pragma: no co
 @pytest.mark.parametrize(
     "file_uri, expected_windows_path",
     [
-        # https://github.com/krassowski/jupyterlab-lsp/pull/305#issuecomment-665996145
+        # https://github.com/jupyter-lsp/jupyterlab-lsp/pull/305#issuecomment-665996145
         ["file:///C:/Windows/System32/Drivers/etc", "C:/Windows/System32/Drivers/etc"],
         ["file:///C:/some%20dir/some%20file.txt", "C:/some dir/some file.txt"],
     ],

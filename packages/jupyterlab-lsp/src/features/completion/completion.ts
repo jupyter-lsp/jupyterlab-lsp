@@ -40,7 +40,8 @@ export class CompletionCM extends CodeMirrorIntegration {
       this._completionCharacters == null ||
       !this._completionCharacters.length
     ) {
-      this._completionCharacters = this.connection.getLanguageCompletionCharacters();
+      this._completionCharacters =
+        this.connection.getLanguageCompletionCharacters();
     }
     return this._completionCharacters;
   }
@@ -86,6 +87,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
   protected current_completion_handler: CompletionHandler;
   protected current_adapter: WidgetAdapter<IDocumentWidget> = null;
   protected renderer: LSPCompletionRenderer;
+  private _latestActiveItem: LazyCompletionItem = null;
 
   constructor(
     private app: JupyterFrontEnd,
@@ -96,9 +98,8 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     private console: ILSPLogConsole,
     private renderMimeRegistry: IRenderMimeRegistry
   ) {
-    const markdown_renderer = this.renderMimeRegistry.createRenderer(
-      'text/markdown'
-    );
+    const markdown_renderer =
+      this.renderMimeRegistry.createRenderer('text/markdown');
     this.renderer = new LSPCompletionRenderer({
       integrator: this,
       markdownRenderer: markdown_renderer,
@@ -107,15 +108,24 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     });
     this.renderer.activeChanged.connect(this.active_completion_changed, this);
     this.renderer.itemShown.connect(this.resolve_and_update, this);
-    adapterManager.adapterChanged.connect(this.swap_adapter, this);
+    // TODO: figure out a better way to disable lab integration elements (postpone initialization?)
+    settings.ready
+      .then(() => {
+        if (!settings.composite.disable) {
+          adapterManager.adapterChanged.connect(this.swap_adapter, this);
+        }
+      })
+      .catch(console.warn);
     settings.changed.connect(() => {
       completionThemeManager.set_theme(this.settings.composite.theme);
       completionThemeManager.set_icons_overrides(
         this.settings.composite.typesMap
       );
       if (this.current_completion_handler) {
-        this.model.settings.caseSensitive = this.settings.composite.caseSensitive;
-        this.model.settings.includePerfectMatches = this.settings.composite.includePerfectMatches;
+        this.model.settings.caseSensitive =
+          this.settings.composite.caseSensitive;
+        this.model.settings.includePerfectMatches =
+          this.settings.composite.includePerfectMatches;
       }
     });
   }
@@ -127,6 +137,9 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     item
       .resolve()
       .then(resolvedCompletionItem => {
+        if (item.self !== this._latestActiveItem.self) {
+          return;
+        }
         this.set_doc_panel_placeholder(false);
         if (resolvedCompletionItem === null) {
           return;
@@ -134,8 +147,12 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
         this.refresh_doc_panel(item);
       })
       .catch(e => {
-        this.set_doc_panel_placeholder(false);
-        console.warn(e);
+        // disabling placeholder can remove currently displayed documentation,
+        // so only do that if this is really the active item!
+        if (item.self === this._latestActiveItem.self) {
+          this.set_doc_panel_placeholder(false);
+        }
+        this.console.warn(e);
       });
   }
 
@@ -144,6 +161,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     active_completion: ICompletionData
   ) {
     let { item } = active_completion;
+    this._latestActiveItem = item;
     if (!item.supportsResolution()) {
       if (item.isDocumentationMarkdown) {
         // TODO: remove once https://github.com/jupyterlab/jupyterlab/pull/9663 is merged and released
@@ -157,6 +175,10 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
       this.fetchDocumentation(item);
     } else if (item.isResolved()) {
       this.refresh_doc_panel(item);
+    } else {
+      // resolution has already started, but the re-render update could have been invalidated
+      // by user action, so let's ensure the documentation will get shown this time.
+      this.fetchDocumentation(item);
     }
 
     // also fetch completion for the previous and the next item to prevent jitter
@@ -299,7 +321,8 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     this.current_completion_handler.editor = editor_changed.editor;
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    this.current_completion_handler.connector = this.current_completion_connector;
+    this.current_completion_handler.connector =
+      this.current_completion_connector;
   }
 
   private get current_items() {
@@ -311,7 +334,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
   private get current_index() {
     let completer = this.current_completion_handler.completer;
 
-    // TODO upstream: add getActiveItem() to Completer
+    // TODO: use public activeIndex available since 3.1
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return completer._activeIndex;
@@ -320,11 +343,10 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
   refresh_doc_panel(item: LazyCompletionItem) {
     let completer = this.current_completion_handler.completer;
 
-    const active: CompletionHandler.ICompletionItem = this.current_items[
-      this.current_index
-    ];
+    const active: CompletionHandler.ICompletionItem =
+      this.current_items[this.current_index];
 
-    if (!item || active.insertText != item.insertText) {
+    if (!item || !active || active.insertText != item.insertText) {
       return;
     }
 

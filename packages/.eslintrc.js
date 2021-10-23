@@ -58,6 +58,7 @@ module.exports = {
     'no-undef': 'warn',
     'no-useless-escape': 'off',
     'prefer-const': 'off',
+    'import/no-unresolved': 'off',
     // the default, but for reference...
     'import/order': [
       'warn',

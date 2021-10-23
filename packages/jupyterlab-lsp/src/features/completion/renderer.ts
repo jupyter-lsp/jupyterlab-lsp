@@ -17,7 +17,8 @@ export interface ICompletionData {
 
 export class LSPCompletionRenderer
   extends Completer.Renderer
-  implements Completer.IRenderer {
+  implements Completer.IRenderer
+{
   // signals
   public activeChanged: Signal<LSPCompletionRenderer, ICompletionData>;
   public itemShown: Signal<LSPCompletionRenderer, ICompletionData>;
@@ -142,6 +143,8 @@ export class LSPCompletionRenderer
   }
 
   createDocumentationNode(item: LazyCompletionItem): HTMLElement {
+    // note: not worth trying to `fetchDocumentation()` as this is not
+    // invoked if documentation is empty (as of jlab 3.2)
     if (item.isDocumentationMarkdown) {
       let documentation = item.documentation;
       this.options.markdownRenderer

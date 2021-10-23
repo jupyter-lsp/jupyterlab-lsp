@@ -291,7 +291,7 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
       // note: must only be send to the appropriate connections as
       // some servers (Julia) break if they receive save notification
       // for a document that was not opened before, see:
-      // https://github.com/krassowski/jupyterlab-lsp/issues/490
+      // https://github.com/jupyter-lsp/jupyterlab-lsp/issues/490
       const documents_to_save = [this.virtual_editor.virtual_document];
 
       for (let virtual_document of documents_to_save) {
@@ -660,9 +660,8 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     }
 
     for (let feature of features) {
-      let featureEditorIntegrationConstructor = feature.editorIntegrationFactory.get(
-        this.virtual_editor.editor_name
-      );
+      let featureEditorIntegrationConstructor =
+        feature.editorIntegrationFactory.get(this.virtual_editor.editor_name);
       let integration = new featureEditorIntegrationConstructor({
         feature: feature,
         virtual_editor: this.virtual_editor,
@@ -725,9 +724,8 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
 
   get_context(root_position: IRootPosition): ICommandContext {
     let document = this.virtual_editor.document_at_root_position(root_position);
-    let virtual_position = this.virtual_editor.root_position_to_virtual_position(
-      root_position
-    );
+    let virtual_position =
+      this.virtual_editor.root_position_to_virtual_position(root_position);
     return {
       document,
       connection: this.connection_manager.connections.get(document.uri),

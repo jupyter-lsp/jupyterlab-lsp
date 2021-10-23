@@ -259,6 +259,7 @@ jobs:
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
+          python-version: ${{ matrix.python }}
           environment-file: requirements/github-actions.yml
           miniforge-variant: Mambaforge
           use-mamba: true

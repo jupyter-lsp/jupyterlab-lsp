@@ -48,20 +48,23 @@ Can Prioritize LSP Completions
     Should Be True    ${kernel_position} > ${lsp_position}
 
 Invalidates On Cell Change
+    # this test seems to crash Jedi (highlights crash on
+    # `usages = document.jedi_script().get_references(**code_position)`
     Enter Cell Editor    1    line=2
     Press Keys    None    TAB
     Enter Cell Editor    2
-    # just to increase chances of caching this on CI (which is slow)
-    Sleep    5s
+    # just to increase chances of catching this on CI (which is slow)
+    Sleep    4s
     Completer Should Not Suggest    test
 
 Invalidates On Focus Loss
     Enter Cell Editor    1    line=2
     Press Keys    None    TAB
-    Enter Cell Editor    2
-    # just to increase chances of caching this on CI (which is slow)
-    Sleep    5s
+    Click JupyterLab Menu      File
+    # just to increase chances of catching this on CI (which is slow)
+    Sleep    4s
     Completer Should Not Suggest    test
+    Enter Cell Editor    1    line=2
 
 Uses LSP Completions When Kernel Resoponse Times Out
     Configure JupyterLab Plugin    {"kernelResponseTimeout": 1, "waitForBusyKernel": true}    plugin id=${COMPLETION PLUGIN ID}
@@ -120,16 +123,18 @@ Completes In Strings Or Python Dictionaries
     Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    15    test_dict['key_a']
     [Teardown]    Clean Up After Working With File    completion.py
 
-Continious Hinting Works
+Continuous Hinting Works
+    [Setup]    Prepare File for Editing    Python    completion    completion.py
     Configure JupyterLab Plugin    {"continuousHinting": true}    plugin id=${COMPLETION PLUGIN ID}
-    Prepare File for Editing    Python    completion    completion.py
     Place Cursor In File Editor At    9    2
-    Capture Page Screenshot    01-editor-ready.png
+    Wait For Ready State
     Press Keys    None    d
+    Wait For Ready State
     Completer Should Suggest    addition
     # gh430 - auto invoke after dot should work too
     Press Keys    None    .
     Completer Should Suggest    __doc__
+    [Teardown]    Clean Up After Working With File    completion.py
 
 Autocompletes If Only One Option
     Enter Cell Editor    3    line=1
@@ -174,7 +179,9 @@ Mid Token Completions Do Not Overwrite
     # `disp<tab>lay` → `display_table<cursor>`
     Place Cursor In Cell Editor At    11    line=1    character=4
     Trigger Completer
+    Wait For Ready State
     Completer Should Suggest    display_table
+    Wait For Ready State
     Select Completer Suggestion    display_table
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    11    display_table
 
@@ -189,7 +196,7 @@ Completion Works For Tokens Separated By Space
 Kernel And LSP Completions Merge Prefix Conflicts Are Resolved
     [Documentation]    Reconciliate Python kernel returning prefixed completions and LSP (pylsp) not-prefixed ones
     Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
-    # For more details see: https://github.com/krassowski/jupyterlab-lsp/issues/30#issuecomment-576003987
+    # For more details see: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/30#issuecomment-576003987
     # `import os.pat<tab>` → `import os.pathsep`
     Enter Cell Editor    15    line=1
     Trigger Completer
@@ -299,7 +306,7 @@ Shows Documentation With CompletionItem Resolve
     [Teardown]    Clean Up After Working With File    completion.R
 
 Shows Only Relevant Suggestions In Known Magics
-    # https://github.com/krassowski/jupyterlab-lsp/issues/559
+    # https://github.com/jupyter-lsp/jupyterlab-lsp/issues/559
     # h<tab>
     Enter Cell Editor    20    line=2
     Trigger Completer
@@ -319,6 +326,13 @@ Completes In R Magics
     Enter Cell Editor    24    line=1
     Trigger Completer
     Completer Should Suggest    library
+
+Completes Paths In Strings
+    Enter Cell Editor    26
+    Press Keys    None    LEFT
+    Trigger Completer
+    Press Keys    None    ENTER
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    26    '../Completion.ipynb'
 
 *** Keywords ***
 Setup Completion Test
@@ -362,14 +376,14 @@ Activate Completer Suggestion
 Select Completer Suggestion
     [Arguments]    ${text}
     ${suggestion} =    Set Variable    css:.jp-Completer-item[data-value="${text}"]
-    Wait Until Element Is Visible    ${suggestion}    timeout=10s
+    Wait Until Element Is Visible    ${suggestion}    timeout=15s
+    Scroll Element Into View    ${suggestion}
     Mouse Over    ${suggestion}
     Click Element    ${suggestion} code
 
 Completer Should Suggest
     [Arguments]    ${text}    ${timeout}=10s
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]    timeout=${timeout}
-    Capture Page Screenshot    ${text.replace(' ', '_')}.png
 
 Get Completion Item Vertical Position
     [Arguments]    ${text}
@@ -386,6 +400,7 @@ Completer Should Not Suggest
 
 Trigger Completer
     [Arguments]    ${timeout}=35s
+    Wait For Ready State
     Press Keys    None    TAB
     Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=${timeout}
 

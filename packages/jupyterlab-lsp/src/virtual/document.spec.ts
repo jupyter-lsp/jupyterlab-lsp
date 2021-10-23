@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import { ISourcePosition, IVirtualPosition } from '../positioning';
 import { foreign_code_extractors } from '../transclusions/ipython-rpy2/extractors';
 
+import { BrowserConsole } from './console';
 import { VirtualDocument, is_within_range } from './document';
 
 import Mock = jest.Mock;
@@ -58,7 +59,8 @@ describe('VirtualDocument', () => {
       foreign_code_extractors: foreign_code_extractors,
       standalone: false,
       file_extension: 'py',
-      has_lsp_supported_file: false
+      has_lsp_supported_file: false,
+      console: new BrowserConsole()
     });
   });
 
@@ -87,16 +89,14 @@ describe('VirtualDocument', () => {
 
   describe('#extract_foreign_code', () => {
     it('joins non-standalone fragments together', () => {
-      let {
-        cell_code_kept,
-        foreign_document_map
-      } = document.extract_foreign_code(
-        { value: R_LINE_MAGICS, ce_editor: null },
-        {
-          line: 0,
-          column: 0
-        }
-      );
+      let { cell_code_kept, foreign_document_map } =
+        document.extract_foreign_code(
+          { value: R_LINE_MAGICS, ce_editor: null },
+          {
+            line: 0,
+            column: 0
+          }
+        );
 
       // note R cell lines are kept in code (keep_in_host=true)
       expect(cell_code_kept).to.equal(R_LINE_MAGICS);
@@ -197,9 +197,8 @@ describe('VirtualDocument', () => {
       // expect(source_position.ch).to.equal(4);
       // because it checks R source position, rather than checking root source positions.
 
-      let editor_position = foreign_document.transform_virtual_to_editor(
-        virtual_r_1_1
-      );
+      let editor_position =
+        foreign_document.transform_virtual_to_editor(virtual_r_1_1);
       expect(editor_position.line).to.equal(1);
       expect(editor_position.ch).to.equal(4);
 

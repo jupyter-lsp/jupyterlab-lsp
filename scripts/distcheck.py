@@ -14,7 +14,7 @@ BAD_CHUNK_PATTERNS = {
 
         import type * as CodeMirror from 'codemirror';
 
-    see https://github.com/krassowski/jupyterlab-lsp/issues/575
+    see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/575
     """
 }
 

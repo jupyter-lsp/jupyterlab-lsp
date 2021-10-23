@@ -16,6 +16,12 @@
       "type": "boolean",
       "default": false,
       "description": "Whether the highlights should disappear after the focus leaves the editor/cell"
+    },
+    "disable": {
+      "title": "Disable",
+      "type": "boolean",
+      "default": false,
+      "description": "Disable this feature. Requires reloading JupyterLab to apply changes."
     }
   },
   "jupyter.lab.shortcuts": []

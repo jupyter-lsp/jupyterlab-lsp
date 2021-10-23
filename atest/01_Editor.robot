@@ -14,7 +14,7 @@ CSS
 
 Docker
     ${def} =    Set Variable    xpath://span[contains(@class, 'cm-string')][contains(text(), 'PLANET')]
-    Wait Until Keyword Succeeds    3x    100ms    Editor Shows Features for Language    Docker    Dockerfile    Diagnostics=Instruction has no arguments
+    Wait Until Keyword Succeeds    3x    100ms    Editor Shows Features for Language    Docker    Dockerfile    Diagnostics=Instructions should be written in uppercase letters
     ...    Jump to Definition=${def}    Rename=${def}
 
 JS
@@ -71,7 +71,7 @@ SQL
     Editor Shows Features for Language    SQL    example.sql    Diagnostics=Expected
 
 YAML
-    Editor Shows Features for Language    YAML    example.yaml    Diagnostics=duplicate key
+    Editor Shows Features for Language    YAML    example.yaml    Diagnostics=Map keys must be unique
 
 *** Keywords ***
 Editor Shows Features for Server
@@ -79,6 +79,9 @@ Editor Shows Features for Server
     Configure JupyterLab Plugin
     ...    {"language_servers": {"${server}": {"priority": 10000}}}
     Editor Shows Features for Language    ${Language}    ${file}    &{features}
+    # reset to empty settings
+    Configure JupyterLab Plugin
+    ...    {}
 
 Editor Shows Features for Language
     [Arguments]    ${Language}    ${file}    &{features}
@@ -97,7 +100,7 @@ Editor Shows Features for Language
 Editor Should Show Diagnostics
     [Arguments]    ${diagnostic}
     Set Tags    feature:diagnostics
-    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="${diagnostic}"]    timeout=20s
+    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="${diagnostic}"]    timeout=25s
     Capture Page Screenshot    01-diagnostics.png
     Open Diagnostics Panel
     Capture Page Screenshot    02-diagnostics.png

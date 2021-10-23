@@ -29,7 +29,8 @@ import {
  */
 export class LspWsConnection
   extends events.EventEmitter
-  implements ILspConnection {
+  implements ILspConnection
+{
   public isConnected = false;
   public isInitialized = false;
   public documentInfo: ILspOptions;
@@ -385,6 +386,9 @@ export class LspWsConnection
       });
   }
 
+  /**
+   * @deprecated
+   */
   public async getSignatureHelp(
     location: IPosition,
     documentInfo: IDocumentInfo,
