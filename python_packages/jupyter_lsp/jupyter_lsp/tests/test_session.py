@@ -135,5 +135,5 @@ async def test_stop(handlers, timeout):
 
     ws_handler.on_close()
 
-    await asyncio.sleep(timeout + 1)
+    await asyncio.sleep(timeout + 3)
     assert exists_process_with_pid(process_pid) is False
