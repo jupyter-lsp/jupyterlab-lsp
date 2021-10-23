@@ -83,10 +83,7 @@ class LspStreamReader(LspStreamBase):
         if self.stream._closed:  # pragma: no cover
             return
         self.next_wait = min(self.next_wait * 2, self.max_wait)
-        try:
-            await anyio.sleep(self.next_wait)
-        except Exception:  # pragma: no cover
-            pass
+        await anyio.sleep(self.next_wait)
 
     def wake(self):
         """Reset the wait time"""
