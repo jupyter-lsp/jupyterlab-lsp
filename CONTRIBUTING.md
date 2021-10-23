@@ -21,10 +21,10 @@ You can contribute to the project through:
 
 Thank you for all your contributions :heart:
 
-[license]: https://github.com/krassowski/jupyterlab-lsp/blob/master/LICENSE
+[license]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/LICENSE
 [extending]: ./docs/Extending.html
 [roadmap]: ./docs/Roadmap.html
-[jupyterlab-lsp]: https://github.com/krassowski/jupyterlab-lsp.git
+[jupyterlab-lsp]: https://github.com/jupyter-lsp/jupyterlab-lsp.git
 [code-of-conduct]: https://github.com/jupyter/governance/blob/master/conduct/code_of_conduct.md
 
 ### Set up the environment
@@ -44,7 +44,7 @@ To use the same environment as the binder demo (recommended):
 
 ```bash
 conda env update -n jupyterlab-lsp --file binder/environment.yml # create a conda env
-source activate jupyterlab-lsp                                   # activate it
+conda activate jupyterlab-lsp                                    # activate it
 ```
 
 Or with `pip`:
@@ -84,7 +84,7 @@ to JupyterLab for development:
 ```bash
 jlpm bootstrap
 # if you installed `jupyterlab_lsp` before uninstall it before running the next line
-jupyter labextension develop python_packages/jupyterlab_lsp/jupyterlab_lsp/ --overwrite
+jupyter labextension develop python_packages/jupyterlab_lsp/ --overwrite
 # optional, only needed for running a few tests for behaviour with missing language servers
 jupyter labextension develop python_packages/klingon_ls_specification/ --overwrite
 ```
@@ -378,10 +378,10 @@ The spec should only be advertised if the command _could actually_ be run:
 
 otherwise an empty dictionary (`{}`) should be returned.
 
-[built-in specs]: https://github.com/krassowski/jupyterlab-lsp/tree/master/python_packages/jupyter_lsp/jupyter_lsp/specs
-[setup.cfg]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/setup.cfg
-[schema]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/schema/schema.json
-[utilities]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/utils.py
+[built-in specs]: https://github.com/jupyter-lsp/jupyterlab-lsp/tree/master/python_packages/jupyter_lsp/jupyter_lsp/specs
+[setup.cfg]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/setup.cfg
+[schema]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/schema/schema.json
+[utilities]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/utils.py
 
 ##### Common Concerns
 
@@ -395,8 +395,8 @@ otherwise an empty dictionary (`{}`) should be returned.
   - use a helper script to encapsulate some complexity, or
   - use a command argument of the interpreter is available (see the [r spec][] and [julia spec] for examples)
 
-[r spec]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/r_languageserver.py
-[julia spec]: https://github.com/krassowski/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/julia_language_server.py
+[r spec]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/r_languageserver.py
+[julia spec]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/julia_language_server.py
 
 ##### Example: making a pip-installable `cool-language-server` spec
 

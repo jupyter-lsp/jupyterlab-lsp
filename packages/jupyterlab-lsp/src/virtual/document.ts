@@ -133,6 +133,7 @@ export namespace VirtualDocument {
     overrides_registry: ICodeOverridesRegistry;
     path: string;
     file_extension: string;
+    console: ILSPLogConsole;
     /**
      * Notebooks or any other aggregates of documents are not supported
      * by the LSP specification, and we need to make appropriate
@@ -149,7 +150,6 @@ export namespace VirtualDocument {
      */
     standalone?: boolean;
     parent?: VirtualDocument;
-    console?: ILSPLogConsole;
   }
 }
 
@@ -179,6 +179,8 @@ export class VirtualDocument {
   public foreign_document_closed: Signal<VirtualDocument, IForeignContext>;
   public foreign_document_opened: Signal<VirtualDocument, IForeignContext>;
   public readonly instance_id: number;
+  protected console: ILSPLogConsole;
+
   standalone: boolean;
   isDisposed = false;
   /**
@@ -225,6 +227,7 @@ export class VirtualDocument {
   constructor(options: VirtualDocument.IOptions) {
     this.options = options;
     this.path = options.path;
+    this.console = options.console;
     this.file_extension = options.file_extension;
     this.has_lsp_supported_file = options.has_lsp_supported_file;
     this.parent = options.parent;
@@ -553,9 +556,8 @@ export class VirtualDocument {
 
   decode_code_block(raw_code: string): string {
     // TODO: add back previously extracted foreign code
-    let cell_override = this.cell_magics_overrides.reverse.override_for(
-      raw_code
-    );
+    let cell_override =
+      this.cell_magics_overrides.reverse.override_for(raw_code);
     if (cell_override != null) {
       return cell_override;
     } else {
@@ -675,9 +677,8 @@ export class VirtualDocument {
   }
 
   get last_line() {
-    const lines_in_last_block = this.line_blocks[
-      this.line_blocks.length - 1
-    ].split('\n');
+    const lines_in_last_block =
+      this.line_blocks[this.line_blocks.length - 1].split('\n');
     return lines_in_last_block[lines_in_last_block.length - 1];
   }
 
@@ -747,6 +748,10 @@ export class VirtualDocument {
   }
 
   transform_source_to_editor(pos: ISourcePosition): IEditorPosition {
+    if (pos == null) {
+      this.console.warn('no position available');
+      return;
+    }
     let source_line = this.source_lines.get(pos.line);
     let editor_line = source_line.editor_line;
     let editor_shift = source_line.editor_shift;
@@ -781,6 +786,10 @@ export class VirtualDocument {
   }
 
   get_editor_at_virtual_line(pos: IVirtualPosition): CodeEditor.IEditor {
+    if (pos == null) {
+      this.console.warn('no position available');
+      return;
+    }
     let line = pos.line;
     // tolerate overshot by one (the hanging blank line at the end)
     if (!this.virtual_lines.has(line)) {
@@ -790,6 +799,10 @@ export class VirtualDocument {
   }
 
   get_editor_at_source_line(pos: ISourcePosition): CodeEditor.IEditor {
+    if (pos == null) {
+      this.console.warn('no position available');
+      return;
+    }
     return this.source_lines.get(pos.line).editor;
   }
 

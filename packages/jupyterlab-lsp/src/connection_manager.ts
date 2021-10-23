@@ -392,11 +392,10 @@ export namespace DocumentConnectionManager {
       : virtualDocumentsUri;
 
     // for now take the best match only
-    const matchingServers = Private.getLanguageServerManager().getMatchingServers(
-      {
+    const matchingServers =
+      Private.getLanguageServerManager().getMatchingServers({
         language
-      }
-    );
+      });
     const language_server_id =
       matchingServers.length === 0 ? null : matchingServers[0];
 
@@ -404,7 +403,7 @@ export namespace DocumentConnectionManager {
       throw `No language server installed for language ${language}`;
     }
 
-    // workaround url-parse bug(s) (see https://github.com/krassowski/jupyterlab-lsp/issues/595)
+    // workaround url-parse bug(s) (see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/595)
     let documentUri = URLExt.join(baseUri, virtual_document.uri);
     if (
       !documentUri.startsWith('file:///') &&

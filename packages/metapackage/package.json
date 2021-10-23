@@ -1,10 +1,10 @@
 {
   "name": "@krassowski/jupyterlab-lsp-metapackage",
-  "version": "3.8.1",
+  "version": "3.9.0",
   "description": "JupyterLab LSP - Meta Package. All of the packages used by JupyterLab LSP",
-  "homepage": "https://github.com/krassowski/jupyterlab-lsp",
+  "homepage": "https://github.com/jupyter-lsp/jupyterlab-lsp",
   "bugs": {
-    "url": "https://github.com/krassowski/jupyterlab-lsp/issues"
+    "url": "https://github.com/jupyter-lsp/jupyterlab-lsp/issues"
   },
   "license": "BSD-3-Clause",
   "author": "Michał Krassowski",
@@ -26,14 +26,14 @@
     "watch": "tsc -b --watch --preserveWatchOutput"
   },
   "dependencies": {
-    "lsp-ws-connection": "file:../lsp-ws-connection",
-    "@krassowski/completion-theme": "file:../completion-theme",
-    "@krassowski/theme-material": "file:../theme-material",
-    "@krassowski/theme-vscode": "file:../theme-vscode",
     "@krassowski/code-jumpers": "file:../code-jumpers",
+    "@krassowski/completion-theme": "file:../completion-theme",
     "@krassowski/jupyterlab-lsp": "file:../jupyterlab-lsp",
     "@krassowski/jupyterlab-lsp-example-extractor": "file:../_example-extractor",
-    "@krassowski/jupyterlab-lsp-klingon-integration": "file:../_klingon-integration"
+    "@krassowski/jupyterlab-lsp-klingon-integration": "file:../_klingon-integration",
+    "@krassowski/theme-material": "file:../theme-material",
+    "@krassowski/theme-vscode": "file:../theme-vscode",
+    "lsp-ws-connection": "file:../lsp-ws-connection"
   },
   "devDependencies": {
     "fs-extra": "^8.0.1",

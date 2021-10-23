@@ -33,7 +33,7 @@ how does it work:
 
 see more:
 - https://jedi.readthedocs.io/en/latest/docs/settings.html
-- https://github.com/krassowski/jupyterlab-lsp/pull/284
+- https://github.com/jupyter-lsp/jupyterlab-lsp/pull/284
 
 """
 import os

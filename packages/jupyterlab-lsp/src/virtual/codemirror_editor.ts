@@ -34,6 +34,15 @@ type BlockSignalHandler = (
   data: IEditorChangedData
 ) => void;
 
+// problematic overloads: typescript cannot resolve old-style
+// overloads for union types, so we will case to one of the
+// union elements to silence it (it does not matter which one,
+// but to make sure we are not introducing type issues we will
+// use both: EventName1 for `.on()` and EventName2 for `.off()`
+type EventName1 = CodeMirror.DOMEvent & keyof GlobalEventHandlersEventMap;
+type EventName2 = keyof CodeMirror.EditorEventMap;
+export type EventName = EventName1 | EventName2;
+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 class DocDispatcher implements CodeMirror.Doc {
@@ -46,11 +55,10 @@ class DocDispatcher implements CodeMirror.Doc {
     from: IRootPosition,
     to: IRootPosition,
     options?: CodeMirror.TextMarkerOptions
-  ): CodeMirror.TextMarker {
+  ): CodeMirror.TextMarker<CodeMirror.MarkerRange> {
     // TODO: edgecase: from and to in different cells
-    let ce_editor = this.virtual_editor.virtual_document.get_editor_at_source_line(
-      from
-    );
+    let ce_editor =
+      this.virtual_editor.virtual_document.get_editor_at_source_line(from);
     let cm_editor = this.virtual_editor.ce_editor_to_cm_editor.get(ce_editor);
     let notebook_map = this.virtual_editor;
     return cm_editor
@@ -83,7 +91,8 @@ class DocDispatcher implements CodeMirror.Doc {
  * virtual documents representing code in complex entities such as notebooks.
  */
 export class CodeMirrorVirtualEditor
-  implements IVirtualEditor<CodeMirrorEditor>, CodeMirror.Editor {
+  implements IVirtualEditor<CodeMirrorEditor>, CodeMirror.Editor
+{
   // TODO: getValue could be made private in the virtual editor and the virtual editor
   //  could stop exposing the full implementation of CodeMirror but rather hide it inside.
   editor_name: IEditorName = 'CodeMirrorEditor';
@@ -163,7 +172,7 @@ export class CodeMirrorVirtualEditor
 
     for (let [[eventName], wrapped_handler] of this._event_wrappers.entries()) {
       this.forEveryBlockEditor(cm_editor => {
-        cm_editor.off(eventName, wrapped_handler);
+        cm_editor.off(eventName as EventName2, wrapped_handler);
       }, false);
     }
 
@@ -269,7 +278,7 @@ export class CodeMirrorVirtualEditor
   }
 
   private _event_wrappers = new Map<
-    [string, CodeMirrorHandler],
+    [EventName, CodeMirrorHandler],
     WrappedHandler
   >();
 
@@ -279,7 +288,7 @@ export class CodeMirrorVirtualEditor
    *
    * Only handlers accepting CodeMirror.Editor are supported for simplicity.
    */
-  on(eventName: string, handler: CodeMirrorHandler, ...args: any[]): void {
+  on(eventName: EventName, handler: CodeMirrorHandler, ...args: any[]): void {
     let wrapped_handler = (instance: CodeMirror.Editor, ...args: any[]) => {
       try {
         return handler(this, ...args);
@@ -294,20 +303,20 @@ export class CodeMirrorVirtualEditor
 
     this.forEveryBlockEditor(
       cm_editor => {
-        cm_editor.on(eventName, wrapped_handler);
+        cm_editor.on(eventName as EventName1, wrapped_handler);
       },
       true,
       cm_editor => {
-        cm_editor.off(eventName, wrapped_handler);
+        cm_editor.off(eventName as EventName2, wrapped_handler);
       }
     );
   }
 
-  off(eventName: string, handler: CodeMirrorHandler, ...args: any[]): void {
+  off(eventName: EventName, handler: CodeMirrorHandler, ...args: any[]): void {
     let wrapped_handler = this._event_wrappers.get([eventName, handler]);
 
     this.forEveryBlockEditor(cm_editor => {
-      cm_editor.off(eventName, wrapped_handler);
+      cm_editor.off(eventName as EventName2, wrapped_handler);
     });
   }
 

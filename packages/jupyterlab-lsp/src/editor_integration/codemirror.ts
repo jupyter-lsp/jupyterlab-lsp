@@ -23,7 +23,8 @@ import { ILSPLogConsole } from '../tokens';
 import { DefaultMap, uris_equal } from '../utils';
 import {
   CodeMirrorHandler,
-  CodeMirrorVirtualEditor
+  CodeMirrorVirtualEditor,
+  EventName as CodeMirrorEventName
 } from '../virtual/codemirror_editor';
 import { VirtualDocument } from '../virtual/document';
 import { IEditorChange } from '../virtual/editor';
@@ -71,28 +72,13 @@ interface IHTMLEventMap<
   get<E extends T>(k: E): (event: HTMLElementEventMap[E]) => void;
 }
 
-type CodeMirrorEventName =
-  | CodeMirror.DOMEvent
-  | 'change'
-  | 'changes'
-  | 'beforeChange'
-  | 'cursorActivity'
-  | 'beforeSelectionChange'
-  | 'viewportChange'
-  | 'gutterClick'
-  | 'focus'
-  | 'blur'
-  | 'scroll'
-  | 'update'
-  | 'renderLine'
-  | 'overwriteToggle';
-
 /**
  * One feature of each type exists per VirtualDocument
  * (the initialization is performed by the adapter).
  */
 export abstract class CodeMirrorIntegration
-  implements IFeatureEditorIntegration<CodeMirrorVirtualEditor> {
+  implements IFeatureEditorIntegration<CodeMirrorVirtualEditor>
+{
   is_registered: boolean;
   feature: IFeature;
 
@@ -186,12 +172,10 @@ export abstract class CodeMirrorIntegration
     let end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
 
     if (cm_editor == null) {
-      let start_in_root = this.transform_virtual_position_to_root_position(
-        start
-      );
-      let ce_editor = this.virtual_editor.get_editor_at_root_position(
-        start_in_root
-      );
+      let start_in_root =
+        this.transform_virtual_position_to_root_position(start);
+      let ce_editor =
+        this.virtual_editor.get_editor_at_root_position(start_in_root);
       cm_editor = this.virtual_editor.ce_editor_to_cm_editor.get(ce_editor);
     }
 
@@ -216,9 +200,8 @@ export abstract class CodeMirrorIntegration
     start: IVirtualPosition
   ): IRootPosition {
     let ce_editor = this.virtual_document.virtual_lines.get(start.line).editor;
-    let editor_position = this.virtual_document.transform_virtual_to_editor(
-      start
-    );
+    let editor_position =
+      this.virtual_document.transform_virtual_to_editor(start);
     return this.virtual_editor.transform_from_editor_to_root(
       ce_editor,
       editor_position

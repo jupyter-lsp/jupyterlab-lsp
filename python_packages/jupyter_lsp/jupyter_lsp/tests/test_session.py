@@ -77,7 +77,7 @@ async def test_start_unknown(known_unknown_server, handlers, jsonrpc_init_msg):
 
 @pytest.mark.asyncio
 async def test_ping(handlers):
-    """see https://github.com/krassowski/jupyterlab-lsp/issues/458"""
+    """see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/458"""
     a_server = "pylsp"
 
     handler, ws_handler = handlers

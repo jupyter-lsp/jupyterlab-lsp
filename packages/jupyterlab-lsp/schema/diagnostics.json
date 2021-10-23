@@ -29,6 +29,12 @@
       },
       "default": [],
       "description": "Regular expressions matching messages of diagnostics which should not be shown in the panel nor highlighted in the editor."
+    },
+    "disable": {
+      "title": "Disable",
+      "type": "boolean",
+      "default": false,
+      "description": "Disable this feature. Requires reloading JupyterLab to apply changes."
     }
   },
   "jupyter.lab.shortcuts": []

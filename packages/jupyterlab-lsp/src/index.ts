@@ -90,7 +90,7 @@ export class FeatureManager implements ILSPFeatureManager {
     this.command_manager_registered = new Signal(this);
   }
 
-  register(options: IFeatureOptions): void {
+  private _register(options: IFeatureOptions) {
     if (options.supersedes) {
       for (let option of options.supersedes) {
         this.features = this.features.filter(feature => feature.id != option);
@@ -107,6 +107,23 @@ export class FeatureManager implements ILSPFeatureManager {
           command_manager.add(options.feature.commands);
         }
       );
+    }
+  }
+
+  register(options: IFeatureOptions): void {
+    if (options.feature.settings && options.feature.settings.ready) {
+      options.feature.settings.ready
+        .then(() => {
+          if (!options.feature.settings.composite.disable) {
+            this._register(options);
+          } else {
+            console.log('Skipping ', options.feature.id, 'as disabled');
+          }
+        })
+        .catch(console.warn);
+      return;
+    } else {
+      this._register(options);
     }
   }
 
@@ -149,7 +166,7 @@ export class LSPExtension implements ILSPExtension {
     public user_console: ILoggerRegistry,
     status_bar: IStatusBar | null
   ) {
-    const trans = (translator || nullTranslator).load('jupyterlab-lsp');
+    const trans = (translator || nullTranslator).load('jupyterlab_lsp');
     this.language_server_manager = new LanguageServerManager({
       console: this.console.scope('LanguageServerManager')
     });

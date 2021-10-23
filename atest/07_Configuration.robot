@@ -16,7 +16,7 @@ YAML
     [Documentation]    Composer YAML files don't allow a "greetings" key
     Settings Should Change Editor Diagnostics    YAML    example.yaml    yaml-language-server
     ...    {"yaml.schemas": {"http://json.schemastore.org/composer": "*"}}
-    ...    duplicate key
+    ...    Map keys must be unique
     ...    Property greetings is not allowed.
 
 Markdown

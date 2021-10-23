@@ -11,6 +11,12 @@
       "enum": ["Alt", "Control", "Shift", "Meta", "AltGraph", "Accel"],
       "default": "Alt",
       "description": "Keyboard key which needs to be pressed with click to jump. The allowed keys are Alt, Control, Shift, Accel, and AltGraph. Accel corresponds to Control or Meta (Command on Mac). Linux user: Meta key is also supported. Safari users: Meta key is also supported, AltGraph is not supported. To see which physical keys are mapped, visit: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/getModifierState"
+    },
+    "disable": {
+      "title": "Disable",
+      "type": "boolean",
+      "default": false,
+      "description": "Disable this feature. Requires reloading JupyterLab to apply changes."
     }
   },
   "jupyter.lab.shortcuts": [

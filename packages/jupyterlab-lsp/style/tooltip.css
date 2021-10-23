@@ -1,9 +1,9 @@
-.lsp-hover .jp-RenderedHTMLCommon {
+.lsp-tooltip .jp-RenderedHTMLCommon {
   /* Reduce the default padding from 20px to 0px */
   padding-right: 0px;
 }
 
-.lsp-hover .jp-RenderedHTMLCommon > *:last-child {
+.lsp-tooltip .jp-RenderedHTMLCommon > *:last-child {
   /* Reduce the default margin */
   margin-bottom: 0;
 }

@@ -24,6 +24,7 @@ const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
       diagnostics_feature.switchDiagnosticsPanelSource();
 
       if (!diagnostics_panel.is_registered) {
+        diagnostics_panel.trans = trans;
         diagnostics_panel.register(app);
       }
 
@@ -56,7 +57,7 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<void> = {
     translator: ITranslator
   ) => {
     const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
-    const trans = translator.load('jupyterlab-lsp');
+    const trans = translator.load('jupyterlab_lsp');
 
     featureManager.register({
       feature: {

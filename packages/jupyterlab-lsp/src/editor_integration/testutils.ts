@@ -205,7 +205,8 @@ type TestEnvironmentConstructor = new (...args: any[]) => ITestEnvironment;
 function FeatureSupport<TBase extends TestEnvironmentConstructor>(Base: TBase) {
   return class FeatureTestEnvironment
     extends Base
-    implements IFeatureTestEnvironment {
+    implements IFeatureTestEnvironment
+  {
     _connections: Map<CodeMirrorIntegration, LSPConnection>;
 
     init() {
@@ -284,7 +285,8 @@ export class FileEditorTestEnvironment extends TestEnvironment {
       has_lsp_supported_file: true,
       standalone: true,
       foreign_code_extractors: {},
-      overrides_registry: {}
+      overrides_registry: {},
+      console: new BrowserConsole()
     };
   }
 
@@ -335,7 +337,8 @@ export class NotebookTestEnvironment extends TestEnvironment {
       overrides_registry: {},
       foreign_code_extractors: {},
       has_lsp_supported_file: false,
-      standalone: true
+      standalone: true,
+      console: new BrowserConsole()
     };
   }
 

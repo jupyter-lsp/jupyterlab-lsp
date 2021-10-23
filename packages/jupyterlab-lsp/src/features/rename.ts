@@ -44,9 +44,10 @@ const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
       const rename_feature = features.get(FEATURE_ID) as RenameCM;
       rename_feature.setTrans(trans);
 
-      let root_position = rename_feature.transform_virtual_position_to_root_position(
-        virtual_position
-      );
+      let root_position =
+        rename_feature.transform_virtual_position_to_root_position(
+          virtual_position
+        );
       let old_value = editor.get_token_at(root_position).value;
       let handle_failure = (error: any) => {
         let status = '';
@@ -247,7 +248,7 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
     settingRegistry: ISettingRegistry,
     translator: ITranslator
   ) => {
-    const trans = (translator || nullTranslator).load('jupyterlab-lsp');
+    const trans = (translator || nullTranslator).load('jupyterlab_lsp');
     const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
 
     featureManager.register({
