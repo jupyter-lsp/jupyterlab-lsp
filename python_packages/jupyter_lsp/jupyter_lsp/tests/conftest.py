@@ -18,7 +18,7 @@ from jupyter_lsp.handlers import LanguageServersHandler, LanguageServerWebSocket
 KNOWN_SERVERS = [
     "bash-language-server",
     "dockerfile-language-server-nodejs",
-    "javascript-typescript-langserver",
+    "typescript-language-server",
     "pylsp",
     "unified-language-server",
     "sql-language-server",

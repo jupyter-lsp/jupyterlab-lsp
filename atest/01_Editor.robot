@@ -61,7 +61,7 @@ SCSS
 
 TSX
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-tag')][contains(text(), 'HelloWorld')])[last()]
-    Editor Shows Features for Language    TSX    example.tsx    Diagnostics=Cannot find module 'react'    Jump to Definition=${def}    Rename=${def}
+    Editor Shows Features for Language    TSX    example.tsx    Diagnostics='hello' is declared but its value is never read.    Jump to Definition=${def}    Rename=${def}
 
 TypeScript
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'inc')])[last()]
