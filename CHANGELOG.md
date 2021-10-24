@@ -1,5 +1,22 @@
 ## Changelog
 
+### `@krassowski/jupyterlab-lsp 3.9.1` (2021-10-24)
+
+- bug fixes:
+  - fix build issues making it difficult to reuse/extend the package ([#696], thanks @cccs-jc)
+
+[#696]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/696
+
+### `jupyter-lsp 1.5.0` (2021-10-24):
+
+- features:
+  - add support for new `typescript-language-server` replacing `javascript-typescript-langserver`;
+    despite the name both packages provide support for all four: JavaScrip, JSX, TypeScript and TSX;
+    the old `javascript-typescript-langserver` can still be used, but it is no longer maintained
+    and we will not be supported, and specs may be removed in the next major release ([#697]).
+
+[#697]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/697
+
 ### `@krassowski/jupyterlab-lsp 3.9.0` (2021-10-17)
 
 - features:
