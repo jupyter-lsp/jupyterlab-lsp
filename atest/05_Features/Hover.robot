@@ -42,7 +42,7 @@ Hover works in foreign code (javascript)
     # also for multiple cells of the same document
     Enter Cell Editor    3
     Trigger Tooltip    Math
-    Element Should Contain    ${HOVER_BOX}    const Math: Math
+    Element Should Contain    ${HOVER_BOX}    Math: Math
 
 *** Keywords ***
 Last Occurrence
