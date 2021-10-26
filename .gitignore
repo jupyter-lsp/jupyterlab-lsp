@@ -114,6 +114,7 @@ junit.xml
 coverage/
 .vscode/
 _*.d.ts
+_*.ts
 _build
 .virtual_documents/
 

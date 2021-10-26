@@ -324,7 +324,7 @@ Wait Until Fully Initialized
     Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=60s
 
 Wait For Ready State
-    Wait For Condition                 return document.readyState=="complete"
+    Wait For Condition    return document.readyState=="complete"
 
 Open Context Menu Over
     [Arguments]    ${sel}

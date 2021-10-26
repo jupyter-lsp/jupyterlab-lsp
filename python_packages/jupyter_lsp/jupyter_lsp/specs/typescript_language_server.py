@@ -1,9 +1,10 @@
 from .utils import NodeModuleSpec
 
 
-class JavascriptTypescriptLanguageServer(NodeModuleSpec):
-    node_module = key = "javascript-typescript-langserver"
-    script = ["lib", "language-server-stdio.js"]
+class TypescriptLanguageServer(NodeModuleSpec):
+    node_module = key = "typescript-language-server"
+    script = ["lib", "cli.js"]
+    args = ["--stdio"]
     languages = [
         "javascript",
         "jsx",
@@ -13,7 +14,7 @@ class JavascriptTypescriptLanguageServer(NodeModuleSpec):
         "javascriptreact",
     ]
     spec = dict(
-        display_name=key + " (deprecated)",
+        display_name=key,
         mime_types=[
             "application/typescript",
             "text/typescript-jsx",
@@ -25,8 +26,10 @@ class JavascriptTypescriptLanguageServer(NodeModuleSpec):
             "text/jsx",
         ],
         urls=dict(
-            home="https://github.com/sourcegraph/{}".format(key),
-            issues="https://github.com/sourcegraph/{}/issues".format(key),
+            home="https://github.com/typescript-language-server/{}".format(key),
+            issues="https://github.com/typescript-language-server/{}/issues".format(
+                key
+            ),
         ),
         install=dict(
             npm="npm install --save-dev {}".format(key),

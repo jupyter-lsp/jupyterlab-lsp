@@ -60,7 +60,7 @@ Invalidates On Cell Change
 Invalidates On Focus Loss
     Enter Cell Editor    1    line=2
     Press Keys    None    TAB
-    Click JupyterLab Menu      File
+    Click JupyterLab Menu    File
     # just to increase chances of catching this on CI (which is slow)
     Sleep    4s
     Completer Should Not Suggest    test
