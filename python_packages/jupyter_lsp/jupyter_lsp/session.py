@@ -4,6 +4,7 @@ import atexit
 import os
 import string
 import subprocess
+import sys
 from abc import ABC, ABCMeta, abstractmethod
 from copy import copy
 from datetime import datetime, timezone
@@ -212,13 +213,28 @@ class LanguageServerSessionBase(
             await self.process.wait()
             return
 
-        self.log.debug(
-            (
-                "Process did not terminate within {} seconds. "
-                "Bringing it down the hard way!"
-            ).format(timeout)
-        )
-        self.process.kill()
+        if sys.platform.startswith('win32'):  # pragma: no cover
+            # On Windows Process.kill() is an alias to Process.terminate so we cannot
+            # force the process to stop. if you know of a better way to handle this on
+            # Windows please consider contributing
+            self.log.warning(
+                (
+                    "The language server process (PID: {}) did not terminate within {} "
+                    "seconds. Beware, it might continue running as a zombie process."
+                ).format(self.process.pid, timeout)
+            )
+        else:  # pragma: no cover
+            self.log.debug(
+                (
+                    "Process did not terminate within {} seconds. "
+                    "Bringing it down the hard way!"
+                ).format(timeout)
+            )
+            try:  # pragma: no cover
+                self.process.kill()
+            except ProcessLookupError:
+                # process terminated on its own in the meantime
+                pass
 
     def init_queues(self):
         """create the queues"""

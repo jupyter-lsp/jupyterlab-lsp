@@ -2,6 +2,7 @@ import asyncio
 import os
 
 import pytest
+from sys import platform
 
 from ..schema import SERVERS_RESPONSE
 
@@ -135,5 +136,11 @@ async def test_stop(handlers, timeout):
 
     ws_handler.on_close()
 
-    await asyncio.sleep(timeout + 3)
+    if platform.startswith('win32'):
+        # currently we cannot forcefully terminate the process on windows, so we just
+        # give it a little more extra time to finish on its own
+        await asyncio.sleep(timeout + 10)
+    else:  # linux and darwin
+        await asyncio.sleep(timeout + 2)
+
     assert exists_process_with_pid(process_pid) is False
