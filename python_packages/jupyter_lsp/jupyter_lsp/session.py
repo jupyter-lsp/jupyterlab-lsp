@@ -213,7 +213,7 @@ class LanguageServerSessionBase(
             await self.process.wait()
             return
 
-        if sys.platform.startswith('win32'):  # pragma: no cover
+        if sys.platform.startswith("win32"):  # pragma: no cover
             # On Windows Process.kill() is an alias to Process.terminate so we cannot
             # force the process to stop. if you know of a better way to handle this on
             # Windows please consider contributing

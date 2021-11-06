@@ -1,8 +1,8 @@
 import asyncio
 import os
+from sys import platform
 
 import pytest
-from sys import platform
 
 from ..schema import SERVERS_RESPONSE
 
@@ -136,7 +136,7 @@ async def test_stop(handlers, timeout):
 
     ws_handler.on_close()
 
-    if platform.startswith('win32'):
+    if platform.startswith("win32"):
         # currently we cannot forcefully terminate the process on windows, so we just
         # give it a little more extra time to finish on its own
         await asyncio.sleep(timeout + 10)
