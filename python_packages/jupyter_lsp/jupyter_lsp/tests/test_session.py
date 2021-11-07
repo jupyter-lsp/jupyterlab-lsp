@@ -136,11 +136,12 @@ async def test_stop(handlers, timeout):
 
     ws_handler.on_close()
 
-    if platform.startswith("win32"):
+    if platform.startswith("win32"):  # pragma: no cover
         # currently we cannot forcefully terminate the process on windows, so we just
         # give it a little more extra time to finish on its own
         await asyncio.sleep(timeout + 10)
-    else:  # linux and darwin
+    else:  # pragma: no cover
+        # linux and darwin
         await asyncio.sleep(timeout + 2)
 
     assert exists_process_with_pid(process_pid) is False
