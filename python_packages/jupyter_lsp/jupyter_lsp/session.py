@@ -206,9 +206,12 @@ class LanguageServerSessionBase(
         if self.process is None:  # pragma: no cover
             return
 
+        if timeout < 0.0:  # pragma: no cover
+            raise ValueError("Timeout must not be negative!")
+
         # try to stop the process gracefully
         self.process.terminate()
-        with anyio.move_on_after(timeout):
+        with anyio.move_on_after(timeout + 0.1):  # avoid timeout of 0s
             self.log.debug("Waiting for process to terminate")
             await self.process.wait()
             return
