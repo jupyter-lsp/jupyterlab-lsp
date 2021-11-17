@@ -336,7 +336,7 @@ class LanguageServerSessionTCP(LanguageServerSessionBase):
             tries = tries + 1
             try:
                 return await anyio.connect_tcp(host, port)
-            except OSError:
+            except OSError:  # pragma: no cover
                 if tries < retries:
                     self.log.warning(
                         (
@@ -346,7 +346,7 @@ class LanguageServerSessionTCP(LanguageServerSessionBase):
                         ).format(server, tries, retries, sleep)
                     )
                     await anyio.sleep(sleep)
-                else:  # pragma: no cover
+                else:
                     self.log.warning(
                         "Connection to server {} refused! Attempt {}/{}.".format(
                             server, tries, retries
