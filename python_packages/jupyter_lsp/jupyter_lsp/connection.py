@@ -80,8 +80,6 @@ class LspStreamReader(LspStreamBase):
 
     async def sleep(self):
         """Simple exponential backoff for sleeping"""
-        if self.stream._closed:  # pragma: no cover
-            return
         self.next_wait = min(self.next_wait * 2, self.max_wait)
         await anyio.sleep(self.next_wait)
 
