@@ -24,8 +24,13 @@
   overflow: auto;
 }
 
+.jp-Completer {
+  --lsp-completer-max-label-width: 300px;
+  --lsp-completer-max-detail-width: 200px;
+}
+
 .jp-Completer-match {
-  max-width: 400px;
+  max-width: var(--lsp-completer-max-label-width);
   overflow-x: hidden;
   white-space: nowrap;
   display: block;
@@ -33,9 +38,7 @@
 }
 
 .jp-mod-active .jp-Completer-match {
-  max-width: 600px;
-  white-space: break-spaces;
-  height: auto;
+  text-overflow: clip;
 }
 
 .lsp-completer-placeholder:after {
@@ -46,4 +49,69 @@
 /* a workaround for code being larger font size than text in markdown-rendered panel */
 .jp-Completer-docpanel pre code {
   font-size: 90%;
+}
+
+body[data-lsp-completer-layout='detail-below'] .jp-Completer-item {
+  --lsp-completer-label-height: 24px;
+  --lsp-completer-detail-height: 20px;
+  --lsp-completer-icon-width: 16px;
+  height: var(--lsp-completer-label-height);
+  display: grid;
+  grid-template-areas:
+    'icon label'
+    'detail detail';
+  grid-template-columns: min-content 1fr;
+}
+
+body[data-lsp-completer-layout='detail-below']
+.jp-Completer-item.jp-mod-active {
+  height: calc(
+          var(--lsp-completer-detail-height) + var(--lsp-completer-label-height)
+  );
+}
+
+body[data-lsp-completer-layout='detail-below'] .jp-Completer-icon {
+  grid-area: icon;
+  width: var(--lsp-completer-icon-width);
+}
+
+body[data-lsp-completer-layout='detail-below'] .jp-Completer-match {
+  grid-area: label;
+  overflow: hidden;
+  height: var(--lsp-completer-label-height);
+}
+
+.jp-Completer-item .jp-Completer-typeExtended {
+  max-width: var(--lsp-completer-max-detail-width);
+  min-height: 50px;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+}
+
+.jp-mod-active .jp-Completer-typeExtended {
+  text-overflow: clip;
+}
+
+body[data-lsp-completer-layout='detail-below'] .jp-Completer-typeExtended {
+  grid-area: detail;
+  text-align: left;
+  padding-left: calc(var(--lsp-completer-icon-width) + 8px);
+  height: var(--lsp-completer-detail-height);
+  line-height: var(--lsp-completer-detail-height);
+  display: none;
+  position: relative;
+  top: -2px;
+  overflow: hidden;
+  max-width: calc(var(--lsp-completer-max-label-width) + var(--lsp-completer-max-detail-width));
+}
+
+body[data-lsp-completer-layout='detail-below'] .jp-Completer-match {
+  overflow: hidden;
+  max-width: calc(var(--lsp-completer-max-label-width) + var(--lsp-completer-max-detail-width));
+}
+
+body[data-lsp-completer-layout='detail-below']
+.jp-Completer-item.jp-mod-active
+.jp-Completer-typeExtended {
+  display: block;
 }
