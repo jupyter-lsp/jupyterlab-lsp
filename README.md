@@ -3,7 +3,7 @@
 [![tests](https://github.com/jupyter-lsp/jupyterlab-lsp/workflows/CI/badge.svg)](https://github.com/jupyter-lsp/jupyterlab-lsp/actions?query=workflow%3ACI+branch%3Amaster)
 [![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest)
 [![Python Demo](https://img.shields.io/badge/demo-Python-blue)](https://mybinder.org/v2/gh/jupyter-lsp/demo-python/main?urlpath=lab)
-[![R Demo](https://img.shields.io/badge/demo-R-blue)](https://mybinder.org/v2/gh/jupyter-lsp/demo-R/main?urlpath=lab)
+[![R Demo](https://img.shields.io/badge/demo-R-blue)](https://mybinder.org/v2/gh/jupyter-lsp/demo-r/main?urlpath=lab)
 [![Julia Demo](https://img.shields.io/badge/demo-Julia-blue)](https://mybinder.org/v2/gh/jupyter-lsp/demo-julia/main?urlpath=lab)
 [![Binder](https://img.shields.io/badge/launch-dev_version-blue)](https://mybinder.org/v2/gh/jupyter-lsp/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
 
