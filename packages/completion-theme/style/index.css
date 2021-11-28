@@ -64,9 +64,9 @@ body[data-lsp-completer-layout='detail-below'] .jp-Completer-item {
 }
 
 body[data-lsp-completer-layout='detail-below']
-.jp-Completer-item.jp-mod-active {
+  .jp-Completer-item.jp-mod-active {
   height: calc(
-          var(--lsp-completer-detail-height) + var(--lsp-completer-label-height)
+    var(--lsp-completer-detail-height) + var(--lsp-completer-label-height)
   );
 }
 
@@ -102,16 +102,20 @@ body[data-lsp-completer-layout='detail-below'] .jp-Completer-typeExtended {
   position: relative;
   top: -2px;
   overflow: hidden;
-  max-width: calc(var(--lsp-completer-max-label-width) + var(--lsp-completer-max-detail-width));
+  max-width: calc(
+    var(--lsp-completer-max-label-width) + var(--lsp-completer-max-detail-width)
+  );
 }
 
 body[data-lsp-completer-layout='detail-below'] .jp-Completer-match {
   overflow: hidden;
-  max-width: calc(var(--lsp-completer-max-label-width) + var(--lsp-completer-max-detail-width));
+  max-width: calc(
+    var(--lsp-completer-max-label-width) + var(--lsp-completer-max-detail-width)
+  );
 }
 
 body[data-lsp-completer-layout='detail-below']
-.jp-Completer-item.jp-mod-active
-.jp-Completer-typeExtended {
+  .jp-Completer-item.jp-mod-active
+  .jp-Completer-typeExtended {
   display: block;
 }
