@@ -91,7 +91,7 @@ export abstract class CodeJumper {
 
   private protectFromAccidentalEditing(document_widget: IDocumentWidget) {
     let editor_widget = document_widget as IDocumentWidget<FileEditor>;
-    editor_widget.title.label = editor_widget.title.label + ' (external)';
+    editor_widget.title.label = editor_widget.title.label + '';
     let editor = editor_widget.content.editor;
     let disposable = editor.addKeydownHandler(
       (editor: IEditor, event: KeyboardEvent) => {
