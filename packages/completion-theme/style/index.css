@@ -86,6 +86,7 @@ body[data-lsp-completer-layout='detail-below'] .jp-Completer-match {
   min-height: 50px;
   overflow-x: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .jp-mod-active .jp-Completer-typeExtended {
