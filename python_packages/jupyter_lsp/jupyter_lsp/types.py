@@ -20,7 +20,10 @@ from typing import (
     Union,
 )
 
-from jupyter_server.transutils import _
+try:
+    from jupyter_server.transutils import _i18n as _
+except ImportError:
+    from jupyter_server.transutils import _
 from traitlets import Instance
 from traitlets import List as List_
 from traitlets import Unicode, default
