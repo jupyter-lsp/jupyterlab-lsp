@@ -22,7 +22,7 @@ from typing import (
 
 try:
     from jupyter_server.transutils import _i18n as _
-except ImportError:
+except ImportError:  # pragma: no cover
     from jupyter_server.transutils import _
 from traitlets import Instance
 from traitlets import List as List_

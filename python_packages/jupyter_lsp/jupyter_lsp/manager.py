@@ -7,10 +7,12 @@ from typing import Dict, Text, Tuple, cast
 import entrypoints
 from jupyter_core.paths import jupyter_config_path
 from jupyter_server.services.config import ConfigManager
+
 try:
     from jupyter_server.transutils import _i18n as _
-except ImportError:
+except ImportError:  # pragma: no cover
     from jupyter_server.transutils import _
+
 from traitlets import Bool
 from traitlets import Dict as Dict_
 from traitlets import Instance
