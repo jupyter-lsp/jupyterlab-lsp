@@ -45,10 +45,11 @@ Create Notebok Server Config
     Set Global Variable    ${PORT}    ${port}
     Set Global Variable    ${URL}    http://localhost:${PORT}${BASE URL}
     Copy File    ${FIXTURES}${/}${NBSERVER CONF}    ${conf}
-    Update Jupyter Config    ${conf}    LabApp
+    Update Jupyter Config    ${conf}    ServerApp
     ...    base_url=${BASE URL}
     ...    port=${PORT}
     ...    token=${TOKEN}
+    Update Jupyter Config    ${conf}    LabApp
     ...    user_settings_dir=${SETTINGS DIR}
     ...    workspaces_dir=${WORKSPACES DIR}
     # should be automatically enabled, so do not enable manually:
