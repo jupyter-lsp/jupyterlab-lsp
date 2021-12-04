@@ -117,6 +117,7 @@ _*.d.ts
 _*.ts
 _build
 .virtual_documents/
+.idea/
 
 # Built labextensions
 python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/

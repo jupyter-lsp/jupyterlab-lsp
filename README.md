@@ -160,6 +160,11 @@ Use of a python `virtualenv` or a conda env is also recommended.
 
    Please report any regressions [here](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/272).
 
+1. Restart JupyterLab
+
+   If JupyterLab is running when you installed the extension, a restart is required
+   for the server extension and any language servers to be recognized by JupyterLab.
+
 1. (Optional, IPython users only) to improve the performance of autocompletion,
    disable Jedi in IPython (the LSP servers for Python use Jedi too).
    You can do that temporarily with:
