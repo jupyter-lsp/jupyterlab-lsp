@@ -6,7 +6,7 @@ Test Setup        Set Up
 Test Teardown     Clean Up
 
 *** Variables ***
-${EXPECTED_COUNT}    1
+${EXPECTED_COUNT}    4
 ${DIAGNOSTIC}     W291 trailing whitespace (pycodestyle)
 ${DIAGNOSTIC MESSAGE}    trailing whitespace
 ${DIAGNOSTIC MESSAGE R}    Closing curly-braces should always be on their own line
@@ -54,24 +54,40 @@ Columns Can Be Hidden
     Capture Page Screenshot    03-message-column-toggled.png
     Wait Until Keyword Succeeds    10 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
 
+Can Sort By Cell
+    # https://github.com/jupyter-lsp/jupyterlab-lsp/issues/707
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
+    Click Element    css:.lsp-diagnostics-listing th[data-id="Line:Ch"]
+    Table Cell Should Equal    Line:Ch    row=1    column=-1
+    Table Cell Should Equal    0:0    row=2    column=-1
+    Table Cell Should Equal    0:8    row=3    column=-1
+    Table Cell Should Equal    1:0    row=4    column=-1
+    Table Cell Should Equal    1:4    row=5    column=-1
+    Click Element    css:.lsp-diagnostics-listing th[data-id="Line:Ch"]
+    Table Cell Should Equal    1:4    row=2    column=-1
+
 Diagnostics Can Be Ignored By Code
-    Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    1
-    Open Context Menu Over    css:.lsp-diagnostics-listing tbody tr
+    Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_COUNT}
+    # W291 should be shown twice, lets try to hide it
+    ${EXPECTED_AFTER}    Evaluate    ${EXPECTED_COUNT}-2
+    Open Context Menu Over W291
     Expand Menu Entry    Ignore diagnostics
     Select Menu Entry    code
     Open in Advanced Settings    ${DIAGNOSTICS PLUGIN ID}
     Capture Page Screenshot    02-code-pressed.png
-    Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    0
+    Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_AFTER}
 
 Diagnostics Can Be Ignored By Message
-    Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    1
-    Open Context Menu Over    css:.lsp-diagnostics-listing tbody tr
+    Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_COUNT}
+    # W291 should be shown twice, lets try to hide it
+    ${EXPECTED_AFTER}    Evaluate    ${EXPECTED_COUNT}-2
+    Open Context Menu Over W291
     Expand Menu Entry    Ignore diagnostics
     Capture Page Screenshot    02-menu-visible.png
     Select Menu Entry    Ignore diagnostics with "W291 trailing whitespace" message
     Open in Advanced Settings    ${DIAGNOSTICS PLUGIN ID}
     Capture Page Screenshot    02-message-pressed.png
-    Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    0
+    Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_AFTER}
 
 Diagnostic Message Can Be Copied
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
@@ -97,6 +113,12 @@ Diagnostics Panel Works After Removing Foreign Document
     Wait Until Keyword Succeeds    10 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE R}
 
 *** Keywords ***
+Open Context Menu Over W291
+    Click Element    css:.lsp-diagnostics-listing th[data-id="Code"]
+    Table Cell Should Equal    Code    row=1    column=2
+    Table Cell Should Equal    W291    row=-1    column=2
+    Open Context Menu Over    css:.lsp-diagnostics-listing tbody > tr:last-child
+
 Expand Menu Entry
     [Arguments]    ${label}
     ${entry} =    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "${label}")]
@@ -131,6 +153,11 @@ Should Have Expected Rows Count
     [Arguments]    ${expected_count}
     ${count} =    Count Diagnostics In Panel
     Should Be True    ${count} == ${expected_count}
+
+Table Cell Should Equal
+    [Arguments]    ${expected}    ${row}    ${column}
+    ${cell} =    Get Table Cell    css:table.lsp-diagnostics-listing    ${row}    ${column}
+    Should Be Equal As Strings    ${cell}    ${expected}
 
 Set Up
     Gently Reset Workspace

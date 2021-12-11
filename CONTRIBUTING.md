@@ -318,6 +318,8 @@ python scripts/combine.py
   set FIREFOX_BINARY=C:\path\to\firefox.exe   # ... windows
   ```
 
+- If you see `Element ... could not be scrolled into view` in the `Open Context Menu for File` step check if you have an alternative file browser installed (such as `jupyterlab-unfold`) which might interfere with testing (it is recommended to run the tests in an separated environment)
+
 ### Formatting
 
 Minimal code style is enforced with `pytest-flake8` during unit testing. If installed,
