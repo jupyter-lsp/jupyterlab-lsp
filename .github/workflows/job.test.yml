@@ -203,14 +203,14 @@ jobs:
           path: ./dist
 
   acceptance:
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}
     name: atest ${{ matrix.os }} py${{ matrix.python }}
     needs: [build]
     strategy:
       # TODO: maybe turn back on
       fail-fast: false
       matrix:
-        os: [ubuntu, macos, windows]
+        os: ['ubuntu-latest', 'macos-10.15', 'windows-latest']
         python: [3.6, 3.7, 3.8]
         lab: ['>=3.0.0,<4.0.0a0']
         include:
@@ -227,11 +227,11 @@ jobs:
             # Node 15 end-of-life: June 2021
             nodejs: '>=15,<16.0.0.a0'
           # TODO: remove when mambaforge just works on setup-miniconda
-          - os: ubuntu
+          - os: 'ubuntu-latest'
             mambaforge: Linux-x86_64.sh
-          - os: macos
+          - os: 'macos-10.15'
             mambaforge: MacOSX-x86_64.sh
-          - os: windows
+          - os: 'windows-latest'
             mambaforge: Windows-x86_64.exe
 
     steps:
@@ -353,12 +353,12 @@ jobs:
 
   smoke:
     name: smoke ${{ matrix.os }} py${{ matrix.python }}
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}
     needs: [build, lint]
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos, windows]
+        os: ['ubuntu-latest', 'macos-10.15', 'windows-latest']
         python: ['3.6', '3.9', 'pypy3']
         exclude:
           - os: windows
@@ -370,11 +370,11 @@ jobs:
             dist: 'jupyter*lsp*.tar.gz'
           - python: '3.9'
             dist: 'jupyter*lsp*.whl'
-          - os: windows
+          - os: 'windows-latest'
             py_cmd: python
-          - os: macos
+          - os: 'macos-10.15'
             py_cmd: python3
-          - os: ubuntu
+          - os: 'ubuntu-latest'
             py_cmd: python
     steps:
       - name: Install Python
