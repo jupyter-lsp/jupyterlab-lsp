@@ -26,7 +26,7 @@ env:
 
   # Increase this value to reset all caches
   CACHE_EPOCH: 4
-  JULIA_LANGSERVER: 3.2.0
+  JULIA_LANGSERVER: 4.1.0
 
 jobs:
   lint:
@@ -330,9 +330,6 @@ jobs:
 
       - name: Install Julia
         uses: julia-actions/setup-julia@v1
-        with:
-          # temporarily pin because of https://github.com/julia-vscode/SymbolServer.jl/issues/225
-          version: '1.6'
 
       - name: Install Julia language server
         run: julia -e 'using Pkg; Pkg.add(Pkg.PackageSpec(;name="LanguageServer", version="${{ env.JULIA_LANGSERVER }}"))'
