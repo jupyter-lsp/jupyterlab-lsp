@@ -7,6 +7,8 @@
   background: var(--jp-layout-color1);
   font-size: var(--jp-ui-font-size1);
   border-spacing: 0;
+  /* required to preserve borders of `<th>` when using position:sticky */
+  border-collapse: separate;
   width: 100%;
 }
 
