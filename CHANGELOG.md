@@ -1,5 +1,14 @@
 ## Changelog
 
+### `jupyter-lsp 1.6.0` (unreleased)
+
+- compatibility:
+  - raises the minimum supported Python to 3.7 as 3.6 reaches its end-of-life ([#723])
+- maintenance and upkeep:
+  - adds Python 3.10, PyPy 3.7, and R 4.x to the automated tests ([#723])
+
+[#768]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/723
+
 ### `@krassowski/jupyterlab-lsp 3.9.2` (2021-12-12)
 
 - bug fixes:
