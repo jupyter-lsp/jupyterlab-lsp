@@ -97,8 +97,11 @@ def jsonrpc_init_msg():
             "method": "initialize",
             "params": {
                 "capabilities": {
+                    # see: https://github.com/julia-vscode/LanguageServer.jl/issues/1008
                     # LanguageServer.jl assumes that it is not missing
-                    "workspace": {"didChangeConfiguration": {}}
+                    "workspace": {"didChangeConfiguration": {}},
+                    # LanguageServer.jl assumes that it is not missing
+                    "textDocument": {}
                 },
                 "initializationOptions": None,
                 "processId": None,
