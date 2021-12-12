@@ -11,6 +11,11 @@ on:
       - 2.x
   workflow_dispatch:
 
+# TODO: might need to tweak `group`
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 defaults:
   run:
     shell: bash -l {0}
