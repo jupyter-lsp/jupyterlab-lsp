@@ -14,7 +14,6 @@ dependencies:
   # temporarily pin autopep8
   - autopep8 <1.6.0
   # for R language server and kernel
-  # TODO: try r 4.0 soon
   - r {r}
   - r-irkernel
   - r-languageserver

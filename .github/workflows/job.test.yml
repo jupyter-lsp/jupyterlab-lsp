@@ -71,6 +71,9 @@ jobs:
           miniforge-variant: Mambaforge
           use-mamba: true
 
+      - name: 'Revert templated file (TODO: remove)'
+        run: git checkout requirements/github-actions.yml
+
       - name: Install linting dependencies
         run: mamba env update -n test --file requirements/lint.yml
 
