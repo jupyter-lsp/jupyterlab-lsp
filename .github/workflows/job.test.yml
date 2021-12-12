@@ -204,23 +204,26 @@ jobs:
 
   acceptance:
     runs-on: ${{ matrix.os }}-latest
-    name: atest ${{ matrix.os }} py${{ matrix.python }}
+    name: atest ${{ matrix.os }} py${{ matrix.python }} r${{ matrix.r }}
     needs: [build]
     strategy:
       # TODO: maybe turn back on
       fail-fast: false
       matrix:
         os: ['ubuntu', 'macos', 'windows']
-        python: ['3.7', '3.9']
-        lab: ['>=3.0.0,<4.0.0a0']
+        python: ['3.7', '3.10']
         include:
           # if using 3.7, use newer node, etc...
           - python: '3.7'
             # Node 12 end-of-life: April 2022
             nodejs: '>=12,<13.0.0.a0'
-          - python: '3.9'
+            r: '<4'
+            lab: '>=3.0.0,<3.1'
+          - python: '3.10'
             # Node 16 end-of-life: April 2024
             nodejs: '>=16,<17.0.0.a0'
+            r: '>=4'
+            lab: '>=3.2.0,<4'
 
     steps:
       - uses: actions/checkout@v2
@@ -357,14 +360,19 @@ jobs:
         include:
           - python: '3.7'
             dist: 'jupyter*lsp*.tar.gz'
+            lab: '>=3,<3.1'
           - python: '3.8'
             dist: 'jupyter*lsp*.whl'
+            lab: '>=3,<3.1'
           - python: '3.9'
             dist: 'jupyter*lsp*.tar.gz'
+            lab: '>=3.2,<3.3'
           - python: '3.10'
             dist: 'jupyter*lsp*.whl'
+            lab: '>=3.2,<4'
           - python: 'pypy3'
             dist: 'jupyter*lsp*.tar.gz'
+            lab: '>=3.2,<3.3'
           - os: 'windows'
             py_cmd: python
           - os: 'macos'
@@ -384,7 +392,7 @@ jobs:
       - name: Install the prerequisites
         run: ${{ matrix.py_cmd }} -m pip install pip wheel
       - name: Install the package
-        run: cd dist && ${{ matrix.py_cmd }} -m pip install -vv ${{ matrix.dist }}
+        run: cd dist && ${{ matrix.py_cmd }} -m pip install -vv ${{ matrix.dist }} 'jupyterlab${{ matrix.lab }}'
       - name: Validate environment
         run: |
           set -eux
@@ -406,9 +414,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu]
-        python: ['3.7']
+        python: ['3.7', '3.10']
         nodejs: ['14']
-        lab: ['>=3.0.0,<4.0.0a0']
+        include:
+          - python: '3.7'
+            lab: '>=3,<3.1'
+          - python: '3.10'
+            lab: '>=3.2,<4'
     steps:
       - name: Install Python
         uses: actions/setup-python@v2

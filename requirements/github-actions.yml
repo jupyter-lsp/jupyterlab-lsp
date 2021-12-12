@@ -15,7 +15,7 @@ dependencies:
   - autopep8 <1.6.0
   # for R language server and kernel
   # TODO: try r 4.0 soon
-  - r <4
+  - r {r}
   - r-irkernel
   - r-languageserver
   - r-stringi >=1.4.6

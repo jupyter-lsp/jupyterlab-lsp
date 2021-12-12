@@ -11,7 +11,7 @@ dependencies:
   - jupyter_server >=1.1.2
   - retrolab >=0.3.0,<0.4
   # build dependencies
-  - nodejs >=12,<15
+  - nodejs >=12,!=13,!=15,<17
   # for python language server (and development)
   - flake8 >=3.5
   - pip
