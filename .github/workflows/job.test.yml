@@ -42,7 +42,7 @@ jobs:
         os: [ubuntu]
         nodejs: ['>=14,<15.0.0a0']
         lab: ['>=3.0.0,<4.0.0a0']
-        r: '>=4'
+        r: ['>=4']
     steps:
       - uses: actions/checkout@v2
 
