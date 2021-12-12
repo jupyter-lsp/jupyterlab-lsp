@@ -101,7 +101,7 @@ def jsonrpc_init_msg():
                     # LanguageServer.jl assumes that it is not missing
                     "workspace": {"didChangeConfiguration": {}},
                     # LanguageServer.jl assumes that it is not missing
-                    "textDocument": {}
+                    "textDocument": {},
                 },
                 "initializationOptions": None,
                 "processId": None,

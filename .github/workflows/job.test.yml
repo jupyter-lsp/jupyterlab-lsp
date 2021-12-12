@@ -11,6 +11,11 @@ on:
       - 2.x
   workflow_dispatch:
 
+# TODO: might need to tweak `group`
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 defaults:
   run:
     shell: bash -l {0}
@@ -31,12 +36,13 @@ env:
 jobs:
   lint:
     name: jstest/lint
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu]
         nodejs: ['>=14,<15.0.0a0']
         lab: ['>=3.0.0,<4.0.0a0']
+        r: ['>=4']
     steps:
       - uses: actions/checkout@v2
 
@@ -77,7 +83,7 @@ jobs:
         with:
           path: '**/node_modules'
           key: |
-            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-lint-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
 
       - name: Cache yarn packages
         id: cache-yarn-packages
@@ -104,6 +110,9 @@ jobs:
       - name: Lint backend
         run: python scripts/lint.py
 
+      - name: 'Revert templated file (TODO: remove)'
+        run: git checkout requirements/github-actions.yml
+
       - name: Lint frontend
         run: jlpm lint:check
 
@@ -112,12 +121,13 @@ jobs:
 
   build:
     name: build
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu]
         nodejs: ['>=14,<15.0.0a0']
         lab: ['>=3.0.0,<4.0.0a0']
+        r: ['>=4']
     steps:
       - uses: actions/checkout@v2
 
@@ -203,35 +213,27 @@ jobs:
           path: ./dist
 
   acceptance:
-    runs-on: ${{ matrix.os }}
-    name: atest ${{ matrix.os }} py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}-latest
+    name: atest ${{ matrix.os }} py${{ matrix.python }} r${{ matrix.r }}
     needs: [build]
     strategy:
       # TODO: maybe turn back on
       fail-fast: false
       matrix:
-        os: ['ubuntu-latest', 'macos-10.15', 'windows-latest']
-        python: [3.6, 3.7, 3.8]
-        lab: ['>=3.0.0,<4.0.0a0']
+        os: ['ubuntu', 'macos', 'windows']
+        python: ['3.7', '3.10']
         include:
-          # if using 3.6, use an old node
-          - python: 3.6
+          # if using 3.7, use newer node, etc...
+          - python: '3.7'
             # Node 12 end-of-life: April 2022
             nodejs: '>=12,<13.0.0.a0'
-          # if using 3.7, use newer node, etc...
-          - python: 3.7
-            # Node 14 end-of-life: April 2023
-            nodejs: '>=14,<15.0.0.a0'
-          - python: 3.8
+            r: '<4'
+            lab: '>=3.0.0,<3.1'
+          - python: '3.10'
             # Node 16 end-of-life: April 2024
             nodejs: '>=16,<17.0.0.a0'
-          # TODO: remove when mambaforge just works on setup-miniconda
-          - os: 'ubuntu-latest'
-            mambaforge: Linux-x86_64.sh
-          - os: 'macos-10.15'
-            mambaforge: MacOSX-x86_64.sh
-          - os: 'windows-latest'
-            mambaforge: Windows-x86_64.exe
+            r: '>=4'
+            lab: '>=3.2.0,<4'
 
     steps:
       - uses: actions/checkout@v2
@@ -355,28 +357,38 @@ jobs:
 
   smoke:
     name: smoke ${{ matrix.os }} py${{ matrix.python }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
     needs: [build, lint]
     strategy:
       fail-fast: false
+      max-parallel: 3
       matrix:
-        os: ['ubuntu-latest', 'macos-10.15', 'windows-latest']
-        python: ['3.6', '3.9', 'pypy3']
+        os: ['ubuntu', 'macos', 'windows']
+        python: ['3.7', '3.8', '3.9', '3.10', 'pypy-3.7']
         exclude:
           - os: windows
-            python: pypy3
+            python: pypy-3.7
         include:
-          - python: '3.6'
+          - python: '3.7'
             dist: 'jupyter*lsp*.tar.gz'
-          - python: 'pypy3'
-            dist: 'jupyter*lsp*.tar.gz'
-          - python: '3.9'
+            lab: '>=3,<3.1'
+          - python: '3.8'
             dist: 'jupyter*lsp*.whl'
-          - os: 'windows-latest'
+            lab: '>=3,<3.1'
+          - python: '3.9'
+            dist: 'jupyter*lsp*.tar.gz'
+            lab: '>=3.2,<3.3'
+          - python: '3.10'
+            dist: 'jupyter*lsp*.whl'
+            lab: '>=3.2,<4'
+          - python: 'pypy-3.7'
+            dist: 'jupyter*lsp*.tar.gz'
+            lab: '>=3.2,<3.3'
+          - os: 'windows'
             py_cmd: python
-          - os: 'macos-10.15'
+          - os: 'macos'
             py_cmd: python3
-          - os: 'ubuntu-latest'
+          - os: 'ubuntu'
             py_cmd: python
     steps:
       - name: Install Python
@@ -391,7 +403,7 @@ jobs:
       - name: Install the prerequisites
         run: ${{ matrix.py_cmd }} -m pip install pip wheel
       - name: Install the package
-        run: cd dist && ${{ matrix.py_cmd }} -m pip install -vv ${{ matrix.dist }}
+        run: cd dist && ${{ matrix.py_cmd }} -m pip install -vv ${{ matrix.dist }} 'jupyterlab${{ matrix.lab }}'
       - name: Validate environment
         run: |
           set -eux
@@ -406,16 +418,20 @@ jobs:
           jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
 
   source:
-    name: smoke source install ${{ matrix.os }}
+    name: smoke source install ${{ matrix.os }} py${{ matrix.python }} lab${{ matrix.lab }}
     runs-on: ${{ matrix.os }}-latest
     needs: [build]
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu]
-        python: ['3.6']
+        python: ['3.7', '3.10']
         nodejs: ['14']
-        lab: ['>=3.0.0,<4.0.0a0']
+        include:
+          - python: '3.7'
+            lab: '>=3,<3.1'
+          - python: '3.10'
+            lab: '>=3.2,<4'
     steps:
       - name: Install Python
         uses: actions/setup-python@v2
@@ -425,13 +441,13 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
-          node-version: ${{matrix.nodejs}}
+          node-version: ${{ matrix.nodejs }}
       - uses: actions/download-artifact@v2
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
       - name: Install the prerequisites
-        run: python -m pip install pip wheel
+        run: python -m pip install --upgrade pip wheel setuptools
       - name: Install JupyterLab
         shell: bash -l {0}
         run: python -m pip install 'jupyterlab${{ matrix.lab }}'
