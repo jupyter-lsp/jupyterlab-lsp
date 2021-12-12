@@ -358,10 +358,10 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu', 'macos', 'windows']
-        python: ['3.7', '3.8', '3.9', '3.10', 'pypy3']
+        python: ['3.7', '3.8', '3.9', '3.10', 'pypy-3.7']
         exclude:
           - os: windows
-            python: pypy3
+            python: pypy-3.7
         include:
           - python: '3.7'
             dist: 'jupyter*lsp*.tar.gz'
@@ -375,7 +375,7 @@ jobs:
           - python: '3.10'
             dist: 'jupyter*lsp*.whl'
             lab: '>=3.2,<4'
-          - python: 'pypy3'
+          - python: 'pypy-3.7'
             dist: 'jupyter*lsp*.tar.gz'
             lab: '>=3.2,<3.3'
           - os: 'windows'
