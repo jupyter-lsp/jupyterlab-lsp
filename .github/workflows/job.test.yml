@@ -25,8 +25,8 @@ env:
   JLPM_CMD: jlpm --ignore-optional --prefer-offline --frozen-lockfile
 
   # Increase this value to reset all caches
-  CACHE_EPOCH: 2
-  JULIA_LANGSERVER: 3.2.0
+  CACHE_EPOCH: 4
+  JULIA_LANGSERVER: 4.1.0
 
 jobs:
   lint:
@@ -223,9 +223,8 @@ jobs:
             # Node 14 end-of-life: April 2023
             nodejs: '>=14,<15.0.0.a0'
           - python: 3.8
-            # TODO: switch to Node 16 once gets merged https://github.com/conda-forge/nodejs-feedstock/pull/189
-            # Node 15 end-of-life: June 2021
-            nodejs: '>=15,<16.0.0.a0'
+            # Node 16 end-of-life: April 2024
+            nodejs: '>=16,<17.0.0.a0'
           # TODO: remove when mambaforge just works on setup-miniconda
           - os: 'ubuntu-latest'
             mambaforge: Linux-x86_64.sh
@@ -331,9 +330,6 @@ jobs:
 
       - name: Install Julia
         uses: julia-actions/setup-julia@v1
-        with:
-          # temporarily pin because of https://github.com/julia-vscode/SymbolServer.jl/issues/225
-          version: '1.6'
 
       - name: Install Julia language server
         run: julia -e 'using Pkg; Pkg.add(Pkg.PackageSpec(;name="LanguageServer", version="${{ env.JULIA_LANGSERVER }}"))'
@@ -343,6 +339,12 @@ jobs:
 
       - name: Run browser tests
         run: python scripts/atest.py --exclude expect:fail
+
+      - name: Find and remove empty files
+        # https://github.com/actions/upload-artifact/issues/150
+        run: find ./atest/output -empty -delete
+        if: always()
+        shell: bash
 
       - name: Publish browser test output
         uses: actions/upload-artifact@v2

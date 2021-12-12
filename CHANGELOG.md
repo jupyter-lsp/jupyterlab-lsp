@@ -1,5 +1,37 @@
 ## Changelog
 
+### `@krassowski/jupyterlab-lsp 3.9.2` (2021-12-11)
+
+- features:
+  - add `details-below` layout allowing to change the completer arrangement
+- bug fixes:
+  - prevent very long completion details text from extending the completer indefinitely ([#698])
+  - correct status translations ([#700], thanks @fcollonval)
+  - fix translations in status pop-up ([#703])
+  - workaround issue causing file rename when opening external files by jumping to them ([#712], thanks @jepcor97)
+  - fix sorting by "Line:Ch" and "Cell" in Diagnostics Panel ([#717])
+  - fix header border missing when scrolling in Diagnostics Panel ([#717])
+- documentation improvements:
+  - clarify that JupyterLab restart is needed after installation ([#714], thanks @3coins)
+
+[#698]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/698
+[#700]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/700
+[#703]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/703
+[#712]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/712
+[#714]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/714
+[#717]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/717
+
+### `jupyter-lsp 1.5.1` (2021-12-11)
+
+- documentation improvements:
+  - document troubleshooting steps for `texlab` server([#702])
+- maintenance and upkeep:
+  - migrate test configuration to `ServerApp` as needed ([#713])
+  - address deprecation warnings ([#713])
+
+[#702]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/702
+[#713]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/713
+
 ### `@krassowski/jupyterlab-lsp 3.9.1` (2021-10-24)
 
 - bug fixes:
@@ -11,7 +43,7 @@
 
 - features:
   - add support for new `typescript-language-server` replacing `javascript-typescript-langserver`;
-    despite the name both packages provide support for all four: JavaScrip, JSX, TypeScript and TSX;
+    despite the name both packages provide support for all four: JavaScript, JSX, TypeScript and TSX;
     the old `javascript-typescript-langserver` can still be used, but it is no longer maintained
     and we will not be supported, and specs may be removed in the next major release ([#697]).
 
