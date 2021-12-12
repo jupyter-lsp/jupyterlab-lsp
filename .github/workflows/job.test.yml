@@ -203,35 +203,24 @@ jobs:
           path: ./dist
 
   acceptance:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
     name: atest ${{ matrix.os }} py${{ matrix.python }}
     needs: [build]
     strategy:
       # TODO: maybe turn back on
       fail-fast: false
       matrix:
-        os: ['ubuntu-latest', 'macos-10.15', 'windows-latest']
-        python: [3.6, 3.7, 3.8]
+        os: ['ubuntu', 'macos', 'windows']
+        python: [3.7, 3.10]
         lab: ['>=3.0.0,<4.0.0a0']
         include:
-          # if using 3.6, use an old node
-          - python: 3.6
-            # Node 12 end-of-life: April 2022
-            nodejs: '>=12,<13.0.0.a0'
           # if using 3.7, use newer node, etc...
           - python: 3.7
-            # Node 14 end-of-life: April 2023
-            nodejs: '>=14,<15.0.0.a0'
-          - python: 3.8
+            # Node 12 end-of-life: April 2022
+            nodejs: '>=12,<13.0.0.a0'
+          - python: 3.10
             # Node 16 end-of-life: April 2024
             nodejs: '>=16,<17.0.0.a0'
-          # TODO: remove when mambaforge just works on setup-miniconda
-          - os: 'ubuntu-latest'
-            mambaforge: Linux-x86_64.sh
-          - os: 'macos-10.15'
-            mambaforge: MacOSX-x86_64.sh
-          - os: 'windows-latest'
-            mambaforge: Windows-x86_64.exe
 
     steps:
       - uses: actions/checkout@v2
@@ -355,28 +344,28 @@ jobs:
 
   smoke:
     name: smoke ${{ matrix.os }} py${{ matrix.python }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
     needs: [build, lint]
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-latest', 'macos-10.15', 'windows-latest']
-        python: ['3.6', '3.9', 'pypy3']
+        os: ['ubuntu', 'macos', 'windows']
+        python: ['3.7', '3.10', 'pypy3']
         exclude:
           - os: windows
             python: pypy3
         include:
-          - python: '3.6'
+          - python: '3.7'
             dist: 'jupyter*lsp*.tar.gz'
           - python: 'pypy3'
             dist: 'jupyter*lsp*.tar.gz'
-          - python: '3.9'
+          - python: '3.10'
             dist: 'jupyter*lsp*.whl'
-          - os: 'windows-latest'
+          - os: 'windows'
             py_cmd: python
-          - os: 'macos-10.15'
+          - os: 'macos'
             py_cmd: python3
-          - os: 'ubuntu-latest'
+          - os: 'ubuntu'
             py_cmd: python
     steps:
       - name: Install Python
@@ -413,7 +402,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu]
-        python: ['3.6']
+        python: ['3.7']
         nodejs: ['14']
         lab: ['>=3.0.0,<4.0.0a0']
     steps:
@@ -425,13 +414,13 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
-          node-version: ${{matrix.nodejs}}
+          node-version: ${{ matrix.nodejs }}
       - uses: actions/download-artifact@v2
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
       - name: Install the prerequisites
-        run: python -m pip install pip wheel
+        run: python -m pip install --upgrade pip wheel setuptools
       - name: Install JupyterLab
         shell: bash -l {0}
         run: python -m pip install 'jupyterlab${{ matrix.lab }}'
