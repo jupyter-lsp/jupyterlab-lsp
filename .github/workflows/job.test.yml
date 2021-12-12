@@ -71,9 +71,6 @@ jobs:
           miniforge-variant: Mambaforge
           use-mamba: true
 
-      - name: 'Revert templated file (TODO: remove)'
-        run: git checkout requirements/github-actions.yml
-
       - name: Install linting dependencies
         run: mamba env update -n test --file requirements/lint.yml
 
@@ -86,7 +83,7 @@ jobs:
         with:
           path: '**/node_modules'
           key: |
-            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-lint-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
 
       - name: Cache yarn packages
         id: cache-yarn-packages
@@ -113,6 +110,9 @@ jobs:
       - name: Lint backend
         run: python scripts/lint.py
 
+      - name: 'Revert templated file (TODO: remove)'
+        run: git checkout requirements/github-actions.yml
+
       - name: Lint frontend
         run: jlpm lint:check
 
@@ -127,6 +127,7 @@ jobs:
         os: [ubuntu]
         nodejs: ['>=14,<15.0.0a0']
         lab: ['>=3.0.0,<4.0.0a0']
+        r: ['>=4']
     steps:
       - uses: actions/checkout@v2
 
