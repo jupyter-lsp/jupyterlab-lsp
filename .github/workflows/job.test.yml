@@ -211,14 +211,14 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu', 'macos', 'windows']
-        python: [3.7, 3.10]
+        python: ['3.7', '3.10']
         lab: ['>=3.0.0,<4.0.0a0']
         include:
           # if using 3.7, use newer node, etc...
-          - python: 3.7
+          - python: '3.7'
             # Node 12 end-of-life: April 2022
             nodejs: '>=12,<13.0.0.a0'
-          - python: 3.10
+          - python: '3.10'
             # Node 16 end-of-life: April 2024
             nodejs: '>=16,<17.0.0.a0'
 
