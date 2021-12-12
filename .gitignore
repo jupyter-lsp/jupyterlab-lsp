@@ -120,4 +120,4 @@ _build
 .idea/
 
 # Built labextensions
-python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/
+python_packages/*/*/labextensions/

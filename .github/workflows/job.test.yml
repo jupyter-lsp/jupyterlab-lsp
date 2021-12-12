@@ -31,10 +31,10 @@ env:
 jobs:
   lint:
     name: jstest/lint
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu]
         nodejs: ['>=14,<15.0.0a0']
         lab: ['>=3.0.0,<4.0.0a0']
     steps:
@@ -112,10 +112,10 @@ jobs:
 
   build:
     name: build
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu]
         nodejs: ['>=14,<15.0.0a0']
         lab: ['>=3.0.0,<4.0.0a0']
     steps:
