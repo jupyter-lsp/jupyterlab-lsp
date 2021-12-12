@@ -2067,7 +2067,7 @@
   version "1.1.0"
 
 "@krassowski/completion-theme@file:packages/completion-theme":
-  version "3.1.0"
+  version "3.2.0"
 
 "@krassowski/jupyterlab-lsp-example-extractor@file:packages/_example-extractor":
   version "0.0.0"
@@ -2083,7 +2083,7 @@
   version "3.9.2"
   dependencies:
     "@krassowski/code-jumpers" "~1.1.0"
-    "@krassowski/completion-theme" "~3.1.0"
+    "@krassowski/completion-theme" "~3.2.0"
     "@krassowski/theme-material" "~2.1.1"
     "@krassowski/theme-vscode" "~2.1.1"
     lodash.mergewith "^4.6.1"

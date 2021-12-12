@@ -1,9 +1,7 @@
 ## Changelog
 
-### `@krassowski/jupyterlab-lsp 3.9.2` (2021-12-11)
+### `@krassowski/jupyterlab-lsp 3.9.2` (2021-12-12)
 
-- features:
-  - add `details-below` layout allowing to change the completer arrangement
 - bug fixes:
   - prevent very long completion details text from extending the completer indefinitely ([#698])
   - correct status translations ([#700], thanks @fcollonval)
@@ -21,7 +19,12 @@
 [#714]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/714
 [#717]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/717
 
-### `jupyter-lsp 1.5.1` (2021-12-11)
+### `@krassowski/completion-theme 3.2.0` (2021-12-12)
+
+- features:
+  - add `details-below` layout allowing to change the completer arrangement ([#698])
+
+### `jupyter-lsp 1.5.1` (2021-12-12)
 
 - documentation improvements:
   - document troubleshooting steps for `texlab` server([#702])
