@@ -16,6 +16,7 @@ dependencies:
   - python >=3.7,<3.11.0a0
   - python-graphviz
   - python-lsp-server
+  - robotframework-lsp
   - sphinx
   - sphinx-autodoc-typehints
   - sphinx-book-theme

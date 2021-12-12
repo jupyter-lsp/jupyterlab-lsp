@@ -5,11 +5,11 @@ channels:
   - nodefaults
 
 dependencies:
-  - pip
   - black
   - isort
   - mypy
-  - robotframework-lint >=1.1
-  - robotframework >=4,<4.1
+  - pip
   - pytest-tornasync
+  - robotframework-lint
+  - robotframework-robocop
   - types-six
