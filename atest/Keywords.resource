@@ -1,13 +1,13 @@
 *** Settings ***
-Resource          Variables.robot
-Library           SeleniumLibrary
-Library           OperatingSystem
-Library           Process
-Library           String
-Library           Collections
-Library           ./logcheck.py
-Library           ./ports.py
-Library           ./config.py
+Library     OperatingSystem
+Library     Process
+Library     String
+Library     Collections
+Library     SeleniumLibrary
+Resource    Variables.resource
+Library     ./logcheck.py
+Library     ./ports.py
+Library     ./config.py
 
 *** Keywords ***
 Setup Server and Browser
@@ -37,8 +37,8 @@ Initialize Global Variables
     Set Screenshot Directory    ${SCREENSHOTS DIR}
 
 Create Notebok Server Config
-    [Arguments]    ${server_extension_enabled}=${True}
     [Documentation]    Copies in notebook server config file and updates accordingly
+    [Arguments]    ${server_extension_enabled}=${True}
     ${conf} =    Set Variable    ${NOTEBOOK DIR}${/}${NBSERVER CONF}
     ${extra_node_roots} =    Create List    ${ROOT}
     ${port} =    Get Unused Port
@@ -114,7 +114,8 @@ Open JupyterLab
     Set Environment Variable    MOZ_HEADLESS    ${HEADLESS}
     ${firefox} =    Get Firefox Binary
     ${geckodriver} =    Which    geckodriver
-    Should Not Be Equal As Strings    ${geckodriver}    None    geckodriver not found, do you need to install firefox-geckodriver?
+    Should Not Be Equal As Strings    ${geckodriver}    None
+    ...    geckodriver not found, do you need to install firefox-geckodriver?
     ${service args} =    Create List    --log    debug
     Create WebDriver    Firefox
     ...    executable_path=${geckodriver}
@@ -150,15 +151,23 @@ Reset Application State
 Accept Default Dialog Option
     [Documentation]    Accept a dialog, if it exists
     ${el} =    Get WebElements    ${CSS DIALOG OK}
-    Run Keyword If    ${el.__len__()}    Click Element    ${CSS DIALOG OK}
+    IF    ${el.__len__()}
+        Click Element    ${CSS DIALOG OK}
+    END
 
 Ensure All Kernels Are Shut Down
     Enter Command Name    Shut Down All Kernels
     ${els} =    Get WebElements    ${CMD PALETTE ITEM ACTIVE}
-    Run Keyword If    ${els.__len__()}    Click Element    ${CMD PALETTE ITEM ACTIVE}
+    IF    ${els.__len__()}
+        Click Element    ${CMD PALETTE ITEM ACTIVE}
+    END
     ${accept} =    Set Variable    css:.jp-mod-accept.jp-mod-warn
-    Run Keyword If    ${els.__len__()}    Wait Until Page Contains Element    ${accept}
-    Run Keyword If    ${els.__len__()}    Click Element    ${accept}
+    IF    ${els.__len__()}
+        Wait Until Page Contains Element    ${accept}
+    END
+    IF    ${els.__len__()}
+        Click Element    ${accept}
+    END
 
 Open Command Palette
     Press Keys    id:main    ${ACCEL}+SHIFT+c
@@ -182,25 +191,25 @@ Which
     [Return]    ${path}
 
 Click JupyterLab Menu
-    [Arguments]    ${label}
     [Documentation]    Click a top-level JupyterLab menu bar item with by ``label``,
     ...    e.g. File, Help, etc.
+    [Arguments]    ${label}
     ${xpath} =    Set Variable    xpath:${JLAB XP TOP}${JLAB XP MENU LABEL}\[text() = '${label}']
     Wait Until Page Contains Element    ${xpath}
     Mouse Over    ${xpath}
     Click Element    ${xpath}
 
 Click JupyterLab Menu Item
-    [Arguments]    ${label}
     [Documentation]    Click a currently-visible JupyterLab menu item by ``label``.
+    [Arguments]    ${label}
     ${item} =    Set Variable    ${JLAB XP MENU ITEM LABEL}\[text() = '${label}']
     Wait Until Page Contains Element    ${item}
     Mouse Over    ${item}
     Click Element    ${item}
 
 Open With JupyterLab Menu
-    [Arguments]    ${menu}    @{submenus}
     [Documentation]    Click into a ``menu``, then a series of ``submenus``
+    [Arguments]    ${menu}    @{submenus}
     Click JupyterLab Menu    ${menu}
     FOR    ${submenu}    IN    @{submenus}
         Click JupyterLab Menu Item    ${submenu}
@@ -209,12 +218,16 @@ Open With JupyterLab Menu
 Ensure File Browser is Open
     ${sel} =    Set Variable    css:.lm-TabBar-tab[data-id="filebrowser"]:not(.lm-mod-current)
     ${els} =    Get WebElements    ${sel}
-    Run Keyword If    ${els.__len__()}    Click Element    ${sel}
+    IF    ${els.__len__()}
+        Click Element    ${sel}
+    END
 
 Ensure Sidebar Is Closed
     [Arguments]    ${side}=left
     ${els} =    Get WebElements    css:#jp-${side}-stack
-    Run Keyword If    ${els.__len__()}    Click Element    css:.jp-mod-${side} .lm-TabBar-tab.lm-mod-current
+    IF    ${els.__len__()}
+        Click Element    css:.jp-mod-${side} .lm-TabBar-tab.lm-mod-current
+    END
 
 Open Context Menu for File
     [Arguments]    ${file}
@@ -252,7 +265,9 @@ Open Folder
 
 Open ${file} in ${editor}
     ${paths} =    Set Variable    ${file.split("/")}
-    Run Keyword If    ${paths.__len__() > 1}    Open Folder    @{paths[:-1]}
+    IF    ${paths.__len__() > 1}
+        Open Folder    @{paths[:-1]}
+    END
     ${file} =    Set Variable    ${paths[-1]}
     Open Context Menu for File    ${file}
     Mouse Over    ${MENU OPEN WITH}
@@ -269,14 +284,18 @@ Clean Up After Working With File
 Setup Notebook
     [Arguments]    ${Language}    ${file}    ${isolated}=${True}    ${wait}=${True}
     Set Tags    language:${Language.lower()}
-    Run Keyword If    ${isolated}    Set Screenshot Directory    ${SCREENSHOTS DIR}${/}notebook${/}${TEST NAME.replace(' ', '_')}
+    IF    ${isolated}
+        Set Screenshot Directory    ${SCREENSHOTS DIR}${/}notebook${/}${TEST NAME.replace(' ', '_')}
+    END
     Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
-    Run Keyword If    ${isolated}    Try to Close All Tabs
+    IF    ${isolated}
+        Try to Close All Tabs
+    END
     Open ${file} in ${MENU NOTEBOOK}
     Capture Page Screenshot    00-notebook-opened.png
-    Run Keyword If
-    ...    ${wait}
-    ...    Wait Until Fully Initialized
+    IF    ${wait}
+        Wait Until Fully Initialized
+    END
     Capture Page Screenshot    01-notebook-initialized.png
 
 Open Diagnostics Panel
@@ -310,7 +329,8 @@ Open Context Menu Over Cell Editor
 Place Cursor In Cell Editor At
     [Arguments]    ${cell_nr}    ${line}    ${character}
     Enter Cell Editor    ${cell_nr}    ${line}
-    Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
+    Execute JavaScript
+    ...    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
 
 Enter File Editor
     Click Element    css:.jp-FileEditor .CodeMirror
@@ -319,7 +339,8 @@ Enter File Editor
 Place Cursor In File Editor At
     [Arguments]    ${line}    ${character}
     Enter File Editor
-    Execute JavaScript    return document.querySelector('.jp-FileEditor .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
+    Execute JavaScript
+    ...    return document.querySelector('.jp-FileEditor .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
 
 Wait Until Fully Initialized
     Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=60s
@@ -336,12 +357,12 @@ Open Context Menu Over
 
 Context Menu Should Contain
     [Arguments]    ${label}    ${timeout}=10s
-    ${entry}    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
+    ${entry} =    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
     Wait Until Page Contains Element    ${entry}    timeout=${timeout}
 
 Context Menu Should Not Contain
     [Arguments]    ${label}    ${timeout}=10s
-    ${entry}    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
+    ${entry} =    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
     Wait Until Page Does Not Contain Element    ${entry}    timeout=${timeout}
 
 Close Context Menu
@@ -393,7 +414,8 @@ Clean Up After Working with File and Settings
 
 Jump To Definition
     [Arguments]    ${symbol}
-    ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
+    ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}
+    ...    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
     Open Context Menu Over    ${sel}
     ${cursor} =    Measure Cursor Position
     Capture Page Screenshot    02-jump-to-definition-0.png

@@ -10,6 +10,6 @@ dependencies:
   - mypy
   - pip
   - pytest-tornasync
-  - robotframework-lint
   - robotframework-robocop
+  - robotframework-tidy
   - types-six

@@ -1,9 +1,11 @@
 *** Settings ***
-Suite Setup       Setup Suite For Screenshots    syntax_highlighting
-Test Setup        Setup Highlighting Test
-Test Teardown     Clean Up After Working With File    Syntax highlighting.ipynb
-Force Tags        feature:syntax_highlighting
-Resource          ../Keywords.robot
+Resource            ../Keywords.resource
+
+Suite Setup         Setup Suite For Screenshots    syntax_highlighting
+Test Setup          Setup Highlighting Test
+Test Teardown       Clean Up After Working With File    Syntax highlighting.ipynb
+
+Force Tags          feature:syntax_highlighting
 
 *** Test Cases ***
 Syntax Highlighting Mode Stays Normal In Normal Cells
@@ -40,7 +42,8 @@ Get Mode Of A Cell
     [Arguments]    ${cell_number}
     Click Element    css:.jp-Cell:nth-child(${cell_number})
     Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_number}) .CodeMirror-focused
-    ${mode} =    Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_number}) .CodeMirror').CodeMirror.getMode()
+    ${mode} =    Execute JavaScript
+    ...    return document.querySelector('.jp-Cell:nth-child(${cell_number}) .CodeMirror').CodeMirror.getMode()
     [Return]    ${mode}
 
 Setup Highlighting Test

@@ -1,6 +1,7 @@
 *** Settings ***
-Suite Setup       Set Screenshot Directory    ${SCREENSHOTS DIR}${/}smoke
-Resource          Keywords.robot
+Resource        Keywords.resource
+
+Suite Setup     Set Screenshot Directory    ${SCREENSHOTS DIR}${/}smoke
 
 *** Test Cases ***
 Lab Version

@@ -1,7 +1,9 @@
 *** Settings ***
-Suite Setup       Setup Suite For Screenshots    gh-403
-Force Tags        feature:jump-to-definition    gh:403
-Resource          ../Keywords.robot
+Resource        ../Keywords.resource
+
+Suite Setup     Setup Suite For Screenshots    gh-403
+
+Force Tags      feature:jump-to-definition    gh:403
 
 *** Variables ***
 ${FOLDER WITH SPACE}    a földer

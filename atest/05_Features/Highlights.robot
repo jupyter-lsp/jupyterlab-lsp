@@ -1,9 +1,11 @@
 *** Settings ***
-Suite Setup       Setup Suite For Screenshots    highlights
-Test Setup        Setup Highlights Test
-Test Teardown     Clean Up After Working With File    Highlights.ipynb
-Force Tags        feature:highlights
-Resource          ../Keywords.robot
+Resource            ../Keywords.resource
+
+Suite Setup         Setup Suite For Screenshots    highlights
+Test Setup          Setup Highlights Test
+Test Teardown       Clean Up After Working With File    Highlights.ipynb
+
+Force Tags          feature:highlights
 
 *** Test Cases ***
 # cursor is symbolized by pipe (|), for example when
@@ -64,12 +66,14 @@ Should Not Highlight Any Tokens
 
 Should Highlight Token
     [Arguments]    ${token}    ${timeout}=15s
-    ${token_element}    Set Variable    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
+    ${token_element}    Set Variable
+    ...    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
     Wait Until Page Contains Element    ${token_element}    timeout=${timeout}
 
 Should Not Highlight Token
     [Arguments]    ${token}    ${timeout}=15s
-    ${token_element}    Set Variable    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
+    ${token_element}    Set Variable
+    ...    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
     Wait Until Page Does Not Contain Element    ${token_element}    timeout=${timeout}
 
 Setup Highlights Test
