@@ -65,7 +65,7 @@ def atest(attempt, extra_args):
         extra_args += ["--skiponfailure", "AND".join(non_critical)]
 
     if attempt != 1:
-        previous = OUT / f"{get_stem(attempt - 1, extra_args)}.robot.xml"
+        previous = OUT / get_stem(attempt - 1, extra_args) / "output.xml"
         if previous.exists():
             extra_args += ["--rerunfailed", str(previous)]
 
@@ -83,6 +83,9 @@ def atest(attempt, extra_args):
         # don't ever test our examples
         "--exclude",
         "atest:example",
+        # random ensures there's not inter-test coupling
+        "--randomize",
+        "all",
         *(extra_args or []),
         ATEST,
     ]
@@ -102,20 +105,14 @@ def atest(attempt, extra_args):
 
     try:
         if "--dryrun" in extra_args or ATEST_PROCESSES == 1:
-            robot.run_cli(
-                [
-                    # random ensures there's not inter-test coupling
-                    "--randomize",
-                    "all",
-                    *str_args,
-                ]
-            )
+            robot.run_cli(str_args)
         else:
             pabot.main(
                 [
                     *("--processes", f"{ATEST_PROCESSES}"),
                     *("--artifacts", "png,log"),
                     "--artifactsinsubfolders",
+                    "--testlevelsplit",
                     *str_args,
                 ]
             )

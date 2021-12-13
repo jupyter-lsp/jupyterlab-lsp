@@ -26,6 +26,7 @@ env:
   PIP_DISABLE_PIP_VERSION_CHECK: 1
   PYTHONUNBUFFERED: 1
 
+  ATEST_PROCESSES: 4
   ATEST_RETRIES: 3
   JLPM_CMD: jlpm --ignore-optional --prefer-offline --frozen-lockfile
 
