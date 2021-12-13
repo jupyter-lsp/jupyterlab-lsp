@@ -100,6 +100,10 @@ def atest(attempt, extra_args):
         f"OS:{OS}",
         "--variable",
         f"PY:{PY}",
+        # don't ever test our examples
+        "--exclude",
+        "atest:example",
+        # random ensures there's not inter-test coupling
         "--randomize",
         "all",
         *(extra_args or []),

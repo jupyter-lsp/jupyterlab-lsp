@@ -55,6 +55,11 @@ R
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
     Editor Shows Features for Language    R    example.R    Diagnostics=Put spaces around all infix operators    Jump to Definition=${def}
 
+Robot Framework
+    [Tags]    gh:332
+    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-keyword')][contains(text(), 'Special Log')])[last()]
+    Editor Shows Features for Language    Robot Framework    example.robot    Diagnostics=Undefined keyword    Jump to Definition=${def}
+
 SCSS
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable-2')][contains(text(), 'primary-color')])[last()]
     Editor Shows Features for Language    SCSS    example.scss    Diagnostics=Do not use empty rulesets    Jump to Definition=${def}
