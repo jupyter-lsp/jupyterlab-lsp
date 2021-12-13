@@ -112,23 +112,15 @@ Wait For Splash
 
 Open JupyterLab
     Set Environment Variable    MOZ_HEADLESS    ${HEADLESS}
-    ${firefox} =    Get Firefox Binary
     ${geckodriver} =    Which    geckodriver
     Should Not Be Equal As Strings    ${geckodriver}    None
     ...    geckodriver not found, do you need to install firefox-geckodriver?
     ${service args} =    Create List    --log    debug
     Create WebDriver    Firefox
     ...    executable_path=${geckodriver}
-    ...    firefox_binary=${firefox}
     ...    service_log_path=${GECKODRIVER LOG}
     ...    service_args=${service args}
     Wait Until Keyword Succeeds    3x    5s    Wait For Splash
-
-Get Firefox Binary
-    [Documentation]    Get Firefox path from the environment... or hope for the best
-    ${from which} =    Which    firefox
-    ${firefox} =    Set Variable If    "%{FIREFOX_BINARY}"    %{FIREFOX_BINARY}    ${from which}
-    [Return]    ${firefox}
 
 Close JupyterLab
     Close All Browsers

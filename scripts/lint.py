@@ -65,12 +65,21 @@ ROBOCOP = sum(
 def lint():
     """get that linty fresh feeling"""
 
+    def call_with_print(args):
+        str_args = [a for a in args if isinstance(a, str)]
+        paths = [a for a in args if isinstance(a, Path)]
+        print(f"{len(paths)} paths:", " ".join(str_args))
+        return_code = call(list(map(str, args)))
+        if return_code:
+            print("\n...", f"ERROR {return_code}", *str_args, "\n")
+        return return_code
+
     return max(
         map(
-            call,
+            call_with_print,
             [
                 ["isort", *ALL_PY],
-                ["black", *ALL_PY],
+                ["black", "--quiet", *ALL_PY],
                 ["flake8", *ALL_PY],
                 *[
                     # see https://github.com/python/mypy/issues/4008
