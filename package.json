@@ -5,7 +5,7 @@
     "@typescript-eslint/parser": "^4.8.1",
     "bash-language-server": "^2.0.0",
     "dictionary-en": "^3.0.0",
-    "dockerfile-language-server-nodejs": "0.7.1",
+    "dockerfile-language-server-nodejs": "^0.7.1",
     "eslint": "^7.14.0",
     "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-import": "^2.22.1",
