@@ -1,0 +1,21 @@
+{
+  "@krassowski/jupyterlab-lsp/plugin": {
+    "language_servers": {
+      "robotframework_ls": {
+        "serverSettings": {
+          "robot.lint.robocop.enabled": true
+        }
+      },
+      "texlab": {
+        "serverSettings": {
+          "latex.lint.onChange": true
+        }
+      },
+      "pyright": {
+        "serverSettings": {
+          "python.analysis.useLibraryCodeForTypes": true
+        }
+      }
+    }
+  }
+}
