@@ -40,5 +40,4 @@ dependencies:
   - bs4
   - firefox
   - geckodriver
-  - robotframework-pabot
   - robotframework-seleniumlibrary

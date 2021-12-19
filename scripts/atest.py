@@ -1,44 +1,38 @@
 """ Run acceptance tests with robot framework
 """
 # pylint: disable=broad-except
-import json
-import multiprocessing
 import os
 import platform
 import shutil
 import sys
 import time
+from os.path import join
 from pathlib import Path
 
 import robot
-from pabot import pabot
-
-OS = platform.system()
-PY = "".join(map(str, sys.version_info[:2]))
 
 ROOT = Path(__file__).parent.parent.resolve()
 ATEST = ROOT / "atest"
 OUT = ATEST / "output"
 
-ATEST_RETRIES = json.loads(os.environ.get("ATEST_RETRIES", "0"))
-ATEST_PROCESSES = json.loads(os.environ.get("ATEST_PROCESSES", "1"))
-
-if not ATEST_PROCESSES:
-    # each test incurs a jupyter server, a browser, and a bunch of language
-    # servers and kernels, so be a bit more conservative than the default
-    # $CPU_COUNT + 1
-    ATEST_PROCESSES = max(int(multiprocessing.cpu_count() / 2), 1) + 1
+OS = platform.system()
+PY = "".join(map(str, sys.version_info[:2]))
 
 OS_PY_ARGS = {
     # notebook and ipykernel releases do not yet support python 3.8 on windows
     # ("Windows", "38"): ["--include", "not-supported", "--runemptysuite"]
+    # TODO: restore when we figure out win36 vs jedi on windows
+    ("Windows", "36"): ["--exclude", "feature:completion", "--runemptysuite"]
 }
 
 NON_CRITICAL = [
     # TODO: restore when yaml-language-server supports both config and...
     # everything else: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/245
     ["language:yaml", "feature:config"],
+    # TODO: restore when we figure out win36 vs jedi on windows
+    ["language:python", "py:36", "os:windows"],
 ]
+
 
 # because we use diagnostics as a litmus for "working", revert to behavior
 # from before https://github.com/bash-lsp/bash-language-server/pull/269
@@ -57,6 +51,24 @@ def get_stem(attempt, extra_args):
 def atest(attempt, extra_args):
     """perform a single attempt of the acceptance tests"""
 
+    # TODO: investigate whether this is still required vs geckodriver 0.28
+    if "FIREFOX_BINARY" not in os.environ:
+        os.environ["FIREFOX_BINARY"] = shutil.which("firefox")
+
+        prefix = os.environ.get("CONDA_PREFIX")
+
+        if prefix:
+            app_dir = join(prefix, "bin", "FirefoxApp")
+            os.environ["FIREFOX_BINARY"] = {
+                "Windows": join(prefix, "Library", "bin", "firefox.exe"),
+                "Linux": join(app_dir, "firefox"),
+                "Darwin": join(app_dir, "Contents", "MacOS", "firefox"),
+            }[OS]
+
+    print("Will use firefox at", os.environ["FIREFOX_BINARY"])
+
+    assert os.path.exists(os.environ["FIREFOX_BINARY"])
+
     extra_args += OS_PY_ARGS.get((OS, PY), [])
 
     stem = get_stem(attempt, extra_args)
@@ -65,7 +77,7 @@ def atest(attempt, extra_args):
         extra_args += ["--skiponfailure", "AND".join(non_critical)]
 
     if attempt != 1:
-        previous = OUT / get_stem(attempt - 1, extra_args) / "output.xml"
+        previous = OUT / f"{get_stem(attempt - 1, extra_args)}.robot.xml"
         if previous.exists():
             extra_args += ["--rerunfailed", str(previous)]
 
@@ -76,14 +88,18 @@ def atest(attempt, extra_args):
         f"{OS}{PY}",
         "--outputdir",
         out_dir,
+        "--output",
+        OUT / f"{stem}.robot.xml",
+        "--log",
+        OUT / f"{stem}.log.html",
+        "--report",
+        OUT / f"{stem}.report.html",
+        "--xunit",
+        OUT / f"{stem}.xunit.xml",
         "--variable",
         f"OS:{OS}",
         "--variable",
         f"PY:{PY}",
-        # don't ever test our examples
-        "--exclude",
-        "atest:example",
-        # random ensures there's not inter-test coupling
         "--randomize",
         "all",
         *(extra_args or []),
@@ -92,6 +108,8 @@ def atest(attempt, extra_args):
 
     print("Robot Arguments\n", " ".join(["robot"] + list(map(str, args))))
 
+    os.chdir(ATEST)
+
     if out_dir.exists():
         print("trying to clean out {}".format(out_dir))
         try:
@@ -99,22 +117,8 @@ def atest(attempt, extra_args):
         except Exception as err:
             print("Error deleting {}, hopefully harmless: {}".format(out_dir, err))
 
-    os.chdir(ATEST)
-
-    str_args = list(map(str, args))
-
     try:
-        if "--dryrun" in extra_args or ATEST_PROCESSES == 1:
-            robot.run_cli(str_args)
-        else:
-            pabot.main(
-                [
-                    *("--processes", f"{ATEST_PROCESSES}"),
-                    *("--artifacts", "png,log"),
-                    "--artifactsinsubfolders",
-                    *str_args,
-                ]
-            )
+        robot.run_cli(list(map(str, args)))
         return 0
     except SystemExit as err:
         return err.code
@@ -125,7 +129,7 @@ def attempt_atest_with_retries(*extra_args):
     attempt = 0
     error_count = -1
 
-    retries = ATEST_RETRIES
+    retries = int(os.environ.get("ATEST_RETRIES") or "0")
 
     while error_count != 0 and attempt <= retries:
         attempt += 1
