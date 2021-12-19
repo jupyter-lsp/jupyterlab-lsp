@@ -1,5 +1,12 @@
 ## Changelog
 
+### `@krassowski/jupyterlab-lsp 3.9.3` (2021-12-19)
+
+- bug fixes:
+  - workaround upstream issue in merging translation ([#726], thanks @fcollonval)
+
+[#726]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/726
+
 ### `@krassowski/jupyterlab-lsp 3.9.2` (2021-12-12)
 
 - bug fixes:
