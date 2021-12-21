@@ -37,6 +37,7 @@ https://jupyterlab.readthedocs.io/en/latest/getting_started/issue.html
 - Operating System and version:
 - Browser and version:
 - JupyterLab version:
+- Language server and version:
 
 <details><summary>Required: installed server extensions</summary>
 <pre>
@@ -53,7 +54,7 @@ You may want to sanitize the paths in the output.
 </pre>
 </details>
 
-<!--The more content you provide, the more we can help!-->
+<!--The more content you provide, the more we can help! Please fill in the below:-->
 
 <details><summary>Troubleshoot Output</summary>
 <pre>
