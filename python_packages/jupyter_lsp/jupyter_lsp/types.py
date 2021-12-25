@@ -257,6 +257,9 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
         # ... but right in %PREFIX% on nt
         roots += [pathlib.Path(sys.prefix)]
 
+        # check ~/.local/lib for user-wide installations
+        roots += [pathlib.Path.home() / ".local" / "lib"]
+
         return roots
 
 
