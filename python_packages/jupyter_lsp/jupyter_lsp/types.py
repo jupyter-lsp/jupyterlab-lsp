@@ -6,6 +6,7 @@ import json
 import pathlib
 import re
 import shutil
+import subprocess
 import sys
 from typing import (
     TYPE_CHECKING,
@@ -257,8 +258,12 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
         # ... but right in %PREFIX% on nt
         roots += [pathlib.Path(sys.prefix)]
 
-        # check ~/.local/lib for user-wide installations
-        roots += [pathlib.Path.home() / ".local" / "lib"]
+        # check for custom npm prefix
+        if shutil.which("npm"):
+            prefix = subprocess.run(
+                ["npm", "prefix", "-g"], check=True, capture_output=True
+            ).stdout.decode("utf-8")
+            roots += [pathlib.Path(prefix) / "lib"]
 
         return roots
 
