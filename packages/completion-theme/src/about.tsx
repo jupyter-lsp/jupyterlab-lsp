@@ -69,7 +69,7 @@ export function render_themes_list(
   trans: TranslationBundle,
   props: {
     themes: ICompletionTheme[];
-    current: ICompletionTheme;
+    current: ICompletionTheme | null;
     get_set: IconSetGetter;
   }
 ): React.ReactElement {

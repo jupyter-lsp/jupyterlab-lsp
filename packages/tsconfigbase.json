@@ -16,6 +16,7 @@
     "sourceMap": true,
     "target": "es2017",
     "skipLibCheck": true,
+    "strictNullChecks": true,
     "types": []
   }
 }

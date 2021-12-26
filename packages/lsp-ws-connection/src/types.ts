@@ -22,6 +22,7 @@ export type AnyLocation =
   | lsProtocol.Location
   | lsProtocol.Location[]
   | lsProtocol.LocationLink[]
+  | undefined
   | null;
 
 export type AnyCompletion =
