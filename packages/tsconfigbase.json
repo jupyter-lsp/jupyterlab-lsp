@@ -18,6 +18,7 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "noImplicitThis": true,
+    "strictBindCallApply": true,
     "types": []
   }
 }
