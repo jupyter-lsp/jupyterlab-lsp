@@ -6,8 +6,11 @@ Test Setup        Setup Notebook    Python    Signature.ipynb
 Test Teardown     Clean Up After Working With File    Signature.ipynb
 
 *** Variables ***
+${SIGNATURE PLUGIN ID}    @krassowski/jupyterlab-lsp:signature
 ${SIGNATURE_BOX}    css:.lsp-signature-help
 ${SIGNATURE_HIGHLIGHTED_ARG}    css:.lsp-signature-help mark
+${SIGNATURE_DETAILS_CSS}    .lsp-signature-help details
+${SIGNATURE_DETAILS}    css:${SIGNATURE_DETAILS_CSS}
 
 *** Test Cases ***
 Triggers Signature Help After A Keystroke
@@ -51,3 +54,27 @@ Invalidates On Cell Change
     Wait Until Keyword Succeeds    20x    0.5s    Page Should Contain Element    ${SIGNATURE_BOX}
     Enter Cell Editor    2
     Wait Until Keyword Succeeds    20x    0.5s    Page Should Not Contain Element    ${SIGNATURE_BOX}
+
+Details Should Expand On Click
+    Configure JupyterLab Plugin    {"maxLines": 4}    plugin id=${SIGNATURE PLUGIN ID}
+    Enter Cell Editor    3    line=11
+    Press Keys    None    (
+    Wait Until Keyword Succeeds    20x    0.5s    Page Should Contain Element    ${SIGNATURE_BOX}
+    Wait Until Keyword Succeeds    10x    0.5s    Element Should Contain    ${SIGNATURE_BOX}    Short description.
+    Page Should Contain Element    ${SIGNATURE_DETAILS}
+    Details Should Be Collapsed     ${SIGNATURE_DETAILS_CSS}
+    Click Element    ${SIGNATURE_DETAILS}
+    Details Should Be Expanded    ${SIGNATURE_DETAILS_CSS}
+
+*** Keywords ***
+
+Details Should Be Expanded
+    [Arguments]    ${css_locator}
+    ${is_open}    Execute JavaScript    return document.querySelector('${css_locator}').open
+    Should Be True    ${is_open} == True
+
+
+Details Should Be Collapsed
+    [Arguments]    ${css_locator}
+    ${is_open}    Execute JavaScript    return document.querySelector('${css_locator}').open
+    Should Be True    ${is_open} == False
