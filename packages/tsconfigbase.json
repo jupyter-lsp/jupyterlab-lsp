@@ -19,6 +19,8 @@
     "strictNullChecks": true,
     "noImplicitThis": true,
     "strictBindCallApply": true,
+    "allowUnusedLabels": false,
+    "noFallthroughCasesInSwitch": true,
     "types": []
   }
 }
