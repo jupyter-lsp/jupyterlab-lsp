@@ -88,7 +88,7 @@ export class LspWsConnection
                   this.serverCapabilities = registerServerCapability(
                     this.serverCapabilities,
                     capabilityRegistration
-                  );
+                  )!;
                 } catch (err) {
                   console.error(err);
                 }

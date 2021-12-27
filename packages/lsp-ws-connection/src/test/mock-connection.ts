@@ -14,12 +14,13 @@ export class MockConnection implements ILspConnection {
   /**
    * Sends a synthetic event to the client code, for example to imitate a server response
    */
-  public dispatchEvent = (event: MessageEvent) => {
+  public dispatchEvent = (event: MessageEvent): boolean => {
     const listeners = this.listeners[event.type];
     if (!listeners) {
       return false;
     }
     listeners.forEach(listener => listener.call(null, event.data));
+    return true;
   };
 
   public sendInitialize = sinon.stub();

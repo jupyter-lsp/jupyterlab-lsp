@@ -69,12 +69,16 @@ export abstract class CodeJumper {
     let document_widget = this.document_manager.openOrReveal(
       position.contents_path
     );
+    if (!document_widget) {
+      console.log('Widget failed to open for jump');
+      return;
+    }
     let is_symlink = position.is_symlink;
 
     document_widget.revealed
       .then(() => {
         this.go_to_position(
-          document_widget,
+          document_widget!,
           position.contents_path.endsWith('.ipynb') ? 'notebook' : 'fileeditor',
           position.column,
           position.line,
@@ -83,7 +87,7 @@ export abstract class CodeJumper {
 
         // protect external files from accidental edition
         if (is_symlink) {
-          this.protectFromAccidentalEditing(document_widget);
+          this.protectFromAccidentalEditing(document_widget!);
         }
       })
       .catch(console.warn);

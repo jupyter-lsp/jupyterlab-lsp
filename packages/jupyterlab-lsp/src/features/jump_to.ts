@@ -62,13 +62,20 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
     this.editor_handlers.set(
       'mousedown',
       (virtual_editor, event: MouseEvent) => {
-        let root_position = this.position_from_mouse(event);
-        let document = virtual_editor.document_at_root_position(root_position);
-        let virtual_position =
-          virtual_editor.root_position_to_virtual_position(root_position);
-
         const { button } = event;
         if (button === 0 && getModifierState(event, this.modifierKey)) {
+          let root_position = this.position_from_mouse(event);
+          if (root_position == null) {
+            this.console.warn(
+              'Could not retrieve root position from mouse event to jump to definition'
+            );
+            return;
+          }
+          let document =
+            virtual_editor.document_at_root_position(root_position);
+          let virtual_position =
+            virtual_editor.root_position_to_virtual_position(root_position);
+
           this.connection
             .getDefinition(virtual_position, document.document_info, false)
             .then(targets => {
@@ -87,7 +94,7 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
 
   get_uri_and_range(location_or_locations: AnyLocation) {
     if (location_or_locations == null) {
-      return;
+      return undefined;
     }
     // some language servers appear to return a single object
     const locations = Array.isArray(location_or_locations)
@@ -98,7 +105,7 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
     //  (like when there are multiple definitions or usages)
     //  could use the showHints() or completion frontend as a reference
     if (locations.length === 0) {
-      return;
+      return undefined;
     }
 
     this.console.log(
@@ -118,6 +125,12 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
         uri: location_or_link.uri,
         range: location_or_link.range
       };
+    } else {
+      this.console.warn(
+        'Returned jump location is incorrect (no uri or targetUri):',
+        location_or_link
+      );
+      return undefined;
     }
   }
 
@@ -140,6 +153,13 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
       // if in current file, transform from the position within virtual document to the editor position:
       let editor_position =
         this.virtual_editor.transform_virtual_to_editor(virtual_position);
+      if (editor_position === null) {
+        this.console.warn(
+          'Could not jump: conversion from virtual position to editor position failed',
+          virtual_position
+        );
+        return;
+      }
       let editor_position_ce = PositionConverter.cm_to_ce(editor_position);
       this.console.log(`Jumping to ${editor_index}th editor of ${uri}`);
       this.console.log('Jump target within editor:', editor_position_ce);
@@ -174,6 +194,11 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
 
       if (contents_path == null && uri.startsWith('file://')) {
         contents_path = decodeURI(uri.slice(7));
+      }
+
+      if (contents_path === null) {
+        this.console.warn('contents_path could not be resolved');
+        return;
       }
 
       try {
@@ -238,7 +263,7 @@ class JumperLabIntegration implements IFeatureLabIntegration {
 
   get jumper(): CodeJumper {
     let current = this.adapterManager.currentAdapter.widget.id;
-    return this.jumpers.get(current);
+    return this.jumpers.get(current)!;
   }
 }
 
@@ -247,14 +272,15 @@ const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
     id: 'jump-to-definition',
     execute: async ({ connection, virtual_position, document, features }) => {
       const jump_feature = features.get(FEATURE_ID) as CMJumpToDefinition;
-      const targets = await connection.getDefinition(
+      const targets = await connection?.getDefinition(
         virtual_position,
         document.document_info,
         false
       );
       await jump_feature.handle_jump(targets, document.document_info.uri);
     },
-    is_enabled: ({ connection }) => connection.isDefinitionSupported(),
+    is_enabled: ({ connection }) =>
+      connection ? connection.isDefinitionSupported() : false,
     label: trans.__('Jump to definition'),
     icon: jumpToIcon
   },
@@ -264,7 +290,8 @@ const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
       const jump_feature = features.get(FEATURE_ID) as CMJumpToDefinition;
       jump_feature.jumper.global_jump_back();
     },
-    is_enabled: ({ connection }) => connection.isDefinitionSupported(),
+    is_enabled: ({ connection }) =>
+      connection ? connection.isDefinitionSupported() : false,
     label: trans.__('Jump back'),
     icon: jumpBackIcon,
     // do not attach to any of the context menus

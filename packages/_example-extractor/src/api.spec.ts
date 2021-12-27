@@ -37,7 +37,7 @@ describe('The foo extractor', () => {
   test.each(Object.entries(FIXTURES))(
     '%s',
     (_: string, expected: IExtractedCode) => {
-      const extracted = extractor.extract_foreign_code(expected.host_code);
+      const extracted = extractor.extract_foreign_code(expected.host_code!);
       expect(extracted).to.have.length(1);
       expect(extracted[0]).to.deep.equal(expected);
     }
