@@ -12,13 +12,12 @@ ${KERNEL_BUSY_INDICATOR}    css:.jp-NotebookPanel-toolbar div[title="Kernel Busy
 
 *** Test Cases ***
 Works When Kernel Is Idle
-    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
-    [Documentation]    The suggestions from kernel and LSP should get integrated.
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false, "caseSensitive": false}    plugin id=${COMPLETION PLUGIN ID}
+    [Documentation]    The suggestions from kernel and LSP should get integrated; operates in case insensitive mode
     Enter Cell Editor    1    line=2
     Capture Page Screenshot    01-entered-cell.png
     Trigger Completer
     Capture Page Screenshot    02-completions-shown.png
-    # lowercase and uppercase suggestions:
     Completer Should Suggest    TabError
     # this comes from LSP:
     Completer Should Suggest    test
@@ -28,6 +27,15 @@ Works When Kernel Is Idle
     Capture Page Screenshot    03-completion-confirmed.png
     ${content} =    Get Cell Editor Content    1
     Should Contain    ${content}    TabError
+
+Filters Completions In Case Sensitive Mode
+    Configure JupyterLab Plugin    {"caseSensitive": true}    plugin id=${COMPLETION PLUGIN ID}
+    [Documentation]    Completions filtering is case-sensitive when caseSensitive is true
+    Enter Cell Editor    1    line=2
+    Trigger Completer
+    Completer Should Suggest    test
+    Completer Should Not Suggest    TabError
+
 
 Can Prioritize Kernel Completions
     Configure JupyterLab Plugin    {"kernelCompletionsFirst": true, "kernelResponseTimeout": -1}    plugin id=${COMPLETION PLUGIN ID}
@@ -212,7 +220,7 @@ Triggers Completer On Dot
     Completer Should Suggest    append
 
 Material Theme Works
-    Configure JupyterLab Plugin    {"theme": "material"}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"theme": "material", "caseSensitive": false}    plugin id=${COMPLETION PLUGIN ID}
     Capture Page Screenshot    01-configured.png
     Enter Cell Editor    1    line=2
     Trigger Completer
@@ -223,7 +231,7 @@ Material Theme Works
     Completer Should Include Icon    lsp:material-class-light
 
 VSCode Theme Works
-    Configure JupyterLab Plugin    {"theme": "vscode"}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"theme": "vscode", "caseSensitive": false}    plugin id=${COMPLETION PLUGIN ID}
     Capture Page Screenshot    01-configured.png
     Enter Cell Editor    1    line=2
     Trigger Completer
@@ -236,7 +244,7 @@ VSCode Dark Theme Works
     Lab Command    Use Theme: JupyterLab Dark
     Wait For Splash
     Capture Page Screenshot    00-theme-changed.png
-    Configure JupyterLab Plugin    {"theme": "vscode"}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"theme": "vscode", "caseSensitive": false}    plugin id=${COMPLETION PLUGIN ID}
     Capture Page Screenshot    01-configured.png
     Open ${file} in ${MENU NOTEBOOK}
     Wait Until Fully Initialized
@@ -249,7 +257,7 @@ VSCode Dark Theme Works
     Wait For Splash
 
 Works Without A Theme
-    Configure JupyterLab Plugin    {"theme": null}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"theme": null, "caseSensitive": false}    plugin id=${COMPLETION PLUGIN ID}
     Capture Page Screenshot    01-configured.png
     Enter Cell Editor    1    line=2
     Trigger Completer
@@ -258,7 +266,7 @@ Works Without A Theme
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
 
 Works With Incorrect Theme
-    Configure JupyterLab Plugin    {"theme": "a-non-existing-theme"}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"theme": "a-non-existing-theme", "caseSensitive": false}    plugin id=${COMPLETION PLUGIN ID}
     Capture Page Screenshot    01-configured.png
     Enter Cell Editor    1    line=2
     Trigger Completer
