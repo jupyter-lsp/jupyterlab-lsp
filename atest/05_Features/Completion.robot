@@ -38,7 +38,8 @@ Filters Completions In Case Sensitive Mode
 
 
 Can Prioritize Kernel Completions
-    Configure JupyterLab Plugin    {"kernelCompletionsFirst": true, "kernelResponseTimeout": -1}    plugin id=${COMPLETION PLUGIN ID}
+    # note: disabling pre-filtering to get ranking without match scoring
+    Configure JupyterLab Plugin    {"kernelCompletionsFirst": true, "kernelResponseTimeout": -1, "preFilterMatches": false}    plugin id=${COMPLETION PLUGIN ID}
     Enter Cell Editor    1    line=2
     Trigger Completer
     Completer Should Suggest    %%timeit
@@ -47,7 +48,8 @@ Can Prioritize Kernel Completions
     Should Be True    ${kernel_position} < ${lsp_position}
 
 Can Prioritize LSP Completions
-    Configure JupyterLab Plugin    {"kernelCompletionsFirst": false, "kernelResponseTimeout": -1}    plugin id=${COMPLETION PLUGIN ID}
+    # note: disabling pre-filtering to get ranking without match scoring
+    Configure JupyterLab Plugin    {"kernelCompletionsFirst": false, "kernelResponseTimeout": -1, "preFilterMatches": false}    plugin id=${COMPLETION PLUGIN ID}
     Enter Cell Editor    1    line=2
     Trigger Completer
     Completer Should Suggest    %%timeit
