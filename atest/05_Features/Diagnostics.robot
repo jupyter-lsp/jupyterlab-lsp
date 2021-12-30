@@ -9,5 +9,5 @@ Resource          ../Keywords.robot
 
 *** Test Cases ***
 Diagnostics with deprecated tag have strike-through decoration
-    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="Use new_func instead"]    timeout=25s
+    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="is deprecated"]    timeout=25s
     Page Should Contain Element    css:.cm-lsp-diagnostic-tag-Deprecated

@@ -37,5 +37,3 @@ dependencies:
   - robotframework >=4
   - robotframework-seleniumlibrary
   - python-lsp-server
-  - pip:
-      - git+https://github.com/krassowski/pyls-memestra.git@add-deprecated-tag
