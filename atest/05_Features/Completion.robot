@@ -170,6 +170,7 @@ Does Not Autocomplete If Multiple Options
     Completer Should Suggest    copy
 
 User Can Select Lowercase After Starting Uppercase
+    Configure JupyterLab Plugin    {"caseSensitive": false}    plugin id=${COMPLETION PLUGIN ID}
     # `from time import Tim<tab>` → `from time import time`
     Enter Cell Editor    5    line=1
     Trigger Completer
