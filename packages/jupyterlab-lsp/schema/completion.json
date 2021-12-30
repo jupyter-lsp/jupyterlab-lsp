@@ -76,6 +76,12 @@
       "type": "boolean",
       "description": "Should perfect matches be included in the completion suggestions list?"
     },
+    "preFilterMatches": {
+      "title": "Pre-filter matches",
+      "default": true,
+      "type": "boolean",
+      "description": "Should matches be pre-filtered to ensure typed token is a prefix of the match?"
+    },
     "labelExtra": {
       "title": "Text to display next to completion label",
       "default": "auto",
