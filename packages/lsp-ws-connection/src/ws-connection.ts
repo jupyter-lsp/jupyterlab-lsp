@@ -1,7 +1,7 @@
 import * as events from 'events';
 
 import type * as protocol from 'vscode-languageserver-protocol';
-import { CompletionItemTag, LocationLink } from 'vscode-languageserver-types';
+import type { LocationLink } from 'vscode-languageserver-types';
 import { ConsoleLogger, MessageConnection, listen } from 'vscode-ws-jsonrpc';
 
 import {
@@ -145,66 +145,11 @@ export class LspWsConnection
 
   /**
    * Initialization parameters to be sent to the language server.
-   * Subclasses can overload this when adding more features.
+   * Subclasses should override this when adding more features.
    */
   protected initializeParams(): protocol.InitializeParams {
     return {
-      capabilities: {
-        textDocument: {
-          hover: {
-            dynamicRegistration: true,
-            contentFormat: ['markdown', 'plaintext']
-          },
-          synchronization: {
-            dynamicRegistration: true,
-            willSave: false,
-            didSave: true,
-            willSaveWaitUntil: false
-          },
-          completion: {
-            dynamicRegistration: true,
-            completionItem: {
-              snippetSupport: false,
-              commitCharactersSupport: true,
-              documentationFormat: ['markdown', 'plaintext'],
-              deprecatedSupport: true,
-              preselectSupport: false,
-              tagSupport: {
-                valueSet: [CompletionItemTag.Deprecated]
-              }
-            },
-            contextSupport: false
-          },
-          signatureHelp: {
-            dynamicRegistration: true,
-            signatureInformation: {
-              documentationFormat: ['markdown', 'plaintext']
-            }
-          },
-          declaration: {
-            dynamicRegistration: true,
-            linkSupport: true
-          },
-          definition: {
-            dynamicRegistration: true,
-            linkSupport: true
-          },
-          typeDefinition: {
-            dynamicRegistration: true,
-            linkSupport: true
-          },
-          implementation: {
-            dynamicRegistration: true,
-            linkSupport: true
-          }
-        } as protocol.ClientCapabilities,
-        workspace: {
-          didChangeConfiguration: {
-            dynamicRegistration: true
-          }
-        } as protocol.WorkspaceClientCapabilities
-      } as protocol.ClientCapabilities,
-      initializationOptions: null,
+      capabilities: {} as protocol.ClientCapabilities,
       processId: null,
       rootUri: this.rootUri,
       workspaceFolders: null
