@@ -9,6 +9,21 @@
   text-decoration-skip-ink: none;
 }
 
+.cm-lsp-diagnostic-tag-Unused {
+  /*
+   * LSP: "Clients are allowed to render diagnostics with this tag faded out instead of having an error squiggle."
+   */
+  opacity: 0.85;
+  text-decoration: none !important;
+}
+
+.cm-lsp-diagnostic-tag-Deprecated {
+  /*
+   * LSP: "Clients are allowed to rendered diagnostics with this tag strike through."
+   */
+  text-decoration: line-through !important;
+}
+
 .cm-lsp-diagnostic-Error {
   /*
     "wavy" would be ideal, but there seems to be a bug in Chrome which makes it
