@@ -1,5 +1,25 @@
 ## Changelog
 
+### `@krassowski/jupyterlab-lsp 3.10.0` (2021-12-31)
+
+- features:
+  - enable pre-filtering of completion matches by default ([#735])
+  - add support for diagnostic tags: Deprecated, Unnecessary ([#736], [#737])
+- bug fixes:
+  - squash warnings and errors in web console ([#732])
+  - fix signature blur and fix formatting when no arguments are present ([#734])
+- maintenance:
+  - enable strict null checks and other strict settings ([#733])
+  - specify client capabilities in features instead of hard-coding them ([#738])
+
+[#732]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/732
+[#733]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/733
+[#734]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/734
+[#735]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/735
+[#736]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/736
+[#737]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/737
+[#738]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/738
+
 ### `@krassowski/jupyterlab-lsp 3.9.3` (2021-12-19)
 
 - bug fixes:
