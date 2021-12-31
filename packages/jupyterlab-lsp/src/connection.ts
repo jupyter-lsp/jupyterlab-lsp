@@ -186,8 +186,7 @@ export type ServerRequests<
 
 class ClientRequestHandler<
   T extends keyof IClientRequestParams = keyof IClientRequestParams
-> implements IClientRequestHandler
-{
+> implements IClientRequestHandler {
   constructor(
     protected connection: MessageConnection,
     protected method: T,
@@ -213,8 +212,7 @@ class ClientRequestHandler<
 
 class ServerRequestHandler<
   T extends keyof IServerRequestParams = keyof IServerRequestParams
-> implements IServerRequestHandler
-{
+> implements IServerRequestHandler {
   private _handler:
     | ((
         params: IServerRequestParams[T],
@@ -364,7 +362,7 @@ export class LSPConnection extends LspWsConnection {
     return createMethodMap<T, IClientRequestHandler>(
       methods,
       method =>
-        new ClientRequestHandler(this.connection, method as U as any, this)
+        new ClientRequestHandler(this.connection, (method as U) as any, this)
     );
   }
 
@@ -375,7 +373,7 @@ export class LSPConnection extends LspWsConnection {
     return createMethodMap<T, IServerRequestHandler>(
       methods,
       method =>
-        new ServerRequestHandler(this.connection, method as U as any, this)
+        new ServerRequestHandler(this.connection, (method as U) as any, this)
     );
   }
 
@@ -386,14 +384,12 @@ export class LSPConnection extends LspWsConnection {
     this.serverIdentifier = options.serverIdentifier;
     this.console = options.console.scope(this.serverIdentifier + ' connection');
     this.documentsToOpen = [];
-    this.clientNotifications =
-      this.constructNotificationHandlers<ClientNotifications>(
-        Method.ClientNotification
-      );
-    this.serverNotifications =
-      this.constructNotificationHandlers<ServerNotifications>(
-        Method.ServerNotification
-      );
+    this.clientNotifications = this.constructNotificationHandlers<
+      ClientNotifications
+    >(Method.ClientNotification);
+    this.serverNotifications = this.constructNotificationHandlers<
+      ServerNotifications
+    >(Method.ServerNotification);
   }
 
   /**

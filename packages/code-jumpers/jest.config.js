@@ -9,7 +9,6 @@ const reuseFromUpstream = [
   'setupFilesAfterEnv'
 ];
 
-
 const esModules = [
   '@jupyterlab/',
   'lib0',
@@ -17,7 +16,6 @@ const esModules = [
   'y\\-websocket',
   'yjs'
 ].join('|');
-
 
 let local = {
   globals: { 'ts-jest': { tsconfig: 'tsconfig.json' } },

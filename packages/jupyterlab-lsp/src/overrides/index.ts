@@ -33,13 +33,12 @@ class CodeOverridesManager implements ILSPCodeOverridesManager {
   }
 }
 
-export const CODE_OVERRIDES_MANAGER: JupyterFrontEndPlugin<ILSPCodeOverridesManager> =
-  {
-    id: ILSPCodeOverridesManager.name,
-    requires: [],
-    activate: app => {
-      return new CodeOverridesManager();
-    },
-    provides: ILSPCodeOverridesManager,
-    autoStart: true
-  };
+export const CODE_OVERRIDES_MANAGER: JupyterFrontEndPlugin<ILSPCodeOverridesManager> = {
+  id: ILSPCodeOverridesManager.name,
+  requires: [],
+  activate: app => {
+    return new CodeOverridesManager();
+  },
+  provides: ILSPCodeOverridesManager,
+  autoStart: true
+};

@@ -17,8 +17,7 @@ export interface ICompletionData {
 
 export class LSPCompletionRenderer
   extends Completer.Renderer
-  implements Completer.IRenderer
-{
+  implements Completer.IRenderer {
   // signals
   public activeChanged: Signal<LSPCompletionRenderer, ICompletionData>;
   public itemShown: Signal<LSPCompletionRenderer, ICompletionData>;

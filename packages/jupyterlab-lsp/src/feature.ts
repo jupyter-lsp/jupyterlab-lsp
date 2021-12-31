@@ -92,7 +92,7 @@ export class FeatureSettings<T> implements IFeatureSettings<T> {
   }
 
   get composite(): Required<T> {
-    return this.settings.composite as unknown as Required<T>;
+    return (this.settings.composite as unknown) as Required<T>;
   }
 
   set(setting: keyof T, value: any) {

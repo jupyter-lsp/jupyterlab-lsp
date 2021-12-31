@@ -71,10 +71,12 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
             );
             return;
           }
-          let document =
-            virtual_editor.document_at_root_position(root_position);
-          let virtual_position =
-            virtual_editor.root_position_to_virtual_position(root_position);
+          let document = virtual_editor.document_at_root_position(
+            root_position
+          );
+          let virtual_position = virtual_editor.root_position_to_virtual_position(
+            root_position
+          );
 
           this.connection
             .getDefinition(virtual_position, document.document_info, false)
@@ -151,8 +153,9 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
     if (uris_equal(uri, document_uri)) {
       let editor_index = this.adapter.get_editor_index_at(virtual_position);
       // if in current file, transform from the position within virtual document to the editor position:
-      let editor_position =
-        this.virtual_editor.transform_virtual_to_editor(virtual_position);
+      let editor_position = this.virtual_editor.transform_virtual_to_editor(
+        virtual_position
+      );
       if (editor_position === null) {
         this.console.warn(
           'Could not jump: conversion from virtual position to editor position failed',
