@@ -62,17 +62,15 @@ Details Should Expand On Click
     Wait Until Keyword Succeeds    20x    0.5s    Page Should Contain Element    ${SIGNATURE_BOX}
     Wait Until Keyword Succeeds    10x    0.5s    Element Should Contain    ${SIGNATURE_BOX}    Short description.
     Page Should Contain Element    ${SIGNATURE_DETAILS}
-    Details Should Be Collapsed     ${SIGNATURE_DETAILS_CSS}
+    Details Should Be Collapsed    ${SIGNATURE_DETAILS_CSS}
     Click Element    ${SIGNATURE_DETAILS}
     Details Should Be Expanded    ${SIGNATURE_DETAILS_CSS}
 
 *** Keywords ***
-
 Details Should Be Expanded
     [Arguments]    ${css_locator}
     ${is_open}    Execute JavaScript    return document.querySelector('${css_locator}').open
     Should Be True    ${is_open} == True
-
 
 Details Should Be Collapsed
     [Arguments]    ${css_locator}
