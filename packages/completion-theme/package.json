@@ -1,6 +1,6 @@
 {
   "name": "@krassowski/completion-theme",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "Completion theme manager for JupyterLab-LSP",
   "keywords": [
     "jupyter",
