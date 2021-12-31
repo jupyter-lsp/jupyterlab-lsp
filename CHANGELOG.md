@@ -26,6 +26,11 @@
 [#737]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/737
 [#738]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/738
 
+### `@krassowski/code-jumpers 1.2.0` (2021-12-31)
+
+- maintenance:
+  - updates to API with respect to `null`/`undefined` values in course strict null checks activation ([#733])
+
 ### `@krassowski/jupyterlab-lsp 3.9.3` (2021-12-19)
 
 - bug fixes:
