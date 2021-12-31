@@ -40,7 +40,8 @@ export class CompletionCM extends CodeMirrorIntegration {
       this._completionCharacters == null ||
       !this._completionCharacters.length
     ) {
-      this._completionCharacters = this.connection.getLanguageCompletionCharacters();
+      this._completionCharacters =
+        this.connection.getLanguageCompletionCharacters();
     }
     return this._completionCharacters;
   }
@@ -97,9 +98,8 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     private console: ILSPLogConsole,
     private renderMimeRegistry: IRenderMimeRegistry
   ) {
-    const markdown_renderer = this.renderMimeRegistry.createRenderer(
-      'text/markdown'
-    );
+    const markdown_renderer =
+      this.renderMimeRegistry.createRenderer('text/markdown');
     this.renderer = new LSPCompletionRenderer({
       integrator: this,
       markdownRenderer: markdown_renderer,
@@ -122,12 +122,16 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
         this.settings.composite.typesMap
       );
       if (!settings.composite.disable) {
-        document.body.dataset.lspCompleterLayout = this.settings.composite.layout;
+        document.body.dataset.lspCompleterLayout =
+          this.settings.composite.layout;
       }
       if (this.current_completion_handler) {
-        this.model.settings.caseSensitive = this.settings.composite.caseSensitive;
-        this.model.settings.includePerfectMatches = this.settings.composite.includePerfectMatches;
-        this.model.settings.preFilterMatches = this.settings.composite.preFilterMatches;
+        this.model.settings.caseSensitive =
+          this.settings.composite.caseSensitive;
+        this.model.settings.includePerfectMatches =
+          this.settings.composite.includePerfectMatches;
+        this.model.settings.preFilterMatches =
+          this.settings.composite.preFilterMatches;
       }
     });
   }
@@ -325,7 +329,8 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     this.current_completion_handler.editor = editor_changed.editor;
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    this.current_completion_handler.connector = this.current_completion_connector;
+    this.current_completion_handler.connector =
+      this.current_completion_connector;
   }
 
   private get current_items() {
@@ -346,9 +351,8 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
   refresh_doc_panel(item: LazyCompletionItem) {
     let completer = this.current_completion_handler.completer;
 
-    const active: CompletionHandler.ICompletionItem = this.current_items[
-      this.current_index
-    ];
+    const active: CompletionHandler.ICompletionItem =
+      this.current_items[this.current_index];
 
     if (!item || !active || active.insertText != item.insertText) {
       return;

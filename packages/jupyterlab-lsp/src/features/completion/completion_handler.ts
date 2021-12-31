@@ -57,7 +57,8 @@ export interface ICompletionsReply
  * A LSP connector for completion handlers.
  */
 export class LSPConnector
-  implements CompletionHandler.ICompletionItemsConnector {
+  implements CompletionHandler.ICompletionItemsConnector
+{
   isDisposed = false;
   private _editor: CodeEditor.IEditor;
   private _connections: Map<VirtualDocument.uri, LSPConnection>;
@@ -226,15 +227,12 @@ export class LSPConnector
     // find document for position
     let document = virtual_editor.document_at_root_position(start_in_root);
 
-    let virtual_start = virtual_editor.root_position_to_virtual_position(
-      start_in_root
-    );
-    let virtual_end = virtual_editor.root_position_to_virtual_position(
-      end_in_root
-    );
-    let virtual_cursor = virtual_editor.root_position_to_virtual_position(
-      cursor_in_root
-    );
+    let virtual_start =
+      virtual_editor.root_position_to_virtual_position(start_in_root);
+    let virtual_end =
+      virtual_editor.root_position_to_virtual_position(end_in_root);
+    let virtual_cursor =
+      virtual_editor.root_position_to_virtual_position(cursor_in_root);
     const lsp_promise: Promise<
       CompletionHandler.ICompletionItemsReply | undefined
     > = this.use_lsp_completions

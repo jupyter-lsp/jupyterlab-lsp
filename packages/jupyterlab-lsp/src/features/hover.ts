@@ -340,9 +340,8 @@ export class HoverCM extends CodeMirrorIntegration {
     if (show_tooltip) {
       this.lab_integration.tooltip.remove();
       const markup = HoverCM.get_markup_for_hover(response);
-      let editor_position = this.virtual_editor.root_position_to_editor(
-        root_position
-      );
+      let editor_position =
+        this.virtual_editor.root_position_to_editor(root_position);
 
       this.tooltip = this.lab_integration.tooltip.create({
         markup,
@@ -420,9 +419,8 @@ export class HoverCM extends CodeMirrorIntegration {
       !this.last_hover_character ||
       !is_equal(root_position, this.last_hover_character)
     ) {
-      let virtual_position = this.virtual_editor.root_position_to_virtual_position(
-        root_position
-      );
+      let virtual_position =
+        this.virtual_editor.root_position_to_virtual_position(root_position);
       this.virtual_position = virtual_position;
       this.last_hover_character = root_position;
 
@@ -448,12 +446,10 @@ export class HoverCM extends CodeMirrorIntegration {
           this._previousHoverRequest = null;
         }
         if (response && this.is_useful_response(response)) {
-          let ce_editor = this.virtual_editor.get_editor_at_root_position(
-            root_position
-          );
-          let cm_editor = this.virtual_editor.ce_editor_to_cm_editor.get(
-            ce_editor
-          )!;
+          let ce_editor =
+            this.virtual_editor.get_editor_at_root_position(root_position);
+          let cm_editor =
+            this.virtual_editor.ce_editor_to_cm_editor.get(ce_editor)!;
 
           let editor_range = this.get_editor_range(
             response,

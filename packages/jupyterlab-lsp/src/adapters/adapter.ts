@@ -708,9 +708,8 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     }
 
     for (let feature of features) {
-      let featureEditorIntegrationConstructor = feature.editorIntegrationFactory.get(
-        this.virtual_editor.editor_name
-      )!;
+      let featureEditorIntegrationConstructor =
+        feature.editorIntegrationFactory.get(this.virtual_editor.editor_name)!;
       let integration = new featureEditorIntegrationConstructor({
         feature: feature,
         virtual_editor: this.virtual_editor,
@@ -786,9 +785,8 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
       return null;
     }
     let document = this.virtual_editor.document_at_root_position(root_position);
-    let virtual_position = this.virtual_editor.root_position_to_virtual_position(
-      root_position
-    );
+    let virtual_position =
+      this.virtual_editor.root_position_to_virtual_position(root_position);
     return {
       document,
       connection: this.connection_manager.connections.get(document.uri),

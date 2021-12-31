@@ -173,30 +173,31 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
 
 const LSP_CATEGORY = 'Language server protocol';
 
-export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionThemeManager> = {
-  id: PLUGIN_ID,
-  requires: [IThemeManager, ICommandPalette, ITranslator],
-  activate: (
-    app,
-    themeManager: IThemeManager,
-    commandPalette: ICommandPalette,
-    translator: ITranslator
-  ) => {
-    const trans = translator.load('jupyterlab_lsp');
-    let manager = new CompletionThemeManager(themeManager, trans);
-    const command_id = 'lsp:completer-about-themes';
-    app.commands.addCommand(command_id, {
-      label: trans.__('Display the completer themes'),
-      execute: () => {
-        manager.display_themes();
-      }
-    });
-    commandPalette.addItem({
-      category: LSP_CATEGORY,
-      command: command_id
-    });
-    return manager;
-  },
-  provides: ILSPCompletionThemeManager,
-  autoStart: true
-};
+export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionThemeManager> =
+  {
+    id: PLUGIN_ID,
+    requires: [IThemeManager, ICommandPalette, ITranslator],
+    activate: (
+      app,
+      themeManager: IThemeManager,
+      commandPalette: ICommandPalette,
+      translator: ITranslator
+    ) => {
+      const trans = translator.load('jupyterlab_lsp');
+      let manager = new CompletionThemeManager(themeManager, trans);
+      const command_id = 'lsp:completer-about-themes';
+      app.commands.addCommand(command_id, {
+        label: trans.__('Display the completer themes'),
+        execute: () => {
+          manager.display_themes();
+        }
+      });
+      commandPalette.addItem({
+        category: LSP_CATEGORY,
+        command: command_id
+      });
+      return manager;
+    },
+    provides: ILSPCompletionThemeManager,
+    autoStart: true
+  };

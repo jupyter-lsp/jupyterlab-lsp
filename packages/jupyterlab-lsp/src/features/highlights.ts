@@ -187,9 +187,8 @@ export class HighlightsCM extends CodeMirrorIntegration {
     }
 
     try {
-      let virtual_position = this.virtual_editor.root_position_to_virtual_position(
-        root_position
-      );
+      let virtual_position =
+        this.virtual_editor.root_position_to_virtual_position(root_position);
 
       this.virtual_position = virtual_position;
 
