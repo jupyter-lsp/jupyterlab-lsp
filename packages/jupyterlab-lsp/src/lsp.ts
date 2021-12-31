@@ -5,6 +5,15 @@ export enum DiagnosticSeverity {
   Hint = 4
 }
 
+export enum DiagnosticTag {
+  Unnecessary = 1,
+  Deprecated = 2
+}
+
+export enum CompletionItemTag {
+  Deprecated = 1
+}
+
 export enum CompletionItemKind {
   Text = 1,
   Method = 2,
