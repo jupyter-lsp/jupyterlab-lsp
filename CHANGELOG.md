@@ -8,6 +8,11 @@
 - bug fixes:
   - squash warnings and errors in web console ([#732])
   - fix signature blur and fix formatting when no arguments are present ([#734])
+  - fixed with enabling of strict null checks:
+    - previously changing kernels always led to restarting of LSP connection, even if the kernel language did not change; now the connection will be retained if possible
+    - `markdownRenderer` is no longer implicitly required
+    - diagnostics sorting with missing values for `source` and `severity` was improved and missing values will be consistently shown at the end
+    - diagnostics placeholder was split into `Diagnostics are not available` and `No issues detected, great job!` which will now show up properly
 - maintenance:
   - enable strict null checks and other strict settings ([#733])
   - specify client capabilities in features instead of hard-coding them ([#738])
