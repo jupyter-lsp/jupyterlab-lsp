@@ -9,6 +9,16 @@ const reuseFromUpstream = [
   'testPathIgnorePatterns'
 ];
 
+const esModules = [
+  '@jupyterlab/',
+  '@retrolab/',
+  'lib0',
+  'y\\-protocols',
+  'y\\-websocket',
+  'yjs'
+].join('|');
+
+
 let local = {
   globals: { 'ts-jest': { tsconfig: 'tsconfig.json' } },
   testRegex: `.*\.spec\.tsx?$`,
@@ -17,7 +27,7 @@ let local = {
     '\\.(js|jsx)?$': './transform.js',
     '\\.svg$': 'jest-raw-loader'
   },
-  transformIgnorePatterns: ['/node_modules/(?!(@jupyterlab/.*|@retrolab/.*)/)'],
+  transformIgnorePatterns: ['/node_modules/(?!${esModules}).+`],
   testLocationInResults: true,
   reporters: [...upstream['reporters'], 'jest-github-actions-reporter']
 };

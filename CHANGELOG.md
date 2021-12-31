@@ -11,6 +11,7 @@
 - maintenance:
   - enable strict null checks and other strict settings ([#733])
   - specify client capabilities in features instead of hard-coding them ([#738])
+  - bump minimum required JupyterLab version to 3.1 (`>=3.1.0,<4.0.0a0`)
 
 [#732]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/732
 [#733]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/733

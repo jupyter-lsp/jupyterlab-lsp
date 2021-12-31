@@ -90,7 +90,7 @@ Use context menu on rows in the panel to filter out diagnostics or copy their me
 
 You will need to have both of the following installed:
 
-- JupyterLab >=3.0.0,<4.0.0a0
+- JupyterLab >=3.1.0,<4.0.0a0
 - Python 3.7+
 
 In addition, if you wish to use javascript, html, markdown or any other NodeJS-based language server you will need to have appropriate NodeJS version installed.
