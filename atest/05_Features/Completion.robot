@@ -36,7 +36,6 @@ Filters Completions In Case Sensitive Mode
     Completer Should Suggest    test
     Completer Should Not Suggest    TabError
 
-
 Can Prioritize Kernel Completions
     # note: disabling pre-filtering to get ranking without match scoring
     Configure JupyterLab Plugin    {"kernelCompletionsFirst": true, "kernelResponseTimeout": -1, "preFilterMatches": false}    plugin id=${COMPLETION PLUGIN ID}
