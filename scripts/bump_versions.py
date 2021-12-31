@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from dataclasses import dataclass
 from difflib import context_diff
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from integrity import CHANGELOG
 from integrity import PIPE_FILE as PIPELINE
@@ -87,63 +87,63 @@ def replace_version(path: Path, template: str, old: str, new: str, dry: bool):
         path.write_text(new_content)
 
 
+PACKAGES: Dict[str, PackageVersionInfo] = {
+    "jupyter-lsp": PackageVersionInfo(
+        name="jupyter-lsp (Python backend)",
+        current_version=JUPYTER_LSP_VERSION,
+        locations=[
+            VersionLocation(
+                path=Path("python_packages/jupyter_lsp/jupyter_lsp/_version.py"),
+                template='__version__ = "{version}"',
+            ),
+            VersionLocation(path=PIPELINE, template="PY_JLSP_VERSION: {version}"),
+        ],
+    ),
+    "jupyterlab-lsp": PackageVersionInfo(
+        name="jupyterlab-lsp (frontend package)",
+        current_version=JUPYTERLAB_LSP_VERSION,
+        locations=[
+            VersionLocation(
+                path=JUPYTERLAB_LSP_PACKAGE,
+                template=NPM_PACKAGE_VERSION_TEMPLATE,
+            ),
+            VersionLocation(path=PIPELINE, template="JS_JLLSP_VERSION: {version}"),
+            VersionLocation(path=META_PACKAGE, template=NPM_PACKAGE_VERSION_TEMPLATE),
+        ],
+    ),
+    "jupyterlab:exact": PackageVersionInfo(
+        name="JupyterLab - exact",
+        current_version=JUPYTERLAB_VERSION,
+        locations=[
+            VersionLocation(
+                path=JUPYTERLAB_LSP_PACKAGE,
+                template='"@jupyterlab/application": "~{version}"',
+            )
+        ],
+    ),
+    "jupyterlab:range": PackageVersionInfo(
+        name="JupyterLab - range",
+        current_version=REQUIRED_JUPYTERLAB,
+        locations=[
+            VersionLocation(
+                path=Path("binder/environment.yml"),
+                template="jupyterlab {version}",
+            ),
+            VersionLocation(
+                path=README,
+                template="jupyterlab {version}",
+            ),
+            VersionLocation(
+                path=README,
+                template="JupyterLab {version}",
+            ),
+        ],
+    ),
+}
+
+
 def update_versions(dry: bool):
-    packages: List[PackageVersionInfo] = [
-        PackageVersionInfo(
-            name="jupyter-lsp (Python backend)",
-            current_version=JUPYTER_LSP_VERSION,
-            locations=[
-                VersionLocation(
-                    path=Path("python_packages/jupyter_lsp/jupyter_lsp/_version.py"),
-                    template='__version__ = "{version}"',
-                ),
-                VersionLocation(path=PIPELINE, template="PY_JLSP_VERSION: {version}"),
-            ],
-        ),
-        PackageVersionInfo(
-            name="jupyterlab-lsp (frontend package)",
-            current_version=JUPYTERLAB_LSP_VERSION,
-            locations=[
-                VersionLocation(
-                    path=JUPYTERLAB_LSP_PACKAGE,
-                    template=NPM_PACKAGE_VERSION_TEMPLATE,
-                ),
-                VersionLocation(path=PIPELINE, template="JS_JLLSP_VERSION: {version}"),
-                VersionLocation(
-                    path=META_PACKAGE, template=NPM_PACKAGE_VERSION_TEMPLATE
-                ),
-            ],
-        ),
-        PackageVersionInfo(
-            name="JupyterLab - exact",
-            current_version=JUPYTERLAB_VERSION,
-            locations=[
-                VersionLocation(
-                    path=JUPYTERLAB_LSP_PACKAGE,
-                    template='"@jupyterlab/application": "~{version}"',
-                )
-            ],
-        ),
-        PackageVersionInfo(
-            name="JupyterLab - range",
-            current_version=REQUIRED_JUPYTERLAB,
-            locations=[
-                VersionLocation(
-                    path=Path("binder/environment.yml"),
-                    template="jupyterlab {version}",
-                ),
-                VersionLocation(
-                    path=README,
-                    template="jupyterlab {version}",
-                ),
-                VersionLocation(
-                    path=README,
-                    template="JupyterLab {version}",
-                ),
-            ],
-        ),
-    ]
-    for package in packages:
+    for package in PACKAGES.values():
         package.maybe_change_version(dry=dry)
 
 
@@ -154,5 +154,28 @@ if __name__ == "__main__":
         action="store_true",
         help="do not perform the update, only show the changes",
     )
+    parser.add_argument(
+        "--package",
+        default=None,
+        type=str,
+        help="Which package should have the version bumped? If not given, interactive mode will ask for versions for all packages",
+    )
+    parser.add_argument(
+        "--version",
+        default=None,
+        type=str,
+        help="New version for --package",
+    )
     args = parser.parse_args()
-    update_versions(dry=args.dry)
+
+    if args.package:
+        assert args.version
+    if args.version:
+        assert args.package
+
+    if args.package:
+        package = PACKAGES[args.package]
+        package.change_version(args.version, dry=args.dry)
+    else:
+        # update interactively
+        update_versions(dry=args.dry)

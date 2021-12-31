@@ -1,0 +1,3 @@
+[tools.jupyter-releaser.options]
+version_cmd = "python scripts/bump_versions.py --package jupyterlab-lsp"
+python_packages = ["python_packages/jupyterlab_lsp"]
