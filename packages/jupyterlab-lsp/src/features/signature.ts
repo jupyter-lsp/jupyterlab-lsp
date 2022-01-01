@@ -68,7 +68,7 @@ export function extractLead(lines: string[], size: number): ISplit | null {
  */
 export function signatureToMarkdown(
   item: lsProtocol.SignatureInformation,
-  language: string,
+  language: string = '',
   codeHighlighter: (
     source: string,
     variable: string,
@@ -78,7 +78,7 @@ export function signatureToMarkdown(
   activeParameterFallback?: number | null,
   maxLinesBeforeCollapse: number = 4
 ): string {
-  const activeParameter: number | null =
+  const activeParameter: number | undefined | null =
     typeof item.activeParameter !== 'undefined'
       ? item.activeParameter
       : activeParameterFallback;
@@ -104,7 +104,6 @@ export function signatureToMarkdown(
   }
   let details = '';
   if (item.documentation) {
-    details += '\n';
     if (
       typeof item.documentation === 'string' ||
       item.documentation.kind === 'plaintext'
@@ -123,10 +122,7 @@ export function signatureToMarkdown(
       }
     } else {
       if (item.documentation.kind !== 'markdown') {
-        this.console.warn(
-          'Unknown MarkupContent kind:',
-          item.documentation.kind
-        );
+        logger.warn('Unknown MarkupContent kind:', item.documentation.kind);
       }
       details += item.documentation.value;
     }
@@ -135,7 +131,7 @@ export function signatureToMarkdown(
       '\n\n' +
       item.parameters
         .filter(parameter => parameter.documentation)
-        .map(parameter => '- ' + getMarkdown(parameter.documentation))
+        .map(parameter => '- ' + getMarkdown(parameter.documentation!))
         .join('\n');
   }
   if (details) {
@@ -149,7 +145,9 @@ export function signatureToMarkdown(
         details = '<details>\n' + details + '\n</details>';
       }
     }
-    markdown += details;
+    markdown += '\n\n' + details;
+  } else {
+    markdown += '\n';
   }
   return markdown;
 }
@@ -184,7 +182,7 @@ export class SignatureCM extends CodeMirrorIntegration {
     // (allowing user to select/copy from signature)
     if (
       this.isSignatureShown() &&
-      (event.target as Element).closest('.' + CLASS_NAME) === null
+      (event.relatedTarget as Element).closest('.' + CLASS_NAME) === null
     ) {
       this._hideTooltip();
     }
@@ -207,7 +205,7 @@ export class SignatureCM extends CodeMirrorIntegration {
     } else {
       // otherwise, update the signature as the active parameter could have changed,
       // or the server may want us to close the tooltip
-      this.requestSignature(newRootPosition, previousPosition).catch(
+      this.requestSignature(newRootPosition, previousPosition)?.catch(
         this.console.warn
       );
     }
@@ -219,7 +217,7 @@ export class SignatureCM extends CodeMirrorIntegration {
 
   protected get_markup_for_signature_help(
     response: lsProtocol.SignatureHelp,
-    language: string
+    language: string = ''
   ): lsProtocol.MarkupContent {
     let signatures = new Array<string>();
 
@@ -278,7 +276,7 @@ export class SignatureCM extends CodeMirrorIntegration {
         code.appendChild(element);
       }
     );
-    return pre.outerHTML + '\n\n';
+    return pre.outerHTML;
   }
 
   /**
@@ -403,7 +401,7 @@ export class SignatureCM extends CodeMirrorIntegration {
       return;
     }
 
-    this.requestSignature(root_position, previousPosition).catch(
+    this.requestSignature(root_position, previousPosition)?.catch(
       this.console.warn
     );
   }
@@ -473,7 +471,10 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
     renderMimeRegistry: IRenderMimeRegistry,
     codeMirror: ICodeMirror
   ) => {
-    const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
+    const settings = new FeatureSettings<LSPSignatureSettings>(
+      settingRegistry,
+      FEATURE_ID
+    );
     const labIntegration = new SignatureLabIntegration(
       app,
       settings,
@@ -487,7 +488,17 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
         id: FEATURE_ID,
         name: 'LSP Function signature',
         labIntegration: labIntegration,
-        settings: settings
+        settings: settings,
+        capabilities: {
+          textDocument: {
+            signatureHelp: {
+              dynamicRegistration: true,
+              signatureInformation: {
+                documentationFormat: ['markdown', 'plaintext']
+              }
+            }
+          }
+        }
       }
     });
   }

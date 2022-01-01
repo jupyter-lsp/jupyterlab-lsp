@@ -81,12 +81,13 @@ class MockSocket implements EventTarget {
   /**
    * Sends a synthetic event to the client code, for example to imitate a server response
    */
-  public dispatchEvent = (event: Event) => {
+  public dispatchEvent = (event: Event): boolean => {
     const listeners: Listener[] = this.listeners[event.type];
     if (!listeners) {
       return false;
     }
     listeners.forEach(listener => listener.call(null, event));
+    return true;
   };
 
   constructor(url: string, protocols?: string[]) {

@@ -9,7 +9,6 @@ respective license holders:
 - [rename.svg](./rename.svg) by Austin Andrews (Templarian)
 - [hover.svg](./hover.svg) by Austin Andrews (Templarian)
 - [completion.svg](./completion.svg): based on `format-list-bulleted-type` by Austin Andrews (Templarian)
-- [highlight-type.svg](./highlight-type.svg) a derivative of `marker` by Google and `alpha-t` by GreenTurtwig
 
 Following icons are derivative works of the `code-tags-check icon` by Simran (XT3000) and:
 

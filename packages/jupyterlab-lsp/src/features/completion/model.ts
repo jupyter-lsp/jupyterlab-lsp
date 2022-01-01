@@ -39,7 +39,7 @@ export class GenericCompleterModel<
   completionItems(): T[] {
     let query = this.query;
     this.query = '';
-    let unfilteredItems = super.completionItems() as T[];
+    let unfilteredItems = super.completionItems!() as T[];
     this.query = query;
 
     // always want to sort
@@ -48,7 +48,22 @@ export class GenericCompleterModel<
   }
 
   setCompletionItems(newValue: T[]) {
-    super.setCompletionItems(newValue);
+    super.setCompletionItems!(newValue);
+
+    if (this.settings.preFilterMatches && this.current && this.cursor) {
+      // set initial query to pre-filter items; in future we should use:
+      // https://github.com/jupyterlab/jupyterlab/issues/9763#issuecomment-1001603348
+      const { start, end } = this.cursor;
+      let query = this.current.text.substring(start, end).trim();
+      // special case for "Completes Paths In Strings" test case
+      if (query.startsWith('"') || query.startsWith("'")) {
+        query = query.substring(1);
+      }
+      if (query.endsWith('"') || query.endsWith("'")) {
+        query = query.substring(0, -1);
+      }
+      this.query = query;
+    }
   }
 
   private _markFragment(value: string): string {
@@ -80,8 +95,8 @@ export class GenericCompleterModel<
 
       let matched: boolean;
 
-      let filterText: string = null;
-      let filterMatch: StringExt.IMatchResult;
+      let filterText: string | null = null;
+      let filterMatch: StringExt.IMatchResult | null = null;
 
       let lowerCaseQuery = query.toLowerCase();
 
@@ -108,7 +123,7 @@ export class GenericCompleterModel<
         // If the matches are substrings of label, highlight them
         // in this part of the label that can be highlighted (must be a prefix),
         // which is intended to avoid highlighting matches in function arguments etc.
-        let labelMatch: StringExt.IMatchResult;
+        let labelMatch: StringExt.IMatchResult | null = null;
         if (query) {
           let labelPrefix = escapeHTML(this.getHighlightableLabelRegion(item));
           if (labelPrefix == filterText) {
@@ -180,10 +195,15 @@ export namespace GenericCompleterModel {
      * Whether perfect matches should be included (default = true)
      */
     includePerfectMatches?: boolean;
+    /**
+     * Wheteher matches should be pre-filtered (default = true)
+     */
+    preFilterMatches?: boolean;
   }
   export const defaultOptions: IOptions = {
     caseSensitive: true,
-    includePerfectMatches: true
+    includePerfectMatches: true,
+    preFilterMatches: true
   };
 }
 

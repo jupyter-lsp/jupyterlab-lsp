@@ -10,7 +10,7 @@ describe('Signature', () => {
       const split = extractLead(
         ['This function does foo', '', 'But there are more details'],
         1
-      );
+      )!;
       expect(split.lead).to.equal('This function does foo');
       expect(split.remainder).to.equal('But there are more details');
     });
@@ -36,7 +36,7 @@ describe('Signature', () => {
           'But there are more details'
         ],
         2
-      );
+      )!;
       expect(split.lead).to.equal('This function does foo,\nand it does bar');
       expect(split.remainder).to.equal('But there are more details');
     });
@@ -66,7 +66,7 @@ describe('Signature', () => {
           parameters: [
             {
               label: 'text',
-              documentation: null
+              documentation: undefined
             }
           ],
           activeParameter: 0
@@ -76,7 +76,7 @@ describe('Signature', () => {
         new BrowserConsole()
       );
       expect(text).to.be.equal(
-        'str(<u>text</u>)\nCreate a new \\*string\\* object from the given object.\n'
+        'str(<u>text</u>)\n\nCreate a new \\*string\\* object from the given object.\n'
       );
     });
 
@@ -91,7 +91,7 @@ describe('Signature', () => {
           parameters: [
             {
               label: 'text',
-              documentation: null
+              documentation: undefined
             }
           ],
           activeParameter: 0
@@ -101,7 +101,7 @@ describe('Signature', () => {
         new BrowserConsole()
       );
       expect(text).to.be.equal(
-        'str(<u>text</u>)\nCreate a new \\*string\\* object from the given object.\n'
+        'str(<u>text</u>)\n\nCreate a new \\*string\\* object from the given object.\n'
       );
     });
 
@@ -116,7 +116,7 @@ describe('Signature', () => {
           parameters: [
             {
               label: 'text',
-              documentation: null
+              documentation: undefined
             }
           ],
           activeParameter: 0
@@ -126,7 +126,54 @@ describe('Signature', () => {
         new BrowserConsole()
       );
       expect(text).to.be.equal(
-        'str(<u>text</u>)\nCreate a new *string* object from the given object.'
+        'str(<u>text</u>)\n\nCreate a new *string* object from the given object.'
+      );
+    });
+
+    it('renders plaintext with details and paramaters', async () => {
+      let text = signatureToMarkdown(
+        {
+          label: 'str(text)',
+          documentation: {
+            value: 'line 1\n\nline 2\nline 3\nline 4\nline 5',
+            kind: 'plaintext'
+          },
+          parameters: [
+            {
+              label: 'text',
+              documentation: undefined
+            }
+          ],
+          activeParameter: 0
+        },
+        'python',
+        MockHighlighter,
+        new BrowserConsole(),
+        undefined,
+        4
+      );
+      expect(text).to.be.equal(
+        'str(<u>text</u>)\n\nline 1\n<details>\nline 2\nline 3\nline 4\nline 5\n</details>'
+      );
+    });
+
+    it('renders plaintext with details and no parameters', async () => {
+      let text = signatureToMarkdown(
+        {
+          label: 'str()',
+          documentation: {
+            value: 'line 1\n\nline 2\nline 3\nline 4\nline 5',
+            kind: 'plaintext'
+          }
+        },
+        'python',
+        MockHighlighter,
+        new BrowserConsole(),
+        undefined,
+        4
+      );
+      expect(text).to.be.equal(
+        '```python\nstr()\n```\n\nline 1\n<details>\nline 2\nline 3\nline 4\nline 5\n</details>'
       );
     });
   });

@@ -8,13 +8,13 @@ Test Teardown       Clean Up
 Force Tags          ui:notebook    aspect:ls:features
 
 *** Variables ***
-${EXPECTED_COUNT}           4
-${DIAGNOSTIC}               W291 trailing whitespace (pycodestyle)
-${DIAGNOSTIC MESSAGE}       trailing whitespace
 ${DIAGNOSTIC MESSAGE R}     Closing curly-braces should always be on their own line
-${R CELL}                   %%R\n{}
-${MENU COLUMNS}             xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "columns")]
+${DIAGNOSTIC MESSAGE}       trailing whitespace
+${DIAGNOSTIC}               W291 trailing whitespace (pycodestyle)
+${EXPECTED_COUNT}           4
 ${LAB MENU}                 css:.lm-Menu
+${MENU COLUMNS}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "columns")]
+${R CELL}         %%R\n{}
 
 *** Test Cases ***
 Diagnostics Panel Opens
@@ -129,6 +129,7 @@ Open Context Menu Over W291
     Table Cell Should Equal    W291    row=-1    column=2
     Open Context Menu Over    css:.lsp-diagnostics-listing tbody > tr:last-child
 
+<<<<<<< HEAD
 Expand Menu Entry
     [Arguments]    ${label}
     ${entry} =    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "${label}")]
@@ -151,6 +152,8 @@ Select Menu Entry
     Click Element    ${entry}
     Wait Until Page Does Not Contain Element    ${entry}    timeout=10s
 
+=======
+>>>>>>> upsteam/master
 Open Notebook And Panel
     [Arguments]    ${notebook}
     Setup Notebook    Python    ${notebook}
