@@ -15,7 +15,8 @@ ${KERNEL_BUSY_INDICATOR}    css:.jp-NotebookPanel-toolbar div[title="Kernel Busy
 *** Test Cases ***
 Works When Kernel Is Idle
     [Documentation]    The suggestions from kernel and LSP should get integrated; operates in case insensitive mode
-    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false, "caseSensitive": false}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false, "caseSensitive": false}
+    ...    plugin id=${COMPLETION PLUGIN ID}
     Enter Cell Editor    1    line=2
     Capture Page Screenshot    01-entered-cell.png
     Trigger Completer
@@ -31,8 +32,8 @@ Works When Kernel Is Idle
     Should Contain    ${content}    TabError
 
 Filters Completions In Case Sensitive Mode
-    Configure JupyterLab Plugin    {"caseSensitive": true}    plugin id=${COMPLETION PLUGIN ID}
     [Documentation]    Completions filtering is case-sensitive when caseSensitive is true
+    Configure JupyterLab Plugin    {"caseSensitive": true}    plugin id=${COMPLETION PLUGIN ID}
     Enter Cell Editor    1    line=2
     Trigger Completer
     Completer Should Suggest    test
@@ -41,8 +42,8 @@ Filters Completions In Case Sensitive Mode
 Can Prioritize Kernel Completions
     # note: disabling pre-filtering to get ranking without match scoring
     Configure JupyterLab Plugin
-    ...     {"kernelCompletionsFirst": true, "kernelResponseTimeout": -1, "preFilterMatches": false}
-    ...     plugin id=${COMPLETION PLUGIN ID}
+    ...    {"kernelCompletionsFirst": true, "kernelResponseTimeout": -1, "preFilterMatches": false}
+    ...    plugin id=${COMPLETION PLUGIN ID}
     Enter Cell Editor    1    line=2
     Trigger Completer
     Completer Should Suggest    %%timeit
@@ -53,8 +54,8 @@ Can Prioritize Kernel Completions
 Can Prioritize LSP Completions
     # note: disabling pre-filtering to get ranking without match scoring
     Configure JupyterLab Plugin
-    ...     {"kernelCompletionsFirst": false, "kernelResponseTimeout": -1, "preFilterMatches": false}
-    ...     plugin id=${COMPLETION PLUGIN ID}
+    ...    {"kernelCompletionsFirst": false, "kernelResponseTimeout": -1, "preFilterMatches": false}
+    ...    plugin id=${COMPLETION PLUGIN ID}
     Enter Cell Editor    1    line=2
     Trigger Completer
     Completer Should Suggest    %%timeit
@@ -277,7 +278,8 @@ Works Without A Theme
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
 
 Works With Incorrect Theme
-    Configure JupyterLab Plugin    {"theme": "a-non-existing-theme", "caseSensitive": false}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"theme": "a-non-existing-theme", "caseSensitive": false}
+    ...    plugin id=${COMPLETION PLUGIN ID}
     Capture Page Screenshot    01-configured.png
     Enter Cell Editor    1    line=2
     Trigger Completer

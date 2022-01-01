@@ -8,11 +8,11 @@ Test Teardown       Clean Up After Working With File    Signature.ipynb
 Force Tags          feature:signature
 
 *** Variables ***
-${SIGNATURE PLUGIN ID}    @krassowski/jupyterlab-lsp:signature
-${SIGNATURE_BOX}    css:.lsp-signature-help
+${SIGNATURE PLUGIN ID}          @krassowski/jupyterlab-lsp:signature
+${SIGNATURE_BOX}                css:.lsp-signature-help
 ${SIGNATURE_HIGHLIGHTED_ARG}    css:.lsp-signature-help mark
-${SIGNATURE_DETAILS_CSS}    .lsp-signature-help details
-${SIGNATURE_DETAILS}    css:${SIGNATURE_DETAILS_CSS}
+${SIGNATURE_DETAILS_CSS}        .lsp-signature-help details
+${SIGNATURE_DETAILS}            css:${SIGNATURE_DETAILS_CSS}
 
 *** Test Cases ***
 Triggers Signature Help After A Keystroke
