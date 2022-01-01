@@ -1,6 +1,6 @@
 ## Changelog
 
-### `@krassowski/jupyterlab-lsp 3.10.0` (2021-12-31)
+### `@krassowski/jupyterlab-lsp 3.10.0` (2022-01-01)
 
 - features:
   - enable pre-filtering of completion matches by default ([#735])
@@ -26,7 +26,7 @@
 [#737]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/737
 [#738]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/738
 
-### `@krassowski/code-jumpers 1.2.0` (2021-12-31)
+### `@krassowski/code-jumpers 1.2.0` (2022-01-01)
 
 - maintenance:
   - updates to API with respect to `null`/`undefined` values in course strict null checks activation ([#733])

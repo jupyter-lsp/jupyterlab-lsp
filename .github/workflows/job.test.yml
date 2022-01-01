@@ -126,7 +126,7 @@ jobs:
       matrix:
         os: [ubuntu]
         nodejs: ['>=14,<15.0.0a0']
-        lab: ['>=3.0.0,<4.0.0a0']
+        lab: ['>=3.1.0,<4.0.0a0']
         r: ['>=4']
     steps:
       - uses: actions/checkout@v2
@@ -228,7 +228,7 @@ jobs:
             # Node 12 end-of-life: April 2022
             nodejs: '>=12,<13.0.0.a0'
             r: '<4'
-            lab: '>=3.0.0,<3.1'
+            lab: '>=3.1.0,<3.2'
           - python: '3.10'
             # Node 16 end-of-life: April 2024
             nodejs: '>=16,<17.0.0.a0'
@@ -371,10 +371,10 @@ jobs:
         include:
           - python: '3.7'
             dist: 'jupyter*lsp*.tar.gz'
-            lab: '>=3,<3.1'
+            lab: '>=3.1,<3.2'
           - python: '3.8'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=3,<3.1'
+            lab: '>=3.1,<3.2'
           - python: '3.9'
             dist: 'jupyter*lsp*.tar.gz'
             lab: '>=3.2,<3.3'
@@ -429,7 +429,7 @@ jobs:
         nodejs: ['14']
         include:
           - python: '3.7'
-            lab: '>=3,<3.1'
+            lab: '>=3.1,<3.2'
           - python: '3.10'
             lab: '>=3.2,<4'
     steps:
