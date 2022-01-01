@@ -260,9 +260,11 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
 
         # check for custom npm prefix
         if shutil.which("npm"):
-            prefix = subprocess.run(
-                ["npm", "prefix", "-g"], check=True, capture_output=True
-            ).stdout.decode("utf-8")
+            prefix = (
+                subprocess.run(["npm", "prefix", "-g"], check=True, capture_output=True)
+                .stdout.decode("utf-8")
+                .strip()
+            )
             roots += [pathlib.Path(prefix) / "lib"]
 
         return roots
