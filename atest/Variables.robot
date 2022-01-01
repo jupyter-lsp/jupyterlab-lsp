@@ -40,6 +40,7 @@ ${MENU EDITOR}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(.,
 ${MENU JUMP}      xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Jump to definition")]
 ${MENU SETTINGS}    xpath://div[contains(@class, 'lm-MenuBar-itemLabel')][contains(text(), "Settings")]
 ${MENU EDITOR THEME}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Text Editor Theme")]
+${LAB MENU}       css:.lm-Menu
 ${CM CURSOR}      css:.CodeMirror-cursor
 ${CM CURSORS}     css:.jp-MainAreaWidget:not(.lm-mod-hidden) .CodeMirror-cursors:not([style='visibility: hidden'])
 # settings

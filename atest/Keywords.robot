@@ -434,3 +434,25 @@ Restart Kernel
     Lab Command    Restart Kernel…
     Wait For Dialog
     Accept Default Dialog Option
+
+Expand Menu Entry
+    [Arguments]    ${label}
+    ${entry} =    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "${label}")]
+    Wait Until Page Contains Element    ${entry}    timeout=10s
+    ${menus before} =    Get Element Count    ${LAB MENU}
+    Mouse Over    ${entry}
+    ${expected menus} =    Evaluate    ${menus before} + 1
+    Wait Until Keyword Succeeds    10 x    1s    Menus Count Equal    ${expected menus}
+
+Menus Count Equal
+    [Arguments]    ${count}
+    ${menus count} =    Get Element Count    ${LAB MENU}
+    Should Be Equal    ${menus count}    ${count}
+
+Select Menu Entry
+    [Arguments]    ${label}
+    ${entry}    Set Variable    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), '${label}')]
+    Wait Until Page Contains Element    ${entry}    timeout=10s
+    Mouse Over    ${entry}
+    Click Element    ${entry}
+    Wait Until Page Does Not Contain Element    ${entry}    timeout=10s
