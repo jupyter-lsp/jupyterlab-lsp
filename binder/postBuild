@@ -24,5 +24,6 @@ jupyter server extension list
 jupyter labextension list
 
 if [ "$NB_USER" = "jovyan" ]; then
+    mkdir -p $NB_PYTHON_PREFIX/share/jupyter/lab/settings/
     cp binder/overrides.json $NB_PYTHON_PREFIX/share/jupyter/lab/settings/
 fi
