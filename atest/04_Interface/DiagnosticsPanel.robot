@@ -1,17 +1,19 @@
 *** Settings ***
-Suite Setup       Setup Suite For Screenshots    diagnostics_panel
-Resource          ../Keywords.robot
-Force Tags        ui:notebook    aspect:ls:features
-Test Setup        Set Up
-Test Teardown     Clean Up
+Resource            ../Keywords.resource
+
+Suite Setup         Setup Suite For Screenshots    diagnostics_panel
+Test Setup          Set Up
+Test Teardown       Clean Up
+
+Force Tags          ui:notebook    aspect:ls:features
 
 *** Variables ***
-${EXPECTED_COUNT}    4
-${DIAGNOSTIC}     W291 trailing whitespace (pycodestyle)
-${DIAGNOSTIC MESSAGE}    trailing whitespace
-${DIAGNOSTIC MESSAGE R}    Closing curly-braces should always be on their own line
-${R CELL}         %%R\n{}
-${MENU COLUMNS}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "columns")]
+${DIAGNOSTIC MESSAGE R}     Closing curly-braces should always be on their own line
+${DIAGNOSTIC MESSAGE}       trailing whitespace
+${DIAGNOSTIC}               W291 trailing whitespace (pycodestyle)
+${EXPECTED_COUNT}           4
+${MENU COLUMNS}             xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "columns")]
+${R CELL}                   %%R\n{}
 
 *** Test Cases ***
 Diagnostics Panel Opens
@@ -45,17 +47,20 @@ Diagnostics Panel Can Be Restored
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_COUNT}
 
 Columns Can Be Hidden
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    ...    ${DIAGNOSTIC MESSAGE}
     Open Context Menu Over    css:.lsp-diagnostics-listing th
     Capture Page Screenshot    01-menu-visible.png
     Expand Menu Entry    columns
     Select Menu Entry    Message
     Capture Page Screenshot    03-message-column-toggled.png
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}
+    ...    ${DIAGNOSTIC MESSAGE}
 
 Can Sort By Cell
     # https://github.com/jupyter-lsp/jupyterlab-lsp/issues/707
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    ...    ${DIAGNOSTIC MESSAGE}
     Click Element    css:.lsp-diagnostics-listing th[data-id="Line:Ch"]
     Table Cell Should Equal    Line:Ch    row=1    column=-1
     Table Cell Should Equal    0:0    row=2    column=-1
@@ -68,7 +73,7 @@ Can Sort By Cell
 Diagnostics Can Be Ignored By Code
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_COUNT}
     # W291 should be shown twice, lets try to hide it
-    ${EXPECTED_AFTER}    Evaluate    ${EXPECTED_COUNT}-2
+    ${EXPECTED_AFTER} =    Evaluate    ${EXPECTED_COUNT}-2
     Open Context Menu Over W291
     Expand Menu Entry    Ignore diagnostics
     Select Menu Entry    code
@@ -79,7 +84,7 @@ Diagnostics Can Be Ignored By Code
 Diagnostics Can Be Ignored By Message
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_COUNT}
     # W291 should be shown twice, lets try to hide it
-    ${EXPECTED_AFTER}    Evaluate    ${EXPECTED_COUNT}-2
+    ${EXPECTED_AFTER} =    Evaluate    ${EXPECTED_COUNT}-2
     Open Context Menu Over W291
     Expand Menu Entry    Ignore diagnostics
     Capture Page Screenshot    02-menu-visible.png
@@ -89,7 +94,8 @@ Diagnostics Can Be Ignored By Message
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_AFTER}
 
 Diagnostic Message Can Be Copied
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    ...    ${DIAGNOSTIC MESSAGE}
     Open Context Menu Over    css:.lsp-diagnostics-listing tbody tr
     Select Menu Entry    Copy diagnostic
     Close Diagnostics Panel
@@ -100,16 +106,20 @@ Diagnostics Panel Works After Removing Foreign Document
     Lab Command    Insert Cell Below
     Enter Cell Editor    3
     Press Keys    None    ${R CELL}
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE R}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    ...    ${DIAGNOSTIC MESSAGE}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    ...    ${DIAGNOSTIC MESSAGE R}
     Lab Command    Delete Cells
     # regain focus by entering cell
     Enter Cell Editor    2
     # trigger 7 document updates to trigger the garbage collector that removes unused documents
     # (search for VirtualDocument.remainining_lifetime for more)
     Press Keys    None    1234567
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE}
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}    ${DIAGNOSTIC MESSAGE R}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    ...    ${DIAGNOSTIC MESSAGE}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}
+    ...    ${DIAGNOSTIC MESSAGE R}
 
 *** Keywords ***
 Open Context Menu Over W291

@@ -1,19 +1,22 @@
 *** Settings ***
-Suite Setup       Setup Suite For Screenshots    completion
-Test Setup        Setup Completion Test
-Test Teardown     Clean Up After Working With File    Completion.ipynb
-Force Tags        feature:completion
-Resource          ../Keywords.robot
+Resource            ../Keywords.resource
+
+Suite Setup         Setup Suite For Screenshots    completion
+Test Setup          Setup Completion Test
+Test Teardown       Clean Up After Working With File    Completion.ipynb
+
+Force Tags          feature:completion
 
 *** Variables ***
-${COMPLETER_BOX}    css:.jp-Completer.jp-HoverBox
-${DOCUMENTATION_PANEL}    css:.jp-Completer-docpanel
+${COMPLETER_BOX}            css:.jp-Completer.jp-HoverBox
+${DOCUMENTATION_PANEL}      css:.jp-Completer-docpanel
 ${KERNEL_BUSY_INDICATOR}    css:.jp-NotebookPanel-toolbar div[title="Kernel Busy"]
 
 *** Test Cases ***
 Works When Kernel Is Idle
-    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false, "caseSensitive": false}    plugin id=${COMPLETION PLUGIN ID}
     [Documentation]    The suggestions from kernel and LSP should get integrated; operates in case insensitive mode
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false, "caseSensitive": false}
+    ...    plugin id=${COMPLETION PLUGIN ID}
     Enter Cell Editor    1    line=2
     Capture Page Screenshot    01-entered-cell.png
     Trigger Completer
@@ -29,8 +32,8 @@ Works When Kernel Is Idle
     Should Contain    ${content}    TabError
 
 Filters Completions In Case Sensitive Mode
-    Configure JupyterLab Plugin    {"caseSensitive": true}    plugin id=${COMPLETION PLUGIN ID}
     [Documentation]    Completions filtering is case-sensitive when caseSensitive is true
+    Configure JupyterLab Plugin    {"caseSensitive": true}    plugin id=${COMPLETION PLUGIN ID}
     Enter Cell Editor    1    line=2
     Trigger Completer
     Completer Should Suggest    test
@@ -38,7 +41,9 @@ Filters Completions In Case Sensitive Mode
 
 Can Prioritize Kernel Completions
     # note: disabling pre-filtering to get ranking without match scoring
-    Configure JupyterLab Plugin    {"kernelCompletionsFirst": true, "kernelResponseTimeout": -1, "preFilterMatches": false}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin
+    ...    {"kernelCompletionsFirst": true, "kernelResponseTimeout": -1, "preFilterMatches": false}
+    ...    plugin id=${COMPLETION PLUGIN ID}
     Enter Cell Editor    1    line=2
     Trigger Completer
     Completer Should Suggest    %%timeit
@@ -48,7 +53,9 @@ Can Prioritize Kernel Completions
 
 Can Prioritize LSP Completions
     # note: disabling pre-filtering to get ranking without match scoring
-    Configure JupyterLab Plugin    {"kernelCompletionsFirst": false, "kernelResponseTimeout": -1, "preFilterMatches": false}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin
+    ...    {"kernelCompletionsFirst": false, "kernelResponseTimeout": -1, "preFilterMatches": false}
+    ...    plugin id=${COMPLETION PLUGIN ID}
     Enter Cell Editor    1    line=2
     Trigger Completer
     Completer Should Suggest    %%timeit
@@ -76,12 +83,14 @@ Invalidates On Focus Loss
     Enter Cell Editor    1    line=2
 
 Uses LSP Completions When Kernel Resoponse Times Out
-    Configure JupyterLab Plugin    {"kernelResponseTimeout": 1, "waitForBusyKernel": true}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": 1, "waitForBusyKernel": true}
+    ...    plugin id=${COMPLETION PLUGIN ID}
     Should Complete While Kernel Is Busy
 
 Uses LSP Completions When Kernel Is Busy
     [Documentation]    When kernel is not available the best thing is to show some suggestions (LSP) rather than none.
-    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}
+    ...    plugin id=${COMPLETION PLUGIN ID}
     Should Complete While Kernel Is Busy
 
 Works When Kernel Is Shut Down
@@ -205,7 +214,8 @@ Completion Works For Tokens Separated By Space
 
 Kernel And LSP Completions Merge Prefix Conflicts Are Resolved
     [Documentation]    Reconciliate Python kernel returning prefixed completions and LSP (pylsp) not-prefixed ones
-    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}
+    ...    plugin id=${COMPLETION PLUGIN ID}
     # For more details see: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/30#issuecomment-576003987
     # `import os.pat<tab>` → `import os.pathsep`
     Enter Cell Editor    15    line=1
@@ -268,7 +278,8 @@ Works Without A Theme
     Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-monogram
 
 Works With Incorrect Theme
-    Configure JupyterLab Plugin    {"theme": "a-non-existing-theme", "caseSensitive": false}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"theme": "a-non-existing-theme", "caseSensitive": false}
+    ...    plugin id=${COMPLETION PLUGIN ID}
     Capture Page Screenshot    01-configured.png
     Enter Cell Editor    1    line=2
     Trigger Completer
@@ -350,11 +361,13 @@ Setup Completion Test
 
 Get Cell Editor Content
     [Arguments]    ${cell_nr}
-    ${content}    Execute JavaScript    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()
+    ${content} =    Execute JavaScript
+    ...    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()
     [Return]    ${content}
 
 Get File Editor Content
-    ${content}    Execute JavaScript    return document.querySelector('.jp-FileEditorCodeWrapper .CodeMirror').CodeMirror.getValue()
+    ${content} =    Execute JavaScript
+    ...    return document.querySelector('.jp-FileEditorCodeWrapper .CodeMirror').CodeMirror.getValue()
     [Return]    ${content}
 
 Cell Editor Should Equal

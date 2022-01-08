@@ -1,12 +1,13 @@
 *** Settings ***
-Suite Setup       Setup Suite For Screenshots    statusbar
-Resource          ../Keywords.robot
+Resource        ../Keywords.resource
+
+Suite Setup     Setup Suite For Screenshots    statusbar
 
 *** Variables ***
-${STATUSBAR}      css:div.lsp-statusbar-item
-${DIAGNOSTIC}     W291 trailing whitespace (pycodestyle)
-${POPOVER}        css:.lsp-popover
-${HELP_BUTTON}    css:.lsp-popover .lsp-help-button
+${STATUSBAR}        css:div.lsp-statusbar-item
+${DIAGNOSTIC}       W291 trailing whitespace (pycodestyle)
+${POPOVER}          css:.lsp-popover
+${HELP_BUTTON}      css:.lsp-popover .lsp-help-button
 
 *** Test Cases ***
 Statusbar Popup Opens
@@ -21,7 +22,9 @@ Statusbar Popup Opens
     [Teardown]    Clean Up After Working With File    Python.ipynb
 
 Troubleshooting And Help Is Offered For Known Non-Installed Servers
-    [Documentation]    When specification of a language server has been configured or provided, but the server is not installed (or detected) the user should get help on installation and/or troubleshooting
+    [Documentation]    When specification of a language server has been configured
+    ...    or provided, but the server is not installed (or detected) the user
+    ...    should get help on installation and/or troubleshooting
     Prepare File for Editing    Python    status    example.klingon
     Wait Until Element Contains    ${STATUSBAR}    Initialized (additional servers needed)    timeout=60s
     Click Element    ${STATUSBAR}

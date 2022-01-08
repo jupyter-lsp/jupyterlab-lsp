@@ -1,16 +1,18 @@
 *** Settings ***
-Suite Setup       Setup Suite For Screenshots    signature
-Force Tags        feature:signature
-Resource          ../Keywords.robot
-Test Setup        Setup Notebook    Python    Signature.ipynb
-Test Teardown     Clean Up After Working With File    Signature.ipynb
+Resource            ../Keywords.resource
+
+Suite Setup         Setup Suite For Screenshots    signature
+Test Setup          Setup Notebook    Python    Signature.ipynb
+Test Teardown       Clean Up After Working With File    Signature.ipynb
+
+Force Tags          feature:signature
 
 *** Variables ***
-${SIGNATURE PLUGIN ID}    @krassowski/jupyterlab-lsp:signature
-${SIGNATURE_BOX}    css:.lsp-signature-help
+${SIGNATURE PLUGIN ID}          @krassowski/jupyterlab-lsp:signature
+${SIGNATURE_BOX}                css:.lsp-signature-help
 ${SIGNATURE_HIGHLIGHTED_ARG}    css:.lsp-signature-help mark
-${SIGNATURE_DETAILS_CSS}    .lsp-signature-help details
-${SIGNATURE_DETAILS}    css:${SIGNATURE_DETAILS_CSS}
+${SIGNATURE_DETAILS_CSS}        .lsp-signature-help details
+${SIGNATURE_DETAILS}            css:${SIGNATURE_DETAILS_CSS}
 
 *** Test Cases ***
 Triggers Signature Help After A Keystroke
@@ -19,12 +21,14 @@ Triggers Signature Help After A Keystroke
     Press Keys    None    (
     Capture Page Screenshot    02-signature-shown.png
     Wait Until Keyword Succeeds    20x    0.5s    Page Should Contain Element    ${SIGNATURE_BOX}
-    Wait Until Keyword Succeeds    10x    0.5s    Element Should Contain    ${SIGNATURE_BOX}    Important docstring of abc()
+    Wait Until Keyword Succeeds    10x    0.5s    Element Should Contain    ${SIGNATURE_BOX}
+    ...    Important docstring of abc()
     Element Should Contain    ${SIGNATURE_HIGHLIGHTED_ARG}    x
     # should remain visible after typing an argument
     Press Keys    None    x=2,
     Wait For Ready State
-    Wait Until Keyword Succeeds    10x    0.5s    Element Should Contain    ${SIGNATURE_BOX}    Important docstring of abc()
+    Wait Until Keyword Succeeds    10x    0.5s    Element Should Contain    ${SIGNATURE_BOX}
+    ...    Important docstring of abc()
     # and should switch highlight to y
     Wait Until Keyword Succeeds    20x    0.5s    Element Should Contain    ${SIGNATURE_HIGHLIGHTED_ARG}    y
     Press Keys    None    LEFT

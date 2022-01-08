@@ -22,7 +22,7 @@ OS_PY_ARGS = {
     # notebook and ipykernel releases do not yet support python 3.8 on windows
     # ("Windows", "38"): ["--include", "not-supported", "--runemptysuite"]
     # TODO: restore when we figure out win36 vs jedi on windows
-    ("Windows", "36"): ["--exclude", "feature:completion", "--runemptysuite"]
+    # ("Windows", "36"): ["--exclude", "feature:completion", "--runemptysuite"]
 }
 
 NON_CRITICAL = [
@@ -30,7 +30,7 @@ NON_CRITICAL = [
     # everything else: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/245
     ["language:yaml", "feature:config"],
     # TODO: restore when we figure out win36 vs jedi on windows
-    ["language:python", "py:36", "os:windows"],
+    # ["language:python", "py:36", "os:windows"],
 ]
 
 
@@ -100,6 +100,10 @@ def atest(attempt, extra_args):
         f"OS:{OS}",
         "--variable",
         f"PY:{PY}",
+        # don't ever test our examples
+        "--exclude",
+        "atest:example",
+        # random ensures there's not inter-test coupling
         "--randomize",
         "all",
         *(extra_args or []),
