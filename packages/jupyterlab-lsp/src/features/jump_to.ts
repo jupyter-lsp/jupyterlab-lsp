@@ -192,8 +192,12 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
       // can it be resolved vs our guessed server root?
       let contents_path = uri_to_contents_path(uri);
 
-      if (contents_path == null && uri.startsWith('file://')) {
-        contents_path = decodeURI(uri.slice(7));
+      if (contents_path == null) {
+        if (uri.startsWith('file://')) {
+          contents_path = decodeURIComponent(uri.slice(7));
+        } else {
+          contents_path = decodeURIComponent(uri);
+        }
       }
 
       if (contents_path === null) {
