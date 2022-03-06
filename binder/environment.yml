@@ -26,6 +26,7 @@ dependencies:
   - ruamel_yaml
   # for R language server and kernel
   - r
+  - r-base >=4.1
   - r-irkernel
   - r-languageserver
   - rpy2
