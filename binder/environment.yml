@@ -26,7 +26,8 @@ dependencies:
   - ruamel_yaml
   # for R language server and kernel
   - r
-  - r-base >=4.1
+  # workaround for https://github.com/jupyterhub/repo2docker/issues/1140
+  - r-base=4.0
   - r-irkernel
   - r-languageserver
   - rpy2
