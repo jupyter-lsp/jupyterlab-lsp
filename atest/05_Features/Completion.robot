@@ -83,11 +83,13 @@ Invalidates On Focus Loss
     Enter Cell Editor    1    line=2
 
 Uses LSP Completions When Kernel Resoponse Times Out
+    [Tags]    requires:busy-indicator
     Configure JupyterLab Plugin    {"kernelResponseTimeout": 1, "waitForBusyKernel": true}
     ...    plugin id=${COMPLETION PLUGIN ID}
     Should Complete While Kernel Is Busy
 
 Uses LSP Completions When Kernel Is Busy
+    [Tags]    requires:busy-indicator
     [Documentation]    When kernel is not available the best thing is to show some suggestions (LSP) rather than none.
     Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}
     ...    plugin id=${COMPLETION PLUGIN ID}
