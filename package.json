@@ -38,6 +38,9 @@
     "trailingComma": "none"
   },
   "private": true,
+  "resolutions": {
+    "**/node-gyp": "8.4.1"
+  },
   "scripts": {
     "bootstrap": "jlpm --no-optional --prefer-offline && lerna bootstrap && jlpm clean && jlpm build && jlpm lint",
     "build": "jlpm build:schema && jlpm build:meta && jlpm build:ws && jlpm build:labextension",
