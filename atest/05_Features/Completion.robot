@@ -219,12 +219,12 @@ Kernel And LSP Completions Merge Prefix Conflicts Are Resolved
     Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}
     ...    plugin id=${COMPLETION PLUGIN ID}
     # For more details see: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/30#issuecomment-576003987
-    # `import os.pat<tab>` → `import os.pathsep`
+    # `import os.pat<tab>` → `import os.path`
     Enter Cell Editor    15    line=1
     Trigger Completer
-    Completer Should Suggest    pathsep
-    Select Completer Suggestion    pathsep
-    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    15    import os.pathsep
+    Completer Should Suggest    path
+    Select Completer Suggestion    path
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    15    import os.path
 
 Triggers Completer On Dot
     Enter Cell Editor    2    line=1
