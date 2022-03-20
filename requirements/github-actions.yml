@@ -26,7 +26,9 @@ dependencies:
   # test tools
   - pytest-asyncio
   - pytest-cov
-  - pytest-flake8
+  # see https://github.com/conda-forge/pytest-flake8-feedstock/issues/20
+  # and https://github.com/tholo/pytest-flake8/issues/86
+  - pytest-flake8 <1.1.1
   - pytest-runner
   - ruamel_yaml
   - pytest-github-actions-annotate-failures
