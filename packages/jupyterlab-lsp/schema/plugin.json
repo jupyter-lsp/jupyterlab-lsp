@@ -1,6 +1,7 @@
 {
   "jupyter.lab.setting-icon": "lsp:codeCheck",
   "jupyter.lab.setting-icon-label": "Language integration",
+  "jupyter.lab.transform": true,
   "title": "Language Server",
   "description": "Language Server Protocol settings.",
   "type": "object",

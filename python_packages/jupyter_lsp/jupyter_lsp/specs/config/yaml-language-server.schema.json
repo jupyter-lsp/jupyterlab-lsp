@@ -1,10 +1,12 @@
 {
+  "title": "YAML language server configuration",
+  "type": "object",
   "properties": {
     "yaml.trace.server": {
       "type": "string",
       "enum": ["off", "messages", "verbose"],
       "default": "off",
-      "description": "Traces the communication between VSCode and the YAML language service."
+      "description": "Traces the communication between the client and the YAML language service."
     },
     "yaml.schemas": {
       "type": "object",
@@ -55,6 +57,9 @@
     "yaml.customTags": {
       "type": "array",
       "default": [],
+      "items": {
+        "type": "string"
+      },
       "description": "Custom tags for the parser to use"
     },
     "yaml.schemaStore.enable": {

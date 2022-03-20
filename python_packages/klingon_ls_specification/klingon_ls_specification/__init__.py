@@ -4,6 +4,8 @@ from jupyter_lsp.specs.utils import ShellSpec
 class KlingonServerSpecification(ShellSpec):
     """Dummy specs for testing the behaviour with non-installed servers."""
 
+    key = "klingon-language-server"
+
     # This one (obviously) does not exist; for a real server,
     # just use the name of the command to run; please note
     # that there are other convenience classes such as

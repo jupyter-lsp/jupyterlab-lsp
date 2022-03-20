@@ -84,7 +84,7 @@
     },
     "pylsp.plugins.preload.modules": {
       "type": "array",
-      "default": null,
+      "default": [],
       "items": {
         "type": "string"
       },
@@ -98,7 +98,7 @@
     },
     "pylsp.plugins.pycodestyle.exclude": {
       "type": "array",
-      "default": null,
+      "default": [],
       "items": {
         "type": "string"
       },
@@ -107,7 +107,7 @@
     },
     "pylsp.plugins.pycodestyle.filename": {
       "type": "array",
-      "default": null,
+      "default": [],
       "items": {
         "type": "string"
       },
@@ -116,7 +116,7 @@
     },
     "pylsp.plugins.pycodestyle.select": {
       "type": "array",
-      "default": null,
+      "default": [],
       "items": {
         "type": "string"
       },
@@ -125,7 +125,7 @@
     },
     "pylsp.plugins.pycodestyle.ignore": {
       "type": "array",
-      "default": null,
+      "default": [],
       "items": {
         "type": "string"
       },
@@ -133,12 +133,12 @@
       "description": "Ignore errors and warnings"
     },
     "pylsp.plugins.pycodestyle.hangClosing": {
-      "type": "boolean",
+      "type": ["boolean", "null"],
       "default": null,
       "description": "Hang closing bracket instead of matching indentation of opening bracket's line."
     },
     "pylsp.plugins.pycodestyle.maxLineLength": {
-      "type": "number",
+      "type": ["number", "null"],
       "default": null,
       "description": "Set maximum allowed line length."
     },
@@ -148,14 +148,14 @@
       "description": "Enable or disable the plugin."
     },
     "pylsp.plugins.pydocstyle.convention": {
-      "type": "string",
+      "type": ["string", "null"],
       "default": null,
-      "enum": ["pep257", "numpy"],
+      "enum": ["pep257", "numpy", null],
       "description": "Choose the basic list of checked errors by specifying an existing convention."
     },
     "pylsp.plugins.pydocstyle.addIgnore": {
       "type": "array",
-      "default": null,
+      "default": [],
       "items": {
         "type": "string"
       },
@@ -164,7 +164,7 @@
     },
     "pylsp.plugins.pydocstyle.addSelect": {
       "type": "array",
-      "default": null,
+      "default": [],
       "items": {
         "type": "string"
       },
@@ -173,7 +173,7 @@
     },
     "pylsp.plugins.pydocstyle.ignore": {
       "type": "array",
-      "default": null,
+      "default": [],
       "items": {
         "type": "string"
       },
@@ -182,7 +182,7 @@
     },
     "pylsp.plugins.pydocstyle.select": {
       "type": "array",
-      "default": null,
+      "default": [],
       "items": {
         "type": "string"
       },
@@ -211,7 +211,7 @@
     },
     "pylsp.plugins.pylint.args": {
       "type": "array",
-      "default": null,
+      "default": [],
       "items": {
         "type": "string"
       },
@@ -229,12 +229,12 @@
       "description": "Enable or disable the plugin."
     },
     "pylsp.rope.extensionModules": {
-      "type": "string",
+      "type": ["null", "string"],
       "default": null,
       "description": "Builtin and c-extension modules that are allowed to be imported and inspected by rope."
     },
     "pylsp.rope.ropeFolder": {
-      "type": "array",
+      "type": ["null", "array"],
       "default": null,
       "items": {
         "type": "string"

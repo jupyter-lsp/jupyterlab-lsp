@@ -20,6 +20,7 @@ import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { COMPLETION_THEME_MANAGER } from '@krassowski/completion-theme';
 import { plugin as THEME_MATERIAL } from '@krassowski/theme-material';
 import { plugin as THEME_VSCODE } from '@krassowski/theme-vscode';
+import { JSONExt } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 
 import '../style/index.css';
@@ -196,6 +197,62 @@ export class LSPExtension implements ILSPExtension {
     }
 
     this.feature_manager = new FeatureManager();
+    let canonical: ISettingRegistry.ISchema | null;
+    type ValueOf<T> = T[keyof T];
+    type ServerSchemaWrapper = ValueOf<
+      Required<LanguageServer>['language_servers']
+    >;
+    /**
+     * Populate the plugin's schema defaults.
+     */
+    let populate = (schema: ISettingRegistry.ISchema) => {
+      const baseServerSchema = (schema.definitions as any)[
+        'language-server'
+      ] as {
+        description: string;
+        title: string;
+        properties: ServerSchemaWrapper;
+      };
+
+      const knownServersConfig: Record<string, any> = {};
+      for (let [
+        serverKey,
+        serverSpec
+      ] of this.language_server_manager.specs.entries()) {
+        if ((serverKey as string) === '') {
+          this.console.warn(
+            'Empty server key - skipping transformation for',
+            serverSpec
+          );
+          continue;
+        }
+        const configSchema = serverSpec.config_schema;
+        if (!configSchema) {
+          this.console.warn(
+            'No config schema - skipping transformation for',
+            serverKey
+          );
+          continue;
+        }
+        if (!configSchema.properties) {
+          this.console.warn(
+            'No properites in config schema - skipping transformation for',
+            serverKey
+          );
+          continue;
+        }
+        const schema = JSONExt.deepCopy(baseServerSchema);
+        schema.title = trans.__('%1 settings', serverSpec.display_name);
+        schema.properties.serverSettings = configSchema;
+        knownServersConfig[serverKey] = schema;
+      }
+      schema.properties!.language_servers.properties = knownServersConfig;
+    };
+
+    this.language_server_manager.sessionsChanged.connect(async () => {
+      canonical = null;
+      await this.setting_registry.reload(plugin.id);
+    });
 
     this.setting_registry
       .load(plugin.id)
@@ -220,6 +277,24 @@ export class LSPExtension implements ILSPExtension {
       .catch((reason: Error) => {
         console.error(reason.message);
       });
+
+    // Transform the plugin object to return different schema than the default.
+    this.setting_registry.transform(plugin.id, {
+      fetch: plugin => {
+        // Only override the canonical schema the first time.
+        if (!canonical) {
+          canonical = JSONExt.deepCopy(plugin.schema);
+          populate(canonical);
+        }
+        return {
+          data: plugin.data,
+          id: plugin.id,
+          raw: plugin.raw,
+          schema: canonical,
+          version: plugin.version
+        };
+      }
+    });
 
     adapterManager.registerExtension(this);
   }
