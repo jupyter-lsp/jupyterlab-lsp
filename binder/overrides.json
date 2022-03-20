@@ -8,7 +8,8 @@
       },
       "texlab": {
         "serverSettings": {
-          "latex.lint.onChange": true
+          "chktex.onOpenAndSave": true,
+          "chktex.onEdit": true
         }
       },
       "pyright": {
