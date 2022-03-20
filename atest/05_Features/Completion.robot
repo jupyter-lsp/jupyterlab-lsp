@@ -76,10 +76,13 @@ Invalidates On Focus Loss
     Enter Cell Editor    1    line=2
 
 Uses LSP Completions When Kernel Resoponse Times Out
-    Configure JupyterLab Plugin    {"kernelResponseTimeout": 1, "waitForBusyKernel": true}    plugin id=${COMPLETION PLUGIN ID}
+    [Tags]    requires:busy-indicator
+    Configure JupyterLab Plugin    {"kernelResponseTimeout": 1, "waitForBusyKernel": true}
+    ...    plugin id=${COMPLETION PLUGIN ID}
     Should Complete While Kernel Is Busy
 
 Uses LSP Completions When Kernel Is Busy
+    [Tags]    requires:busy-indicator
     [Documentation]    When kernel is not available the best thing is to show some suggestions (LSP) rather than none.
     Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
     Should Complete While Kernel Is Busy
@@ -207,12 +210,12 @@ Kernel And LSP Completions Merge Prefix Conflicts Are Resolved
     [Documentation]    Reconciliate Python kernel returning prefixed completions and LSP (pylsp) not-prefixed ones
     Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}    plugin id=${COMPLETION PLUGIN ID}
     # For more details see: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/30#issuecomment-576003987
-    # `import os.pat<tab>` → `import os.pathsep`
+    # `import os.pat<tab>` → `import os.path`
     Enter Cell Editor    15    line=1
     Trigger Completer
-    Completer Should Suggest    pathsep
-    Select Completer Suggestion    pathsep
-    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    15    import os.pathsep
+    Completer Should Suggest    path
+    Select Completer Suggestion    path
+    Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    15    import os.path
 
 Triggers Completer On Dot
     Enter Cell Editor    2    line=1
