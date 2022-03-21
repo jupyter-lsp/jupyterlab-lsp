@@ -4,7 +4,7 @@
   "properties": {
     "yamlVersion": {
       "type": "string",
-      "default": ["1.2"],
+      "default": "1.2",
       "description": "Set default YAML spec version (1.2 or 1.1)"
     },
     "yaml.trace.server": {
