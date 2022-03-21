@@ -1,6 +1,7 @@
 {
   "title": "Docker language server confiuguration",
   "type": "object",
+  "$comment": "Based on settings of vscode-docker which is distributed under MIT License, Copyright (c) Microsoft Corporation",
   "properties": {
     "docker.defaultRegistryPath": {
       "type": "string",
@@ -322,6 +323,16 @@
       "type": "boolean",
       "default": true,
       "description": "Show a prompt to switch from \"UI\" extension to \"Workspace\" extension if an operation is not supported."
+    },
+    "docker.dockerPath": {
+      "type": "string",
+      "default": "docker",
+      "description": "Absolute path to Docker client executable ('docker' command). If the path contains whitespace, it needs to be quoted appropriately."
+    },
+    "docker.enableDockerComposeLanguageService": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether or not to enable the preview Docker Compose Language Service. Changing requires restart to take effect"
     }
   }
 }
