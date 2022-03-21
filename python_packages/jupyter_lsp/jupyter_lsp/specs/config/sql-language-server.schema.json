@@ -64,13 +64,14 @@
           "ssh": {
             "oneOf": [
               {
-                "title": "disabled",
-                "type": "null"
+                "title": "Disabled",
+                "type": "null",
+                "additionalProperties": false
               },
               {
-                "title": "enabled",
+                "title": "Enabled",
                 "type": "object",
-                "properites": {
+                "properties": {
                   "remoteHost": {
                     "description": "The host address you want to connect to",
                     "type": "string",
@@ -101,7 +102,7 @@
                     "title": "Database port"
                   },
                   "identityFile": {
-                    "description": "",
+                    "description": "Identity file for ssh",
                     "type": "string",
                     "default": "~/.ssh/config/id_rsa",
                     "title": "Identity file"
@@ -111,8 +112,7 @@
                     "type": "string",
                     "title": "Passphrase"
                   }
-                },
-                "required": ["remoteHost"]
+                }
               }
             ],
             "default": null,
