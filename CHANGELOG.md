@@ -1,5 +1,23 @@
 ## Changelog
 
+### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
+
+- bug fixes:
+  - fix navigation to files with names including characters which require encoding ([#758])
+  - fix omissions in the main settings schema for correct rendering in JupyterLab 3.3 Settings Editor UI ([#779])
+- maintenance
+  - make tests pass with new JupyterLab 3.3 ([#777])
+  - pin r-base version to fix Binder ([#766])
+  - pin node-gyp to fix CI on Windows ([#772])
+  - pin pytest-flake8 to fix CI
+  - update development/testing environment dependencies: urijs, typedoc, url-parse
+
+[#758]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/758
+[#766]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/766
+[#772]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/772
+[#777]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/777
+[#779]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/779
+
 ### `@krassowski/jupyterlab-lsp 3.10.0` (2022-01-01)
 
 - features:
