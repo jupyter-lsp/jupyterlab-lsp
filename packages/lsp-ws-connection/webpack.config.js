@@ -5,19 +5,6 @@ module.exports = {
   entry: {
     index: './lib/index.js'
   },
-  devtool: 'sourcemap',
-  module: {
-    rules: [
-      {
-        test: /\.js$/,
-        use: ['source-map-loader'],
-        enforce: 'pre',
-        // eslint-disable-next-line no-undef
-        exclude: /node_modules/
-      },
-      { test: /\.js.map$/, use: 'file-loader' }
-    ]
-  },
   resolve: {
     extensions: ['.js']
   },

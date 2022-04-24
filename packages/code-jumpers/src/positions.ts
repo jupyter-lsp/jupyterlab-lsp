@@ -6,14 +6,15 @@ export interface ILocalPosition {
    */
   token: CodeEditor.IToken;
   /**
-   * Optional number identifying the cell in a notebook
+   * Optional number identifying the cell in a notebook.
+   * 0 in widgets with single editor
    */
-  index?: number;
+  index: number;
 }
 
 export interface IGlobalPosition {
   /**
-   * In notebooks, the index of the target editor
+   * In notebooks, the index of the target editor; 0 in widgets with single editor.
    */
   editor_index: number;
 

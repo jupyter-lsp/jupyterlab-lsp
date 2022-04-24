@@ -1,6 +1,15 @@
 const func = require('@jupyterlab/testutils/lib/jest-config');
 const upstream = func('jupyterlab-lsp', __dirname);
 
+const esModules = [
+  '@jupyterlab/',
+  '@retrolab/',
+  'lib0',
+  'y\\-protocols',
+  'y\\-websocket',
+  'yjs'
+].join('|');
+
 const reuseFromUpstream = [
   'moduleFileExtensions',
   'moduleNameMapper',
@@ -17,7 +26,7 @@ let local = {
     '\\.(js|jsx)?$': './transform.js',
     '\\.svg$': 'jest-raw-loader'
   },
-  transformIgnorePatterns: ['/node_modules/(?!(@jupyterlab/.*|@retrolab/.*)/)'],
+  transformIgnorePatterns: [`/node_modules/(?!${esModules}).+`],
   testLocationInResults: true,
   reporters: [...upstream['reporters'], 'jest-github-actions-reporter']
 };

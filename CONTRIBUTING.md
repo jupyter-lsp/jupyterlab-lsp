@@ -31,11 +31,11 @@ Thank you for all your contributions :heart:
 
 Development requires, at a minimum:
 
-- `nodejs >=12,<15`
-- `python >=3.6,<3.9.0a0`
-  - Python 3.7 and 3.8 are also tested on CI
-  - Python 3.6 has issues on Windows
-- `jupyterlab >=3.0.0,<4.0.0a0`
+- `nodejs >=12,!=13,!=15,<17`
+- `python >=3.7,<3.11.0a0`
+  - Python 3.7 and 3.10 are fully tested on CI
+  - Python 3.7 to 3.10 and PyPy 3 are verified to at least install and import
+- `jupyterlab >=3.1.0,<4.0.0a0`
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
 for development.
@@ -317,6 +317,8 @@ python scripts/combine.py
   export FIREFOX_BINARY=/path/to/firefox      # ... unix
   set FIREFOX_BINARY=C:\path\to\firefox.exe   # ... windows
   ```
+
+- If you see `Element ... could not be scrolled into view` in the `Open Context Menu for File` step check if you have an alternative file browser installed (such as `jupyterlab-unfold`) which might interfere with testing (it is recommended to run the tests in an separated environment)
 
 ### Formatting
 

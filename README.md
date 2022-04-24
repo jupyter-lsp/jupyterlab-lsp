@@ -28,9 +28,9 @@ over the underlined code to see a more detailed message
 
 ![inspections](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/master/examples/screenshots/inspections.png)
 
-### Jump to Definition
+### Jump to Definition and References
 
-Use the context menu entry, or <kbd>Alt</kbd> + :computer_mouse: to jump to definitions (you can change it to <kbd>Ctrl</kbd>/<kbd>⌘</kbd> in settings); use <kbd>Alt</kbd> + <kbd>o</kbd> to jump back
+Use the context menu entry, or <kbd>Alt</kbd> + :computer_mouse: to jump to definitions/references (you can change it to <kbd>Ctrl</kbd>/<kbd>⌘</kbd> in settings); use <kbd>Alt</kbd> + <kbd>o</kbd> to jump back.
 
 ![jump](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/master/examples/screenshots/jump_to_definition.png)
 
@@ -90,8 +90,8 @@ Use context menu on rows in the panel to filter out diagnostics or copy their me
 
 You will need to have both of the following installed:
 
-- JupyterLab >=3.0.0,<4.0.0a0
-- Python 3.6+
+- JupyterLab >=3.1.0,<4.0.0a0
+- Python 3.7+
 
 In addition, if you wish to use javascript, html, markdown or any other NodeJS-based language server you will need to have appropriate NodeJS version installed.
 
@@ -159,6 +159,11 @@ Use of a python `virtualenv` or a conda env is also recommended.
    ```
 
    Please report any regressions [here](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/272).
+
+1. Restart JupyterLab
+
+   If JupyterLab is running when you installed the extension, a restart is required
+   for the server extension and any language servers to be recognized by JupyterLab.
 
 1. (Optional, IPython users only) to improve the performance of autocompletion,
    disable Jedi in IPython (the LSP servers for Python use Jedi too).

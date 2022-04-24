@@ -33,13 +33,14 @@ export interface IEditorDiagnostic {
 }
 
 export const DIAGNOSTICS_LISTING_CLASS = 'lsp-diagnostics-listing';
+const DIAGNOSTICS_PLACEHOLDER_CLASS = 'lsp-diagnostics-placeholder';
 
 export class DiagnosticsDatabase extends Map<
   VirtualDocument,
   IEditorDiagnostic[]
 > {
   get all(): Array<IEditorDiagnostic> {
-    return [].concat.apply([], this.values());
+    return [].concat.apply([], this.values() as any);
   }
 }
 
@@ -119,7 +120,8 @@ function SortableTH(props: {
     <th
       key={props.id}
       onClick={() => props.listing.sort(props.id)}
-      className={is_sort_key ? 'lsp-sorted-header' : null}
+      className={is_sort_key ? 'lsp-sorted-header' : undefined}
+      data-id={props.id}
     >
       <div>
         <label>{props.label}</label>
@@ -211,28 +213,42 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
             <td key={3}>{this.severityTranslations[severity] || severity}</td>
           );
         },
-        sort: (a, b) =>
-          a.data.diagnostic.severity > b.data.diagnostic.severity ? 1 : -1
+        sort: (a, b) => {
+          if (!a.data.diagnostic.severity) {
+            return +1;
+          }
+          if (!b.data.diagnostic.severity) {
+            return -1;
+          }
+          return a.data.diagnostic.severity > b.data.diagnostic.severity
+            ? 1
+            : -1;
+        }
       }),
       new Column({
         id: 'Source',
         label: this.trans.__('Source'),
         render_cell: row => <td key={4}>{row.data.diagnostic.source}</td>,
-        sort: (a, b) =>
-          a.data.diagnostic.source.localeCompare(b.data.diagnostic.source)
+        sort: (a, b) => {
+          if (!a.data.diagnostic.source) {
+            return +1;
+          }
+          if (!b.data.diagnostic.source) {
+            return -1;
+          }
+          return a.data.diagnostic.source.localeCompare(
+            b.data.diagnostic.source
+          );
+        }
       }),
       new Column({
         id: 'Cell',
         label: this.trans.__('Cell'),
         render_cell: row => <td key={5}>{row.cell_number}</td>,
         sort: (a, b) =>
-          a.cell_number > b.cell_number
-            ? 1
-            : a.data.range.start.line > b.data.range.start.line
-            ? 1
-            : a.data.range.start.ch > b.data.range.start.ch
-            ? 1
-            : -1,
+          a.cell_number! - b.cell_number! ||
+          a.data.range.start.line - b.data.range.start.line ||
+          a.data.range.start.ch - b.data.range.start.ch,
         is_available: context => context.adapter.has_multiple_editors
       }),
       new Column({
@@ -244,11 +260,8 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
           </td>
         ),
         sort: (a, b) =>
-          a.data.range.start.line > b.data.range.start.line
-            ? 1
-            : a.data.range.start.ch > b.data.range.start.ch
-            ? 1
-            : -1
+          a.data.range.start.line - b.data.range.start.line ||
+          a.data.range.start.ch - b.data.range.start.ch
       })
     ];
   }
@@ -267,8 +280,19 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
     let diagnostics_db = this.model.diagnostics;
     const editor = this.model.virtual_editor;
     const adapter = this.model.adapter;
-    if (!diagnostics_db || editor == null) {
-      return <div>{this.trans.__('No issues detected, great job!')}</div>;
+    if (diagnostics_db == null || editor == null || !adapter) {
+      return (
+        <div className={DIAGNOSTICS_PLACEHOLDER_CLASS}>
+          {this.trans.__('Diagnostics are not available')}
+        </div>
+      );
+    }
+    if (diagnostics_db.size === 0) {
+      return (
+        <div className={DIAGNOSTICS_PLACEHOLDER_CLASS}>
+          {this.trans.__('No issues detected, great job!')}
+        </div>
+      );
     }
 
     let by_document = Array.from(diagnostics_db).map(
@@ -277,7 +301,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
           return [];
         }
         return diagnostics.map((diagnostic_data, i) => {
-          let cell_number: number = null;
+          let cell_number: number | null = null;
           if (adapter.has_multiple_editors) {
             let { index: cell_id } = editor.find_editor(diagnostic_data.editor);
             cell_number = cell_id + 1;
@@ -292,7 +316,10 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
         });
       }
     );
-    let flattened: IDiagnosticsRow[] = [].concat.apply([], by_document);
+    let flattened: IDiagnosticsRow[] = ([] as IDiagnosticsRow[]).concat.apply(
+      [],
+      by_document
+    );
     this._diagnostics = new Map(flattened.map(row => [row.key, row]));
 
     let sorted_column = this.columns.filter(
@@ -343,7 +370,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
     );
   }
 
-  get_diagnostic(key: string): IDiagnosticsRow {
+  get_diagnostic(key: string): IDiagnosticsRow | undefined {
     if (!this._diagnostics.has(key)) {
       console.warn('Could not find the diagnostics row with key', key);
       return;
@@ -364,9 +391,9 @@ export namespace DiagnosticsListing {
    * A VDomModel for the LSP of current file editor/notebook.
    */
   export class Model extends VDomModel {
-    diagnostics: DiagnosticsDatabase;
-    virtual_editor: CodeMirrorVirtualEditor;
-    adapter: WidgetAdapter<any>;
+    diagnostics: DiagnosticsDatabase | null;
+    virtual_editor: CodeMirrorVirtualEditor | null;
+    adapter: WidgetAdapter<any> | null;
     settings: FeatureSettings<LSPDiagnosticsSettings>;
     status_message: StatusMessage;
     trans: TranslationBundle;

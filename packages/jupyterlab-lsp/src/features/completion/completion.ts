@@ -85,9 +85,9 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
   // TODO: maybe instead of creating it each time, keep a hash map instead?
   protected current_completion_connector: LSPConnector;
   protected current_completion_handler: CompletionHandler;
-  protected current_adapter: WidgetAdapter<IDocumentWidget> = null;
+  protected current_adapter: WidgetAdapter<IDocumentWidget> | null = null;
   protected renderer: LSPCompletionRenderer;
-  private _latestActiveItem: LazyCompletionItem = null;
+  private _latestActiveItem: LazyCompletionItem | null = null;
 
   constructor(
     private app: JupyterFrontEnd,
@@ -130,6 +130,8 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
           this.settings.composite.caseSensitive;
         this.model.settings.includePerfectMatches =
           this.settings.composite.includePerfectMatches;
+        this.model.settings.preFilterMatches =
+          this.settings.composite.preFilterMatches;
       }
     });
   }
@@ -141,7 +143,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     item
       .resolve()
       .then(resolvedCompletionItem => {
-        if (item.self !== this._latestActiveItem.self) {
+        if (item.self !== this._latestActiveItem!.self) {
           return;
         }
         this.set_doc_panel_placeholder(false);
@@ -153,7 +155,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
       .catch(e => {
         // disabling placeholder can remove currently displayed documentation,
         // so only do that if this is really the active item!
-        if (item.self === this._latestActiveItem.self) {
+        if (item.self === this._latestActiveItem!.self) {
           this.set_doc_panel_placeholder(false);
         }
         this.console.warn(e);
@@ -253,7 +255,8 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     // connect the new adapter
     if (this.current_adapter.isConnected) {
       this.connect_completion(this.current_adapter);
-      this.set_connector(adapter, { editor: adapter.activeEditor });
+      // TODO: what to do if adapter.activeEditor was just deleted/there is none because focus shifted?
+      this.set_connector(adapter, { editor: adapter.activeEditor! });
     }
     // connect signals to the new adapter
     this.current_adapter.activeEditorChanged.connect(this.set_connector, this);
@@ -284,7 +287,8 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     completer.addClass('lsp-completer');
     completer.model = new LSPCompleterModel({
       caseSensitive: this.settings.composite.caseSensitive,
-      includePerfectMatches: this.settings.composite.includePerfectMatches
+      includePerfectMatches: this.settings.composite.includePerfectMatches,
+      preFilterMatches: this.settings.composite.preFilterMatches
     });
   }
 
@@ -355,6 +359,10 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     }
 
     const docPanel = completer.node.querySelector(DOC_PANEL_SELECTOR);
+    if (!docPanel) {
+      this.console.warn('Could not find completer panel to refresh');
+      return;
+    }
     docPanel.classList.remove(DOC_PANEL_PLACEHOLDER_CLASS);
 
     if (item.documentation) {
@@ -372,9 +380,13 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     }
   }
 
-  set_doc_panel_placeholder(enable: boolean) {
+  set_doc_panel_placeholder(enable: boolean): void {
     let completer = this.current_completion_handler.completer;
     const docPanel = completer.node.querySelector(DOC_PANEL_SELECTOR);
+    if (!docPanel) {
+      this.console.warn('Could not find completer panel for placeholder');
+      return;
+    }
     if (enable) {
       docPanel.setAttribute('style', '');
       docPanel.classList.add(DOC_PANEL_PLACEHOLDER_CLASS);
@@ -388,18 +400,15 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     adapter: WidgetAdapter<IDocumentWidget>,
     editor: CodeEditor.IEditor
   ) {
-    if (this.current_completion_connector) {
-      delete this.current_completion_connector;
-    }
     this.current_completion_connector = new LSPConnector({
       editor: editor,
       themeManager: this.completionThemeManager,
-      connections: this.current_adapter.connection_manager.connections,
-      virtual_editor: this.current_adapter.virtual_editor,
+      connections: this.current_adapter!.connection_manager.connections,
+      virtual_editor: this.current_adapter!.virtual_editor,
       settings: this.settings,
       labIntegration: this,
       // it might or might not be a notebook panel (if it is not, the sessionContext and session will just be undefined)
-      session: (this.current_adapter.widget as NotebookPanel)?.sessionContext
+      session: (this.current_adapter!.widget as NotebookPanel)?.sessionContext
         ?.session,
       console: this.console
     });

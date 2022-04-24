@@ -26,7 +26,7 @@ interface IFreeTooltipOptions extends Tooltip.IOptions {
   /**
    * Position at which the tooltip should be placed, or null (default) to use the current cursor position.
    */
-  position: CodeEditor.IPosition | null;
+  position: CodeEditor.IPosition | undefined;
   /**
    * HoverBox privilege.
    */
@@ -34,7 +34,7 @@ interface IFreeTooltipOptions extends Tooltip.IOptions {
   /**
    * Alignment with respect to the current token.
    */
-  alignment?: 'start' | 'end' | null;
+  alignment?: 'start' | 'end' | undefined;
   /**
    * default: true; ESC will always hide
    */
@@ -107,7 +107,7 @@ export class FreeTooltip extends Tooltip {
       return;
     }
 
-    let position: CodeEditor.IPosition;
+    let position: CodeEditor.IPosition | undefined;
 
     switch (this.options.alignment) {
       case 'start': {
@@ -165,7 +165,7 @@ export namespace EditorTooltip {
 }
 
 export class EditorTooltipManager {
-  private currentTooltip: FreeTooltip = null;
+  private currentTooltip: FreeTooltip | null = null;
   private currentOptions: EditorTooltip.IOptions | null;
 
   constructor(private rendermime_registry: IRenderMimeRegistry) {}
@@ -175,7 +175,7 @@ export class EditorTooltipManager {
     this.currentOptions = options;
     let { markup, position, adapter } = options;
     let widget = adapter.widget;
-    const bundle =
+    const bundle: { 'text/plain': string } | { 'text/markdown': string } =
       markup.kind === 'plaintext'
         ? { 'text/plain': markup.value }
         : { 'text/markdown': markup.value };
@@ -188,14 +188,16 @@ export class EditorTooltipManager {
       position: PositionConverter.cm_to_ce(position)
     });
     tooltip.addClass(CLASS_NAME);
-    tooltip.addClass(options.className);
+    if (options.className) {
+      tooltip.addClass(options.className);
+    }
     Widget.attach(tooltip, document.body);
     this.currentTooltip = tooltip;
     return tooltip;
   }
 
   get position(): IEditorPosition {
-    return this.currentOptions.position;
+    return this.currentOptions!.position;
   }
 
   isShown(id?: string): boolean {
@@ -203,7 +205,7 @@ export class EditorTooltipManager {
       return false;
     }
     return (
-      this.currentTooltip &&
+      this.currentTooltip !== null &&
       !this.currentTooltip.isDisposed &&
       this.currentTooltip.isVisible
     );
@@ -212,7 +214,7 @@ export class EditorTooltipManager {
   remove() {
     if (this.currentTooltip !== null) {
       this.currentTooltip.dispose();
-      this.currentTooltip = null;
+      this.currentTooltip = null as any;
     }
   }
 }

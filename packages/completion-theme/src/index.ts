@@ -23,7 +23,7 @@ import {
 export class CompletionThemeManager implements ILSPCompletionThemeManager {
   protected current_icons: Map<string, LabIcon>;
   protected themes: Map<string, ICompletionTheme>;
-  private current_theme_id: string;
+  private current_theme_id: string | null = null;
   private icons_cache: Map<string, LabIcon>;
   private icon_overrides: Map<string, CompletionItemKindStrings>;
   private trans: TranslationBundle;
@@ -50,17 +50,17 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     const dark_mode_and_dark_supported =
       !this.is_theme_light() && typeof icons_sets.dark !== 'undefined';
     const set: ICompletionIconSet = dark_mode_and_dark_supported
-      ? icons_sets.dark
+      ? icons_sets.dark!
       : icons_sets.light;
     const icons: Map<keyof ICompletionIconSet, LabIcon> = new Map();
-    let options = this.current_theme.icons.options || {};
+    let options = this.current_theme?.icons?.options || {};
     const mode = this.is_theme_light() ? 'light' : 'dark';
     for (let [completion_kind, svg] of Object.entries(set)) {
       let name =
         'lsp:' + theme.id + '-' + completion_kind.toLowerCase() + '-' + mode;
       let icon: LabIcon;
       if (this.icons_cache.has(name)) {
-        icon = this.icons_cache.get(name);
+        icon = this.icons_cache.get(name)!;
       } else {
         icon = new LabIcon({
           name: name,
@@ -83,19 +83,19 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     this.current_icons = this.get_iconset(this.current_theme);
   }
 
-  get_icon(type: string): LabIcon {
+  get_icon(type: string): LabIcon | null {
     if (this.current_theme === null) {
       return null;
     }
     if (type) {
       if (this.icon_overrides.has(type.toLowerCase())) {
-        type = this.icon_overrides.get(type.toLowerCase());
+        type = this.icon_overrides.get(type.toLowerCase())!;
       }
       type =
         type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
     }
     if (this.current_icons.has(type)) {
-      return this.current_icons.get(type);
+      return this.current_icons.get(type)!;
     }
 
     if (type === KernelKind) {
@@ -112,7 +112,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     if (this.current_theme_id) {
       document.body.classList.remove(this.current_theme_class);
     }
-    if (!this.themes.has(id)) {
+    if (id && !this.themes.has(id)) {
       console.warn(
         `[LSP][Completer] Icons theme ${id} cannot be set yet (it may be loaded later).`
       );
@@ -123,8 +123,8 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   }
 
   protected get current_theme(): ICompletionTheme | null {
-    if (this.themes.has(this.current_theme_id)) {
-      return this.themes.get(this.current_theme_id);
+    if (this.current_theme_id && this.themes.has(this.current_theme_id)) {
+      return this.themes.get(this.current_theme_id)!;
     }
     return null;
   }

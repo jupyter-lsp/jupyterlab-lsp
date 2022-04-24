@@ -30,7 +30,7 @@ export class JumpHistory {
     this.jump_history.push(JSON.stringify(position));
   }
 
-  recollect(): IGlobalPosition {
+  recollect(): IGlobalPosition | undefined {
     this.ensure_history_is_ready();
     if (this.jump_history.length === 0) {
       return;

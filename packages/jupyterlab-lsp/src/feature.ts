@@ -8,6 +8,7 @@ import { Signal } from '@lumino/signaling';
 import { StatusMessage, WidgetAdapter } from './adapters/adapter';
 import { CommandEntryPoint, ICommandContext } from './command_manager';
 import { LSPConnection } from './connection';
+import { ClientCapabilities } from './lsp';
 import { IRootPosition } from './positioning';
 import { VirtualDocument } from './virtual/document';
 import { IEditorChange, IVirtualEditor } from './virtual/editor';
@@ -54,7 +55,7 @@ export interface IFeatureCommand {
 }
 
 export interface IFeatureSettings<T> {
-  readonly composite: T;
+  readonly composite: Required<T>;
   readonly changed: Signal<IFeatureSettings<T>, void>;
   readonly ready?: Promise<void>;
 
@@ -90,8 +91,8 @@ export class FeatureSettings<T> implements IFeatureSettings<T> {
     }
   }
 
-  get composite(): T {
-    return this.settings.composite as unknown as T;
+  get composite(): Required<T> {
+    return this.settings.composite as unknown as Required<T>;
   }
 
   set(setting: keyof T, value: any) {
@@ -123,6 +124,10 @@ export interface IFeature {
     IEditorName,
     IFeatureEditorIntegrationConstructor<IVirtualEditor<IEditor>>
   >;
+  /**
+   * LSP capabilities implemented by the feature.
+   */
+  capabilities?: ClientCapabilities;
   /**
    * Command specification, including context menu placement options.
    */

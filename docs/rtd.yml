@@ -3,22 +3,23 @@ name: jupyterlab-lsp-docs
 
 channels:
   - conda-forge
+  - nodefaults
 
 dependencies:
-  - nodejs >=12,<13
+  - importlib_metadata
+  - jupyterlab >=3.1.0,<4.0.0a0
+  - myst-nb
+  - nodejs >=12,!=13,!=15,<17
+  - pandas
   - pip
-  - python >=3.8,<3.9.0a0
+  - pytest-check-links
+  - python >=3.7,<3.11.0a0
+  - python-graphviz
+  - python-lsp-server
+  - robotframework-lsp
+  - sphinx
+  - sphinx-autodoc-typehints
+  - sphinx-book-theme
+  - sphinx-copybutton
   - pip:
       - -e ../python_packages/jupyter_lsp/
-      - graphviz
-      - importlib_metadata
-      - jupyterlab >=3.0.0,<4.0.0a0
-      - nbsphinx >=0.5.0,<0.5.1a0
-      - pandas
-      - pytest-check-links
-      - myst-nb
-      - python-lsp-server
-      - sphinx
-      - sphinx-autodoc-typehints
-      - sphinx-copybutton
-      - sphinx-book-theme

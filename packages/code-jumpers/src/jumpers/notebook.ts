@@ -19,7 +19,7 @@ export class NotebookJumper extends CodeJumper {
     super();
     this.widget = notebook_widget;
     this.notebook = notebook_widget.content;
-    this.history = new JumpHistory(this.notebook.model.modelDB);
+    this.history = new JumpHistory(this.notebook.model!.modelDB);
     this.document_manager = document_manager;
   }
 
@@ -33,15 +33,15 @@ export class NotebookJumper extends CodeJumper {
     // Prevents event propagation issues
     setTimeout(() => {
       this.notebook.deselectAll();
-      this.notebook.activeCellIndex = index;
+      this.notebook.activeCellIndex = index!;
       _ensureFocus(this.notebook);
       this.notebook.mode = 'edit';
 
       // find out offset for the element
-      let activeEditor = this.notebook.activeCell.editor;
+      let activeEditor = this.notebook.activeCell!.editor;
 
       // place cursor in the line with the definition
-      let position = activeEditor.getPositionAt(token.offset);
+      let position = activeEditor.getPositionAt(token.offset)!;
       activeEditor.setSelection({ start: position, end: position });
     }, 0);
   }

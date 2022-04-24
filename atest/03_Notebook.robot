@@ -1,7 +1,8 @@
 *** Settings ***
-Suite Setup       Setup Suite For Screenshots    notebook
-Test Setup        Try to Close All Tabs
-Resource          Keywords.robot
+Resource        Keywords.resource
+
+Suite Setup     Setup Suite For Screenshots    notebook
+Test Setup      Try to Close All Tabs
 
 *** Test Cases ***
 Python
@@ -47,7 +48,7 @@ Moving Cells Around
 Foreign Extractors
     ${file} =    Set Variable    Foreign extractors.ipynb
     Configure JupyterLab Plugin
-    ...    {"language_servers": {"texlab": {"serverSettings": {"latex.lint.onChange": true}}, "bash-langauge-server": {"bashIde.highlightParsingErrors": true}}, "pylsp": {"priority": 1000}}
+    ...    {"language_servers": {"texlab": {"serverSettings": {"chktex.onOpenAndSave": true}}, "bash-langauge-server": {"bashIde.highlightParsingErrors": true}}, "pylsp": {"priority": 1000}}
     Capture Page Screenshot    10-configured.png
     Reset Application State
     Setup Notebook    Python    ${file}
@@ -70,7 +71,8 @@ Code Overrides
     Wait Until Created    ${virtual_path}
     Wait Until Keyword Succeeds    10x    1s    File Should Not Be Empty    ${virtual_path}
     ${document} =    Get File    ${virtual_path}
-    Should Be Equal    ${document}    get_ipython().run_line_magic("ls", "")\n\n\nget_ipython().run_line_magic("pip", " freeze")\n
+    Should Be Equal    ${document}
+    ...    get_ipython().run_line_magic("ls", "")\n\n\nget_ipython().run_line_magic("pip", " freeze")\n
     [Teardown]    Clean Up After Working With File    Code overrides.ipynb
 
 Adding Text To Cells Is Reflected In Virtual Document

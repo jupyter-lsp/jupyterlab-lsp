@@ -6,7 +6,6 @@
   "type": "object",
   "definitions": {
     "language-server": {
-      "title": "Language Server",
       "description": "Client and server configurations for a single language server",
       "type": "object",
       "default": {},
@@ -15,7 +14,8 @@
           "title": "Language Server Configurations",
           "description": "Configuration to be sent to language server over LSP when initialized: see the specific language server's documentation for more",
           "type": "object",
-          "default": {}
+          "default": {},
+          "additionalProperties": true
         },
         "priority": {
           "title": "Priority of the server",

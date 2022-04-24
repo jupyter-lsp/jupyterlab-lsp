@@ -1,11 +1,102 @@
 ## Changelog
 
-### `@krassowski/jupyterlab-lsp 3.10.0` (unreleased)
+### `@krassowski/jupyterlab-lsp 3.10.2` (unreleased)
 
 - improvements:
   - add support for language servers that can (only) communicate through TCP rather than stdio (there is no support yet for servers already running on another machine and/or port) [(#636)]
 
 [#636]: https://github.com/krassowski/jupyterlab-lsp/pull/636
+
+### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
+
+- bug fixes:
+  - fix navigation to files with names including characters which require encoding ([#758])
+  - fix omissions in the main settings schema for correct rendering in JupyterLab 3.3 Settings Editor UI ([#779])
+- maintenance
+  - make tests pass with new JupyterLab 3.3 ([#777])
+  - pin r-base version to fix Binder ([#766])
+  - pin node-gyp to fix CI on Windows ([#772])
+  - pin pytest-flake8 to fix CI
+  - update development/testing environment dependencies: urijs, typedoc, url-parse
+
+[#758]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/758
+[#766]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/766
+[#772]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/772
+[#777]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/777
+[#779]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/779
+
+### `@krassowski/jupyterlab-lsp 3.10.0` (2022-01-01)
+
+- features:
+  - enable pre-filtering of completion matches by default ([#735])
+  - add support for diagnostic tags: Deprecated, Unnecessary ([#736], [#737])
+- bug fixes:
+  - squash warnings and errors in web console ([#732])
+  - fix signature blur and fix formatting when no arguments are present ([#734])
+  - fixed with enabling of strict null checks:
+    - previously changing kernels always led to restarting of LSP connection, even if the kernel language did not change; now the connection will be retained if possible
+    - `markdownRenderer` is no longer implicitly required
+    - diagnostics sorting with missing values for `source` and `severity` was improved and missing values will be consistently shown at the end
+    - diagnostics placeholder was split into `Diagnostics are not available` and `No issues detected, great job!` which will now show up properly
+- maintenance:
+  - enable strict null checks and other strict settings ([#733])
+  - specify client capabilities in features instead of hard-coding them ([#738])
+  - bump minimum required JupyterLab version to 3.1 (`>=3.1.0,<4.0.0a0`)
+
+[#732]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/732
+[#733]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/733
+[#734]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/734
+[#735]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/735
+[#736]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/736
+[#737]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/737
+[#738]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/738
+
+### `@krassowski/code-jumpers 1.2.0` (2022-01-01)
+
+- maintenance:
+  - updates to API with respect to `null`/`undefined` values in course strict null checks activation ([#733])
+
+### `@krassowski/jupyterlab-lsp 3.9.3` (2021-12-19)
+
+- bug fixes:
+  - workaround upstream issue in merging translation ([#726], thanks @fcollonval)
+
+[#726]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/726
+
+### `@krassowski/jupyterlab-lsp 3.9.2` (2021-12-12)
+
+- bug fixes:
+  - prevent very long completion details text from extending the completer indefinitely ([#698])
+  - correct status translations ([#700], thanks @fcollonval)
+  - fix translations in status pop-up ([#703])
+  - workaround issue causing file rename when opening external files by jumping to them ([#712], thanks @jepcor97)
+  - fix sorting by "Line:Ch" and "Cell" in Diagnostics Panel ([#717])
+  - fix header border missing when scrolling in Diagnostics Panel ([#717])
+- documentation improvements:
+  - clarify that JupyterLab restart is needed after installation ([#714], thanks @3coins)
+
+[#698]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/698
+[#700]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/700
+[#703]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/703
+[#712]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/712
+[#714]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/714
+[#717]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/717
+
+### `@krassowski/completion-theme 3.2.0` (2021-12-12)
+
+- features:
+  - add `details-below` layout allowing to change the completer arrangement ([#698])
+
+### `jupyter-lsp 1.5.1` (2021-12-12)
+
+- documentation improvements:
+  - document troubleshooting steps for `texlab` server([#702])
+- maintenance and upkeep:
+  - migrate test configuration to `ServerApp` as needed ([#713])
+  - address deprecation warnings ([#713])
+
+[#702]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/702
+[#713]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/713
 
 ### `@krassowski/jupyterlab-lsp 3.9.1` (2021-10-24)
 
@@ -18,7 +109,7 @@
 
 - features:
   - add support for new `typescript-language-server` replacing `javascript-typescript-langserver`;
-    despite the name both packages provide support for all four: JavaScrip, JSX, TypeScript and TSX;
+    despite the name both packages provide support for all four: JavaScript, JSX, TypeScript and TSX;
     the old `javascript-typescript-langserver` can still be used, but it is no longer maintained
     and we will not be supported, and specs may be removed in the next major release ([#697]).
 
