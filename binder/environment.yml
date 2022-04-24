@@ -6,12 +6,12 @@ channels:
 
 dependencies:
   # runtime dependencies
-  - python >=3.6,<3.9.0a0
-  - jupyterlab >=3.0.0,<4.0.0a0
+  - python >=3.7,<3.11.0a0
+  - jupyterlab >=3.1.0,<4.0.0a0
   - jupyter_server >=1.1.2
-  - retrolab >=0.2.0,<0.3
+  - retrolab >=0.3.0,<0.4
   # build dependencies
-  - nodejs >=12,<15
+  - nodejs >=12,!=13,!=15,<17
   # for python language server (and development)
   - flake8 >=3.5
   - pip
@@ -26,6 +26,8 @@ dependencies:
   - ruamel_yaml
   # for R language server and kernel
   - r
+  # workaround for https://github.com/jupyterhub/repo2docker/issues/1140
+  - r-base=4.0
   - r-irkernel
   - r-languageserver
   - rpy2
@@ -33,3 +35,8 @@ dependencies:
   - tectonic
   - texlab
   - chktex
+  # robotframework
+  - jupyterlab_robotmode
+  - robotframework-lsp
+  - robotframework-robocop
+  - robotkernel

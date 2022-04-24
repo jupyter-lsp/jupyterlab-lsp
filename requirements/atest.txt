@@ -2,4 +2,6 @@
 -r ./lab.txt
 bs4
 robotframework >=4
+robotframework-lsp
 robotframework-seleniumlibrary
+robotkernel

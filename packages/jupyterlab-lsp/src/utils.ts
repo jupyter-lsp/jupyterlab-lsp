@@ -103,7 +103,7 @@ export class DefaultMap<K, V> extends Map<K, V> {
 
   get_or_create(k: K, ...args: any[]): V {
     if (this.has(k)) {
-      return super.get(k);
+      return super.get(k)!;
     } else {
       let v = this.default_factory(k, ...args);
       this.set(k, v);
@@ -155,7 +155,8 @@ export function uri_to_contents_path(child: string, parent?: string) {
     return null;
   }
   if (child.startsWith(parent)) {
-    return decodeURI(child.replace(parent, ''));
+    // 'decodeURIComponent' is needed over 'decodeURI' for '@' in TS/JS paths
+    return decodeURIComponent(child.replace(parent, ''));
   }
   return null;
 }

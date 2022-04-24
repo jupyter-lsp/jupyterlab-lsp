@@ -10,12 +10,17 @@ dependencies:
   - pip
   - nodejs {nodejs}
   # for python language server (and development)
+  - python-lsp-server
   - flake8 >=3.5
-  # temporarily pin autopep8
   - autopep8 <1.6.0
+  # robotframework for testing and language server
+  - jupyterlab_robotmode
+  - robotframework >=4
+  - robotframework-lsp
+  - robotframework-robocop
+  - robotkernel
   # for R language server and kernel
-  # TODO: try r 4.0 soon
-  - r <4
+  - r {r}
   - r-irkernel
   - r-languageserver
   - r-stringi >=1.4.6
@@ -27,7 +32,9 @@ dependencies:
   # test tools
   - pytest-asyncio
   - pytest-cov
-  - pytest-flake8
+  # see https://github.com/conda-forge/pytest-flake8-feedstock/issues/20
+  # and https://github.com/tholo/pytest-flake8/issues/86
+  - pytest-flake8 <1.1.1
   - pytest-runner
   - ruamel_yaml
   - pytest-github-actions-annotate-failures
@@ -35,6 +42,4 @@ dependencies:
   - bs4
   - firefox
   - geckodriver
-  - robotframework >=4
   - robotframework-seleniumlibrary
-  - python-lsp-server

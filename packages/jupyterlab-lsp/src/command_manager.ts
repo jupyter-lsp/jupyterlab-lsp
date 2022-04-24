@@ -6,7 +6,7 @@ import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { WidgetAdapter } from './adapters/adapter';
 import { LSPConnection } from './connection';
 import { IFeatureCommand, IFeatureEditorIntegration } from './feature';
-import { IRootPosition, IVirtualPosition } from './positioning';
+import { IRootPosition, IVirtualPosition, PositionError } from './positioning';
 import { ILSPAdapterManager, ILSPLogConsole } from './tokens';
 import { VirtualDocument } from './virtual/document';
 import { IVirtualEditor } from './virtual/editor';
@@ -138,7 +138,7 @@ export class ContextCommandManager extends LSPCommandManager {
     this.app.contextMenu.addItem({
       type: 'separator',
       selector: this.selector,
-      rank: this.rank_group + position_in_group
+      rank: (this.rank_group ?? 0) + position_in_group
     });
   }
 
@@ -171,7 +171,7 @@ export class ContextCommandManager extends LSPCommandManager {
   }
 
   get_context(): ICommandContext | null {
-    let context: ICommandContext = null;
+    let context: ICommandContext | null = null;
     if (this.is_context_menu_open) {
       try {
         context = this.current_adapter.get_context_from_context_menu();
@@ -184,7 +184,17 @@ export class ContextCommandManager extends LSPCommandManager {
       }
     }
     if (context == null) {
-      context = this.current_adapter?.context_from_active_document();
+      try {
+        context = this.current_adapter?.context_from_active_document();
+      } catch (e) {
+        if (e instanceof PositionError) {
+          this.console.log(
+            'Could not get context from active document: it is expected when restoring workspace with open files'
+          );
+        } else {
+          throw e;
+        }
+      }
     }
     return context;
   }
@@ -195,7 +205,8 @@ export class ContextCommandManager extends LSPCommandManager {
       return (
         context != null &&
         this.current_adapter &&
-        context.connection?.isReady &&
+        context.connection != null &&
+        context.connection.isReady &&
         command.is_enabled(context)
       );
     } catch (e) {
@@ -225,7 +236,7 @@ export class ContextCommandManager extends LSPCommandManager {
 export interface ICommandContext {
   app: JupyterFrontEnd;
   document: VirtualDocument;
-  connection: LSPConnection;
+  connection?: LSPConnection;
   virtual_position: IVirtualPosition;
   root_position: IRootPosition;
   features: Map<string, IFeatureEditorIntegration<any>>;

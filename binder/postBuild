@@ -6,18 +6,24 @@ jlpm bootstrap
 
 # Do a dev install of the server side
 pushd python_packages/jupyter_lsp
-python setup.py sdist bdist_wheel
-python -m pip install -e . --ignore-installed --no-deps -vv
-jupyter serverextension enable --sys-prefix --py jupyter_lsp
+    python setup.py sdist bdist_wheel
+    python -m pip install -e . --ignore-installed --no-deps -vv
+    jupyter serverextension enable --sys-prefix --py jupyter_lsp
 popd
 
 # Install the labextension
 pushd python_packages/jupyterlab_lsp
-python setup.py sdist bdist_wheel
-python -m pip install -e . --ignore-installed --no-deps -vv
-jupyter labextension develop . --overwrite
+    python setup.py sdist bdist_wheel
+    python -m pip install -e . --ignore-installed --no-deps -vv
+    jupyter labextension develop . --overwrite
 popd
+
 # List extensions
 jupyter serverextension list
 jupyter server extension list
 jupyter labextension list
+
+if [ "$NB_USER" = "jovyan" ]; then
+    mkdir -p $NB_PYTHON_PREFIX/share/jupyter/lab/settings/
+    cp binder/overrides.json $NB_PYTHON_PREFIX/share/jupyter/lab/settings/
+fi

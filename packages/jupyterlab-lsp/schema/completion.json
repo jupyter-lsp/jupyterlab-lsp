@@ -42,8 +42,13 @@
       "description": "The time to wait for the kernel completions suggestions in milliseconds. Set to 0 to disable kernel completions, or to -1 to wait indefinitely (not recommended)."
     },
     "disableCompletionsFrom": {
+      "title": "Disable completions by source",
       "description": "The sources from which to exclude completion from. Possible values include 'Kernel', 'LSP'.",
       "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["Kernel", "LSP"]
+      },
       "default": [],
       "uniqueItems": true
     },
@@ -62,6 +67,7 @@
     "kernelCompletionsFirst": {
       "title": "Prioritize completions from kernel",
       "default": false,
+      "type": "boolean",
       "description": "In case of ties when sorting completions, should the kernel completions receive higher priority than the language server completions?"
     },
     "caseSensitive": {
@@ -75,6 +81,12 @@
       "default": true,
       "type": "boolean",
       "description": "Should perfect matches be included in the completion suggestions list?"
+    },
+    "preFilterMatches": {
+      "title": "Pre-filter matches",
+      "default": true,
+      "type": "boolean",
+      "description": "Should matches be pre-filtered to ensure typed token is a prefix of the match?"
     },
     "labelExtra": {
       "title": "Text to display next to completion label",
@@ -104,38 +116,36 @@
         "undefinitializer": "Constant",
         "base.devnull": "Constant"
       },
-      "patternProperties": {
-        "^.*$": {
-          "type": "string",
-          "enum": [
-            "Kernel",
-            "Text",
-            "Method",
-            "Function",
-            "Constructor",
-            "Field",
-            "Variable",
-            "Class",
-            "Interface",
-            "Module",
-            "Property",
-            "Unit",
-            "Value",
-            "Enum",
-            "Keyword",
-            "Snippet",
-            "Color",
-            "File",
-            "Reference",
-            "Folder",
-            "EnumMember",
-            "Constant",
-            "Struct",
-            "Event",
-            "Operator",
-            "TypeParameter"
-          ]
-        }
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "Kernel",
+          "Text",
+          "Method",
+          "Function",
+          "Constructor",
+          "Field",
+          "Variable",
+          "Class",
+          "Interface",
+          "Module",
+          "Property",
+          "Unit",
+          "Value",
+          "Enum",
+          "Keyword",
+          "Snippet",
+          "Color",
+          "File",
+          "Reference",
+          "Folder",
+          "EnumMember",
+          "Constant",
+          "Struct",
+          "Event",
+          "Operator",
+          "TypeParameter"
+        ]
       }
     },
     "disable": {

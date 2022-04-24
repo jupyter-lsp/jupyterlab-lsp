@@ -19,10 +19,12 @@ import type * as rpc from 'vscode-jsonrpc';
 import type * as lsp from 'vscode-languageserver-protocol';
 import type { MessageConnection } from 'vscode-ws-jsonrpc';
 
+import { ClientCapabilities } from './lsp';
 import { ILSPLogConsole } from './tokens';
 import { until_ready } from './utils';
 
 interface ILSPOptions extends ILspOptions {
+  capabilities: ClientCapabilities;
   serverIdentifier?: string;
   console: ILSPLogConsole;
 }
@@ -127,10 +129,10 @@ export interface IClientResult {
   [Method.ClientRequest.DEFINITION]: AnyLocation;
   [Method.ClientRequest.DOCUMENT_HIGHLIGHT]: lsp.DocumentHighlight[];
   [Method.ClientRequest.DOCUMENT_SYMBOL]: lsp.DocumentSymbol[];
-  [Method.ClientRequest.HOVER]: lsp.Hover;
+  [Method.ClientRequest.HOVER]: lsp.Hover | null;
   [Method.ClientRequest.IMPLEMENTATION]: AnyLocation;
   [Method.ClientRequest.INITIALIZE]: lsp.InitializeResult;
-  [Method.ClientRequest.REFERENCES]: Location[];
+  [Method.ClientRequest.REFERENCES]: lsp.Location[] | null;
   [Method.ClientRequest.RENAME]: lsp.WorkspaceEdit;
   [Method.ClientRequest.SIGNATURE_HELP]: lsp.SignatureHelp;
   [Method.ClientRequest.TYPE_DEFINITION]: AnyLocation;
@@ -213,10 +215,12 @@ class ServerRequestHandler<
   T extends keyof IServerRequestParams = keyof IServerRequestParams
 > implements IServerRequestHandler
 {
-  private _handler: (
-    params: IServerRequestParams[T],
-    connection?: LSPConnection
-  ) => Promise<IServerResult[T]>;
+  private _handler:
+    | ((
+        params: IServerRequestParams[T],
+        connection?: LSPConnection
+      ) => Promise<IServerResult[T]>)
+    | null;
 
   constructor(
     protected connection: MessageConnection,
@@ -228,13 +232,15 @@ class ServerRequestHandler<
     this._handler = null;
   }
 
-  private handle(request: IServerRequestParams[T]): Promise<IServerResult[T]> {
+  private handle(
+    request: IServerRequestParams[T]
+  ): Promise<IServerResult[T] | undefined> {
     this.emitter.log(MessageKind.server_requested, {
       method: this.method,
       message: request
     });
     if (!this._handler) {
-      return;
+      return new Promise(() => undefined);
     }
     return this._handler(request, this.emitter).then(result => {
       this.emitter.log(MessageKind.response_for_server, {
@@ -324,13 +330,14 @@ interface IMessageLog<T extends AnyMethod = AnyMethod> {
 
 export class LSPConnection extends LspWsConnection {
   protected documentsToOpen: IDocumentInfo[];
-  public serverIdentifier: string;
+  public serverIdentifier?: string;
 
   public clientNotifications: ClientNotifications;
   public serverNotifications: ServerNotifications;
   public clientRequests: ClientRequests;
   public serverRequests: ServerRequests;
   protected console: ILSPLogConsole;
+  private _options: ILSPOptions;
   public logAllCommunication: boolean;
 
   public log(kind: MessageKind, message: IMessageLog) {
@@ -374,8 +381,9 @@ export class LSPConnection extends LspWsConnection {
 
   constructor(options: ILSPOptions) {
     super(options);
+    this._options = options;
     this.logAllCommunication = false;
-    this.serverIdentifier = options?.serverIdentifier;
+    this.serverIdentifier = options.serverIdentifier;
     this.console = options.console.scope(this.serverIdentifier + ' connection');
     this.documentsToOpen = [];
     this.clientNotifications =
@@ -386,6 +394,23 @@ export class LSPConnection extends LspWsConnection {
       this.constructNotificationHandlers<ServerNotifications>(
         Method.ServerNotification
       );
+  }
+
+  /**
+   * Initialization parameters to be sent to the language server.
+   * Subclasses can overload this when adding more features.
+   */
+  protected initializeParams(): lsp.InitializeParams {
+    return {
+      ...super.initializeParams(),
+      // TODO: remove as `lsp.ClientCapabilities` after upgrading to 3.17
+      // which should finally include a fix for moniker issue:
+      // https://github.com/microsoft/vscode-languageserver-node/pull/720
+      capabilities: this._options.capabilities as lsp.ClientCapabilities,
+      initializationOptions: null,
+      processId: null,
+      workspaceFolders: null
+    };
   }
 
   sendOpenWhenReady(documentInfo: IDocumentInfo) {
@@ -400,7 +425,7 @@ export class LSPConnection extends LspWsConnection {
     this.afterInitialized();
     super.onServerInitialized(params);
     while (this.documentsToOpen.length) {
-      this.sendOpen(this.documentsToOpen.pop());
+      this.sendOpen(this.documentsToOpen.pop()!);
     }
   }
 
@@ -443,12 +468,19 @@ export class LSPConnection extends LspWsConnection {
         params.registrations.forEach(
           (capabilityRegistration: lsp.Registration) => {
             try {
-              this.serverCapabilities = registerServerCapability(
+              const updatedCapabilities = registerServerCapability(
                 this.serverCapabilities,
                 capabilityRegistration
               );
+              if (updatedCapabilities === null) {
+                this.console.error(
+                  `Failed to register server capability: ${capabilityRegistration}`
+                );
+                return;
+              }
+              this.serverCapabilities = updatedCapabilities;
             } catch (err) {
-              console.error(err);
+              this.console.error(err);
             }
           }
         );
@@ -512,9 +544,9 @@ export class LSPConnection extends LspWsConnection {
     documentInfo: IDocumentInfo,
     newName: string,
     emit = true
-  ): Promise<lsp.WorkspaceEdit> {
+  ): Promise<lsp.WorkspaceEdit | null> {
     if (!this.isReady || !this.isRenameSupported()) {
-      return;
+      return null;
     }
 
     const params: lsp.RenameParams = {
@@ -608,6 +640,8 @@ export class LSPConnection extends LspWsConnection {
    * @deprecated The method should not be used in new code
    */
   public isCompletionResolveProvider(): boolean {
-    return this.serverCapabilities?.completionProvider?.resolveProvider;
+    return (
+      this.serverCapabilities?.completionProvider?.resolveProvider || false
+    );
   }
 }
