@@ -113,9 +113,9 @@ Use of a python `virtualenv` or a conda env is also recommended.
 1. install JupyterLab and the extensions
 
    ```bash
-   conda install -c conda-forge 'jupyterlab>=3.0.0,<4.0.0a0' jupyterlab-lsp
+   conda install -c conda-forge jupyterlab-lsp
    # or
-   pip install 'jupyterlab>=3.0.0,<4.0.0a0' jupyterlab-lsp
+   pip install jupyterlab-lsp
    ```
 
    > Note: `jupyterlab-lsp` provides both the server extension and the lab extension.
