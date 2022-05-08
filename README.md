@@ -146,19 +146,8 @@ Use of a python `virtualenv` or a conda env is also recommended.
    [Microsoft list](https://microsoft.github.io/language-server-protocol/implementors/servers/)
    should work after [some additional configuration](./CONTRIBUTING.md#specs).
 
-   Note 1: it is worth visiting the repository of each server you install as
+   Note: it is worth visiting the repository of each server you install as
    many provide additional configuration options.
-
-   Note 2: we are developing an improved (faster autocompletion, added features)
-   version of the `python-language-server`. It is experimental and should
-   not be used in production yet, but will likely benefit individual users
-   You can check it out with:
-
-   ```bash
-   pip install git+https://github.com/krassowski/python-language-server.git@main
-   ```
-
-   Please report any regressions [here](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/272).
 
 1. Restart JupyterLab
 
