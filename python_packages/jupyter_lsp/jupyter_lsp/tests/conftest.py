@@ -1,11 +1,10 @@
 import json
 import pathlib
 import shutil
-from typing import Any, Dict, Union
+from typing import Text
 
 from jupyter_server.serverapp import ServerApp
 from pytest import fixture
-from tornado.concurrent import Future
 from tornado.httputil import HTTPServerRequest
 from tornado.queues import Queue
 from tornado.web import Application
@@ -132,12 +131,9 @@ class MockWebsocketHandler(LanguageServerWebSocketHandler):
         self._messages_wrote = Queue()
         self._ping_sent = False
 
-    def write_message(
-        self, message: Union[bytes, str, Dict[str, Any]], binary: bool = False
-    ) -> Future[None]:
+    def write_message(self, message: Text) -> None:  # type: ignore
         self.log.warning("write_message %s", message)
         self._messages_wrote.put_nowait(message)
-        return Future()
 
     def send_ping(self):
         self._ping_sent = True
