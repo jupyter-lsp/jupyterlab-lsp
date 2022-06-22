@@ -4,9 +4,11 @@ Resource            ../Keywords.resource
 Suite Setup         Setup Server and Browser    server_extension_enabled=${False}
 Suite Teardown      Setup Server and Browser    server_extension_enabled=${True}
 
+
 *** Variables ***
 ${STATUSBAR}    css:div.lsp-statusbar-item
 ${POPOVER}      css:.lsp-popover
+
 
 *** Test Cases ***
 Handles Server Extension Failure

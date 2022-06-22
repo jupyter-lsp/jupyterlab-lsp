@@ -7,6 +7,7 @@ Test Teardown       Clean Up After Working With File    Syntax highlighting.ipyn
 
 Force Tags          feature:syntax_highlighting
 
+
 *** Test Cases ***
 Syntax Highlighting Mode Stays Normal In Normal Cells
     ${mode} =    Get Mode Of A Cell    1
@@ -37,6 +38,7 @@ Highlighting Mode Changes Back And Forth After Edits
     Press Keys    None    n
     wait until keyword succeeds    5x    2s    Mode Of A Cell Should Equal    2    markdown
 
+
 *** Keywords ***
 Get Mode Of A Cell
     [Arguments]    ${cell_number}
@@ -44,7 +46,7 @@ Get Mode Of A Cell
     Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_number}) .CodeMirror-focused
     ${mode} =    Execute JavaScript
     ...    return document.querySelector('.jp-Cell:nth-child(${cell_number}) .CodeMirror').CodeMirror.getMode()
-    [Return]    ${mode}
+    RETURN    ${mode}
 
 Setup Highlighting Test
     Setup Notebook    Python    Syntax highlighting.ipynb

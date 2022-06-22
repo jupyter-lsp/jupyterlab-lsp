@@ -6,6 +6,7 @@ Suite Setup     Setup Suite For Screenshots    editor
 
 Force Tags      ui:editor    aspect:ls:features
 
+
 *** Test Cases ***
 Bash
     Editor Shows Features for Language    Bash    example.sh    Diagnostics=Failed to parse expression
@@ -54,8 +55,13 @@ Markdown
 
 Python (pylsp)
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
-    Editor Shows Features for Server    pylsp    Python    example.py    Diagnostics=undefined name 'result' (pyflakes)
-    ...    Jump to Definition=${def}    Rename=${def}
+    Editor Shows Features for Server
+    ...    pylsp
+    ...    Python
+    ...    example.py
+    ...    Diagnostics=undefined name 'result' (pyflakes)
+    ...    Jump to Definition=${def}
+    ...    Rename=${def}
 
 Python (pyright)
     ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
@@ -69,7 +75,8 @@ R
 
 Robot Framework
     [Tags]    gh:332
-    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-keyword')][contains(text(), 'Special Log')])[last()]
+    ${def} =    Set Variable
+    ...    xpath:(//span[contains(@class, 'cm-keyword')][contains(text(), 'Special Log')])[last()]
     Editor Shows Features for Language    Robot Framework    example.robot    Diagnostics=Undefined keyword
     ...    Jump to Definition=${def}
 
@@ -94,6 +101,7 @@ SQL
 
 YAML
     Editor Shows Features for Language    YAML    example.yaml    Diagnostics=Map keys must be unique
+
 
 *** Keywords ***
 Editor Shows Features for Server
@@ -138,7 +146,7 @@ Editor Content Changed
     [Arguments]    ${old_content}
     ${new_content} =    Get Editor Content
     Should Not Be Equal    ${old_content}    ${new_content}
-    [Return]    ${new_content}
+    RETURN    ${new_content}
 
 Editor Should Rename
     [Arguments]    ${symbol}

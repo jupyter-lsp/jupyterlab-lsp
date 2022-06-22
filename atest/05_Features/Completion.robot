@@ -7,10 +7,12 @@ Test Teardown       Clean Up After Working With File    Completion.ipynb
 
 Force Tags          feature:completion
 
+
 *** Variables ***
 ${COMPLETER_BOX}            css:.jp-Completer.jp-HoverBox
 ${DOCUMENTATION_PANEL}      css:.jp-Completer-docpanel
 ${KERNEL_BUSY_INDICATOR}    css:.jp-NotebookPanel-toolbar div[title="Kernel Busy"]
+
 
 *** Test Cases ***
 Works When Kernel Is Idle
@@ -89,8 +91,8 @@ Uses LSP Completions When Kernel Resoponse Times Out
     Should Complete While Kernel Is Busy
 
 Uses LSP Completions When Kernel Is Busy
-    [Tags]    requires:busy-indicator
     [Documentation]    When kernel is not available the best thing is to show some suggestions (LSP) rather than none.
+    [Tags]    requires:busy-indicator
     Configure JupyterLab Plugin    {"kernelResponseTimeout": -1, "waitForBusyKernel": false}
     ...    plugin id=${COMPLETION PLUGIN ID}
     Should Complete While Kernel Is Busy
@@ -357,6 +359,7 @@ Completes Paths In Strings
     Press Keys    None    ENTER
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    26    '../Completion.ipynb'
 
+
 *** Keywords ***
 Setup Completion Test
     Setup Notebook    Python    Completion.ipynb
@@ -365,12 +368,12 @@ Get Cell Editor Content
     [Arguments]    ${cell_nr}
     ${content} =    Execute JavaScript
     ...    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()
-    [Return]    ${content}
+    RETURN    ${content}
 
 Get File Editor Content
     ${content} =    Execute JavaScript
     ...    return document.querySelector('.jp-FileEditorCodeWrapper .CodeMirror').CodeMirror.getValue()
-    [Return]    ${content}
+    RETURN    ${content}
 
 Cell Editor Should Equal
     [Arguments]    ${cell}    ${value}
@@ -392,7 +395,7 @@ Activate Completer Suggestion
         Capture Page Screenshot    ${i}-completions.png
         ${matching_active_elements} =    Get Element Count    ${active_suggestion}
         LOG    ${matching_active_elements}
-        Exit For Loop If    ${matching_active_elements} == 1
+        IF    ${matching_active_elements} == 1            BREAK
         Press Keys    None    DOWN
         Sleep    0.1s
     END
@@ -408,12 +411,14 @@ Select Completer Suggestion
 
 Completer Should Suggest
     [Arguments]    ${text}    ${timeout}=10s
-    Wait Until Page Contains Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]    timeout=${timeout}
+    Wait Until Page Contains Element
+    ...    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
+    ...    timeout=${timeout}
 
 Get Completion Item Vertical Position
     [Arguments]    ${text}
     ${position} =    Get Vertical Position    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
-    [Return]    ${position}
+    RETURN    ${position}
 
 Completer Should Include Icon
     [Arguments]    ${icon}
@@ -437,7 +442,7 @@ Completer Should Include Documentation
 
 Count Completer Hints
     ${count} =    Get Element Count    css:.jp-Completer-item
-    [Return]    ${count}
+    RETURN    ${count}
 
 Should Complete While Kernel Is Busy
     # Run the cell with sleep(20)
