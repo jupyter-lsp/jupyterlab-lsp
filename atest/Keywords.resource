@@ -54,9 +54,9 @@ Create Notebok Server Config
     ...    user_settings_dir=${SETTINGS DIR}
     ...    workspaces_dir=${WORKSPACES DIR}
     # should be automatically enabled, so do not enable manually:
-    Run Keyword Unless
-    ...    ${server_extension_enabled}
-    ...    Set Server Extension State    ${conf}    enabled=${server_extension_enabled}
+    IF    not ${server_extension_enabled}
+        Set Server Extension State    ${conf}    enabled=${server_extension_enabled}
+    END
     Update Jupyter Config    ${conf}    LanguageServerManager
     ...    extra_node_roots=@{extra_node_roots}
 
@@ -151,8 +151,10 @@ Ensure All Kernels Are Shut Down
     ${els} =    Get WebElements    ${CMD PALETTE ITEM ACTIVE}
     IF    ${els.__len__()}    Click Element    ${CMD PALETTE ITEM ACTIVE}
     ${accept} =    Set Variable    css:.jp-mod-accept.jp-mod-warn
-    IF    ${els.__len__()}    Wait Until Page Contains Element    ${accept}
-    IF    ${els.__len__()}    Click Element    ${accept}
+    IF    ${els.__len__()}
+        Wait Until Page Contains Element    ${accept}
+        Click Element    ${accept}
+    END
 
 Open Command Palette
     Press Keys    id:main    ${ACCEL}+SHIFT+c
