@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 import sys
+from functools import lru_cache
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -231,6 +232,17 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
             shutil.which("node") or shutil.which("nodejs") or shutil.which("nodejs.exe")
         )
 
+    @lru_cache(maxsize=1)
+    def _npm_prefix(self):
+        try:
+            return (
+                subprocess.run(["npm", "prefix", "-g"], check=True, capture_output=True)
+                .stdout.decode("utf-8")
+                .strip()
+            )
+        except Exception as e:  # pragma: no cover
+            self.log.warn(f"Could not determine npm prefix: {e}")
+
     @default("node_roots")
     def _default_node_roots(self):
         """get the "usual suspects" for where `node_modules` may be found
@@ -260,12 +272,9 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
 
         # check for custom npm prefix
         if shutil.which("npm"):
-            prefix = (
-                subprocess.run(["npm", "prefix", "-g"], check=True, capture_output=True)
-                .stdout.decode("utf-8")
-                .strip()
-            )
-            roots += [pathlib.Path(prefix) / "lib"]
+            prefix = self._npm_prefix()
+            if prefix:
+                roots += [pathlib.Path(prefix) / "lib"]
 
         return roots
 
