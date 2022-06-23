@@ -5,8 +5,10 @@ Suite Setup     Setup Suite For Screenshots    gh-403
 
 Force Tags      feature:jump-to-definition    gh:403
 
+
 *** Variables ***
 ${FOLDER WITH SPACE}    a föl@der
+
 
 *** Test Cases ***
 Python Jumps Between Files
@@ -72,6 +74,7 @@ Ctrl Click And Jumping Back Works
     Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Jump    ${original}
     [Teardown]    Clean Up After Working With File    jump.py
 
+
 *** Keywords ***
 Copy Files to Folder With Spaces
     [Arguments]    @{files}
@@ -83,7 +86,7 @@ Select Token Occurrence
     [Arguments]    ${token}    ${type}=variable    ${which}=last
     ${sel} =    Set Variable
     ...    xpath:(//span[contains(@class, 'cm-${type}')][contains(text(), '${token}')])[${which}()]
-    [Return]    ${sel}
+    RETURN    ${sel}
 
 Ctrl Click Element
     [Arguments]    ${element}

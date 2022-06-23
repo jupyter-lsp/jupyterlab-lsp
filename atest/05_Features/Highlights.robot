@@ -7,6 +7,7 @@ Test Teardown       Clean Up After Working With File    Highlights.ipynb
 
 Force Tags          feature:highlights
 
+
 *** Test Cases ***
 # cursor is symbolized by pipe (|), for example when
 # it is at the end of line, after `1` in `test = 1`
@@ -59,6 +60,7 @@ Highlights are removed when no cell is focused
     Should Highlight Token    test
     Blur Cell Editor    1
     Should Highlight Token    test
+
 
 *** Keywords ***
 Should Not Highlight Any Tokens

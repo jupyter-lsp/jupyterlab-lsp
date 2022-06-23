@@ -7,6 +7,7 @@ Test Teardown       Clean Up
 
 Force Tags          ui:notebook    aspect:ls:features
 
+
 *** Variables ***
 ${DIAGNOSTIC MESSAGE R}     Closing curly-braces should always be on their own line
 ${DIAGNOSTIC MESSAGE}       trailing whitespace
@@ -14,6 +15,7 @@ ${DIAGNOSTIC}               W291 trailing whitespace (pycodestyle)
 ${EXPECTED_COUNT}           4
 ${MENU COLUMNS}             xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "columns")]
 ${R CELL}                   %%R\n{}
+
 
 *** Test Cases ***
 Diagnostics Panel Opens
@@ -120,6 +122,7 @@ Diagnostics Panel Works After Removing Foreign Document
     ...    ${DIAGNOSTIC MESSAGE}
     Wait Until Keyword Succeeds    10 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE R}
+
 
 *** Keywords ***
 Open Context Menu Over W291

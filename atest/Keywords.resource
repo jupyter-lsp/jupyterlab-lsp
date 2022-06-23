@@ -9,6 +9,7 @@ Library     ./logcheck.py
 Library     ./ports.py
 Library     ./config.py
 
+
 *** Keywords ***
 Setup Server and Browser
     [Arguments]    ${server_extension_enabled}=${True}
@@ -53,9 +54,9 @@ Create Notebok Server Config
     ...    user_settings_dir=${SETTINGS DIR}
     ...    workspaces_dir=${WORKSPACES DIR}
     # should be automatically enabled, so do not enable manually:
-    Run Keyword Unless
-    ...    ${server_extension_enabled}
-    ...    Set Server Extension State    ${conf}    enabled=${server_extension_enabled}
+    IF    not ${server_extension_enabled}
+        Set Server Extension State    ${conf}    enabled=${server_extension_enabled}
+    END
     Update Jupyter Config    ${conf}    LanguageServerManager
     ...    extra_node_roots=@{extra_node_roots}
 
@@ -143,21 +144,15 @@ Reset Application State
 Accept Default Dialog Option
     [Documentation]    Accept a dialog, if it exists
     ${el} =    Get WebElements    ${CSS DIALOG OK}
-    IF    ${el.__len__()}
-        Click Element    ${CSS DIALOG OK}
-    END
+    IF    ${el.__len__()}    Click Element    ${CSS DIALOG OK}
 
 Ensure All Kernels Are Shut Down
     Enter Command Name    Shut Down All Kernels
     ${els} =    Get WebElements    ${CMD PALETTE ITEM ACTIVE}
-    IF    ${els.__len__()}
-        Click Element    ${CMD PALETTE ITEM ACTIVE}
-    END
+    IF    ${els.__len__()}    Click Element    ${CMD PALETTE ITEM ACTIVE}
     ${accept} =    Set Variable    css:.jp-mod-accept.jp-mod-warn
     IF    ${els.__len__()}
         Wait Until Page Contains Element    ${accept}
-    END
-    IF    ${els.__len__()}
         Click Element    ${accept}
     END
 
@@ -180,7 +175,7 @@ Lab Command
 Which
     [Arguments]    ${cmd}
     ${path} =    Evaluate    __import__("shutil").which("${cmd}")
-    [Return]    ${path}
+    RETURN    ${path}
 
 Click JupyterLab Menu
     [Documentation]    Click a top-level JupyterLab menu bar item with by ``label``,
@@ -210,9 +205,7 @@ Open With JupyterLab Menu
 Ensure File Browser is Open
     ${sel} =    Set Variable    css:.lm-TabBar-tab[data-id="filebrowser"]:not(.lm-mod-current)
     ${els} =    Get WebElements    ${sel}
-    IF    ${els.__len__()}
-        Click Element    ${sel}
-    END
+    IF    ${els.__len__()}    Click Element    ${sel}
 
 Ensure Sidebar Is Closed
     [Arguments]    ${side}=left
@@ -221,10 +214,17 @@ Ensure Sidebar Is Closed
         Click Element    css:.jp-mod-${side} .lm-TabBar-tab.lm-mod-current
     END
 
+Refresh File List
+    IF    '${LAB VERSION}'.startswith('3.4')
+        Click Element    ${JLAB CSS REFRESH FILES}
+    ELSE
+        Click Element    ${JLAB CSS REFRESH F_OLD}
+    END
+
 Open Context Menu for File
     [Arguments]    ${file}
     Ensure File Browser is Open
-    Click Element    ${JLAB CSS REFRESH FILES}
+    Refresh File List
     ${selector} =    Set Variable    xpath://span[@class='jp-DirListing-itemText']/span\[text() = '${file}']
     Wait Until Page Contains Element    ${selector}    timeout=10s
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${selector}
@@ -247,7 +247,7 @@ Input Into Dialog
 
 Open Folder
     [Arguments]    @{paths}
-    Click Element    ${JLAB CSS REFRESH FILES}
+    Refresh File List
     FOR    ${path}    IN    @{paths}
         ${sel} =    Set Variable    css:li.jp-DirListing-item\[title^='Name: ${path}']
         Wait Until Page Contains Element    ${sel}
@@ -257,9 +257,7 @@ Open Folder
 
 Open ${file} in ${editor}
     ${paths} =    Set Variable    ${file.split("/")}
-    IF    ${paths.__len__() > 1}
-        Open Folder    @{paths[:-1]}
-    END
+    IF    ${paths.__len__() > 1}    Open Folder    @{paths[:-1]}
     ${file} =    Set Variable    ${paths[-1]}
     Open Context Menu for File    ${file}
     Mouse Over    ${MENU OPEN WITH}
@@ -280,14 +278,10 @@ Setup Notebook
         Set Screenshot Directory    ${SCREENSHOTS DIR}${/}notebook${/}${TEST NAME.replace(' ', '_')}
     END
     Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
-    IF    ${isolated}
-        Try to Close All Tabs
-    END
+    IF    ${isolated}    Try to Close All Tabs
     Open ${file} in ${MENU NOTEBOOK}
     Capture Page Screenshot    00-notebook-opened.png
-    IF    ${wait}
-        Wait Until Fully Initialized
-    END
+    IF    ${wait}    Wait Until Fully Initialized
     Capture Page Screenshot    01-notebook-initialized.png
 
 Open Diagnostics Panel
@@ -296,7 +290,7 @@ Open Diagnostics Panel
 
 Count Diagnostics In Panel
     ${count} =    Get Element Count    css:.lsp-diagnostics-listing tbody tr
-    [Return]    ${count}
+    RETURN    ${count}
 
 Close Diagnostics Panel
     Mouse Over    ${DIAGNOSTIC PANEL CLOSE}
@@ -375,10 +369,10 @@ Open File
 
 Open in Advanced Settings
     [Arguments]    ${plugin id}
-    IF   '${LAB VERSION}'.startswith('3.3')
-      Lab Command    Advanced JSON Settings Editor
+    IF    '${LAB VERSION}'.startswith('3.3')
+        Lab Command    Advanced JSON Settings Editor
     ELSE
-      Lab Command    Advanced Settings Editor
+        Lab Command    Advanced Settings Editor
     END
     ${sel} =    Set Variable    css:[data-id="${plugin id}"]
     Wait Until Page Contains Element    ${sel}
@@ -392,7 +386,7 @@ Set Editor Content
 Get Editor Content
     [Arguments]    ${css}=${EMPTY}
     ${content} =    Execute JavaScript    return document.querySelector('${css} .CodeMirror').CodeMirror.getValue()
-    [Return]    ${content}
+    RETURN    ${content}
 
 Configure JupyterLab Plugin
     [Arguments]    ${settings json}    ${plugin id}=${LSP PLUGIN ID}
@@ -419,7 +413,7 @@ Jump To Definition
     Mouse Over    ${MENU JUMP}
     Capture Page Screenshot    02-jump-to-definition-1.png
     Click Element    ${MENU JUMP}
-    [Return]    ${cursor}
+    RETURN    ${cursor}
 
 Editor Should Jump To Definition
     [Arguments]    ${symbol}
@@ -436,7 +430,7 @@ Cursor Should Jump
 Measure Cursor Position
     Wait Until Page Contains Element    ${CM CURSORS}
     ${position} =    Wait Until Keyword Succeeds    20 x    0.05s    Get Vertical Position    ${CM CURSOR}
-    [Return]    ${position}
+    RETURN    ${position}
 
 Switch To Tab
     [Arguments]    ${file}

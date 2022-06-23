@@ -41,12 +41,12 @@ from .types import (
 class LanguageServerManager(LanguageServerManagerAPI):
     """Manage language servers"""
 
-    conf_d_language_servers = Schema(
+    conf_d_language_servers = Schema(  # type:ignore[assignment]
         validator=LANGUAGE_SERVER_SPEC_MAP,
         help=_("extra language server specs, keyed by implementation, from conf.d"),
     )  # type: KeyedLanguageServerSpecs
 
-    language_servers = Schema(
+    language_servers = Schema(  # type:ignore[assignment]
         validator=LANGUAGE_SERVER_SPEC_MAP,
         help=_("a dict of language server specs, keyed by implementation"),
     ).tag(
@@ -59,7 +59,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         config=True
     )  # type: bool
 
-    sessions = Dict_(
+    sessions = Dict_(  # type:ignore[assignment]
         trait=Instance(LanguageServerSession),
         default_value={},
         help="sessions keyed by language server name",
