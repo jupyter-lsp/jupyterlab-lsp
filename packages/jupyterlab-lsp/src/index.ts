@@ -226,6 +226,7 @@ export class LSPExtension implements ILSPExtension {
           );
           continue;
         }
+
         const configSchema = serverSpec.config_schema;
         if (!configSchema) {
           this.console.warn(
@@ -242,7 +243,18 @@ export class LSPExtension implements ILSPExtension {
           continue;
         }
         const schema = JSONExt.deepCopy(baseServerSchema);
-        schema.title = trans.__('%1 settings', serverSpec.display_name);
+        // let user know if server not available (installed, etc)
+        if (!this.language_server_manager.sessions.has(serverKey)) {
+          configSchema.description = trans.__(
+            'Settings passed to `%1` server (this server was not detected as installed during startup)',
+            serverSpec.display_name
+          );
+        } else {
+          configSchema.description = trans.__(
+            'Settings passed to %1',
+            serverSpec.display_name
+          );
+        }
         schema.properties.serverSettings = configSchema;
         knownServersConfig[serverKey] = schema;
       }
