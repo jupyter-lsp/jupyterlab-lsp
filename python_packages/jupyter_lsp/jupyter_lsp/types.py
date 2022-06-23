@@ -236,7 +236,9 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
     def _npm_prefix(self):
         try:
             return (
-                subprocess.run(["npm", "prefix", "-g"], check=True, capture_output=True)
+                subprocess.run(
+                    ["npm prefix -g"], check=True, capture_output=True, shell=True
+                )
                 .stdout.decode("utf-8")
                 .strip()
             )
@@ -274,7 +276,7 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
         if shutil.which("npm"):
             prefix = self._npm_prefix()
             if prefix:
-                roots += [pathlib.Path(prefix) / "lib"]
+                roots += [pathlib.Path(prefix) / "lib", pathlib.Path(prefix)]
 
         return roots
 
