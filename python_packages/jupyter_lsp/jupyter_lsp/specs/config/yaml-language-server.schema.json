@@ -21,7 +21,7 @@
     "yaml.format.enable": {
       "type": "boolean",
       "default": true,
-      "description": "Enable/disable default YAML formatter"
+      "description": "Enable/disable default YAML formatter (requires restart)"
     },
     "yaml.format.singleQuote": {
       "type": "boolean",
