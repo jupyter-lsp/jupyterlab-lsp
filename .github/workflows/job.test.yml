@@ -227,8 +227,8 @@ jobs:
         include:
           # if using 3.7, use newer node, etc...
           - python: '3.7'
-            # Node 12 end-of-life: April 2022
-            nodejs: '>=12,<13.0.0.a0'
+            # Node 14 end-of-life: April 2023
+            nodejs: '>=14,<15.0.0.a0'
             r: '<4'
             lab: '>=3.1.0,<3.2'
           - python: '3.10'
