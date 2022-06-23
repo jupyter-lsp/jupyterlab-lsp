@@ -1,3 +1,4 @@
+from .config import load_config_schema
 from .utils import ShellSpec
 
 TROUBLESHOOT = """\
@@ -42,5 +43,6 @@ class RLanguageServer(ShellSpec):
             cran=f'install.packages("{package}")',
             conda="conda install -c conda-forge r-languageserver",
         ),
+        config_schema=load_config_schema(key),
         troubleshoot=TROUBLESHOOT,
     )
