@@ -76,8 +76,11 @@ Settings Should Change Editor Diagnostics
     Capture Page Screenshot    03-settings-changed.png
     IF    ${needs reload}
         Reload After Configuration    ${language}    ${file}
+        # allow longer after reload
+        Wait Until Page Contains Element    ${after diagnostic}    timeout=60s
+    ELSE
+        Wait Until Page Contains Element    ${after diagnostic}    timeout=30s
     END
-    Wait Until Page Contains Element    ${after diagnostic}    timeout=30s
     Capture Page Screenshot    04-configured-diagnostic-found.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}
 
