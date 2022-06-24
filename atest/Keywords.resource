@@ -281,20 +281,6 @@ Setup Notebook
     IF    ${isolated}    Try to Close All Tabs
     Open ${file} in ${MENU NOTEBOOK}
     Capture Page Screenshot    00-notebook-opened.png
-    # Kernel selection dialog may show up if the ipykernel version changed
-    # since the last time notebooks were updated; because we are testing
-    # with different ipykernel versions, this is inevitable. In such a case
-    # accept the suggested kernel choice
-    IF    ${wait}
-        Wait Until Page Contains Element    css:div.lsp-statusbar-item
-        Wait For Condition
-        ...    return document.querySelector('div.lsp-statusbar-item').textContent.includes('Fully initialized') || document.querySelector('.jp-Dialog') !== null;
-        ...    timeout=180s
-    ELSE
-        Wait For Dialog
-    END
-    ${count} =    Get Element Count    ${DIALOG WINDOW}
-    IF    ${count} != 0    Accept Default Dialog Option
     IF    ${wait}    Wait Until Fully Initialized
     Capture Page Screenshot    01-notebook-initialized.png
 
