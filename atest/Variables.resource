@@ -29,8 +29,8 @@ ${CSS DIALOG OK}                css:.jp-Dialog .jp-mod-accept
 ${MENU OPEN WITH}               xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Open With")]
 # R is missing on purpose (may need to use .)
 ${MENU RENAME}                  xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(., "ename")]
-# N is missing on purpose
-${MENU NOTEBOOK}                xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(., "otebook")]
+# N is missing on purpose (N is in separate <span>)
+${MENU NOTEBOOK}                xpath://li[@data-command='filebrowser:open']/div[contains(@class, 'lm-Menu-itemLabel')][contains(., "otebook")]
 ${DIAGNOSTICS PANEL}            id:lsp-diagnostics-panel
 ${DIAGNOSTIC PANEL CLOSE}       css:.lm-DockPanel-tabBar .lm-TabBar-tab[data-id="lsp-diagnostics-panel"] .lm-TabBar-tabCloseIcon
 ${DIALOG WINDOW}                css:.jp-Dialog
