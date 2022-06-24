@@ -128,7 +128,6 @@ Use of a python `virtualenv` or a conda env is also recommended.
    R ([languageserver](https://github.com/REditorSupport/languageserver)) servers:
 
    ```bash
-   # note: you may want to use our fork of python-language-server instead (see below)
    pip install 'python-lsp-server[all]'
    R -e 'install.packages("languageserver")'
    ```
