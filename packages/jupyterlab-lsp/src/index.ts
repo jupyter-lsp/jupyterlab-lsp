@@ -20,7 +20,6 @@ import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { COMPLETION_THEME_MANAGER } from '@krassowski/completion-theme';
 import { plugin as THEME_MATERIAL } from '@krassowski/theme-material';
 import { plugin as THEME_VSCODE } from '@krassowski/theme-vscode';
-import { JSONExt } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 
 import '../style/index.css';
@@ -49,6 +48,7 @@ import {
   ICodeOverridesRegistry,
   ILSPCodeOverridesManager
 } from './overrides/tokens';
+import { SettingsUIManager } from './settings';
 import {
   IAdapterTypeOptions,
   ILSPAdapterManager,
@@ -149,21 +149,6 @@ export interface ILSPExtension {
   user_console: ILoggerRegistry | null;
 }
 
-/**
- * Only used for TypeScript type coercion, not meant to represent a property fully.
- */
-interface IJSONProperty {
-  type?: string | string[];
-  description?: string;
-  $ref?: string;
-}
-
-function isJSONProperty(obj: unknown): obj is IJSONProperty {
-  return (
-    typeof obj === 'object' && obj !== null && ('type' in obj || '$ref' in obj)
-  );
-}
-
 export class LSPExtension implements ILSPExtension {
   connection_manager: DocumentConnectionManager;
   language_server_manager: LanguageServerManager;
@@ -212,99 +197,14 @@ export class LSPExtension implements ILSPExtension {
     }
 
     this.feature_manager = new FeatureManager();
-    let canonical: ISettingRegistry.ISchema | null;
-    type ValueOf<T> = T[keyof T];
-    type ServerSchemaWrapper = ValueOf<
-      Required<LanguageServer>['language_servers']
-    >;
-    /**
-     * Populate the plugin's schema defaults.
-     */
-    let populate = (schema: ISettingRegistry.ISchema) => {
-      const baseServerSchema = (schema.definitions as any)[
-        'language-server'
-      ] as {
-        description: string;
-        title: string;
-        definitions: Record<string, any>;
-        properties: ServerSchemaWrapper;
-      };
 
-      const knownServersConfig: Record<string, any> = {};
-      for (let [
-        serverKey,
-        serverSpec
-      ] of this.language_server_manager.specs.entries()) {
-        if ((serverKey as string) === '') {
-          this.console.warn(
-            'Empty server key - skipping transformation for',
-            serverSpec
-          );
-          continue;
-        }
-
-        const configSchema = serverSpec.config_schema;
-        if (!configSchema) {
-          this.console.warn(
-            'No config schema - skipping transformation for',
-            serverKey
-          );
-          continue;
-        }
-        if (!configSchema.properties) {
-          this.console.warn(
-            'No properites in config schema - skipping transformation for',
-            serverKey
-          );
-          continue;
-        }
-
-        // let user know if server not available (installed, etc)
-        if (!this.language_server_manager.sessions.has(serverKey)) {
-          configSchema.description = trans.__(
-            'Settings passed to `%1` server (this server was not detected as installed during startup)',
-            serverSpec.display_name
-          );
-        } else {
-          configSchema.description = trans.__(
-            'Settings passed to %1',
-            serverSpec.display_name
-          );
-        }
-
-        for (let [key, value] of Object.entries(configSchema.properties)) {
-          if (!isJSONProperty(value)) {
-            continue;
-          }
-          if (typeof value.$ref === 'undefined') {
-            continue;
-          }
-          if (value.$ref.startsWith('#/definitions/')) {
-            const definitionID = value['$ref'].substring(14);
-            const definition = configSchema.definitions[definitionID];
-            if (definition == null) {
-              this.console.warn('Definition not found');
-            }
-            for (let [defKey, defValue] of Object.entries(definition)) {
-              configSchema.properties[key][defKey] = defValue;
-            }
-            delete value.$ref;
-          } else {
-            this.console.warn('Unsupported $ref', value['$ref']);
-          }
-        }
-
-        const schema = JSONExt.deepCopy(baseServerSchema);
-        schema.properties.serverSettings = configSchema;
-        knownServersConfig[serverKey] = schema;
-      }
-      schema.properties!.language_servers.properties = knownServersConfig;
-    };
-
-    this.language_server_manager.sessionsChanged.connect(async () => {
-      canonical = null;
-      await this.setting_registry.reload(plugin.id);
+    const settingsUI = new SettingsUIManager({
+      setting_registry: this.setting_registry,
+      console: this.console.scope('SettingsUIManager'),
+      language_server_manager: this.language_server_manager,
+      trans: trans
     });
+    settingsUI.setupSchemaForUI(plugin.id);
 
     this.setting_registry
       .load(plugin.id)
@@ -329,24 +229,6 @@ export class LSPExtension implements ILSPExtension {
       .catch((reason: Error) => {
         console.error(reason.message);
       });
-
-    // Transform the plugin object to return different schema than the default.
-    this.setting_registry.transform(plugin.id, {
-      fetch: plugin => {
-        // Only override the canonical schema the first time.
-        if (!canonical) {
-          canonical = JSONExt.deepCopy(plugin.schema);
-          populate(canonical);
-        }
-        return {
-          data: plugin.data,
-          id: plugin.id,
-          raw: plugin.raw,
-          schema: canonical,
-          version: plugin.version
-        };
-      }
-    });
 
     adapterManager.registerExtension(this);
   }
