@@ -149,6 +149,21 @@ export interface ILSPExtension {
   user_console: ILoggerRegistry | null;
 }
 
+/**
+ * Only used for TypeScript type coercion, not meant to represent a property fully.
+ */
+interface IJSONProperty {
+  type?: string | string[];
+  description?: string;
+  $ref?: string;
+}
+
+function isJSONProperty(obj: unknown): obj is IJSONProperty {
+  return (
+    typeof obj === 'object' && obj !== null && ('type' in obj || '$ref' in obj)
+  );
+}
+
 export class LSPExtension implements ILSPExtension {
   connection_manager: DocumentConnectionManager;
   language_server_manager: LanguageServerManager;
@@ -211,6 +226,7 @@ export class LSPExtension implements ILSPExtension {
       ] as {
         description: string;
         title: string;
+        definitions: Record<string, any>;
         properties: ServerSchemaWrapper;
       };
 
@@ -242,7 +258,7 @@ export class LSPExtension implements ILSPExtension {
           );
           continue;
         }
-        const schema = JSONExt.deepCopy(baseServerSchema);
+
         // let user know if server not available (installed, etc)
         if (!this.language_server_manager.sessions.has(serverKey)) {
           configSchema.description = trans.__(
@@ -255,6 +271,30 @@ export class LSPExtension implements ILSPExtension {
             serverSpec.display_name
           );
         }
+
+        for (let [key, value] of Object.entries(configSchema.properties)) {
+          if (!isJSONProperty(value)) {
+            continue;
+          }
+          if (typeof value.$ref === 'undefined') {
+            continue;
+          }
+          if (value.$ref.startsWith('#/definitions/')) {
+            const definitionID = value['$ref'].substring(14);
+            const definition = configSchema.definitions[definitionID];
+            if (definition == null) {
+              this.console.warn('Definition not found');
+            }
+            for (let [defKey, defValue] of Object.entries(definition)) {
+              configSchema.properties[key][defKey] = defValue;
+            }
+            delete value.$ref;
+          } else {
+            this.console.warn('Unsupported $ref', value['$ref']);
+          }
+        }
+
+        const schema = JSONExt.deepCopy(baseServerSchema);
         schema.properties.serverSettings = configSchema;
         knownServersConfig[serverKey] = schema;
       }
