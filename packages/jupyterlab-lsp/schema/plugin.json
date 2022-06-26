@@ -11,19 +11,19 @@
       "type": "object",
       "default": {},
       "properties": {
-        "serverSettings": {
-          "title": "Language Server Configurations",
-          "description": "Configuration to be sent to language server over LSP when initialized: see the specific language server's documentation for more",
-          "type": "object",
-          "default": {},
-          "additionalProperties": true
-        },
         "priority": {
           "title": "Priority of the server",
           "description": "When multiple servers match specific document/language, the server with the highest priority will be used",
           "type": "number",
           "default": 50,
           "minimum": 1
+        },
+        "serverSettings": {
+          "title": "Language Server Configurations",
+          "description": "Configuration to be sent to language server over LSP when initialized: see the specific language server's documentation for more",
+          "type": "object",
+          "default": {},
+          "additionalProperties": true
         }
       }
     }
