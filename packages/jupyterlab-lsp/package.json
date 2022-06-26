@@ -67,7 +67,7 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.4.3",
-    "@jupyterlab/application": "^3.1.0",
+    "@jupyterlab/application": "^3.3.0",
     "@jupyterlab/apputils": "^3.1.0",
     "@jupyterlab/builder": "^3.1.0",
     "@jupyterlab/cells": "^3.1.0",
@@ -109,7 +109,7 @@
     "vscode-languageserver-protocol": "^3.16.0"
   },
   "peerDependencies": {
-    "@jupyterlab/application": "^3.1.0",
+    "@jupyterlab/application": "^3.3.0",
     "@jupyterlab/apputils": "^3.1.0",
     "@jupyterlab/cells": "^3.1.0",
     "@jupyterlab/codeeditor": "^3.1.0",

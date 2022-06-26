@@ -140,6 +140,22 @@ def update_versions(dry: bool):
                     path=README,
                     template="JupyterLab {version}",
                 ),
+                VersionLocation(
+                    path=Path("CONTRIBUTING.md"),
+                    template="jupyterlab {version}",
+                ),
+                VersionLocation(
+                    path=Path("docs/rtd.yml"),
+                    template="jupyterlab {version}",
+                ),
+                VersionLocation(
+                    path=Path("requirements/lab.txt"),
+                    template="jupyterlab {version}",
+                ),
+                VersionLocation(
+                    path=Path("python_packages/jupyterlab_lsp/setup.cfg"),
+                    template="jupyterlab {version}",
+                ),
             ],
         ),
     ]
