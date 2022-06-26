@@ -17,6 +17,7 @@ import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStatusBar } from '@jupyterlab/statusbar';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
+import { IFormComponentRegistry } from '@jupyterlab/ui-components';
 import { COMPLETION_THEME_MANAGER } from '@krassowski/completion-theme';
 import { plugin as THEME_MATERIAL } from '@krassowski/theme-material';
 import { plugin as THEME_VSCODE } from '@krassowski/theme-vscode';
@@ -167,7 +168,8 @@ export class LSPExtension implements ILSPExtension {
     public console: ILSPLogConsole,
     public translator: ITranslator,
     public user_console: ILoggerRegistry | null,
-    status_bar: IStatusBar | null
+    status_bar: IStatusBar | null,
+    form_registry: IFormComponentRegistry | null
   ) {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
     this.language_server_manager = new LanguageServerManager({
@@ -200,6 +202,7 @@ export class LSPExtension implements ILSPExtension {
 
     const settingsUI = new SettingsUIManager({
       setting_registry: this.setting_registry,
+      form_registry: form_registry,
       console: this.console.scope('SettingsUIManager'),
       language_server_manager: this.language_server_manager,
       trans: trans
@@ -292,7 +295,7 @@ const plugin: JupyterFrontEndPlugin<ILSPFeatureManager> = {
     ILSPLogConsole,
     ITranslator
   ],
-  optional: [ILoggerRegistry, IStatusBar],
+  optional: [ILoggerRegistry, IStatusBar, IFormComponentRegistry],
   activate: (app, ...args) => {
     let extension = new LSPExtension(
       app,
@@ -308,7 +311,8 @@ const plugin: JupyterFrontEndPlugin<ILSPFeatureManager> = {
         ILSPLogConsole,
         ITranslator,
         ILoggerRegistry | null,
-        IStatusBar | null
+        IStatusBar | null,
+        IFormComponentRegistry | null
       ])
     );
     return extension.feature_manager;

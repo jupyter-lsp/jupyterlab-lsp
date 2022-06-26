@@ -18,3 +18,80 @@
 .lsp-external-link {
   color: var(--jp-content-link-color);
 }
+
+.lsp-ServerSettings-list {
+  grid-area: listing;
+  min-width: 175px;
+}
+
+.lsp-ServerSettings-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lsp-ServerSettings-list li {
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  white-space: nowrap;
+  padding: 3px 0;
+  border-left: 3px solid transparent;
+  padding-left: 4px;
+}
+
+.lsp-ServerSettings-title {
+  font-size: var(--jp-content-font-size2);
+  color: var(--jp-ui-font-color0);
+  font-weight: 300;
+  margin: 0;
+  padding: 0;
+}
+
+.lsp-ServerSettings-list-group {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: var(--jp-ui-font-size0);
+  padding: 8px 8px 8px 12px;
+  margin: 10px;
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
+  border-top: var(--jp-border-width) solid var(--jp-border-color2);
+  color: var(--jp-content-font-color1);
+}
+
+.lsp-ServerSettings-list li.lsp-selected {
+  border-color: var(--jp-brand-color1);
+}
+
+.lsp-ServerSettings-list li:hover {
+  background-color: var(--jp-layout-color2);
+  transition: background-color 100ms ease-in-out;
+}
+
+.lsp-ServerSettings-content {
+  grid-area: content;
+  min-width: 0;
+  width: 100%;
+  overflow-y: scroll;
+  max-height: 1000px;
+}
+
+.lsp-ServerSettings-content-name {
+  font-size: var(--jp-content-font-size2);
+  color: var(--jp-ui-font-color0);
+  font-weight: normal;
+  margin: 1em;
+}
+
+.lsp-ServerSettings-content > .form-group {
+  padding-top: 0;
+}
+
+.lsp-ServerSettings-content .lsp-server-links-list {
+  margin: 0;
+}
+
+.lsp-ServerSettings-tabs {
+  display: grid;
+  grid-template: 'listing content';
+}

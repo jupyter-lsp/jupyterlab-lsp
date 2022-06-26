@@ -1,8 +1,11 @@
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
-import { JSONExt } from '@lumino/coreutils';
+import { IFormComponentRegistry } from '@jupyterlab/ui-components';
+import { JSONExt, ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { FieldProps } from '@rjsf/core';
 
 import { LanguageServer } from './_plugin';
+import { renderLanguageServerSettings } from './components/serverSettings';
 import { LanguageServerManager } from './manager';
 import { ILSPLogConsole } from './tokens';
 
@@ -21,16 +24,50 @@ function isJSONProperty(obj: unknown): obj is IJSONProperty {
   );
 }
 
+function getDefaults(
+  properties: ReadonlyPartialJSONObject | undefined
+): Record<string, any> {
+  if (properties == null) {
+    return {};
+  }
+  // TODO: also get defaults from ref?
+  const defaults: Record<string, any> = {};
+  const entries = Object.entries(properties)
+    .map(([key, value]) => [key, (value as any)?.default])
+    .filter(([key, value]) => typeof value !== 'undefined');
+  // TODO: use Object.fromEntries once we switch target
+  for (let [key, value] of entries) {
+    defaults[key] = value;
+  }
+  return defaults;
+}
+
 export class SettingsUIManager {
   constructor(
     protected options: {
       setting_registry: ISettingRegistry;
+      form_registry: IFormComponentRegistry | null;
       language_server_manager: LanguageServerManager;
       console: ILSPLogConsole;
       trans: TranslationBundle;
     }
   ) {
-    // no-op
+    this._defaults = {};
+    // register custom UI field for `language_servers` property
+    if (this.options.form_registry != null) {
+      this.options.form_registry.addRenderer(
+        'language_servers',
+        (props: FieldProps) => {
+          return renderLanguageServerSettings({
+            setting_registry: this.options.setting_registry,
+            language_server_manager: this.options.language_server_manager,
+            trans: this.options.trans,
+            defaults: this._defaults,
+            ...props
+          });
+        }
+      );
+    }
   }
 
   protected get console(): ILSPLogConsole {
@@ -57,7 +94,11 @@ export class SettingsUIManager {
         properties: ServerSchemaWrapper;
       };
 
+      const defaults: Record<string, any> = {};
       const knownServersConfig: Record<string, any> = {};
+      const sharedDefaults = getDefaults(
+        schema.properties!.language_servers.properties
+      );
       for (let [
         serverKey,
         serverSpec
@@ -89,15 +130,16 @@ export class SettingsUIManager {
         // let user know if server not available (installed, etc)
         if (!languageServerManager.sessions.has(serverKey)) {
           configSchema.description = this.options.trans.__(
-            'Settings passed to `%1` server (this server was not detected as installed during startup)',
+            'Settings that would be passed to `%1` server (this server was not detected as installed during startup) in `workspace/didChangeConfiguration` notification.',
             serverSpec.display_name
           );
         } else {
           configSchema.description = this.options.trans.__(
-            'Settings passed to %1',
+            'Settings to be passed to %1 in `workspace/didChangeConfiguration` notification.',
             serverSpec.display_name
           );
         }
+        configSchema.title = this.options.trans.__('Workspace Configuration');
 
         for (let [key, value] of Object.entries(configSchema.properties)) {
           if (!isJSONProperty(value)) {
@@ -121,11 +163,19 @@ export class SettingsUIManager {
           }
         }
 
+        const defaultMap = getDefaults(configSchema.properties);
+
         const schema = JSONExt.deepCopy(baseServerSchema);
         schema.properties.serverSettings = configSchema;
         knownServersConfig[serverKey] = schema;
+        defaults[serverKey] = {
+          ...sharedDefaults,
+          serverSettings: defaultMap
+        };
       }
       schema.properties!.language_servers.properties = knownServersConfig;
+      schema.properties!.language_servers.default = defaults;
+      this._defaults = defaults;
     };
 
     languageServerManager.sessionsChanged.connect(async () => {
@@ -151,4 +201,6 @@ export class SettingsUIManager {
       }
     });
   }
+
+  private _defaults: ReadonlyPartialJSONObject;
 }

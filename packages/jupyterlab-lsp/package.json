@@ -85,6 +85,7 @@
     "@jupyterlab/statusbar": "^3.1.0",
     "@jupyterlab/testutils": "^3.1.0",
     "@jupyterlab/tooltip": "^3.1.0",
+    "@jupyterlab/ui-components": "^3.3.0",
     "@lumino/algorithm": "*",
     "@lumino/widgets": "^1.16.1",
     "@retrolab/application": "^0.2.0",
