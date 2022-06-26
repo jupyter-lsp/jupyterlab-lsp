@@ -501,8 +501,7 @@
       "type": "string",
       "description": "Python version to assume during type analysis",
       "default": "",
-      "examples": ["3.7"],
-      "pattern": "^(3\\.[0-9]+$)?$?"
+      "examples": ["3.7"]
     },
     "pythonPlatform": {
       "$id": "#/properties/pythonPlatform",
@@ -567,8 +566,7 @@
             "type": "string",
             "description": "Python version to assume during type analysis",
             "default": "",
-            "examples": ["3.7"],
-            "pattern": "^(3\\.[0-9]+$)?$?"
+            "examples": ["3.7"]
           },
           "pythonPlatform": {
             "$id": "#/properties/executionEnvironments/items/properties/pythonPlatform",
