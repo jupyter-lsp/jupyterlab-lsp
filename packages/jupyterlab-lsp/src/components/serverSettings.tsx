@@ -59,8 +59,6 @@ export class LanguageServerSettings extends React.Component<
       (serverSchema as any).title = null;
       (serverSchema as any).description = undefined;
     }
-    //this.props.schema.properties!.serverSettings.title = undefined;
-    //this.props.schema.properties!.serverSettings.description = undefined;
     return (
       <div className="lsp-ServerSettings">
         <h3 className="lsp-ServerSettings-title">
