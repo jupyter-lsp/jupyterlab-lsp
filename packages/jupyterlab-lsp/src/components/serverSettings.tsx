@@ -53,8 +53,16 @@ export class LanguageServerSettings extends React.Component<
   }
 
   render(): JSX.Element {
+    this.props.schema.description = undefined;
+    // hide the boilerplate title/description from schema definitions
+    for (const serverSchema of Object.values(this.props.schema.properties!)) {
+      (serverSchema as any).title = null;
+      (serverSchema as any).description = undefined;
+    }
+    //this.props.schema.properties!.serverSettings.title = undefined;
+    //this.props.schema.properties!.serverSettings.description = undefined;
     return (
-      <div>
+      <div className="lsp-ServerSettings">
         <h3 className="lsp-ServerSettings-title">
           {this.props.trans.__('Language servers')}
         </h3>
@@ -74,11 +82,7 @@ export class LanguageServerSettings extends React.Component<
           fields={this.props.renderers}
           formContext={this.props.formContext}
           liveValidate
-          // strictly, we should be appending '_language_servers' to the prefix,
-          // but the `isModified` check does not work, so we skip it to avoid
-          // having duplicated titles and descriptions.
-          idPrefix={this.props.idPrefix}
-          // idPrefix={this.props.idPrefix + '_language_servers'}
+          idPrefix={this.props.idPrefix + '_language_servers'}
           onChange={this._onChange.bind(this)}
         />
       </div>
@@ -137,7 +141,6 @@ const TabbedObjectTemplateFactory = (options: {
   trans: TranslationBundle;
 }): React.FC<ObjectFieldTemplateProps> => {
   const factory = (props: ObjectFieldTemplateProps) => {
-    const { TitleField, DescriptionField } = props;
     if (!options.objectSelector(props)) {
       return options.baseTemplate(props);
     }
@@ -191,19 +194,6 @@ const TabbedObjectTemplateFactory = (options: {
 
     return (
       <fieldset id={props.idSchema.$id}>
-        {(props.uiSchema['ui:title'] || props.title) && (
-          <TitleField
-            id={`${props.idSchema.$id}__title`}
-            title={props.title || props.uiSchema['ui:title']}
-            required={props.required}
-          />
-        )}
-        {props.description && (
-          <DescriptionField
-            id={`${props.idSchema.$id}__description`}
-            description={props.description}
-          />
-        )}
         <div className={'lsp-ServerSettings-tabs'}>
           <div className={'lsp-ServerSettings-list'}>
             {renderServerLabels({
