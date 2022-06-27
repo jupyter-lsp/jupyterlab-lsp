@@ -55,6 +55,8 @@ class LanguageServerSessionBase(
     thread = Instance(
         Thread, help="worker thread for running an event loop", allow_none=True
     )
+    main_loop = Instance(
+        IOLoop, help="the event loop of the main thread", allow_none=True)
     writer = Instance(LspStreamWriter, help="the JSON-RPC writer", allow_none=True)
     reader = Instance(LspStreamReader, help="the JSON-RPC reader", allow_none=True)
     from_lsp = Instance(
@@ -107,6 +109,7 @@ class LanguageServerSessionBase(
 
         will return as soon as the session is ready for communication
         """
+        self.main_loop = IOLoop.current()
         self.started.clear()
         self.thread = Thread(target=anyio.run, kwargs={"func": self.run})
         self.thread.start()
@@ -121,6 +124,7 @@ class LanguageServerSessionBase(
         # wait for the session to get cleaned up
         if self.thread and self.thread.is_alive():
             self.thread.join()
+        self.main_loop = None
 
     async def run(self):
         """run this session in a cancel scope and clean everything up on cancellation
@@ -189,7 +193,7 @@ class LanguageServerSessionBase(
         return datetime.now(timezone.utc)
 
     async def start_process(self, argv: List[str]):
-        """start the language server subprocess giben in argv"""
+        """start the language server subprocess given in argv"""
         self.process = await anyio.open_process(
             argv,
             stdin=subprocess.PIPE,
@@ -283,7 +287,8 @@ class LanguageServerSessionBase(
         """
         async for message in self.from_lsp:
             self.last_server_message_at = self.now()
-            await self.parent.on_server_message(message, self)
+            # handle message in the main thread's event loop
+            self.main_loop.add_callback(self.parent.on_server_message, message, self)
             self.from_lsp.task_done()
 
 
