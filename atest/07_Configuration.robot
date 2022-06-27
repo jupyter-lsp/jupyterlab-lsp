@@ -7,6 +7,7 @@ Suite Setup         Setup Suite For Screenshots    config
 
 Force Tags          feature:config
 
+
 *** Test Cases ***
 Python
     [Documentation]    pyflakes is enabled by default, but flake8 is not
@@ -24,9 +25,13 @@ YAML
 
 Markdown
     [Documentation]    different englishes spell colou?r differently
-    Settings Should Change Editor Diagnostics    Markdown    example.md    unified-language-server
+    Settings Should Change Editor Diagnostics
+    ...    Markdown
+    ...    example.md
+    ...    unified-language-server
     ...    {"unified-language-server":{"remark-parse":{"plugins":[["#remark-retext","#parse-latin"],["#retext-spell","#dictionary-en"]]}}}
-    ...    `Color` is misspelt    `Colour` is misspelt
+    ...    `Color` is misspelt
+    ...    `Colour` is misspelt
 
 LaTeX
     [Documentation]    diagnostics only appear if configured
@@ -38,6 +43,7 @@ LaTeX
     ...    Command terminated with space. (chktex)
     ...    Save File
     ...    ${needs reload}
+
 
 *** Keywords ***
 Settings Should Change Editor Diagnostics
@@ -70,8 +76,11 @@ Settings Should Change Editor Diagnostics
     Capture Page Screenshot    03-settings-changed.png
     IF    ${needs reload}
         Reload After Configuration    ${language}    ${file}
+        # allow longer after reload
+        Wait Until Page Contains Element    ${after diagnostic}    timeout=60s
+    ELSE
+        Wait Until Page Contains Element    ${after diagnostic}    timeout=30s
     END
-    Wait Until Page Contains Element    ${after diagnostic}    timeout=30s
     Capture Page Screenshot    04-configured-diagnostic-found.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}
 

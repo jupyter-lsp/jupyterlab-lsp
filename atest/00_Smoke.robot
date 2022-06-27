@@ -3,6 +3,7 @@ Resource        Keywords.resource
 
 Suite Setup     Set Screenshot Directory    ${SCREENSHOTS DIR}${/}smoke
 
+
 *** Test Cases ***
 Lab Version
     Capture Page Screenshot    00-smoke.png

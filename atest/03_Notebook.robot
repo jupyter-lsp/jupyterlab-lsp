@@ -4,6 +4,7 @@ Resource        Keywords.resource
 Suite Setup     Setup Suite For Screenshots    notebook
 Test Setup      Try to Close All Tabs
 
+
 *** Test Cases ***
 Python
     [Setup]    Setup Notebook    Python    Python.ipynb
@@ -100,6 +101,7 @@ Adding Text To Cells After Kernel Restart
     Press Keys    None    text
     Wait Until Keyword Succeeds    3x    1s    File Content Should Be Equal    ${virtual_path}    \n\n\ntext\n
     [Teardown]    Clean Up After Working With File    Empty.ipynb
+
 
 *** Keywords ***
 File Content Should Be Equal
