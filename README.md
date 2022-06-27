@@ -128,7 +128,6 @@ Use of a python `virtualenv` or a conda env is also recommended.
    R ([languageserver](https://github.com/REditorSupport/languageserver)) servers:
 
    ```bash
-   # note: you may want to use our fork of python-language-server instead (see below)
    pip install 'python-lsp-server[all]'
    R -e 'install.packages("languageserver")'
    ```
@@ -164,8 +163,6 @@ Use of a python `virtualenv` or a conda env is also recommended.
 
    or permanently by setting `c.Completer.use_jedi = False` in your
    [`ipython_config.py` file](https://ipython.readthedocs.io/en/stable/config/intro.html?highlight=ipython_config.py#systemwide-configuration).
-   You will also benefit from using experimental version of python-language-server
-   as described in the Note 2 (above).
 
 1. (Optional, Linux/OSX-only) to enable opening files outside of the root
    directory (the place where you start JupyterLab), create `.lsp_symlink` and

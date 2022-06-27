@@ -8,9 +8,11 @@ Test Teardown       Clean Up After Working With File    Hover.ipynb
 
 Force Tags          feature:hover
 
+
 *** Variables ***
 ${HOVER_BOX}        css:.lsp-hover
 ${HOVER_SIGNAL}     css:.cm-lsp-hover-available
+
 
 *** Test Cases ***
 Hover works in notebooks
@@ -46,12 +48,13 @@ Hover works in foreign code (javascript)
     Trigger Tooltip    Math
     Element Should Contain    ${HOVER_BOX}    Math: Math
 
+
 *** Keywords ***
 Last Occurrence
     [Arguments]    ${symbol}
     ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}
     ...    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
-    [Return]    ${sel}
+    RETURN    ${sel}
 
 Trigger Via Hover With Modifier
     [Arguments]    ${sel}
@@ -84,6 +87,4 @@ Setup Hover Test
 Wokraround Visibility Problem
     [Arguments]    ${sel}
     ${width}    ${height} =    Get Element Size    ${sel}
-    IF    ${width} == 0
-        Cover Element    ${sel}
-    END
+    IF    ${width} == 0    Cover Element    ${sel}
