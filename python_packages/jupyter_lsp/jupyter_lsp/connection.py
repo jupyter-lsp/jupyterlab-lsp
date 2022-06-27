@@ -62,7 +62,7 @@ class LspStreamReader(LspStreamBase):
         help="the maximum size a header line send by the language server may have",
     ).tag(config=True)
 
-    stream = Instance(
+    stream = Instance(  # type:ignore[assignment]
         BufferedByteReceiveStream, help="the stream to read from"
     )  # type: BufferedByteReceiveStream
 
@@ -206,7 +206,7 @@ class LspStreamReader(LspStreamBase):
 class LspStreamWriter(LspStreamBase):
     """Language Server Writer"""
 
-    stream = Instance(
+    stream = Instance(  # type:ignore[assignment]
         TextSendStream, help="the stream to write to"
     )  # type: TextSendStream
 
