@@ -128,20 +128,23 @@ class LanguageServerSessionBase(
         self.main_loop = None
 
     async def run(self):
-        """run this session in a cancel scope and clean everything up on cancellation
-
-        the event `self.started` will be set when everything is set up and the session
-        will be ready for communication
-        """
+        """run this session in a task group and clean everything up on cancellation"""
         self.thread_loop = IOLoop.current()
-        async with CancelScope() as scope:
-            self.cancelscope = scope
-            await self.initialize()
-            self.started.set()
-            await self.listen()
-        await self.cleanup()
-        self.cancelscope = None
-        self.thread_loop = None
+
+        try:
+            async with anyio.create_task_group() as tg:
+                self.cancelscope = tg.cancel_scope
+                await self.initialize()
+                self.started.set()
+                tg.start_soon(self._read_lsp)
+                tg.start_soon(self._write_lsp)
+                tg.start_soon(self._broadcast_from_lsp)
+        except Exception as e:  # pragma: no cover
+            self.log.exception("Execption while listening {}", e)
+        finally:
+            await self.cleanup()
+            self.cancelscope = None
+            self.thread_loop = None
 
     async def initialize(self):
         """initialize a language server session"""
@@ -153,16 +156,6 @@ class LanguageServerSessionBase(
         self.init_reader()
 
         self.status = SessionStatus.STARTED
-
-    async def listen(self):
-        """start the actual read/write tasks"""
-        try:
-            async with anyio.create_task_group() as tg:
-                await tg.spawn(self._read_lsp)
-                await tg.spawn(self._write_lsp)
-                await tg.spawn(self._broadcast_from_lsp)
-        except Exception as e:  # pragma: no cover
-            self.log.exception("Execption while listening {}", e)
 
     async def cleanup(self):
         """clean up all of the state of the session"""
