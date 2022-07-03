@@ -57,6 +57,8 @@ class LanguageServerSessionBase(
     )
     main_loop = Instance(
         IOLoop, help="the event loop of the main thread", allow_none=True)
+    thread_loop = Instance(
+        IOLoop, help="the event loop of the worker thread", allow_none=True)
     writer = Instance(LspStreamWriter, help="the JSON-RPC writer", allow_none=True)
     reader = Instance(LspStreamReader, help="the JSON-RPC reader", allow_none=True)
     from_lsp = Instance(
@@ -118,8 +120,7 @@ class LanguageServerSessionBase(
     def stop(self):
         """shut down the session"""
         if self.cancelscope is not None:
-            self.cancelscope.cancel()
-            self.cancelscope = None
+            self.thread_loop.add_callback(self.cancelscope.cancel)
 
         # wait for the session to get cleaned up
         if self.thread and self.thread.is_alive():
@@ -132,12 +133,15 @@ class LanguageServerSessionBase(
         the event `self.started` will be set when everything is set up and the session
         will be ready for communication
         """
+        self.thread_loop = IOLoop.current()
         async with CancelScope() as scope:
             self.cancelscope = scope
             await self.initialize()
             self.started.set()
             await self.listen()
         await self.cleanup()
+        self.cancelscope = None
+        self.thread_loop = None
 
     async def initialize(self):
         """initialize a language server session"""
@@ -187,7 +191,7 @@ class LanguageServerSessionBase(
     def write(self, message):
         """wrapper around the write queue to keep it mostly internal"""
         self.last_handler_message_at = self.now()
-        IOLoop.current().add_callback(self.to_lsp.put_nowait, message)
+        self.thread_loop.add_callback(self.to_lsp.put_nowait, message)
 
     def now(self):
         return datetime.now(timezone.utc)
