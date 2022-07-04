@@ -1,8 +1,9 @@
 import subprocess
 
 import anyio
+from anyio.streams.stapled import StapledObjectStream
+import math
 import pytest
-from tornado.queues import Queue
 
 from jupyter_lsp.connection import LspStreamReader
 from jupyter_lsp.utils import get_unused_port
@@ -127,7 +128,8 @@ async def join_process(process: anyio.abc.Process, headstart=1, timeout=1):
 async def test_reader(
     message, repeats, interval, add_excess, mode, communicator_spawner
 ):
-    queue = Queue()
+    queue = StapledObjectStream(
+        *anyio.create_memory_object_stream(max_buffer_size=math.inf))
 
     port = get_unused_port() if mode == "tcp" else None
     process = await communicator_spawner.spawn_writer(
@@ -154,5 +156,5 @@ async def test_reader(
     if port is not None:
         await stream.aclose()
 
-    result = queue.get_nowait()
+    result = await queue.receive()
     assert result == message * repeats

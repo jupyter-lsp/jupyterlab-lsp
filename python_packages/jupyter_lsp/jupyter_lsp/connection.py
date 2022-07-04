@@ -14,9 +14,8 @@ from typing import Optional, Text
 import anyio
 from anyio.streams.buffered import BufferedByteReceiveStream
 from anyio.streams.text import TextSendStream
+from anyio.streams.stapled import StapledObjectStream
 from tornado.httputil import HTTPHeaders
-from tornado.ioloop import IOLoop
-from tornado.queues import Queue
 from traitlets import Instance, Int
 from traitlets.config import LoggingConfigurable
 from traitlets.traitlets import MetaHasTraits
@@ -31,7 +30,7 @@ class LspStreamBase(LoggingConfigurable, ABC, metaclass=LspStreamMeta):
     streams
     """
 
-    queue = Instance(Queue, help="queue to get/put")
+    queue = Instance(StapledObjectStream, help="queue to get/put")
 
     def __repr__(self):  # pragma: no cover
         return "<{}(parent={})>".format(self.__class__.__name__, self.parent)
@@ -71,7 +70,7 @@ class LspStreamReader(LspStreamBase):
             message = None
             try:
                 message = await self.read_one()
-                IOLoop.current().add_callback(self.queue.put_nowait, message)
+                await self.queue.send(message)
             except anyio.ClosedResourceError:
                 # stream was closed -> terminate
                 self.log.debug("Stream closed while a read was still in progress")
@@ -151,7 +150,7 @@ class LspStreamWriter(LspStreamBase):
     async def write(self) -> None:
         """Write to a Language Server until it closes"""
         while True:
-            message = await self.queue.get()
+            message = await self.queue.receive()
             try:
                 n_bytes = len(message.encode("utf-8"))
                 response = "Content-Length: {}\r\n\r\n{}".format(n_bytes, message)
@@ -165,8 +164,6 @@ class LspStreamWriter(LspStreamBase):
                 break
             except Exception:  # pragma: no cover
                 self.log.exception("%s couldn't write message: %s", self, response)
-            finally:
-                self.queue.task_done()
 
     async def _write_one(self, message) -> None:
         await self.stream.send(message)

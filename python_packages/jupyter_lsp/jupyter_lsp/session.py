@@ -1,6 +1,7 @@
 """ A session for managing a language server process
 """
 import atexit
+import math
 import os
 import string
 import subprocess
@@ -14,8 +15,8 @@ from typing import List
 import anyio
 from anyio import CancelScope
 from anyio.abc import Process, SocketStream
+from anyio.streams.stapled import StapledObjectStream
 from tornado.ioloop import IOLoop
-from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
 from traitlets import Bunch, Float, Instance, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
@@ -62,10 +63,14 @@ class LanguageServerSessionBase(
     writer = Instance(LspStreamWriter, help="the JSON-RPC writer", allow_none=True)
     reader = Instance(LspStreamReader, help="the JSON-RPC reader", allow_none=True)
     from_lsp = Instance(
-        Queue, help="a queue for string messages from the server", allow_none=True
+        StapledObjectStream,
+        help="a queue for string messages from the server",
+        allow_none=True
     )
     to_lsp = Instance(
-        Queue, help="a queue for string message to the server", allow_none=True
+        StapledObjectStream,
+        help="a queue for string messages to the server",
+        allow_none=True
     )
     handlers = Set(
         trait=Instance(WebSocketHandler),
@@ -79,6 +84,10 @@ class LanguageServerSessionBase(
     stop_timeout = Float(
         5,
         help="timeout after which a process will be terminated forcefully",
+    ).tag(config=True)
+    queue_size = Float(
+        math.inf,
+        help="the maximum number of messages that can be buffered in the queue"
     ).tag(config=True)
 
     _skip_serialize = ["argv", "debug_argv"]
@@ -170,6 +179,12 @@ class LanguageServerSessionBase(
         if self.process is not None:
             await self.stop_process(self.stop_timeout)
             self.process = None
+        if self.from_lsp is not None:
+            await self.from_lsp.aclose()
+            self.from_lsp = None
+        if self.to_lsp is not None:
+            await self.to_lsp.aclose()
+            self.to_lsp = None
 
         self.status = SessionStatus.STOPPED
 
@@ -184,7 +199,7 @@ class LanguageServerSessionBase(
     def write(self, message):
         """wrapper around the write queue to keep it mostly internal"""
         self.last_handler_message_at = self.now()
-        self.thread_loop.add_callback(self.to_lsp.put_nowait, message)
+        self.thread_loop.add_callback(self.to_lsp.send, message)
 
     def now(self):
         return datetime.now(timezone.utc)
@@ -242,8 +257,10 @@ class LanguageServerSessionBase(
 
     def init_queues(self):
         """create the queues"""
-        self.from_lsp = Queue()
-        self.to_lsp = Queue()
+        self.from_lsp = StapledObjectStream(
+            *anyio.create_memory_object_stream(max_buffer_size=self.queue_size))
+        self.to_lsp = StapledObjectStream(
+            *anyio.create_memory_object_stream(max_buffer_size=self.queue_size))
 
     def substitute_env(self, env, base):
         final_env = copy(os.environ)
@@ -286,7 +303,6 @@ class LanguageServerSessionBase(
             self.last_server_message_at = self.now()
             # handle message in the main thread's event loop
             self.main_loop.add_callback(self.parent.on_server_message, message, self)
-            self.from_lsp.task_done()
 
 
 class LanguageServerSessionStdio(LanguageServerSessionBase):
