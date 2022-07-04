@@ -8,7 +8,7 @@ Parts of this code are derived from:
 > > Copyright 2018 Palantir Technologies, Inc.
 """
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Optional, Text
+from typing import Text
 
 # pylint: disable=broad-except
 import anyio
@@ -80,7 +80,7 @@ class LspStreamReader(LspStreamBase):
                     "%s couldn't enqueue message: %s (%s)", self, message, e
                 )
 
-    async def _read_content(self, length: int) -> Optional[bytes]:
+    async def _read_content(self, length: int) -> bytes:
         """Read the full length of the message.
 
         Args:
