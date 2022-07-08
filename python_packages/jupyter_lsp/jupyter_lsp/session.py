@@ -86,8 +86,9 @@ class LanguageServerSessionBase(
         help="timeout in seconds after which a process will be terminated forcefully",
     ).tag(config=True)
     queue_size = Float(
-        math.inf,
-        help="the maximum number of messages that can be buffered in the queue"
+        -1,
+        help="the maximum number of messages that can be buffered in the queue or -1 "
+             "for an unbounded queue"
     ).tag(config=True)
 
     _skip_serialize = ["argv", "debug_argv"]
@@ -257,10 +258,11 @@ class LanguageServerSessionBase(
 
     def init_queues(self):
         """create the queues"""
+        queue_size = math.inf if self.queue_size < 0 else self.queue_size
         self.from_lsp = StapledObjectStream(
-            *anyio.create_memory_object_stream(max_buffer_size=self.queue_size))
+            *anyio.create_memory_object_stream(max_buffer_size=queue_size))
         self.to_lsp = StapledObjectStream(
-            *anyio.create_memory_object_stream(max_buffer_size=self.queue_size))
+            *anyio.create_memory_object_stream(max_buffer_size=queue_size))
 
     def substitute_env(self, env, base):
         final_env = copy(os.environ)
