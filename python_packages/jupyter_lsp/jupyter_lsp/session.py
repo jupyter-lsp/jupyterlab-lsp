@@ -81,9 +81,9 @@ class LanguageServerSessionBase(
     last_handler_message_at = Instance(datetime, allow_none=True)
     last_server_message_at = Instance(datetime, allow_none=True)
 
-    stop_timeout = Float(
+    stop_timeout_s = Float(
         5,
-        help="timeout after which a process will be terminated forcefully",
+        help="timeout in seconds after which a process will be terminated forcefully",
     ).tag(config=True)
     queue_size = Float(
         math.inf,
@@ -177,7 +177,7 @@ class LanguageServerSessionBase(
             await self.writer.close()
             self.writer = None
         if self.process is not None:
-            await self.stop_process(self.stop_timeout)
+            await self.stop_process(self.stop_timeout_s)
             self.process = None
         if self.from_lsp is not None:
             await self.from_lsp.aclose()
