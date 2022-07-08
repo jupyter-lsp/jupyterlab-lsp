@@ -1,4 +1,5 @@
 import { PageConfig, URLExt } from '@jupyterlab/coreutils';
+import { ServerConnection } from '@jupyterlab/services';
 import { Signal } from '@lumino/signaling';
 import type * as protocol from 'vscode-languageserver-protocol';
 
@@ -391,7 +392,8 @@ export namespace DocumentConnectionManager {
     virtual_document: VirtualDocument,
     language: string
   ): IURIs {
-    const wsBase = PageConfig.getBaseUrl().replace(/^http/, 'ws');
+    const settings = ServerConnection.makeSettings();
+    const wsBase = settings.wsUrl;
     const rootUri = PageConfig.getOption('rootUri');
     const virtualDocumentsUri = PageConfig.getOption('virtualDocumentsUri');
 
