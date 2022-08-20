@@ -47,7 +47,7 @@ export class LanguageServerSettings extends React.Component<
         );
       },
       trans: this.props.trans,
-      language_server_manager: this.props.languageServerManager
+      languageServerManager: this.props.languageServerManager
     });
     this._defaults = this.props.defaults;
   }
@@ -110,13 +110,13 @@ export class LanguageServerSettings extends React.Component<
         if (settingKey === 'serverSettings') {
           for (let [subKey, subValue] of Object.entries(settingValue as any)) {
             if (JSONExt.deepEqual(subValue as any, settingDefault[subKey])) {
-              //console.log('Deleting', serverKey, settingKey, subKey)
+              console.debug('Deleting default', serverKey, settingKey, subKey);
               settings[serverKey][settingKey][subKey] = undefined;
             }
           }
         } else {
           if (JSONExt.deepEqual(settingValue as any, settingDefault)) {
-            //console.log('Deleting', settingKey)
+            console.debug('Deleting default', settingKey);
             settings[serverKey][settingKey] = undefined;
           }
         }
@@ -134,7 +134,7 @@ export class LanguageServerSettings extends React.Component<
  */
 const TabbedObjectTemplateFactory = (options: {
   baseTemplate: (props: ObjectFieldTemplateProps) => JSX.Element;
-  language_server_manager: LanguageServerManager;
+  languageServerManager: LanguageServerManager;
   objectSelector: (props: ObjectFieldTemplateProps) => boolean;
   trans: TranslationBundle;
 }): React.FC<ObjectFieldTemplateProps> => {
@@ -187,7 +187,7 @@ const TabbedObjectTemplateFactory = (options: {
         </div>
       );
     };
-    const manager = options.language_server_manager;
+    const manager = options.languageServerManager;
     const trans = options.trans;
 
     return (
