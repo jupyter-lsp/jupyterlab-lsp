@@ -5,12 +5,15 @@
 - features:
   - implement jump target selector and jump to references ([#739])
   - implement settings UI using native JupyterLab 3.3 UI ([#778])
+- bug fixes
+  - use correct websocket URL if configured as different from base URL ([#820], thanks @MikeSem)
 - refactoring:
   - move client capabilities to features ([#738])
 - documentation:
   - add missing `--channel` to conda instruction for texlab ([#789], thanks @justin-f-perez)
   - remove references to pylsp fork ([#800] and [#814], thanks @joelostblom and @nickfong)
   - add Robot Framework language server ([#724], thanks @bollwyvl)
+  - add a list of third-party and community language servers ([#826], thanks @cccs-jc)
 - maintenance:
   - bump minimum required JupyterLab version to 3.3 (`>=3.3.0,<4.0.0a0`)
   - bump minimum required Node.js version to 14.0 (12.0 reached EOL in April)
@@ -21,6 +24,8 @@
 [#789]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/789
 [#800]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/800
 [#814]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/814
+[#820]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/820
+[#826]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/826
 
 ### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
 
