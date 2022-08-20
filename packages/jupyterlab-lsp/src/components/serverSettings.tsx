@@ -15,8 +15,8 @@ import { ServerLinksList } from './utils';
 
 namespace LanguageServerSettingsEditor {
   export interface IProps extends FieldProps {
-    setting_registry: ISettingRegistry;
-    language_server_manager: LanguageServerManager;
+    settingRegistry: ISettingRegistry;
+    languageServerManager: LanguageServerManager;
     trans: TranslationBundle;
     defaults: ReadonlyPartialJSONObject;
   }
@@ -47,7 +47,7 @@ export class LanguageServerSettings extends React.Component<
         );
       },
       trans: this.props.trans,
-      language_server_manager: this.props.language_server_manager
+      language_server_manager: this.props.languageServerManager
     });
     this._defaults = this.props.defaults;
   }

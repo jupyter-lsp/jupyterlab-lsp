@@ -24,6 +24,9 @@ function isJSONProperty(obj: unknown): obj is IJSONProperty {
   );
 }
 
+/**
+ * Get default values from JSON Schema properties field.
+ */
 function getDefaults(
   properties: ReadonlyPartialJSONObject | undefined
 ): Record<string, any> {
@@ -45,22 +48,22 @@ function getDefaults(
 export class SettingsUIManager {
   constructor(
     protected options: {
-      setting_registry: ISettingRegistry;
-      form_registry: IFormComponentRegistry | null;
-      language_server_manager: LanguageServerManager;
+      settingRegistry: ISettingRegistry;
+      formRegistry: IFormComponentRegistry | null;
+      languageServerManager: LanguageServerManager;
       console: ILSPLogConsole;
       trans: TranslationBundle;
     }
   ) {
     this._defaults = {};
     // register custom UI field for `language_servers` property
-    if (this.options.form_registry != null) {
-      this.options.form_registry.addRenderer(
+    if (this.options.formRegistry != null) {
+      this.options.formRegistry.addRenderer(
         'language_servers',
         (props: FieldProps) => {
           return renderLanguageServerSettings({
-            setting_registry: this.options.setting_registry,
-            language_server_manager: this.options.language_server_manager,
+            settingRegistry: this.options.settingRegistry,
+            languageServerManager: this.options.languageServerManager,
             trans: this.options.trans,
             defaults: this._defaults,
             ...props
@@ -74,13 +77,13 @@ export class SettingsUIManager {
     return this.options.console;
   }
 
-  setupSchemaForUI(plugin_id: string): void {
+  setupSchemaForUI(pluginId: string): void {
     let canonical: ISettingRegistry.ISchema | null;
     type ValueOf<T> = T[keyof T];
     type ServerSchemaWrapper = ValueOf<
       Required<LanguageServer>['language_servers']
     >;
-    const languageServerManager = this.options.language_server_manager;
+    const languageServerManager = this.options.languageServerManager;
     /**
      * Populate the plugin's schema defaults.
      */
@@ -180,11 +183,11 @@ export class SettingsUIManager {
 
     languageServerManager.sessionsChanged.connect(async () => {
       canonical = null;
-      await this.options.setting_registry.reload(plugin_id);
+      await this.options.settingRegistry.reload(pluginId);
     });
 
     // Transform the plugin object to return different schema than the default.
-    this.options.setting_registry.transform(plugin_id, {
+    this.options.settingRegistry.transform(pluginId, {
       fetch: plugin => {
         // Only override the canonical schema the first time.
         if (!canonical) {

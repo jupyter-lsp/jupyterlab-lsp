@@ -169,7 +169,7 @@ export class LSPExtension implements ILSPExtension {
     public translator: ITranslator,
     public user_console: ILoggerRegistry | null,
     status_bar: IStatusBar | null,
-    form_registry: IFormComponentRegistry | null
+    formRegistry: IFormComponentRegistry | null
   ) {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
     this.language_server_manager = new LanguageServerManager({
@@ -201,10 +201,10 @@ export class LSPExtension implements ILSPExtension {
     this.feature_manager = new FeatureManager();
 
     const settingsUI = new SettingsUIManager({
-      setting_registry: this.setting_registry,
-      form_registry: form_registry,
+      settingRegistry: this.setting_registry,
+      formRegistry: formRegistry,
       console: this.console.scope('SettingsUIManager'),
-      language_server_manager: this.language_server_manager,
+      languageServerManager: this.language_server_manager,
       trans: trans
     });
     settingsUI.setupSchemaForUI(plugin.id);
