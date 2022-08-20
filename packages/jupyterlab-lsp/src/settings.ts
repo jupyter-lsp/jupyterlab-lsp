@@ -1,4 +1,7 @@
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import {
+  ISettingRegistry,
+  ISchemaValidator
+} from '@jupyterlab/settingregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { IFormComponentRegistry } from '@jupyterlab/ui-components';
 import { JSONExt, ReadonlyPartialJSONObject } from '@lumino/coreutils';
@@ -45,6 +48,8 @@ function getDefaults(
   return defaults;
 }
 
+let validationAttempt = 0;
+
 export class SettingsUIManager {
   constructor(
     protected options: {
@@ -56,6 +61,7 @@ export class SettingsUIManager {
     }
   ) {
     this._defaults = {};
+    this._validationErrors = [];
     // register custom UI field for `language_servers` property
     if (this.options.formRegistry != null) {
       this.options.formRegistry.addRenderer(
@@ -66,6 +72,7 @@ export class SettingsUIManager {
             languageServerManager: this.options.languageServerManager,
             trans: this.options.trans,
             defaults: this._defaults,
+            validationErrors: this._validationErrors,
             ...props
           });
         }
@@ -77,8 +84,14 @@ export class SettingsUIManager {
     return this.options.console;
   }
 
+  /**
+   * Add schema for individual language servers into JSON schema.
+   * This method has to be called before any other action
+   * is performed on settingRegistry with regard to pluginId.
+   */
   setupSchemaForUI(pluginId: string): void {
     let canonical: ISettingRegistry.ISchema | null;
+    let original: ISettingRegistry.ISchema | null = null;
     type ValueOf<T> = T[keyof T];
     type ServerSchemaWrapper = ValueOf<
       Required<LanguageServer>['language_servers']
@@ -87,7 +100,10 @@ export class SettingsUIManager {
     /**
      * Populate the plugin's schema defaults.
      */
-    let populate = (schema: ISettingRegistry.ISchema) => {
+    let populate = (
+      plugin: ISettingRegistry.IPlugin,
+      schema: ISettingRegistry.ISchema
+    ) => {
       const baseServerSchema = (schema.definitions as any)[
         'language-server'
       ] as {
@@ -168,31 +184,69 @@ export class SettingsUIManager {
 
         const defaultMap = getDefaults(configSchema.properties);
 
-        const schema = JSONExt.deepCopy(baseServerSchema);
-        schema.properties.serverSettings = configSchema;
-        knownServersConfig[serverKey] = schema;
+        const baseSchemaCopy = JSONExt.deepCopy(baseServerSchema);
+        baseSchemaCopy.properties.serverSettings = configSchema;
+        knownServersConfig[serverKey] = baseSchemaCopy;
         defaults[serverKey] = {
           ...sharedDefaults,
           serverSettings: defaultMap
         };
       }
+
       schema.properties!.language_servers.properties = knownServersConfig;
       schema.properties!.language_servers.default = defaults;
+
+      // test if we can apply the schema without causing validation error
+      // (is the configuration held by the user compatible with the schema?)
+      validationAttempt += 1;
+      // the validator will parse raw plugin data into this object.
+      const parsedData = { composite: {}, user: {} };
+      const validationErrors =
+        this.options.settingRegistry.validator.validateData(
+          {
+            // the plugin schema is cached so we have to provide a dummy ID.
+            id: `lsp-validation-attempt-${validationAttempt}`,
+            raw: plugin.raw,
+            data: parsedData,
+            version: plugin.version,
+            schema: schema
+          },
+          true
+        );
+
+      if (validationErrors) {
+        console.error(
+          'LSP server settings validation failed; configuration graphical interface will run in schema-free mode; errors:',
+          validationErrors
+        );
+        this._validationErrors = validationErrors;
+        if (!original) {
+          console.error(
+            'Original language servers schema not available to restore non-transformed values.'
+          );
+        } else {
+          if (!original.properties!.language_servers.properties) {
+            delete schema.properties!.language_servers.properties;
+          }
+          if (!original.properties!.language_servers.default) {
+            delete schema.properties!.language_servers.default;
+          }
+        }
+      }
+
       this._defaults = defaults;
     };
-
-    languageServerManager.sessionsChanged.connect(async () => {
-      canonical = null;
-      await this.options.settingRegistry.reload(pluginId);
-    });
 
     // Transform the plugin object to return different schema than the default.
     this.options.settingRegistry.transform(pluginId, {
       fetch: plugin => {
+        if (!original) {
+          original = JSONExt.deepCopy(plugin.schema);
+        }
         // Only override the canonical schema the first time.
         if (!canonical) {
           canonical = JSONExt.deepCopy(plugin.schema);
-          populate(canonical);
+          populate(plugin, canonical);
         }
         return {
           data: plugin.data,
@@ -203,7 +257,15 @@ export class SettingsUIManager {
         };
       }
     });
+
+    // note: has to be after transform is called for the first time to avoid
+    // race condition, see https://github.com/jupyterlab/jupyterlab/issues/12978
+    languageServerManager.sessionsChanged.connect(async () => {
+      canonical = null;
+      await this.options.settingRegistry.reload(pluginId);
+    });
   }
 
   private _defaults: ReadonlyPartialJSONObject;
+  private _validationErrors: ISchemaValidator.IError[];
 }

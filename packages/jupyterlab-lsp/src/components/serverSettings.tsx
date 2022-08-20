@@ -1,4 +1,7 @@
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import {
+  ISettingRegistry,
+  ISchemaValidator
+} from '@jupyterlab/settingregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { JSONExt, ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import Form, {
@@ -19,6 +22,7 @@ namespace LanguageServerSettingsEditor {
     languageServerManager: LanguageServerManager;
     trans: TranslationBundle;
     defaults: ReadonlyPartialJSONObject;
+    validationErrors: ISchemaValidator.IError[];
   }
   export interface IState {
     // TODO
@@ -59,11 +63,39 @@ export class LanguageServerSettings extends React.Component<
       (serverSchema as any).title = null;
       (serverSchema as any).description = undefined;
     }
+
+    const validationErrors = this.props.validationErrors.map(error => (
+      <li key={'lsp-validation-error-' + error.dataPath}>
+        <b>{error.keyword}</b>: {error.message} in <code>{error.dataPath}</code>
+        {error.params && 'allowedValues' in error.params
+          ? this.props.trans.__(
+              'allowed values: %1',
+              JSON.stringify(error.params.allowedValues)
+            )
+          : null}
+      </li>
+    ));
+
     return (
       <div className="lsp-ServerSettings">
         <h3 className="lsp-ServerSettings-title">
           {this.props.trans.__('Language servers')}
         </h3>
+        {validationErrors.length > 0 ? (
+          <div className="lsp-ServerSettings-validationError">
+            <h4>
+              {this.props.trans.__(
+                'Validation of user settings for language server failed'
+              )}
+            </h4>
+            <p>
+              {this.props.trans.__(
+                'Your language server settings do not follow current schema. The LSP configuration graphical interface will run in schema-free mode to enable you to continue using the current settings as-is (in case if the schema is outdated). If this is however an earlier configuration mistake (settings were not validated in earlier versions of jupyterlab-lsp), please correct the following validation errors in JSON Settings Editor, save, and reload application:'
+              )}
+            </p>
+            <ul>{validationErrors}</ul>
+          </div>
+        ) : null}
         <Form
           schema={this.props.schema}
           formData={this.state}
