@@ -102,7 +102,7 @@ export class SettingsUIManager {
    * This method has to be called before any other action
    * is performed on settingRegistry with regard to pluginId.
    */
-  setupSchemaForUI(pluginId: string): void {
+  async setupSchemaForUI(pluginId: string): Promise<void> {
     let canonical: ISettingRegistry.ISchema | null;
     let original: ISettingRegistry.ISchema | null = null;
     const languageServerManager = this.options.languageServerManager;

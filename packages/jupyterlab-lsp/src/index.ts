@@ -161,7 +161,7 @@ export class LSPExtension implements ILSPExtension {
     private palette: ICommandPalette,
     documentManager: IDocumentManager,
     paths: IPaths,
-    adapterManager: ILSPAdapterManager,
+    private adapterManager: ILSPAdapterManager,
     public editor_type_manager: ILSPVirtualEditorManager,
     private code_extractors_manager: ILSPCodeExtractorsManager,
     private code_overrides_manager: ILSPCodeOverridesManager,
@@ -207,8 +207,13 @@ export class LSPExtension implements ILSPExtension {
       languageServerManager: this.language_server_manager,
       trans: trans
     });
-    settingsUI.setupSchemaForUI(plugin.id);
+    settingsUI
+      .setupSchemaForUI(plugin.id)
+      .then(this._activate.bind(this))
+      .catch(this._activate.bind(this));
+  }
 
+  private _activate(): void {
     this.setting_registry
       .load(plugin.id)
       .then(settings => {
@@ -234,7 +239,7 @@ export class LSPExtension implements ILSPExtension {
         console.error(reason.message);
       });
 
-    adapterManager.registerExtension(this);
+    this.adapterManager.registerExtension(this);
   }
 
   registerAdapterType(
