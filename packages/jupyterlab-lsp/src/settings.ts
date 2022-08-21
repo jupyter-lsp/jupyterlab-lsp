@@ -116,6 +116,8 @@ export class SettingsUIManager {
         }
       );
     }
+    this._canonical = null;
+    this._original = null;
     this._validationAttempt = 0;
     this._lastValidation = null;
     this._lastUserServerSettings = null;
@@ -132,8 +134,6 @@ export class SettingsUIManager {
    * is performed on settingRegistry with regard to pluginId.
    */
   async setupSchemaForUI(pluginId: string): Promise<void> {
-    let canonical: ISettingRegistry.ISchema | null;
-    let original: ISettingRegistry.ISchema | null = null;
     const languageServerManager = this.options.languageServerManager;
     /**
      * Populate the plugin's schema defaults.
@@ -234,57 +234,7 @@ export class SettingsUIManager {
       schema.properties!.language_servers.properties = knownServersConfig;
       schema.properties!.language_servers.default = defaults;
 
-      const lastValidation = this._lastValidation;
-      // do not re-validate if neither schema, nor user settings changed
-      if (
-        lastValidation === null ||
-        lastValidation.rawUserSettings !== plugin.raw ||
-        !JSONExt.deepEqual(lastValidation.schema, schema)
-      ) {
-        // test if we can apply the schema without causing validation error
-        // (is the configuration held by the user compatible with the schema?)
-        this._validationAttempt += 1;
-        // the validator will parse raw plugin data into this object;
-        // we do not do anything with those right now.
-        const parsedData = { composite: {}, user: {} };
-        const validationErrors =
-          this.options.settingRegistry.validator.validateData(
-            {
-              // the plugin schema is cached so we have to provide a dummy ID.
-              id: `lsp-validation-attempt-${this._validationAttempt}`,
-              raw: plugin.raw,
-              data: parsedData,
-              version: plugin.version,
-              schema: schema
-            },
-            true
-          );
-
-        if (validationErrors) {
-          console.error(
-            'LSP server settings validation failed; graphical interface for settings will run in schema-free mode; errors:',
-            validationErrors
-          );
-          this._validationErrors = validationErrors;
-          if (!original) {
-            console.error(
-              'Original language servers schema not available to restore non-transformed values.'
-            );
-          } else {
-            if (!original.properties!.language_servers.properties) {
-              delete schema.properties!.language_servers.properties;
-            }
-            if (!original.properties!.language_servers.default) {
-              delete schema.properties!.language_servers.default;
-            }
-          }
-        }
-
-        this._lastValidation = {
-          rawUserSettings: plugin.raw,
-          schema: schema
-        };
-      }
+      this._validateSchemaLater(plugin, schema).catch(this.console.warn);
 
       this._defaults = defaults;
     };
@@ -292,29 +242,36 @@ export class SettingsUIManager {
     // Transform the plugin object to return different schema than the default.
     this.options.settingRegistry.transform(pluginId, {
       fetch: plugin => {
-        // Profiling data:
+        // Profiling data (earlier version):
         // Initial fetch: 61-64 ms
         // Subsequent without change: <1ms
         // Session change: 642 ms.
-        // 91% spent on `validateData()`
-        //   10% in addSchema().
+        // 91% spent on `validateData()` of which 10% in addSchema().
         // 1.8% spent on `deepCopy()`
         // 1.79% spend on other tasks in `populate()`
+        // There is a limit on the transformation time, and failing to transform
+        // in the default 1 second means that no settigns whatsoever are available.
+        // Therefore validation in `populate()` was moved into an async function;
+        // this means that we need to trigger re-load of settings
+        // if there validation errors.
 
-        if (!original) {
-          original = JSONExt.deepCopy(plugin.schema);
+        // Only store the original schema the first time.
+        if (!this._original) {
+          this._original = JSONExt.deepCopy(plugin.schema);
         }
-        // Only override the canonical schema the first time.
-        if (!canonical) {
-          canonical = JSONExt.deepCopy(plugin.schema);
-          populate(plugin, canonical);
+        // Only override the canonical schema the first time (or after reset).
+        if (!this._canonical) {
+          this._canonical = JSONExt.deepCopy(plugin.schema);
+          populate(plugin, this._canonical);
         }
 
         return {
           data: plugin.data,
           id: plugin.id,
           raw: plugin.raw,
-          schema: canonical,
+          schema: this._validationErrors.length
+            ? this._original
+            : this._canonical,
           version: plugin.version
         };
       },
@@ -375,9 +332,83 @@ export class SettingsUIManager {
     // note: has to be after transform is called for the first time to avoid
     // race condition, see https://github.com/jupyterlab/jupyterlab/issues/12978
     languageServerManager.sessionsChanged.connect(async () => {
-      canonical = null;
+      this._canonical = null;
       await this.options.settingRegistry.reload(pluginId);
     });
+  }
+
+  private _wasPreviouslyValidated(
+    plugin: ISettingRegistry.IPlugin,
+    schema: ISettingRegistry.ISchema
+  ) {
+    return (
+      this._lastValidation !== null &&
+      this._lastValidation.rawUserSettings === plugin.raw &&
+      JSONExt.deepEqual(this._lastValidation.schema, schema)
+    );
+  }
+
+  /**
+   * Validate user settings from plugin against provided schema,
+   * asynchronously to avoid blocking the main thread.
+   * Stores validation reult in `this._validationErrors`.
+   */
+  private async _validateSchemaLater(
+    plugin: ISettingRegistry.IPlugin,
+    schema: ISettingRegistry.ISchema
+  ) {
+    // do not re-validate if neither schema, nor user settings changed
+    if (this._wasPreviouslyValidated(plugin, schema)) {
+      return;
+    }
+    // test if we can apply the schema without causing validation error
+    // (is the configuration held by the user compatible with the schema?)
+    this._validationAttempt += 1;
+    // the validator will parse raw plugin data into this object;
+    // we do not do anything with those right now.
+    const parsedData = { composite: {}, user: {} };
+    const validationErrors =
+      this.options.settingRegistry.validator.validateData(
+        {
+          // the plugin schema is cached so we have to provide a dummy ID;
+          // can be simplified once https://github.com/jupyterlab/jupyterlab/issues/12978 is fixed.
+          id: `lsp-validation-attempt-${this._validationAttempt}`,
+          raw: plugin.raw,
+          data: parsedData,
+          version: plugin.version,
+          schema: schema
+        },
+        true
+      );
+
+    this._lastValidation = {
+      rawUserSettings: plugin.raw,
+      schema: schema
+    };
+
+    if (validationErrors) {
+      console.error(
+        'LSP server settings validation failed; graphical interface for settings will run in schema-free mode; errors:',
+        validationErrors
+      );
+      this._validationErrors = validationErrors;
+      if (!this._original) {
+        console.error(
+          'Original language servers schema not available to restore non-transformed values.'
+        );
+      } else {
+        if (!this._original.properties!.language_servers.properties) {
+          delete schema.properties!.language_servers.properties;
+        }
+        if (!this._original.properties!.language_servers.default) {
+          delete schema.properties!.language_servers.default;
+        }
+      }
+
+      // Reload settings to use non-restrictive schema; this requires fixing
+      // https://github.com/jupyterlab/jupyterlab/issues/12978 upstream to work.
+      await this.options.settingRegistry.reload(plugin.id);
+    }
   }
 
   private async _warnConflicts(conflicts: SettingsMergeConflicts) {
@@ -454,4 +485,6 @@ export class SettingsUIManager {
   private _lastValidation: IValidationData | null;
   private _lastUserServerSettings: LanguageServerSettings | null;
   private _lastUserServerSettingsDoted: LanguageServerSettings | null;
+  private _canonical: ISettingRegistry.ISchema | null;
+  private _original: ISettingRegistry.ISchema | null;
 }
