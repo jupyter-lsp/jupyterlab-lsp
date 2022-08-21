@@ -42,6 +42,12 @@ function isJSONProperty(obj: unknown): obj is IJSONProperty {
 }
 
 /**
+ * Settings keyed by language server name with values including
+ * multiple properties, such as priority or workspace configuration
+ */
+type LanguageServerSettings = Record<string, ServerSchemaWrapper>;
+
+/**
  * Get default values from JSON Schema properties field.
  */
 function getDefaults(
@@ -62,7 +68,26 @@ function getDefaults(
   return defaults;
 }
 
-let validationAttempt = 0;
+/**
+ * Schema and user data that for validation
+ */
+interface IValidationData {
+  rawUserSettings: string;
+  schema: ISettingRegistry.ISchema;
+}
+
+/**
+ * Conflicts encounteredn when dot-collapsing settings
+ * organised by server ID, and then as a mapping between
+ * (dotted) setting ID and list of encoutnered values.
+ * The last encountered values is preferred for use.
+ */
+type SettingsMergeConflicts = Record<string, Record<string, any[]>>;
+
+interface ISettingsCollapseResult {
+  settings: LanguageServerSettings;
+  conflicts: SettingsMergeConflicts;
+}
 
 export class SettingsUIManager {
   constructor(
@@ -91,6 +116,10 @@ export class SettingsUIManager {
         }
       );
     }
+    this._validationAttempt = 0;
+    this._lastValidation = null;
+    this._lastUserServerSettings = null;
+    this._lastUserServerSettingsDoted = null;
   }
 
   protected get console(): ILSPLogConsole {
@@ -205,43 +234,56 @@ export class SettingsUIManager {
       schema.properties!.language_servers.properties = knownServersConfig;
       schema.properties!.language_servers.default = defaults;
 
-      // test if we can apply the schema without causing validation error
-      // (is the configuration held by the user compatible with the schema?)
-      validationAttempt += 1;
-      // the validator will parse raw plugin data into this object;
-      // we do not do anything with those right now.
-      const parsedData = { composite: {}, user: {} };
-      const validationErrors =
-        this.options.settingRegistry.validator.validateData(
-          {
-            // the plugin schema is cached so we have to provide a dummy ID.
-            id: `lsp-validation-attempt-${validationAttempt}`,
-            raw: plugin.raw,
-            data: parsedData,
-            version: plugin.version,
-            schema: schema
-          },
-          true
-        );
-
-      if (validationErrors) {
-        console.error(
-          'LSP server settings validation failed; configuration graphical interface will run in schema-free mode; errors:',
-          validationErrors
-        );
-        this._validationErrors = validationErrors;
-        if (!original) {
-          console.error(
-            'Original language servers schema not available to restore non-transformed values.'
+      const lastValidation = this._lastValidation;
+      // do not re-validate if neither schema, nor user settings changed
+      if (
+        lastValidation === null ||
+        lastValidation.rawUserSettings !== plugin.raw ||
+        !JSONExt.deepEqual(lastValidation.schema, schema)
+      ) {
+        // test if we can apply the schema without causing validation error
+        // (is the configuration held by the user compatible with the schema?)
+        this._validationAttempt += 1;
+        // the validator will parse raw plugin data into this object;
+        // we do not do anything with those right now.
+        const parsedData = { composite: {}, user: {} };
+        const validationErrors =
+          this.options.settingRegistry.validator.validateData(
+            {
+              // the plugin schema is cached so we have to provide a dummy ID.
+              id: `lsp-validation-attempt-${this._validationAttempt}`,
+              raw: plugin.raw,
+              data: parsedData,
+              version: plugin.version,
+              schema: schema
+            },
+            true
           );
-        } else {
-          if (!original.properties!.language_servers.properties) {
-            delete schema.properties!.language_servers.properties;
-          }
-          if (!original.properties!.language_servers.default) {
-            delete schema.properties!.language_servers.default;
+
+        if (validationErrors) {
+          console.error(
+            'LSP server settings validation failed; graphical interface for settings will run in schema-free mode; errors:',
+            validationErrors
+          );
+          this._validationErrors = validationErrors;
+          if (!original) {
+            console.error(
+              'Original language servers schema not available to restore non-transformed values.'
+            );
+          } else {
+            if (!original.properties!.language_servers.properties) {
+              delete schema.properties!.language_servers.properties;
+            }
+            if (!original.properties!.language_servers.default) {
+              delete schema.properties!.language_servers.default;
+            }
           }
         }
+
+        this._lastValidation = {
+          rawUserSettings: plugin.raw,
+          schema: schema
+        };
       }
 
       this._defaults = defaults;
@@ -250,6 +292,15 @@ export class SettingsUIManager {
     // Transform the plugin object to return different schema than the default.
     this.options.settingRegistry.transform(pluginId, {
       fetch: plugin => {
+        // Profiling data:
+        // Initial fetch: 61-64 ms
+        // Subsequent without change: <1ms
+        // Session change: 642 ms.
+        // 91% spent on `validateData()`
+        //   10% in addSchema().
+        // 1.8% spent on `deepCopy()`
+        // 1.79% spend on other tasks in `populate()`
+
         if (!original) {
           original = JSONExt.deepCopy(plugin.schema);
         }
@@ -258,6 +309,7 @@ export class SettingsUIManager {
           canonical = JSONExt.deepCopy(plugin.schema);
           populate(plugin, canonical);
         }
+
         return {
           data: plugin.data,
           id: plugin.id,
@@ -267,12 +319,39 @@ export class SettingsUIManager {
         };
       },
       compose: plugin => {
+        // Initial compose: 28 ms
+        // Consecutive compose with cached settings: 1-2ms
+
         const user = plugin.data.user as Required<LanguageServer>;
         const composite = JSONExt.deepCopy(user);
 
-        user.language_servers = this._collapseServerSettingsDotted(
-          user.language_servers
-        );
+        // Cache collapsed settings for speed and to only show dialog once.
+        // Note that JupyterLab attempts to transform in "preload" step (before splash screen end)
+        // and then again for deferred extensions if the initial transform in preload timed out.
+        // We are hitting the timeout in preload step.
+        if (
+          this._lastUserServerSettings === null ||
+          this._lastUserServerSettingsDoted === null ||
+          !JSONExt.deepEqual(
+            this._lastUserServerSettings,
+            user.language_servers
+          )
+        ) {
+          this._lastUserServerSettings = user.language_servers;
+          const collapsed = this._collapseServerSettingsDotted(
+            user.language_servers
+          );
+          user.language_servers = this._collapseServerSettingsDotted(
+            user.language_servers
+          ).settings;
+          this._lastUserServerSettingsDoted = user.language_servers;
+
+          if (Object.keys(collapsed.conflicts).length > 0) {
+            this._warnConflicts(collapsed.conflicts).catch(this.console.warn);
+          }
+        } else {
+          user.language_servers = this._lastUserServerSettingsDoted;
+        }
         composite.language_servers = user.language_servers;
 
         // Currently disabled, as it does not provide an obvious benefit:
@@ -288,6 +367,7 @@ export class SettingsUIManager {
           user: user,
           composite: composite
         };
+
         return plugin;
       }
     });
@@ -300,14 +380,21 @@ export class SettingsUIManager {
     });
   }
 
-  protected _collapseServerSettingsDotted(
-    settings: Record<string, ServerSchemaWrapper | null>
-  ): ServerSchemaWrapper {
+  private async _warnConflicts(conflicts: SettingsMergeConflicts) {
+    showDialog({
+      body: renderCollapseConflicts({
+        conflicts: conflicts,
+        trans: this.options.trans
+      }),
+      buttons: [Dialog.okButton()]
+    }).catch(console.warn);
+  }
+
+  private _collapseServerSettingsDotted(
+    settings: LanguageServerSettings
+  ): ISettingsCollapseResult {
     const conflicts: Record<string, Record<string, any[]>> = {};
-    const result = JSONExt.deepCopy(settings) as Record<
-      string,
-      ServerSchemaWrapper
-    >;
+    const result = JSONExt.deepCopy(settings) as LanguageServerSettings;
     for (let [serverKey, serverSettingsGroup] of Object.entries(settings)) {
       if (!serverSettingsGroup || !serverSettingsGroup.serverSettings) {
         continue;
@@ -316,27 +403,18 @@ export class SettingsUIManager {
         serverSettingsGroup.serverSettings as ReadonlyJSONObject
       );
       conflicts[serverKey] = collapsed.conflicts;
-      result[serverKey].serverSettings = collapsed.result;
+      result[serverKey]!.serverSettings = collapsed.result;
     }
-    if (Object.keys(conflicts).length > 0) {
-      showDialog({
-        body: renderCollapseConflicts({
-          conflicts: conflicts,
-          trans: this.options.trans
-        }),
-        buttons: [Dialog.okButton()]
-      }).catch(console.warn);
-    }
-    return result;
+    return {
+      settings: result,
+      conflicts: conflicts
+    };
   }
 
   protected _filterOutDefaults(
-    settings: Record<string, ServerSchemaWrapper | null>
-  ): ServerSchemaWrapper {
-    const result = JSONExt.deepCopy(settings) as Record<
-      string,
-      ServerSchemaWrapper
-    >;
+    settings: LanguageServerSettings
+  ): LanguageServerSettings {
+    const result = JSONExt.deepCopy(settings) as LanguageServerSettings;
     for (let [serverKey, serverSettingsGroup] of Object.entries(result)) {
       const serverDefaults = this._defaults[serverKey];
       if (serverDefaults == null) {
@@ -357,12 +435,12 @@ export class SettingsUIManager {
             settingValue as ReadonlyJSONObject
           )) {
             if (JSONExt.deepEqual(subValue as any, settingDefault[subKey])) {
-              delete result[serverKey][settingKey]![subKey];
+              delete result[serverKey]![settingKey]![subKey];
             }
           }
         } else {
           if (JSONExt.deepEqual(settingValue as any, settingDefault)) {
-            delete result[serverKey][settingKey];
+            delete result[serverKey]![settingKey];
           }
         }
       }
@@ -372,4 +450,8 @@ export class SettingsUIManager {
 
   private _defaults: Record<string, any>;
   private _validationErrors: ISchemaValidator.IError[];
+  private _validationAttempt: number;
+  private _lastValidation: IValidationData | null;
+  private _lastUserServerSettings: LanguageServerSettings | null;
+  private _lastUserServerSettingsDoted: LanguageServerSettings | null;
 }
