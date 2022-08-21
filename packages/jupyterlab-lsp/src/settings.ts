@@ -97,6 +97,10 @@ export class SettingsUIManager {
       languageServerManager: LanguageServerManager;
       console: ILSPLogConsole;
       trans: TranslationBundle;
+      /**
+       * Promise resolved when JupyterLab splash screen disappears.
+       */
+      restored: Promise<void>;
     }
   ) {
     this._defaults = {};
@@ -357,11 +361,14 @@ export class SettingsUIManager {
     plugin: ISettingRegistry.IPlugin,
     schema: ISettingRegistry.ISchema
   ) {
-    // do not re-validate if neither schema, nor user settings changed
+    // Ensure the subsequent code runs asynchronously; also reduce the CPU load on startup.
+    await this.options.restored;
+
+    // Do not re-validate if neither schema, nor user settings changed
     if (this._wasPreviouslyValidated(plugin, schema)) {
       return;
     }
-    // test if we can apply the schema without causing validation error
+    // Test if we can apply the schema without causing validation error
     // (is the configuration held by the user compatible with the schema?)
     this._validationAttempt += 1;
     // the validator will parse raw plugin data into this object;
@@ -370,7 +377,7 @@ export class SettingsUIManager {
     const validationErrors =
       this.options.settingRegistry.validator.validateData(
         {
-          // the plugin schema is cached so we have to provide a dummy ID;
+          // The plugin schema is cached so we have to provide a dummy ID;
           // can be simplified once https://github.com/jupyterlab/jupyterlab/issues/12978 is fixed.
           id: `lsp-validation-attempt-${this._validationAttempt}`,
           raw: plugin.raw,
@@ -412,6 +419,10 @@ export class SettingsUIManager {
   }
 
   private async _warnConflicts(conflicts: SettingsMergeConflicts) {
+    // Ensure the subsequent code runs asynchronously, and delay
+    // showing the dialog until the splash screen disappeared.
+    await this.options.restored;
+
     showDialog({
       body: renderCollapseConflicts({
         conflicts: conflicts,

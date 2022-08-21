@@ -205,7 +205,8 @@ export class LSPExtension implements ILSPExtension {
       formRegistry: formRegistry,
       console: this.console.scope('SettingsUIManager'),
       languageServerManager: this.language_server_manager,
-      trans: trans
+      trans: trans,
+      restored: app.restored
     });
     settingsUI
       .setupSchemaForUI(plugin.id)
