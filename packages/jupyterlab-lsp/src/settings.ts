@@ -1,16 +1,30 @@
+import { showDialog, Dialog } from '@jupyterlab/apputils';
 import {
   ISettingRegistry,
   ISchemaValidator
 } from '@jupyterlab/settingregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { IFormComponentRegistry } from '@jupyterlab/ui-components';
-import { JSONExt, ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import {
+  JSONExt,
+  ReadonlyPartialJSONObject,
+  ReadonlyJSONObject
+} from '@lumino/coreutils';
 import { FieldProps } from '@rjsf/core';
 
 import { LanguageServer } from './_plugin';
-import { renderLanguageServerSettings } from './components/serverSettings';
+import {
+  renderLanguageServerSettings,
+  renderCollapseConflicts
+} from './components/serverSettings';
 import { LanguageServerManager } from './manager';
 import { ILSPLogConsole } from './tokens';
+import { collapseToDotted } from './utils';
+
+type ValueOf<T> = T[keyof T];
+type ServerSchemaWrapper = ValueOf<
+  Required<LanguageServer>['language_servers']
+>;
 
 /**
  * Only used for TypeScript type coercion, not meant to represent a property fully.
@@ -71,7 +85,6 @@ export class SettingsUIManager {
             settingRegistry: this.options.settingRegistry,
             languageServerManager: this.options.languageServerManager,
             trans: this.options.trans,
-            defaults: this._defaults,
             validationErrors: this._validationErrors,
             ...props
           });
@@ -92,10 +105,6 @@ export class SettingsUIManager {
   setupSchemaForUI(pluginId: string): void {
     let canonical: ISettingRegistry.ISchema | null;
     let original: ISettingRegistry.ISchema | null = null;
-    type ValueOf<T> = T[keyof T];
-    type ServerSchemaWrapper = ValueOf<
-      Required<LanguageServer>['language_servers']
-    >;
     const languageServerManager = this.options.languageServerManager;
     /**
      * Populate the plugin's schema defaults.
@@ -199,7 +208,8 @@ export class SettingsUIManager {
       // test if we can apply the schema without causing validation error
       // (is the configuration held by the user compatible with the schema?)
       validationAttempt += 1;
-      // the validator will parse raw plugin data into this object.
+      // the validator will parse raw plugin data into this object;
+      // we do not do anything with those right now.
       const parsedData = { composite: {}, user: {} };
       const validationErrors =
         this.options.settingRegistry.validator.validateData(
@@ -255,6 +265,30 @@ export class SettingsUIManager {
           schema: canonical,
           version: plugin.version
         };
+      },
+      compose: plugin => {
+        const user = plugin.data.user as Required<LanguageServer>;
+        const composite = JSONExt.deepCopy(user);
+
+        user.language_servers = this._collapseServerSettingsDotted(
+          user.language_servers
+        );
+        composite.language_servers = user.language_servers;
+
+        // Currently disabled, as it does not provide an obvious benefit:
+        // - we would need to explicitly save the updated settings
+        //   to get a clean version in JSON Setting Editor.
+        // - if default changed on the server side but schema did not get
+        //   updated, server would be using a different value than communicated
+        //   to the user. It would be optimal to filter out defaults from
+        //   user data and always keep them in composite.
+        // user.language_servers = this._filterOutDefaults(user.language_servers);
+
+        plugin.data = {
+          user: user,
+          composite: composite
+        };
+        return plugin;
       }
     });
 
@@ -266,6 +300,76 @@ export class SettingsUIManager {
     });
   }
 
-  private _defaults: ReadonlyPartialJSONObject;
+  protected _collapseServerSettingsDotted(
+    settings: Record<string, ServerSchemaWrapper | null>
+  ): ServerSchemaWrapper {
+    const conflicts: Record<string, Record<string, any[]>> = {};
+    const result = JSONExt.deepCopy(settings) as Record<
+      string,
+      ServerSchemaWrapper
+    >;
+    for (let [serverKey, serverSettingsGroup] of Object.entries(settings)) {
+      if (!serverSettingsGroup || !serverSettingsGroup.serverSettings) {
+        continue;
+      }
+      const collapsed = collapseToDotted(
+        serverSettingsGroup.serverSettings as ReadonlyJSONObject
+      );
+      conflicts[serverKey] = collapsed.conflicts;
+      result[serverKey].serverSettings = collapsed.result;
+    }
+    if (Object.keys(conflicts).length > 0) {
+      showDialog({
+        body: renderCollapseConflicts({
+          conflicts: conflicts,
+          trans: this.options.trans
+        }),
+        buttons: [Dialog.okButton()]
+      }).catch(console.warn);
+    }
+    return result;
+  }
+
+  protected _filterOutDefaults(
+    settings: Record<string, ServerSchemaWrapper | null>
+  ): ServerSchemaWrapper {
+    const result = JSONExt.deepCopy(settings) as Record<
+      string,
+      ServerSchemaWrapper
+    >;
+    for (let [serverKey, serverSettingsGroup] of Object.entries(result)) {
+      const serverDefaults = this._defaults[serverKey];
+      if (serverDefaults == null) {
+        continue;
+      }
+      if (
+        !serverSettingsGroup ||
+        !serverSettingsGroup.hasOwnProperty('serverSettings')
+      ) {
+        continue;
+      }
+      for (let [settingKey, settingValue] of Object.entries(
+        serverSettingsGroup as ReadonlyJSONObject
+      )) {
+        const settingDefault = serverDefaults[settingKey];
+        if (settingKey === 'serverSettings') {
+          for (let [subKey, subValue] of Object.entries(
+            settingValue as ReadonlyJSONObject
+          )) {
+            if (JSONExt.deepEqual(subValue as any, settingDefault[subKey])) {
+              delete result[serverKey][settingKey]![subKey];
+            }
+          }
+        } else {
+          if (JSONExt.deepEqual(settingValue as any, settingDefault)) {
+            delete result[serverKey][settingKey];
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  private _defaults: Record<string, any>;
   private _validationErrors: ISchemaValidator.IError[];
 }

@@ -213,6 +213,7 @@ export class LSPExtension implements ILSPExtension {
       .load(plugin.id)
       .then(settings => {
         const options = settings.composite as Required<LanguageServer>;
+
         // Store the initial server settings, to be sent asynchronously
         // when the servers are initialized.
         const initial_configuration = (options.language_servers ||

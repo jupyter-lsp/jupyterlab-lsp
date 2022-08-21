@@ -3,7 +3,7 @@ import {
   ISchemaValidator
 } from '@jupyterlab/settingregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
-import { JSONExt, ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import Form, {
   FieldProps,
   IChangeEvent,
@@ -21,13 +21,45 @@ namespace LanguageServerSettingsEditor {
     settingRegistry: ISettingRegistry;
     languageServerManager: LanguageServerManager;
     trans: TranslationBundle;
-    defaults: ReadonlyPartialJSONObject;
     validationErrors: ISchemaValidator.IError[];
   }
   export interface IState {
     // TODO
   }
 }
+
+export const renderCollapseConflicts = (props: {
+  conflicts: Record<string, Record<string, any[]>>;
+  trans: TranslationBundle;
+}) => {
+  const conflicts = Object.entries(props.conflicts).map(
+    ([server, serverConflicts]) => {
+      if (Object.keys(serverConflicts).length === 0) {
+        return null;
+      }
+      const listing = Object.entries(serverConflicts).map(([key, values]) => (
+        <li key={'lsp-server-setting-conflict-' + key}>
+          <code>{key}</code>: <code>{JSON.stringify(values)}</code>
+        </li>
+      ));
+      return (
+        <div key={'lsp-server-setting-conflict-' + server}>
+          <h4>{server}</h4>
+          <ul>{listing}</ul>
+        </div>
+      );
+    }
+  );
+  return (
+    <div>
+      {props.trans.__('Multiple distinct values detected for:')}
+      {conflicts}
+      {props.trans.__(
+        'Retaining the last value for each of the settings. Please remove the additional values in JSON Settings Editor.'
+      )}
+    </div>
+  );
+};
 
 export const renderLanguageServerSettings = (
   props: LanguageServerSettingsEditor.IProps
@@ -53,15 +85,15 @@ export class LanguageServerSettings extends React.Component<
       trans: this.props.trans,
       languageServerManager: this.props.languageServerManager
     });
-    this._defaults = this.props.defaults;
   }
 
   render(): JSX.Element {
     this.props.schema.description = undefined;
     // hide the boilerplate title/description from schema definitions
     for (const serverSchema of Object.values(this.props.schema.properties!)) {
-      (serverSchema as any).title = null;
-      (serverSchema as any).description = undefined;
+      // note: have to be strings.
+      (serverSchema as any).title = '';
+      (serverSchema as any).description = '';
     }
 
     const validationErrors = this.props.validationErrors.map(error => (
@@ -119,46 +151,14 @@ export class LanguageServerSettings extends React.Component<
     );
   }
 
-  private _onChange(e: IChangeEvent<ReadonlyPartialJSONObject>): void {
-    this.setState(e.formData);
-    this.props.onChange(e.formData);
-  }
-
-  protected _filterOutDefaults(settings: any) {
-    // TODO: while using this for `this.props.onChange(e.formData);` does correctly
-    // remove values we don't want, there is a feed back loop out of our control
-    // which uses these same values to populate the form, and everything which was
-    // set to "undefined" gets a falsy value instead of the default defating the effort.
-    // Also that can lead to catastrophic feedback loop which would have to be mitigated.
-    for (let [serverKey, serverSettings] of Object.entries(settings)) {
-      const serverDefaults = this._defaults[serverKey];
-      if (serverDefaults == null) {
-        continue;
-      }
-      for (let [settingKey, settingValue] of Object.entries(
-        serverSettings as any
-      )) {
-        const settingDefault = serverDefaults[settingKey];
-        if (settingKey === 'serverSettings') {
-          for (let [subKey, subValue] of Object.entries(settingValue as any)) {
-            if (JSONExt.deepEqual(subValue as any, settingDefault[subKey])) {
-              console.debug('Deleting default', serverKey, settingKey, subKey);
-              settings[serverKey][settingKey][subKey] = undefined;
-            }
-          }
-        } else {
-          if (JSONExt.deepEqual(settingValue as any, settingDefault)) {
-            console.debug('Deleting default', settingKey);
-            settings[serverKey][settingKey] = undefined;
-          }
-        }
-      }
+  private _onChange(event: IChangeEvent<ReadonlyPartialJSONObject>): void {
+    if (event.errors.length) {
+      console.error('Errors in form validation:', event.errors);
     }
-    return settings;
+    this.setState(event.formData, () => this.props.onChange(this.state));
   }
 
   private _objectTemplate: React.FC<ObjectFieldTemplateProps>;
-  private _defaults: Record<string, any>;
 }
 
 /**
