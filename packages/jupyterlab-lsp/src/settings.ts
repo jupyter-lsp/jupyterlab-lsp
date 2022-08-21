@@ -278,58 +278,6 @@ export class SettingsUIManager {
             : this._canonical,
           version: plugin.version
         };
-      },
-      compose: plugin => {
-        // Initial compose: 28 ms
-        // Consecutive compose with cached settings: 1-2ms
-
-        const user = plugin.data.user as Required<LanguageServer>;
-        const composite = JSONExt.deepCopy(user);
-
-        // Cache collapsed settings for speed and to only show dialog once.
-        // Note that JupyterLab attempts to transform in "preload" step (before splash screen end)
-        // and then again for deferred extensions if the initial transform in preload timed out.
-        // We are hitting the timeout in preload step.
-        if (
-          this._lastUserServerSettings === null ||
-          this._lastUserServerSettingsDoted === null ||
-          !JSONExt.deepEqual(
-            this._lastUserServerSettings,
-            user.language_servers
-          )
-        ) {
-          this._lastUserServerSettings = user.language_servers;
-          const collapsed = this._collapseServerSettingsDotted(
-            user.language_servers
-          );
-          user.language_servers = this._collapseServerSettingsDotted(
-            user.language_servers
-          ).settings;
-          this._lastUserServerSettingsDoted = user.language_servers;
-
-          if (Object.keys(collapsed.conflicts).length > 0) {
-            this._warnConflicts(collapsed.conflicts).catch(this.console.warn);
-          }
-        } else {
-          user.language_servers = this._lastUserServerSettingsDoted;
-        }
-        composite.language_servers = user.language_servers;
-
-        // Currently disabled, as it does not provide an obvious benefit:
-        // - we would need to explicitly save the updated settings
-        //   to get a clean version in JSON Setting Editor.
-        // - if default changed on the server side but schema did not get
-        //   updated, server would be using a different value than communicated
-        //   to the user. It would be optimal to filter out defaults from
-        //   user data and always keep them in composite.
-        // user.language_servers = this._filterOutDefaults(user.language_servers);
-
-        plugin.data = {
-          user: user,
-          composite: composite
-        };
-
-        return plugin;
       }
     });
 
@@ -339,6 +287,46 @@ export class SettingsUIManager {
       this._canonical = null;
       await this.options.settingRegistry.reload(pluginId);
     });
+  }
+
+  normalizeSettings(composite: Required<LanguageServer>) {
+    // Cache collapsed settings for speed and to only show dialog once.
+    // Note that JupyterLab attempts to transform in "preload" step (before splash screen end)
+    // and then again for deferred extensions if the initial transform in preload timed out.
+    // We are hitting the timeout in preload step.
+    if (
+      this._lastUserServerSettings === null ||
+      this._lastUserServerSettingsDoted === null ||
+      !JSONExt.deepEqual(
+        this._lastUserServerSettings,
+        composite.language_servers
+      )
+    ) {
+      this._lastUserServerSettings = composite.language_servers;
+      const collapsed = this._collapseServerSettingsDotted(
+        composite.language_servers
+      );
+      composite.language_servers = collapsed.settings;
+      this._lastUserServerSettingsDoted = composite.language_servers;
+
+      if (Object.keys(collapsed.conflicts).length > 0) {
+        this._warnConflicts(collapsed.conflicts).catch(this.console.warn);
+      }
+    } else {
+      composite.language_servers = this._lastUserServerSettingsDoted;
+    }
+
+    // Currently disabled, as it does not provide an obvious benefit:
+    // - we would need to explicitly save the updated settings
+    //   to get a clean version in JSON Setting Editor.
+    // - if default changed on the server side but schema did not get
+    //   updated, server would be using a different value than communicated
+    //   to the user. It would be optimal to filter out defaults from
+    //   user data and always keep them in composite.
+    // composite.language_servers = this._filterOutDefaults(composite.language_servers);
+
+    // TODO: trigger update of settings to ensure that UI uses the same settings as collapsed?
+    return composite;
   }
 
   private _wasPreviouslyValidated(

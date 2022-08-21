@@ -154,6 +154,7 @@ export class LSPExtension implements ILSPExtension {
   connection_manager: DocumentConnectionManager;
   language_server_manager: LanguageServerManager;
   feature_manager: ILSPFeatureManager;
+  private _settingsUI: SettingsUIManager;
 
   constructor(
     public app: JupyterFrontEnd,
@@ -200,7 +201,7 @@ export class LSPExtension implements ILSPExtension {
 
     this.feature_manager = new FeatureManager();
 
-    const settingsUI = new SettingsUIManager({
+    this._settingsUI = new SettingsUIManager({
       settingRegistry: this.setting_registry,
       formRegistry: formRegistry,
       console: this.console.scope('SettingsUIManager'),
@@ -208,7 +209,7 @@ export class LSPExtension implements ILSPExtension {
       trans: trans,
       restored: app.restored
     });
-    settingsUI
+    this._settingsUI
       .setupSchemaForUI(plugin.id)
       .then(this._activate.bind(this))
       .catch(this._activate.bind(this));
@@ -218,7 +219,9 @@ export class LSPExtension implements ILSPExtension {
     this.setting_registry
       .load(plugin.id)
       .then(settings => {
-        const options = settings.composite as Required<LanguageServer>;
+        const options = this._settingsUI.normalizeSettings(
+          settings.composite as Required<LanguageServer>
+        );
 
         // Store the initial server settings, to be sent asynchronously
         // when the servers are initialized.
@@ -269,7 +272,9 @@ export class LSPExtension implements ILSPExtension {
   }
 
   private updateOptions(settings: ISettingRegistry.ISettings) {
-    const options = settings.composite as Required<LanguageServer>;
+    const options = this._settingsUI.normalizeSettings(
+      settings.composite as Required<LanguageServer>
+    );
 
     const languageServerSettings = (options.language_servers ||
       {}) as TLanguageServerConfigurations;
