@@ -88,6 +88,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
   protected current_adapter: WidgetAdapter<IDocumentWidget> | null = null;
   protected renderer: LSPCompletionRenderer;
   private _latestActiveItem: LazyCompletionItem | null = null;
+  private _signalConnected: boolean = false;
 
   constructor(
     private app: JupyterFrontEnd,
@@ -108,22 +109,36 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     });
     this.renderer.activeChanged.connect(this.active_completion_changed, this);
     this.renderer.itemShown.connect(this.resolve_and_update, this);
+    this._signalConnected = false;
     // TODO: figure out a better way to disable lab integration elements (postpone initialization?)
     settings.ready
       .then(() => {
         if (!settings.composite.disable) {
           adapterManager.adapterChanged.connect(this.swap_adapter, this);
+          this._signalConnected = true;
         }
       })
       .catch(console.warn);
     settings.changed.connect(() => {
-      completionThemeManager.set_theme(this.settings.composite.theme);
-      completionThemeManager.set_icons_overrides(
-        this.settings.composite.typesMap
-      );
       if (!settings.composite.disable) {
         document.body.dataset.lspCompleterLayout =
           this.settings.composite.layout;
+        completionThemeManager.set_theme(this.settings.composite.theme);
+        completionThemeManager.set_icons_overrides(
+          this.settings.composite.typesMap
+        );
+        if (!this._signalConnected) {
+          adapterManager.adapterChanged.connect(this.swap_adapter, this);
+          this._signalConnected = true;
+        }
+        // TODO connect adapter if not connected
+      } else {
+        completionThemeManager.set_theme(null);
+        delete document.body.dataset.lspCompleterLayout;
+        if (this._signalConnected) {
+          adapterManager.adapterChanged.disconnect(this.swap_adapter, this);
+          this._signalConnected = false;
+        }
       }
       if (this.current_completion_handler) {
         this.model.settings.caseSensitive =

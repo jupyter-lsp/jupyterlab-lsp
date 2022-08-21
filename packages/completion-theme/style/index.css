@@ -24,12 +24,12 @@
   overflow: auto;
 }
 
-.jp-Completer {
+.lsp-completer.jp-Completer {
   --lsp-completer-max-label-width: 300px;
   --lsp-completer-max-detail-width: 200px;
 }
 
-.jp-Completer-match {
+.lsp-completer .jp-Completer-match {
   max-width: var(--lsp-completer-max-label-width);
   overflow-x: hidden;
   white-space: nowrap;
@@ -37,7 +37,7 @@
   text-overflow: ellipsis;
 }
 
-.jp-mod-active .jp-Completer-match {
+.lsp-completer .jp-mod-active .jp-Completer-match {
   text-overflow: clip;
 }
 
@@ -81,7 +81,7 @@ body[data-lsp-completer-layout='detail-below'] .jp-Completer-match {
   height: var(--lsp-completer-label-height);
 }
 
-.jp-Completer-item .jp-Completer-typeExtended {
+.lsp-completer .jp-Completer-item .jp-Completer-typeExtended {
   max-width: var(--lsp-completer-max-detail-width);
   min-height: 50px;
   overflow-x: hidden;
@@ -89,7 +89,7 @@ body[data-lsp-completer-layout='detail-below'] .jp-Completer-match {
   white-space: nowrap;
 }
 
-.jp-mod-active .jp-Completer-typeExtended {
+.lsp-completer .jp-mod-active .jp-Completer-typeExtended {
   text-overflow: clip;
 }
 
