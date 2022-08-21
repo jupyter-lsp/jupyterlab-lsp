@@ -375,7 +375,7 @@ Open in Advanced Settings
         Lab Command    Advanced Settings Editor
     END
     ${sel} =    Set Variable    css:[data-id="${plugin id}"]
-    Wait Until Page Contains Element    ${sel}
+    Wait Until Page Contains Element    ${sel}    timeout=10s
     Click Element    ${sel}
     Wait Until Page Contains    System Defaults
 
