@@ -107,7 +107,7 @@ Lab Log Should Not Contain Known Error Messages
 Wait For Splash
     Go To    ${URL}lab?reset&token=${TOKEN}
     Set Window Size    1024    768
-    Wait Until Page Contains Element    ${SPLASH}    timeout=30s
+    Wait Until Page Contains Element    ${SPLASH}    timeout=45s
     Wait Until Page Does Not Contain Element    ${SPLASH}    timeout=10s
     Execute Javascript    window.onbeforeunload \= function (){}
 
