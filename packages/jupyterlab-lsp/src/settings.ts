@@ -432,7 +432,9 @@ export class SettingsUIManager {
       const collapsed = collapseToDotted(
         serverSettingsGroup.serverSettings as ReadonlyJSONObject
       );
-      conflicts[serverKey] = collapsed.conflicts;
+      if (Object.keys(collapsed.conflicts).length) {
+        conflicts[serverKey] = collapsed.conflicts;
+      }
       result[serverKey]!.serverSettings = collapsed.result;
     }
     return {
