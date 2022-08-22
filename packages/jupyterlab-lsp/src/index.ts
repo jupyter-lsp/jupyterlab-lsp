@@ -17,6 +17,7 @@ import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStatusBar } from '@jupyterlab/statusbar';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
+import { IFormComponentRegistry } from '@jupyterlab/ui-components';
 import { COMPLETION_THEME_MANAGER } from '@krassowski/completion-theme';
 import { plugin as THEME_MATERIAL } from '@krassowski/theme-material';
 import { plugin as THEME_VSCODE } from '@krassowski/theme-vscode';
@@ -48,6 +49,7 @@ import {
   ICodeOverridesRegistry,
   ILSPCodeOverridesManager
 } from './overrides/tokens';
+import { SettingsUIManager } from './settings';
 import {
   IAdapterTypeOptions,
   ILSPAdapterManager,
@@ -152,6 +154,7 @@ export class LSPExtension implements ILSPExtension {
   connection_manager: DocumentConnectionManager;
   language_server_manager: LanguageServerManager;
   feature_manager: ILSPFeatureManager;
+  private _settingsUI: SettingsUIManager;
 
   constructor(
     public app: JupyterFrontEnd,
@@ -159,14 +162,15 @@ export class LSPExtension implements ILSPExtension {
     private palette: ICommandPalette,
     documentManager: IDocumentManager,
     paths: IPaths,
-    adapterManager: ILSPAdapterManager,
+    private adapterManager: ILSPAdapterManager,
     public editor_type_manager: ILSPVirtualEditorManager,
     private code_extractors_manager: ILSPCodeExtractorsManager,
     private code_overrides_manager: ILSPCodeOverridesManager,
     public console: ILSPLogConsole,
     public translator: ITranslator,
     public user_console: ILoggerRegistry | null,
-    status_bar: IStatusBar | null
+    status_bar: IStatusBar | null,
+    formRegistry: IFormComponentRegistry | null
   ) {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
     this.language_server_manager = new LanguageServerManager({
@@ -197,10 +201,28 @@ export class LSPExtension implements ILSPExtension {
 
     this.feature_manager = new FeatureManager();
 
+    this._settingsUI = new SettingsUIManager({
+      settingRegistry: this.setting_registry,
+      formRegistry: formRegistry,
+      console: this.console.scope('SettingsUIManager'),
+      languageServerManager: this.language_server_manager,
+      trans: trans,
+      restored: app.restored
+    });
+    this._settingsUI
+      .setupSchemaForUI(plugin.id)
+      .then(this._activate.bind(this))
+      .catch(this._activate.bind(this));
+  }
+
+  private _activate(): void {
     this.setting_registry
       .load(plugin.id)
       .then(settings => {
-        const options = settings.composite as Required<LanguageServer>;
+        const options = this._settingsUI.normalizeSettings(
+          settings.composite as Required<LanguageServer>
+        );
+
         // Store the initial server settings, to be sent asynchronously
         // when the servers are initialized.
         const initial_configuration = (options.language_servers ||
@@ -221,7 +243,7 @@ export class LSPExtension implements ILSPExtension {
         console.error(reason.message);
       });
 
-    adapterManager.registerExtension(this);
+    this.adapterManager.registerExtension(this);
   }
 
   registerAdapterType(
@@ -250,7 +272,9 @@ export class LSPExtension implements ILSPExtension {
   }
 
   private updateOptions(settings: ISettingRegistry.ISettings) {
-    const options = settings.composite as Required<LanguageServer>;
+    const options = this._settingsUI.normalizeSettings(
+      settings.composite as Required<LanguageServer>
+    );
 
     const languageServerSettings = (options.language_servers ||
       {}) as TLanguageServerConfigurations;
@@ -283,7 +307,7 @@ const plugin: JupyterFrontEndPlugin<ILSPFeatureManager> = {
     ILSPLogConsole,
     ITranslator
   ],
-  optional: [ILoggerRegistry, IStatusBar],
+  optional: [ILoggerRegistry, IStatusBar, IFormComponentRegistry],
   activate: (app, ...args) => {
     let extension = new LSPExtension(
       app,
@@ -299,7 +323,8 @@ const plugin: JupyterFrontEndPlugin<ILSPFeatureManager> = {
         ILSPLogConsole,
         ITranslator,
         ILoggerRegistry | null,
-        IStatusBar | null
+        IStatusBar | null,
+        IFormComponentRegistry | null
       ])
     );
     return extension.feature_manager;

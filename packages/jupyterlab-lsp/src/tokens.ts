@@ -45,6 +45,7 @@ export type TLanguageServerId =
   | 'r-languageserver';
 export type TServerKeys = TLanguageServerId;
 
+export type TLanguageServerSpec = SCHEMA.LanguageServerSpec;
 export type TSessionMap = Map<TServerKeys, SCHEMA.LanguageServerSession>;
 export type TSpecsMap = Map<TServerKeys, SCHEMA.LanguageServerSpec>;
 

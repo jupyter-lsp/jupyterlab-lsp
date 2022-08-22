@@ -45,7 +45,7 @@ import {
 import { VirtualDocument, collect_documents } from '../virtual/document';
 
 import { codeCheckIcon, codeClockIcon, codeWarningIcon } from './icons';
-import { DocumentLocator } from './utils';
+import { DocumentLocator, ServerLinksList } from './utils';
 
 import okButton = Dialog.okButton;
 
@@ -137,16 +137,7 @@ class LanguageServerInfo extends React.Component<ILanguageServerInfo, any> {
       <div>
         <h3>{specification.display_name}</h3>
         <div>
-          <ul className={'lsp-server-links-list'}>
-            {Object.entries(specification?.urls || {}).map(([name, url]) => (
-              <li key={this.props.serverId + '-url-' + name}>
-                {name}:{' '}
-                <a href={url} target="_blank" rel="noreferrer">
-                  {url}
-                </a>
-              </li>
-            ))}
-          </ul>
+          <ServerLinksList specification={specification} />
           <h4>{trans.__('Troubleshooting')}</h4>
           <p className={'lsp-troubleshoot-section'}>
             {specification.troubleshoot
