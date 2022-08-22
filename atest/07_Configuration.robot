@@ -38,7 +38,7 @@ LaTeX
     [Tags]    language:latex
     ${needs reload} =    Set Variable    "${OS}" == "Windows"
     Settings Should Change Editor Diagnostics    LaTeX    example.tex    texlab
-    ...    {"chktex.onOpenAndSave": true}
+    ...    {"chktex.onOpenAndSave": true, "chktex.onEdit": true}
     ...    ${EMPTY}
     ...    Command terminated with space. (chktex)
     ...    Save File
