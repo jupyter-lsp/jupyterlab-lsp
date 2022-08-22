@@ -20,7 +20,7 @@
 /* a workaround for scrollbars being always on in the completer documentation panel, see
  https://github.com/jupyter-lsp/jupyterlab-lsp/pull/322#issuecomment-682724175
  */
-.jp-Completer-docpanel {
+.lsp-completer .jp-Completer-docpanel {
   overflow: auto;
 }
 
@@ -47,7 +47,7 @@
 }
 
 /* a workaround for code being larger font size than text in markdown-rendered panel */
-.jp-Completer-docpanel pre code {
+.lsp-completer .jp-Completer-docpanel pre code {
   font-size: 90%;
 }
 
