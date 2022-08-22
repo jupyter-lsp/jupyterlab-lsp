@@ -1,5 +1,6 @@
 {
   "title": "LaTeX configuration",
+  "type": "object",
   "properties": {
     "rootDirectory": {
       "type": ["string", "null"],
@@ -14,7 +15,10 @@
     "build.args": {
       "type": "array",
       "default": ["-pdf", "-interaction=nonstopmode", "-synctex=1", "%f"],
-      "description": "Additional arguments that are passed to the build tool."
+      "description": "Additional arguments that are passed to the build tool.",
+      "items": {
+        "type": "string"
+      }
     },
     "build.onSave": {
       "type": "boolean",
@@ -39,7 +43,10 @@
     "forwardSearch.args": {
       "type": "array",
       "default": [],
-      "description": "Additional arguments that are passed to the previewer."
+      "description": "Additional arguments that are passed to the previewer.",
+      "items": {
+        "type": "string"
+      }
     },
     "chktex.onOpenAndSave": {
       "type": "boolean",

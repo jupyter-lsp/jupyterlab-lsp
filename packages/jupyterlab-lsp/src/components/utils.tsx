@@ -3,6 +3,7 @@ import { nullTranslator, TranslationBundle } from '@jupyterlab/translation';
 import React from 'react';
 
 import { WidgetAdapter } from '../adapters/adapter';
+import { TLanguageServerSpec } from '../tokens';
 import { VirtualDocument } from '../virtual/document';
 
 export function getBreadcrumbs(
@@ -110,5 +111,20 @@ export function DocumentLocator(props: {
     >
       {breadcrumbs}
     </div>
+  );
+}
+
+export function ServerLinksList(props: { specification: TLanguageServerSpec }) {
+  return (
+    <ul className={'lsp-server-links-list'}>
+      {Object.entries(props.specification?.urls || {}).map(([name, url]) => (
+        <li key={props.specification.serverId + '-url-' + name}>
+          {name}:{' '}
+          <a href={url} target="_blank" rel="noreferrer">
+            {url}
+          </a>
+        </li>
+      ))}
+    </ul>
   );
 }
