@@ -58,7 +58,7 @@ describe('transformLSPCompletions', () => {
     expect(result.items[0].match.insertText).to.equal("'@lumino/algorithm");
     // label should not include `'`
     expect(result.items[0].match.label).to.equal('@lumino/algorithm');
-    expect(result.source).to.equal('LSP');
+    expect(result.source.name).to.equal('LSP');
   });
 
   it('Harmonizes `insertText` for paths', () => {
