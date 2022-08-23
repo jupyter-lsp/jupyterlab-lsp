@@ -19,6 +19,7 @@ import { LSPConnection } from '../../connection';
 import { PositionConverter } from '../../converter';
 import { FeatureSettings } from '../../feature';
 import {
+  AnyCompletion,
   AdditionalCompletionTriggerKinds,
   CompletionItemKind,
   CompletionTriggerKind,
@@ -60,6 +61,7 @@ export function transformLSPCompletions<T>(
   createCompletionItem: (kind: string, match: lsProtocol.CompletionItem) => T,
   console: ILSPLogConsole
 ) {
+  console.debug('Transforming');
   let prefix = token.value.slice(0, position_in_token + 1);
   let all_non_prefixed = true;
   let items: T[] = [];
@@ -146,6 +148,22 @@ export function transformLSPCompletions<T>(
   return response;
 }
 
+function toCompletionList(reply: AnyCompletion | null): lsProtocol.CompletionList {
+  if (!reply) {
+    return {
+        items: [],
+        isIncomplete: false
+    };
+  }
+  if (Array.isArray(reply)) {
+      return {
+        items: reply as lsProtocol.CompletionItem[],
+        isIncomplete: false
+    };
+  }
+  return reply as lsProtocol.CompletionList;
+}
+
 /**
  * A LSP connector for completion handlers.
  */
@@ -158,6 +176,7 @@ export class LSPConnector
   private _context_connector: ContextConnector;
   private _kernel_connector: KernelConnector;
   private _kernel_and_context_connector: CompletionConnector;
+  private _isIncomplete: boolean;
   private console: ILSPLogConsole;
 
   // signal that this is the new type connector (providing completion items)
@@ -273,12 +292,20 @@ export class LSPConnector
   }
 
   /**
+   * @deprecated; instead of using a global state like this,
+   * the latest reply should be cached by completer and this info extracted?
+   */
+  get isIncomplete() {
+    return this._isIncomplete;
+  }
+
+  /**
    * Fetch completion requests.
    *
    * @param request - The completion request text and details.
    */
   async fetch(
-    request: CompletionHandler.IRequest
+    requestIn?: CompletionHandler.IRequest
   ): Promise<CompletionHandler.ICompletionItemsReply | undefined> {
     let editor = this._editor;
 
@@ -310,6 +337,12 @@ export class LSPConnector
 
     let position_in_token = cursor.column - start.column - 1;
     const typed_character = token.value[cursor.column - start.column - 1];
+
+    const request: CompletionHandler.IRequest
+    = requestIn ? requestIn : {
+      offset: token.offset + position_in_token + 1,
+      text: editor.model.value.text
+    };
 
     let start_in_root = this.transform_from_editor_to_root(start);
     let end_in_root = this.transform_from_editor_to_root(end);
@@ -455,20 +488,23 @@ export class LSPConnector
         ? CompletionTriggerKind.Invoked
         : this.trigger_kind;
 
-    let lspCompletionItems = ((await connection.getCompletion(
-      cursor,
-      {
-        start,
-        end,
-        text: token.value
+    let completionReply = toCompletionList(await connection.clientRequests['textDocument/completion'].request(
+       {
+      textDocument: {
+        uri: document.document_info.uri
       },
-      document.document_info,
-      false,
-      typed_character,
-      trigger_kind
-    )) || []) as lsProtocol.CompletionItem[];
+      position: {
+        line: cursor.line,
+        character: cursor.ch
+      },
+      context: {
+        triggerKind: trigger_kind || CompletionTriggerKind.Invoked,
+        triggerCharacter: typed_character
+      }
+    }));
+    this._isIncomplete = completionReply.isIncomplete;
 
-    this.console.debug('Transforming');
+    let lspCompletionItems: lsProtocol.CompletionItem[] = completionReply.items || [];
 
     return transformLSPCompletions(
       token,

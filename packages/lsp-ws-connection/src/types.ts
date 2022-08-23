@@ -18,6 +18,10 @@ export interface IDocumentInfo {
   languageId: string;
 }
 
+/**
+ * @deprecated, moved to `@jupyter-lsp/jupyterlab-lsp/lsp.ts`
+ * (will become `@jupyterlab/lsp/lsp.ts` in near futurue)
+ */
 export type AnyLocation =
   | lsProtocol.Location
   | lsProtocol.Location[]
@@ -25,9 +29,14 @@ export type AnyLocation =
   | undefined
   | null;
 
+/**
+ * @deprecated, moved to `@jupyter-lsp/jupyterlab-lsp/lsp.ts`
+ * (will become `@jupyterlab/lsp/lsp.ts` in near futurue)
+ */
 export type AnyCompletion =
   | lsProtocol.CompletionList
   | lsProtocol.CompletionItem[];
+
 
 export enum CompletionTriggerKind {
   Invoked = 1,

@@ -4,8 +4,6 @@
 // Introduced modifications are BSD licenced, copyright JupyterLab development team.
 import { ISignal, Signal } from '@lumino/signaling';
 import {
-  AnyCompletion,
-  AnyLocation,
   IDocumentInfo,
   ILspOptions,
   IPosition,
@@ -19,7 +17,7 @@ import type * as rpc from 'vscode-jsonrpc';
 import type * as lsp from 'vscode-languageserver-protocol';
 import type { MessageConnection } from 'vscode-ws-jsonrpc';
 
-import { ClientCapabilities } from './lsp';
+import { AnyLocation, AnyCompletion, ClientCapabilities } from './lsp';
 import { ILSPLogConsole } from './tokens';
 import { until_ready } from './utils';
 
