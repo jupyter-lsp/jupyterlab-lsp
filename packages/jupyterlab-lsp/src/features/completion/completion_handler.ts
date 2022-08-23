@@ -12,7 +12,7 @@ import {
   KernelKind
 } from '@krassowski/completion-theme/lib/types';
 import { JSONArray, JSONObject } from '@lumino/coreutils';
-import * as lsProtocol from 'vscode-languageserver-types';
+import type * as lsProtocol from 'vscode-languageserver-types';
 
 import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
 import { LSPConnection } from '../../connection';
@@ -51,6 +51,99 @@ export interface ICompletionsReply
   //  it might be good to separate the two stages for both interfaces
   source: ICompletionsSource | null;
   items: IExtendedCompletionItem[];
+}
+
+export function transformLSPCompletions<T>(
+  token: CodeEditor.IToken,
+  position_in_token: number,
+  lspCompletionItems: lsProtocol.CompletionItem[],
+  createCompletionItem: (kind: string, match: lsProtocol.CompletionItem) => T,
+  console: ILSPLogConsole
+) {
+  let prefix = token.value.slice(0, position_in_token + 1);
+  let all_non_prefixed = true;
+  let items: T[] = [];
+  lspCompletionItems.forEach(match => {
+    let kind = match.kind ? CompletionItemKind[match.kind] : '';
+
+    // Update prefix values
+    let text = match.insertText ? match.insertText : match.label;
+
+    // declare prefix presence if needed and update it
+    if (text.toLowerCase().startsWith(prefix.toLowerCase())) {
+      all_non_prefixed = false;
+      if (prefix !== token.value) {
+        if (text.toLowerCase().startsWith(token.value.toLowerCase())) {
+          // given a completion insert text "display_table" and two test cases:
+          // disp<tab>data →  display_table<cursor>data
+          // disp<tab>lay  →  display_table<cursor>
+          // we have to adjust the prefix for the latter (otherwise we would get display_table<cursor>lay),
+          // as we are constrained NOT to replace after the prefix (which would be "disp" otherwise)
+          prefix = token.value;
+        }
+      }
+    }
+    // add prefix if needed
+    else if (token.type === 'string' && prefix.includes('/')) {
+      // special case for path completion in strings, ensuring that:
+      //     '/Com<tab> → '/Completion.ipynb
+      // when the returned insert text is `Completion.ipynb` (the token here is `'/Com`)
+      // developed against pyls and pylsp server, may not work well in other cases
+      const parts = prefix.split('/');
+      if (
+        text.toLowerCase().startsWith(parts[parts.length - 1].toLowerCase())
+      ) {
+        let pathPrefix = parts.slice(0, -1).join('/') + '/';
+        match.insertText = pathPrefix + text;
+        // for label removing the prefix quote if present
+        if (pathPrefix.startsWith("'") || pathPrefix.startsWith('"')) {
+          pathPrefix = pathPrefix.substr(1);
+        }
+        match.label = pathPrefix + match.label;
+        all_non_prefixed = false;
+      }
+    }
+
+    let completionItem = createCompletionItem(kind, match);
+
+    items.push(completionItem);
+  });
+  console.debug('Transformed');
+  // required to make the repetitive trigger characters like :: or ::: work for R with R languageserver,
+  // see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/436
+  let prefix_offset = token.value.length;
+  // completion of dictionaries for Python with jedi-language-server was
+  // causing an issue for dic['<tab>'] case; to avoid this let's make
+  // sure that prefix.length >= prefix.offset
+  if (all_non_prefixed && prefix_offset > prefix.length) {
+    prefix_offset = prefix.length;
+  }
+
+  let response = {
+    // note in the ContextCompleter it was:
+    // start: token.offset,
+    // end: token.offset + token.value.length,
+    // which does not work with "from statistics import <tab>" as the last token ends at "t" of "import",
+    // so the completer would append "mean" as "from statistics importmean" (without space!);
+    // (in such a case the typedCharacters is undefined as we are out of range)
+    // a different workaround would be to prepend the token.value prefix:
+    // text = token.value + text;
+    // but it did not work for "from statistics <tab>" and lead to "from statisticsimport" (no space)
+    start: token.offset + (all_non_prefixed ? prefix_offset : 0),
+    end: token.offset + prefix.length,
+    items: items,
+    source: {
+      name: 'LSP',
+      priority: 2
+    }
+  };
+  if (response.start > response.end) {
+    console.warn(
+      'Response contains start beyond end; this should not happen!',
+      response
+    );
+  }
+  return response;
 }
 
 /**
@@ -376,97 +469,21 @@ export class LSPConnector
     )) || []) as lsProtocol.CompletionItem[];
 
     this.console.debug('Transforming');
-    let prefix = token.value.slice(0, position_in_token + 1);
-    let all_non_prefixed = true;
-    let items: IExtendedCompletionItem[] = [];
-    lspCompletionItems.forEach(match => {
-      let kind = match.kind ? CompletionItemKind[match.kind] : '';
 
-      // Update prefix values
-      let text = match.insertText ? match.insertText : match.label;
-
-      // declare prefix presence if needed and update it
-      if (text.toLowerCase().startsWith(prefix.toLowerCase())) {
-        all_non_prefixed = false;
-        if (prefix !== token.value) {
-          if (text.toLowerCase().startsWith(token.value.toLowerCase())) {
-            // given a completion insert text "display_table" and two test cases:
-            // disp<tab>data →  display_table<cursor>data
-            // disp<tab>lay  →  display_table<cursor>
-            // we have to adjust the prefix for the latter (otherwise we would get display_table<cursor>lay),
-            // as we are constrained NOT to replace after the prefix (which would be "disp" otherwise)
-            prefix = token.value;
-          }
-        }
-      }
-      // add prefix if needed
-      else if (token.type === 'string' && prefix.includes('/')) {
-        // special case for path completion in strings, ensuring that:
-        //     '/Com<tab> → '/Completion.ipynb
-        // when the returned insert text is `Completion.ipynb` (the token here is `'/Com`)
-        // developed against pyls and pylsp server, may not work well in other cases
-        const parts = prefix.split('/');
-        if (
-          text.toLowerCase().startsWith(parts[parts.length - 1].toLowerCase())
-        ) {
-          let pathPrefix = parts.slice(0, -1).join('/') + '/';
-          match.insertText = pathPrefix + match.insertText;
-          // for label removing the prefix quote if present
-          if (pathPrefix.startsWith("'") || pathPrefix.startsWith('"')) {
-            pathPrefix = pathPrefix.substr(1);
-          }
-          match.label = pathPrefix + match.label;
-          all_non_prefixed = false;
-        }
-      }
-
-      let completionItem = new LazyCompletionItem(
-        kind,
-        this.icon_for(kind),
-        match,
-        this,
-        document.uri
-      );
-
-      items.push(completionItem);
-    });
-    this.console.debug('Transformed');
-    // required to make the repetitive trigger characters like :: or ::: work for R with R languageserver,
-    // see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/436
-    let prefix_offset = token.value.length;
-    // completion of dictionaries for Python with jedi-language-server was
-    // causing an issue for dic['<tab>'] case; to avoid this let's make
-    // sure that prefix.length >= prefix.offset
-    if (all_non_prefixed && prefix_offset > prefix.length) {
-      prefix_offset = prefix.length;
-    }
-
-    let response = {
-      // note in the ContextCompleter it was:
-      // start: token.offset,
-      // end: token.offset + token.value.length,
-      // which does not work with "from statistics import <tab>" as the last token ends at "t" of "import",
-      // so the completer would append "mean" as "from statistics importmean" (without space!);
-      // (in such a case the typedCharacters is undefined as we are out of range)
-      // a different workaround would be to prepend the token.value prefix:
-      // text = token.value + text;
-      // but it did not work for "from statistics <tab>" and lead to "from statisticsimport" (no space)
-      start: token.offset + (all_non_prefixed ? prefix_offset : 0),
-      end: token.offset + prefix.length,
-      items: items,
-      source: {
-        name: 'LSP',
-        priority: 2
-      }
-    };
-    if (response.start > response.end) {
-      console.warn(
-        'Response contains start beyond end; this should not happen!',
-        response
-      );
-    }
-
-    return response;
+    return transformLSPCompletions(
+      token,
+      position_in_token,
+      lspCompletionItems,
+      (kind, match) =>
+        new LazyCompletionItem(
+          kind,
+          this.icon_for(kind),
+          match,
+          this,
+          document.uri
+        ),
+      this.console
+    );
   }
 
   protected icon_for(type: string): LabIcon {
