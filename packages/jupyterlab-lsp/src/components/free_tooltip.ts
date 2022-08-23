@@ -41,6 +41,8 @@ interface IFreeTooltipOptions extends Tooltip.IOptions {
   hideOnKeyPress?: boolean;
 }
 
+type Bundle = { 'text/plain': string } | { 'text/markdown': string };
+
 /**
  * Tooltip which can be placed  at any character, not only at the current position (derived from getCursorPosition)
  */
@@ -50,8 +52,10 @@ export class FreeTooltip extends Tooltip {
   constructor(protected options: IFreeTooltipOptions) {
     super(options);
     this._setGeometry();
-    // TODO: remove once https://github.com/jupyterlab/jupyterlab/pull/11010 is merged & released
-    const model = new MimeModel({ data: options.bundle });
+  }
+
+  setBundle(bundle: Bundle) {
+    const model = new MimeModel({ data: bundle });
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const content: IRenderMime.IRenderer = this._content;
@@ -164,6 +168,12 @@ export namespace EditorTooltip {
   }
 }
 
+function markupToBundle(markup: lsProtocol.MarkupContent): Bundle {
+  return markup.kind === 'plaintext'
+    ? { 'text/plain': markup.value }
+    : { 'text/markdown': markup.value };
+}
+
 export class EditorTooltipManager {
   private currentTooltip: FreeTooltip | null = null;
   private currentOptions: EditorTooltip.IOptions | null;
@@ -175,10 +185,7 @@ export class EditorTooltipManager {
     this.currentOptions = options;
     let { markup, position, adapter } = options;
     let widget = adapter.widget;
-    const bundle: { 'text/plain': string } | { 'text/markdown': string } =
-      markup.kind === 'plaintext'
-        ? { 'text/plain': markup.value }
-        : { 'text/markdown': markup.value };
+    const bundle = markupToBundle(markup);
     const tooltip = new FreeTooltip({
       ...(options.tooltip || {}),
       anchor: widget.content,
@@ -200,12 +207,20 @@ export class EditorTooltipManager {
     if (
       this.currentTooltip !== null &&
       this.currentOptions &&
-      this.currentOptions.markup.value === options.markup.value &&
       this.currentOptions.adapter === options.adapter &&
       is_equal(this.currentOptions.position, options.position) &&
       this.currentOptions.id === options.id
     ) {
-      this.show();
+      if (
+        this.currentOptions.markup.value === options.markup.value &&
+        this.currentOptions.markup.kind === options.markup.kind
+      ) {
+        this.show();
+      } else {
+        this.currentOptions.markup = options.markup;
+        this.currentTooltip.setBundle(markupToBundle(options.markup));
+        this.show();
+      }
     } else {
       this.create(options);
     }
