@@ -118,7 +118,9 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
       );
     }
     this.current_theme_id = id;
-    document.body.classList.add(this.current_theme_class);
+    if (id !== null) {
+      document.body.classList.add(this.current_theme_class);
+    }
     this.update_icons_set();
   }
 
