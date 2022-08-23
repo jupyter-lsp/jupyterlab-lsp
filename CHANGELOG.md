@@ -7,7 +7,8 @@
   - implement settings UI using native JupyterLab 3.3 UI ([#778])
 - bug fixes
   - use correct websocket URL if configured as different from base URL ([#820], thanks @MikeSem)
-  - clean up all completer styles when compelter feature is disabled ([#829]).
+  - clean up all completer styles when completer feature is disabled ([#829]).
+  - fix `undefined` being inserted for path-like completion items with no `insertText` ([#833])
 - refactoring:
   - move client capabilities to features ([#738])
 - documentation:
@@ -28,6 +29,7 @@
 [#820]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/820
 [#826]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/826
 [#829]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/829
+[#833]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/833
 
 ### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
 
