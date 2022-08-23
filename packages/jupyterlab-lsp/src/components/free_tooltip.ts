@@ -206,6 +206,7 @@ export class EditorTooltipManager {
   showOrCreate(options: EditorTooltip.IOptions) {
     if (
       this.currentTooltip !== null &&
+      !this.currentTooltip.isDisposed &&
       this.currentOptions &&
       this.currentOptions.adapter === options.adapter &&
       is_equal(this.currentOptions.position, options.position) &&

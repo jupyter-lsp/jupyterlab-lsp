@@ -201,7 +201,11 @@ export class SignatureCM extends CodeMirrorIntegration {
       newEditorPosition.line === previousPosition.line &&
       newEditorPosition.ch < previousPosition.ch
     ) {
-      this._removeTooltip();
+      // hide (not remove) since there is a chance the user is just
+      // typing the signature at the end of line which means that
+      // they will likelly get a signature reply again, and then
+      // re-using existing tooltip gives smoother experience.
+      this._hideTooltip();
     } else {
       // otherwise, update the signature as the active parameter could have changed,
       // or the server may want us to close the tooltip
