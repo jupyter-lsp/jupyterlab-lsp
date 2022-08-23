@@ -222,6 +222,7 @@ export class EditorTooltipManager {
         this.show();
       }
     } else {
+      this.remove();
       this.create(options);
     }
   }
