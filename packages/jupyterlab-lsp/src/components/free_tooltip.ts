@@ -15,7 +15,7 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { WidgetAdapter } from '../adapters/adapter';
 import { PositionConverter } from '../converter';
-import { IEditorPosition } from '../positioning';
+import { IEditorPosition, is_equal } from '../positioning';
 
 const MIN_HEIGHT = 20;
 const MAX_HEIGHT = 250;
@@ -196,6 +196,21 @@ export class EditorTooltipManager {
     return tooltip;
   }
 
+  showOrCreate(options: EditorTooltip.IOptions) {
+    if (
+      this.currentTooltip !== null &&
+      this.currentOptions &&
+      this.currentOptions.markup.value === options.markup.value &&
+      this.currentOptions.adapter === options.adapter &&
+      is_equal(this.currentOptions.position, options.position) &&
+      this.currentOptions.id === options.id
+    ) {
+      this.show();
+    } else {
+      this.create(options);
+    }
+  }
+
   get position(): IEditorPosition {
     return this.currentOptions!.position;
   }
@@ -209,6 +224,18 @@ export class EditorTooltipManager {
       !this.currentTooltip.isDisposed &&
       this.currentTooltip.isVisible
     );
+  }
+
+  hide() {
+    if (this.currentTooltip !== null) {
+      this.currentTooltip.hide();
+    }
+  }
+
+  show() {
+    if (this.currentTooltip !== null) {
+      this.currentTooltip.show();
+    }
   }
 
   remove() {

@@ -184,7 +184,7 @@ export class SignatureCM extends CodeMirrorIntegration {
       this.isSignatureShown() &&
       (event.relatedTarget as Element).closest('.' + CLASS_NAME) === null
     ) {
-      this._hideTooltip();
+      this._removeTooltip();
     }
   }
 
@@ -201,7 +201,7 @@ export class SignatureCM extends CodeMirrorIntegration {
       newEditorPosition.line === previousPosition.line &&
       newEditorPosition.ch < previousPosition.ch
     ) {
-      this._hideTooltip();
+      this._removeTooltip();
     } else {
       // otherwise, update the signature as the active parameter could have changed,
       // or the server may want us to close the tooltip
@@ -297,8 +297,12 @@ export class SignatureCM extends CodeMirrorIntegration {
     );
   }
 
-  private _hideTooltip() {
+  private _removeTooltip() {
     this.lab_integration.tooltip.remove();
+  }
+
+  private _hideTooltip() {
+    this.lab_integration.tooltip.hide();
   }
 
   private handleSignature(
@@ -307,13 +311,18 @@ export class SignatureCM extends CodeMirrorIntegration {
     display_position: IEditorPosition | null = null
   ) {
     this.console.log('Signature received', response);
-    if (response || response === null) {
+    if (response === null) {
       // do not hide on undefined as it simply indicates that no new info is available
       // (null means close, response means update)
+      this._removeTooltip();
+    } else if (response) {
       this._hideTooltip();
     }
 
     if (!this.signatureCharacter || !response || !response.signatures.length) {
+      if (response) {
+        this._removeTooltip();
+      }
       this.console.debug(
         'Ignoring signature response: cursor lost or response empty'
       );
@@ -353,7 +362,7 @@ export class SignatureCM extends CodeMirrorIntegration {
       response
     );
 
-    this.lab_integration.tooltip.create({
+    this.lab_integration.tooltip.showOrCreate({
       markup,
       position: display_position === null ? editor_position : display_position,
       id: TOOLTIP_ID,
@@ -390,7 +399,7 @@ export class SignatureCM extends CodeMirrorIntegration {
       previousPosition = this.lab_integration.tooltip.position;
       if (this._closeCharacters.includes(last_character)) {
         // remove just in case but do not short-circuit in case if we need to re-trigger
-        this._hideTooltip();
+        this._removeTooltip();
       }
     }
 
