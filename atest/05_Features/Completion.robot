@@ -8,7 +8,8 @@ Resource          ../Keywords.robot
 *** Variables ***
 ${COMPLETER_BOX}    css:.jp-Completer.jp-HoverBox
 ${DOCUMENTATION_PANEL}    css:.jp-Completer-docpanel
-${KERNEL_BUSY_INDICATOR}    css:.jp-NotebookPanel-toolbar div[title="Kernel Busy"]
+${KERNEL_BUSY_INDIC_OLD}    css:.jp-NotebookPanel-toolbar div[title="Kernel Busy"]
+${KERNEL_BUSY_INDICATOR}    css:.jp-Notebook-ExecutionIndicator div[data-status="busy"]
 
 *** Test Cases ***
 Works When Kernel Is Idle
@@ -427,6 +428,14 @@ Count Completer Hints
     ${count} =    Get Element Count    css:.jp-Completer-item
     [Return]    ${count}
 
+Wait For Busy Indicator
+    Run Keyword If    '${LAB VERSION}'.startswith('3.4')    Wait Until Page Contains Element    ${KERNEL_BUSY_INDICATOR}    timeout=5s
+    Run Keyword If    '${LAB VERSION}'.startswith('3.1')    Wait Until Page Contains Element    ${KERNEL_BUSY_INDIC_OLD}    timeout=5s
+
+Page Should Contain Busy Indicator
+    Run Keyword If    '${LAB VERSION}'.startswith('3.4')    Page Should Contain Element    ${KERNEL_BUSY_INDICATOR}
+    Run Keyword If    '${LAB VERSION}'.startswith('3.1')    Page Should Contain Element    ${KERNEL_BUSY_INDIC_OLD}
+
 Should Complete While Kernel Is Busy
     # Run the cell with sleep(20)
     Enter Cell Editor    17
@@ -434,7 +443,7 @@ Should Complete While Kernel Is Busy
     # Lab Command    Run Selected Cells And Don't Advance
     Press Keys    None    CTRL+ENTER
     # Confirm that the kernel is busy
-    Wait Until Page Contains Element    ${KERNEL_BUSY_INDICATOR}    timeout=5s
+    Wait For Busy Indicator
     # Enter a cell with "t"
     Enter Cell Editor    18
     # Check if completion worked
@@ -442,4 +451,4 @@ Should Complete While Kernel Is Busy
     Trigger Completer    timeout=10s
     Completer Should Suggest    test
     # Confirm that the kernel indicator was busy all along
-    Page Should Contain Element    ${KERNEL_BUSY_INDICATOR}
+    Page Should Contain Busy Indicator

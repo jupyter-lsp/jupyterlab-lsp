@@ -134,7 +134,7 @@ class HasListeners:
         str(scope.value): [] for scope in MessageScope
     }  # type: Dict[Text, List[MessageListener]]
 
-    log = Instance("logging.Logger")
+    log: Any = Instance("logging.Logger")
 
     @classmethod
     def register_message_listener(
