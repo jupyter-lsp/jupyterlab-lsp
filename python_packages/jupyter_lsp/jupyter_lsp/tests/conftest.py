@@ -131,7 +131,7 @@ class MockWebsocketHandler(LanguageServerWebSocketHandler):
         self._messages_wrote = Queue()
         self._ping_sent = False
 
-    def write_message(self, message: Text) -> None:
+    def write_message(self, message: Text) -> None:  # type: ignore
         self.log.warning("write_message %s", message)
         self._messages_wrote.put_nowait(message)
 

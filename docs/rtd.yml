@@ -18,7 +18,15 @@ dependencies:
   - python-lsp-server
   - sphinx
   - sphinx-autodoc-typehints
-  - sphinx-book-theme
+  - sphinx-book-theme>=0.3.2 # force recent sphinx-book-theme version
+  # (which does not yet support sphinx 5.0 so instead a very early 0.0.3
+  # version was getting installed); this constraint and the constraint
+  # on pydata-sphinx-theme below can be removed once:
+  # https://github.com/executablebooks/sphinx-book-theme/issues/575
+  # and
+  # https://github.com/executablebooks/sphinx-book-theme/issues/571
+  # are resolved
+  - pydata-sphinx-theme>=0.7.2 # https://github.com/executablebooks/jupyter-book/issues/1569
   - sphinx-copybutton
   - pip:
       - -e ../python_packages/jupyter_lsp/

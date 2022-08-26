@@ -216,10 +216,14 @@ Ensure Sidebar Is Closed
     ${els} =    Get WebElements    css:#jp-${side}-stack
     Run Keyword If    ${els.__len__()}    Click Element    css:.jp-mod-${side} .lm-TabBar-tab.lm-mod-current
 
+Refresh File List
+    Run Keyword If    '${LAB VERSION}'.startswith('3.4')    Click Element    ${JLAB CSS REFRESH FILES}
+    Run Keyword If    '${LAB VERSION}'.startswith('3.1')    Click Element    ${JLAB CSS REFRESH F_OLD}
+
 Open Context Menu for File
     [Arguments]    ${file}
     Ensure File Browser is Open
-    Click Element    ${JLAB CSS REFRESH FILES}
+    Refresh File List
     ${selector} =    Set Variable    xpath://span[@class='jp-DirListing-itemText']/span\[text() = '${file}']
     Wait Until Page Contains Element    ${selector}    timeout=10s
     Wait Until Keyword Succeeds    10 x    0.1 s    Open Context Menu    ${selector}
@@ -242,7 +246,7 @@ Input Into Dialog
 
 Open Folder
     [Arguments]    @{paths}
-    Click Element    ${JLAB CSS REFRESH FILES}
+    Refresh File List
     FOR    ${path}    IN    @{paths}
         ${sel} =    Set Variable    css:li.jp-DirListing-item\[title^='Name: ${path}']
         Wait Until Page Contains Element    ${sel}

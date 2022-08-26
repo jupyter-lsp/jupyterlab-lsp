@@ -18,7 +18,9 @@ class BaseHandler(JupyterHandler):
         self.manager = manager
 
 
-class LanguageServerWebSocketHandler(WebSocketMixin, WebSocketHandler, BaseHandler):
+class LanguageServerWebSocketHandler(  # type: ignore
+    WebSocketMixin, WebSocketHandler, BaseHandler
+):
     """Setup tornado websocket to route to language server sessions"""
 
     language_server = None  # type: Optional[Text]

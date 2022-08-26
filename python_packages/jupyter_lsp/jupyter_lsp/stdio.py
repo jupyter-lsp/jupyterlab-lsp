@@ -30,7 +30,7 @@ class LspStdIoBase(LoggingConfigurable):
 
     executor = None
 
-    stream = Instance(
+    stream = Instance(  # type:ignore[assignment]
         io.RawIOBase, help="the stream to read/write"
     )  # type: io.RawIOBase
     queue = Instance(Queue, help="queue to get/put")
