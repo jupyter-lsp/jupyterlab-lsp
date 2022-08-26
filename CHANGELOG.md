@@ -1,5 +1,16 @@
 ## Changelog
 
+### `@krassowski/jupyterlab-lsp 3.10.2` (not-yet-released)
+
+- bug fixes
+  - use correct websocket URL if configured as different from base URL ([#820], thanks @MikeSem)
+  - clean up all completer styles when completer feature is disabled ([#829]).
+- maintenance:
+  - bump minimum required Node.js version to 14.0 (12.0 reached EOL in April)
+
+[#820]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/820
+[#829]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/829
+
 ### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
 
 - bug fixes:
