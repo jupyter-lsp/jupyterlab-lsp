@@ -9,7 +9,7 @@ Resource          ../Keywords.robot
 ${COMPLETER_BOX}    css:.jp-Completer.jp-HoverBox
 ${DOCUMENTATION_PANEL}    css:.jp-Completer-docpanel
 ${KERNEL_BUSY_INDIC_OLD}    css:.jp-NotebookPanel-toolbar div[title="Kernel Busy"]
-${KERNEL_BUSY_INDICATOR}    css:.jp-Notebook-ExecutionIndicator div[data-status="busy"]
+${KERNEL_BUSY_INDICATOR}    css:.jp-Notebook-ExecutionIndicator[data-status="busy"]
 
 *** Test Cases ***
 Works When Kernel Is Idle
