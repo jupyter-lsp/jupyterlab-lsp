@@ -1,15 +1,26 @@
 ## Changelog
 
-### `@krassowski/jupyterlab-lsp 3.10.2` (not-yet-released)
+### `@krassowski/jupyterlab-lsp 3.10.2` (2022-08-26)
 
 - bug fixes
   - use correct websocket URL if configured as different from base URL ([#820], thanks @MikeSem)
-  - clean up all completer styles when completer feature is disabled ([#829]).
+  - clean up all completer styles when completer feature is disabled ([#829])
+  - fix `undefined` being inserted for path-like completion items with no `insertText` ([#833])
 - maintenance:
-  - bump minimum required Node.js version to 14.0 (12.0 reached EOL in April)
+  - fix tests to pass with latest JupyterLab 3.3 an 3.4 ([#809] and [#813])
+  - bump minimum required Node.js version to 14.0 (12.0 reached EOL in April [#810])
 
+[#809]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/809
+[#810]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/810
+[#813]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/813
 [#820]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/820
 [#829]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/829
+[#833]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/833
+
+### `@krassowski/completion-theme 3.3.1` (2022-08-26)
+
+- bug fixes
+  - clean up all completer styles when completer feature is disabled ([#829])
 
 ### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
 
