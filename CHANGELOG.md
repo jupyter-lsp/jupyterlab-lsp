@@ -16,6 +16,7 @@
   - remove references to pylsp fork ([#800] and [#814], thanks @joelostblom and @nickfong)
   - add Robot Framework language server ([#724], thanks @bollwyvl)
   - add a list of third-party and community language servers ([#826], thanks @cccs-jc)
+  - fix documentation of .lsp_symlink workaround ([#828])
 - maintenance:
   - bump minimum required JupyterLab version to 3.3 (`>=3.3.0,<4.0.0a0`)
   - bump minimum required Node.js version to 14.0 (12.0 reached EOL in April)
