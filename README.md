@@ -171,18 +171,18 @@ Use of a python `virtualenv` or a conda env is also recommended.
    `pip`, ...) this access control mechanism needs to be circumvented: Inside your Jupyter
    root directory create a symlink named *.lsp_symlink* pointing to your system root */*.
 
-    ```
-    ln -s / .lsp_symlink
-    ```
+   ```
+   ln -s / .lsp_symlink
+   ```
 
-    As this symlink is a hidden file the Jupyter server must be instructed to
-    serve hidden files. Either use the appropriate commandline flag:
+   As this symlink is a hidden file the Jupyter server must be instructed to
+   serve hidden files. Either use the appropriate commandline flag:
 
-    ```
-    jupyter lab --ContentsManager.allow_hidden=True
-    ```
+   ```
+   jupyter lab --ContentsManager.allow_hidden=True
+   ```
 
-    or, alternatively, set the corresponding setting inside your *jupyter_server_config.py*.
+   or, alternatively, set the corresponding setting inside your *jupyter_server_config.py*.
 
 ### Configuring the servers
 
