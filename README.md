@@ -164,7 +164,7 @@ Use of a python `virtualenv` or a conda env is also recommended.
    or permanently by setting `c.Completer.use_jedi = False` in your
    [`ipython_config.py` file](https://ipython.readthedocs.io/en/stable/config/intro.html?highlight=ipython_config.py#systemwide-configuration).
 
-1. (Optional; *nix-only) As a security measure Jupyter limits file access to the Jupyter root
+1. (Linux/OSX-only) As a security measure Jupyter limits file access to the Jupyter root
    directory (the place where you launch the Jupyter server). Thus, in order to
    allow `jupyterlab-lsp` to navigate to external files such as packages
    installed system-wide or to libraries inside a virtual environment (`conda`,
