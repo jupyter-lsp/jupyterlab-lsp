@@ -245,6 +245,9 @@ export abstract class CodeMirrorIntegration
     }
   }
 
+  /**
+   * @deprecated
+   */
   protected highlight_range(
     range: IEditorRange,
     class_name: string
