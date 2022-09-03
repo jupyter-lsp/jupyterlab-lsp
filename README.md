@@ -164,25 +164,28 @@ Use of a python `virtualenv` or a conda env is also recommended.
    or permanently by setting `c.Completer.use_jedi = False` in your
    [`ipython_config.py` file](https://ipython.readthedocs.io/en/stable/config/intro.html?highlight=ipython_config.py#systemwide-configuration).
 
-1. (Linux/OSX-only) As a security measure Jupyter limits file access to the Jupyter root
-   directory (the place where you launch the Jupyter server). Thus, in order to
-   allow `jupyterlab-lsp` to navigate to external files such as packages
+1. (Optional, Linux/OSX-only) As a security measure by default Jupyter serve only allows
+   access to files under the Jupyter root directory (the place where you launch the Jupyter server).
+   Thus, in order to allow `jupyterlab-lsp` to navigate to external files such as packages
    installed system-wide or to libraries inside a virtual environment (`conda`,
-   `pip`, ...) this access control mechanism needs to be circumvented: Inside your Jupyter
-   root directory create a symlink named *.lsp_symlink* pointing to your system root */*.
+   `pip`, ...) this access control mechanism needs to be circumvented: inside your Jupyter
+   root directory create a symlink named _.lsp_symlink_ pointing to your system root `/`.
 
    ```
    ln -s / .lsp_symlink
    ```
 
    As this symlink is a hidden file the Jupyter server must be instructed to
-   serve hidden files. Either use the appropriate commandline flag:
+   serve hidden files. Either use the appropriate command line flag:
 
    ```
    jupyter lab --ContentsManager.allow_hidden=True
    ```
 
-   or, alternatively, set the corresponding setting inside your *jupyter_server_config.py*.
+   or, alternatively, set the corresponding setting inside your `jupyter_server_config.py`.
+
+   Help in implementing a custom [`ContentsManager`](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/850)
+   which will enable navigating to external files without the symlink is welcome.
 
 ### Configuring the servers
 
