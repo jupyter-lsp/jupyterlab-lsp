@@ -306,6 +306,18 @@ export const diagnostics_databases = new WeakMap<
   DiagnosticsDatabase
 >();
 
+interface IMarkerDefinition {
+  options: CodeMirror.TextMarkerOptions;
+  start: IEditorPosition;
+  end: IEditorPosition;
+  hash: string;
+}
+
+interface IMarkedDiagnostic {
+  editor: CodeMirror.Editor;
+  marker: CodeMirror.TextMarker;
+}
+
 export class DiagnosticsCM extends CodeMirrorIntegration {
   private last_response: lsProtocol.PublishDiagnosticsParams;
 
@@ -339,7 +351,7 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
   }
 
   private unique_editor_ids: DefaultMap<CodeMirror.Editor, number>;
-  private marked_diagnostics: Map<string, CodeMirror.TextMarker> = new Map();
+  private marked_diagnostics: Map<string, IMarkedDiagnostic> = new Map();
   /**
    * Allows access to the most recent diagnostics in context of the editor.
    *
@@ -476,6 +488,11 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
     let diagnostics_by_range = this.collapseOverlappingDiagnostics(
       this.filterDiagnostics(response.diagnostics)
     );
+
+    const markerOptionsByEditor = new Map<
+      CodeMirror.Editor,
+      IMarkerDefinition[]
+    >();
 
     diagnostics_by_range.forEach(
       (diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
@@ -641,23 +658,70 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
               .join('\n'),
             className: classNames.join(' ')
           };
+
+          let optionsList = markerOptionsByEditor.get(cm_editor);
+          if (!optionsList) {
+            optionsList = [];
+            markerOptionsByEditor.set(cm_editor, optionsList);
+          }
+          optionsList.push({
+            options,
+            start: start_in_editor,
+            end: end_in_editor,
+            hash: diagnostic_hash
+          });
+        }
+      }
+    );
+
+    for (const [
+      cmEditor,
+      markerDefinitions
+    ] of markerOptionsByEditor.entries()) {
+      // note: could possibly be wrapped in `requestAnimationFrame()`
+      // at a risk of sometimes having an inconsistent state in database.
+      // note: using `operation()` significantly improves performance.
+      // test cases:
+      //   - one cell with 1000 `math.pi` and `import math`; comment out import,
+      //     wait for 1000 diagnostics, then uncomment import, wait for removal:
+      //     - before:
+      //        - diagnostics show up in: 13.6s (blocking!)
+      //        - diagnostics removal in: 13.2s (blocking!)
+      //     - after:
+      //        - diagnostics show up in: 254ms
+      //        - diagnostics removal in: 160.4ms
+      //   - first open of a notebook with 10 cells, each with 88 diagnostics:
+      //     - before: 2.75s (each time)
+      //     - after 208.75ms (order of magnitude faster!)
+      //   - first open of a notebook with 100 cells, each with 1 diagnostic
+      //       this scenario is expected to have no gain (measures overhead)
+      //     - before 280.34ms, 377ms, 399ms
+      //     - after 385.29ms, 301.97ms, 309.4ms
+      cmEditor.operation(() => {
+        const doc = cmEditor.getDoc();
+        for (const definition of markerDefinitions) {
           let marker;
           try {
-            marker = cm_editor
-              .getDoc()
-              .markText(start_in_editor, end_in_editor, options);
+            marker = doc.markText(
+              definition.start,
+              definition.end,
+              definition.options
+            );
           } catch (e) {
             this.console.warn(
               'Marking inspection (diagnostic text) failed:',
-              diagnostics,
+              definition,
               e
             );
             return;
           }
-          this.marked_diagnostics.set(diagnostic_hash, marker);
+          this.marked_diagnostics.set(definition.hash, {
+            marker,
+            editor: cmEditor
+          });
         }
-      }
-    );
+      });
+    }
 
     // remove the markers which were not included in the new message
     this.removeUnusedDiagnosticMarkers(markers_to_retain);
@@ -696,14 +760,36 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
   }
 
   protected removeUnusedDiagnosticMarkers(to_retain: Set<string>) {
-    this.marked_diagnostics.forEach(
-      (marker: CodeMirror.TextMarker, diagnostic_hash: string) => {
-        if (!to_retain.has(diagnostic_hash)) {
-          this.marked_diagnostics.delete(diagnostic_hash);
-          marker.clear();
+    const toRemoveByEditor = new Map<
+      CodeMirror.Editor,
+      { marker: CodeMirror.TextMarker; hash: string }[]
+    >();
+
+    for (const [
+      diagnosticHash,
+      markedDiagnostic
+    ] of this.marked_diagnostics.entries()) {
+      if (!to_retain.has(diagnosticHash)) {
+        let diagnosticsList = toRemoveByEditor.get(markedDiagnostic.editor);
+        if (!diagnosticsList) {
+          diagnosticsList = [];
+          toRemoveByEditor.set(markedDiagnostic.editor, diagnosticsList);
         }
+        diagnosticsList.push({
+          marker: markedDiagnostic.marker,
+          hash: diagnosticHash
+        });
       }
-    );
+    }
+
+    for (const [cmEditor, markers] of toRemoveByEditor.entries()) {
+      cmEditor.operation(() => {
+        for (const markerData of markers) {
+          markerData.marker.clear();
+          this.marked_diagnostics.delete(markerData.hash);
+        }
+      });
+    }
   }
 
   remove(): void {
