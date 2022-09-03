@@ -16,7 +16,11 @@ import { CodeHighlights as LSPHighlightsSettings } from '../_highlights';
 import { CodeMirrorIntegration } from '../editor_integration/codemirror';
 import { FeatureSettings, IFeatureCommand } from '../feature';
 import { DocumentHighlightKind } from '../lsp';
-import { IRootPosition, IVirtualPosition } from '../positioning';
+import {
+  IEditorPosition,
+  IRootPosition,
+  IVirtualPosition
+} from '../positioning';
 import { ILSPFeatureManager, PLUGIN_ID } from '../tokens';
 import { VirtualDocument } from '../virtual/document';
 
@@ -51,8 +55,19 @@ const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
   }
 ];
 
+interface IHighlightDefinition {
+  options: CodeMirror.TextMarkerOptions;
+  start: IEditorPosition;
+  end: IEditorPosition;
+}
+
 export class HighlightsCM extends CodeMirrorIntegration {
-  protected highlight_markers: CodeMirror.TextMarker[] = [];
+  protected highlightMarkers: Map<CodeMirror.Editor, CodeMirror.TextMarker[]> =
+    new Map();
+  /*
+   * @deprecated
+   */
+  protected highlight_markers: CodeMirror.TextMarker[];
   private debounced_get_highlight: Debouncer<
     lsProtocol.DocumentHighlight[] | undefined
   >;
@@ -91,9 +106,14 @@ export class HighlightsCM extends CodeMirrorIntegration {
   }
 
   protected clear_markers() {
-    for (let marker of this.highlight_markers) {
-      marker.clear();
+    for (const [cmEditor, markers] of this.highlightMarkers.entries()) {
+      cmEditor.operation(() => {
+        for (const marker of markers) {
+          marker.clear();
+        }
+      });
     }
+    this.highlightMarkers = new Map();
     this.highlight_markers = [];
   }
 
@@ -106,16 +126,75 @@ export class HighlightsCM extends CodeMirrorIntegration {
       return;
     }
 
+    const highlightOptionsByEditor = new Map<
+      CodeMirror.Editor,
+      IHighlightDefinition[]
+    >();
+
     for (let item of items) {
       let range = this.range_to_editor_range(item.range);
       let kind_class = item.kind
         ? 'cm-lsp-highlight-' + DocumentHighlightKind[item.kind]
         : '';
-      let marker = this.highlight_range(
-        range,
-        'cm-lsp-highlight ' + kind_class
-      );
-      this.highlight_markers.push(marker);
+
+      let optionsList = highlightOptionsByEditor.get(range.editor);
+
+      if (!optionsList) {
+        optionsList = [];
+        highlightOptionsByEditor.set(range.editor, optionsList);
+      }
+      optionsList.push({
+        options: {
+          className: 'cm-lsp-highlight ' + kind_class
+        },
+        start: range.start,
+        end: range.end
+      });
+    }
+
+    for (const [
+      cmEditor,
+      markerDefinitions
+    ] of highlightOptionsByEditor.entries()) {
+      // note: using `operation()` significantly improves performance.
+      // test cases:
+      //   - one cell with 1000 `math.pi` and `import math`; move cursor to `math`,
+      //     wait for 1000 highlights, then move to `pi`:
+      //     - before:
+      //        - highlight `math`: 13.1s
+      //        - then highlight `pi`: 16.6s
+      //     - after:
+      //        - highlight `math`: 160ms
+      //        - then highlight `pi`: 227ms
+      //   - 100 cells with `math.pi` and one with `import math`; move cursor to `math`,
+      //     wait for 1000 highlights, then move to `pi` (this is overhead control,
+      //     no gains expected):
+      //     - before:
+      //        - highlight `math`: 385ms
+      //        - then highlight `pi`: 683 ms
+      //     - after:
+      //        - highlight `math`: 390ms
+      //        - then highlight `pi`: 870ms
+      cmEditor.operation(() => {
+        const doc = cmEditor.getDoc();
+        const markersList: CodeMirror.TextMarker[] = [];
+        for (const definition of markerDefinitions) {
+          let marker;
+          try {
+            marker = doc.markText(
+              definition.start,
+              definition.end,
+              definition.options
+            );
+          } catch (e) {
+            this.console.warn('Marking highlight failed:', definition, e);
+            return;
+          }
+          markersList.push(marker);
+          this.highlight_markers.push(marker);
+        }
+        this.highlightMarkers.set(cmEditor, markersList);
+      });
     }
   };
 
