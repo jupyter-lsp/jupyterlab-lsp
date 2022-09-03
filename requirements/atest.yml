@@ -8,6 +8,6 @@ dependencies:
   - firefox
   - geckodriver
   - jupyterlab_robotmode
-  - robotframework >=4
+  - robotframework >=5
   - robotframework-seleniumlibrary
   - robotkernel
