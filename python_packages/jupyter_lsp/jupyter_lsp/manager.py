@@ -1,5 +1,6 @@
 """ A configurable frontend for stdio-based Language Servers
 """
+import asyncio
 import os
 import traceback
 from typing import Dict, Text, Tuple, cast
@@ -74,6 +75,10 @@ class LanguageServerManager(LanguageServerManagerAPI):
         """
     ).tag(config=True)
 
+    _ready = Bool(
+        help="""Whether the manager has been initialized""", default_value=False
+    )
+
     all_listeners = List_(trait=LoadableCallable).tag(config=True)
     server_listeners = List_(trait=LoadableCallable).tag(config=True)
     client_listeners = List_(trait=LoadableCallable).tag(config=True)
@@ -111,6 +116,12 @@ class LanguageServerManager(LanguageServerManagerAPI):
         self.init_language_servers()
         self.init_listeners()
         self.init_sessions()
+        self._ready = True
+
+    async def ready(self):
+        while not self._ready:  # pragma: no cover
+            asyncio.sleep(0.1)
+        return True
 
     def init_language_servers(self) -> None:
         """determine the final language server configuration."""
