@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -eux
 
+# Avoid OpenSSL-related error with Node >16
+# https://stackoverflow.com/questions/73144960
+export NODE_OPTIONS="--openssl-legacy-provider"
+
 # Build labextensions
 jlpm bootstrap
 
