@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 set -eux
 
-# Avoid OpenSSL-related error with Node >16
+# Avoid OpenSSL error when Node.js > 16
 # https://stackoverflow.com/questions/73144960
-export NODE_OPTIONS="--openssl-legacy-provider"
+nodeversion="$(node -v | cut -d 'v' -f 2 | cut -d '.' -f 1)"
+if (( "$nodeversion" > 16 ))
+then
+    export NODE_OPTIONS="--openssl-legacy-provider"
+fi
 
 # Build labextensions
 jlpm bootstrap
