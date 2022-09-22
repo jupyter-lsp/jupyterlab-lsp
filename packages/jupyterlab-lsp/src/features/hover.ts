@@ -386,10 +386,13 @@ export class HoverCM extends CodeMirrorIntegration {
   protected async _updateUnderlineAndTooltip(
     event: MouseEvent
   ): Promise<boolean> {
-    const target = event.target as HTMLElement;
+    const target = event.target;
 
     // if over an empty space in a line (and not over a token) then not worth checking
-    if (target.classList.contains('CodeMirror-line')) {
+    if (
+      target == null ||
+      (target as HTMLElement).classList.contains('CodeMirror-line')
+    ) {
       this.remove_range_highlight();
       return false;
     }
