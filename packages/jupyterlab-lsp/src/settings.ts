@@ -4,12 +4,12 @@ import {
   ISchemaValidator
 } from '@jupyterlab/settingregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
-import { IFormComponentRegistry } from '@jupyterlab/ui-components';
 import {
   JSONExt,
   ReadonlyPartialJSONObject,
   ReadonlyJSONObject
 } from '@lumino/coreutils';
+import { Signal, ISignal } from '@lumino/signaling';
 import { FieldProps } from '@rjsf/core';
 
 import { LanguageServer } from './_plugin';
@@ -93,7 +93,41 @@ export class SettingsUIManager {
   constructor(
     protected options: {
       settingRegistry: ISettingRegistry;
-      formRegistry: IFormComponentRegistry | null;
+      languageServerManager: LanguageServerManager;
+      console: ILSPLogConsole;
+      trans: TranslationBundle;
+      schemaValidated: ISignal<
+        SettingsSchemaManager,
+        ISchemaValidator.IError[]
+      >;
+    }
+  ) {
+    options.schemaValidated.connect((_, errors) => {
+      this._validationErrors = errors;
+    });
+    this._validationErrors = [];
+  }
+
+  renderForm(props: FieldProps) {
+    return renderLanguageServerSettings({
+      settingRegistry: this.options.settingRegistry,
+      languageServerManager: this.options.languageServerManager,
+      trans: this.options.trans,
+      validationErrors: this._validationErrors,
+      ...props
+    });
+  }
+
+  private _validationErrors: ISchemaValidator.IError[];
+}
+
+/**
+ * Harmonize settings from schema, defaults from specification, and values set by user.
+ */
+export class SettingsSchemaManager {
+  constructor(
+    protected options: {
+      settingRegistry: ISettingRegistry;
       languageServerManager: LanguageServerManager;
       console: ILSPLogConsole;
       trans: TranslationBundle;
@@ -103,29 +137,31 @@ export class SettingsUIManager {
       restored: Promise<void>;
     }
   ) {
+    this._schemaValidated = new Signal(this);
     this._defaults = {};
-    this._validationErrors = [];
-    // register custom UI field for `language_servers` property
-    if (this.options.formRegistry != null) {
-      this.options.formRegistry.addRenderer(
-        'language_servers',
-        (props: FieldProps) => {
-          return renderLanguageServerSettings({
-            settingRegistry: this.options.settingRegistry,
-            languageServerManager: this.options.languageServerManager,
-            trans: this.options.trans,
-            validationErrors: this._validationErrors,
-            ...props
-          });
-        }
-      );
-    }
     this._canonical = null;
     this._original = null;
     this._validationAttempt = 0;
     this._lastValidation = null;
     this._lastUserServerSettings = null;
     this._lastUserServerSettingsDoted = null;
+    this._defaultsPopulated = this._createDefaultsPromise();
+    this._validationErrors = [];
+  }
+
+  private _defaultsPopulated: Promise<void>;
+  private _populatedAccept: (value: unknown) => void;
+  private _createDefaultsPromise(): Promise<void> {
+    return new Promise(accept => {
+      this._populatedAccept = accept;
+    });
+  }
+
+  get schemaValidated(): ISignal<
+    SettingsSchemaManager,
+    ISchemaValidator.IError[]
+  > {
+    return this._schemaValidated;
   }
 
   protected get console(): ILSPLogConsole {
@@ -137,111 +173,8 @@ export class SettingsUIManager {
    * This method has to be called before any other action
    * is performed on settingRegistry with regard to pluginId.
    */
-  async setupSchemaForUI(pluginId: string): Promise<void> {
+  async setupSchemaTransform(pluginId: string): Promise<void> {
     const languageServerManager = this.options.languageServerManager;
-    /**
-     * Populate the plugin's schema defaults.
-     */
-    let populate = (
-      plugin: ISettingRegistry.IPlugin,
-      schema: ISettingRegistry.ISchema
-    ) => {
-      const baseServerSchema = (schema.definitions as any)[
-        'language-server'
-      ] as {
-        description: string;
-        title: string;
-        definitions: Record<string, any>;
-        properties: ServerSchemaWrapper;
-      };
-
-      const defaults: Record<string, any> = {};
-      const knownServersConfig: Record<string, any> = {};
-      const sharedDefaults = getDefaults(
-        schema.properties!.language_servers.properties
-      );
-      for (let [
-        serverKey,
-        serverSpec
-      ] of languageServerManager.specs.entries()) {
-        if ((serverKey as string) === '') {
-          this.console.warn(
-            'Empty server key - skipping transformation for',
-            serverSpec
-          );
-          continue;
-        }
-
-        const configSchema = serverSpec.config_schema;
-        if (!configSchema) {
-          this.console.warn(
-            'No config schema - skipping transformation for',
-            serverKey
-          );
-          continue;
-        }
-        if (!configSchema.properties) {
-          this.console.warn(
-            'No properites in config schema - skipping transformation for',
-            serverKey
-          );
-          continue;
-        }
-
-        // let user know if server not available (installed, etc)
-        if (!languageServerManager.sessions.has(serverKey)) {
-          configSchema.description = this.options.trans.__(
-            'Settings that would be passed to `%1` server (this server was not detected as installed during startup) in `workspace/didChangeConfiguration` notification.',
-            serverSpec.display_name
-          );
-        } else {
-          configSchema.description = this.options.trans.__(
-            'Settings to be passed to %1 in `workspace/didChangeConfiguration` notification.',
-            serverSpec.display_name
-          );
-        }
-        configSchema.title = this.options.trans.__('Workspace Configuration');
-
-        for (let [key, value] of Object.entries(configSchema.properties)) {
-          if (!isJSONProperty(value)) {
-            continue;
-          }
-          if (typeof value.$ref === 'undefined') {
-            continue;
-          }
-          if (value.$ref.startsWith('#/definitions/')) {
-            const definitionID = value['$ref'].substring(14);
-            const definition = configSchema.definitions[definitionID];
-            if (definition == null) {
-              this.console.warn('Definition not found');
-            }
-            for (let [defKey, defValue] of Object.entries(definition)) {
-              configSchema.properties[key][defKey] = defValue;
-            }
-            delete value.$ref;
-          } else {
-            this.console.warn('Unsupported $ref', value['$ref']);
-          }
-        }
-
-        const defaultMap = getDefaults(configSchema.properties);
-
-        const baseSchemaCopy = JSONExt.deepCopy(baseServerSchema);
-        baseSchemaCopy.properties.serverSettings = configSchema;
-        knownServersConfig[serverKey] = baseSchemaCopy;
-        defaults[serverKey] = {
-          ...sharedDefaults,
-          serverSettings: defaultMap
-        };
-      }
-
-      schema.properties!.language_servers.properties = knownServersConfig;
-      schema.properties!.language_servers.default = defaults;
-
-      this._validateSchemaLater(plugin, schema).catch(this.console.warn);
-
-      this._defaults = defaults;
-    };
 
     // Transform the plugin object to return different schema than the default.
     this.options.settingRegistry.transform(pluginId, {
@@ -266,7 +199,8 @@ export class SettingsUIManager {
         // Only override the canonical schema the first time (or after reset).
         if (!this._canonical) {
           this._canonical = JSONExt.deepCopy(plugin.schema);
-          populate(plugin, this._canonical);
+          this._populate(plugin, this._canonical);
+          this._populatedAccept(void 0);
         }
 
         return {
@@ -285,11 +219,134 @@ export class SettingsUIManager {
     // race condition, see https://github.com/jupyterlab/jupyterlab/issues/12978
     languageServerManager.sessionsChanged.connect(async () => {
       this._canonical = null;
+      this._defaultsPopulated = this._createDefaultsPromise();
       await this.options.settingRegistry.reload(pluginId);
     });
   }
 
-  normalizeSettings(composite: Required<LanguageServer>) {
+  /**
+   * Populate the plugin's schema defaults, transform descriptions.
+   */
+  private _populate(
+    plugin: ISettingRegistry.IPlugin,
+    schema: ISettingRegistry.ISchema
+  ) {
+    const languageServerManager = this.options.languageServerManager;
+    const baseServerSchema = (schema.definitions as any)['language-server'] as {
+      description: string;
+      title: string;
+      definitions: Record<string, any>;
+      properties: ServerSchemaWrapper;
+    };
+
+    const defaults: Record<string, any> = {};
+    const knownServersConfig: Record<string, any> = {};
+    const sharedDefaults = getDefaults(
+      schema.properties!.language_servers.properties
+    );
+    for (let [serverKey, serverSpec] of languageServerManager.specs.entries()) {
+      if ((serverKey as string) === '') {
+        this.console.warn(
+          'Empty server key - skipping transformation for',
+          serverSpec
+        );
+        continue;
+      }
+
+      const configSchema = serverSpec.config_schema;
+      if (!configSchema) {
+        this.console.warn(
+          'No config schema - skipping transformation for',
+          serverKey
+        );
+        continue;
+      }
+      if (!configSchema.properties) {
+        this.console.warn(
+          'No properites in config schema - skipping transformation for',
+          serverKey
+        );
+        continue;
+      }
+
+      // let user know if server not available (installed, etc)
+      if (!languageServerManager.sessions.has(serverKey)) {
+        configSchema.description = this.options.trans.__(
+          'Settings that would be passed to `%1` server (this server was not detected as installed during startup) in `workspace/didChangeConfiguration` notification.',
+          serverSpec.display_name
+        );
+      } else {
+        configSchema.description = this.options.trans.__(
+          'Settings to be passed to %1 in `workspace/didChangeConfiguration` notification.',
+          serverSpec.display_name
+        );
+      }
+      configSchema.title = this.options.trans.__('Workspace Configuration');
+
+      // resolve refs
+      for (let [key, value] of Object.entries(configSchema.properties)) {
+        if (!isJSONProperty(value)) {
+          continue;
+        }
+        if (typeof value.$ref === 'undefined') {
+          continue;
+        }
+        if (value.$ref.startsWith('#/definitions/')) {
+          const definitionID = value['$ref'].substring(14);
+          const definition = configSchema.definitions[definitionID];
+          if (definition == null) {
+            this.console.warn('Definition not found');
+          }
+          for (let [defKey, defValue] of Object.entries(definition)) {
+            configSchema.properties[key][defKey] = defValue;
+          }
+          delete value.$ref;
+        } else {
+          this.console.warn('Unsupported $ref', value['$ref']);
+        }
+      }
+
+      // add default overrides from spec
+      const workspaceConfigurationDefaults =
+        serverSpec.workspace_configuration as Record<string, any> | undefined;
+      if (workspaceConfigurationDefaults) {
+        for (const [key, value] of Object.entries(
+          workspaceConfigurationDefaults
+        )) {
+          if (!configSchema.properties.hasOwnProperty(key)) {
+            this.console.warn(
+              '`workspace_configuration` includes an override for key not in schema',
+              key,
+              serverKey
+            );
+            continue;
+          }
+          configSchema.properties[key].default = value;
+        }
+      }
+
+      const defaultMap = getDefaults(configSchema.properties);
+
+      const baseSchemaCopy = JSONExt.deepCopy(baseServerSchema);
+      baseSchemaCopy.properties.serverSettings = configSchema;
+      knownServersConfig[serverKey] = baseSchemaCopy;
+      defaults[serverKey] = {
+        ...sharedDefaults,
+        serverSettings: defaultMap
+      };
+    }
+
+    schema.properties!.language_servers.properties = knownServersConfig;
+    schema.properties!.language_servers.default = defaults;
+
+    this._validateSchemaLater(plugin, schema).catch(this.console.warn);
+    this._defaults = defaults;
+  }
+
+  async normalizeSettings(
+    composite: Required<LanguageServer>
+  ): Promise<Required<LanguageServer>> {
+    await this._defaultsPopulated;
     // Cache collapsed settings for speed and to only show dialog once.
     // Note that JupyterLab attempts to transform in "preload" step (before splash screen end)
     // and then again for deferred extensions if the initial transform in preload timed out.
@@ -303,27 +360,46 @@ export class SettingsUIManager {
       )
     ) {
       this._lastUserServerSettings = composite.language_servers;
-      const collapsed = this._collapseServerSettingsDotted(
+
+      const collapsedDefaults = this._collapseServerSettingsDotted(
+        this._defaults
+      );
+      const collapsedUser = this._collapseServerSettingsDotted(
         composite.language_servers
       );
-      composite.language_servers = collapsed.settings;
+
+      composite.language_servers = this._mergeByServer(
+        collapsedDefaults.settings,
+        collapsedUser.settings
+      );
       this._lastUserServerSettingsDoted = composite.language_servers;
 
-      if (Object.keys(collapsed.conflicts).length > 0) {
-        this._warnConflicts(collapsed.conflicts).catch(this.console.warn);
+      if (Object.keys(collapsedUser.conflicts).length > 0) {
+        this._warnConflicts(
+          collapsedUser.conflicts,
+          'Conflicts in user settings'
+        ).catch(this.console.warn);
+      }
+      if (Object.keys(collapsedDefaults.conflicts).length > 0) {
+        this._warnConflicts(
+          collapsedDefaults.conflicts,
+          'Conflicts in defaults'
+        ).catch(this.console.warn);
       }
     } else {
       composite.language_servers = this._lastUserServerSettingsDoted;
     }
 
-    // Currently disabled, as it does not provide an obvious benefit:
+    // We do not filter out defaults at this level,
+    // as it does not provide an obvious benefit:
     // - we would need to explicitly save the updated settings
     //   to get a clean version in JSON Setting Editor.
-    // - if default changed on the server side but schema did not get
-    //   updated, server would be using a different value than communicated
+    // - if default changed on the LSP server side but schema did not get
+    //   updated, LSP server would be using a different value than communicated
     //   to the user. It would be optimal to filter out defaults from
-    //   user data and always keep them in composite.
-    // composite.language_servers = this._filterOutDefaults(composite.language_servers);
+    //   user data and always keep them in composite,
+    // - making Jupyter server-side `workspace_configuration` work would
+    //   be more difficult
 
     // TODO: trigger update of settings to ensure that UI uses the same settings as collapsed?
     return composite;
@@ -387,6 +463,7 @@ export class SettingsUIManager {
         validationErrors
       );
       this._validationErrors = validationErrors;
+      this._schemaValidated.emit(validationErrors);
       if (!this._original) {
         console.error(
           'Original language servers schema not available to restore non-transformed values.'
@@ -406,7 +483,10 @@ export class SettingsUIManager {
     }
   }
 
-  private async _warnConflicts(conflicts: SettingsMergeConflicts) {
+  private async _warnConflicts(
+    conflicts: SettingsMergeConflicts,
+    title: string
+  ) {
     // Ensure the subsequent code runs asynchronously, and delay
     // showing the dialog until the splash screen disappeared.
     await this.options.restored;
@@ -416,6 +496,7 @@ export class SettingsUIManager {
         conflicts: conflicts,
         trans: this.options.trans
       }),
+      title: title,
       buttons: [Dialog.okButton()]
     }).catch(console.warn);
   }
@@ -443,45 +524,40 @@ export class SettingsUIManager {
     };
   }
 
-  protected _filterOutDefaults(
-    settings: LanguageServerSettings
+  private _mergeByServer(
+    defaults: LanguageServerSettings,
+    userSettings: LanguageServerSettings
   ): LanguageServerSettings {
-    const result = JSONExt.deepCopy(settings) as LanguageServerSettings;
-    for (let [serverKey, serverSettingsGroup] of Object.entries(result)) {
-      const serverDefaults = this._defaults[serverKey];
-      if (serverDefaults == null) {
+    const result = JSONExt.deepCopy(defaults) as LanguageServerSettings;
+    for (let [serverKey, serverSettingsGroup] of Object.entries(userSettings)) {
+      if (!serverSettingsGroup || !serverSettingsGroup.serverSettings) {
         continue;
       }
-      if (
-        !serverSettingsGroup ||
-        !serverSettingsGroup.hasOwnProperty('serverSettings')
-      ) {
-        continue;
-      }
-      for (let [settingKey, settingValue] of Object.entries(
-        serverSettingsGroup as ReadonlyJSONObject
-      )) {
-        const settingDefault = serverDefaults[settingKey];
-        if (settingKey === 'serverSettings') {
-          for (let [subKey, subValue] of Object.entries(
-            settingValue as ReadonlyJSONObject
-          )) {
-            if (JSONExt.deepEqual(subValue as any, settingDefault[subKey])) {
-              delete result[serverKey]![settingKey]![subKey];
-            }
+      if (typeof result[serverKey] === 'undefined') {
+        // nothing to merge with
+        result[serverKey] = JSONExt.deepCopy(serverSettingsGroup);
+      } else {
+        const merged: Required<ServerSchemaWrapper> = {
+          priority: (result[serverKey].priority ||
+            serverSettingsGroup.priority) as any,
+          // `serverSettings` entries are expected to be flattened to dot notation here.
+          serverSettings: {
+            ...(result[serverKey].serverSettings || {}),
+            ...(serverSettingsGroup.serverSettings || {})
           }
-        } else {
-          if (JSONExt.deepEqual(settingValue as any, settingDefault)) {
-            delete result[serverKey]![settingKey];
-          }
-        }
+        };
+        result[serverKey] = merged;
       }
     }
     return result;
   }
 
-  private _defaults: Record<string, any>;
+  private _defaults: LanguageServerSettings;
   private _validationErrors: ISchemaValidator.IError[];
+  private _schemaValidated: Signal<
+    SettingsSchemaManager,
+    ISchemaValidator.IError[]
+  >;
   private _validationAttempt: number;
   private _lastValidation: IValidationData | null;
   private _lastUserServerSettings: LanguageServerSettings | null;

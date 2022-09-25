@@ -1,0 +1,5 @@
+{
+    "@jupyterlab/statusbar-extension:plugin": {
+        "visible": true
+    }
+}
