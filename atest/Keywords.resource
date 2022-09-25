@@ -40,12 +40,14 @@ Initialize Global Variables
 Create Notebok Server Config
     [Documentation]    Copies in notebook server config file and updates accordingly
     [Arguments]    ${server_extension_enabled}=${True}
-    ${conf} =    Set Variable    ${NOTEBOOK DIR}${/}${NBSERVER CONF}
+    ${conf} =    Set Variable    ${NOTEBOOK DIR}${/}${JPSERVER CONF JSON}
     ${extra_node_roots} =    Create List    ${ROOT}
     ${port} =    Get Unused Port
     Set Global Variable    ${PORT}    ${port}
     Set Global Variable    ${URL}    http://localhost:${PORT}${BASE URL}
-    Copy File    ${FIXTURES}${/}${NBSERVER CONF}    ${conf}
+    Copy File    ${FIXTURES}${/}${JPSERVER CONF JSON}    ${conf}
+    Copy File    ${FIXTURES}${/}${JPSERVER CONF PY}    ${NOTEBOOK DIR}${/}${JPSERVER CONF PY}
+    Copy File    ${FIXTURES}${/}overrides.json    ${NOTEBOOK DIR}${/}overrides.json
     Update Jupyter Config    ${conf}    ServerApp
     ...    base_url=${BASE URL}
     ...    port=${PORT}

@@ -83,6 +83,10 @@
   margin: 1em;
 }
 
+.lsp-ServerSettings-content-specOverrides {
+  margin: 1em;
+}
+
 .lsp-ServerSettings-content > .form-group {
   padding-top: 0;
 }

@@ -16,6 +16,15 @@ Python
     ...    undefined name 'foo' (pyflakes)
     ...    undefined name 'foo' (flake8)
 
+Python (programmatically)
+    [Documentation]    same as "Python" but changing the defaults in server specification via `workspace_configuration`
+    Settings Should Change Editor Diagnostics    Python    style.py    pylsp-with-config-override
+    ...    settings=100
+    ...    before=undefined name 'foo' (pyflakes)
+    ...    after=undefined name 'foo' (flake8)
+    ...    setting_key=priority
+    ...    needs reload=${True}
+
 YAML
     [Documentation]    Composer YAML files don't allow a "greetings" key
     Settings Should Change Editor Diagnostics    YAML    example.yaml    yaml-language-server
@@ -47,7 +56,7 @@ LaTeX
 
 *** Keywords ***
 Settings Should Change Editor Diagnostics
-    [Arguments]    ${language}    ${file}    ${server}    ${settings}    ${before}    ${after}    ${save command}=${EMPTY}    ${needs reload}=${False}
+    [Arguments]    ${language}    ${file}    ${server}    ${settings}    ${before}    ${after}    ${save command}=${EMPTY}    ${needs reload}=${False}    ${setting_key}=serverSettings
     ${before diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title*="${before}"]
     ${after diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title*="${after}"]
     ${tab} =    Set Variable    ${JLAB XP DOCK TAB}\[contains(., '${file}')]
@@ -65,7 +74,7 @@ Settings Should Change Editor Diagnostics
     END
     Page Should Not Contain    ${after diagnostic}
     Capture Page Screenshot    01-default-diagnostics-and-settings.png
-    Set Editor Content    {"language_servers": {"${server}": {"serverSettings": ${settings}}}}    ${CSS USER SETTINGS}
+    Set Editor Content    {"language_servers": {"${server}": {"${setting_key}": ${settings}}}}    ${CSS USER SETTINGS}
     Wait Until Page Contains    No errors found
     Capture Page Screenshot    02-default-diagnostics-and-unsaved-settings.png
     Click Element    css:button[title^\='Save User Settings']

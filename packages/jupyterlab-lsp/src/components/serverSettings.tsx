@@ -210,12 +210,22 @@ const TabbedObjectTemplateFactory = (options: {
       );
     };
     const renderServerMetadata = (spec: TLanguageServerSpec) => {
+      const workspaceConfig = spec.workspace_configuration as Record<
+        string,
+        any
+      >;
       return (
         <div>
           <h4 className={'lsp-ServerSettings-content-name'}>
             {spec.display_name}
           </h4>
           <ServerLinksList specification={spec} />
+          {workspaceConfig ? (
+            <p className={'lsp-ServerSettings-content-specOverrides'}>
+              {trans.__('Default values set programatically for: ') +
+                Object.keys(workspaceConfig).join(', ')}
+            </p>
+          ) : null}
         </div>
       );
     };
