@@ -9,7 +9,7 @@
   - use correct websocket URL if configured as different from base URL ([#820], thanks @MikeSem)
   - clean up all completer styles when completer feature is disabled ([#829]).
   - fix `undefined` being inserted for path-like completion items with no `insertText` ([#833])
-  - reduce signature flickering when typing ([#836])
+  - reduce signature flickering when typing and hover flicker when moving mouse ([#836])
 - refactoring:
   - move client capabilities to features ([#738])
 - documentation:

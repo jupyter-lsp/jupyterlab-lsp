@@ -342,12 +342,11 @@ export class HoverCM extends CodeMirrorIntegration {
     this.last_hover_response = response;
 
     if (show_tooltip) {
-      this.lab_integration.tooltip.remove();
       const markup = HoverCM.get_markup_for_hover(response);
       let editor_position =
         this.virtual_editor.root_position_to_editor(root_position);
 
-      this.tooltip = this.lab_integration.tooltip.create({
+      this.tooltip = this.lab_integration.tooltip.showOrCreate({
         markup,
         position: editor_position,
         ce_editor: response_data.ce_editor,

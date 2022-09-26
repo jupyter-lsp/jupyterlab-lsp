@@ -103,35 +103,34 @@ export class FreeTooltip extends Tooltip {
       this.options.position == null
         ? editor.getCursorPosition()
         : this.options.position;
-
-    const end = editor.getOffsetAt(cursor);
-    const line = editor.getLine(cursor.line);
-
-    if (!line) {
-      return;
-    }
-
     let position: CodeEditor.IPosition | undefined;
 
-    switch (this.options.alignment) {
-      case 'start': {
-        const tokens = line.substring(0, end).split(/\W+/);
-        const last = tokens[tokens.length - 1];
-        const start = last ? end - last.length : end;
-        position = editor.getPositionAt(start);
-        break;
+    if (this.options.alignment) {
+      const end = editor.getOffsetAt(cursor);
+      const line = editor.getLine(cursor.line);
+
+      if (!line) {
+        return;
       }
-      case 'end': {
-        const tokens = line.substring(0, end).split(/\W+/);
-        const last = tokens[tokens.length - 1];
-        const start = last ? end - last.length : end;
-        position = editor.getPositionAt(start);
-        break;
+
+      switch (this.options.alignment) {
+        case 'start': {
+          const tokens = line.substring(0, end).split(/\W+/);
+          const last = tokens[tokens.length - 1];
+          const start = last ? end - last.length : end;
+          position = editor.getPositionAt(start);
+          break;
+        }
+        case 'end': {
+          const tokens = line.substring(0, end).split(/\W+/);
+          const last = tokens[tokens.length - 1];
+          const start = last ? end - last.length : end;
+          position = editor.getPositionAt(start);
+          break;
+        }
       }
-      default: {
-        position = cursor;
-        break;
-      }
+    } else {
+      position = cursor;
     }
 
     if (!position) {
@@ -170,6 +169,11 @@ export class FreeTooltip extends Tooltip {
         bottom: 'stick-inside'
       }
     });
+  }
+
+  setPosition(position: CodeEditor.IPosition) {
+    this.options.position = position;
+    this._setGeometry();
   }
 }
 
@@ -220,28 +224,40 @@ export class EditorTooltipManager {
     return tooltip;
   }
 
-  showOrCreate(options: EditorTooltip.IOptions) {
+  showOrCreate(options: EditorTooltip.IOptions): FreeTooltip {
+    const samePosition =
+      this.currentOptions &&
+      is_equal(this.currentOptions.position, options.position);
+    const sameMarkup =
+      this.currentOptions &&
+      this.currentOptions.markup.value === options.markup.value &&
+      this.currentOptions.markup.kind === options.markup.kind;
     if (
       this.currentTooltip !== null &&
       !this.currentTooltip.isDisposed &&
       this.currentOptions &&
       this.currentOptions.adapter === options.adapter &&
-      is_equal(this.currentOptions.position, options.position) &&
+      (samePosition || sameMarkup) &&
+      this.currentOptions.ce_editor === options.ce_editor &&
       this.currentOptions.id === options.id
     ) {
-      if (
-        this.currentOptions.markup.value === options.markup.value &&
-        this.currentOptions.markup.kind === options.markup.kind
-      ) {
-        this.show();
-      } else {
+      // we only allow either position or markup change, because if both changed,
+      // then we may get into problematic race condition in sizing after bundle update.
+      if (!sameMarkup) {
         this.currentOptions.markup = options.markup;
         this.currentTooltip.setBundle(markupToBundle(options.markup));
-        this.show();
       }
+      if (!samePosition) {
+        // setting geometry only works when visible
+        this.currentTooltip.setPosition(
+          PositionConverter.cm_to_ce(options.position)
+        );
+      }
+      this.show();
+      return this.currentTooltip;
     } else {
       this.remove();
-      this.create(options);
+      return this.create(options);
     }
   }
 
