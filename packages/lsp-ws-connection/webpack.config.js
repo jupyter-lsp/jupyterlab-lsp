@@ -6,12 +6,14 @@ module.exports = {
     index: './lib/index.js'
   },
   resolve: {
-    extensions: ['.js']
+    extensions: ['.js'],
+    fallback: {
+      net: false,
+      path: false,
+      crypto: false
+    }
   },
   target: 'web',
-  node: {
-    net: 'mock'
-  },
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),

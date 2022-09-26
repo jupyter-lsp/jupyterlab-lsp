@@ -9,7 +9,7 @@
     },
     "bashIde.highlightParsingErrors": {
       "type": "boolean",
-      "default": true,
+      "default": false,
       "description": "Controls if parsing errors will be highlighted as problems."
     },
     "bashIde.explainshellEndpoint": {

@@ -164,21 +164,28 @@ Use of a python `virtualenv` or a conda env is also recommended.
    or permanently by setting `c.Completer.use_jedi = False` in your
    [`ipython_config.py` file](https://ipython.readthedocs.io/en/stable/config/intro.html?highlight=ipython_config.py#systemwide-configuration).
 
-1. (Optional, Linux/OSX-only) to enable opening files outside of the root
-   directory (the place where you start JupyterLab), create `.lsp_symlink` and
-   symlink your `/home`, or any other location which includes the files that you
-   wish to make possible to open in there:
+1. (Optional, Linux/OSX-only) As a security measure by default Jupyter server only allows
+   access to files under the Jupyter root directory (the place where you launch the Jupyter server).
+   Thus, in order to allow `jupyterlab-lsp` to navigate to external files such as packages
+   installed system-wide or to libraries inside a virtual environment (`conda`,
+   `pip`, ...) this access control mechanism needs to be circumvented: inside your Jupyter
+   root directory create a symlink named _.lsp_symlink_ pointing to your system root `/`.
 
-   ```bash
-   mkdir .lsp_symlink
-   cd .lsp_symlink
-   ln -s /home home
+   ```
+   ln -s / .lsp_symlink
    ```
 
-   If your user does not have sufficient permissions to traverse the entire path,
-   you will not be able to open the file. A more detailed guide on symlinking
-   (written for a related jupyterlab-go-to-definition extension) is available
-   [here](https://github.com/krassowski/jupyterlab-go-to-definition/blob/master/README.md#which-directories-to-symlink).
+   As this symlink is a hidden file the Jupyter server must be instructed to
+   serve hidden files. Either use the appropriate command line flag:
+
+   ```
+   jupyter lab --ContentsManager.allow_hidden=True
+   ```
+
+   or, alternatively, set the corresponding setting inside your `jupyter_server_config.py`.
+
+   Help in implementing a custom [`ContentsManager`](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/850)
+   which will enable navigating to external files without the symlink is welcome.
 
 ### Configuring the servers
 

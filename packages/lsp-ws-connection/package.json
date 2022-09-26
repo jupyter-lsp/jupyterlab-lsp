@@ -27,10 +27,9 @@
   "homepage": "https://github.com/krassowski/jupyterlab-lsp/tree/master/packages/lsp-ws-connection",
   "repository": "github:krassowski/jupyterlab-lsp",
   "dependencies": {
-    "vscode-jsonrpc": "^6.0.0",
     "vscode-languageserver-protocol": "^3.16.0",
     "vscode-languageserver-types": "^3.16.0",
-    "vscode-ws-jsonrpc": "0.2.0"
+    "vscode-ws-jsonrpc": "~1.0.2"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
@@ -43,7 +42,7 @@
     "rimraf": "^3.0.2",
     "sinon": "^7.3.2",
     "typescript": "~4.1.3",
-    "webpack": "^4.32.2",
-    "webpack-cli": "^3.3.0"
+    "webpack": "^5.54.0",
+    "webpack-cli": "^4.1.0"
   }
 }

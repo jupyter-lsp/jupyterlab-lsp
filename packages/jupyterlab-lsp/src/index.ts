@@ -49,7 +49,7 @@ import {
   ICodeOverridesRegistry,
   ILSPCodeOverridesManager
 } from './overrides/tokens';
-import { SettingsUIManager } from './settings';
+import { SettingsUIManager, SettingsSchemaManager } from './settings';
 import {
   IAdapterTypeOptions,
   ILSPAdapterManager,
@@ -154,7 +154,7 @@ export class LSPExtension implements ILSPExtension {
   connection_manager: DocumentConnectionManager;
   language_server_manager: LanguageServerManager;
   feature_manager: ILSPFeatureManager;
-  private _settingsUI: SettingsUIManager;
+  private _settingsSchemaManager: SettingsSchemaManager;
 
   constructor(
     public app: JupyterFrontEnd,
@@ -201,16 +201,31 @@ export class LSPExtension implements ILSPExtension {
 
     this.feature_manager = new FeatureManager();
 
-    this._settingsUI = new SettingsUIManager({
+    this._settingsSchemaManager = new SettingsSchemaManager({
       settingRegistry: this.setting_registry,
-      formRegistry: formRegistry,
-      console: this.console.scope('SettingsUIManager'),
       languageServerManager: this.language_server_manager,
       trans: trans,
+      console: this.console.scope('SettingsSchemaManager'),
       restored: app.restored
     });
-    this._settingsUI
-      .setupSchemaForUI(plugin.id)
+
+    if (formRegistry != null) {
+      const settingsUI = new SettingsUIManager({
+        settingRegistry: this.setting_registry,
+        console: this.console.scope('SettingsUIManager'),
+        languageServerManager: this.language_server_manager,
+        trans: trans,
+        schemaValidated: this._settingsSchemaManager.schemaValidated
+      });
+      // register custom UI field for `language_servers` property
+      formRegistry.addRenderer(
+        'language_servers',
+        settingsUI.renderForm.bind(settingsUI)
+      );
+    }
+
+    this._settingsSchemaManager
+      .setupSchemaTransform(plugin.id)
       .then(this._activate.bind(this))
       .catch(this._activate.bind(this));
   }
@@ -218,25 +233,10 @@ export class LSPExtension implements ILSPExtension {
   private _activate(): void {
     this.setting_registry
       .load(plugin.id)
-      .then(settings => {
-        const options = this._settingsUI.normalizeSettings(
-          settings.composite as Required<LanguageServer>
-        );
-
-        // Store the initial server settings, to be sent asynchronously
-        // when the servers are initialized.
-        const initial_configuration = (options.language_servers ||
-          {}) as TLanguageServerConfigurations;
-        this.connection_manager.initial_configurations = initial_configuration;
-        // update the server-independent part of configuration immediately
-        this.connection_manager.updateConfiguration(initial_configuration);
-        this.connection_manager.updateLogging(
-          options.logAllCommunication,
-          options.setTrace
-        );
-
-        settings.changed.connect(() => {
-          this.updateOptions(settings);
+      .then(async settings => {
+        await this._updateOptions(settings, false);
+        settings.changed.connect(async () => {
+          await this._updateOptions(settings, true);
         });
       })
       .catch((reason: Error) => {
@@ -271,18 +271,28 @@ export class LSPExtension implements ILSPExtension {
     return this.code_overrides_manager.registry;
   }
 
-  private updateOptions(settings: ISettingRegistry.ISettings) {
-    const options = this._settingsUI.normalizeSettings(
+  private async _updateOptions(
+    settings: ISettingRegistry.ISettings,
+    afterInitialization = false
+  ) {
+    const options = await this._settingsSchemaManager.normalizeSettings(
       settings.composite as Required<LanguageServer>
     );
-
+    // Store the initial server settings, to be sent asynchronously
+    // when the servers are initialized.
     const languageServerSettings = (options.language_servers ||
       {}) as TLanguageServerConfigurations;
 
     this.connection_manager.initial_configurations = languageServerSettings;
     // TODO: if priorities changed reset connections
+
+    // update the server-independent part of configuration immediately
     this.connection_manager.updateConfiguration(languageServerSettings);
-    this.connection_manager.updateServerConfigurations(languageServerSettings);
+    if (afterInitialization) {
+      this.connection_manager.updateServerConfigurations(
+        languageServerSettings
+      );
+    }
     this.connection_manager.updateLogging(
       options.logAllCommunication,
       options.setTrace

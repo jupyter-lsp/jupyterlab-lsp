@@ -161,6 +161,11 @@
         },
         "version": {
           "$ref": "#/definitions/current-version"
+        },
+        "workspace_configuration": {
+          "description": "default values to include in the client `workspace/configuration` reply (also known as `serverSettings`). User may override these defaults. The keys should be fully qualified (dotted) names of settings (nested specification is not supported).",
+          "title": "Workspace configuration",
+          "type": "object"
         }
       },
       "title": "Server Spec Properties"
