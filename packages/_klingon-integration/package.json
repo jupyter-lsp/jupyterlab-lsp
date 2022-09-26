@@ -1,6 +1,6 @@
 {
-  "name": "@krassowski/jupyterlab-lsp-klingon-integration",
-  "description": "Klingon language integration for testing @krassowski/jupyterlab-lsp",
+  "name": "@jupyter-lsp/jupyterlab-lsp-klingon-integration",
+  "description": "Klingon language integration for testing @jupyter-lsp/jupyterlab-lsp",
   "version": "0.0.0",
   "private": true,
   "main": "lib/index.js",
@@ -20,7 +20,7 @@
   },
   "jupyterlab": {
     "extension": true,
-    "outputDir": "../../python_packages/klingon_ls_specification/klingon_ls_specification/labextensions/@krassowski/jupyterlab-lsp-klingon-integration"
+    "outputDir": "../../python_packages/klingon_ls_specification/klingon_ls_specification/labextensions/@jupyter-lsp/jupyterlab-lsp-klingon-integration"
   },
   "scripts": {
     "build": "jlpm run build:lib && jlpm run build:labextension",

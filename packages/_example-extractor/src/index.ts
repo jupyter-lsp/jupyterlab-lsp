@@ -1,13 +1,13 @@
 import {
+  ILSPCodeExtractorsManager,
+  RegExpForeignCodeExtractor
+} from '@jupyter-lsp/jupyterlab-lsp';
+import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import {
-  ILSPCodeExtractorsManager,
-  RegExpForeignCodeExtractor
-} from '@krassowski/jupyterlab-lsp';
 
-const NS = '@krassowski/jupyterlab-lsp-example-extractor';
+const NS = '@jupyter-lsp/jupyterlab-lsp-example-extractor';
 
 export const extractor = new RegExpForeignCodeExtractor({
   language: 'foo',

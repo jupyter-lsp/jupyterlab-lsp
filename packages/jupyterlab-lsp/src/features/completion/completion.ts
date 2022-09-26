@@ -1,3 +1,4 @@
+import { ILSPCompletionThemeManager } from '@jupyter-lsp/completion-theme';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import {
@@ -8,7 +9,6 @@ import {
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { ILSPCompletionThemeManager } from '@krassowski/completion-theme/lib/types';
 import type * as CodeMirror from 'codemirror';
 
 import { CodeCompletion as LSPCompletionSettings } from '../../_completion';

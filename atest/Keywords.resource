@@ -90,7 +90,7 @@ Initialize User Settings
 
 Reset Plugin Settings
     [Arguments]    ${package}=jupyterlab-lsp    ${plugin}=plugin
-    ${LSP PLUGIN SETTINGS FILE} =    Set Variable    @krassowski${/}${package}${/}${plugin}.jupyterlab-settings
+    ${LSP PLUGIN SETTINGS FILE} =    Set Variable    @jupyter-lsp${/}${package}${/}${plugin}.jupyterlab-settings
     Create File    ${SETTINGS DIR}${/}${LSP PLUGIN SETTINGS FILE}    {}
 
 Tear Down Everything

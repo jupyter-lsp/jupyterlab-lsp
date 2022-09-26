@@ -1444,6 +1444,42 @@
   resolved "https://registry.yarnpkg.com/@juggle/resize-observer/-/resize-observer-3.4.0.tgz#08d6c5e20cf7e4cc02fd181c4b0c225cd31dbb60"
   integrity sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==
 
+"@jupyter-lsp/code-jumpers@file:packages/code-jumpers":
+  version "1.2.0"
+
+"@jupyter-lsp/completion-theme@file:packages/completion-theme":
+  version "3.3.0"
+
+"@jupyter-lsp/jupyterlab-lsp-example-extractor@file:packages/_example-extractor":
+  version "0.0.0"
+  dependencies:
+    "@jupyter-lsp/jupyterlab-lsp" "^4.0"
+
+"@jupyter-lsp/jupyterlab-lsp-klingon-integration@file:packages/_klingon-integration":
+  version "0.0.0"
+  dependencies:
+    "@jupyterlab/application" "^3.1.0"
+
+"@jupyter-lsp/jupyterlab-lsp@file:packages/jupyterlab-lsp":
+  version "4.0.0"
+  dependencies:
+    "@jupyter-lsp/code-jumpers" "~1.2.0"
+    "@jupyter-lsp/completion-theme" "~3.3.0"
+    "@jupyter-lsp/theme-material" "~2.1.1"
+    "@jupyter-lsp/theme-vscode" "~2.1.1"
+    lodash.mergewith "^4.6.1"
+    lsp-ws-connection "~0.7.0"
+
+"@jupyter-lsp/theme-material@file:packages/theme-material":
+  version "2.1.1"
+  dependencies:
+    "@jupyter-lsp/completion-theme" "^3.0.0"
+
+"@jupyter-lsp/theme-vscode@file:packages/theme-vscode":
+  version "2.1.1"
+  dependencies:
+    "@jupyter-lsp/completion-theme" "^3.0.0"
+
 "@jupyterlab/application@^3.0.0":
   version "3.2.5"
   resolved "https://registry.yarnpkg.com/@jupyterlab/application/-/application-3.2.5.tgz#1d53842e3a7f6325afe144aa6a3066aced700fbb"
@@ -2350,42 +2386,6 @@
     react "^17.0.1"
     react-dom "^17.0.1"
     typestyle "^2.0.4"
-
-"@krassowski/code-jumpers@file:packages/code-jumpers":
-  version "1.2.0"
-
-"@krassowski/completion-theme@file:packages/completion-theme":
-  version "3.3.0"
-
-"@krassowski/jupyterlab-lsp-example-extractor@file:packages/_example-extractor":
-  version "0.0.0"
-  dependencies:
-    "@krassowski/jupyterlab-lsp" "^3.6"
-
-"@krassowski/jupyterlab-lsp-klingon-integration@file:packages/_klingon-integration":
-  version "0.0.0"
-  dependencies:
-    "@jupyterlab/application" "^3.1.0"
-
-"@krassowski/jupyterlab-lsp@file:packages/jupyterlab-lsp":
-  version "3.10.1"
-  dependencies:
-    "@krassowski/code-jumpers" "~1.2.0"
-    "@krassowski/completion-theme" "~3.3.0"
-    "@krassowski/theme-material" "~2.1.1"
-    "@krassowski/theme-vscode" "~2.1.1"
-    lodash.mergewith "^4.6.1"
-    lsp-ws-connection "~0.7.0"
-
-"@krassowski/theme-material@file:packages/theme-material":
-  version "2.1.1"
-  dependencies:
-    "@krassowski/completion-theme" "^3.0.0"
-
-"@krassowski/theme-vscode@file:packages/theme-vscode":
-  version "2.1.1"
-  dependencies:
-    "@krassowski/completion-theme" "^3.0.0"
 
 "@lerna/add@5.4.3":
   version "5.4.3"

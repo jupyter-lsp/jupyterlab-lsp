@@ -1,10 +1,10 @@
 import '../style/completer.css';
-import { JupyterFrontEndPlugin } from '@jupyterlab/application';
 import {
   ICompletionIconSet,
   ICompletionTheme,
   ILSPCompletionThemeManager
-} from '@krassowski/completion-theme/lib/types';
+} from '@jupyter-lsp/completion-theme';
+import { JupyterFrontEndPlugin } from '@jupyterlab/application';
 
 import alpha_t_over_code from '../style/icons/alpha-t-and-code.svg';
 import alphabetical from '../style/icons/alphabetical.svg';
@@ -78,7 +78,7 @@ export const plugin: JupyterFrontEndPlugin<void> = {
   // while for now it only styles completion,
   // we may decide to allow styling of more
   // components, reusing these plugins.
-  id: '@krassowski/theme-material',
+  id: '@jupyter-lsp/theme-material',
   requires: [ILSPCompletionThemeManager],
   activate: (app, completionThemeManager: ILSPCompletionThemeManager) => {
     completionThemeManager.register_theme(completionTheme);

@@ -30,7 +30,7 @@ let local = {
   reporters: [...upstream['reporters'], 'jest-github-actions-reporter'],
   setupFiles: [
     ...upstream['setupFiles'],
-    '@krassowski/jupyterlab-lsp/lib/jest-shim.js'
+    '@jupyter-lsp/jupyterlab-lsp/lib/jest-shim.js'
   ]
 };
 

@@ -1,6 +1,6 @@
 {
-  "name": "@krassowski/jupyterlab-lsp",
-  "version": "3.10.1",
+  "name": "@jupyter-lsp/jupyterlab-lsp",
+  "version": "4.0.0-alpha.0",
   "description": "Language Server Protocol integration for JupyterLab",
   "keywords": [
     "jupyter",
@@ -58,10 +58,10 @@
     "watch:src": "tsc -w"
   },
   "dependencies": {
-    "@krassowski/code-jumpers": "~1.2.0",
-    "@krassowski/completion-theme": "~3.3.0",
-    "@krassowski/theme-material": "~2.1.1",
-    "@krassowski/theme-vscode": "~2.1.1",
+    "@jupyter-lsp/code-jumpers": "~1.2.0",
+    "@jupyter-lsp/completion-theme": "~3.3.0",
+    "@jupyter-lsp/theme-material": "~2.1.1",
+    "@jupyter-lsp/theme-vscode": "~2.1.1",
     "lodash.mergewith": "^4.6.1",
     "lsp-ws-connection": "~0.7.0"
   },
@@ -144,6 +144,6 @@
       }
     },
     "schemaDir": "schema",
-    "outputDir": "../../python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/@krassowski/jupyterlab-lsp"
+    "outputDir": "../../python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/@jupyter-lsp/jupyterlab-lsp"
   }
 }

@@ -3,7 +3,7 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
-const NS = '@krassowski/jupyterlab-lsp-klingon-integration';
+const NS = '@jupyter-lsp/jupyterlab-lsp-klingon-integration';
 
 const plugin: JupyterFrontEndPlugin<void> = {
   id: `${NS}:PLUGIN`,
