@@ -159,7 +159,16 @@ export class FreeTooltip extends Tooltip {
       node: this.node,
       offset: { horizontal: -1 * paddingLeft },
       privilege: this.options.privilege || 'below',
-      style: style
+      style: style,
+      // TODO: remove `ts-ignore` once minimum version is >=3.5
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      outOfViewDisplay: {
+        left: 'stick-inside',
+        right: 'stick-outside',
+        top: 'stick-outside',
+        bottom: 'stick-inside'
+      }
     });
   }
 }

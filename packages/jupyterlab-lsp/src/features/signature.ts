@@ -9,9 +9,15 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { CodeSignature as LSPSignatureSettings } from '../_signature';
 import { EditorTooltipManager } from '../components/free_tooltip';
+import { PositionConverter } from '../converter';
 import { CodeMirrorIntegration } from '../editor_integration/codemirror';
 import { FeatureSettings, IFeatureLabIntegration } from '../feature';
-import { IEditorPosition, IRootPosition } from '../positioning';
+import {
+  IEditorPosition,
+  IRootPosition,
+  offset_at_position,
+  position_at_offset
+} from '../positioning';
 import { ILogConsoleCore, ILSPFeatureManager, PLUGIN_ID } from '../tokens';
 import { escapeMarkdown } from '../utils';
 import { CodeMirrorVirtualEditor } from '../virtual/codemirror_editor';
@@ -193,23 +199,19 @@ export class SignatureCM extends CodeMirrorIntegration {
       return;
     }
     const newRootPosition = this.virtual_editor.get_cursor_position();
-    const previousPosition = this.lab_integration.tooltip.position;
+    const initialPosition = this.lab_integration.tooltip.position;
     let newEditorPosition =
       this.virtual_editor.root_position_to_editor(newRootPosition);
-    // hide tooltip if exceeded position
     if (
-      newEditorPosition.line === previousPosition.line &&
-      newEditorPosition.ch < previousPosition.ch
+      newEditorPosition.line === initialPosition.line &&
+      newEditorPosition.ch < initialPosition.ch
     ) {
-      // hide (not remove) since there is a chance the user is just
-      // typing the signature at the end of line which means that
-      // they will likelly get a signature reply again, and then
-      // re-using existing tooltip gives smoother experience.
-      this._hideTooltip();
+      // close tooltip if receded beyond starting position
+      this._removeTooltip();
     } else {
       // otherwise, update the signature as the active parameter could have changed,
       // or the server may want us to close the tooltip
-      this.requestSignature(newRootPosition, previousPosition)?.catch(
+      this.requestSignature(newRootPosition, initialPosition)?.catch(
         this.console.warn
       );
     }
@@ -317,7 +319,7 @@ export class SignatureCM extends CodeMirrorIntegration {
     this.console.log('Signature received', response);
     if (response === null) {
       // do not hide on undefined as it simply indicates that no new info is available
-      // (null means close, response means update)
+      // (null means close, undefined means no update, response means update)
       this._removeTooltip();
     } else if (response) {
       this._hideTooltip();
@@ -344,6 +346,8 @@ export class SignatureCM extends CodeMirrorIntegration {
       this.console.debug(
         'Ignoring signature response: cursor has receded or changed line'
       );
+      this._removeTooltip();
+      return;
     }
 
     let cm_editor = this.get_cm_editor(root_position);
@@ -351,6 +355,7 @@ export class SignatureCM extends CodeMirrorIntegration {
       this.console.debug(
         'Ignoring signature response: the corresponding editor lost focus'
       );
+      this._removeTooltip();
       return;
     }
     let editor_position =
@@ -365,17 +370,41 @@ export class SignatureCM extends CodeMirrorIntegration {
       root_position,
       response
     );
-
+    if (display_position === null) {
+      // try to find last occurrance of trigger character to position the tooltip
+      const content = cm_editor.getValue();
+      const lines = content.split('\n');
+      const offset = offset_at_position(
+        PositionConverter.cm_to_ce(editor_position),
+        lines
+      );
+      const subset = content.substring(0, offset);
+      const lastTriggerCharacterOffset = Math.max(
+        ...this.signatureCharacters.map(character =>
+          subset.lastIndexOf(character)
+        )
+      );
+      if (lastTriggerCharacterOffset !== -1) {
+        display_position = PositionConverter.ce_to_cm(
+          position_at_offset(lastTriggerCharacterOffset, lines)
+        ) as IEditorPosition;
+      } else {
+        display_position = editor_position;
+      }
+    }
     this.lab_integration.tooltip.showOrCreate({
       markup,
-      position: display_position === null ? editor_position : display_position,
+      position: display_position,
       id: TOOLTIP_ID,
       ce_editor: this.virtual_editor.find_ce_editor(cm_editor),
       adapter: this.adapter,
       className: CLASS_NAME,
       tooltip: {
         privilege: 'forceAbove',
-        alignment: 'start',
+        // do not move the tooltip to match the token to avoid drift of the
+        // tooltip due the simplicty of token matching rules; instead we keep
+        // the position constant manually via `displayPosition`.
+        alignment: undefined,
         hideOnKeyPress: false
       }
     });
@@ -394,7 +423,7 @@ export class SignatureCM extends CodeMirrorIntegration {
   }
 
   afterChange(change: IEditorChange, root_position: IRootPosition) {
-    let last_character = this.extract_last_character(change);
+    const last_character = this.extract_last_character(change);
 
     const isSignatureShown = this.isSignatureShown();
     let previousPosition: IEditorPosition | null = null;
