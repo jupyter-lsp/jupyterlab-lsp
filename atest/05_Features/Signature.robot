@@ -41,14 +41,12 @@ Triggers Signature Help After A Keystroke
     Press Keys    None    )
     Wait Until Keyword Succeeds    20x    0.5s    Page Should Not Contain Element    ${SIGNATURE_BOX}
 
-
 Triggered Signature Is Visible In First Cell
     # test boundary conditions for out of view behaviour
     Enter Cell Editor    1
     Press Keys    None    (
     Wait Until Keyword Succeeds    20x    0.5s    Page Should Contain Element    ${SIGNATURE_BOX}
     Element Should Be Visible    ${SIGNATURE_BOX}
-
 
 Should Close After Moving Cursor Prior To Start
     Enter Cell Editor    2    line=6

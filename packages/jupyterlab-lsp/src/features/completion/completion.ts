@@ -32,6 +32,7 @@ import { ICompletionData, LSPCompletionRenderer } from './renderer';
 const DOC_PANEL_SELECTOR = '.jp-Completer-docpanel';
 const DOC_PANEL_PLACEHOLDER_CLASS = 'lsp-completer-placeholder';
 const LSP_COMPLETER_CLASS = 'lsp-completer';
+const LSP_COMPLETER_ENABLED_CLASS = 'lsp-completer-enabled';
 
 export class CompletionCM extends CodeMirrorIntegration {
   private _completionCharacters: string[];
@@ -443,5 +444,10 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
         ?.session,
       console: this.console
     });
+    if (this._disabled) {
+      editor.host.classList.remove(LSP_COMPLETER_ENABLED_CLASS);
+    } else {
+      editor.host.classList.add(LSP_COMPLETER_ENABLED_CLASS);
+    }
   }
 }

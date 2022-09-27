@@ -193,7 +193,7 @@ User Can Select Lowercase After Starting Uppercase
 Mid Token Completions Do Not Overwrite
     # `disp<tab>data` → `display_table<cursor>data`
     Place Cursor In Cell Editor At    9    line=1    character=4
-    Capture Page Screenshot    01-cursor-placed.png
+    Wait For Our Completer To Replace Native In Cell    9
     Trigger Completer
     Completer Should Suggest    display_table
     Select Completer Suggestion    display_table
@@ -201,6 +201,7 @@ Mid Token Completions Do Not Overwrite
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    9    display_tabledata
     # `disp<tab>lay` → `display_table<cursor>`
     Place Cursor In Cell Editor At    11    line=1    character=4
+    Wait For Our Completer To Replace Native In Cell    11
     Trigger Completer
     Wait For Ready State
     Completer Should Suggest    display_table
@@ -295,11 +296,7 @@ Completes Correctly With R Double And Triple Colon
     [Setup]    Prepare File for Editing    R    completion    completion.R
     Place Cursor In File Editor At    2    7
     Wait Until Fully Initialized
-    # normally the completion adapter taking time to initialise is not a problem
-    # but because the token-based completion fallback would break our test example
-    # if it kicked off we try to avoid it by adding some delay
-    # TODO remove sleep after migrating to JupyterLab 4.0 native adapters.
-    Sleep    2s    Workaround completion adapter taking some time to initialize
+    Wait For Our Completer To Replace Native In File Editor
     Trigger Completer
     Completer Should Suggest    .print.via.format
     Select Completer Suggestion    .print.via.format
@@ -324,8 +321,7 @@ Shows Documentation With CompletionItem Resolve
     [Setup]    Prepare File for Editing    R    completion    completion.R
     Place Cursor In File Editor At    8    7
     Wait Until Fully Initialized
-    # TODO remove sleep after migrating to JupyterLab 4.0 native adapters.
-    Sleep    2s    Workaround completion adapter taking some time to initialize
+    Wait For Our Completer To Replace Native In File Editor
     Trigger Completer
     Completer Should Suggest    print.data.frame
     # if data.frame is not active, activate it (it should be in top 10 on any platform)
@@ -352,6 +348,7 @@ Completes In R Magics
     # - R lanugage server is very sensitive to off-by-one errors (see https://github.com/REditorSupport/languageserver/issues/395)
     # '%%R\n librar<tab>'
     Enter Cell Editor    22    line=2
+    Wait For Our Completer To Replace Native In Cell    22
     Trigger Completer
     Completer Should Suggest    library
     # '%R lib<tab>'
@@ -361,6 +358,7 @@ Completes In R Magics
 
 Completes Paths In Strings
     Enter Cell Editor    26
+    Wait For Our Completer To Replace Native In Cell    26
     Press Keys    None    LEFT
     Trigger Completer
     Press Keys    None    ENTER
@@ -467,3 +465,15 @@ Should Complete While Kernel Is Busy
     Completer Should Suggest    test
     # Confirm that the kernel indicator was busy all along
     Page Should Contain Element    ${KERNEL_BUSY_INDICATOR}
+
+Wait For Our Completer To Replace Native In File Editor
+    # Normally the completion adapter taking time to initialise is not a problem
+    # but because the token-based completion fallback would break some test example
+    # if it kicked in (by instant-completing some token) so we try to avoid it
+    # TODO remove after migrating to JupyterLab 4.0 native adapters.
+    Wait Until Page Contains Element    css:.jp-FileEditor .lsp-completer-enabled
+
+Wait For Our Completer To Replace Native In Cell
+    [Arguments]    ${cell_nr}
+    # TODO remove after migrating to JupyterLab 4.0 native adapters.
+    Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_nr}) .lsp-completer-enabled
