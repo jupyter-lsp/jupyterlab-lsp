@@ -37,5 +37,5 @@ class TypescriptLanguageServer(NodeModuleSpec):
             yarn="yarn add --dev {}".format(key),
             jlpm="jlpm add --dev {}".format(key),
         ),
-        config_schema=load_config_schema(key)
+        config_schema=load_config_schema(key),
     )

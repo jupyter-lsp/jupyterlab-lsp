@@ -40,10 +40,10 @@ ALL_ROBOT = [
 ROBOCOP_EXCLUDES = [
     "empty-lines-between-sections",
     "file-too-long",
-    "if-can-be-used",
     "missing-doc-keyword",
     "missing-doc-suite",
     "missing-doc-test-case",
+    "todo-in-comment",
     "too-long-test-case",
     "too-many-arguments",
     "too-many-calls-in-keyword",

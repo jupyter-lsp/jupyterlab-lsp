@@ -295,6 +295,11 @@ Completes Correctly With R Double And Triple Colon
     [Setup]    Prepare File for Editing    R    completion    completion.R
     Place Cursor In File Editor At    2    7
     Wait Until Fully Initialized
+    # normally the completion adapter taking time to initialise is not a problem
+    # but because the token-based completion fallback would break our test example
+    # if it kicked off we try to avoid it by adding some delay
+    # TODO remove sleep after migrating to JupyterLab 4.0 native adapters.
+    Sleep    2s    Workaround completion adapter taking some time to initialize
     Trigger Completer
     Completer Should Suggest    .print.via.format
     Select Completer Suggestion    .print.via.format
@@ -319,6 +324,8 @@ Shows Documentation With CompletionItem Resolve
     [Setup]    Prepare File for Editing    R    completion    completion.R
     Place Cursor In File Editor At    8    7
     Wait Until Fully Initialized
+    # TODO remove sleep after migrating to JupyterLab 4.0 native adapters.
+    Sleep    2s    Workaround completion adapter taking some time to initialize
     Trigger Completer
     Completer Should Suggest    print.data.frame
     # if data.frame is not active, activate it (it should be in top 10 on any platform)
