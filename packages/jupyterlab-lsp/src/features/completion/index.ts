@@ -1,3 +1,4 @@
+import { ILSPCompletionThemeManager } from '@jupyter-lsp/completion-theme';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
@@ -6,7 +7,6 @@ import { ICompletionManager } from '@jupyterlab/completer';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { LabIcon } from '@jupyterlab/ui-components';
-import { ILSPCompletionThemeManager } from '@krassowski/completion-theme/lib/types';
 
 import completionSvg from '../../../style/icons/completion.svg';
 import { CodeCompletion as LSPCompletionSettings } from '../../_completion';

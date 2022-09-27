@@ -1,3 +1,7 @@
+import {
+  ILSPCompletionThemeManager,
+  KernelKind
+} from '@jupyter-lsp/completion-theme';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import {
   CompletionConnector,
@@ -7,10 +11,6 @@ import {
 } from '@jupyterlab/completer';
 import { Session } from '@jupyterlab/services';
 import { LabIcon } from '@jupyterlab/ui-components';
-import {
-  ILSPCompletionThemeManager,
-  KernelKind
-} from '@krassowski/completion-theme/lib/types';
 import { JSONArray, JSONObject } from '@lumino/coreutils';
 import type * as lsProtocol from 'vscode-languageserver-types';
 

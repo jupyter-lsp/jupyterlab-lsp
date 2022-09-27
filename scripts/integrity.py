@@ -47,7 +47,7 @@ CHANGELOG = ROOT / "CHANGELOG.md"
 CONTRIBUTING = ROOT / "CONTRIBUTING.md"
 
 # TS stuff
-NPM_NS = "@krassowski"
+NPM_NS = "@jupyter-lsp"
 PACKAGES = {
     package["name"]: [path.parent, package]
     for path, package in [
@@ -60,9 +60,6 @@ META_NAME = f"{NPM_NS}/jupyterlab-lsp-metapackage"
 
 JS_LSP_NAME = f"{NPM_NS}/jupyterlab-lsp"
 JS_LSP_VERSION = PACKAGES[JS_LSP_NAME][1]["version"]
-
-JS_CJS_NAME = f"{NPM_NS}/code-jumpers"
-JS_CJS_VERSION = PACKAGES[JS_CJS_NAME][1]["version"]
 
 PY_PATH = ROOT / "python_packages"
 PY_SERVER_PATH = PY_PATH / "jupyter_lsp"
@@ -175,7 +172,6 @@ def test_jlab_versions(path):
     [
         [PY_SERVER_NAME, Version(PY_SERVER_VERSION).base_version],
         [JS_LSP_NAME, JS_LSP_VERSION],
-        [JS_CJS_NAME, JS_CJS_VERSION],
     ],
 )
 def test_changelog_versions(pkg, version):

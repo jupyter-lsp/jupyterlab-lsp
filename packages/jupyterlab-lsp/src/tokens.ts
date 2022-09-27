@@ -208,7 +208,7 @@ export interface ILSPCodeExtractorsManager {
   ): void;
 }
 
-export const PLUGIN_ID = '@krassowski/jupyterlab-lsp';
+export const PLUGIN_ID = '@jupyter-lsp/jupyterlab-lsp';
 
 export const ILSPFeatureManager = new Token<ILSPFeatureManager>(
   PLUGIN_ID + ':ILSPFeatureManager'

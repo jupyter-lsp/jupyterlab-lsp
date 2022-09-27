@@ -1,5 +1,5 @@
 {
-  "name": "@krassowski/completion-theme",
+  "name": "@jupyter-lsp/completion-theme",
   "version": "3.3.0",
   "description": "Completion theme manager for JupyterLab-LSP",
   "keywords": [
@@ -42,6 +42,6 @@
   "jupyterlab": {
     "extension": true,
     "schemaDir": "schema",
-    "outputDir": "../../python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/@krassowski/completion-theme"
+    "outputDir": "../../python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/@jupyter-lsp/completion-theme"
   }
 }

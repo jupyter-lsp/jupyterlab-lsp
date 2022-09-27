@@ -9,7 +9,7 @@ Force Tags          feature:signature
 
 
 *** Variables ***
-${SIGNATURE PLUGIN ID}          @krassowski/jupyterlab-lsp:signature
+${SIGNATURE PLUGIN ID}          @jupyter-lsp/jupyterlab-lsp:signature
 ${SIGNATURE_BOX}                css:.lsp-signature-help
 ${SIGNATURE_HIGHLIGHTED_ARG}    css:.lsp-signature-help mark
 ${SIGNATURE_DETAILS_CSS}        .lsp-signature-help details

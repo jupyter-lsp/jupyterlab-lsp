@@ -457,7 +457,7 @@ jobs:
       - name: Install the server package
         run: cd dist && python -m pip install -vv jupyter_lsp*.whl
       - name: install the source extension
-        run: cd dist && jupyter labextension install krassowski-jupyterlab-lsp-*.tgz --log-level DEBUG
+        run: cd dist && jupyter labextension install jupyter-lsp-jupyterlab-lsp-*.tgz --log-level DEBUG
       - name: Validate the install
         run: |
           set -eux

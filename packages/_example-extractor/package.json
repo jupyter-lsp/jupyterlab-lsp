@@ -1,6 +1,6 @@
 {
-  "name": "@krassowski/jupyterlab-lsp-example-extractor",
-  "description": "Example extractor package from @krassowski/jupyterlab-lsp",
+  "name": "@jupyter-lsp/jupyterlab-lsp-example-extractor",
+  "description": "Example extractor package from @jupyter-lsp/jupyterlab-lsp",
   "version": "0.0.0",
   "private": true,
   "main": "lib/index.js",
@@ -10,7 +10,7 @@
     "lib/**/*.{js,ts}"
   ],
   "dependencies": {
-    "@krassowski/jupyterlab-lsp": "^3.6"
+    "@jupyter-lsp/jupyterlab-lsp": "^4.0.0-alpha.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.4.3",

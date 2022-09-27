@@ -1,4 +1,4 @@
-import { IExtractedCode } from '@krassowski/jupyterlab-lsp';
+import { IExtractedCode } from '@jupyter-lsp/jupyterlab-lsp';
 import { expect } from 'chai';
 
 import { extractor } from '.';

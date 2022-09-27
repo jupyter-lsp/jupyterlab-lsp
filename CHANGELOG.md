@@ -1,6 +1,6 @@
 ## Changelog
 
-### `@krassowski/jupyterlab-lsp 4.0.0` (not-yet-released)
+### `@jupyter-lsp/jupyterlab-lsp 4.0.0-alpha.0` (not-yet-released)
 
 - features:
   - implement jump target selector and jump to references ([#739])
@@ -11,6 +11,7 @@
   - fix `undefined` being inserted for path-like completion items with no `insertText` ([#833])
   - reduce signature flickering when typing and hover flicker when moving mouse ([#836])
 - refactoring:
+  - changed NPM packages namespace from `@krassowski` to `@jupyter-lsp` ([#862])
   - move client capabilities to features ([#738])
 - documentation:
   - add missing `--channel` to conda instruction for texlab ([#789], thanks @justin-f-perez)

@@ -52,11 +52,11 @@ ${CM CURSOR}                    css:.CodeMirror-cursor
 ${CM CURSORS}
 ...                             css:.jp-MainAreaWidget:not(.lm-mod-hidden) .CodeMirror-cursors:not([style='visibility: hidden'])
 # settings
-${LSP PLUGIN ID}                @krassowski/jupyterlab-lsp:plugin
-${COMPLETION PLUGIN ID}         @krassowski/jupyterlab-lsp:completion
-${HIGHLIGHTS PLUGIN ID}         @krassowski/jupyterlab-lsp:highlights
-${JUMP PLUGIN ID}               @krassowski/jupyterlab-lsp:jump_to
-${DIAGNOSTICS PLUGIN ID}        @krassowski/jupyterlab-lsp:diagnostics
+${LSP PLUGIN ID}                @jupyter-lsp/jupyterlab-lsp:plugin
+${COMPLETION PLUGIN ID}         @jupyter-lsp/jupyterlab-lsp:completion
+${HIGHLIGHTS PLUGIN ID}         @jupyter-lsp/jupyterlab-lsp:highlights
+${JUMP PLUGIN ID}               @jupyter-lsp/jupyterlab-lsp:jump_to
+${DIAGNOSTICS PLUGIN ID}        @jupyter-lsp/jupyterlab-lsp:diagnostics
 ${CSS USER SETTINGS}            .jp-SettingsRawEditor-user
 ${JLAB XP CLOSE SETTINGS}
 ...                             ${JLAB XP DOCK TAB}\[contains(., 'Settings')]/*[contains(@class, 'm-TabBar-tabCloseIcon')]

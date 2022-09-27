@@ -1,8 +1,8 @@
-import '@krassowski/code-jumpers';
-import '@krassowski/completion-theme';
-import '@krassowski/jupyterlab-lsp';
-import '@krassowski/jupyterlab-lsp-example-extractor';
-import '@krassowski/jupyterlab-lsp-klingon-integration';
-import '@krassowski/theme-material';
-import '@krassowski/theme-vscode';
+import '@jupyter-lsp/code-jumpers';
+import '@jupyter-lsp/completion-theme';
+import '@jupyter-lsp/jupyterlab-lsp';
+import '@jupyter-lsp/jupyterlab-lsp-example-extractor';
+import '@jupyter-lsp/jupyterlab-lsp-klingon-integration';
+import '@jupyter-lsp/theme-material';
+import '@jupyter-lsp/theme-vscode';
 import 'lsp-ws-connection';

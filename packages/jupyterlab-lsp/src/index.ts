@@ -6,6 +6,9 @@ export * from './tokens';
 /** Component- and feature-specific APIs */
 export * from './api';
 
+import { COMPLETION_THEME_MANAGER } from '@jupyter-lsp/completion-theme';
+import { plugin as THEME_MATERIAL } from '@jupyter-lsp/theme-material';
+import { plugin as THEME_VSCODE } from '@jupyter-lsp/theme-vscode';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
@@ -18,9 +21,6 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStatusBar } from '@jupyterlab/statusbar';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { IFormComponentRegistry } from '@jupyterlab/ui-components';
-import { COMPLETION_THEME_MANAGER } from '@krassowski/completion-theme';
-import { plugin as THEME_MATERIAL } from '@krassowski/theme-material';
-import { plugin as THEME_VSCODE } from '@krassowski/theme-vscode';
 import { Signal } from '@lumino/signaling';
 
 import '../style/index.css';

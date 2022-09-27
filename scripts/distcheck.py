@@ -26,7 +26,7 @@ PY_PACKAGES = ROOT / "python_packages"
 
 # just one, for now
 LABEXTENSION_PATHS = [
-    "jupyterlab_lsp/jupyterlab_lsp/labextensions/@krassowski/jupyterlab-lsp"
+    "jupyterlab_lsp/jupyterlab_lsp/labextensions/@jupyter-lsp/jupyterlab-lsp"
 ]
 
 
