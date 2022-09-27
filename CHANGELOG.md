@@ -9,6 +9,7 @@
   - use correct websocket URL if configured as different from base URL ([#820], thanks @MikeSem)
   - clean up all completer styles when completer feature is disabled ([#829]).
   - fix `undefined` being inserted for path-like completion items with no `insertText` ([#833])
+  - reduce signature flickering when typing and hover flicker when moving mouse ([#836])
 - refactoring:
   - move client capabilities to features ([#738])
 - documentation:
@@ -31,6 +32,7 @@
 [#826]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/826
 [#829]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/829
 [#833]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/833
+[#836]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/836
 
 ### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
 
