@@ -22,7 +22,8 @@ ${CMD PALETTE ITEM ACTIVE}      css:#command-palette .lm-CommandPalette-item.lm-
 ${JLAB XP TOP}                  //div[@id='jp-top-panel']
 ${JLAB XP MENU ITEM LABEL}      //div[contains(@class, 'lm-Menu-itemLabel')]
 ${JLAB XP MENU LABEL}           //div[contains(@class, 'lm-MenuBar-itemLabel')]
-${JLAB XP DOCK TAB}             xpath://div[contains(@class, 'lm-DockPanel-tabBar')]//li[contains(@class, 'lm-TabBar-tab')]
+${JLAB XP DOCK TAB}
+...                             xpath://div[contains(@class, 'lm-DockPanel-tabBar')]//li[contains(@class, 'lm-TabBar-tab')]
 ${JLAB CSS VERSION}             css:.jp-About-version
 ${JLAB CSS REFRESH F_OLD}       css:button[title="Refresh File List"]
 ${JLAB CSS REFRESH FILES}       css:button[data-command="filebrowser:refresh"]
@@ -31,20 +32,25 @@ ${MENU OPEN WITH}               xpath://div[contains(@class, 'lm-Menu-itemLabel'
 # R is missing on purpose (may need to use .)
 ${MENU RENAME}                  xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(., "ename")]
 # N is missing on purpose (N is in separate <span>)
-${MENU NOTEBOOK}                xpath://li[@data-command='filebrowser:open']/div[contains(@class, 'lm-Menu-itemLabel')][contains(., "otebook")]
+${MENU NOTEBOOK}
+...                             xpath://li[@data-command='filebrowser:open']/div[contains(@class, 'lm-Menu-itemLabel')][contains(., "otebook")]
 ${DIAGNOSTICS PANEL}            id:lsp-diagnostics-panel
-${DIAGNOSTIC PANEL CLOSE}       css:.lm-DockPanel-tabBar .lm-TabBar-tab[data-id="lsp-diagnostics-panel"] .lm-TabBar-tabCloseIcon
+${DIAGNOSTIC PANEL CLOSE}
+...                             css:.lm-DockPanel-tabBar .lm-TabBar-tab[data-id="lsp-diagnostics-panel"] .lm-TabBar-tabCloseIcon
 ${DIALOG WINDOW}                css:.jp-Dialog
 ${DIALOG INPUT}                 css:.jp-Input-Dialog input
 ${DIALOG ACCEPT}                css:button.jp-Dialog-button.jp-mod-accept
 ${STATUSBAR}                    css:div.lsp-statusbar-item
 ${MENU EDITOR}                  xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(., "Editor")]
-${MENU JUMP}                    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Jump to definition")]
+${MENU JUMP}
+...                             xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Jump to definition")]
 ${MENU SETTINGS}                xpath://div[contains(@class, 'lm-MenuBar-itemLabel')][contains(text(), "Settings")]
-${MENU EDITOR THEME}            xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Text Editor Theme")]
+${MENU EDITOR THEME}
+...                             xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Text Editor Theme")]
 ${LAB MENU}                     css:.lm-Menu
 ${CM CURSOR}                    css:.CodeMirror-cursor
-${CM CURSORS}                   css:.jp-MainAreaWidget:not(.lm-mod-hidden) .CodeMirror-cursors:not([style='visibility: hidden'])
+${CM CURSORS}
+...                             css:.jp-MainAreaWidget:not(.lm-mod-hidden) .CodeMirror-cursors:not([style='visibility: hidden'])
 # settings
 ${LSP PLUGIN ID}                @krassowski/jupyterlab-lsp:plugin
 ${COMPLETION PLUGIN ID}         @krassowski/jupyterlab-lsp:completion
@@ -52,7 +58,8 @@ ${HIGHLIGHTS PLUGIN ID}         @krassowski/jupyterlab-lsp:highlights
 ${JUMP PLUGIN ID}               @krassowski/jupyterlab-lsp:jump_to
 ${DIAGNOSTICS PLUGIN ID}        @krassowski/jupyterlab-lsp:diagnostics
 ${CSS USER SETTINGS}            .jp-SettingsRawEditor-user
-${JLAB XP CLOSE SETTINGS}       ${JLAB XP DOCK TAB}\[contains(., 'Settings')]/*[contains(@class, 'm-TabBar-tabCloseIcon')]
+${JLAB XP CLOSE SETTINGS}
+...                             ${JLAB XP DOCK TAB}\[contains(., 'Settings')]/*[contains(@class, 'm-TabBar-tabCloseIcon')]
 # diagnostics
 ${CSS DIAGNOSTIC}               css:.cm-lsp-diagnostic
 # log messages
