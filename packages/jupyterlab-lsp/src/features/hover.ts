@@ -46,11 +46,6 @@ interface IResponseData {
   ce_editor: CodeEditor.IEditor;
 }
 
-interface IOnHoverResponse {
-  hover: lsProtocol.Hover;
-  position: IVirtualPosition;
-}
-
 /**
  * Check whether mouse is close to given element (within a specified number of pixels)
  * @param what target element
@@ -132,10 +127,10 @@ export class HoverCM extends CodeMirrorIntegration {
   private virtual_position: IVirtualPosition;
   protected cache: ResponseCache;
 
-  private debounced_get_hover: Throttler<Promise<IOnHoverResponse | null>>;
+  private debounced_get_hover: Throttler<Promise<lsProtocol.Hover | null>>;
   private tooltip: FreeTooltip;
   private _previousHoverRequest: Promise<
-    Promise<IOnHoverResponse | null>
+    Promise<lsProtocol.Hover | null>
   > | null = null;
 
   constructor(options: IEditorIntegrationOptions) {
@@ -254,7 +249,7 @@ export class HoverCM extends CodeMirrorIntegration {
   }
 
   protected create_throttler() {
-    return new Throttler<Promise<IOnHoverResponse | null>>(this.on_hover, {
+    return new Throttler<Promise<lsProtocol.Hover | null>>(this.on_hover, {
       limit: this.settings.composite.throttlerDelay,
       edge: 'trailing'
     });
@@ -269,8 +264,9 @@ export class HoverCM extends CodeMirrorIntegration {
   }
 
   protected on_hover = async (
-    position: IVirtualPosition
-  ): Promise<IOnHoverResponse | null> => {
+    virtual_position: IVirtualPosition,
+    add_range_fn: (hover: lsProtocol.Hover) => lsProtocol.Hover
+  ): Promise<lsProtocol.Hover | null> => {
     if (
       !(
         this.connection.isReady &&
@@ -279,7 +275,7 @@ export class HoverCM extends CodeMirrorIntegration {
     ) {
       return null;
     }
-    const hover = await this.connection.clientRequests[
+    let hover = await this.connection.clientRequests[
       'textDocument/hover'
     ].request({
       textDocument: {
@@ -287,8 +283,8 @@ export class HoverCM extends CodeMirrorIntegration {
         uri: this.virtual_document.document_info.uri
       },
       position: {
-        line: position.line,
-        character: position.ch
+        line: virtual_position.line,
+        character: virtual_position.ch
       }
     });
 
@@ -296,10 +292,7 @@ export class HoverCM extends CodeMirrorIntegration {
       return null;
     }
 
-    return {
-      hover: hover,
-      position: position
-    };
+    return add_range_fn(hover);
   };
 
   protected static get_markup_for_hover(
@@ -408,7 +401,7 @@ export class HoverCM extends CodeMirrorIntegration {
     // (only cells with code) instead, but this is more complex to implement right. In any case filtering
     // is needed to determine in hovered character belongs to this virtual document
 
-    let root_position = this.position_from_mouse(event);
+    const root_position = this.position_from_mouse(event);
 
     // happens because mousemove is attached to panel, not individual code cells,
     // and because some regions of the editor (between lines) have no characters
@@ -454,7 +447,24 @@ export class HoverCM extends CodeMirrorIntegration {
       let response_data = this.restore_from_cache(document, virtual_position);
 
       if (response_data == null) {
-        const promise = this.debounced_get_hover.invoke(virtual_position);
+        const ce_editor =
+          this.virtual_editor.get_editor_at_root_position(root_position);
+        const cm_editor =
+          this.virtual_editor.ce_editor_to_cm_editor.get(ce_editor)!;
+        const add_range_fn = (hover: lsProtocol.Hover): lsProtocol.Hover => {
+          const editor_range = this.get_editor_range(
+            hover,
+            root_position,
+            token,
+            cm_editor
+          );
+          return this.add_range_if_needed(hover, editor_range, ce_editor);
+        };
+
+        const promise = this.debounced_get_hover.invoke(
+          virtual_position,
+          add_range_fn
+        );
         this._previousHoverRequest = promise;
         let response = await promise;
         if (this._previousHoverRequest === promise) {
@@ -462,27 +472,21 @@ export class HoverCM extends CodeMirrorIntegration {
         }
         if (
           response &&
-          is_equal(response.position, virtual_position) &&
-          this.is_useful_response(response.hover)
+          response.range &&
+          ProtocolCoordinates.isWithinRange(
+            { line: virtual_position.line, character: virtual_position.ch },
+            response.range
+          ) &&
+          this.is_useful_response(response)
         ) {
-          let ce_editor =
-            this.virtual_editor.get_editor_at_root_position(root_position);
-          let cm_editor =
-            this.virtual_editor.ce_editor_to_cm_editor.get(ce_editor)!;
-
-          let editor_range = this.get_editor_range(
-            response.hover,
+          const editor_range = this.get_editor_range(
+            response,
             root_position,
             token,
             cm_editor
           );
-
           response_data = {
-            response: this.add_range_if_needed(
-              response.hover,
-              editor_range,
-              ce_editor
-            ),
+            response: response,
             document: document,
             editor_range: editor_range,
             ce_editor: ce_editor
