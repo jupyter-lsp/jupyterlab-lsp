@@ -16,7 +16,7 @@
       "type": "number",
       "default": 300,
       "minimum": 0,
-      "description": "Number of milliseconds after which the hover tooltip should be shown. Ignored if 'Automatic hover' is OFF."
+      "description": "Number of milliseconds after which the hover tooltip should be shown. Ignored if 'Automatic hover' is off."
     },
     "modifierKey": {
       "title": "Modifier key",
