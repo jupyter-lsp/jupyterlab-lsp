@@ -141,6 +141,10 @@ export class HoverCM extends CodeMirrorIntegration {
     return this.settings.composite.modifierKey;
   }
 
+  protected get isHoverAutomatic(): boolean {
+    return this.settings.composite.autoActivate;
+  }
+
   get lab_integration() {
     return super.lab_integration as HoverLabIntegration;
   }
@@ -387,15 +391,19 @@ export class HoverCM extends CodeMirrorIntegration {
   protected async _updateUnderlineAndTooltip(
     event: MouseEvent
   ): Promise<boolean> {
-    const target = event.target as HTMLElement;
+    const target = event.target;
 
     // if over an empty space in a line (and not over a token) then not worth checking
-    if (target.classList.contains('CodeMirror-line')) {
+    if (
+      target == null ||
+      (target as HTMLElement).classList.contains('CodeMirror-line')
+    ) {
       this.remove_range_highlight();
       return false;
     }
 
-    const show_tooltip = getModifierState(event, this.modifierKey);
+    const show_tooltip =
+      this.isHoverAutomatic || getModifierState(event, this.modifierKey);
 
     // currently the events are coming from notebook panel; ideally these would be connected to individual cells,
     // (only cells with code) instead, but this is more complex to implement right. In any case filtering
@@ -445,6 +453,7 @@ export class HoverCM extends CodeMirrorIntegration {
         ]);
       }
       let response_data = this.restore_from_cache(document, virtual_position);
+      let delay_ms = this.settings.composite.delay;
 
       if (response_data == null) {
         const ce_editor =
@@ -493,10 +502,19 @@ export class HoverCM extends CodeMirrorIntegration {
           };
 
           this.cache.store(response_data);
+          delay_ms = Math.max(
+            0,
+            this.settings.composite.delay -
+              this.settings.composite.throttlerDelay
+          );
         } else {
           this.remove_range_highlight();
           return false;
         }
+      }
+
+      if (this.isHoverAutomatic) {
+        await new Promise(resolve => setTimeout(resolve, delay_ms));
       }
 
       return this.handleResponse(response_data, root_position, show_tooltip);

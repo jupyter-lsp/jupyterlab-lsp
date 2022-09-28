@@ -15,6 +15,24 @@ ${HOVER_SIGNAL}     css:.cm-lsp-hover-available
 
 
 *** Test Cases ***
+Hover Does Not Trigger Automatically
+    Enter Cell Editor    1
+    ${sel} =    Last Occurrence    python_add
+    Configure JupyterLab Plugin    {"autoActivate": false}
+    ...    plugin id=${HOVER PLUGIN ID}
+    Trigger Automatically By Hover    ${sel}
+    Sleep    1s
+    Element Text Should Be    ${HOVER_SIGNAL}    python_add
+    Page Should Not Contain Element    ${HOVER_BOX}
+
+Hover Triggers Automatically
+    Enter Cell Editor    1
+    ${sel} =    Last Occurrence    python_add
+    Configure JupyterLab Plugin    {"delay": 100, "autoActivate": true}
+    ...    plugin id=${HOVER PLUGIN ID}
+    Trigger Automatically By Hover    ${sel}
+    Wait Until Keyword Succeeds    4x    0.1s    Page Should Contain Element    ${HOVER_BOX}
+
 Hover works in notebooks
     Enter Cell Editor    1
     Trigger Tooltip    python_add
@@ -55,6 +73,14 @@ Last Occurrence
     ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}
     ...    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
     RETURN    ${sel}
+
+Trigger Automatically By Hover
+    [Arguments]    ${sel}
+    # bring the cursor to the element
+    Wokraround Visibility Problem    ${sel}
+    Mouse Over    ${sel}
+    Wait Until Page Contains Element    ${HOVER_SIGNAL}    timeout=10s
+    Mouse Over And Wiggle    ${sel}    5
 
 Trigger Via Hover With Modifier
     [Arguments]    ${sel}
