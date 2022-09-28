@@ -57,6 +57,7 @@ ${COMPLETION PLUGIN ID}         @jupyter-lsp/jupyterlab-lsp:completion
 ${HIGHLIGHTS PLUGIN ID}         @jupyter-lsp/jupyterlab-lsp:highlights
 ${JUMP PLUGIN ID}               @jupyter-lsp/jupyterlab-lsp:jump_to
 ${DIAGNOSTICS PLUGIN ID}        @jupyter-lsp/jupyterlab-lsp:diagnostics
+${HOVER PLUGIN ID}              @jupyter-lsp/jupyterlab-lsp:hover
 ${CSS USER SETTINGS}            .jp-SettingsRawEditor-user
 ${JLAB XP CLOSE SETTINGS}
 ...                             ${JLAB XP DOCK TAB}\[contains(., 'Settings')]/*[contains(@class, 'm-TabBar-tabCloseIcon')]

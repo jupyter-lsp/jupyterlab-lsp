@@ -6,7 +6,9 @@ import setuptools
 
 LABEXTENSIONS_DIR = Path("jupyterlab_lsp/labextensions")
 LABEXTENSIONS_INSTALL_DIR = Path("share") / "jupyter" / "labextensions"
-LAB_PACKAGE_PATH = LABEXTENSIONS_DIR / "@jupyter-lsp" / "jupyterlab-lsp" / "package.json"
+LAB_PACKAGE_PATH = (
+    LABEXTENSIONS_DIR / "@jupyter-lsp" / "jupyterlab-lsp" / "package.json"
+)
 
 
 def get_data_files():
