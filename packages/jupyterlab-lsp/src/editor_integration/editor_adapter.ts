@@ -68,8 +68,13 @@ export class EditorAdapter<T extends IVirtualEditor<IEditor>> {
         return true;
       }
 
-      if (!change || !change.text.length || !change.text[0].length) {
-        // deletion - ignore
+      if (
+        !change ||
+        ((!change.text.length || !change.text[0].length) &&
+          (!change.removed ||
+            !change.removed.length ||
+            !change.removed[0].length))
+      ) {
         return true;
       }
 
