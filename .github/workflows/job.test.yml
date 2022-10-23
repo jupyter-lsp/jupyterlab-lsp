@@ -454,6 +454,9 @@ jobs:
       - name: Install JupyterLab
         shell: bash -l {0}
         run: python -m pip install 'jupyterlab${{ matrix.lab }}'
+      - name: Install Notebook (to test serverextension)
+        shell: bash -l {0}
+        run: python -m pip install 'notebook'
       - name: Install the server package
         run: cd dist && python -m pip install -vv jupyter_lsp*.whl
       - name: install the source extension
