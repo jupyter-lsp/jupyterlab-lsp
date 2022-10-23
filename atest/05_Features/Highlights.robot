@@ -5,7 +5,7 @@ Suite Setup         Setup Suite For Screenshots    highlights
 Test Setup          Setup Highlights Test
 Test Teardown       Clean Up After Working With File    Highlights.ipynb
 
-Force Tags          feature:highlights
+Test Tags           feature:highlights
 
 
 *** Test Cases ***

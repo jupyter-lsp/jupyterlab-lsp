@@ -5,7 +5,7 @@ Suite Setup         Setup Suite For Screenshots    diagnostics_panel
 Test Setup          Set Up
 Test Teardown       Clean Up
 
-Force Tags          ui:notebook    aspect:ls:features
+Test Tags           ui:notebook    aspect:ls:features
 
 
 *** Variables ***

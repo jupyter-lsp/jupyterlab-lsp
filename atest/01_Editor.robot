@@ -4,7 +4,7 @@ Resource        Variables.resource
 
 Suite Setup     Setup Suite For Screenshots    editor
 
-Force Tags      ui:editor    aspect:ls:features
+Test Tags       ui:editor    aspect:ls:features
 
 
 *** Test Cases ***

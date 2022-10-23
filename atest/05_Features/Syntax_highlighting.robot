@@ -5,7 +5,7 @@ Suite Setup         Setup Suite For Screenshots    syntax_highlighting
 Test Setup          Setup Highlighting Test
 Test Teardown       Clean Up After Working With File    Syntax highlighting.ipynb
 
-Force Tags          feature:syntax_highlighting
+Test Tags           feature:syntax_highlighting
 
 
 *** Test Cases ***

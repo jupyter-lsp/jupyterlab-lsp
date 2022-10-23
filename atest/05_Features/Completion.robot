@@ -5,7 +5,7 @@ Suite Setup         Setup Suite For Screenshots    completion
 Test Setup          Setup Completion Test
 Test Teardown       Clean Up After Working With File    Completion.ipynb
 
-Force Tags          feature:completion
+Test Tags           feature:completion
 
 
 *** Variables ***
