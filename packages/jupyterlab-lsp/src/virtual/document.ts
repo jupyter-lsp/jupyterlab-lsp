@@ -751,8 +751,13 @@ export class VirtualDocument {
   }
 
   get uri(): VirtualDocument.uri {
-    const encodedPath = encodeURI(this.path);
+    let encodedPath = encodeURI(this.path);
     if (!this.parent) {
+      if (!this.has_lsp_supported_file) {
+        if (this.file_extension) {
+          encodedPath += '.' + this.file_extension;
+        }
+      }
       return encodedPath;
     }
     return encodedPath + '.' + this.id_path + '.' + this.file_extension;
