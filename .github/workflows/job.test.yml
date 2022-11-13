@@ -389,7 +389,7 @@ jobs:
           - os: 'windows'
             py_cmd: python
           - os: 'macos'
-            py_cmd: python3
+            py_cmd: python
           - os: 'ubuntu'
             py_cmd: python
     steps:
