@@ -389,7 +389,7 @@ jobs:
           - os: 'windows'
             py_cmd: python
           - os: 'macos'
-            py_cmd: python
+            py_cmd: python3
           - os: 'ubuntu'
             py_cmd: python
     steps:
@@ -414,10 +414,10 @@ jobs:
       - name: Validate the install
         run: |
           set -eux
-          jupyter labextension list
-          jupyter server extension list
-          jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
-          jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
+          ${{ matrix.py_cmd }} -m jupyter labextension list
+          ${{ matrix.py_cmd }} -m jupyter server extension list
+          ${{ matrix.py_cmd }} -m jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
+          ${{ matrix.py_cmd }} -m jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
 
   source:
     name: smoke source install ${{ matrix.os }} py${{ matrix.python }} lab${{ matrix.lab }}
