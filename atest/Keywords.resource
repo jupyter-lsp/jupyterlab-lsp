@@ -41,6 +41,9 @@ Create Notebok Server Config
     [Documentation]    Copies in notebook server config file and updates accordingly
     [Arguments]    ${server_extension_enabled}=${True}
     ${conf} =    Set Variable    ${NOTEBOOK DIR}${/}${JPSERVER CONF JSON}
+    Set Environment Variable
+    ...    name=JUPYTER_CONFIG_DIR
+    ...    value=${NOTEBOOK DIR}
     ${extra_node_roots} =    Create List    ${ROOT}
     ${port} =    Get Unused Port
     Set Global Variable    ${PORT}    ${port}
@@ -217,7 +220,7 @@ Ensure Sidebar Is Closed
     END
 
 Refresh File List
-    IF    '${LAB VERSION}'.startswith('3.4')
+    IF    [int(part) for part in "${LAB VERSION}".split(".")] >= [3, 4, 0]
         Click Element    ${JLAB CSS REFRESH FILES}
     ELSE
         Click Element    ${JLAB CSS REFRESH F_OLD}
