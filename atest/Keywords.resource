@@ -16,13 +16,12 @@ Setup Server and Browser
     Initialize Global Variables
     Create Notebok Server Config    ${server_extension_enabled}
     Initialize User Settings
-    ${disable_global_config} =    Set Variable If    ${server_extension_enabled} != ${True}    '1'    ${EMPTY}
     ${server} =    Start Process    jupyter-lab
     ...    cwd=${NOTEBOOK DIR}
     ...    stdout=${LAB LOG}
     ...    stderr=STDOUT
     ...    env:HOME=${HOME}
-    ...    env:JUPYTER_NO_CONFIG=${disable_global_config}
+    ...    env:JUPYTER_NO_CONFIG=${EMPTY}
     Set Global Variable    ${SERVER}    ${server}
     Open JupyterLab
     Read Page Config
