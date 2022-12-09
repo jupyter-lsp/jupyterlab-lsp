@@ -23,6 +23,7 @@ Setup Server and Browser
     ...    stderr=STDOUT
     ...    env:HOME=${HOME}
     ...    env:JUPYTER_NO_CONFIG=${disable_global_config}
+    ...    env:JUPYTER_CONFIG_DIR=${NOTEBOOK DIR}
     Set Global Variable    ${SERVER}    ${server}
     Open JupyterLab
     Read Page Config

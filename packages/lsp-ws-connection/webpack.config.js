@@ -1,23 +1,49 @@
 const path = require('path');
 
+const webpack = require('webpack');
+
 module.exports = {
   mode: 'production',
+  devtool: 'source-map',
   entry: {
     index: './lib/index.js'
   },
+  target: 'web',
   resolve: {
     extensions: ['.js'],
     fallback: {
       net: false,
       path: false,
-      crypto: false
+      crypto: false,
+      stream: require.resolve('stream-browserify'),
+      buffer: require.resolve('buffer'),
+      timers: require.resolve('timers-browserify')
     }
   },
-  target: 'web',
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
     library: 'lsp-ws-connection',
     libraryTarget: 'umd'
-  }
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        use: ['source-map-loader']
+      }
+    ]
+  },
+  plugins: [
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer']
+    }),
+    new webpack.ProvidePlugin({
+      process: 'process/browser'
+    }),
+    new webpack.ProvidePlugin({
+      setImmediate: ['setimmediate', 'setImmedate'],
+      clearImmediate: ['setimmediate', 'clearImmedate']
+    })
+  ]
 };

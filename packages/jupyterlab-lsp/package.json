@@ -131,6 +131,13 @@
   },
   "jupyterlab": {
     "extension": true,
+    "webpackConfig": "./webpack.config.js",
+    "sharedPackages": {
+      "lsp-ws-connection": {
+        "bundled": true,
+        "singleton": true
+      }
+    },
     "discovery": {
       "server": {
         "base": {
