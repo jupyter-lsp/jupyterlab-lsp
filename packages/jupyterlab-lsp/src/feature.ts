@@ -3,6 +3,7 @@ import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
+import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 
 import { StatusMessage, WidgetAdapter } from './adapters/adapter';
@@ -65,30 +66,31 @@ export interface IFeatureSettings<T> {
 export class FeatureSettings<T> implements IFeatureSettings<T> {
   protected settings: ISettingRegistry.ISettings;
   public changed: Signal<FeatureSettings<T>, void>;
-  public ready: Promise<void>;
+  private _ready = new PromiseDelegate<void>();
 
   constructor(protected settingRegistry: ISettingRegistry, featureID: string) {
     this.changed = new Signal(this);
     if (!(featureID in settingRegistry.plugins)) {
-      console.warn(
-        `${featureID} settings schema could not be found and was not loaded`
-      );
+      const message = `${featureID} settings schema could not be found and was not loaded`;
+      this._ready.reject(message);
     } else {
-      this.ready = new Promise(accept => {
-        settingRegistry
-          .load(featureID)
-          .then(settings => {
+      settingRegistry
+        .load(featureID)
+        .then(settings => {
+          this.settings = settings;
+          this._ready.resolve(void 0);
+          this.changed.emit();
+          settings.changed.connect(() => {
             this.settings = settings;
-            accept();
             this.changed.emit();
-            settings.changed.connect(() => {
-              this.settings = settings;
-              this.changed.emit();
-            });
-          })
-          .catch(console.warn);
-      });
+          });
+        })
+        .catch(console.warn);
     }
+  }
+
+  get ready(): Promise<void> {
+    return this._ready.promise;
   }
 
   get composite(): Required<T> {
