@@ -60,6 +60,9 @@ Create Notebok Server Config
 
 Set Server Extension State
     [Arguments]    ${enabled}=${True}
+    Set Environment Variable
+    ...    name=JUPYTER_CONFIG_DIR
+    ...    value=${NOTEBOOK DIR}
     IF    ${enabled}
         Run Process    jupyter server extension enable jupyter_lsp
         ...    shell=yes
