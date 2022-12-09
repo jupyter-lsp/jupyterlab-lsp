@@ -348,9 +348,7 @@ export class LSPConnection extends LspWsConnection {
 
   protected constructNotificationHandlers<
     T extends ServerNotifications | ClientNotifications
-  >(
-    methods: typeof Method.ServerNotification | typeof Method.ClientNotification
-  ) {
+  >(methods: typeof Method.ServerNotification | typeof Method.ClientNotification) {
     return createMethodMap<T, Signal<any, any>>(
       methods,
       () => new Signal<any, any>(this)
@@ -363,8 +361,7 @@ export class LSPConnection extends LspWsConnection {
   >(methods: typeof Method.ClientRequest) {
     return createMethodMap<T, IClientRequestHandler>(
       methods,
-      method =>
-        new ClientRequestHandler(this.connection, method as U as any, this)
+      method => new ClientRequestHandler(this.connection, method as U as any, this)
     );
   }
 
@@ -374,8 +371,7 @@ export class LSPConnection extends LspWsConnection {
   >(methods: typeof Method.ServerRequest) {
     return createMethodMap<T, IServerRequestHandler>(
       methods,
-      method =>
-        new ServerRequestHandler(this.connection, method as U as any, this)
+      method => new ServerRequestHandler(this.connection, method as U as any, this)
     );
   }
 
@@ -386,14 +382,12 @@ export class LSPConnection extends LspWsConnection {
     this.serverIdentifier = options.serverIdentifier;
     this.console = options.console.scope(this.serverIdentifier + ' connection');
     this.documentsToOpen = [];
-    this.clientNotifications =
-      this.constructNotificationHandlers<ClientNotifications>(
-        Method.ClientNotification
-      );
-    this.serverNotifications =
-      this.constructNotificationHandlers<ServerNotifications>(
-        Method.ServerNotification
-      );
+    this.clientNotifications = this.constructNotificationHandlers<ClientNotifications>(
+      Method.ClientNotification
+    );
+    this.serverNotifications = this.constructNotificationHandlers<ServerNotifications>(
+      Method.ServerNotification
+    );
   }
 
   /**
@@ -465,25 +459,23 @@ export class LSPConnection extends LspWsConnection {
 
     this.serverRequests['client/registerCapability'].setHandler(
       async (params: lsp.RegistrationParams) => {
-        params.registrations.forEach(
-          (capabilityRegistration: lsp.Registration) => {
-            try {
-              const updatedCapabilities = registerServerCapability(
-                this.serverCapabilities,
-                capabilityRegistration
+        params.registrations.forEach((capabilityRegistration: lsp.Registration) => {
+          try {
+            const updatedCapabilities = registerServerCapability(
+              this.serverCapabilities,
+              capabilityRegistration
+            );
+            if (updatedCapabilities === null) {
+              this.console.error(
+                `Failed to register server capability: ${capabilityRegistration}`
               );
-              if (updatedCapabilities === null) {
-                this.console.error(
-                  `Failed to register server capability: ${capabilityRegistration}`
-                );
-                return;
-              }
-              this.serverCapabilities = updatedCapabilities;
-            } catch (err) {
-              this.console.error(err);
+              return;
             }
+            this.serverCapabilities = updatedCapabilities;
+          } catch (err) {
+            this.console.error(err);
           }
-        );
+        });
       }
     );
 
@@ -527,9 +519,7 @@ export class LSPConnection extends LspWsConnection {
    * @deprecated The method should not be used in new code. Use provides() instead.
    */
   public isRenameSupported() {
-    return !!(
-      this.serverCapabilities && this.serverCapabilities.renameProvider
-    );
+    return !!(this.serverCapabilities && this.serverCapabilities.renameProvider);
   }
 
   provides(provider: keyof lsp.ServerCapabilities): boolean {
@@ -618,10 +608,7 @@ export class LSPConnection extends LspWsConnection {
       } as lsp.VersionedTextDocumentIdentifier,
       contentChanges: changeEvents
     };
-    this.connection.sendNotification(
-      'textDocument/didChange',
-      textDocumentChange
-    );
+    this.connection.sendNotification('textDocument/didChange', textDocumentChange);
     documentInfo.version++;
   }
 
@@ -640,8 +627,6 @@ export class LSPConnection extends LspWsConnection {
    * @deprecated The method should not be used in new code
    */
   public isCompletionResolveProvider(): boolean {
-    return (
-      this.serverCapabilities?.completionProvider?.resolveProvider || false
-    );
+    return this.serverCapabilities?.completionProvider?.resolveProvider || false;
   }
 }

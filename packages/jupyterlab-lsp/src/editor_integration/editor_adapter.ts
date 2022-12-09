@@ -30,11 +30,7 @@ export class EditorAdapter<T extends IVirtualEditor<IEditor>> {
     for (let feature of features) {
       feature.register();
       if (!feature.is_registered) {
-        this.console.warn(
-          'The feature ',
-          feature,
-          'was not registered properly'
-        );
+        this.console.warn('The feature ', feature, 'was not registered properly');
       }
       this.features.set(feature.feature.id, feature);
     }

@@ -30,26 +30,22 @@ ALL_PY = [*PY_SRC, *PY_SCRIPTS, *PY_ATEST, *PY_DOCS]
 
 ALL_ROBOT = list((ROOT / "atest").rglob("*.robot"))
 
-RFLINT_RULES = [
-    "LineTooLong:200",
-    "TooFewKeywordSteps:0",
-    "TooFewTestSteps:1",
-    "TooManyTestSteps:30",
-    "TooManyTestCases:30",
-    "FileTooLong:400",
+ROBOCOP_EXCLUDE = [
+    "can-be-resource-file",
+    "file-too-long",
+    "if-can-be-merged",
+    "line-too-long",
+    "missing-doc-keyword",
+    "missing-doc-suite",
+    "missing-doc-test-case",
+    "too-long-test-case",
+    "too-many-arguments",
+    "too-many-calls-in-keyword",
+    "too-many-calls-in-test-case",
+    "wrong-case-in-keyword-name",
 ]
 
-RFLINT_IGNORES = [
-    "RequireKeywordDocumentation",
-    "RequireSuiteDocumentation",
-    "RequireTestDocumentation",
-]
-
-RFLINT = sum(
-    [["--configure", rule] for rule in RFLINT_RULES]
-    + [["--ignore", rule] for rule in RFLINT_IGNORES],
-    [],
-)
+ROBOCOP_ARGS = [f"--exclude={rule}" for rule in ROBOCOP_EXCLUDE]
 
 
 def lint():
@@ -68,8 +64,8 @@ def lint():
                     for paths in PY_SRC_PACKAGES.values()
                 ],
                 # ["pylint", *ALL_PY],
-                ["python", "-m", "robot.tidy", "--inplace", *ALL_ROBOT],
-                ["rflint", *RFLINT, *ALL_ROBOT],
+                ["robotidy", *ALL_ROBOT],
+                ["robocop", *ROBOCOP_ARGS, *ALL_ROBOT],
                 ["python", "scripts/atest.py", "--dryrun", "--console", "dotted"],
                 ["python", "scripts/nblint.py"],
             ],

@@ -115,10 +115,7 @@ export class VirtualDocumentInfo implements IDocumentInfo {
   }
 
   get uri() {
-    const uris = DocumentConnectionManager.solve_uris(
-      this._document,
-      this.languageId
-    );
+    const uris = DocumentConnectionManager.solve_uris(this._document, this.languageId);
     return uris.document;
   }
 
@@ -201,10 +198,7 @@ export class VirtualDocument {
 
   // TODO: merge into unused documents {standalone: Map, continuous: Map} ?
   protected unused_documents: Set<VirtualDocument>;
-  protected unused_standalone_documents: DefaultMap<
-    language,
-    Array<VirtualDocument>
-  >;
+  protected unused_standalone_documents: DefaultMap<language, Array<VirtualDocument>>;
 
   private _remaining_lifetime: number;
   private cell_magics_overrides: ReversibleOverridesMap;
@@ -343,17 +337,11 @@ export class VirtualDocument {
     this.line_blocks = [];
   }
 
-  private forward_closed_signal(
-    host: VirtualDocument,
-    context: IForeignContext
-  ) {
+  private forward_closed_signal(host: VirtualDocument, context: IForeignContext) {
     this.foreign_document_closed.emit(context);
   }
 
-  private forward_opened_signal(
-    host: VirtualDocument,
-    context: IForeignContext
-  ) {
+  private forward_opened_signal(host: VirtualDocument, context: IForeignContext) {
     this.foreign_document_opened.emit(context);
   }
 
@@ -431,9 +419,7 @@ export class VirtualDocument {
     return false;
   }
 
-  virtual_position_at_document(
-    source_position: ISourcePosition
-  ): IVirtualPosition {
+  virtual_position_at_document(source_position: ISourcePosition): IVirtualPosition {
     let source_line = this.source_lines.get(source_position.line);
     if (source_line == null) {
       throw new PositionError('Source line not mapped to virtual position');
@@ -483,9 +469,7 @@ export class VirtualDocument {
       this.unused_documents.delete(foreign_document);
     } else {
       // if standalone, try to re-use existing connection to the server
-      let unused_standalone = this.unused_standalone_documents.get(
-        extractor.language
-      );
+      let unused_standalone = this.unused_standalone_documents.get(extractor.language);
       if (extractor.standalone && unused_standalone.length > 0) {
         foreign_document = unused_standalone.pop()!;
         this.unused_documents.delete(foreign_document);
@@ -502,14 +486,8 @@ export class VirtualDocument {
     return foreign_document;
   }
 
-  extract_foreign_code(
-    block: ICodeBlockOptions,
-    editor_shift: CodeEditor.IPosition
-  ) {
-    let foreign_document_map = new Map<
-      CodeEditor.IRange,
-      IVirtualDocumentBlock
-    >();
+  extract_foreign_code(block: ICodeBlockOptions, editor_shift: CodeEditor.IPosition) {
+    let foreign_document_map = new Map<CodeEditor.IRange, IVirtualDocumentBlock>();
 
     let cell_code = block.value;
 
@@ -567,14 +545,11 @@ export class VirtualDocument {
 
   decode_code_block(raw_code: string): string {
     // TODO: add back previously extracted foreign code
-    let cell_override =
-      this.cell_magics_overrides.reverse.override_for(raw_code);
+    let cell_override = this.cell_magics_overrides.reverse.override_for(raw_code);
     if (cell_override != null) {
       return cell_override;
     } else {
-      let lines = this.line_magics_overrides.reverse_replace_all(
-        raw_code.split('\n')
-      );
+      let lines = this.line_magics_overrides.reverse_replace_all(raw_code.split('\n'));
       return lines.join('\n');
     }
   }
@@ -599,13 +574,9 @@ export class VirtualDocument {
       skip_inspect = lines.map(l => [this.id_path]);
     } else {
       // otherwise, we replace line magics - if any
-      let result = this.line_magics_overrides.replace_all(
-        cell_code.split('\n')
-      );
+      let result = this.line_magics_overrides.replace_all(cell_code.split('\n'));
       lines = result.lines;
-      skip_inspect = result.skip_inspect.map(skip =>
-        skip ? [this.id_path] : []
-      );
+      skip_inspect = result.skip_inspect.map(skip => (skip ? [this.id_path] : []));
     }
 
     return { lines, foreign_document_map, skip_inspect };
@@ -652,8 +623,7 @@ export class VirtualDocument {
         editor_line: i,
         editor_shift: {
           line: editor_shift.line - (virtual_shift?.line || 0),
-          column:
-            i === 0 ? editor_shift.column - (virtual_shift?.column || 0) : 0
+          column: i === 0 ? editor_shift.column - (virtual_shift?.column || 0) : 0
         },
         // TODO: move those to a new abstraction layer (DocumentBlock class)
         editor: ce_editor,
@@ -713,14 +683,8 @@ export class VirtualDocument {
     // and delete the documents within it
     document.close_all_foreign_documents();
 
-    document.foreign_document_closed.disconnect(
-      this.forward_closed_signal,
-      this
-    );
-    document.foreign_document_opened.disconnect(
-      this.forward_opened_signal,
-      this
-    );
+    document.foreign_document_closed.disconnect(this.forward_closed_signal, this);
+    document.foreign_document_opened.disconnect(this.forward_opened_signal, this);
   }
 
   close_all_foreign_documents() {
@@ -790,9 +754,7 @@ export class VirtualDocument {
   Can be null because some lines are added as padding/anchors
   to the virtual document and those do not exist in the source document.
   */
-  transform_virtual_to_source(
-    position: IVirtualPosition
-  ): ISourcePosition | null {
+  transform_virtual_to_source(position: IVirtualPosition): ISourcePosition | null {
     const line = this.virtual_lines.get(position.line)!.source_line;
     if (line == null) {
       return null;
@@ -896,10 +858,7 @@ export class UpdateManager {
   update_began: Signal<UpdateManager, ICodeBlockOptions[]>;
   update_finished: Signal<UpdateManager, ICodeBlockOptions[]>;
 
-  constructor(
-    private virtual_document: VirtualDocument,
-    console: ILSPLogConsole
-  ) {
+  constructor(private virtual_document: VirtualDocument, console: ILSPLogConsole) {
     this.document_updated = new Signal(this);
     this.block_added = new Signal(this);
     this.update_began = new Signal(this);

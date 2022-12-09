@@ -3,11 +3,7 @@ import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { INotebookTracker } from '@jupyterlab/notebook';
 
 import { CommandEntryPoint } from '../../command_manager';
-import {
-  IAdapterTypeOptions,
-  ILSPAdapterManager,
-  PLUGIN_ID
-} from '../../tokens';
+import { IAdapterTypeOptions, ILSPAdapterManager, PLUGIN_ID } from '../../tokens';
 
 import { NotebookAdapter } from './notebook';
 
@@ -16,11 +12,7 @@ export const CellContextMenuEntryPoint: CommandEntryPoint =
 export const NOTEBOOK_ADAPTER: JupyterFrontEndPlugin<void> = {
   id: PLUGIN_ID + ':NotebookAdapter',
   requires: [ILSPAdapterManager, INotebookTracker],
-  activate(
-    app,
-    adapterManager: ILSPAdapterManager,
-    notebookTracker: INotebookTracker
-  ) {
+  activate(app, adapterManager: ILSPAdapterManager, notebookTracker: INotebookTracker) {
     adapterManager.registerAdapterType({
       name: 'notebook',
       tracker: notebookTracker,

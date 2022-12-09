@@ -1,7 +1,4 @@
-import {
-  JupyterFrontEnd,
-  JupyterFrontEndPlugin
-} from '@jupyterlab/application';
+import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { URLExt } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
@@ -10,11 +7,7 @@ import { INotebookTracker } from '@jupyterlab/notebook';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
-import {
-  CodeJumper,
-  FileEditorJumper,
-  NotebookJumper
-} from '@krassowski/code-jumpers';
+import { CodeJumper, FileEditorJumper, NotebookJumper } from '@krassowski/code-jumpers';
 import { AnyLocation } from 'lsp-ws-connection/lib/types';
 
 import jumpToSvg from '../../style/icons/jump-to.svg';
@@ -22,11 +15,7 @@ import { CodeJump as LSPJumpSettings, ModifierKey } from '../_jump_to';
 import { CommandEntryPoint } from '../command_manager';
 import { PositionConverter } from '../converter';
 import { CodeMirrorIntegration } from '../editor_integration/codemirror';
-import {
-  FeatureSettings,
-  IFeatureCommand,
-  IFeatureLabIntegration
-} from '../feature';
+import { FeatureSettings, IFeatureCommand, IFeatureLabIntegration } from '../feature';
 import { IVirtualPosition } from '../positioning';
 import { ILSPAdapterManager, ILSPFeatureManager, PLUGIN_ID } from '../tokens';
 import { getModifierState, uri_to_contents_path, uris_equal } from '../utils';
@@ -59,36 +48,32 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
   }
 
   register() {
-    this.editor_handlers.set(
-      'mousedown',
-      (virtual_editor, event: MouseEvent) => {
-        const { button } = event;
-        if (button === 0 && getModifierState(event, this.modifierKey)) {
-          let root_position = this.position_from_mouse(event);
-          if (root_position == null) {
-            this.console.warn(
-              'Could not retrieve root position from mouse event to jump to definition'
-            );
-            return;
-          }
-          let document =
-            virtual_editor.document_at_root_position(root_position);
-          let virtual_position =
-            virtual_editor.root_position_to_virtual_position(root_position);
-
-          this.connection
-            .getDefinition(virtual_position, document.document_info, false)
-            .then(targets => {
-              this.handle_jump(targets, document.document_info.uri).catch(
-                this.console.warn
-              );
-            })
-            .catch(this.console.warn);
-          event.preventDefault();
-          event.stopPropagation();
+    this.editor_handlers.set('mousedown', (virtual_editor, event: MouseEvent) => {
+      const { button } = event;
+      if (button === 0 && getModifierState(event, this.modifierKey)) {
+        let root_position = this.position_from_mouse(event);
+        if (root_position == null) {
+          this.console.warn(
+            'Could not retrieve root position from mouse event to jump to definition'
+          );
+          return;
         }
+        let document = virtual_editor.document_at_root_position(root_position);
+        let virtual_position =
+          virtual_editor.root_position_to_virtual_position(root_position);
+
+        this.connection
+          .getDefinition(virtual_position, document.document_info, false)
+          .then(targets => {
+            this.handle_jump(targets, document.document_info.uri).catch(
+              this.console.warn
+            );
+          })
+          .catch(this.console.warn);
+        event.preventDefault();
+        event.stopPropagation();
       }
-    );
+    });
     super.register();
   }
 
@@ -108,10 +93,7 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
       return undefined;
     }
 
-    this.console.log(
-      'Will jump to the first of suggested locations:',
-      locations
-    );
+    this.console.log('Will jump to the first of suggested locations:', locations);
 
     const location_or_link = locations[0];
 
@@ -144,9 +126,7 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
 
     let { uri, range } = target_info;
 
-    let virtual_position = PositionConverter.lsp_to_cm(
-      range.start
-    ) as IVirtualPosition;
+    let virtual_position = PositionConverter.lsp_to_cm(range.start) as IVirtualPosition;
 
     if (uris_equal(uri, document_uri)) {
       let editor_index = this.adapter.get_editor_index_at(virtual_position);
@@ -206,12 +186,9 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
       }
 
       try {
-        await this.jumper.document_manager.services.contents.get(
-          contents_path,
-          {
-            content: false
-          }
-        );
+        await this.jumper.document_manager.services.contents.get(contents_path, {
+          content: false
+        });
         this.jumper.global_jump({
           contents_path,
           ...jump_data,
@@ -337,9 +314,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
 
     featureManager.register({
       feature: {
-        editorIntegrationFactory: new Map([
-          ['CodeMirrorEditor', CMJumpToDefinition]
-        ]),
+        editorIntegrationFactory: new Map([['CodeMirrorEditor', CMJumpToDefinition]]),
         commands: COMMANDS(trans),
         id: FEATURE_ID,
         name: 'Jump to definition',

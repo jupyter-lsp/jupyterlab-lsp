@@ -14,10 +14,7 @@ import {
 import { LSPExtension } from './index';
 
 export class WidgetAdapterManager implements ILSPAdapterManager {
-  adapterTypeAdded: Signal<
-    WidgetAdapterManager,
-    IAdapterTypeOptions<IDocumentWidget>
-  >;
+  adapterTypeAdded: Signal<WidgetAdapterManager, IAdapterTypeOptions<IDocumentWidget>>;
   adapterChanged: Signal<WidgetAdapterManager, WidgetAdapter<IDocumentWidget>>;
   adapterDisposed: Signal<WidgetAdapterManager, WidgetAdapter<IDocumentWidget>>;
   currentAdapter: WidgetAdapter<IDocumentWidget>;
@@ -42,10 +39,7 @@ export class WidgetAdapterManager implements ILSPAdapterManager {
     this.adapterTypeAdded.emit(options);
   }
 
-  private connect(
-    extension: LSPExtension,
-    type: IAdapterTypeOptions<IDocumentWidget>
-  ) {
+  private connect(extension: LSPExtension, type: IAdapterTypeOptions<IDocumentWidget>) {
     type.tracker.widgetAdded.connect((tracker, widget) => {
       this.connectWidget(extension, widget, type);
     });
@@ -143,13 +137,12 @@ export class WidgetAdapterManager implements ILSPAdapterManager {
   }
 }
 
-export const WIDGET_ADAPTER_MANAGER: JupyterFrontEndPlugin<ILSPAdapterManager> =
-  {
-    id: PLUGIN_ID + ':ILSPAdapterManager',
-    activate: app => {
-      let shell = app.shell as ILabShell | IRetroShell;
-      return new WidgetAdapterManager(shell);
-    },
-    provides: ILSPAdapterManager,
-    autoStart: true
-  };
+export const WIDGET_ADAPTER_MANAGER: JupyterFrontEndPlugin<ILSPAdapterManager> = {
+  id: PLUGIN_ID + ':ILSPAdapterManager',
+  activate: app => {
+    let shell = app.shell as ILabShell | IRetroShell;
+    return new WidgetAdapterManager(shell);
+  },
+  provides: ILSPAdapterManager,
+  autoStart: true
+};

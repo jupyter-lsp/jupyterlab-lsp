@@ -5,7 +5,4 @@
  *
  * @see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/561
  */
-export {
-  ILSPCodeOverridesManager,
-  IScopedCodeOverride
-} from '../overrides/tokens';
+export { ILSPCodeOverridesManager, IScopedCodeOverride } from '../overrides/tokens';

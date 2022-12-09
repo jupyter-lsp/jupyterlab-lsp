@@ -106,9 +106,7 @@ describe('Diagnostics', () => {
 
       let markers = env.ce_editor.editor.getDoc().getAllMarks();
       expect(markers.length).to.equal(1);
-      expect((markers[0] as TextMarkerOptions).title).to.equal(
-        'Undefined symbol "aa"'
-      );
+      expect((markers[0] as TextMarkerOptions).title).to.equal('Undefined symbol "aa"');
     });
 
     it('filters out inspections by message text', async () => {
@@ -131,9 +129,7 @@ describe('Diagnostics', () => {
 
       let markers = env.ce_editor.editor.getDoc().getAllMarks();
       expect(markers.length).to.equal(1);
-      expect((markers[0] as TextMarkerOptions).title).to.equal(
-        'Trimming whitespace'
-      );
+      expect((markers[0] as TextMarkerOptions).title).to.equal('Trimming whitespace');
     });
   });
 

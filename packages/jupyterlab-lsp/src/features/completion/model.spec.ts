@@ -7,10 +7,7 @@ import { LSPCompleterModel } from './model';
 describe('LSPCompleterModel', () => {
   let model: LSPCompleterModel;
 
-  function create_dummy_item(
-    match: lsProtocol.CompletionItem,
-    type: string = 'dummy'
-  ) {
+  function create_dummy_item(match: lsProtocol.CompletionItem, type: string = 'dummy') {
     return new LazyCompletionItem(
       type,
       null as any,
@@ -70,18 +67,10 @@ describe('LSPCompleterModel', () => {
   });
 
   it('ties are solved with sortText', () => {
-    model.setCompletionItems([
-      test_a_completion,
-      test_c_completion,
-      test_b_completion
-    ]);
+    model.setCompletionItems([test_a_completion, test_c_completion, test_b_completion]);
     model.query = 'test';
     let sortedItems = model.completionItems();
-    expect(sortedItems.map(item => item.sortText)).to.deep.equal([
-      'a',
-      'b',
-      'c'
-    ]);
+    expect(sortedItems.map(item => item.sortText)).to.deep.equal(['a', 'b', 'c']);
   });
 
   it('ignores perfect matches when asked', () => {

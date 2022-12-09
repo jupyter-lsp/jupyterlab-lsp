@@ -62,13 +62,9 @@ export interface IEditOutcome {
 /**
  * Interface for storage of HTMLElement event specifications (event name + handler).
  */
-interface IHTMLEventMap<
-  T extends keyof HTMLElementEventMap = keyof HTMLElementEventMap
-> extends Map<T, (event: HTMLElementEventMap[T]) => void> {
-  set<E extends T>(
-    k: E,
-    handler: (event: HTMLElementEventMap[E]) => void
-  ): this;
+interface IHTMLEventMap<T extends keyof HTMLElementEventMap = keyof HTMLElementEventMap>
+  extends Map<T, (event: HTMLElementEventMap[T]) => void> {
+  set<E extends T>(k: E, handler: (event: HTMLElementEventMap[E]) => void): this;
   get<E extends T>(k: E): (event: HTMLElementEventMap[E]) => void;
 }
 
@@ -82,10 +78,7 @@ export abstract class CodeMirrorIntegration
   is_registered: boolean;
   feature: IFeature;
 
-  protected readonly editor_handlers: Map<
-    CodeMirrorEventName,
-    CodeMirrorHandler
-  >;
+  protected readonly editor_handlers: Map<CodeMirrorEventName, CodeMirrorHandler>;
   // TODO use better type constraints for connection event names and for responses
   protected readonly connection_handlers: Map<
     string,
@@ -172,10 +165,8 @@ export abstract class CodeMirrorIntegration
     let end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
 
     if (cm_editor == null) {
-      let start_in_root =
-        this.transform_virtual_position_to_root_position(start);
-      let ce_editor =
-        this.virtual_editor.get_editor_at_root_position(start_in_root);
+      let start_in_root = this.transform_virtual_position_to_root_position(start);
+      let ce_editor = this.virtual_editor.get_editor_at_root_position(start_in_root);
       cm_editor = this.virtual_editor.ce_editor_to_cm_editor.get(ce_editor)!;
     }
 
@@ -205,8 +196,7 @@ export abstract class CodeMirrorIntegration
     start: IVirtualPosition
   ): IRootPosition {
     let ce_editor = this.virtual_document.virtual_lines.get(start.line)!.editor;
-    let editor_position =
-      this.virtual_document.transform_virtual_to_editor(start);
+    let editor_position = this.virtual_document.transform_virtual_to_editor(start);
     return this.virtual_editor.transform_from_editor_to_root(
       ce_editor,
       editor_position!
@@ -217,10 +207,7 @@ export abstract class CodeMirrorIntegration
     return this.virtual_editor.get_cm_editor(position);
   }
 
-  protected get_language_at(
-    position: IEditorPosition,
-    editor: CodeMirror.Editor
-  ) {
+  protected get_language_at(position: IEditorPosition, editor: CodeMirror.Editor) {
     return editor.getModeAt(position).name;
   }
 
@@ -279,13 +266,10 @@ export abstract class CodeMirrorIntegration
       let uri = change.textDocument.uri;
 
       if (!uris_equal(uri, current_uri)) {
-        errors.push(
-          `Workspace-wide edits not implemented: ${uri} != ${current_uri}`
-        );
+        errors.push(`Workspace-wide edits not implemented: ${uri} != ${current_uri}`);
       } else {
         is_whole_document_edit =
-          change.edits.length === 1 &&
-          this.is_whole_document_edit(change.edits[0]);
+          change.edits.length === 1 && this.is_whole_document_edit(change.edits[0]);
 
         let edit: lsProtocol.TextEdit;
 
@@ -299,9 +283,7 @@ export abstract class CodeMirrorIntegration
           for (let e of change.edits) {
             let offset = offset_from_lsp(e.range.start, lines);
             if (edits_by_offset.has(offset)) {
-              console.warn(
-                'Edits should not overlap, ignoring an overlapping edit'
-              );
+              console.warn('Edits should not overlap, ignoring an overlapping edit');
             } else {
               edits_by_offset.set(offset, e);
               applied_changes += 1;
@@ -404,9 +386,7 @@ export abstract class CodeMirrorIntegration
       let up_to_offset = offset_at_position(cm_to_ce(start), lines);
       let from_offset = offset_at_position(cm_to_ce(end), lines);
       newFragmentText =
-        old_value.slice(0, up_to_offset) +
-        newText +
-        old_value.slice(from_offset);
+        old_value.slice(0, up_to_offset) + newText + old_value.slice(from_offset);
     }
 
     if (old_value === newFragmentText) {
@@ -450,12 +430,8 @@ export abstract class CodeMirrorIntegration
     let start = PositionConverter.lsp_to_cm(edit.range.start);
     let end = PositionConverter.lsp_to_cm(edit.range.end);
 
-    let start_editor = document.get_editor_at_virtual_line(
-      start as IVirtualPosition
-    );
-    let end_editor = document.get_editor_at_virtual_line(
-      end as IVirtualPosition
-    );
+    let start_editor = document.get_editor_at_virtual_line(start as IVirtualPosition);
+    let end_editor = document.get_editor_at_virtual_line(end as IVirtualPosition);
     if (start_editor !== end_editor) {
       let last_editor = start_editor;
       let fragment_start = start;

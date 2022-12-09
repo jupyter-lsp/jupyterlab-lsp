@@ -2,11 +2,7 @@ import { TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
 import React, { ReactElement } from 'react';
 
-import {
-  COMPLETER_THEME_PREFIX,
-  ICompletionTheme,
-  ILicenseInfo
-} from './types';
+import { COMPLETER_THEME_PREFIX, ICompletionTheme, ILicenseInfo } from './types';
 
 function render_licence(licence: ILicenseInfo): ReactElement {
   return (
@@ -39,9 +35,7 @@ function render_theme(
     );
   }
   return (
-    <div
-      className={'lsp-completer-themes ' + COMPLETER_THEME_PREFIX + theme.id}
-    >
+    <div className={'lsp-completer-themes ' + COMPLETER_THEME_PREFIX + theme.id}>
       <h4>
         {theme.name}
         {is_current ? trans.__(' (current)') : ''}

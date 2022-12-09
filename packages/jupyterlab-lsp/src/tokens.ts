@@ -65,9 +65,7 @@ export interface ILanguageServerManager {
   /**
    * A list of all known matching specs (whether detected or not).
    */
-  getMatchingSpecs(
-    options: ILanguageServerManager.IGetServerIdOptions
-  ): TSpecsMap;
+  getMatchingSpecs(options: ILanguageServerManager.IGetServerIdOptions): TSpecsMap;
   setConfiguration(configuration: TLanguageServerConfigurations): void;
   fetchSessions(): Promise<void>;
   statusUrl: string;
@@ -135,10 +133,7 @@ export interface IAdapterTypeOptions<T extends IDocumentWidget> {
 }
 
 export interface ILSPAdapterManager {
-  adapterTypeAdded: Signal<
-    ILSPAdapterManager,
-    IAdapterTypeOptions<IDocumentWidget>
-  >;
+  adapterTypeAdded: Signal<ILSPAdapterManager, IAdapterTypeOptions<IDocumentWidget>>;
   adapterChanged: Signal<ILSPAdapterManager, WidgetAdapter<IDocumentWidget>>;
   adapterDisposed: Signal<ILSPAdapterManager, WidgetAdapter<IDocumentWidget>>;
   currentAdapter: WidgetAdapter<IDocumentWidget>;
@@ -184,9 +179,7 @@ export interface ILSPVirtualEditorManager {
    * Choose the most appropriate VirtualEditor implementation
    * given all the editors occurring in the widget.
    */
-  findBestImplementation(
-    editors: CodeEditor.IEditor[]
-  ): IVirtualEditorType<any> | null;
+  findBestImplementation(editors: CodeEditor.IEditor[]): IVirtualEditorType<any> | null;
 }
 
 /**
@@ -201,10 +194,7 @@ export interface ILSPCodeExtractorsManager {
   /**
    * Register the extraction rules to be applied in documents with language `host_language`.
    */
-  register(
-    extractor: IForeignCodeExtractor,
-    host_language: LanguageIdentifier
-  ): void;
+  register(extractor: IForeignCodeExtractor, host_language: LanguageIdentifier): void;
 }
 
 export const PLUGIN_ID = '@krassowski/jupyterlab-lsp';
@@ -225,6 +215,4 @@ export const ILSPCodeExtractorsManager = new Token<ILSPCodeExtractorsManager>(
   PLUGIN_ID + ':ILSPCodeExtractorsManager'
 );
 
-export const ILSPLogConsole = new Token<ILSPLogConsole>(
-  PLUGIN_ID + ':ILSPLogConsole'
-);
+export const ILSPLogConsole = new Token<ILSPLogConsole>(PLUGIN_ID + ':ILSPLogConsole');

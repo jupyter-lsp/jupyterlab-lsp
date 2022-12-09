@@ -1,7 +1,4 @@
-import {
-  JupyterFrontEnd,
-  JupyterFrontEndPlugin
-} from '@jupyterlab/application';
+import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
 
@@ -9,11 +6,7 @@ import { FeatureSettings, IFeatureCommand } from '../../feature';
 import { DiagnosticTag } from '../../lsp';
 import { ILSPFeatureManager, PLUGIN_ID } from '../../tokens';
 
-import {
-  DiagnosticsCM,
-  diagnosticsIcon,
-  diagnostics_panel
-} from './diagnostics';
+import { DiagnosticsCM, diagnosticsIcon, diagnostics_panel } from './diagnostics';
 
 export const FEATURE_ID = PLUGIN_ID + ':diagnostics';
 
@@ -62,9 +55,7 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<void> = {
 
     featureManager.register({
       feature: {
-        editorIntegrationFactory: new Map([
-          ['CodeMirrorEditor', DiagnosticsCM]
-        ]),
+        editorIntegrationFactory: new Map([['CodeMirrorEditor', DiagnosticsCM]]),
         id: FEATURE_ID,
         capabilities: {
           textDocument: {

@@ -135,9 +135,7 @@ describe('RegExpForeignCodeExtractor', () => {
       let result = results[0];
       // TODO: is tolerating the new line added here ok?
       expect(result.host_code).to.equal('\nx = """\n');
-      expect(result.foreign_code).to.equal(
-        '<a href="#">\n<b>important</b> link\n</a>'
-      );
+      expect(result.foreign_code).to.equal('<a href="#">\n<b>important</b> link\n</a>');
       expect(result.range!.start.line).to.equal(1);
       expect(result.range!.start.column).to.equal(7);
       expect(result.range!.end.line).to.equal(3);
@@ -221,9 +219,7 @@ describe('RegExpForeignCodeExtractor', () => {
       let second_magic = results[1];
 
       expect(second_magic.foreign_code).to.equal('ggplot(df)');
-      expect(second_magic.host_code).to.equal(
-        'print("df created")\n%R ggplot(df)\n'
-      );
+      expect(second_magic.host_code).to.equal('print("df created")\n%R ggplot(df)\n');
 
       let final_bit = results[2];
 

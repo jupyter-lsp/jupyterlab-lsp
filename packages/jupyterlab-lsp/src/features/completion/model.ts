@@ -173,10 +173,7 @@ export class GenericCompleterModel<
     return results.map(x => x.item);
   }
 
-  protected compareMatches(
-    a: ICompletionMatch<T>,
-    b: ICompletionMatch<T>
-  ): number {
+  protected compareMatches(a: ICompletionMatch<T>, b: ICompletionMatch<T>): number {
     const delta = a.score - b.score;
     if (delta !== 0) {
       return delta;

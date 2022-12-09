@@ -2,12 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 // Based on the @jupyterlab/codemirror-extension statusbar
 
-import {
-  VDomModel,
-  VDomRenderer,
-  Dialog,
-  showDialog
-} from '@jupyterlab/apputils';
+import { VDomModel, VDomRenderer, Dialog, showDialog } from '@jupyterlab/apputils';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 import {
@@ -81,10 +76,7 @@ export interface ICollapsibleListStates {
   isCollapsed: boolean;
 }
 
-class CollapsibleList extends React.Component<
-  IListProps,
-  ICollapsibleListStates
-> {
+class CollapsibleList extends React.Component<IListProps, ICollapsibleListStates> {
   constructor(props: IListProps) {
     super(props);
     this.state = { isCollapsed: props.startCollapsed || false };
@@ -97,14 +89,11 @@ class CollapsibleList extends React.Component<
   };
 
   render() {
-    const collapseExpandIcon = !this.state.isCollapsed
-      ? caretUpIcon
-      : caretDownIcon;
+    const collapseExpandIcon = !this.state.isCollapsed ? caretUpIcon : caretDownIcon;
     return (
       <div
         className={
-          'lsp-collapsible-list ' +
-          (this.state.isCollapsed ? 'lsp-collapsed' : '')
+          'lsp-collapsible-list ' + (this.state.isCollapsed ? 'lsp-collapsed' : '')
         }
       >
         <h4 onClick={this.handleClick}>
@@ -158,13 +147,11 @@ class LanguageServerInfo extends React.Component<ILanguageServerInfo, any> {
           <h4>{trans.__('Installation')}</h4>
           <ul>
             {specification?.install
-              ? Object.entries(specification?.install || {}).map(
-                  ([name, command]) => (
-                    <li key={this.props.serverId + '-install-' + name}>
-                      {name}: <code>{command}</code>
-                    </li>
-                  )
-                )
+              ? Object.entries(specification?.install || {}).map(([name, command]) => (
+                  <li key={this.props.serverId + '-install-' + name}>
+                    {name}: <code>{command}</code>
+                  </li>
+                ))
               : trans.__(
                   'No installation instructions were provided with this specification.'
                 )}
@@ -180,10 +167,7 @@ class HelpButton extends React.Component<IHelpButtonProps, any> {
     const trans = this.props.trans;
 
     showDialog({
-      title: trans.__(
-        'No language server for %1 detected',
-        this.props.language
-      ),
+      title: trans.__('No language server for %1 detected', this.props.language),
       body: (
         <div>
           {this.props.servers.size ? (
@@ -271,9 +255,7 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
         // TODO: stop button
         // TODO: add a config buttons next to the language header
         let list = documents.map((document, i) => {
-          let connection = this.model.connection_manager.connections.get(
-            document.uri
-          );
+          let connection = this.model.connection_manager.connections.get(document.uri);
 
           let status = '';
           if (connection?.isInitialized) {
@@ -288,10 +270,7 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
 
           return (
             <li key={i}>
-              <DocumentLocator
-                document={document}
-                adapter={this.model.adapter!}
-              />
+              <DocumentLocator document={document} adapter={this.model.adapter!} />
               <span className={'lsp-document-status'}>
                 {this.model.trans.__(status)}
                 <icon.react
@@ -320,26 +299,25 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
       running_servers.push(<div key={key}>{documents_html}</div>);
     }
 
-    const missing_languages = this.model.missing_languages.map(
-      (language, i) => {
-        const specs_for_missing =
-          this.model.language_server_manager.getMatchingSpecs({ language });
-        return (
-          <div key={i} className={'lsp-missing-server'}>
-            {language}
-            {specs_for_missing.size ? (
-              <HelpButton
-                language={language}
-                servers={specs_for_missing}
-                trans={this.model.trans}
-              />
-            ) : (
-              ''
-            )}
-          </div>
-        );
-      }
-    );
+    const missing_languages = this.model.missing_languages.map((language, i) => {
+      const specs_for_missing = this.model.language_server_manager.getMatchingSpecs({
+        language
+      });
+      return (
+        <div key={i} className={'lsp-missing-server'}>
+          {language}
+          {specs_for_missing.size ? (
+            <HelpButton
+              language={language}
+              servers={specs_for_missing}
+              trans={this.model.trans}
+            />
+          ) : (
+            ''
+          )}
+        </div>
+      );
+    });
     const trans = this.model.trans;
     return (
       <div className={'lsp-popover-content'}>
@@ -467,10 +445,7 @@ export class LSPStatus extends VDomRenderer<LSPStatus.Model> {
           title={this.trans.__('LSP Code Intelligence')}
         />
         {this.displayText ? (
-          <TextItem
-            className={'lsp-status-message'}
-            source={model.short_message}
-          />
+          <TextItem className={'lsp-status-message'} source={model.short_message} />
         ) : (
           <></>
         )}
@@ -559,9 +534,7 @@ export interface IStatus {
 
 function collect_languages(virtual_document: VirtualDocument): Set<string> {
   let documents = collect_documents(virtual_document);
-  return new Set(
-    [...documents].map(document => document.language.toLocaleLowerCase())
-  );
+  return new Set([...documents].map(document => document.language.toLocaleLowerCase()));
 }
 
 type StatusMap = Record<StatusCode, string>;
@@ -604,10 +577,7 @@ export namespace LSPStatus {
     trans: TranslationBundle;
     private _connection_manager: DocumentConnectionManager;
 
-    constructor(
-      widget_adapter_manager: ILSPAdapterManager,
-      trans: TranslationBundle
-    ) {
+    constructor(widget_adapter_manager: ILSPAdapterManager, trans: TranslationBundle) {
       super();
       this.trans = trans;
       widget_adapter_manager.adapterChanged.connect((manager, adapter) => {
@@ -727,9 +697,7 @@ export namespace LSPStatus {
         // detected documents that are open in the current virtual editor
         const detected_documents_set = collect_documents(main_document);
         detected_documents = new Map(
-          [...all_documents].filter(([id, doc]) =>
-            detected_documents_set.has(doc)
-          )
+          [...all_documents].filter(([id, doc]) => detected_documents_set.has(doc))
         );
       }
 
@@ -787,9 +755,7 @@ export namespace LSPStatus {
         detected_documents.size > documents_with_known_servers.size
       ) {
         status = 'initialized_but_some_missing';
-      } else if (
-        connected_documents.size === documents_with_available_servers.size
-      ) {
+      } else if (connected_documents.size === documents_with_available_servers.size) {
         status = 'initializing';
       } else {
         status = 'connecting';
@@ -840,9 +806,7 @@ export namespace LSPStatus {
           status.detected_documents.size
         );
       } else if (status.status === 'initializing') {
-        const uninitialized = new Set<VirtualDocument>(
-          status.detected_documents
-        );
+        const uninitialized = new Set<VirtualDocument>(status.detected_documents);
         for (let initialized of status.initialized_documents.values()) {
           uninitialized.delete(initialized);
         }

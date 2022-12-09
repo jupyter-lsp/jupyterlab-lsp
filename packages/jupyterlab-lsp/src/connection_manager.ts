@@ -137,10 +137,7 @@ export class DocumentConnectionManager {
 
     this.connect_document_signals(virtual_document);
 
-    const uris = DocumentConnectionManager.solve_uris(
-      virtual_document,
-      language
-    );
+    const uris = DocumentConnectionManager.solve_uris(virtual_document, language);
 
     const matchingServers = this.language_server_manager.getMatchingServers({
       language
@@ -148,8 +145,7 @@ export class DocumentConnectionManager {
     this.console.debug('Matching servers: ', matchingServers);
 
     // for now use only the server with the highest priority.
-    const language_server_id =
-      matchingServers.length === 0 ? null : matchingServers[0];
+    const language_server_id = matchingServers.length === 0 ? null : matchingServers[0];
 
     // lazily load 1) the underlying library (1.5mb) and/or 2) a live WebSocket-
     // like connection: either already connected or potentially in the process
@@ -189,9 +185,7 @@ export class DocumentConnectionManager {
    *
    * This function should be called **after** initialization of servers.
    */
-  public updateServerConfigurations(
-    allServerSettings: TLanguageServerConfigurations
-  ) {
+  public updateServerConfigurations(allServerSettings: TLanguageServerConfigurations) {
     let language_server_id: TServerKeys;
 
     for (language_server_id in allServerSettings) {
@@ -200,9 +194,7 @@ export class DocumentConnectionManager {
       }
       const rawSettings = allServerSettings[language_server_id]!;
 
-      const parsedSettings = expandDottedPaths(
-        rawSettings.serverSettings || {}
-      );
+      const parsedSettings = expandDottedPaths(rawSettings.serverSettings || {});
 
       const serverSettings: protocol.DidChangeConfigurationParams = {
         settings: parsedSettings
@@ -269,10 +261,7 @@ export class DocumentConnectionManager {
     connection: ConnectionModuleType.LSPConnection,
     callback: (virtual_document: VirtualDocument) => void
   ) {
-    for (const [
-      virtual_document_uri,
-      a_connection
-    ] of this.connections.entries()) {
+    for (const [virtual_document_uri, a_connection] of this.connections.entries()) {
       if (connection !== a_connection) {
         continue;
       }
@@ -307,9 +296,7 @@ export class DocumentConnectionManager {
           this.console.warn(e);
         });
 
-      this.console.log(
-        'will attempt to re-connect in ' + interval / 1000 + ' seconds'
-      );
+      this.console.log('will attempt to re-connect in ' + interval / 1000 + ' seconds');
       await sleep(interval);
 
       // gradually increase the time delay, up to 5 sec
@@ -343,11 +330,7 @@ export class DocumentConnectionManager {
           `Connection to ${virtual_document.uri} timed out after ${firstTimeoutSeconds} seconds, will continue retrying for another ${secondTimeoutMinutes} minutes`
         );
         try {
-          await until_ready(
-            () => connection.isReady,
-            60 * secondTimeoutMinutes,
-            1000
-          );
+          await until_ready(() => connection.isReady, 60 * secondTimeoutMinutes, 1000);
         } catch {
           this.console.warn(
             `Connection to ${virtual_document.uri} timed out again after ${secondTimeoutMinutes} minutes, giving up`
@@ -402,12 +385,10 @@ export namespace DocumentConnectionManager {
       : virtualDocumentsUri;
 
     // for now take the best match only
-    const matchingServers =
-      Private.getLanguageServerManager().getMatchingServers({
-        language
-      });
-    const language_server_id =
-      matchingServers.length === 0 ? null : matchingServers[0];
+    const matchingServers = Private.getLanguageServerManager().getMatchingServers({
+      language
+    });
+    const language_server_id = matchingServers.length === 0 ? null : matchingServers[0];
 
     if (language_server_id === null) {
       throw `No language server installed for language ${language}`;
@@ -415,10 +396,7 @@ export namespace DocumentConnectionManager {
 
     // workaround url-parse bug(s) (see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/595)
     let documentUri = URLExt.join(baseUri, virtual_document.uri);
-    if (
-      !documentUri.startsWith('file:///') &&
-      documentUri.startsWith('file://')
-    ) {
+    if (!documentUri.startsWith('file:///') && documentUri.startsWith('file://')) {
       documentUri = documentUri.replace('file://', 'file:///');
       if (
         documentUri.startsWith('file:///users/') &&
@@ -453,10 +431,8 @@ export namespace DocumentConnectionManager {
  * Namespace primarily for language-keyed cache of ConnectionModuleType.LSPConnections
  */
 namespace Private {
-  const _connections: Map<
-    TLanguageServerId,
-    ConnectionModuleType.LSPConnection
-  > = new Map();
+  const _connections: Map<TLanguageServerId, ConnectionModuleType.LSPConnection> =
+    new Map();
   let _promise: Promise<typeof ConnectionModuleType>;
   let _language_server_manager: ILanguageServerManager;
 

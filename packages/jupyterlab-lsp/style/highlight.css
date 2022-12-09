@@ -33,39 +33,27 @@
     an alternative would be to use background image trick to simulate the underline
   */
 
-  text-decoration-style: var(
-    --jp-editor-mirror-lsp-diagnostic-decoration-style
-  );
-  text-decoration-color: var(
-    --jp-editor-mirror-lsp-diagnostic-error-decoration-color
-  );
+  text-decoration-style: var(--jp-editor-mirror-lsp-diagnostic-decoration-style);
+  text-decoration-color: var(--jp-editor-mirror-lsp-diagnostic-error-decoration-color);
 }
 
 .cm-lsp-diagnostic-Warning {
-  text-decoration-style: var(
-    --jp-editor-mirror-lsp-diagnostic-decoration-style
-  );
+  text-decoration-style: var(--jp-editor-mirror-lsp-diagnostic-decoration-style);
   text-decoration-color: var(
     --jp-editor-mirror-lsp-diagnostic-warning-decoration-color
   );
 }
 
 .cm-lsp-diagnostic-Information {
-  text-decoration-style: var(
-    --jp-editor-mirror-lsp-diagnostic-decoration-style
-  );
+  text-decoration-style: var(--jp-editor-mirror-lsp-diagnostic-decoration-style);
   text-decoration-color: var(
     --jp-editor-mirror-lsp-diagnostic-information-decoration-color
   );
 }
 
 .cm-lsp-diagnostic-Hint {
-  text-decoration-style: var(
-    --jp-editor-mirror-lsp-diagnostic-decoration-style
-  );
-  text-decoration-color: var(
-    --jp-editor-mirror-lsp-diagnostic-hint-decoration-color
-  );
+  text-decoration-style: var(--jp-editor-mirror-lsp-diagnostic-decoration-style);
+  text-decoration-color: var(--jp-editor-mirror-lsp-diagnostic-hint-decoration-color);
 }
 
 /* hover */

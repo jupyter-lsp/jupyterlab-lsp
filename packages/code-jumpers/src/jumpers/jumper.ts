@@ -57,18 +57,13 @@ export abstract class CodeJumper {
     let position = { line: line_number, column: column };
     let document_jumper_type = jumpers.get(jumper);
 
-    document_jumper = new document_jumper_type(
-      document_widget,
-      this.document_manager
-    );
+    document_jumper = new document_jumper_type(document_widget, this.document_manager);
     let jump_position = document_jumper.getJumpPosition(position, input_number);
     document_jumper.jump(jump_position);
   }
 
   private _global_jump(position: IGlobalPosition) {
-    let document_widget = this.document_manager.openOrReveal(
-      position.contents_path
-    );
+    let document_widget = this.document_manager.openOrReveal(position.contents_path);
     if (!document_widget) {
       console.log('Widget failed to open for jump');
       return;

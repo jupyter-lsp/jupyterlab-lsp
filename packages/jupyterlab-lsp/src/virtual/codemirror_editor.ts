@@ -76,13 +76,8 @@ class DocDispatcher implements CodeMirror.Doc {
       // TODO
       return undefined as any;
     }
-    let cursor = active_editor.editor
-      .getDoc()
-      .getCursor(start) as IEditorPosition;
-    return this.virtual_editor.transform_from_editor_to_root(
-      active_editor,
-      cursor
-    )!;
+    let cursor = active_editor.editor.getDoc().getCursor(start) as IEditorPosition;
+    return this.virtual_editor.transform_from_editor_to_root(active_editor, cursor)!;
   }
 }
 /**
@@ -257,25 +252,19 @@ export class CodeMirrorVirtualEditor
     return this.get_editor_at_root_line(position);
   }
 
-  transform_virtual_to_editor(
-    position: IVirtualPosition
-  ): IEditorPosition | null {
+  transform_virtual_to_editor(position: IVirtualPosition): IEditorPosition | null {
     return this.virtual_document.transform_virtual_to_editor(position);
   }
 
   // TODO .root is not really needed as we are in editor now...
   document_at_root_position(position: IRootPosition): VirtualDocument {
     let root_as_source = position as ISourcePosition;
-    return this.virtual_document.root.document_at_source_position(
-      root_as_source
-    );
+    return this.virtual_document.root.document_at_source_position(root_as_source);
   }
 
   root_position_to_virtual_position(position: IRootPosition): IVirtualPosition {
     let root_as_source = position as ISourcePosition;
-    return this.virtual_document.root.virtual_position_at_document(
-      root_as_source
-    );
+    return this.virtual_document.root.virtual_position_at_document(root_as_source);
   }
 
   get_editor_at_root_position(root_position: IRootPosition) {
@@ -286,10 +275,7 @@ export class CodeMirrorVirtualEditor
     return this.virtual_document.root.transform_source_to_editor(root_position);
   }
 
-  private _event_wrappers = new Map<
-    [EventName, CodeMirrorHandler],
-    WrappedHandler
-  >();
+  private _event_wrappers = new Map<[EventName, CodeMirrorHandler], WrappedHandler>();
 
   /**
    * Proxy the event handler binding to the CodeMirror editors,
@@ -359,11 +345,7 @@ export class CodeMirrorVirtualEditor
     return;
   }
 
-  addLineClass(
-    line: any,
-    where: string,
-    _class: string
-  ): CodeMirror.LineHandle {
+  addLineClass(line: any, where: string, _class: string): CodeMirror.LineHandle {
     return undefined as any;
   }
 
@@ -424,10 +406,7 @@ export class CodeMirrorVirtualEditor
         continue;
       }
 
-      bestGuess = this.transform_from_editor_to_root(
-        editor,
-        pos as IEditorPosition
-      );
+      bestGuess = this.transform_from_editor_to_root(editor, pos as IEditorPosition);
       break;
     }
     if (bestGuess == null) {
@@ -558,9 +537,7 @@ export class CodeMirrorVirtualEditor
   forEveryBlockEditor(
     callback: (cm_editor: CodeMirror.Editor) => any,
     monitor_for_new_blocks = true,
-    on_editor_removed_callback:
-      | ((cm_editor: CodeMirror.Editor) => any)
-      | null = null
+    on_editor_removed_callback: ((cm_editor: CodeMirror.Editor) => any) | null = null
   ) {
     const editors_with_handlers = new Set<CodeMirror.Editor>();
 

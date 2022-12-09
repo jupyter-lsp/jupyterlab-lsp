@@ -1,14 +1,18 @@
 *** Settings ***
-Suite Setup       Setup Suite For Screenshots    hover
-Test Setup        Setup Hover Test
-Test Teardown     Clean Up After Working With File    Hover.ipynb
-Force Tags        feature:hover
-Resource          ../Keywords.robot
-Library           ../mouse_over_extension.py
+Resource            ../Keywords.robot
+Library             ../mouse_over_extension.py
+
+Suite Setup         Setup Suite For Screenshots    hover
+Test Setup          Setup Hover Test
+Test Teardown       Clean Up After Working With File    Hover.ipynb
+
+Test Tags           feature:hover
+
 
 *** Variables ***
-${HOVER_BOX}      css:.lsp-hover
-${HOVER_SIGNAL}    css:.cm-lsp-hover-available
+${HOVER_BOX}        css:.lsp-hover
+${HOVER_SIGNAL}     css:.cm-lsp-hover-available
+
 
 *** Test Cases ***
 Hover works in notebooks
@@ -44,11 +48,15 @@ Hover works in foreign code (javascript)
     Trigger Tooltip    Math
     Element Should Contain    ${HOVER_BOX}    Math: Math
 
+
 *** Keywords ***
 Last Occurrence
     [Arguments]    ${symbol}
-    ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
-    [Return]    ${sel}
+    ${sel} =    Set Variable If
+    ...    "${symbol}".startswith(("xpath", "css"))
+    ...    ${symbol}
+    ...    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
+    RETURN    ${sel}
 
 Trigger Via Hover With Modifier
     [Arguments]    ${sel}
@@ -70,8 +78,8 @@ Trigger Via Modifier Key Press
     Wait Until Keyword Succeeds    4x    0.1s    Page Should Contain Element    ${HOVER_BOX}
 
 Trigger Tooltip
-    [Arguments]    ${symbol}
     [Documentation]    The default way to trigger the hover tooltip
+    [Arguments]    ${symbol}
     ${sel} =    Last Occurrence    ${symbol}
     Wait Until Keyword Succeeds    4x    0.1 s    Trigger Via Hover With Modifier    ${sel}
 
@@ -81,4 +89,4 @@ Setup Hover Test
 Wokraround Visibility Problem
     [Arguments]    ${sel}
     ${width}    ${height} =    Get Element Size    ${sel}
-    Run Keyword If    ${width} == 0    Cover Element    ${sel}    # don't know why but otherwise it raises Message: TypeError: rect is undefined
+    IF    ${width} == 0    Cover Element    ${sel}

@@ -13,10 +13,7 @@ export let overrides: IScopedCodeOverride[] = [
   {
     // support up to 10 arguments
     pattern:
-      LINE_MAGIC_PREFIX +
-      '%R' +
-      rpy2_args_pattern(RPY2_MAX_ARGS) +
-      '( .*)?(\n|$)',
+      LINE_MAGIC_PREFIX + '%R' + rpy2_args_pattern(RPY2_MAX_ARGS) + '( .*)?(\n|$)',
     replacement: (match, prefix, ...args) => {
       let r = parse_r_args(args, -4);
       // note: only supports assignment or -o/--output, not both

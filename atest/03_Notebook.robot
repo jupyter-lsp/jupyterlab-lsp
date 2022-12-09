@@ -1,7 +1,9 @@
 *** Settings ***
-Suite Setup       Setup Suite For Screenshots    notebook
-Test Setup        Try to Close All Tabs
-Resource          Keywords.robot
+Resource        Keywords.robot
+
+Suite Setup     Setup Suite For Screenshots    notebook
+Test Setup      Try to Close All Tabs
+
 
 *** Test Cases ***
 Python
@@ -70,7 +72,9 @@ Code Overrides
     Wait Until Created    ${virtual_path}
     Wait Until Keyword Succeeds    10x    1s    File Should Not Be Empty    ${virtual_path}
     ${document} =    Get File    ${virtual_path}
-    Should Be Equal    ${document}    get_ipython().run_line_magic("ls", "")\n\n\nget_ipython().run_line_magic("pip", " freeze")\n
+    Should Be Equal
+    ...    ${document}
+    ...    get_ipython().run_line_magic("ls", "")\n\n\nget_ipython().run_line_magic("pip", " freeze")\n
     [Teardown]    Clean Up After Working With File    Code overrides.ipynb
 
 Adding Text To Cells Is Reflected In Virtual Document
@@ -98,6 +102,7 @@ Adding Text To Cells After Kernel Restart
     Press Keys    None    text
     Wait Until Keyword Succeeds    3x    1s    File Content Should Be Equal    ${virtual_path}    \n\n\ntext\n
     [Teardown]    Clean Up After Working With File    Empty.ipynb
+
 
 *** Keywords ***
 File Content Should Be Equal

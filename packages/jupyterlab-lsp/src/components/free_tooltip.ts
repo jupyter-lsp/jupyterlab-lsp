@@ -4,11 +4,7 @@
 import { HoverBox } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
-import {
-  IRenderMime,
-  MimeModel,
-  IRenderMimeRegistry
-} from '@jupyterlab/rendermime';
+import { IRenderMime, MimeModel, IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { Tooltip } from '@jupyterlab/tooltip';
 import { Widget } from '@lumino/widgets';
 import * as lsProtocol from 'vscode-languageserver-protocol';

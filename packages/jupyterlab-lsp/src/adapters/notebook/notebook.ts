@@ -3,10 +3,7 @@ import { Cell, ICellModel } from '@jupyterlab/cells';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import * as nbformat from '@jupyterlab/nbformat';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
-import {
-  IObservableList,
-  IObservableUndoableList
-} from '@jupyterlab/observables';
+import { IObservableList, IObservableUndoableList } from '@jupyterlab/observables';
 import { Session } from '@jupyterlab/services';
 
 import { ICommandContext } from '../../command_manager';
@@ -71,9 +68,7 @@ export class NotebookAdapter extends WidgetAdapter<NotebookPanel> {
         old_language_info?.mimetype != new_language_info?.mimetype ||
         old_language_info?.file_extension != new_language_info?.file_extension
       ) {
-        this.console.log(
-          `Changed to ${this._language_info.name} kernel, reconnecting`
-        );
+        this.console.log(`Changed to ${this._language_info.name} kernel, reconnecting`);
         this.reload_connection();
       } else {
         this.console.log(
@@ -96,10 +91,7 @@ export class NotebookAdapter extends WidgetAdapter<NotebookPanel> {
       this.on_kernel_changed,
       this
     );
-    this.widget.content.activeCellChanged.disconnect(
-      this.activeCellChanged,
-      this
-    );
+    this.widget.content.activeCellChanged.disconnect(this.activeCellChanged, this);
 
     super.dispose();
 
@@ -207,10 +199,7 @@ export class NotebookAdapter extends WidgetAdapter<NotebookPanel> {
       if (change.newValues.length === change.oldValues.length) {
         // during conversion the cells should not get deleted nor added
         for (let i = 0; i < change.newValues.length; i++) {
-          if (
-            change.oldValues[i].type === type &&
-            change.newValues[i].type !== type
-          ) {
+          if (change.oldValues[i].type === type && change.newValues[i].type !== type) {
             convertedToMarkdownOrRaw.push(change.newValues[i]);
           } else if (
             change.oldValues[i].type !== type &&
@@ -223,9 +212,7 @@ export class NotebookAdapter extends WidgetAdapter<NotebookPanel> {
         cellsRemoved = convertedToMarkdownOrRaw;
       }
     } else if (change.type == 'add') {
-      cellsAdded = change.newValues.filter(
-        cellModel => cellModel.type === type
-      );
+      cellsAdded = change.newValues.filter(cellModel => cellModel.type === type);
     }
     // note: editorRemoved is not emitted for removal of cells by change of type 'remove' (but only during cell type conversion)
     // because there is no easy way to get the widget associated with the removed cell(s) - because it is no
@@ -270,9 +257,7 @@ export class NotebookAdapter extends WidgetAdapter<NotebookPanel> {
         cell => cell.model.id === cellModel.id
       );
       if (!cellWidget) {
-        this.console.warn(
-          `Widget for added cell with ID: ${cellModel.id} not found!`
-        );
+        this.console.warn(`Widget for added cell with ID: ${cellModel.id} not found!`);
         continue;
       }
       this.known_editors_ids.add(cellWidget.editor.uuid);
@@ -364,10 +349,7 @@ export class NotebookAdapter extends WidgetAdapter<NotebookPanel> {
       return null;
     }
 
-    let root_position = virtual_editor.transform_from_editor_to_root(
-      editor,
-      cm_cursor
-    );
+    let root_position = virtual_editor.transform_from_editor_to_root(editor, cm_cursor);
 
     if (root_position == null) {
       this.console.warn('Could not retrieve current context', virtual_editor);

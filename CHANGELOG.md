@@ -3,9 +3,11 @@
 ### `@krassowski/jupyterlab-lsp 3.10.2` (2022-08-26)
 
 - bug fixes
-  - use correct websocket URL if configured as different from base URL ([#820], thanks @MikeSem)
+  - use correct websocket URL if configured as different from base URL ([#820], thanks
+    @MikeSem)
   - clean up all completer styles when completer feature is disabled ([#829])
-  - fix `undefined` being inserted for path-like completion items with no `insertText` ([#833])
+  - fix `undefined` being inserted for path-like completion items with no `insertText`
+    ([#833])
 - maintenance:
   - fix tests to pass with latest JupyterLab 3.3 an 3.4 ([#809] and [#813])
   - bump minimum required Node.js version to 14.0 (12.0 reached EOL in April [#810])
@@ -25,8 +27,10 @@
 ### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
 
 - bug fixes:
-  - fix navigation to files with names including characters which require encoding ([#758])
-  - fix omissions in the main settings schema for correct rendering in JupyterLab 3.3 Settings Editor UI ([#779])
+  - fix navigation to files with names including characters which require encoding
+    ([#758])
+  - fix omissions in the main settings schema for correct rendering in JupyterLab 3.3
+    Settings Editor UI ([#779])
 - maintenance
   - make tests pass with new JupyterLab 3.3 ([#777])
   - pin r-base version to fix Binder ([#766])
@@ -49,10 +53,14 @@
   - squash warnings and errors in web console ([#732])
   - fix signature blur and fix formatting when no arguments are present ([#734])
   - fixed with enabling of strict null checks:
-    - previously changing kernels always led to restarting of LSP connection, even if the kernel language did not change; now the connection will be retained if possible
+    - previously changing kernels always led to restarting of LSP connection, even if
+      the kernel language did not change; now the connection will be retained if
+      possible
     - `markdownRenderer` is no longer implicitly required
-    - diagnostics sorting with missing values for `source` and `severity` was improved and missing values will be consistently shown at the end
-    - diagnostics placeholder was split into `Diagnostics are not available` and `No issues detected, great job!` which will now show up properly
+    - diagnostics sorting with missing values for `source` and `severity` was improved
+      and missing values will be consistently shown at the end
+    - diagnostics placeholder was split into `Diagnostics are not available` and
+      `No issues detected, great job!` which will now show up properly
 - maintenance:
   - enable strict null checks and other strict settings ([#733])
   - specify client capabilities in features instead of hard-coding them ([#738])
@@ -69,7 +77,8 @@
 ### `@krassowski/code-jumpers 1.2.0` (2022-01-01)
 
 - maintenance:
-  - updates to API with respect to `null`/`undefined` values in course strict null checks activation ([#733])
+  - updates to API with respect to `null`/`undefined` values in course strict null
+    checks activation ([#733])
 
 ### `@krassowski/jupyterlab-lsp 3.9.3` (2021-12-19)
 
@@ -81,14 +90,17 @@
 ### `@krassowski/jupyterlab-lsp 3.9.2` (2021-12-12)
 
 - bug fixes:
-  - prevent very long completion details text from extending the completer indefinitely ([#698])
+  - prevent very long completion details text from extending the completer indefinitely
+    ([#698])
   - correct status translations ([#700], thanks @fcollonval)
   - fix translations in status pop-up ([#703])
-  - workaround issue causing file rename when opening external files by jumping to them ([#712], thanks @jepcor97)
+  - workaround issue causing file rename when opening external files by jumping to them
+    ([#712], thanks @jepcor97)
   - fix sorting by "Line:Ch" and "Cell" in Diagnostics Panel ([#717])
   - fix header border missing when scrolling in Diagnostics Panel ([#717])
 - documentation improvements:
-  - clarify that JupyterLab restart is needed after installation ([#714], thanks @3coins)
+  - clarify that JupyterLab restart is needed after installation ([#714], thanks
+    @3coins)
 
 [#698]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/698
 [#700]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/700
@@ -116,35 +128,40 @@
 ### `@krassowski/jupyterlab-lsp 3.9.1` (2021-10-24)
 
 - bug fixes:
-  - fix build issues making it difficult to reuse/extend the package ([#696], thanks @cccs-jc)
+  - fix build issues making it difficult to reuse/extend the package ([#696], thanks
+    @cccs-jc)
 
 [#696]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/696
 
 ### `jupyter-lsp 1.5.0` (2021-10-24):
 
 - features:
-  - add support for new `typescript-language-server` replacing `javascript-typescript-langserver`;
-    despite the name both packages provide support for all four: JavaScript, JSX, TypeScript and TSX;
-    the old `javascript-typescript-langserver` can still be used, but it is no longer maintained
-    and we will not be supported, and specs may be removed in the next major release ([#697]).
+  - add support for new `typescript-language-server` replacing
+    `javascript-typescript-langserver`; despite the name both packages provide support
+    for all four: JavaScript, JSX, TypeScript and TSX; the old
+    `javascript-typescript-langserver` can still be used, but it is no longer maintained
+    and we will not be supported, and specs may be removed in the next major release
+    ([#697]).
 
 [#697]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/697
 
 ### `@krassowski/jupyterlab-lsp 3.9.0` (2021-10-17)
 
 - features:
-  - signature help box will now persist while typing the arguments of a function ([#671])
+  - signature help box will now persist while typing the arguments of a function
+    ([#671])
   - the currently active argument will be highlighted in the signature help box
-  - if the documentation exceeds a user-configurable number of lines the signature
-    help box will only display the first line of the documentation and the following
-    lines will be collapsed into an expandable details section.
+  - if the documentation exceeds a user-configurable number of lines the signature help
+    box will only display the first line of the documentation and the following lines
+    will be collapsed into an expandable details section.
   - the signature box is now displayed above the current line
   - the signature box takes up less space
   - you can now disable specific features in settings ([#689])
 - bug fixes:
   - fix missing translation strings ([#675])
   - fix kernel completions not showing up for R ([#686])
-  - fix tab completions not showing up in strings due to incomplete trigger kind invalidation ([#686])
+  - fix tab completions not showing up in strings due to incomplete trigger kind
+    invalidation ([#686])
   - fix path completions reconciliation for `pyls`/`pylsp` with `IPython` ([#686])
   - improve escaping rule for IPython magics overrides ([#688])
   - fix documentation panel not showing up when typing fast ([#692])
@@ -159,8 +176,10 @@
 ### `@krassowski/jupyterlab-lsp 3.8.1` (2021-08-02)
 
 - bug fixes:
-  - `%Rdevice` magic is now properly overridden and won't be extracted to R code ([#646])
-  - Fix hover rendering for `MarkedString`s, fix hover disappearing when moving mouse towards it ([#653])
+  - `%Rdevice` magic is now properly overridden and won't be extracted to R code
+    ([#646])
+  - Fix hover rendering for `MarkedString`s, fix hover disappearing when moving mouse
+    towards it ([#653])
 
 [#646]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/646
 [#653]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/653
@@ -168,7 +187,8 @@
 ### `jupyter-lsp 1.4.1` (2021-08-02)
 
 - bug fixes:
-  - remove spurious `ValidationError` warnings for non-installed servers ([#645], thanks @karlaspuldaro)
+  - remove spurious `ValidationError` warnings for non-installed servers ([#645], thanks
+    @karlaspuldaro)
   - reduce number and verbosity of logs on startup
 
 [#645]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/645
@@ -178,8 +198,9 @@
 - improvements:
 
   - add a note on manually enabling backend extension ([#621], thanks @icankeep)
-  - in-app troubleshooting/installation help is now offered for servers which are needed but could not be detected
-    (if auto-detection specification for those is present) ([#634])
+  - in-app troubleshooting/installation help is now offered for servers which are needed
+    but could not be detected (if auto-detection specification for those is present)
+    ([#634])
 
 - bug fixes:
   - fix rename shortcut registration in file editor ([#614])
@@ -196,17 +217,21 @@
 
 - features:
 
-  - `troubleshoot` property was added to the language server spec, allowing to describe auto-detection troubleshooting
-    ([#634])
-  - new endpoint `specs` will list all language server specifications known to `jupyter-lsp` allowing frontends
-    to suggest installation of specific language servers ([#634])
+  - `troubleshoot` property was added to the language server spec, allowing to describe
+    auto-detection troubleshooting ([#634])
+  - new endpoint `specs` will list all language server specifications known to
+    `jupyter-lsp` allowing frontends to suggest installation of specific language
+    servers ([#634])
 
 - changes:
-  - `ShellSpec.is_installed()` signature changed; it now accepts the `LanguageServerManagerAPI` rather than the resolved
-    command location (of `str` type); the specs using only `is_installed_args` are not affected; as this method was only
-    used by internally by the `__call__` implementation (which was adjusted accordingly) this change should not break
-    existing specs unless any of these methods were overridden in sub-classes.
-  - `SpecBase` was moved to `types.py`; it can still be imported from `utils`, but doing so is discouraged
+  - `ShellSpec.is_installed()` signature changed; it now accepts the
+    `LanguageServerManagerAPI` rather than the resolved command location (of `str`
+    type); the specs using only `is_installed_args` are not affected; as this method was
+    only used by internally by the `__call__` implementation (which was adjusted
+    accordingly) this change should not break existing specs unless any of these methods
+    were overridden in sub-classes.
+  - `SpecBase` was moved to `types.py`; it can still be imported from `utils`, but doing
+    so is discouraged
   - `ShellSpec.solve()` was added to facilitate discovery of command location
 
 [#634]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/634
@@ -222,8 +247,10 @@
 
 - features:
 
-  - add ability to deactivate Kernel completions or LSP completion through the settings ([#586], thanks @Carreau)
-  - allow to set a priority for LSP server, allowing to choose which server to use when multiple servers are installed ([#588])
+  - add ability to deactivate Kernel completions or LSP completion through the settings
+    ([#586], thanks @Carreau)
+  - allow to set a priority for LSP server, allowing to choose which server to use when
+    multiple servers are installed ([#588])
   - add auto-detection of pyright server ([#587], thanks @yuntan)
   - update from JupyterLab Classic to RetroLab ([#602])
   - log server messages in user-accessible console ([#606])
@@ -235,7 +262,9 @@
 - other changes:
   - drop Node 10 (EOL 2 weeks ago) testing on CI, add Node 15 ([#587])
   - update lsp-ws-connection dependencies ([#606])
-  - old emit-based API of lsp-ws-connection is new deprecated and will be removed in the next major version; please use `serverNotifications`, `clientNotifications`, `clientRequests` and `serverRequests` instead ([#606])
+  - old emit-based API of lsp-ws-connection is new deprecated and will be removed in the
+    next major version; please use `serverNotifications`, `clientNotifications`,
+    `clientRequests` and `serverRequests` instead ([#606])
 
 [#586]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/586
 [#588]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/588
@@ -247,7 +276,8 @@
 
 - features:
 
-  - add support for python-lsp-server, a community fork of pyls ([#584] and [#582], thanks @maresb)
+  - add support for python-lsp-server, a community fork of pyls ([#584] and [#582],
+    thanks @maresb)
 
 - bug fixes:
   - fix encoding on Windows for non-conda installs ([#580], thanks @stonebig)
@@ -270,7 +300,8 @@
 
 - bug fixes:
 
-  - fixed name of jupyterlab-lsp package displayed in JupyterLab UI ([#570], thanks @marimeireles)
+  - fixed name of jupyterlab-lsp package displayed in JupyterLab UI ([#570], thanks
+    @marimeireles)
   - removed vendored CodeMirror from distribution ([#576])
 
 [#557]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/557
@@ -281,21 +312,28 @@
 
 - features:
 
-  - adds `%%bigquery` IPython cell magic support for BigQuery ([#553], thanks @julioyildo)
+  - adds `%%bigquery` IPython cell magic support for BigQuery ([#553], thanks
+    @julioyildo)
   - completions filtering can be set to case-insensitive in settings ([#549])
   - completions filtering can hide exact matches ([#549])
-  - the extra information displayed next to the completion label now can include 'detail' (usually module/package of origin), and can be customized in settings ([#549])
+  - the extra information displayed next to the completion label now can include
+    'detail' (usually module/package of origin), and can be customized in settings
+    ([#549])
 
 - bug fixes:
 
-  - prevents throwing a highlights error when adding new cell with <kbd>Shift</kbd> + <kbd>Enter</kbd> ([#544])
-  - fixes IPython `pinfo` and `pinfo2` (`?` and `??`) for identifiers containing `s` ([#547])
-  - fixes incorrect behaviour of LSP features in some IPython magics with single line of content ([#560])
+  - prevents throwing a highlights error when adding new cell with <kbd>Shift</kbd> +
+    <kbd>Enter</kbd> ([#544])
+  - fixes IPython `pinfo` and `pinfo2` (`?` and `??`) for identifiers containing `s`
+    ([#547])
+  - fixes incorrect behaviour of LSP features in some IPython magics with single line of
+    content ([#560])
   - fixes name of jupyterlab-lsp package in JupyterLab
 
 - for extension authors:
 
-  - minimal functional extractor and code overrides APIs are now exported; these APIs cab be subject to change in future releases ([#562])
+  - minimal functional extractor and code overrides APIs are now exported; these APIs
+    cab be subject to change in future releases ([#562])
 
 [#544]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/544
 [#547]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/547
@@ -308,8 +346,8 @@
 
 - bug fixes:
 
-  - ensures `jupyter*_config.d` paths are searched for `language_servers`
-    as documented in _Configuring_ ([#535])
+  - ensures `jupyter*_config.d` paths are searched for `language_servers` as documented
+    in _Configuring_ ([#535])
   - uses more explicit file name for enabling `jupyter-lsp` in `notebook` and
     `jupyter_server ([#535])
 
@@ -319,7 +357,8 @@
 
 - bug fixes:
 
-  - fixed installation of the source version of the extension (causing build error if classic was not installed) ([#526])
+  - fixed installation of the source version of the extension (causing build error if
+    classic was not installed) ([#526])
 
 [#526]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/526
 
@@ -327,20 +366,29 @@
 
 - features:
 
-  - the priority of the completions from kernel can now be changed by switching new `kernelCompletionsFirst` setting ([#520])
+  - the priority of the completions from kernel can now be changed by switching new
+    `kernelCompletionsFirst` setting ([#520])
   - completer panel will now always render markdown documentation if available ([#520])
-    - the implementation re-renders the panel as it is the best we can do until [jupyterlab#9663](https://github.com/jupyterlab/jupyterlab/pull/9663) is merged
-  - the completer now uses `filterText` and `sortText` if available to better filter and sort completions ([#520], [#523])
-  - completer `suppressInvokeIn` setting was removed; `suppressContinuousHintingIn` and `suppressTriggerCharacterIn` settings were added ([#521])
-  - `suppressContinuousHintingIn` by default includes `def` to improve the experience when writing function names ([#521])
-  - long file paths are now collapsed if composed of more than two segments to avoid status popover and diagnostics panel getting too wide ([#524])
+    - the implementation re-renders the panel as it is the best we can do until
+      [jupyterlab#9663](https://github.com/jupyterlab/jupyterlab/pull/9663) is merged
+  - the completer now uses `filterText` and `sortText` if available to better filter and
+    sort completions ([#520], [#523])
+  - completer `suppressInvokeIn` setting was removed; `suppressContinuousHintingIn` and
+    `suppressTriggerCharacterIn` settings were added ([#521])
+  - `suppressContinuousHintingIn` by default includes `def` to improve the experience
+    when writing function names ([#521])
+  - long file paths are now collapsed if composed of more than two segments to avoid
+    status popover and diagnostics panel getting too wide ([#524])
 
 - bug fixes:
 
   - user-invoked completion in strings works again ([#521])
-  - completer documentation will now consistently show up after filtering the completion items ([#520])
-  - completions containing HTML-like syntax will be displayed properly (an upstream issue) ([#520], [#523])
-  - diagnostics panel will no longer break when foreign documents (e.g. `%%R` cell magics) are removed ([#522])
+  - completer documentation will now consistently show up after filtering the completion
+    items ([#520])
+  - completions containing HTML-like syntax will be displayed properly (an upstream
+    issue) ([#520], [#523])
+  - diagnostics panel will no longer break when foreign documents (e.g. `%%R` cell
+    magics) are removed ([#522])
 
 [#520]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/520
 [#521]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/521
@@ -353,10 +401,13 @@
 - bug fixes:
 
   - completion and signature suggestions get invalidated when editor changes ([#507])
-  - signature suggestions now invalidate on cursor move to another line or backwards too ([#507])
+  - signature suggestions now invalidate on cursor move to another line or backwards too
+    ([#507])
   - LaTeX is now rendered in documentation panel of completer ([#506])
-  - completion response returned as plain text use pre tag to retain whitespace formatting ([#506])
-  - pre-formatted code font size was reduced to match font-size of the text in completion panel ([#506])
+  - completion response returned as plain text use pre tag to retain whitespace
+    formatting ([#506])
+  - pre-formatted code font size was reduced to match font-size of the text in
+    completion panel ([#506])
   - completer no longer spans the entire screen if it has long entries ([#506])
 
 [#506]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/506
@@ -376,13 +427,17 @@
 - features:
 
   - added a timeout for kernel completion, with the default of 600ms ([#496])
-  - added an option to skip waiting for kernel completions if busy, off by default ([#496])
+  - added an option to skip waiting for kernel completions if busy, off by default
+    ([#496])
 
 - bug fixes:
 
-  - delayed completion suggestions will no longer show up if cursor moved to another line ([#496])
-  - changes in notebooks after kernel restart or file rename will now be recorded by the language server again ([#496])
-  - when either of kernel providers: kernel or LSP server fails, the completion from the other will still be shown ([#496])
+  - delayed completion suggestions will no longer show up if cursor moved to another
+    line ([#496])
+  - changes in notebooks after kernel restart or file rename will now be recorded by the
+    language server again ([#496])
+  - when either of kernel providers: kernel or LSP server fails, the completion from the
+    other will still be shown ([#496])
 
 [#496]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/496
 
@@ -390,7 +445,8 @@
 
 - bug fixes:
 
-  - fixed issues with language server messages being truncated in certain circumstances on Windows
+  - fixed issues with language server messages being truncated in certain circumstances
+    on Windows
 
 [#494]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/494
 
@@ -398,20 +454,24 @@
 
 - features:
 
-  - documentation panel in completer now works for R language too: implemented `completionItem/resolve` ([#487])
-  - kernel types returned by IPython and IJulia are now mapped to LSP types; you can customize the mappings in settings ([#487])
+  - documentation panel in completer now works for R language too: implemented
+    `completionItem/resolve` ([#487])
+  - kernel types returned by IPython and IJulia are now mapped to LSP types; you can
+    customize the mappings in settings ([#487])
 
 - bug fixes:
 
   - diagnostics panel works after kernel restart properly ([#485])
   - workaround was added to enable `jedi-language-server` diagnostics ([#485])
-  - Julia language server will not crash when saving a non-Julia file: fixed sendSaved notification scope ([#491])
+  - Julia language server will not crash when saving a non-Julia file: fixed sendSaved
+    notification scope ([#491])
 
 ### `jupyter-lsp 1.1.1` (2021-01-24)
 
 - bug fixes:
 
-  - `PythonModuleSpec` no longer raises exception when the server module does not exist ([#485])
+  - `PythonModuleSpec` no longer raises exception when the server module does not exist
+    ([#485])
 
 [#485]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/485
 [#487]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/487
@@ -421,16 +481,22 @@
 
 - features
 
-  - make the extension work with `jupyterlab-classic` - experimental, not all features are functional yet ([#465])
-  - new status "Server extension missing" and a dialog with advice was added to help users with atypical configurations ([#476])
-  - for developers: the verbosity of console logs is now controllable from settings and set to warn by default ([#480])
+  - make the extension work with `jupyterlab-classic` - experimental, not all features
+    are functional yet ([#465])
+  - new status "Server extension missing" and a dialog with advice was added to help
+    users with atypical configurations ([#476])
+  - for developers: the verbosity of console logs is now controllable from settings and
+    set to warn by default ([#480])
 
 - bug fixes:
 
-  - namespace completions in R (after double and triple colon) now work properly ([#449])
+  - namespace completions in R (after double and triple colon) now work properly
+    ([#449])
   - improved status icon contrast when status item is active ([#465])
-  - connection manager now properly keeps track of notebooks when multiple notebooks are open ([#474])
-  - new cells added after kernel restart now work properly; kernel changes are handled correctly ([#478])
+  - connection manager now properly keeps track of notebooks when multiple notebooks are
+    open ([#474])
+  - new cells added after kernel restart now work properly; kernel changes are handled
+    correctly ([#478])
   - increase total timeout for language server connection ([#479])
   - fix status communication during initialization ([#479])
 
@@ -450,9 +516,12 @@
 
 - bug fixes:
 
-  - send periodic pings on websocket channels to maintain connection ([#459], thanks @franckchen)
-  - R languageserver is no longer incorrectly shown as available when not installed ([#463])
-  - fix completion of very large namespaces (e.g. in R's base or in JavaScript) due to truncated message relay ([#477])
+  - send periodic pings on websocket channels to maintain connection ([#459], thanks
+    @franckchen)
+  - R languageserver is no longer incorrectly shown as available when not installed
+    ([#463])
+  - fix completion of very large namespaces (e.g. in R's base or in JavaScript) due to
+    truncated message relay ([#477])
 
 [#459]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/459
 [#463]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/463
@@ -478,11 +547,15 @@
 
 - features
 
-  - highlights can now be auto-removed from the cells/editors on blur (set `removeOnBlur` to `true` in settings) ([#446])
+  - highlights can now be auto-removed from the cells/editors on blur (set
+    `removeOnBlur` to `true` in settings) ([#446])
 
 - bug fixes
-  - improved performance of completion and highlights by minimising the number of highlight requests and GUI redraws (token checking, debouncing, acting on a single response only) ([#433])
-  - highlights now update after cell focus/blur events even if those do not trigger cursor movement ([#433])
+  - improved performance of completion and highlights by minimising the number of
+    highlight requests and GUI redraws (token checking, debouncing, acting on a single
+    response only) ([#433])
+  - highlights now update after cell focus/blur events even if those do not trigger
+    cursor movement ([#433])
   - trigger characters auto-invoke now works in continuous hinting mode again ([#434])
 
 [#433]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/433
@@ -493,7 +566,8 @@
 
 - bug fixes
 
-  - fix crash "blank screen" caused by Mac command character included in jump-to schema file ([#429])
+  - fix crash "blank screen" caused by Mac command character included in jump-to schema
+    file ([#429])
 
 [#429]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/429
 
@@ -503,8 +577,8 @@
 
   - the virtual documents' folder can be configured with `JP_LSP_VIRTUAL_DIR` or
     `LanguageServerManager.virtual_documents_dir`, with a potential benefit for
-    JupyterHub installations (the default value remains _contents.root_dir_ / `.virtual_documents`)
-    ([#416], thanks @fcollonval)
+    JupyterHub installations (the default value remains _contents.root_dir_ /
+    `.virtual_documents`) ([#416], thanks @fcollonval)
 
 [#416]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/416
 
@@ -512,20 +586,28 @@
 
 - features
 
-  - added "click to jump" functionality (by default using <kbd>Alt</kbd> modifier) ([#423])
-  - added "jump back" command, by default activated with <kbd>Alt</kbd> + <kbd>o</kbd> ([#423])
+  - added "click to jump" functionality (by default using <kbd>Alt</kbd> modifier)
+    ([#423])
+  - added "jump back" command, by default activated with <kbd>Alt</kbd> + <kbd>o</kbd>
+    ([#423])
   - `.virtual_documents` location can now be customized ([#416])
-  - tokens are now exported making them available for import from other extensions ([#414], thanks @martinRenou)
+  - tokens are now exported making them available for import from other extensions
+    ([#414], thanks @martinRenou)
 
 - bug fixes
 
-  - context menu commands are now correctly registered where previously specific conditions were leading to race conditions ([#399], thanks @mnowacki-b)
-  - handles characters that need escaping (spaces, non-ASCII characters) more
-    robustly in files and folder names ([#403], thanks @bollwyvl and @avaissi)
-  - moving cells now triggers the document update immediately leading to immediate diagnostics update ([#421])
-  - changing cell type to `raw` or `markdown` and then back to `code` properly unbinds/binds event handlers and updates document ([#421])
-  - pasted cells are added to the LSP document immediately, without the need for the user to enter them ([#421])
-  - improved error message when language server cannot be found ([#413], thanks @martinRenou)
+  - context menu commands are now correctly registered where previously specific
+    conditions were leading to race conditions ([#399], thanks @mnowacki-b)
+  - handles characters that need escaping (spaces, non-ASCII characters) more robustly
+    in files and folder names ([#403], thanks @bollwyvl and @avaissi)
+  - moving cells now triggers the document update immediately leading to immediate
+    diagnostics update ([#421])
+  - changing cell type to `raw` or `markdown` and then back to `code` properly
+    unbinds/binds event handlers and updates document ([#421])
+  - pasted cells are added to the LSP document immediately, without the need for the
+    user to enter them ([#421])
+  - improved error message when language server cannot be found ([#413], thanks
+    @martinRenou)
   - developer documentation got improved ([#412], thanks @karlaspuldaro)
 
 [#399]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/399
@@ -538,11 +620,12 @@
 ### `@krassowski/code-jumpers 1.0.0` (2020-12-13)
 
 - breaking changes
-  - split away from `@krassowski/jupyterlab_go_to_definition`, renamed to `@krassowski/code-jumpers` ([#423]):
+  - split away from `@krassowski/jupyterlab_go_to_definition`, renamed to
+    `@krassowski/code-jumpers` ([#423]):
     - removed unused code
     - refactored history operations to track files and always use global location data
-  - renamed `uri` to `contents_path` to help avoid programmer issues
-    with characters requiring URI encoding ([#406])
+  - renamed `uri` to `contents_path` to help avoid programmer issues with characters
+    requiring URI encoding ([#406])
 
 [#406]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/406
 [#423]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/423
@@ -551,10 +634,13 @@
 
 - bug fixes
 
-  - custom cell syntax highlighting is now properly removed when no longer needed ([#387])
+  - custom cell syntax highlighting is now properly removed when no longer needed
+    ([#387])
   - the completer in continuous hinting now works well with the pasted text ([#389])
-  - continuous hinting suggestions will no longer show up if the only hint is the same as the current token ([#391])
-  - available options for hover modifier keys are now listed in the setting descriptions ([#377])
+  - continuous hinting suggestions will no longer show up if the only hint is the same
+    as the current token ([#391])
+  - available options for hover modifier keys are now listed in the setting descriptions
+    ([#377])
 
 [#377]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/377
 [#387]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/387
@@ -565,10 +651,12 @@
 
 - bug fixes
 
-  - fix syntax highlighting in hover tooltips and reduce unnecessary padding and margin ([#363])
+  - fix syntax highlighting in hover tooltips and reduce unnecessary padding and margin
+    ([#363])
   - greatly improve performance of hover action ([#363])
   - improve support for expanded hovers tooltips using deprecated API ([#363])
-  - do not hide hover tooltips too eagerly (allowing selecting text/easy scrolling of longer tooltips) ([#363])
+  - do not hide hover tooltips too eagerly (allowing selecting text/easy scrolling of
+    longer tooltips) ([#363])
 
 [#363]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/363
 
@@ -576,7 +664,8 @@
 
 - bug fixes
 
-  - fix syntax highlighting of %%language cells slowing down editing in notebooks ([#361])
+  - fix syntax highlighting of %%language cells slowing down editing in notebooks
+    ([#361])
 
 [#361]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/361
 
@@ -593,7 +682,8 @@
 - bug fixes
 
   - improve code overrides for IPython line magics ([#346])
-  - implement missing code overrides for IPython's pinfo (`?`) and pinfo2 (`??`) syntactic sugar ([#346])
+  - implement missing code overrides for IPython's pinfo (`?`) and pinfo2 (`??`)
+    syntactic sugar ([#346])
 
 [#346]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/346
 
@@ -609,15 +699,16 @@
 
 - bug fixes
 
-  - bump version of lsp-ws-connection dependency to fix the LaTeX server issues (see [#337])
+  - bump version of lsp-ws-connection dependency to fix the LaTeX server issues (see
+    [#337])
 
 [#337]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/337
 
 ### `jupyter-lsp 0.9.2` (2020-09-03)
 
 - autodetects the `sql` language server for `.sql` files ([#328][])
-  - diagnostics are provided by `sqlint` which requires Node 11+
-    to work well (in contrast to currently required Node 10+).
+  - diagnostics are provided by `sqlint` which requires Node 11+ to work well (in
+    contrast to currently required Node 10+).
 
 [#328]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/328
 
@@ -626,32 +717,45 @@
 - features
 
   - support for JupyterLab 2.2 ([#301][])
-  - completer now displays server-provided documentation,
-    and a kernel icon for kernel suggestions without type information ([#301][])
+  - completer now displays server-provided documentation, and a kernel icon for kernel
+    suggestions without type information ([#301][])
   - add two icons themes for the completer (material and vscode) ([#322])
   - the documentation by the completer can be turned on or off ([#315])
   - continuous hinting (Hinterland mode) can be enabled in settings ([#315])
   - tokens in which the completer should not be triggered can be changed ([#315])
-  - configuration for the following features is now exposed in the settings editor ([#318]):
+  - configuration for the following features is now exposed in the settings editor
+    ([#318]):
     - diagnostics (display, filtering)
     - hover (modifier key)
   - rename operation status reporting got improved ([#318])
-  - replaced the generic status icons with code check icon (coloured differently according to the status) ([#318])
+  - replaced the generic status icons with code check icon (coloured differently
+    according to the status) ([#318])
   - added icons for all the features and their commands ([#318])
-  - refactored the codebase with a new architecture which allows dynamic features, document widget adapter, and code editor registration ([#318])
-  - the document in the connections list in the statusbar popover are now represented by easy-to-understand DocumentLocator (breadcrumbs) widget rather than an internal id ([bacc006])
-  - syntax highlighting mode is adjusted to the language with the majority of the code in an editor ([#319])
-  - copy diagnostics message and filter diagnostics from context menu of Diagnostic Panel ([#330])
+  - refactored the codebase with a new architecture which allows dynamic features,
+    document widget adapter, and code editor registration ([#318])
+  - the document in the connections list in the statusbar popover are now represented by
+    easy-to-understand DocumentLocator (breadcrumbs) widget rather than an internal id
+    ([bacc006])
+  - syntax highlighting mode is adjusted to the language with the majority of the code
+    in an editor ([#319])
+  - copy diagnostics message and filter diagnostics from context menu of Diagnostic
+    Panel ([#330])
 
 - bug fixes
 
-  - path-autocompletion issues were resolved upstream and this release adopts these changes
-  - the missing caret and document connection icons were restored in the statusbar popover ([#318])
-  - pressing "Cancel" rename during rename now correctly aborts the rename operation ([#318])
-  - when a language server for a foreign document is not available an explanation is displayed (rather than the "Connecting..." status as before) ([4e5b2ad])
-  - when jump target is not found a message is now shown instead of raising an exception ([00448d0])
+  - path-autocompletion issues were resolved upstream and this release adopts these
+    changes
+  - the missing caret and document connection icons were restored in the statusbar
+    popover ([#318])
+  - pressing "Cancel" rename during rename now correctly aborts the rename operation
+    ([#318])
+  - when a language server for a foreign document is not available an explanation is
+    displayed (rather than the "Connecting..." status as before) ([4e5b2ad])
+  - when jump target is not found a message is now shown instead of raising an exception
+    ([00448d0])
   - fixed status message expiration and replacement ([8798f2d]), ([#329])
-  - fixed some context command rank issues introduced after an attempt of migration to nulls ([#318])
+  - fixed some context command rank issues introduced after an attempt of migration to
+    nulls ([#318])
 
 [#301]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/301
 [#315]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/315
@@ -660,17 +764,23 @@
 [#322]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/322
 [#329]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/329
 [#330]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/330
-[00448d0]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/318/commits/00448d0c55e7f9a1e7e0a5322f17610daac47dfe
-[bacc006]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/318/commits/bacc0066da0727ff7397574914bf0401e4d8f7cb
-[4e5b2ad]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/318/commits/4e5b2adf655120458cc8be4b453fe9a78c98e061
-[8798f2d]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/318/commits/8798f2dcfd28da10a2b8d8f648974111caa52307
+[00448d0]:
+  https://github.com/jupyter-lsp/jupyterlab-lsp/pull/318/commits/00448d0c55e7f9a1e7e0a5322f17610daac47dfe
+[bacc006]:
+  https://github.com/jupyter-lsp/jupyterlab-lsp/pull/318/commits/bacc0066da0727ff7397574914bf0401e4d8f7cb
+[4e5b2ad]:
+  https://github.com/jupyter-lsp/jupyterlab-lsp/pull/318/commits/4e5b2adf655120458cc8be4b453fe9a78c98e061
+[8798f2d]:
+  https://github.com/jupyter-lsp/jupyterlab-lsp/pull/318/commits/8798f2dcfd28da10a2b8d8f648974111caa52307
 
 ### `@krassowski/jupyterlab-lsp 1.1.2` (2020-08-05)
 
 - bug fixes
 
-  - emits console warnings instead of throwing errors in hover handlers and connections ([#299][], [#300][])
-  - improve URL checks in message handling to enable LaTeX diagnostics to work when configured ([#288][])
+  - emits console warnings instead of throwing errors in hover handlers and connections
+    ([#299][], [#300][])
+  - improve URL checks in message handling to enable LaTeX diagnostics to work when
+    configured ([#288][])
 
 [#299]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/299
 [#300]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/300
@@ -678,8 +788,8 @@
 ### `jupyter-lsp 0.9.1` (2020-08-05)
 
 - autodetects the `texlab` language server for `.tex` files ([#288][])
-  - diagnostics _should_ be provided by `chktex` on save, but don't yet appear,
-    but can be configured through the Advanced Settings Editor to appear on save or change
+  - diagnostics _should_ be provided by `chktex` on save, but don't yet appear, but can
+    be configured through the Advanced Settings Editor to appear on save or change
 
 [#288]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/288
 
@@ -691,8 +801,8 @@
 
 - bug fixes
 
-  - fixes currently-highlighted token in dark editor themes against light lab theme
-    (and vice versa) ([#195][])
+  - fixes currently-highlighted token in dark editor themes against light lab theme (and
+    vice versa) ([#195][])
   - restores sorting order-indicating caret icons in diagnostics panel table ([#261][])
   - handles document open and change operation ordering more predictably ([#284][])
   - fixes some pyflakes issues caused by line magics substitution ([#293][])
@@ -749,12 +859,12 @@
   - ignores malformed diagnostic ranges, enabling markdown support ([#165][])
   - passes tests on Python 3.8 on Windows ([#165][])
   - improves support for rpy2 magic cells with parameters (
-    [#206](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/206)
-    )
+    [#206](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/206) )
 
 - bug fixes
 
-  - reports files are open only after installing all handlers to avoid missing messages ([#201][])
+  - reports files are open only after installing all handlers to avoid missing messages
+    ([#201][])
 
 [#201]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/201
 
@@ -773,12 +883,13 @@
 
 - breaking changes
 
-  - websockets are now serviced by implementation key, rather than language
-    under `lsp/ws/<server key>` ([#199][])
+  - websockets are now serviced by implementation key, rather than language under
+    `lsp/ws/<server key>` ([#199][])
   - introduces schema version `2`, reporting status by server at `lsp/status` ([#199][])
 
 - bugfixes:
-  - handles language server reading/writing and shadow file operations in threads ([#199][])
+  - handles language server reading/writing and shadow file operations in threads
+    ([#199][])
 
 [#199]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/199
 
@@ -786,107 +897,82 @@
 
 - bugfixes
   - didSave no longer causes unwanted messages in logs (
-    [#187](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/187)
-    )
+    [#187](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/187) )
 
 ### `@krassowski/jupyterlab-lsp 0.7.1`
 
 - features
 
-  - users can now choose which columns to display
-    in the diagnostic panel, using a context menu action (
-    [#159](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/159)
+  - users can now choose which columns to display in the diagnostic panel, using a
+    context menu action ( [#159](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/159)
     )
-  - start the diagnostics panel docked at the bottom and improve
-    the re-spawning of the diagnostics panel (
-    [#166](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/166)
-    )
+  - start the diagnostics panel docked at the bottom and improve the re-spawning of the
+    diagnostics panel ( [#166](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/166) )
 
 - bugfixes
 
   - fixed various small bugs in the completer (
-    [#162](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/162)
-    )
-  - fix documentation display in signature for LSP servers which
-    return MarkupContent (
-    [#164](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/164)
-    )
+    [#162](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/162) )
+  - fix documentation display in signature for LSP servers which return MarkupContent (
+    [#164](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/164) )
 
 ### `lsp-ws-connection 0.3.1`
 
 - added `sendSaved()` method (textDocument/didSave) (
-  [#147](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/147)
-  )
+  [#147](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/147) )
 - fixed `getSignatureHelp()` off-by-one error (
-  [#140](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/140)
-  )
+  [#140](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/140) )
 
 ### `@krassowski/jupyterlab-lsp 0.7.0`
 
 - features
 
   - reduced space taken up by the statusbar indicator (
-    [#106](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/106)
-    )
+    [#106](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/106) )
   - implemented statusbar popover with connections statuses (
-    [#106](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/106)
-    )
+    [#106](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/106) )
   - generates types for server data responses from JSON schema (
-    [#110](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/110)
-    )
+    [#110](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/110) )
   - added 'rename' function for notebooks, using shadow filesystem (
-    [#115](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/115)
-    )
-  - added a UX workaround for rope rename issues when there is a
-    SyntaxError in the Python code (
-    [#127](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/127)
-    )
-  - added a widget panel with diagnostics (inspections), allowing to
-    sort and explore diagnostics, and to go to the respective location
-    in code (with a click); accessible from the context menu (
-    [#129](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/129)
-    )
+    [#115](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/115) )
+  - added a UX workaround for rope rename issues when there is a SyntaxError in the
+    Python code ( [#127](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/127) )
+  - added a widget panel with diagnostics (inspections), allowing to sort and explore
+    diagnostics, and to go to the respective location in code (with a click); accessible
+    from the context menu (
+    [#129](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/129) )
   - all commands are now accessible from the command palette (
-    [#142](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/142)
-    )
+    [#142](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/142) )
   - bash LSP now also covers `%%bash` magic cell in addition to `%%sh` (
-    [#144](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/144)
-    )
-  - rpy2 magics received enhanced support for argument parsing
-    in both parent Python document (re-written overrides) and
-    exctracted R documents (improved foreign code extractor) (
-    [#148](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/148),
-    [#153](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/153)
-    )
-  - console logs can now easily be redirected to a floating console
-    windows for debugging of the browser tests (see CONTRIBUTING.md)
+    [#144](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/144) )
+  - rpy2 magics received enhanced support for argument parsing in both parent Python
+    document (re-written overrides) and exctracted R documents (improved foreign code
+    extractor) ( [#148](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/148),
+    [#153](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/153) )
+  - console logs can now easily be redirected to a floating console windows for
+    debugging of the browser tests (see CONTRIBUTING.md)
 
 - bugfixes
   - diagnostics in foreign documents are now correctly updated (
     [133fd3d](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/129/commits/133fd3d71401c7e5affc0a8637ee157de65bef62)
     )
-  - diagnostics are now always correctly displayed in the document they were intended for
+  - diagnostics are now always correctly displayed in the document they were intended
+    for
   - the workaround for relative root path is now also applied on Mac (
-    [#139](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/139)
-    )
+    [#139](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/139) )
   - fixed LSP of R in Python (`%%R` magic cell from rpy2) (
-    [#144](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/144)
-    )
+    [#144](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/144) )
   - completion now work properly when the kernel is shut down (
-    [#146](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/146)
-    )
-  - a lowercase completion option selected from an uppercase token
-    will now correctly substitute the incomplete token (
-    [#143](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/143)
-    )
-  - `didSave()` is emitted on file save, enabling the workaround
-    used by R language server to lazily load `library(tidyverse)` (
+    [#146](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/146) )
+  - a lowercase completion option selected from an uppercase token will now correctly
+    substitute the incomplete token (
+    [#143](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/143) )
+  - `didSave()` is emitted on file save, enabling the workaround used by R language
+    server to lazily load `library(tidyverse)` (
     [#95](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/95),
-    [#147](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/147),
-    )
+    [#147](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/147), )
   - signature feature is now correctly working in notebooks (
-    [#140](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/140)
-    )
+    [#140](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/140) )
 
 ### `lsp-ws-connection 0.3.0`
 
@@ -898,28 +984,26 @@
     - typescript 3.7
     - prettier
     - tslint
-  - added initialization checks before executing sendChange to comply
-    with LSP specs [#115](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/115)
+  - added initialization checks before executing sendChange to comply with LSP specs
+    [#115](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/115)
 
 ### `jupyter-lsp 0.7.0b0`
 
 - features
   - adds a language server status endpoint (
-    [#81](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/81)
-    )
+    [#81](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/81) )
   - adds more descriptive information to the language server spec (
-    [#90](https://github.com/jupyter-lsp/jupyterlab-lsp/pulls/100)
-    )
+    [#90](https://github.com/jupyter-lsp/jupyterlab-lsp/pulls/100) )
   - adds an extensible listener API (
     [#99](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/99),
-    [#100](https://github.com/jupyter-lsp/jupyterlab-lsp/pulls/100)
-    )
+    [#100](https://github.com/jupyter-lsp/jupyterlab-lsp/pulls/100) )
 
 ### `@krassowski/jupyterlab-lsp 0.6.1`
 
 - features
   - adds an indicator to the statusbar
-  - and many other improvements, see the [release notes](https://github.com/jupyter-lsp/jupyterlab-lsp/releases/tag/v0.6.1)
+  - and many other improvements, see the
+    [release notes](https://github.com/jupyter-lsp/jupyterlab-lsp/releases/tag/v0.6.1)
 - dependencies
   - removes unused npm dependencies
 

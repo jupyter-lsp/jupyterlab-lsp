@@ -63,11 +63,8 @@ body[data-lsp-completer-layout='detail-below'] .jp-Completer-item {
   grid-template-columns: min-content 1fr;
 }
 
-body[data-lsp-completer-layout='detail-below']
-  .jp-Completer-item.jp-mod-active {
-  height: calc(
-    var(--lsp-completer-detail-height) + var(--lsp-completer-label-height)
-  );
+body[data-lsp-completer-layout='detail-below'] .jp-Completer-item.jp-mod-active {
+  height: calc(var(--lsp-completer-detail-height) + var(--lsp-completer-label-height));
 }
 
 body[data-lsp-completer-layout='detail-below'] .jp-Completer-icon {

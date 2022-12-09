@@ -1,9 +1,12 @@
 *** Settings ***
-Suite Setup       Setup Suite For Screenshots    highlights
-Test Setup        Setup Highlights Test
-Test Teardown     Clean Up After Working With File    Highlights.ipynb
-Force Tags        feature:highlights
-Resource          ../Keywords.robot
+Resource            ../Keywords.robot
+
+Suite Setup         Setup Suite For Screenshots    highlights
+Test Setup          Setup Highlights Test
+Test Teardown       Clean Up After Working With File    Highlights.ipynb
+
+Test Tags           feature:highlights
+
 
 *** Test Cases ***
 # cursor is symbolized by pipe (|), for example when
@@ -58,18 +61,21 @@ Highlights are removed when no cell is focused
     Blur Cell Editor    1
     Should Highlight Token    test
 
+
 *** Keywords ***
 Should Not Highlight Any Tokens
     Page Should Not Contain    css:.cm-lsp-highlight
 
 Should Highlight Token
     [Arguments]    ${token}    ${timeout}=15s
-    ${token_element}    Set Variable    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
+    ${token_element}    Set Variable
+    ...    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
     Wait Until Page Contains Element    ${token_element}    timeout=${timeout}
 
 Should Not Highlight Token
     [Arguments]    ${token}    ${timeout}=15s
-    ${token_element}    Set Variable    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
+    ${token_element}    Set Variable
+    ...    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
     Wait Until Page Does Not Contain Element    ${token_element}    timeout=${timeout}
 
 Setup Highlights Test

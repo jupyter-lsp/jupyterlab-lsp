@@ -74,8 +74,7 @@ export let overrides: IScopedCodeOverride[] = [
     },
     scope: 'line',
     reverse: {
-      pattern:
-        "get_ipython\\(\\).run_line_magic\\('(pinfo2?)', '(.*?)'\\)(\n)?",
+      pattern: "get_ipython\\(\\).run_line_magic\\('(pinfo2?)', '(.*?)'\\)(\n)?",
       replacement: (match, cmd, name) => {
         const marks = cmd == 'pinfo' ? '?' : '??';
         return `${marks}${name}`;
@@ -93,8 +92,7 @@ export let overrides: IScopedCodeOverride[] = [
     },
     scope: 'line',
     reverse: {
-      pattern:
-        "get_ipython\\(\\).run_line_magic\\('(pinfo2?)',  '(.*?)'\\)(\n)?",
+      pattern: "get_ipython\\(\\).run_line_magic\\('(pinfo2?)',  '(.*?)'\\)(\n)?",
       replacement: (match, cmd, name) => {
         const marks = cmd == 'pinfo' ? '?' : '??';
         return `${name}${marks}`;

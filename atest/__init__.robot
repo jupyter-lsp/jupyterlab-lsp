@@ -1,7 +1,9 @@
 *** Settings ***
-Suite Setup       Setup Server and Browser
-Suite Teardown    Tear Down Everything
-Test Setup        Reset Application State
-Test Teardown     Lab Log Should Not Contain Known Error Messages
-Force Tags        os:${OS.lower()}    py:${PY}
-Resource          Keywords.robot
+Resource            Keywords.robot
+
+Suite Setup         Setup Server and Browser
+Suite Teardown      Tear Down Everything
+Test Setup          Reset Application State
+Test Teardown       Lab Log Should Not Contain Known Error Messages
+
+Test Tags           os:${os.lower()}    py:${py}

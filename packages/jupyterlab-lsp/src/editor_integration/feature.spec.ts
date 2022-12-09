@@ -133,9 +133,7 @@ describe('Feature', () => {
         });
         let raw_value = environment.ce_editor.doc.getValue();
         expect(raw_value).to.be.equal('changed bar');
-        expect(environment.ce_editor.model.value.text).to.be.equal(
-          'changed bar'
-        );
+        expect(environment.ce_editor.model.value.text).to.be.equal('changed bar');
         expect(outcome.wasGranular).to.be.equal(false);
         expect(outcome.modifiedCells).to.be.equal(1);
         expect(outcome.appliedChanges).to.be.equal(1);
@@ -169,9 +167,7 @@ describe('Feature', () => {
         });
         let raw_value = environment.ce_editor.doc.getValue();
         expect(raw_value).to.be.equal(js_fib2_code);
-        expect(environment.ce_editor.model.value.text).to.be.equal(
-          js_fib2_code
-        );
+        expect(environment.ce_editor.model.value.text).to.be.equal(js_fib2_code);
 
         expect(result.appliedChanges).to.be.equal(js_partial_edits.length);
         expect(result.wasGranular).to.be.equal(true);
@@ -226,8 +222,7 @@ describe('Feature', () => {
         await synchronizeContent();
         let main_document = environment.virtual_editor.virtual_document;
 
-        let old_virtual_source =
-          'def a_function():\n    pass\n\n\nx = a_function()\n';
+        let old_virtual_source = 'def a_function():\n    pass\n\n\nx = a_function()\n';
         let new_virtual_source =
           'def a_function_2():\n    pass\n\n\nx = a_function_2()\n';
         expect(main_document.value).to.be.equal(old_virtual_source);
@@ -319,10 +314,7 @@ print(x)""")
         let code_cells = getCellsJSON(notebook);
 
         expect(code_cells[0]).to.have.property('source', 'z = %ls\nprint(z)');
-        expect(code_cells[1]).to.have.property(
-          'source',
-          '%%python\ny = x\nprint(x)'
-        );
+        expect(code_cells[1]).to.have.property('source', '%%python\ny = x\nprint(x)');
       });
     });
   });

@@ -20,7 +20,7 @@
     "chai": "^4.2.0",
     "jest": "^26.0.0",
     "ts-jest": "^26.4.3",
-    "typescript": "~4.1.3"
+    "typescript": "~4.9.4"
   },
   "jupyterlab": {
     "extension": true

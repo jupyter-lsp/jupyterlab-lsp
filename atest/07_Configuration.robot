@@ -1,8 +1,12 @@
 *** Settings ***
-Documentation     Configuration of language servers
-Suite Setup       Setup Suite For Screenshots    config
-Force Tags        feature:config
-Resource          ./Keywords.robot
+Documentation       Configuration of language servers
+
+Resource            ./Keywords.robot
+
+Suite Setup         Setup Suite For Screenshots    config
+
+Test Tags           feature:config
+
 
 *** Test Cases ***
 Python
@@ -21,7 +25,10 @@ YAML
 
 Markdown
     [Documentation]    different englishes spell colou?r differently
-    Settings Should Change Editor Diagnostics    Markdown    example.md    unified-language-server
+    Settings Should Change Editor Diagnostics
+    ...    Markdown
+    ...    example.md
+    ...    unified-language-server
     ...    {"unified-language-server":{"remark-parse":{"plugins":[["#remark-retext","#parse-latin"],["#retext-spell","#dictionary-en"]]}}}
     ...    `Color` is misspelt
     ...    `Colour` is misspelt
@@ -36,6 +43,7 @@ LaTeX
     ...    Command terminated with space. (chktex)
     ...    Save File
     ...    ${needs reload}
+
 
 *** Keywords ***
 Settings Should Change Editor Diagnostics
@@ -52,7 +60,9 @@ Settings Should Change Editor Diagnostics
     Open Diagnostics Panel
     Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., 'Diagnostics Panel')]    600    -200
     Click Element    ${JLAB XP DOCK TAB}\[contains(., 'Launcher')]/${close icon}
-    Run Keyword If    "${before}"    Wait Until Page Contains Element    ${before diagnostic}    timeout=30s
+    IF    "${before}"
+        Wait Until Page Contains Element    ${before diagnostic}    timeout=30s
+    END
     Page Should Not Contain    ${after diagnostic}
     Capture Page Screenshot    01-default-diagnostics-and-settings.png
     Set Editor Content    {"language_servers": {"${server}": {"serverSettings": ${settings}}}}    ${CSS USER SETTINGS}
@@ -64,7 +74,9 @@ Settings Should Change Editor Diagnostics
     Lab Command    ${save command}
     Ensure Sidebar Is Closed
     Capture Page Screenshot    03-settings-changed.png
-    Run Keyword If    ${needs reload}    Reload After Configuration    ${language}    ${file}
+    IF    ${needs reload}
+        Reload After Configuration    ${language}    ${file}
+    END
     Wait Until Page Contains Element    ${after diagnostic}    timeout=45s
     Capture Page Screenshot    04-configured-diagnostic-found.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}

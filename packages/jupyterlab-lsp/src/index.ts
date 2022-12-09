@@ -6,10 +6,7 @@ export * from './tokens';
 /** Component- and feature-specific APIs */
 export * from './api';
 
-import {
-  JupyterFrontEnd,
-  JupyterFrontEndPlugin
-} from '@jupyterlab/application';
+import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
@@ -44,10 +41,7 @@ import { SIGNATURE_PLUGIN } from './features/signature';
 import { SYNTAX_HIGHLIGHTING_PLUGIN } from './features/syntax_highlighting';
 import { LanguageServerManager } from './manager';
 import { CODE_OVERRIDES_MANAGER } from './overrides';
-import {
-  ICodeOverridesRegistry,
-  ILSPCodeOverridesManager
-} from './overrides/tokens';
+import { ICodeOverridesRegistry, ILSPCodeOverridesManager } from './overrides/tokens';
 import {
   IAdapterTypeOptions,
   ILSPAdapterManager,
@@ -81,10 +75,7 @@ export interface IFeatureOptions {
 export class FeatureManager implements ILSPFeatureManager {
   features: Array<IFeature> = [];
   private command_managers: Array<ContextCommandManager> = [];
-  private command_manager_registered: Signal<
-    FeatureManager,
-    ContextCommandManager
-  >;
+  private command_manager_registered: Signal<FeatureManager, ContextCommandManager>;
 
   constructor() {
     this.command_manager_registered = new Signal(this);
@@ -102,13 +93,11 @@ export class FeatureManager implements ILSPFeatureManager {
       for (let command_manager of this.command_managers) {
         command_manager.add(options.feature.commands);
       }
-      this.command_manager_registered.connect(
-        (feature_manager, command_manager) => {
-          if (options.feature.commands) {
-            command_manager.add(options.feature.commands);
-          }
+      this.command_manager_registered.connect((feature_manager, command_manager) => {
+        if (options.feature.commands) {
+          command_manager.add(options.feature.commands);
         }
-      );
+      });
     }
   }
 
@@ -170,6 +159,7 @@ export class LSPExtension implements ILSPExtension {
   ) {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
     this.language_server_manager = new LanguageServerManager({
+      settings: app.serviceManager.serverSettings,
       console: this.console.scope('LanguageServerManager')
     });
     this.connection_manager = new DocumentConnectionManager({

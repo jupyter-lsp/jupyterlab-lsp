@@ -1,11 +1,14 @@
 *** Settings ***
-Suite Setup       Setup Server and Browser    server_extension_enabled=${False}
-Suite Teardown    Setup Server and Browser    server_extension_enabled=${True}
-Resource          ../Keywords.robot
+Resource            ../Keywords.robot
+
+Suite Setup         Setup Server and Browser    server_extension_enabled=${False}
+Suite Teardown      Setup Server and Browser    server_extension_enabled=${True}
+
 
 *** Variables ***
-${STATUSBAR}      css:div.lsp-statusbar-item
-${POPOVER}        css:.lsp-popover
+${STATUSBAR}    css:div.lsp-statusbar-item
+${POPOVER}      css:.lsp-popover
+
 
 *** Test Cases ***
 Handles Server Extension Failure

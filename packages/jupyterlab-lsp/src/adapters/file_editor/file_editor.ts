@@ -13,9 +13,7 @@ import { WidgetAdapter } from '../adapter';
 
 import IEditor = CodeEditor.IEditor;
 
-export class FileEditorAdapter extends WidgetAdapter<
-  IDocumentWidget<FileEditor>
-> {
+export class FileEditorAdapter extends WidgetAdapter<IDocumentWidget<FileEditor>> {
   editor: FileEditor;
   virtual_editor: IVirtualEditor<IEditor>;
 
@@ -37,8 +35,7 @@ export class FileEditorAdapter extends WidgetAdapter<
       // registry (and this is arguably easier to extend), so let's check it
       // just in case; this is also how the "Klingon" language for testing
       // gets registered, so we need it for tests too.
-      let fileType =
-        this.extension.app.docRegistry.getFileTypeForModel(contentsModel);
+      let fileType = this.extension.app.docRegistry.getFileTypeForModel(contentsModel);
       return fileType.mimeTypes[0];
     } else {
       // "text/plain" this is
@@ -59,10 +56,7 @@ export class FileEditorAdapter extends WidgetAdapter<
     return this.editor.editor;
   }
 
-  constructor(
-    extension: LSPExtension,
-    editor_widget: IDocumentWidget<FileEditor>
-  ) {
+  constructor(extension: LSPExtension, editor_widget: IDocumentWidget<FileEditor>) {
     super(extension, editor_widget);
     this.editor = editor_widget.content;
 

@@ -15,9 +15,7 @@ describe('rpy2 IPython overrides', () => {
     );
     it('overrides cell magic', () => {
       let override = cell_magics.override_for(R_CELL_MAGIC)!;
-      expect(override).to.equal(
-        'rpy2.ipython.rmagic.RMagics.R("""print(1)\n""", "")'
-      );
+      expect(override).to.equal('rpy2.ipython.rmagic.RMagics.R("""print(1)\n""", "")');
       let reverse = cell_magics.reverse.override_for(override);
       expect(reverse).to.equal(R_CELL_MAGIC);
 
@@ -38,9 +36,7 @@ describe('rpy2 IPython overrides', () => {
     it('works with other Rdevice', () => {
       let line = '%Rdevice svg';
       let override = line_magics.override_for(line)!;
-      expect(override).to.equal(
-        'rpy2.ipython.rmagic.RMagics.Rdevice(" svg", "")'
-      );
+      expect(override).to.equal('rpy2.ipython.rmagic.RMagics.Rdevice(" svg", "")');
       let reverse = line_magics.reverse.override_for(override);
       expect(reverse).to.equal(line);
     });
@@ -66,9 +62,7 @@ describe('rpy2 IPython overrides', () => {
 
       line = '%R -i x command()';
       override = line_magics.override_for(line)!;
-      expect(override).to.equal(
-        'rpy2.ipython.rmagic.RMagics.R(" command()", "", x)'
-      );
+      expect(override).to.equal('rpy2.ipython.rmagic.RMagics.R(" command()", "", x)');
       reverse = line_magics.reverse.override_for(override);
       expect(reverse).to.equal(line);
 

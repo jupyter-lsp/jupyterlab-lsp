@@ -1,7 +1,4 @@
-import {
-  JupyterFrontEnd,
-  JupyterFrontEndPlugin
-} from '@jupyterlab/application';
+import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
@@ -14,10 +11,7 @@ import hoverSvg from '../../style/icons/hover.svg';
 import { CodeHover as LSPHoverSettings, ModifierKey } from '../_hover';
 import { EditorTooltipManager, FreeTooltip } from '../components/free_tooltip';
 import { PositionConverter } from '../converter';
-import {
-  CodeMirrorIntegration,
-  IEditorRange
-} from '../editor_integration/codemirror';
+import { CodeMirrorIntegration, IEditorRange } from '../editor_integration/codemirror';
 import {
   FeatureSettings,
   IEditorIntegrationOptions,
@@ -124,9 +118,8 @@ export class HoverCM extends CodeMirrorIntegration {
 
   private debounced_get_hover: Throttler<Promise<lsProtocol.Hover | undefined>>;
   private tooltip: FreeTooltip;
-  private _previousHoverRequest: Promise<
-    Promise<lsProtocol.Hover | undefined>
-  > | null = null;
+  private _previousHoverRequest: Promise<Promise<lsProtocol.Hover | undefined>> | null =
+    null;
 
   constructor(options: IEditorIntegrationOptions) {
     super(options);
@@ -223,10 +216,7 @@ export class HoverCM extends CodeMirrorIntegration {
       const document = this.virtual_editor.document_at_root_position(
         this.last_hover_character
       );
-      let response_data = this.restore_from_cache(
-        document,
-        this.virtual_position
-      );
+      let response_data = this.restore_from_cache(document, this.virtual_position);
       if (response_data == null) {
         return;
       }
@@ -266,10 +256,7 @@ export class HoverCM extends CodeMirrorIntegration {
 
   protected on_hover = async () => {
     if (
-      !(
-        this.connection.isReady &&
-        this.connection.serverCapabilities?.hoverProvider
-      )
+      !(this.connection.isReady && this.connection.serverCapabilities?.hoverProvider)
     ) {
       return;
     }
@@ -340,8 +327,7 @@ export class HoverCM extends CodeMirrorIntegration {
     if (show_tooltip) {
       this.lab_integration.tooltip.remove();
       const markup = HoverCM.get_markup_for_hover(response);
-      let editor_position =
-        this.virtual_editor.root_position_to_editor(root_position);
+      let editor_position = this.virtual_editor.root_position_to_editor(root_position);
 
       this.tooltip = this.lab_integration.tooltip.create({
         markup,
@@ -376,9 +362,7 @@ export class HoverCM extends CodeMirrorIntegration {
   /**
    * Returns true if the tooltip should stay.
    */
-  protected async _updateUnderlineAndTooltip(
-    event: MouseEvent
-  ): Promise<boolean> {
+  protected async _updateUnderlineAndTooltip(event: MouseEvent): Promise<boolean> {
     const target = event.target as HTMLElement;
 
     // if over an empty space in a line (and not over a token) then not worth checking
@@ -448,8 +432,7 @@ export class HoverCM extends CodeMirrorIntegration {
         if (response && this.is_useful_response(response)) {
           let ce_editor =
             this.virtual_editor.get_editor_at_root_position(root_position);
-          let cm_editor =
-            this.virtual_editor.ce_editor_to_cm_editor.get(ce_editor)!;
+          let cm_editor = this.virtual_editor.ce_editor_to_cm_editor.get(ce_editor)!;
 
           let editor_range = this.get_editor_range(
             response,
@@ -459,11 +442,7 @@ export class HoverCM extends CodeMirrorIntegration {
           );
 
           response_data = {
-            response: this.add_range_if_needed(
-              response,
-              editor_range,
-              ce_editor
-            ),
+            response: this.add_range_if_needed(response, editor_range, ce_editor),
             document: document,
             editor_range: editor_range,
             ce_editor: ce_editor
@@ -599,11 +578,7 @@ export const HOVER_PLUGIN: JupyterFrontEndPlugin<void> = {
     renderMimeRegistry: IRenderMimeRegistry
   ) => {
     const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
-    const labIntegration = new HoverLabIntegration(
-      app,
-      settings,
-      renderMimeRegistry
-    );
+    const labIntegration = new HoverLabIntegration(app, settings, renderMimeRegistry);
 
     featureManager.register({
       feature: {

@@ -36,6 +36,6 @@ dependencies:
   - bs4
   - firefox
   - geckodriver
-  - robotframework >=4
+  - robotframework >=6
   - robotframework-seleniumlibrary
   - python-lsp-server

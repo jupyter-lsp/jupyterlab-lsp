@@ -41,12 +41,8 @@ export class CompletionCM extends CodeMirrorIntegration {
   }
 
   get completionCharacters() {
-    if (
-      this._completionCharacters == null ||
-      !this._completionCharacters.length
-    ) {
-      this._completionCharacters =
-        this.connection.getLanguageCompletionCharacters();
+    if (this._completionCharacters == null || !this._completionCharacters.length) {
+      this._completionCharacters = this.connection.getLanguageCompletionCharacters();
     }
     return this._completionCharacters;
   }
@@ -64,10 +60,7 @@ export class CompletionCM extends CodeMirrorIntegration {
     // see gh430
     let last_character = this.extract_last_character(change);
     if (this.completionCharacters.indexOf(last_character) > -1) {
-      this.virtual_editor.console.log(
-        'Will invoke completer after',
-        last_character
-      );
+      this.virtual_editor.console.log('Will invoke completer after', last_character);
       (this.feature.labIntegration as CompletionLabIntegration)
         .invoke_completer(CompletionTriggerKind.TriggerCharacter)
         .catch(this.console.warn);
@@ -105,8 +98,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     private console: ILSPLogConsole,
     private renderMimeRegistry: IRenderMimeRegistry
   ) {
-    const markdown_renderer =
-      this.renderMimeRegistry.createRenderer('text/markdown');
+    const markdown_renderer = this.renderMimeRegistry.createRenderer('text/markdown');
     this.renderer = new LSPCompletionRenderer({
       integrator: this,
       markdownRenderer: markdown_renderer,
@@ -131,12 +123,9 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     settings.changed.connect(() => {
       this._disabled = settings.composite.disable;
       if (!settings.composite.disable) {
-        document.body.dataset.lspCompleterLayout =
-          this.settings.composite.layout;
+        document.body.dataset.lspCompleterLayout = this.settings.composite.layout;
         completionThemeManager.set_theme(this.settings.composite.theme);
-        completionThemeManager.set_icons_overrides(
-          this.settings.composite.typesMap
-        );
+        completionThemeManager.set_icons_overrides(this.settings.composite.typesMap);
         if (!this._signalConnected) {
           adapterManager.adapterChanged.connect(this.swap_adapter, this);
           this._signalConnected = true;
@@ -145,16 +134,11 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
         completionThemeManager.set_theme(null);
         delete document.body.dataset.lspCompleterLayout;
       }
-      if (
-        this.current_completion_handler &&
-        this.model instanceof LSPCompleterModel
-      ) {
-        this.model.settings.caseSensitive =
-          this.settings.composite.caseSensitive;
+      if (this.current_completion_handler && this.model instanceof LSPCompleterModel) {
+        this.model.settings.caseSensitive = this.settings.composite.caseSensitive;
         this.model.settings.includePerfectMatches =
           this.settings.composite.includePerfectMatches;
-        this.model.settings.preFilterMatches =
-          this.settings.composite.preFilterMatches;
+        this.model.settings.preFilterMatches = this.settings.composite.preFilterMatches;
       }
     });
   }
@@ -265,14 +249,8 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
   ) {
     if (this.current_adapter) {
       // disconnect signals from the old adapter
-      this.current_adapter.activeEditorChanged.disconnect(
-        this.set_connector,
-        this
-      );
-      this.current_adapter.adapterConnected.disconnect(
-        this.connect_completion,
-        this
-      );
+      this.current_adapter.activeEditorChanged.disconnect(this.set_connector, this);
+      this.current_adapter.adapterConnected.disconnect(this.connect_completion, this);
     }
     this.current_adapter = adapter;
     // connect the new adapter
@@ -283,10 +261,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     }
     // connect signals to the new adapter
     this.current_adapter.activeEditorChanged.connect(this.set_connector, this);
-    this.current_adapter.adapterConnected.connect(
-      this.connect_completion,
-      this
-    );
+    this.current_adapter.adapterConnected.connect(this.connect_completion, this);
   }
 
   connect_completion(
@@ -340,8 +315,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
       command = 'completer:invoke-file';
     }
     return this.app.commands.execute(command).catch(() => {
-      this.current_completion_connector.trigger_kind =
-        CompletionTriggerKind.Invoked;
+      this.current_completion_connector.trigger_kind = CompletionTriggerKind.Invoked;
     });
   }
 
@@ -357,8 +331,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     this.current_completion_handler.editor = editor_changed.editor;
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    this.current_completion_handler.connector =
-      this.current_completion_connector;
+    this.current_completion_handler.connector = this.current_completion_connector;
   }
 
   private get current_items() {
@@ -439,8 +412,7 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
       settings: this.settings,
       labIntegration: this,
       // it might or might not be a notebook panel (if it is not, the sessionContext and session will just be undefined)
-      session: (this.current_adapter!.widget as NotebookPanel)?.sessionContext
-        ?.session,
+      session: (this.current_adapter!.widget as NotebookPanel)?.sessionContext?.session,
       console: this.console
     });
   }

@@ -34,13 +34,7 @@ export function until_ready(
   });
 }
 
-export type ModifierKey =
-  | 'Shift'
-  | 'Alt'
-  | 'AltGraph'
-  | 'Control'
-  | 'Meta'
-  | 'Accel';
+export type ModifierKey = 'Shift' | 'Alt' | 'AltGraph' | 'Control' | 'Meta' | 'Accel';
 
 /**
  * CodeMirror-proof implementation of event.getModifierState()
@@ -77,8 +71,7 @@ export function getModifierState(
       value = event.metaKey || key == 'Meta';
       break;
     case 'Accel':
-      value =
-        event.metaKey || key == 'Meta' || event.ctrlKey || key == 'Control';
+      value = event.metaKey || key == 'Meta' || event.ctrlKey || key == 'Control';
       break;
   }
 
@@ -144,9 +137,7 @@ export function is_win_path(uri: string) {
 export function normalize_win_path(uri: string) {
   // Pyright encodes colon on Windows, see:
   // https://github.com/jupyter-lsp/jupyterlab-lsp/pull/587#issuecomment-844225253
-  return uri.replace(RE_PATH_ANCHOR, it =>
-    it.replace('%3A', ':').toLowerCase()
-  );
+  return uri.replace(RE_PATH_ANCHOR, it => it.replace('%3A', ':').toLowerCase());
 }
 
 export function uri_to_contents_path(child: string, parent?: string) {
@@ -188,9 +179,7 @@ export const expandPath = (
   return obj;
 };
 
-export const expandDottedPaths = (
-  obj: ReadonlyJSONObject
-): ReadonlyJSONObject => {
+export const expandDottedPaths = (obj: ReadonlyJSONObject): ReadonlyJSONObject => {
   const settings: any = [];
   for (let key in obj) {
     const parsed = expandPath(key.split('.'), obj[key]);

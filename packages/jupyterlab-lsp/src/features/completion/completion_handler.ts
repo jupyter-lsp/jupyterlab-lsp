@@ -24,11 +24,7 @@ import {
   CompletionTriggerKind,
   ExtendedCompletionTriggerKind
 } from '../../lsp';
-import {
-  IEditorPosition,
-  IRootPosition,
-  IVirtualPosition
-} from '../../positioning';
+import { IEditorPosition, IRootPosition, IVirtualPosition } from '../../positioning';
 import { ILSPLogConsole } from '../../tokens';
 import { VirtualDocument } from '../../virtual/document';
 import { IVirtualEditor } from '../../virtual/editor';
@@ -45,8 +41,7 @@ import ICompletionItemsResponseType = CompletionHandler.ICompletionItemsResponse
 /**
  * Completion items reply from a specific source
  */
-export interface ICompletionsReply
-  extends CompletionHandler.ICompletionItemsReply {
+export interface ICompletionsReply extends CompletionHandler.ICompletionItemsReply {
   // TODO: it is not clear when the source is set here and when on IExtendedCompletionItem.
   //  it might be good to separate the two stages for both interfaces
   source: ICompletionsSource | null;
@@ -90,9 +85,7 @@ export function transformLSPCompletions<T>(
       // when the returned insert text is `Completion.ipynb` (the token here is `'/Com`)
       // developed against pyls and pylsp server, may not work well in other cases
       const parts = prefix.split('/');
-      if (
-        text.toLowerCase().startsWith(parts[parts.length - 1].toLowerCase())
-      ) {
+      if (text.toLowerCase().startsWith(parts[parts.length - 1].toLowerCase())) {
         let pathPrefix = parts.slice(0, -1).join('/') + '/';
         match.insertText = pathPrefix + text;
         // for label removing the prefix quote if present
@@ -149,9 +142,7 @@ export function transformLSPCompletions<T>(
 /**
  * A LSP connector for completion handlers.
  */
-export class LSPConnector
-  implements CompletionHandler.ICompletionItemsConnector
-{
+export class LSPConnector implements CompletionHandler.ICompletionItemsConnector {
   isDisposed = false;
   private _editor: CodeEditor.IEditor;
   private _connections: Map<VirtualDocument.uri, LSPConnection>;
@@ -173,17 +164,12 @@ export class LSPConnector
   }
 
   protected get use_lsp_completions(): boolean {
-    return (
-      this.options.settings.composite.disableCompletionsFrom.indexOf('LSP') ==
-      -1
-    );
+    return this.options.settings.composite.disableCompletionsFrom.indexOf('LSP') == -1;
   }
 
   protected get use_kernel_completions(): boolean {
     return (
-      this.options.settings.composite.disableCompletionsFrom.indexOf(
-        'Kernel'
-      ) == -1
+      this.options.settings.composite.disableCompletionsFrom.indexOf('Kernel') == -1
     );
   }
 
@@ -212,9 +198,7 @@ export class LSPConnector
     if (options.session) {
       let kernel_options = { editor: options.editor, session: options.session };
       this._kernel_connector = new KernelConnector(kernel_options);
-      this._kernel_and_context_connector = new CompletionConnector(
-        kernel_options
-      );
+      this._kernel_and_context_connector = new CompletionConnector(kernel_options);
     }
     this.lab_integration = options.labIntegration;
     this.console = options.console;
@@ -263,9 +247,7 @@ export class LSPConnector
   protected transform_from_editor_to_root(
     position: CodeEditor.IPosition
   ): IRootPosition {
-    let editor_position = PositionConverter.ce_to_cm(
-      position
-    ) as IEditorPosition;
+    let editor_position = PositionConverter.ce_to_cm(position) as IEditorPosition;
     return this.virtual_editor.transform_from_editor_to_root(
       this._editor,
       editor_position
@@ -295,10 +277,7 @@ export class LSPConnector
         return;
       }
     } else if (this.trigger_kind == CompletionTriggerKind.TriggerCharacter) {
-      if (
-        token.type &&
-        this.suppress_trigger_character_in.indexOf(token.type) !== -1
-      ) {
+      if (token.type && this.suppress_trigger_character_in.indexOf(token.type) !== -1) {
         this.console.debug('Suppressing completer auto-invoke in', token.type);
         this.trigger_kind = CompletionTriggerKind.Invoked;
         return;
@@ -320,29 +299,25 @@ export class LSPConnector
     // find document for position
     let document = virtual_editor.document_at_root_position(start_in_root);
 
-    let virtual_start =
-      virtual_editor.root_position_to_virtual_position(start_in_root);
-    let virtual_end =
-      virtual_editor.root_position_to_virtual_position(end_in_root);
+    let virtual_start = virtual_editor.root_position_to_virtual_position(start_in_root);
+    let virtual_end = virtual_editor.root_position_to_virtual_position(end_in_root);
     let virtual_cursor =
       virtual_editor.root_position_to_virtual_position(cursor_in_root);
-    const lsp_promise: Promise<
-      CompletionHandler.ICompletionItemsReply | undefined
-    > = this.use_lsp_completions
-      ? this.fetch_lsp(
-          token,
-          typed_character,
-          virtual_start,
-          virtual_end,
-          virtual_cursor,
-          document,
-          position_in_token
-        )
-      : Promise.resolve(undefined);
+    const lsp_promise: Promise<CompletionHandler.ICompletionItemsReply | undefined> =
+      this.use_lsp_completions
+        ? this.fetch_lsp(
+            token,
+            typed_character,
+            virtual_start,
+            virtual_end,
+            virtual_cursor,
+            document,
+            position_in_token
+          )
+        : Promise.resolve(undefined);
 
-    let promise: Promise<
-      CompletionHandler.ICompletionItemsReply | undefined
-    > | null = null;
+    let promise: Promise<CompletionHandler.ICompletionItemsReply | undefined> | null =
+      null;
 
     try {
       const kernelTimeout = this._kernel_timeout;
@@ -362,9 +337,7 @@ export class LSPConnector
         // TODO: should it be cashed?
         const kernelLanguage = await this._kernel_language();
 
-        if (
-          document.language.toLocaleLowerCase() === kernelLanguage.toLowerCase()
-        ) {
+        if (document.language.toLocaleLowerCase() === kernelLanguage.toLowerCase()) {
           let default_kernel_promise = this._kernel_connector.fetch(request);
           let kernel_promise: Promise<CompletionHandler.IReply>;
 
@@ -409,16 +382,12 @@ export class LSPConnector
       if (!promise) {
         promise = lsp_promise.catch(e => {
           this.console.warn('hint failed', e);
-          return this.fallback_connector
-            .fetch(request)
-            .then(this.transform_reply);
+          return this.fallback_connector.fetch(request).then(this.transform_reply);
         });
       }
     } catch (e) {
       this.console.warn('kernel completions failed', e);
-      promise = this.fallback_connector
-        .fetch(request)
-        .then(this.transform_reply);
+      promise = this.fallback_connector.fetch(request).then(this.transform_reply);
     }
 
     this.console.debug('All promises set up and ready.');
@@ -475,13 +444,7 @@ export class LSPConnector
       position_in_token,
       lspCompletionItems,
       (kind, match) =>
-        new LazyCompletionItem(
-          kind,
-          this.icon_for(kind),
-          match,
-          this,
-          document.uri
-        ),
+        new LazyCompletionItem(kind, this.icon_for(kind), match, this, document.uri),
       this.console
     );
   }
@@ -538,10 +501,7 @@ export class LSPConnector
 
     replies = replies.filter(reply => {
       if (reply instanceof Error) {
-        this.console.warn(
-          `Caught ${reply.source!.name} completions error`,
-          reply
-        );
+        this.console.warn(`Caught ${reply.source!.name} completions error`, reply);
         return false;
       }
       // ignore if no matches
@@ -567,10 +527,7 @@ export class LSPConnector
       const cursor = editor.getCursorPosition();
       const line = editor.getLine(cursor.line);
       if (line == null) {
-        this.console.warn(
-          `Could not remove prefixes: line is undefined`,
-          cursor.line
-        );
+        this.console.warn(`Could not remove prefixes: line is undefined`, cursor.line);
       } else {
         replies = replies.map(reply => {
           // no prefix to strip, return as-is

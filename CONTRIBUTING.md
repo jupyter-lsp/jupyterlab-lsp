@@ -1,16 +1,16 @@
 ## Contributing
 
-`jupyter-lsp` and `jupyterlab-lsp` are [open source][license] software, and
-all contributions conforming to good sense, good taste, and the
-[Jupyter Code of Conduct][code-of-conduct] are welcome, and will be reviewed
-by the contributors, time-permitting.
+`jupyter-lsp` and `jupyterlab-lsp` are [open source][license] software, and all
+contributions conforming to good sense, good taste, and the [Jupyter Code of
+Conduct][code-of-conduct] are welcome, and will be reviewed by the contributors,
+time-permitting.
 
 You can contribute to the project through:
 
 - creating language server [specs](#Specs)
   - you can publish them yourself (it might be a single file)...
-  - or advocate for adding your spec to the [github repository][jupyterlab-lsp]
-    and its various distributions
+  - or advocate for adding your spec to the [github repository][jupyterlab-lsp] and its
+    various distributions
     - these are great first issues, as you might not need to know any python or
       javascript
 - proposing parts of the architecture that can be [extended][extending]
@@ -25,7 +25,8 @@ Thank you for all your contributions :heart:
 [extending]: ./docs/Extending.html
 [roadmap]: ./docs/Roadmap.html
 [jupyterlab-lsp]: https://github.com/jupyter-lsp/jupyterlab-lsp.git
-[code-of-conduct]: https://github.com/jupyter/governance/blob/master/conduct/code_of_conduct.md
+[code-of-conduct]:
+  https://github.com/jupyter/governance/blob/master/conduct/code_of_conduct.md
 
 ### Set up the environment
 
@@ -37,8 +38,8 @@ Development requires, at a minimum:
   - Python 3.7 to 3.10 and PyPy 3 are verified to at least install and import
 - `jupyterlab >=3.1.0,<4.0.0a0`
 
-It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
-for development.
+It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`) for
+development.
 
 To use the same environment as the binder demo (recommended):
 
@@ -78,8 +79,8 @@ Enable the server extension:
 jupyter server extension enable --sys-prefix --py jupyter_lsp
 ```
 
-Install `npm` dependencies, build TypeScript packages, and link
-to JupyterLab for development:
+Install `npm` dependencies, build TypeScript packages, and link to JupyterLab for
+development:
 
 ```bash
 jlpm bootstrap
@@ -89,7 +90,8 @@ jupyter labextension develop python_packages/jupyterlab_lsp/ --overwrite
 jupyter labextension develop python_packages/klingon_ls_specification/ --overwrite
 ```
 
-> Note: on Windows you may need to enable Developer Mode first, as discussed in [jupyterlab#9564](https://github.com/jupyterlab/jupyterlab/issues/9564)
+> Note: on Windows you may need to enable Developer Mode first, as discussed in
+> [jupyterlab#9564](https://github.com/jupyterlab/jupyterlab/issues/9564)
 
 ### Frontend Development
 
@@ -124,7 +126,8 @@ To run test the suite (after running `jlpm build` or `watch`):
 jlpm test
 ```
 
-To run tests matching specific phrase, forward `-t` argument over yarn and lerna to the test runners with two `--`:
+To run tests matching specific phrase, forward `-t` argument over yarn and lerna to the
+test runners with two `--`:
 
 ```bash
 jlpm test -- -- -t match_phrase
@@ -170,15 +173,15 @@ To check internal _and_ external links in the docs after building:
 python scripts/docs.py --check
 ```
 
-> Note: you may get spurious failures due to rate limiting, especially in CI,
-> but it's good to test locally
+> Note: you may get spurious failures due to rate limiting, especially in CI, but it's
+> good to test locally
 
 ### Browser-based Acceptance Tests
 
-The browser tests will launch JupyterLab on a random port and exercise the
-Language Server features with [Robot Framework][] and [SeleniumLibrary][]. It
-is recommended to peruse the [Robot Framework User's Guide][rfug] (and the existing
-`.robot` files in `atest`) before working on tests in anger.
+The browser tests will launch JupyterLab on a random port and exercise the Language
+Server features with [Robot Framework][] and [SeleniumLibrary][]. It is recommended to
+peruse the [Robot Framework User's Guide][rfug] (and the existing `.robot` files in
+`atest`) before working on tests in anger.
 
 [robot framework]: https://github.com/robotframework/robotframework
 [seleniumlibrary]: https://github.com/robotframework/seleniumlibrary
@@ -207,8 +210,8 @@ python scripts/atest.py
 ```
 
 The Robot Framework reports and screenshots will be in `atest/output`, with
-`<operating system>_<python version>_<attempt>.<log|report>.html` and subsequent `screenshots` being the most interesting
-artifact, e.g.
+`<operating system>_<python version>_<attempt>.<log|report>.html` and subsequent
+`screenshots` being the most interesting artifact, e.g.
 
 ```
 atest/
@@ -223,9 +226,8 @@ atest/
 
 By default, all of the tests will be run, once.
 
-The underlying `robot` command supports a vast number of options and many
-support wildcards (`*` and `?`) and boolean operators (`NOT`, `OR`). For more,
-start with
+The underlying `robot` command supports a vast number of options and many support
+wildcards (`*` and `?`) and boolean operators (`NOT`, `OR`). For more, start with
 [simple patterns](https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#simple-patterns).
 
 ##### Run a suite
@@ -242,8 +244,8 @@ python scripts/atest.py --test "Works When Kernel Is Idle"
 
 ##### Run test with a tag
 
-Tags are preferable to file names and test name matching in many settings, as
-they are aggregated nicely between runs.
+Tags are preferable to file names and test name matching in many settings, as they are
+aggregated nicely between runs.
 
 ```bash
 python scripts/atest.py --include feature:completion
@@ -263,8 +265,8 @@ Run tests, and _rerun_ only failed tests up to two times:
 ATEST_RETRIES=2 python scripts/atest.py --include feature:completion
 ```
 
-After running a bunch of tests, it may be helpful to combine them back together
-into a single `log.html` and `report.html` with
+After running a bunch of tests, it may be helpful to combine them back together into a
+single `log.html` and `report.html` with
 [rebot](https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#rebot).
 Like `atest.py`, `combine.py` also passes through extra arguments
 
@@ -281,17 +283,18 @@ python scripts/combine.py
   TypeError: expected str, bytes or os.PathLike object, not NoneType
   ```
 
-  it may indicate that you have no `firefox`, or `geckodriver` installed (or discoverable
-  in the search path).
+  it may indicate that you have no `firefox`, or `geckodriver` installed (or
+  discoverable in the search path).
 
 - If a test suite for a specific language fails it may indicate that you have no
   appropriate server language installed (see [LANGUAGESERVERS][])
 
-[languageservers]: https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html
+[languageservers]:
+  https://jupyterlab-lsp.readthedocs.io/en/latest/Language%20Servers.html
 
-- If you are seeing errors like `Element is blocked by .jp-Dialog`, caused by
-  the JupyterLab _Build suggested_ dialog, (likely if you have been using
-  `jlpm watch`) ensure you have a "clean" lab (with production assets) with:
+- If you are seeing errors like `Element is blocked by .jp-Dialog`, caused by the
+  JupyterLab _Build suggested_ dialog, (likely if you have been using `jlpm watch`)
+  ensure you have a "clean" lab (with production assets) with:
 
   ```bash
   jupyter lab clean
@@ -309,22 +312,25 @@ python scripts/combine.py
 
   > `SessionNotCreatedException: Message: Unable to find a matching set of capabilities`
 
-  `geckodriver >=0.27.0` requires an _actual_ Firefox executable. Several places
-  will be checked (including where `conda-forge` installs, as in CI): to test
-  a Firefox _not_ on your `PATH`, set the following environment variable:
+  `geckodriver >=0.27.0` requires an _actual_ Firefox executable. Several places will be
+  checked (including where `conda-forge` installs, as in CI): to test a Firefox _not_ on
+  your `PATH`, set the following environment variable:
 
   ```bash
   export FIREFOX_BINARY=/path/to/firefox      # ... unix
   set FIREFOX_BINARY=C:\path\to\firefox.exe   # ... windows
   ```
 
-- If you see `Element ... could not be scrolled into view` in the `Open Context Menu for File` step check if you have an alternative file browser installed (such as `jupyterlab-unfold`) which might interfere with testing (it is recommended to run the tests in an separated environment)
+- If you see `Element ... could not be scrolled into view` in the
+  `Open Context Menu for File` step check if you have an alternative file browser
+  installed (such as `jupyterlab-unfold`) which might interfere with testing (it is
+  recommended to run the tests in an separated environment)
 
 ### Formatting
 
 Minimal code style is enforced with `pytest-flake8` during unit testing. If installed,
-`pytest-black` and `pytest-isort` can help find potential problems, and lead to
-cleaner commits, but are not enforced during CI tests (but are checked during lint).
+`pytest-black` and `pytest-isort` can help find potential problems, and lead to cleaner
+commits, but are not enforced during CI tests (but are checked during lint).
 
 You can clean up your code, and check for using the project's style guide with:
 
@@ -334,21 +340,28 @@ python scripts/lint.py
 
 ### Specs
 
-While language servers can be configured by the user using a simple JSON or Python [configuration file](./docs/Configuring.ipynb),
-it is preferable to provide users with an option that does not require manual configuration. The language server specifications (specs)
-wrap the configuration (as would be defined by the user) into a Python class or function that can be either:
+While language servers can be configured by the user using a simple JSON or Python
+[configuration file](./docs/Configuring.ipynb), it is preferable to provide users with
+an option that does not require manual configuration. The language server specifications
+(specs) wrap the configuration (as would be defined by the user) into a Python class or
+function that can be either:
 
-- distributed using PyPI/conda-forge and made conveniently available to users for `pip install` and/or `conda install`
-- contributed to the collection of built-in specs of jupyter-lsp by opening a PR (preferable for popular language servers, say >100 users)
+- distributed using PyPI/conda-forge and made conveniently available to users for
+  `pip install` and/or `conda install`
+- contributed to the collection of built-in specs of jupyter-lsp by opening a PR
+  (preferable for popular language servers, say >100 users)
 
-In either case the detection of available specifications uses Python `entry_points` (see the `[options.entry_points]` section in jupyter-lsp [setup.cfg]).
+In either case the detection of available specifications uses Python `entry_points` (see
+the `[options.entry_points]` section in jupyter-lsp [setup.cfg]).
 
-> If an advanced user installs, locates, and configures, their own language server it will always win vs an auto-configured one.
+> If an advanced user installs, locates, and configures, their own language server it
+> will always win vs an auto-configured one.
 
 #### Writing a spec
 
-A spec is a Python callable (a function, or a class with `__call__` method) that accepts a single argument, the
-`LanguageServerManager` instance, and returns a dictionary of the form:
+A spec is a Python callable (a function, or a class with `__call__` method) that accepts
+a single argument, the `LanguageServerManager` instance, and returns a dictionary of the
+form:
 
 ```python
 {
@@ -362,10 +375,12 @@ A spec is a Python callable (a function, or a class with `__call__` method) that
 ```
 
 The above example is only intended as an illustration and not as an up-to-date guide.
-For details on the dictionary contents, see the [schema][] definition and [built-in specs][].
-Basic concepts (meaning of the `argv` and `languages` arguments) are also explained in the [configuration files](./docs/Configuring.ipynb) documentation.
+For details on the dictionary contents, see the [schema][] definition and [built-in
+specs][]. Basic concepts (meaning of the `argv` and `languages` arguments) are also
+explained in the [configuration files](./docs/Configuring.ipynb) documentation.
 
-When contributing a specification we recommend to make use of the helper classes and other [utilities][] that take care of the common use-cases:
+When contributing a specification we recommend to make use of the helper classes and
+other [utilities][] that take care of the common use-cases:
 
 - `ShellSpec` helps to create specs for servers that can be started from command-line
 - `PythonModuleSpec` is useful for servers which are Python modules
@@ -380,10 +395,14 @@ The spec should only be advertised if the command _could actually_ be run:
 
 otherwise an empty dictionary (`{}`) should be returned.
 
-[built-in specs]: https://github.com/jupyter-lsp/jupyterlab-lsp/tree/master/python_packages/jupyter_lsp/jupyter_lsp/specs
-[setup.cfg]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/setup.cfg
-[schema]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/schema/schema.json
-[utilities]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/utils.py
+[built-in specs]:
+  https://github.com/jupyter-lsp/jupyterlab-lsp/tree/master/python_packages/jupyter_lsp/jupyter_lsp/specs
+[setup.cfg]:
+  https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/setup.cfg
+[schema]:
+  https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/schema/schema.json
+[utilities]:
+  https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/utils.py
 
 ##### Common Concerns
 
@@ -391,14 +410,17 @@ otherwise an empty dictionary (`{}`) should be returned.
   - the `stdio` interface is the only one supported by `jupyter_lsp`
     - PRs welcome to support other modes!
 - because of its VSCode heritage, many language servers use `nodejs`
-  - `LanguageServerManager.nodejs` will provide the location of our best
-    guess at where a user's `nodejs` might be found
+  - `LanguageServerManager.nodejs` will provide the location of our best guess at where
+    a user's `nodejs` might be found
 - some language servers are hard to start purely from the command line
   - use a helper script to encapsulate some complexity, or
-  - use a command argument of the interpreter is available (see the [r spec][] and [julia spec] for examples)
+  - use a command argument of the interpreter is available (see the [r spec][] and
+    [julia spec] for examples)
 
-[r spec]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/r_languageserver.py
-[julia spec]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/julia_language_server.py
+[r spec]:
+  https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/r_languageserver.py
+[julia spec]:
+  https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/julia_language_server.py
 
 ##### Example: making a pip-installable `cool-language-server` spec
 
@@ -464,7 +486,8 @@ python setup.py sdist bdist_wheel
 
 ## Debugging
 
-Adjust `loggingLevel` in the `Advanced Settings Editor` -> `Language Server` to see more log messages.
+Adjust `loggingLevel` in the `Advanced Settings Editor` -> `Language Server` to see more
+log messages.
 
 For robot tests set:
 

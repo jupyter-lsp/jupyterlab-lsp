@@ -17,9 +17,7 @@ export function getIndexOfCaptureGroup(
   let captured_groups = expression.exec(matched_string);
 
   if (captured_groups == null) {
-    console.warn(
-      `No capture group found for ${expression} in ${matched_string}`
-    );
+    console.warn(`No capture group found for ${expression} in ${matched_string}`);
     return -1;
   }
 
@@ -153,10 +151,7 @@ export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
       let start_offset = match.index + foreign_group_index_in_match;
 
       let start = position_at_offset(start_offset, lines);
-      let end = position_at_offset(
-        start_offset + foreign_code_fragment.length,
-        lines
-      );
+      let end = position_at_offset(start_offset + foreign_code_fragment.length, lines);
 
       extracts.push({
         host_code: host_code_fragment,

@@ -1,11 +1,5 @@
-import {
-  JupyterFrontEnd,
-  JupyterFrontEndPlugin
-} from '@jupyterlab/application';
-import {
-  IEditorMimeTypeService,
-  IEditorServices
-} from '@jupyterlab/codeeditor';
+import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
+import { IEditorMimeTypeService, IEditorServices } from '@jupyterlab/codeeditor';
 import { CodeMirrorEditor, ICodeMirror } from '@jupyterlab/codemirror';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator } from '@jupyterlab/translation';
@@ -142,9 +136,7 @@ export const SYNTAX_HIGHLIGHTING_PLUGIN: JupyterFrontEndPlugin<void> = {
 
     featureManager.register({
       feature: {
-        editorIntegrationFactory: new Map([
-          ['CodeMirrorEditor', CMSyntaxHighlighting]
-        ]),
+        editorIntegrationFactory: new Map([['CodeMirrorEditor', CMSyntaxHighlighting]]),
         commands: [],
         id: FEATURE_ID,
         name: trans.__('Syntax highlighting'),

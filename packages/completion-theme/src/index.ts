@@ -56,8 +56,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     let options = this.current_theme?.icons?.options || {};
     const mode = this.is_theme_light() ? 'light' : 'dark';
     for (let [completion_kind, svg] of Object.entries(set)) {
-      let name =
-        'lsp:' + theme.id + '-' + completion_kind.toLowerCase() + '-' + mode;
+      let name = 'lsp:' + theme.id + '-' + completion_kind.toLowerCase() + '-' + mode;
       let icon: LabIcon;
       if (this.icons_cache.has(name)) {
         icon = this.icons_cache.get(name)!;
@@ -68,10 +67,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
         });
         this.icons_cache.set(name, icon);
       }
-      icons.set(
-        completion_kind as keyof ICompletionIconSet,
-        icon.bindprops(options)
-      );
+      icons.set(completion_kind as keyof ICompletionIconSet, icon.bindprops(options));
     }
     return icons;
   }
@@ -91,8 +87,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
       if (this.icon_overrides.has(type.toLowerCase())) {
         type = this.icon_overrides.get(type.toLowerCase())!;
       }
-      type =
-        type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
+      type = type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
     }
     if (this.current_icons.has(type)) {
       return this.current_icons.get(type)!;
@@ -133,11 +128,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
 
   register_theme(theme: ICompletionTheme) {
     if (this.themes.has(theme.id)) {
-      console.warn(
-        'Theme with name',
-        theme.id,
-        'was already registered, overwriting.'
-      );
+      console.warn('Theme with name', theme.id, 'was already registered, overwriting.');
     }
     this.themes.set(theme.id, theme);
     this.update_icons_set();
@@ -161,9 +152,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     }).catch(console.warn);
   }
 
-  set_icons_overrides(
-    iconOverrides: Record<string, CompletionItemKindStrings>
-  ) {
+  set_icons_overrides(iconOverrides: Record<string, CompletionItemKindStrings>) {
     this.icon_overrides = new Map(
       Object.keys(iconOverrides).map(kernelType => [
         kernelType.toLowerCase(),

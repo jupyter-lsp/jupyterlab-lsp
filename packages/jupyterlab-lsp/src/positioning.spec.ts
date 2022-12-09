@@ -63,22 +63,13 @@ describe('offsetAtPosition', () => {
     offset = offset_at_position({ column: 0, line: 1 }, two_empty_lines);
     expect(offset).deep.equal(1);
 
-    offset = offset_at_position(
-      { column: 1, line: 0 },
-      two_single_character_lines
-    );
+    offset = offset_at_position({ column: 1, line: 0 }, two_single_character_lines);
     expect(offset).deep.equal(1);
 
-    offset = offset_at_position(
-      { column: 0, line: 1 },
-      two_single_character_lines
-    );
+    offset = offset_at_position({ column: 0, line: 1 }, two_single_character_lines);
     expect(offset).deep.equal(2);
 
-    offset = offset_at_position(
-      { column: 1, line: 1 },
-      two_single_character_lines
-    );
+    offset = offset_at_position({ column: 1, line: 1 }, two_single_character_lines);
     expect(offset).deep.equal(3);
   });
 });

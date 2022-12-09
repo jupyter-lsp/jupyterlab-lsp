@@ -1,7 +1,4 @@
-import {
-  JupyterFrontEnd,
-  JupyterFrontEndPlugin
-} from '@jupyterlab/application';
+import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
 import { InputDialog } from '@jupyterlab/apputils';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import {
@@ -13,10 +10,7 @@ import { LabIcon } from '@jupyterlab/ui-components';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import renameSvg from '../../style/icons/rename.svg';
-import {
-  CodeMirrorIntegration,
-  IEditOutcome
-} from '../editor_integration/codemirror';
+import { CodeMirrorIntegration, IEditOutcome } from '../editor_integration/codemirror';
 import { FeatureSettings, IFeatureCommand } from '../feature';
 import { ILSPFeatureManager, PLUGIN_ID } from '../tokens';
 import { CodeMirrorVirtualEditor } from '../virtual/codemirror_editor';
@@ -34,20 +28,12 @@ const FEATURE_ID = PLUGIN_ID + ':rename';
 const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
   {
     id: 'rename-symbol',
-    execute: async ({
-      editor,
-      connection,
-      virtual_position,
-      document,
-      features
-    }) => {
+    execute: async ({ editor, connection, virtual_position, document, features }) => {
       const rename_feature = features.get(FEATURE_ID) as RenameCM;
       rename_feature.setTrans(trans);
 
       let root_position =
-        rename_feature.transform_virtual_position_to_root_position(
-          virtual_position
-        );
+        rename_feature.transform_virtual_position_to_root_position(virtual_position);
       let old_value = editor.get_token_at(root_position).value;
       let handle_failure = (error: Error) => {
         let status: string | null = '';
@@ -198,9 +184,7 @@ export class RenameCM extends CodeMirrorIntegration {
     if (!has_index_error) {
       return null;
     }
-    let dire_python_errors = (
-      diagnostics_feature.diagnostics_db.all || []
-    ).filter(
+    let dire_python_errors = (diagnostics_feature.diagnostics_db.all || []).filter(
       diagnostic =>
         diagnostic.diagnostic.message.includes('invalid syntax') ||
         diagnostic.diagnostic.message.includes('SyntaxError') ||
@@ -227,19 +211,12 @@ export class RenameCM extends CodeMirrorIntegration {
               start.line
             );
           } else {
-            return rename_feature.trans.__(
-              '%1 at line %2',
-              message,
-              start.line
-            );
+            return rename_feature.trans.__('%1 at line %2', message, start.line);
           }
         })
       )
     ].join(', ');
-    return rename_feature.trans.__(
-      'Syntax error(s) prevent rename: %1',
-      dire_errors
-    );
+    return rename_feature.trans.__('Syntax error(s) prevent rename: %1', dire_errors);
   }
 }
 

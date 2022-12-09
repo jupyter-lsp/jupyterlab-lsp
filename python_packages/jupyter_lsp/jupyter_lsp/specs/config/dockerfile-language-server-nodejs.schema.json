@@ -143,13 +143,7 @@
       "type": "string",
       "default": "None",
       "description": "The property to use when grouping networks.",
-      "enum": [
-        "CreatedTime",
-        "NetworkDriver",
-        "NetworkId",
-        "NetworkName",
-        "None"
-      ]
+      "enum": ["CreatedTime", "NetworkDriver", "NetworkId", "NetworkName", "None"]
     },
     "docker.networks.description": {
       "type": "array",

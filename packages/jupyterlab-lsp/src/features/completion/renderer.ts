@@ -166,9 +166,7 @@ export class LSPCompletionRenderer
             documentation &&
             documentation.includes('$')
           ) {
-            this.options.latexTypesetter.typeset(
-              this.options.markdownRenderer.node
-            );
+            this.options.latexTypesetter.typeset(this.options.markdownRenderer.node);
           }
         })
         .catch(this.options.console.warn);

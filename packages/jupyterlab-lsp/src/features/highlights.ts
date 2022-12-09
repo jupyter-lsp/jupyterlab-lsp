@@ -1,7 +1,4 @@
-import {
-  JupyterFrontEnd,
-  JupyterFrontEndPlugin
-} from '@jupyterlab/application';
+import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
@@ -16,11 +13,7 @@ import { CodeHighlights as LSPHighlightsSettings } from '../_highlights';
 import { CodeMirrorIntegration } from '../editor_integration/codemirror';
 import { FeatureSettings, IFeatureCommand } from '../feature';
 import { DocumentHighlightKind } from '../lsp';
-import {
-  IEditorPosition,
-  IRootPosition,
-  IVirtualPosition
-} from '../positioning';
+import { IEditorPosition, IRootPosition, IVirtualPosition } from '../positioning';
 import { ILSPFeatureManager, PLUGIN_ID } from '../tokens';
 import { VirtualDocument } from '../virtual/document';
 
@@ -117,9 +110,7 @@ export class HighlightsCM extends CodeMirrorIntegration {
     this.highlight_markers = [];
   }
 
-  protected handleHighlight = (
-    items: lsProtocol.DocumentHighlight[] | undefined
-  ) => {
+  protected handleHighlight = (items: lsProtocol.DocumentHighlight[] | undefined) => {
     this.clear_markers();
 
     if (!items) {
@@ -152,10 +143,7 @@ export class HighlightsCM extends CodeMirrorIntegration {
       });
     }
 
-    for (const [
-      cmEditor,
-      markerDefinitions
-    ] of highlightOptionsByEditor.entries()) {
+    for (const [cmEditor, markerDefinitions] of highlightOptionsByEditor.entries()) {
       // note: using `operation()` significantly improves performance.
       // test cases:
       //   - one cell with 1000 `math.pi` and `import math`; move cursor to `math`,
@@ -181,11 +169,7 @@ export class HighlightsCM extends CodeMirrorIntegration {
         for (const definition of markerDefinitions) {
           let marker;
           try {
-            marker = doc.markText(
-              definition.start,
-              definition.end,
-              definition.options
-            );
+            marker = doc.markText(definition.start, definition.end, definition.options);
           } catch (e) {
             this.console.warn('Marking highlight failed:', definition, e);
             return;
@@ -222,9 +206,7 @@ export class HighlightsCM extends CodeMirrorIntegration {
 
     await this.virtual_editor.virtual_document.update_manager.update_done;
     try {
-      root_position = this.virtual_editor
-        .getDoc()
-        .getCursor('start') as IRootPosition;
+      root_position = this.virtual_editor.getDoc().getCursor('start') as IRootPosition;
     } catch (err) {
       this.console.warn('no root position available');
       return;
@@ -244,10 +226,7 @@ export class HighlightsCM extends CodeMirrorIntegration {
       token.value === this.last_token.value &&
       token.value !== ''
     ) {
-      this.console.log(
-        'not requesting highlights (token did not change)',
-        token
-      );
+      this.console.log('not requesting highlights (token did not change)', token);
       return;
     }
 

@@ -14,14 +14,10 @@ describe('uris_equal', () => {
 
 describe('escapeMarkdown', () => {
   it('escapes italics', () => {
-    expect(escapeMarkdown('pre *italic* post')).to.equal(
-      'pre \\*italic\\* post'
-    );
+    expect(escapeMarkdown('pre *italic* post')).to.equal('pre \\*italic\\* post');
   });
   it('escapes underscore italics', () => {
-    expect(escapeMarkdown('pre _italic_ post')).to.equal(
-      'pre \\_italic\\_ post'
-    );
+    expect(escapeMarkdown('pre _italic_ post')).to.equal('pre \\_italic\\_ post');
   });
   it('escapes escaped italics', () => {
     expect(escapeMarkdown('pre \\*non-italic\\* post')).to.equal(
@@ -29,9 +25,7 @@ describe('escapeMarkdown', () => {
     );
   });
   it('escapes bold', () => {
-    expect(escapeMarkdown('pre **bold** post')).to.equal(
-      'pre \\*\\*bold\\*\\* post'
-    );
+    expect(escapeMarkdown('pre **bold** post')).to.equal('pre \\*\\*bold\\*\\* post');
   });
   it('escapes headers', () => {
     expect(escapeMarkdown('pre #heading post')).to.equal('pre \\#heading post');
@@ -42,8 +36,6 @@ describe('escapeMarkdown', () => {
     );
   });
   it('replaces indents with non-breaking spaces', () => {
-    expect(escapeMarkdown('    indented')).to.equal(
-      '\u00A0\u00A0\u00A0\u00A0indented'
-    );
+    expect(escapeMarkdown('    indented')).to.equal('\u00A0\u00A0\u00A0\u00A0indented');
   });
 });

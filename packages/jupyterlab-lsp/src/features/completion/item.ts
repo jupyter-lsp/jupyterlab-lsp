@@ -27,8 +27,7 @@ export interface ICompletionsSource {
 /**
  * To be upstreamed
  */
-export interface IExtendedCompletionItem
-  extends CompletionHandler.ICompletionItem {
+export interface IExtendedCompletionItem extends CompletionHandler.ICompletionItem {
   insertText: string;
   sortText: string;
   source?: ICompletionsSource;
@@ -161,19 +160,17 @@ export class LazyCompletionItem implements IExtendedCompletionItem {
 
     this._requested_resolution = true;
 
-    return connection
-      .getCompletionResolve(this.match)
-      .then(resolvedCompletionItem => {
-        if (resolvedCompletionItem === null) {
-          return resolvedCompletionItem;
-        }
-        this._setDocumentation(resolvedCompletionItem?.documentation);
-        this._detail = resolvedCompletionItem?.detail;
-        // TODO: implement in pyls and enable with proper LSP communication
-        // this.label = resolvedCompletionItem.label;
-        this._resolved = true;
-        return this;
-      });
+    return connection.getCompletionResolve(this.match).then(resolvedCompletionItem => {
+      if (resolvedCompletionItem === null) {
+        return resolvedCompletionItem;
+      }
+      this._setDocumentation(resolvedCompletionItem?.documentation);
+      this._detail = resolvedCompletionItem?.detail;
+      // TODO: implement in pyls and enable with proper LSP communication
+      // this.label = resolvedCompletionItem.label;
+      this._resolved = true;
+      return this;
+    });
   }
 
   /**
@@ -199,9 +196,7 @@ export class LazyCompletionItem implements IExtendedCompletionItem {
     }
     return (
       this.match.tags != null &&
-      this.match.tags.some(
-        tag => tag == lsProtocol.CompletionItemTag.Deprecated
-      )
+      this.match.tags.some(tag => tag == lsProtocol.CompletionItemTag.Deprecated)
     );
   }
 }

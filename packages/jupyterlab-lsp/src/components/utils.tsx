@@ -43,9 +43,7 @@ export function getBreadcrumbs(
     try {
       if (adapter.has_multiple_editors) {
         let first_line = document.virtual_lines.get(0)!;
-        let last_line = document.virtual_lines.get(
-          document.last_virtual_line - 1
-        )!;
+        let last_line = document.virtual_lines.get(document.last_virtual_line - 1)!;
 
         let first_cell = adapter.get_editor_index(first_line.editor);
         let last_cell = adapter.get_editor_index(last_line.editor);

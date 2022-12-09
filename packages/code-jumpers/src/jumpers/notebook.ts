@@ -12,10 +12,7 @@ export class NotebookJumper extends CodeJumper {
   notebook: Notebook;
   widget: NotebookPanel;
 
-  constructor(
-    notebook_widget: NotebookPanel,
-    document_manager: IDocumentManager
-  ) {
+  constructor(notebook_widget: NotebookPanel, document_manager: IDocumentManager) {
     super();
     this.widget = notebook_widget;
     this.notebook = notebook_widget.content;
@@ -51,8 +48,7 @@ export class NotebookJumper extends CodeJumper {
   }
 
   getCurrentPosition(): IGlobalPosition {
-    let position =
-      this.editors[this.notebook.activeCellIndex].getCursorPosition();
+    let position = this.editors[this.notebook.activeCellIndex].getCursorPosition();
 
     return {
       editor_index: this.notebook.activeCellIndex,

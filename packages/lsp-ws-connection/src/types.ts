@@ -25,9 +25,7 @@ export type AnyLocation =
   | undefined
   | null;
 
-export type AnyCompletion =
-  | lsProtocol.CompletionList
-  | lsProtocol.CompletionItem[];
+export type AnyCompletion = lsProtocol.CompletionList | lsProtocol.CompletionItem[];
 
 export enum CompletionTriggerKind {
   Invoked = 1,
@@ -47,10 +45,7 @@ type ConnectionEvent =
   | 'logging';
 
 export interface ILspConnection {
-  on(
-    event: 'completion',
-    callback: (items: lsProtocol.CompletionItem[]) => void
-  ): void;
+  on(event: 'completion', callback: (items: lsProtocol.CompletionItem[]) => void): void;
   on(
     event: 'completionResolved',
     callback: (item: lsProtocol.CompletionItem) => void
@@ -65,10 +60,7 @@ export interface ILspConnection {
   ): void;
   on(
     event: 'highlight',
-    callback: (
-      highlights: lsProtocol.DocumentHighlight[],
-      documentUri: string
-    ) => void
+    callback: (highlights: lsProtocol.DocumentHighlight[], documentUri: string) => void
   ): void;
   on(
     event: 'signature',
@@ -78,10 +70,7 @@ export interface ILspConnection {
     event: 'goTo',
     callback: (location: AnyLocation, documentUri: string) => void
   ): void;
-  on(
-    event: 'rename',
-    callback: (edit: lsProtocol.WorkspaceEdit | null) => void
-  ): void;
+  on(event: 'rename', callback: (edit: lsProtocol.WorkspaceEdit | null) => void): void;
   on(event: 'error', callback: (error: any) => void): void;
   on(event: 'logging', callback: (log: any) => void): void;
 

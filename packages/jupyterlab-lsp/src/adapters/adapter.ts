@@ -136,9 +136,7 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     this.status_message = new StatusMessage();
     this.isConnected = false;
     this.console = extension.console.scope('WidgetAdapter');
-    this.trans = (extension.translator || nullTranslator).load(
-      'jupyterlab-lsp'
-    );
+    this.trans = (extension.translator || nullTranslator).load('jupyterlab-lsp');
 
     // set up signal connections
     this.widget.context.saveState.connect(this.on_save_state, this);
@@ -226,13 +224,8 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
   abstract get language_file_extension(): string | undefined;
 
   disconnect() {
-    this.connection_manager.unregister_document(
-      this.virtual_editor.virtual_document
-    );
-    this.widget.context.model.contentChanged.disconnect(
-      this.onContentChanged,
-      this
-    );
+    this.connection_manager.unregister_document(this.virtual_editor.virtual_document);
+    this.widget.context.model.contentChanged.disconnect(this.onContentChanged, this);
 
     // pretend that all editors were removed to trigger the disconnection of even handlers
     // they will be connected again on new connection
@@ -296,9 +289,7 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
       const documents_to_save = [this.virtual_editor.virtual_document];
 
       for (let virtual_document of documents_to_save) {
-        let connection = this.connection_manager.connections.get(
-          virtual_document.uri
-        )!;
+        let connection = this.connection_manager.connections.get(virtual_document.uri)!;
         this.console.log(
           'Sending save notification for',
           virtual_document.uri,
@@ -379,16 +370,14 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
       log = (text: string) => console.log(text);
     }
 
-    data.connection.serverNotifications['$/logTrace'].connect(
-      (connection, message) => {
-        this.console.log(
-          data.connection.serverIdentifier,
-          'trace',
-          virtual_document.uri,
-          message
-        );
-      }
-    );
+    data.connection.serverNotifications['$/logTrace'].connect((connection, message) => {
+      this.console.log(
+        data.connection.serverIdentifier,
+        'trace',
+        virtual_document.uri,
+        message
+      );
+    });
 
     data.connection.serverNotifications['window/logMessage'].connect(
       (connection, message) => {
@@ -431,8 +420,7 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
             })
           : [createButton({ label: this.trans.__('Dismiss') })];
         const result = await showDialog<IButton>({
-          title:
-            this.trans.__('Message from ') + data.connection.serverIdentifier,
+          title: this.trans.__('Message from ') + data.connection.serverIdentifier,
           body: params.message,
           buttons: buttons
         });
@@ -476,13 +464,9 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     }
 
     if (connection_context && connection_context.connection) {
-      connection_context.connection.sendOpenWhenReady(
-        virtual_document.document_info
-      );
+      connection_context.connection.sendOpenWhenReady(virtual_document.document_info);
     } else {
-      this.console.warn(
-        `Connection for ${virtual_document.path} was not opened`
-      );
+      this.console.warn(`Connection for ${virtual_document.path} was not opened`);
     }
   }
 
@@ -505,10 +489,7 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
       virtual_document: this.create_virtual_document()
     });
     if (virtual_editor == null) {
-      this.console.error(
-        'Could not initialize a VirtualEditor for adapter: ',
-        this
-      );
+      this.console.error('Could not initialize a VirtualEditor for adapter: ', this);
       return;
     }
     this.virtual_editor = virtual_editor;
@@ -537,10 +518,7 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     );
   }
 
-  private on_foreign_document_closed(
-    host: VirtualDocument,
-    context: IForeignContext
-  ) {
+  private on_foreign_document_closed(host: VirtualDocument, context: IForeignContext) {
     const { foreign_document } = context;
     foreign_document.foreign_document_closed.disconnect(
       this.on_foreign_document_closed,
@@ -564,9 +542,7 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     }
 
     // TODO only send the difference, using connection.sendSelectiveChange()
-    let connection = this.connection_manager.connections.get(
-      virtual_document.uri
-    );
+    let connection = this.connection_manager.connections.get(virtual_document.uri);
     let adapter = this.adapters.get(virtual_document.id_path)!;
 
     if (!connection?.isReady) {
@@ -688,10 +664,7 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
    * virtual documents, which is even more resilient and -obviously - editor-independent.
    */
   private connect_contentChanged_signal() {
-    this.widget.context.model.contentChanged.connect(
-      this.onContentChanged,
-      this
-    );
+    this.widget.context.model.contentChanged.connect(this.onContentChanged, this);
   }
 
   private create_adapter(
@@ -708,8 +681,9 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
     }
 
     for (let feature of features) {
-      let featureEditorIntegrationConstructor =
-        feature.editorIntegrationFactory.get(this.virtual_editor.editor_name)!;
+      let featureEditorIntegrationConstructor = feature.editorIntegrationFactory.get(
+        this.virtual_editor.editor_name
+      )!;
       let integration = new featureEditorIntegrationConstructor({
         feature: feature,
         virtual_editor: this.virtual_editor,

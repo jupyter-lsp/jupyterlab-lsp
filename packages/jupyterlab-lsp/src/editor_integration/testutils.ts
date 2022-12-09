@@ -6,11 +6,7 @@ import {
   CodeMirrorEditorFactory,
   CodeMirrorMimeTypeService
 } from '@jupyterlab/codemirror';
-import {
-  Context,
-  IDocumentWidget,
-  TextModelFactory
-} from '@jupyterlab/docregistry';
+import { Context, IDocumentWidget, TextModelFactory } from '@jupyterlab/docregistry';
 import { FileEditor, FileEditorFactory } from '@jupyterlab/fileeditor';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import * as nbformat from '@jupyterlab/nbformat';
@@ -46,10 +42,7 @@ import { BrowserConsole } from '../virtual/console';
 import { VirtualDocument } from '../virtual/document';
 import { IVirtualEditor, VirtualEditorManager } from '../virtual/editor';
 
-import {
-  CodeMirrorIntegration,
-  CodeMirrorIntegrationConstructor
-} from './codemirror';
+import { CodeMirrorIntegration, CodeMirrorIntegrationConstructor } from './codemirror';
 import { EditorAdapter } from './editor_adapter';
 
 import createNotebookPanel = NBTestUtils.createNotebookPanel;
@@ -203,10 +196,7 @@ export namespace IFeatureTestEnvironment {
 type TestEnvironmentConstructor = new (...args: any[]) => ITestEnvironment;
 
 function FeatureSupport<TBase extends TestEnvironmentConstructor>(Base: TBase) {
-  return class FeatureTestEnvironment
-    extends Base
-    implements IFeatureTestEnvironment
-  {
+  return class FeatureTestEnvironment extends Base implements IFeatureTestEnvironment {
     _connections: Map<CodeMirrorIntegration, LSPConnection>;
 
     init() {

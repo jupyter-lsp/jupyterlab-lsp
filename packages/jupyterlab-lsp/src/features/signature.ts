@@ -1,7 +1,4 @@
-import {
-  JupyterFrontEnd,
-  JupyterFrontEndPlugin
-} from '@jupyterlab/application';
+import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
 import { ICodeMirror } from '@jupyterlab/codemirror';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
@@ -69,11 +66,7 @@ export function extractLead(lines: string[], size: number): ISplit | null {
 export function signatureToMarkdown(
   item: lsProtocol.SignatureInformation,
   language: string = '',
-  codeHighlighter: (
-    source: string,
-    variable: string,
-    language: string
-  ) => string,
+  codeHighlighter: (source: string, variable: string, language: string) => string,
   logger: ILogConsoleCore,
   activeParameterFallback?: number | null,
   maxLinesBeforeCollapse: number = 4
@@ -86,10 +79,7 @@ export function signatureToMarkdown(
   let label = item.label;
   if (item.parameters && activeParameter != null) {
     if (activeParameter > item.parameters.length) {
-      logger.error(
-        'LSP server returned wrong number for activeSignature for: ',
-        item
-      );
+      logger.error('LSP server returned wrong number for activeSignature for: ', item);
       markdown = '```' + language + '\n' + label + '\n```';
     } else {
       const parameter = item.parameters[activeParameter];
@@ -139,8 +129,7 @@ export function signatureToMarkdown(
     if (lines.length > maxLinesBeforeCollapse) {
       const split = extractLead(lines, maxLinesBeforeCollapse);
       if (split) {
-        details =
-          split.lead + '\n<details>\n' + split.remainder + '\n</details>';
+        details = split.lead + '\n<details>\n' + split.remainder + '\n</details>';
       } else {
         details = '<details>\n' + details + '\n</details>';
       }
@@ -168,10 +157,7 @@ export class SignatureCM extends CodeMirrorIntegration {
   }
 
   register(): void {
-    this.editor_handlers.set(
-      'cursorActivity',
-      this.onCursorActivity.bind(this)
-    );
+    this.editor_handlers.set('cursorActivity', this.onCursorActivity.bind(this));
     this.editor_handlers.set('blur', this.onBlur.bind(this));
     this.editor_handlers.set('focus', this.onCursorActivity.bind(this));
     super.register();
@@ -231,11 +217,7 @@ export class SignatureCM extends CodeMirrorIntegration {
         const item = response.signatures[response.activeSignature];
         return {
           kind: 'markdown',
-          value: this.signatureToMarkdown(
-            item,
-            language,
-            response.activeParameter
-          )
+          value: this.signatureToMarkdown(item, language, response.activeParameter)
         };
       }
     }
@@ -314,9 +296,7 @@ export class SignatureCM extends CodeMirrorIntegration {
     }
 
     if (!this.signatureCharacter || !response || !response.signatures.length) {
-      this.console.debug(
-        'Ignoring signature response: cursor lost or response empty'
-      );
+      this.console.debug('Ignoring signature response: cursor lost or response empty');
       return;
     }
 
@@ -340,8 +320,7 @@ export class SignatureCM extends CodeMirrorIntegration {
       );
       return;
     }
-    let editor_position =
-      this.virtual_editor.root_position_to_editor(root_position);
+    let editor_position = this.virtual_editor.root_position_to_editor(root_position);
     let language = this.get_language_at(editor_position, cm_editor);
     let markup = this.get_markup_for_signature_help(response, language);
 
@@ -370,8 +349,7 @@ export class SignatureCM extends CodeMirrorIntegration {
 
   get signatureCharacters() {
     if (!this._signatureCharacters?.length) {
-      this._signatureCharacters =
-        this.connection.getLanguageSignatureCharacters();
+      this._signatureCharacters = this.connection.getLanguageSignatureCharacters();
     }
     return this._signatureCharacters;
   }
@@ -395,15 +373,11 @@ export class SignatureCM extends CodeMirrorIntegration {
     }
 
     // only proceed if: trigger character was used or the signature is/was visible immediately before
-    if (
-      !(this.signatureCharacters.includes(last_character) || isSignatureShown)
-    ) {
+    if (!(this.signatureCharacters.includes(last_character) || isSignatureShown)) {
       return;
     }
 
-    this.requestSignature(root_position, previousPosition)?.catch(
-      this.console.warn
-    );
+    this.requestSignature(root_position, previousPosition)?.catch(this.console.warn);
   }
 
   private requestSignature(
@@ -433,9 +407,7 @@ export class SignatureCM extends CodeMirrorIntegration {
           uri: this.virtual_document.document_info.uri
         }
       })
-      .then(help =>
-        this.handleSignature(help, root_position, previousPosition)
-      );
+      .then(help => this.handleSignature(help, root_position, previousPosition));
   }
 }
 
@@ -457,12 +429,7 @@ const FEATURE_ID = PLUGIN_ID + ':signature';
 
 export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
   id: FEATURE_ID,
-  requires: [
-    ILSPFeatureManager,
-    ISettingRegistry,
-    IRenderMimeRegistry,
-    ICodeMirror
-  ],
+  requires: [ILSPFeatureManager, ISettingRegistry, IRenderMimeRegistry, ICodeMirror],
   autoStart: true,
   activate: (
     app: JupyterFrontEnd,

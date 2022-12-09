@@ -77,9 +77,7 @@ class FloatingConsole implements ILogConsoleImplementation {
 /**
  * Used both as a console implementation, and as a dummy ILSPLogConsole
  */
-export class BrowserConsole
-  implements ILogConsoleImplementation, ILSPLogConsole
-{
+export class BrowserConsole implements ILogConsoleImplementation, ILSPLogConsole {
   debug = window.console.debug.bind(window.console);
   log = window.console.log.bind(window.console);
   warn = window.console.warn.bind(window.console);
@@ -207,11 +205,7 @@ class ConsoleSingleton {
     } else if (kind === 'floating') {
       this.implementation = new FloatingConsole();
     } else {
-      console.warn(
-        'Unknown console type',
-        kind,
-        'falling back to browser console'
-      );
+      console.warn('Unknown console type', kind, 'falling back to browser console');
       this.implementation = new BrowserConsole();
     }
 

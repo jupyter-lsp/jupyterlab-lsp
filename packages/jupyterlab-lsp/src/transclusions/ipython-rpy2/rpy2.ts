@@ -26,10 +26,7 @@ export function extract_r_args(args: string[], content_position: number) {
 }
 
 export function parse_r_args(args: string[], content_position: number) {
-  let { inputs, outputs, rest, others } = extract_r_args(
-    args,
-    content_position
-  );
+  let { inputs, outputs, rest, others } = extract_r_args(args, content_position);
   let input_variables = inputs.join(', ');
   if (input_variables) {
     input_variables = ', ' + input_variables;

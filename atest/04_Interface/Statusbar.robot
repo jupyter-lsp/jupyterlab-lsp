@@ -1,12 +1,15 @@
 *** Settings ***
-Suite Setup       Setup Suite For Screenshots    statusbar
-Resource          ../Keywords.robot
+Resource        ../Keywords.robot
+
+Suite Setup     Setup Suite For Screenshots    statusbar
+
 
 *** Variables ***
-${STATUSBAR}      css:div.lsp-statusbar-item
-${DIAGNOSTIC}     W291 trailing whitespace (pycodestyle)
-${POPOVER}        css:.lsp-popover
-${HELP_BUTTON}    css:.lsp-popover .lsp-help-button
+${STATUSBAR}        css:div.lsp-statusbar-item
+${DIAGNOSTIC}       W291 trailing whitespace (pycodestyle)
+${POPOVER}          css:.lsp-popover
+${HELP_BUTTON}      css:.lsp-popover .lsp-help-button
+
 
 *** Test Cases ***
 Statusbar Popup Opens
@@ -64,6 +67,7 @@ Status Changes Correctly Between Editors
     Switch To Tab    example.plain
     Wait Until Element Contains    ${STATUSBAR}    Initialized (additional servers needed)    timeout=60s
     [Teardown]    Clean Up After Working With File    example.plain
+
 
 *** Keywords ***
 Switch To Tab

@@ -35,10 +35,7 @@ export interface IEditorDiagnostic {
 export const DIAGNOSTICS_LISTING_CLASS = 'lsp-diagnostics-listing';
 const DIAGNOSTICS_PLACEHOLDER_CLASS = 'lsp-diagnostics-placeholder';
 
-export class DiagnosticsDatabase extends Map<
-  VirtualDocument,
-  IEditorDiagnostic[]
-> {
+export class DiagnosticsDatabase extends Map<VirtualDocument, IEditorDiagnostic[]> {
   get all(): Array<IEditorDiagnostic> {
     return [].concat.apply([], this.values() as any);
   }
@@ -113,9 +110,7 @@ function SortableTH(props: {
 }): ReactElement {
   const is_sort_key = props.id === props.listing.sort_key;
   const sortIcon =
-    !is_sort_key || props.listing.sort_direction === 1
-      ? caretUpIcon
-      : caretDownIcon;
+    !is_sort_key || props.listing.sort_direction === 1 ? caretUpIcon : caretDownIcon;
   return (
     <th
       key={props.id}
@@ -150,10 +145,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
   private _diagnostics: Map<string, IDiagnosticsRow>;
   protected trans: TranslationBundle;
   public columns: Column[];
-  protected severityTranslations: Record<
-    keyof typeof DiagnosticSeverity,
-    string
-  >;
+  protected severityTranslations: Record<keyof typeof DiagnosticSeverity, string>;
 
   constructor(model: DiagnosticsListing.Model) {
     super(model);
@@ -197,9 +189,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
         label: this.trans.__('Code'),
         render_cell: row => <td key={2}>{row.data.diagnostic.code}</td>,
         sort: (a, b) =>
-          (a.data.diagnostic.code + '').localeCompare(
-            b.data.diagnostic.source + ''
-          )
+          (a.data.diagnostic.code + '').localeCompare(b.data.diagnostic.source + '')
       }),
       new Column({
         id: 'Severity',
@@ -209,9 +199,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
           const severity = DiagnosticSeverity[
             row.data.diagnostic.severity || 1
           ] as keyof typeof DiagnosticSeverity;
-          return (
-            <td key={3}>{this.severityTranslations[severity] || severity}</td>
-          );
+          return <td key={3}>{this.severityTranslations[severity] || severity}</td>;
         },
         sort: (a, b) => {
           if (!a.data.diagnostic.severity) {
@@ -220,9 +208,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
           if (!b.data.diagnostic.severity) {
             return -1;
           }
-          return a.data.diagnostic.severity > b.data.diagnostic.severity
-            ? 1
-            : -1;
+          return a.data.diagnostic.severity > b.data.diagnostic.severity ? 1 : -1;
         }
       }),
       new Column({
@@ -236,9 +222,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
           if (!b.data.diagnostic.source) {
             return -1;
           }
-          return a.data.diagnostic.source.localeCompare(
-            b.data.diagnostic.source
-          );
+          return a.data.diagnostic.source.localeCompare(b.data.diagnostic.source);
         }
       }),
       new Column({
@@ -322,9 +306,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
     );
     this._diagnostics = new Map(flattened.map(row => [row.key, row]));
 
-    let sorted_column = this.columns.filter(
-      column => column.id === this.sort_key
-    )[0];
+    let sorted_column = this.columns.filter(column => column.id === this.sort_key)[0];
     let sorter = sorted_column.sort.bind(sorted_column);
     let sorted = flattened.sort((a, b) => sorter(a, b) * this.sort_direction);
 
@@ -339,9 +321,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
     );
 
     let elements = sorted.map(row => {
-      let cells = columns_to_display.map(column =>
-        column.render_cell(row, context)
-      );
+      let cells = columns_to_display.map(column => column.render_cell(row, context));
 
       return (
         <tr
@@ -356,9 +336,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
       );
     });
 
-    let columns_headers = columns_to_display.map(column =>
-      column.render_header(this)
-    );
+    let columns_headers = columns_to_display.map(column => column.render_header(this));
 
     return (
       <table className={DIAGNOSTICS_LISTING_CLASS}>

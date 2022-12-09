@@ -11,11 +11,7 @@ import {
   ISourcePosition,
   IVirtualPosition
 } from '../positioning';
-import {
-  ILSPVirtualEditorManager,
-  IVirtualEditorType,
-  PLUGIN_ID
-} from '../tokens';
+import { ILSPVirtualEditorManager, IVirtualEditorType, PLUGIN_ID } from '../tokens';
 
 import { VirtualDocument } from './document';
 
@@ -98,9 +94,7 @@ export interface IVirtualEditor<T extends IEditor> {
    * Retrieve a position the text cursor would have if it
    * was placed at given window coordinates (screen pixels).
    */
-  window_coords_to_root_position(
-    coordinates: IWindowCoordinates
-  ): IRootPosition | null;
+  window_coords_to_root_position(coordinates: IWindowCoordinates): IRootPosition | null;
 
   /**
    * Get the token at given root source position.
@@ -169,13 +163,12 @@ export class VirtualEditorManager implements ILSPVirtualEditorManager {
   }
 }
 
-export const VIRTUAL_EDITOR_MANAGER: JupyterFrontEndPlugin<ILSPVirtualEditorManager> =
-  {
-    id: PLUGIN_ID + ':ILSPVirtualEditorManager',
-    requires: [],
-    activate: app => {
-      return new VirtualEditorManager();
-    },
-    provides: ILSPVirtualEditorManager,
-    autoStart: true
-  };
+export const VIRTUAL_EDITOR_MANAGER: JupyterFrontEndPlugin<ILSPVirtualEditorManager> = {
+  id: PLUGIN_ID + ':ILSPVirtualEditorManager',
+  requires: [],
+  activate: app => {
+    return new VirtualEditorManager();
+  },
+  provides: ILSPVirtualEditorManager,
+  autoStart: true
+};
