@@ -16,8 +16,7 @@ module.exports = {
       path: false,
       crypto: false,
       stream: require.resolve('stream-browserify'),
-      buffer: require.resolve('buffer'),
-      timers: require.resolve('timers-browserify')
+      buffer: require.resolve('buffer')
     }
   },
   output: {
@@ -40,10 +39,6 @@ module.exports = {
     }),
     new webpack.ProvidePlugin({
       process: 'process/browser'
-    }),
-    new webpack.ProvidePlugin({
-      setImmediate: ['setimmediate', 'setImmedate'],
-      clearImmediate: ['setimmediate', 'clearImmedate']
     })
   ]
 };

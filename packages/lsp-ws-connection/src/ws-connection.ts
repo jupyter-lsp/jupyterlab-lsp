@@ -1,8 +1,10 @@
 import * as events from 'events';
 
+import 'setimmediate';
 import type * as protocol from 'vscode-languageserver-protocol';
 import type { LocationLink } from 'vscode-languageserver-types';
-import { ConsoleLogger, MessageConnection, listen } from 'vscode-ws-jsonrpc';
+import type * as rpc from 'vscode-ws-jsonrpc';
+import { listen, ConsoleLogger } from 'vscode-ws-jsonrpc';
 
 import {
   registerServerCapability,
@@ -33,7 +35,7 @@ export class LspWsConnection extends events.EventEmitter implements ILspConnecti
   public documentInfo: ILspOptions;
   public serverCapabilities: protocol.ServerCapabilities;
   protected socket: WebSocket;
-  protected connection: MessageConnection;
+  protected connection: rpc.MessageConnection;
   protected openedUris = new Map<string, boolean>();
   private rootUri: string;
 
@@ -55,7 +57,7 @@ export class LspWsConnection extends events.EventEmitter implements ILspConnecti
     listen({
       webSocket: this.socket,
       logger: new ConsoleLogger(),
-      onConnection: (connection: MessageConnection) => {
+      onConnection: (connection: rpc.MessageConnection) => {
         connection.listen();
         this.isConnected = true;
 
