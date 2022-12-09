@@ -1,5 +1,16 @@
 ## Changelog
 
+### Unreleased
+
+- features
+  - use host application's HTTP settings ([#880])
+- bug fixes
+  - ensure plugin ready promises always exist
+- maintenance:
+  - update prettier, typescript, eslint, etc.
+
+[#880]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/880
+
 ### `@krassowski/jupyterlab-lsp 3.10.2` (2022-08-26)
 
 - bug fixes
