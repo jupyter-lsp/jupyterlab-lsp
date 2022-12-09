@@ -12,9 +12,8 @@ Library     ./config.py
 
 *** Keywords ***
 Setup Server and Browser
-    [Arguments]    ${server_extension_enabled}=${True}
     Initialize Global Variables
-    Create Notebok Server Config    ${server_extension_enabled}
+    Create Notebok Server Config
     Initialize User Settings
     ${server} =    Start Process    jupyter-lab
     ...    cwd=${NOTEBOOK DIR}
@@ -38,7 +37,6 @@ Initialize Global Variables
 
 Create Notebok Server Config
     [Documentation]    Copies in notebook server config file and updates accordingly
-    [Arguments]    ${server_extension_enabled}=${True}
     ${conf} =    Set Variable    ${NOTEBOOK DIR}${/}${JPSERVER CONF JSON}
     Set Environment Variable
     ...    name=JUPYTER_CONFIG_DIR
@@ -57,19 +55,18 @@ Create Notebok Server Config
     Update Jupyter Config    ${conf}    LabApp
     ...    user_settings_dir=${SETTINGS DIR}
     ...    workspaces_dir=${WORKSPACES DIR}
-    # should be automatically enabled, so do not enable manually:
-    IF    not ${server_extension_enabled}
-        Set Server Extension State    ${conf}    enabled=${server_extension_enabled}
-    END
     Update Jupyter Config    ${conf}    LanguageServerManager
     ...    extra_node_roots=@{extra_node_roots}
 
 Set Server Extension State
-    [Arguments]    ${conf}    ${enabled}=${True}
-    ${extension_state} =    Create Dictionary    enabled=${enabled}
-    ${extensions} =    Create Dictionary    jupyter_lsp=${extension_state}
-    Update Jupyter Config    ${conf}    LabApp
-    ...    jpserver_extensions=${extensions}
+    [Arguments]    ${enabled}=${True}
+    IF    ${enabled}
+        Run Process    jupyter server extension enable jupyter_lsp
+        ...    shell=yes
+    ELSE
+        Run Process    jupyter server extension disable jupyter_lsp
+        ...    shell=yes
+    END
 
 Read Page Config
     ${script} =    Get Element Attribute    id:jupyter-config-data    innerHTML
