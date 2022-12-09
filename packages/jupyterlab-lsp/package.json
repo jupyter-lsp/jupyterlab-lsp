@@ -98,7 +98,7 @@
     "events": "^3.0.0",
     "jest": "^26.0.0",
     "jest-junit": "^8.0.0",
-    "json-schema-to-typescript": "^8.0.0",
+    "json-schema-to-typescript": "^11.0.2",
     "mkdirp": "^1.0.3",
     "prettier": "^2.8.1",
     "react": "^17.0.1",

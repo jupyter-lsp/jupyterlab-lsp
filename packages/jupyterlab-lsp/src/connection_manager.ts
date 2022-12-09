@@ -1,5 +1,5 @@
 import { PageConfig, URLExt } from '@jupyterlab/coreutils';
-import { ServerConnection } from '@jupyterlab/services';
+import { ReadonlyJSONObject } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import type * as protocol from 'vscode-languageserver-protocol';
 
@@ -194,7 +194,9 @@ export class DocumentConnectionManager {
       }
       const rawSettings = allServerSettings[language_server_id]!;
 
-      const parsedSettings = expandDottedPaths(rawSettings.serverSettings || {});
+      const parsedSettings = expandDottedPaths(
+        (rawSettings.serverSettings || {}) as ReadonlyJSONObject
+      );
 
       const serverSettings: protocol.DidChangeConfigurationParams = {
         settings: parsedSettings
@@ -375,8 +377,7 @@ export namespace DocumentConnectionManager {
     virtual_document: VirtualDocument,
     language: string
   ): IURIs {
-    const settings = ServerConnection.makeSettings();
-    const wsBase = settings.wsUrl;
+    const wsBase = Private.getLanguageServerManager().settings.wsUrl;
     const rootUri = PageConfig.getOption('rootUri');
     const virtualDocumentsUri = PageConfig.getOption('virtualDocumentsUri');
 
@@ -468,7 +469,8 @@ namespace Private {
     let connection = _connections.get(language_server_id);
 
     if (connection == null) {
-      const socket = new WebSocket(uris.socket);
+      const { settings } = Private.getLanguageServerManager();
+      const socket = new settings.WebSocket(uris.socket);
       const connection = new LSPConnection({
         languageId: language,
         serverUri: uris.server,

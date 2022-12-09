@@ -40,6 +40,10 @@ export class LanguageServerManager implements ILanguageServerManager {
     this.fetchSessions().catch(console.warn);
   }
 
+  get settings() {
+    return this._settings;
+  }
+
   get specs() {
     return this._specs;
   }
