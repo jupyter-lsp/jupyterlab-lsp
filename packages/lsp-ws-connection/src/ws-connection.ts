@@ -1,8 +1,10 @@
 import * as events from 'events';
 
+import 'setimmediate';
 import type * as protocol from 'vscode-languageserver-protocol';
 import type { LocationLink } from 'vscode-languageserver-types';
-import { ConsoleLogger, MessageConnection, listen } from 'vscode-ws-jsonrpc';
+import type * as rpc from 'vscode-ws-jsonrpc';
+import { listen, ConsoleLogger } from 'vscode-ws-jsonrpc';
 
 import {
   registerServerCapability,
@@ -27,16 +29,13 @@ import {
  *  - initializeParams() was extracted, and can be modified by subclasses
  *  - typescript 3.7 was adopted to clean up deep references
  */
-export class LspWsConnection
-  extends events.EventEmitter
-  implements ILspConnection
-{
+export class LspWsConnection extends events.EventEmitter implements ILspConnection {
   public isConnected = false;
   public isInitialized = false;
   public documentInfo: ILspOptions;
   public serverCapabilities: protocol.ServerCapabilities;
   protected socket: WebSocket;
-  protected connection: MessageConnection;
+  protected connection: rpc.MessageConnection;
   protected openedUris = new Map<string, boolean>();
   private rootUri: string;
 
@@ -58,7 +57,7 @@ export class LspWsConnection
     listen({
       webSocket: this.socket,
       logger: new ConsoleLogger(),
-      onConnection: (connection: MessageConnection) => {
+      onConnection: (connection: rpc.MessageConnection) => {
         connection.listen();
         this.isConnected = true;
 
@@ -165,16 +164,14 @@ export class LspWsConnection
 
     const message: protocol.InitializeParams = this.initializeParams();
 
-    this.connection
-      .sendRequest<protocol.InitializeResult>('initialize', message)
-      .then(
-        params => {
-          this.onServerInitialized(params);
-        },
-        e => {
-          console.warn('lsp-ws-connection initialization failure', e);
-        }
-      );
+    this.connection.sendRequest<protocol.InitializeResult>('initialize', message).then(
+      params => {
+        this.onServerInitialized(params);
+      },
+      e => {
+        console.warn('lsp-ws-connection initialization failure', e);
+      }
+    );
   }
 
   sendOpen(documentInfo: IDocumentInfo) {
@@ -186,10 +183,7 @@ export class LspWsConnection
         version: documentInfo.version
       } as protocol.TextDocumentItem
     };
-    void this.connection.sendNotification(
-      'textDocument/didOpen',
-      textDocumentMessage
-    );
+    this.connection.sendNotification('textDocument/didOpen', textDocumentMessage);
     this.openedUris.set(documentInfo.uri, true);
     this.sendChange(documentInfo);
   }
@@ -209,10 +203,7 @@ export class LspWsConnection
       } as protocol.VersionedTextDocumentIdentifier,
       contentChanges: [{ text: documentInfo.text }]
     };
-    void this.connection.sendNotification(
-      'textDocument/didChange',
-      textDocumentChange
-    );
+    this.connection.sendNotification('textDocument/didChange', textDocumentChange);
     documentInfo.version++;
   }
 
@@ -228,28 +219,17 @@ export class LspWsConnection
       } as protocol.VersionedTextDocumentIdentifier,
       text: documentInfo.text
     };
-    void this.connection.sendNotification(
-      'textDocument/didSave',
-      textDocumentChange
-    );
+    this.connection.sendNotification('textDocument/didSave', textDocumentChange);
   }
 
-  public sendConfigurationChange(
-    settings: protocol.DidChangeConfigurationParams
-  ) {
+  public sendConfigurationChange(settings: protocol.DidChangeConfigurationParams) {
     if (!this.isReady) {
       return;
     }
 
-    void this.connection.sendNotification(
-      'workspace/didChangeConfiguration',
-      settings
-    );
+    this.connection.sendNotification('workspace/didChangeConfiguration', settings);
   }
 
-  /**
-   * @deprecated
-   */
   public async getHoverTooltip(
     location: IPosition,
     documentInfo: IDocumentInfo,
@@ -281,9 +261,6 @@ export class LspWsConnection
     return hover;
   }
 
-  /**
-   * @deprecated
-   */
   public async getCompletion(
     location: IPosition,
     token: ITokenInfo,
@@ -328,10 +305,7 @@ export class LspWsConnection
       return;
     }
     void this.connection
-      .sendRequest<protocol.CompletionItem>(
-        'completionItem/resolve',
-        completionItem
-      )
+      .sendRequest<protocol.CompletionItem>('completionItem/resolve', completionItem)
       .then(result => {
         this.emit('completionResolved', result);
       });
@@ -384,7 +358,6 @@ export class LspWsConnection
 
   /**
    * Request the locations of all matching document symbols
-   * @deprecated
    */
   public async getDocumentHighlights(
     location: IPosition,
@@ -395,17 +368,18 @@ export class LspWsConnection
       return;
     }
 
-    const highlights = await this.connection.sendRequest<
-      protocol.DocumentHighlight[]
-    >('textDocument/documentHighlight', {
-      textDocument: {
-        uri: documentInfo.uri
-      },
-      position: {
-        line: location.line,
-        character: location.ch
-      }
-    } as protocol.TextDocumentPositionParams);
+    const highlights = await this.connection.sendRequest<protocol.DocumentHighlight[]>(
+      'textDocument/documentHighlight',
+      {
+        textDocument: {
+          uri: documentInfo.uri
+        },
+        position: {
+          line: location.line,
+          character: location.ch
+        }
+      } as protocol.TextDocumentPositionParams
+    );
 
     if (emit) {
       this.emit('highlight', highlights, documentInfo.uri);
@@ -417,7 +391,6 @@ export class LspWsConnection
   /**
    * Request a link to the definition of the current symbol. The results will not be displayed
    * unless they are within the same file URI
-   * @deprecated
    */
   public async getDefinition(
     location: IPosition,
@@ -453,7 +426,6 @@ export class LspWsConnection
   /**
    * Request a link to the type definition of the current symbol. The results will not be displayed
    * unless they are within the same file URI
-   * @deprecated
    */
   public async getTypeDefinition(
     location: IPosition,
@@ -489,7 +461,6 @@ export class LspWsConnection
   /**
    * Request a link to the implementation of the current symbol. The results will not be displayed
    * unless they are within the same file URI
-   * @deprecated
    */
   public getImplementation(location: IPosition, documentInfo: IDocumentInfo) {
     if (!this.isReady || !this.isImplementationSupported()) {
@@ -517,7 +488,6 @@ export class LspWsConnection
   /**
    * Request a link to all references to the current symbol. The results will not be displayed
    * unless they are within the same file URI
-   * @deprecated
    */
   public async getReferences(
     location: IPosition,
@@ -555,7 +525,6 @@ export class LspWsConnection
 
   /**
    * The characters that trigger completion automatically.
-   * @deprecated
    */
   public getLanguageCompletionCharacters(): string[] {
     return this.serverCapabilities?.completionProvider?.triggerCharacters || [];
@@ -563,17 +532,13 @@ export class LspWsConnection
 
   /**
    * The characters that trigger signature help automatically.
-   * @deprecated
    */
   public getLanguageSignatureCharacters(): string[] {
-    return (
-      this.serverCapabilities?.signatureHelpProvider?.triggerCharacters || []
-    );
+    return this.serverCapabilities?.signatureHelpProvider?.triggerCharacters || [];
   }
 
   /**
    * Does the server support go to definition?
-   * @deprecated
    */
   public isDefinitionSupported() {
     return !!this.serverCapabilities?.definitionProvider;
@@ -581,7 +546,6 @@ export class LspWsConnection
 
   /**
    * Does the server support go to type definition?
-   * @deprecated
    */
   public isTypeDefinitionSupported() {
     return !!this.serverCapabilities?.typeDefinitionProvider;
@@ -589,7 +553,6 @@ export class LspWsConnection
 
   /**
    * Does the server support go to implementation?
-   * @deprecated
    */
   public isImplementationSupported() {
     return !!this.serverCapabilities?.implementationProvider;
@@ -597,7 +560,6 @@ export class LspWsConnection
 
   /**
    * Does the server support find all references?
-   * @deprecated
    */
   public isReferencesSupported() {
     return !!this.serverCapabilities?.referencesProvider;
@@ -606,8 +568,8 @@ export class LspWsConnection
   protected onServerInitialized(params: protocol.InitializeResult) {
     this.isInitialized = true;
     this.serverCapabilities = params.capabilities;
-    void this.connection.sendNotification('initialized', {});
-    void this.connection.sendNotification('workspace/didChangeConfiguration', {
+    this.connection.sendNotification('initialized', {});
+    this.connection.sendNotification('workspace/didChangeConfiguration', {
       settings: {}
     });
     this.emit('serverInitialized', this.serverCapabilities);
