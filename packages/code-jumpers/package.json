@@ -52,7 +52,7 @@
     "@jupyterlab/testutils": "^3.1.0",
     "@jupyterlab/translation": "^3.1.0",
     "rimraf": "^3.0.2",
-    "typescript": "~4.1.3"
+    "typescript": "~4.9.4"
   },
   "jupyterlab": {
     "extension": false,
