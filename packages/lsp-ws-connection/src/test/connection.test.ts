@@ -180,7 +180,9 @@ describe('LspWsConnection', () => {
 
     // Send the messages
     expect(mockSocket.send.callCount).equal(1);
-    expect(JSON.parse(mockSocket.send.firstCall.args[0]).method).equal('initialize');
+    expect(JSON.parse(mockSocket.send.firstCall.args[0]).method).equal(
+      'initialize'
+    );
   });
 
   describe('register/unregister capability', () => {

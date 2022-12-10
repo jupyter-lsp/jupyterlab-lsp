@@ -29,7 +29,10 @@ import {
  *  - initializeParams() was extracted, and can be modified by subclasses
  *  - typescript 3.7 was adopted to clean up deep references
  */
-export class LspWsConnection extends events.EventEmitter implements ILspConnection {
+export class LspWsConnection
+  extends events.EventEmitter
+  implements ILspConnection
+{
   public isConnected = false;
   public isInitialized = false;
   public documentInfo: ILspOptions;
@@ -164,14 +167,16 @@ export class LspWsConnection extends events.EventEmitter implements ILspConnecti
 
     const message: protocol.InitializeParams = this.initializeParams();
 
-    this.connection.sendRequest<protocol.InitializeResult>('initialize', message).then(
-      params => {
-        this.onServerInitialized(params);
-      },
-      e => {
-        console.warn('lsp-ws-connection initialization failure', e);
-      }
-    );
+    this.connection
+      .sendRequest<protocol.InitializeResult>('initialize', message)
+      .then(
+        params => {
+          this.onServerInitialized(params);
+        },
+        e => {
+          console.warn('lsp-ws-connection initialization failure', e);
+        }
+      );
   }
 
   sendOpen(documentInfo: IDocumentInfo) {
@@ -183,7 +188,10 @@ export class LspWsConnection extends events.EventEmitter implements ILspConnecti
         version: documentInfo.version
       } as protocol.TextDocumentItem
     };
-    this.connection.sendNotification('textDocument/didOpen', textDocumentMessage);
+    this.connection.sendNotification(
+      'textDocument/didOpen',
+      textDocumentMessage
+    );
     this.openedUris.set(documentInfo.uri, true);
     this.sendChange(documentInfo);
   }
@@ -203,7 +211,10 @@ export class LspWsConnection extends events.EventEmitter implements ILspConnecti
       } as protocol.VersionedTextDocumentIdentifier,
       contentChanges: [{ text: documentInfo.text }]
     };
-    this.connection.sendNotification('textDocument/didChange', textDocumentChange);
+    this.connection.sendNotification(
+      'textDocument/didChange',
+      textDocumentChange
+    );
     documentInfo.version++;
   }
 
@@ -219,15 +230,23 @@ export class LspWsConnection extends events.EventEmitter implements ILspConnecti
       } as protocol.VersionedTextDocumentIdentifier,
       text: documentInfo.text
     };
-    this.connection.sendNotification('textDocument/didSave', textDocumentChange);
+    this.connection.sendNotification(
+      'textDocument/didSave',
+      textDocumentChange
+    );
   }
 
-  public sendConfigurationChange(settings: protocol.DidChangeConfigurationParams) {
+  public sendConfigurationChange(
+    settings: protocol.DidChangeConfigurationParams
+  ) {
     if (!this.isReady) {
       return;
     }
 
-    this.connection.sendNotification('workspace/didChangeConfiguration', settings);
+    this.connection.sendNotification(
+      'workspace/didChangeConfiguration',
+      settings
+    );
   }
 
   public async getHoverTooltip(
@@ -305,7 +324,10 @@ export class LspWsConnection extends events.EventEmitter implements ILspConnecti
       return;
     }
     void this.connection
-      .sendRequest<protocol.CompletionItem>('completionItem/resolve', completionItem)
+      .sendRequest<protocol.CompletionItem>(
+        'completionItem/resolve',
+        completionItem
+      )
       .then(result => {
         this.emit('completionResolved', result);
       });
@@ -368,18 +390,17 @@ export class LspWsConnection extends events.EventEmitter implements ILspConnecti
       return;
     }
 
-    const highlights = await this.connection.sendRequest<protocol.DocumentHighlight[]>(
-      'textDocument/documentHighlight',
-      {
-        textDocument: {
-          uri: documentInfo.uri
-        },
-        position: {
-          line: location.line,
-          character: location.ch
-        }
-      } as protocol.TextDocumentPositionParams
-    );
+    const highlights = await this.connection.sendRequest<
+      protocol.DocumentHighlight[]
+    >('textDocument/documentHighlight', {
+      textDocument: {
+        uri: documentInfo.uri
+      },
+      position: {
+        line: location.line,
+        character: location.ch
+      }
+    } as protocol.TextDocumentPositionParams);
 
     if (emit) {
       this.emit('highlight', highlights, documentInfo.uri);
@@ -534,7 +555,9 @@ export class LspWsConnection extends events.EventEmitter implements ILspConnecti
    * The characters that trigger signature help automatically.
    */
   public getLanguageSignatureCharacters(): string[] {
-    return this.serverCapabilities?.signatureHelpProvider?.triggerCharacters || [];
+    return (
+      this.serverCapabilities?.signatureHelpProvider?.triggerCharacters || []
+    );
   }
 
   /**

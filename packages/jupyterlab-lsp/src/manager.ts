@@ -169,7 +169,7 @@ export class LanguageServerManager implements ILanguageServerManager {
     for (let key of Object.keys(sessions)) {
       let id: TLanguageServerId = key as TLanguageServerId;
       if (this._sessions.has(id)) {
-        Object.assign(this._sessions.get(id), sessions[key]);
+        Object.assign(this._sessions.get(id) || {}, sessions[key]);
       } else {
         this._sessions.set(id, sessions[key]);
       }

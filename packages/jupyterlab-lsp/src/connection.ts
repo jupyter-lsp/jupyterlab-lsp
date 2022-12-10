@@ -452,7 +452,7 @@ export class LSPConnection extends LspWsConnection {
           method,
           message: params
         });
-        this.connection.sendNotification(method, params).catch(console.error);
+        this.connection.sendNotification(method, params);
       });
     }
 
@@ -618,9 +618,10 @@ export class LSPConnection extends LspWsConnection {
       } as lsp.VersionedTextDocumentIdentifier,
       contentChanges: changeEvents
     };
-    this.connection
-      .sendNotification('textDocument/didChange', textDocumentChange)
-      .catch(console.error);
+    this.connection.sendNotification(
+      'textDocument/didChange',
+      textDocumentChange
+    );
     documentInfo.version++;
   }
 

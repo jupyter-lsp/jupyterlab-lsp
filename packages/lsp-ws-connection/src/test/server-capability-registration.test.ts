@@ -67,7 +67,9 @@ describe('ServerCapabilities client registration', () => {
 
       if (typeof capabilityOptions === 'boolean') {
         // eslint-disable-next-line jest/no-conditional-expect
-        expect((newServerCapabilities as any)[capability]).equal(capabilityOptions);
+        expect((newServerCapabilities as any)[capability]).equal(
+          capabilityOptions
+        );
       } else {
         // eslint-disable-next-line jest/no-conditional-expect
         expect((newServerCapabilities as any)[capability]).to.deep.equal(
