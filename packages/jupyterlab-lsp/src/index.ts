@@ -174,6 +174,7 @@ export class LSPExtension implements ILSPExtension {
   ) {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
     this.language_server_manager = new LanguageServerManager({
+      settings: app.serviceManager.serverSettings,
       console: this.console.scope('LanguageServerManager')
     });
     this.connection_manager = new DocumentConnectionManager({

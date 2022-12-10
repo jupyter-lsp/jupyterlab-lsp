@@ -56,6 +56,7 @@ export type TLanguageServerConfigurations = Partial<
 export interface ILanguageServerManager {
   sessionsChanged: ISignal<ILanguageServerManager, void>;
   sessions: TSessionMap;
+  settings: ServerConnection.ISettings;
   /**
    * An ordered list of matching >running< sessions, with servers of higher priority higher in the list
    */
