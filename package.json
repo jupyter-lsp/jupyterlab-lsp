@@ -37,9 +37,7 @@
   "prettier": {
     "arrowParens": "avoid",
     "singleQuote": true,
-    "trailingComma": "none",
-    "printWidth": 88,
-    "proseWrap": "always"
+    "trailingComma": "none"
   },
   "private": true,
   "resolutions": {
