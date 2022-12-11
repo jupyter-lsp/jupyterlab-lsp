@@ -28,6 +28,7 @@
 - maintenance:
   - bump minimum required JupyterLab version to 3.3 (`>=3.3.0,<4.0.0a0`)
   - bump minimum required Node.js version to 14.0 (12.0 reached EOL in April)
+  - use newer `@jupyterlab/builder` which provides third-party license information ([#882])
 
 [#724]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/724
 [#738]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/738
@@ -44,6 +45,16 @@
 [#864]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/864
 [#880]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/880
 [#882]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/882
+
+### `lsp-ws-connection 0.7.1` (not-yet-released)
+
+- downstreams
+
+  - includes sourcemaps for easier debugging ([#882])
+
+- maintenance:
+
+  - handle notifcation promises more explicitly ([#882])
 
 ### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
 
@@ -632,7 +643,7 @@
 
 - bug fixes
 
-  - bump version of lsp-ws-connection dependency to fix the LaTeX server issues (see [#337])
+  - bump version of `lsp-ws-connection` dependency to fix the LaTeX server issues (see [#337])
 
 [#337]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/337
 

@@ -63,7 +63,7 @@
     "@jupyter-lsp/theme-material": "~2.1.1",
     "@jupyter-lsp/theme-vscode": "~2.1.1",
     "lodash.mergewith": "^4.6.1",
-    "lsp-ws-connection": "~0.7.0"
+    "lsp-ws-connection": "~0.7.1"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.4.3",
