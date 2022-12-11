@@ -1453,7 +1453,7 @@
 "@jupyter-lsp/jupyterlab-lsp-example-extractor@file:packages/_example-extractor":
   version "0.0.0"
   dependencies:
-    "@jupyter-lsp/jupyterlab-lsp" "^4.0"
+    "@jupyter-lsp/jupyterlab-lsp" "^4.0.0-alpha.0"
 
 "@jupyter-lsp/jupyterlab-lsp-klingon-integration@file:packages/_klingon-integration":
   version "0.0.0"
@@ -1461,7 +1461,7 @@
     "@jupyterlab/application" "^3.1.0"
 
 "@jupyter-lsp/jupyterlab-lsp@file:packages/jupyterlab-lsp":
-  version "4.0.0"
+  version "4.0.0-alpha.0"
   dependencies:
     "@jupyter-lsp/code-jumpers" "~1.2.0"
     "@jupyter-lsp/completion-theme" "~3.3.0"
@@ -6085,9 +6085,9 @@ decimal.js@^10.2.1:
   integrity sha512-Nv6ENEzyPQ6AItkGwLE2PGKinZZ9g59vSh2BeH6NqPu0OTKZ5ruJsVqh/orbAnqXc9pBbgXAIrc2EyaCj8NpGg==
 
 decode-uri-component@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.0.tgz#eb3913333458775cb84cd1a1fae062106bb87545"
-  integrity sha512-hjf+xovcEn31w/EUYdTXQh/8smFL/dzYjohQGEIgjyNavaJfBY2p5F527Bo1VPATxv0VYTUC2bOcXvqFwk78Og==
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.2.tgz#e69dbe25d37941171dd540e024c444cd5188e1e9"
+  integrity sha512-FqUYQ+8o158GyGTrMFJms9qh3CqTKvAqgqsTnkLI8sKu0028orqBhxNMFkFen0zGyg6epACD32pjVk58ngIErQ==
 
 decompress-response@^3.3.0:
   version "3.3.0"
