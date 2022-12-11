@@ -6,7 +6,7 @@ Suite Setup         Setup Suite For Screenshots    hover
 Test Setup          Setup Hover Test
 Test Teardown       Clean Up After Working With File    Hover.ipynb
 
-Force Tags          feature:hover
+Test Tags           feature:hover
 
 
 *** Variables ***

@@ -1,6 +1,6 @@
 *** Settings ***
 Library           SeleniumLibrary
-Force Tags        atest:example
+Test Tags         atest:example
 
 *** Variables ***
 ${ABC}            abc

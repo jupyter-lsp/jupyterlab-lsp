@@ -5,7 +5,7 @@ Suite Setup         Setup Suite For Screenshots    signature
 Test Setup          Setup Notebook    Python    Signature.ipynb
 Test Teardown       Clean Up After Working With File    Signature.ipynb
 
-Force Tags          feature:signature
+Test Tags           feature:signature
 
 
 *** Variables ***

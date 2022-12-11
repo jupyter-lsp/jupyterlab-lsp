@@ -47,7 +47,7 @@ jobs:
         lab: ['>=3.3.0,<4.0.0a0']
         r: ['>=4']
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: cschleiden/replace-tokens@v1
         with:
@@ -158,7 +158,6 @@ jobs:
           miniforge-variant: Mambaforge
 
       - name: Install minimal build deps
-        shell: bash -l {0}
         run: mamba install -n test -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
 
       - name: Cache node_modules
@@ -210,7 +209,7 @@ jobs:
           sha256sum * | tee SHA256SUMS
 
       - name: Publish builds
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
@@ -239,7 +238,7 @@ jobs:
             lab: '>=3.4.0,<4'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set JupyterLab and Node versions
         uses: cschleiden/replace-tokens@v1
@@ -297,7 +296,7 @@ jobs:
           key: |
             ${{ env.CACHE_EPOCH }}-julia-test-${{ runner.os }}-${{ env.JULIA_LANGSERVER }}
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
@@ -395,11 +394,11 @@ jobs:
             py_cmd: python
     steps:
       - name: Install Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
           architecture: 'x64'
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
@@ -415,10 +414,10 @@ jobs:
       - name: Validate the install
         run: |
           set -eux
-          jupyter labextension list
-          jupyter server extension list
-          jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
-          jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
+          ${{ matrix.py_cmd }} -m jupyter labextension list
+          ${{ matrix.py_cmd }} -m jupyter server extension list
+          ${{ matrix.py_cmd }} -m jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
+          ${{ matrix.py_cmd }} -m jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
 
   source:
     name: smoke source install ${{ matrix.os }} py${{ matrix.python }} lab${{ matrix.lab }}
@@ -437,23 +436,24 @@ jobs:
             lab: '>=3.3,<4'
     steps:
       - name: Install Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
           architecture: 'x64'
       - name: Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.nodejs }}
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
       - name: Install the prerequisites
         run: python -m pip install --upgrade pip wheel setuptools
       - name: Install JupyterLab
-        shell: bash -l {0}
         run: python -m pip install 'jupyterlab${{ matrix.lab }}'
+      - name: Install Notebook (to test serverextension)
+        run: python -m pip install 'notebook'
       - name: Install the server package
         run: cd dist && python -m pip install -vv jupyter_lsp*.whl
       - name: install the source extension

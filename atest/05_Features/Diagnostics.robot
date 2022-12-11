@@ -5,7 +5,7 @@ Suite Setup         Setup Suite For Screenshots    diagnostics
 Test Setup          Setup Notebook    Python    Diagnostic.ipynb
 Test Teardown       Clean Up After Working With File    Diagnostic.ipynb
 
-Force Tags          feature:diagnostics
+Test Tags           feature:diagnostics
 # note: diagnostics are also tested in 01_Editor and 04_Interface/DiagnosticsPanel.robot
 
 

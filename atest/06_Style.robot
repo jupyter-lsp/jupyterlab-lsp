@@ -5,7 +5,7 @@ Library         Collections
 
 Suite Setup     Setup Suite For Screenshots    style
 
-Force Tags      ui:editor    aspect:style
+Test Tags       ui:editor    aspect:style
 
 
 *** Variables ***

@@ -5,7 +5,7 @@ Resource            ./Keywords.resource
 
 Suite Setup         Setup Suite For Screenshots    config
 
-Force Tags          feature:config
+Test Tags           feature:config
 
 
 *** Test Cases ***
