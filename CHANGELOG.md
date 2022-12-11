@@ -31,6 +31,21 @@
   - bump minimum required Node.js version to 14.0 (12.0 reached EOL in April)
   - use newer `@jupyterlab/builder` which provides third-party license information ([#882])
 
+### `lsp-ws-connection 0.7.1` (not-yet-released)
+
+- downstreams:
+  - includes sourcemaps for easier debugging ([#882])
+- maintenance:
+  - handle notifcation promises more explicitly ([#882])
+
+### `jupyter-lsp 1.6.0` (not-yet-released)
+
+- dependencies:
+  - uses `importlib_metadata` (or `importlib.metadata` on 3.10+) for `entry_points` ([#882])
+- performance:
+  - `entry_point` discovery is deferred until server has started, improving
+    `jupyter_server` startup time ([#852])
+
 [#724]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/724
 [#738]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/738
 [#778]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/778
@@ -42,19 +57,10 @@
 [#829]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/829
 [#833]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/833
 [#836]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/836
+[#852]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/852
 [#860]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/860
 [#864]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/864
 [#882]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/882
-
-### `lsp-ws-connection 0.7.1` (not-yet-released)
-
-- downstreams
-
-  - includes sourcemaps for easier debugging ([#882])
-
-- maintenance:
-
-  - handle notifcation promises more explicitly ([#882])
 
 ### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
 
