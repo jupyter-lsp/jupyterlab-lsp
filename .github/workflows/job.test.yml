@@ -58,15 +58,6 @@ jobs:
           lab: '${{ matrix.lab }}'
           nodejs: '${{ matrix.nodejs }}'
 
-      - name: Cache conda
-        uses: actions/cache@v3
-        with:
-          path: ~/conda_pkgs_dir
-          key: |
-            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-lint-${{ hashFiles('requirements/github-actions.yml', 'requirements/lint.yml') }}
-          restore-keys: |
-            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-lint-
-
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
@@ -122,6 +113,10 @@ jobs:
       - name: Check distributions
         run: python scripts/distcheck.py
 
+      - name: Rename uncached conda packages
+        shell: bash
+        run: mv "${CONDA_PKGS_DIR}" "${CONDA_PKGS_DIR}_do_not_cache"
+
   build:
     name: build
     runs-on: ${{ matrix.os }}-latest
@@ -143,19 +138,11 @@ jobs:
           lab: '${{ matrix.lab }}'
           nodejs: '${{ matrix.nodejs }}'
 
-      - name: Cache conda
-        uses: actions/cache@v3
-        with:
-          path: ~/conda_pkgs_dir
-          key: |
-            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-build-${{ hashFiles('requirements/github-actions.yml') }}
-          restore-keys: |
-            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-build-
-
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
         with:
           miniforge-variant: Mambaforge
+          use-mamba: true
 
       - name: Install minimal build deps
         run: mamba install -n test -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
@@ -214,6 +201,10 @@ jobs:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
 
+      - name: Rename uncached conda packages
+        shell: bash
+        run: mv "${CONDA_PKGS_DIR}" "${CONDA_PKGS_DIR}_do_not_cache"
+
   acceptance:
     runs-on: ${{ matrix.os }}-latest
     name: atest ${{ matrix.os }} py${{ matrix.python }} r${{ matrix.r }}
@@ -249,15 +240,6 @@ jobs:
         env:
           lab: '${{ matrix.lab }}'
           nodejs: '${{ matrix.nodejs }}'
-
-      - name: Cache conda
-        uses: actions/cache@v3
-        with:
-          path: ~/conda_pkgs_dir
-          key: |
-            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-atest-${{ hashFiles('requirements/github-actions.yml') }}
-          restore-keys: |
-            ${{ env.CACHE_EPOCH }}-${{ matrix.os }}-${{ matrix.python }}-atest-
 
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v2
@@ -356,6 +338,10 @@ jobs:
           name: ${{ job.status }} Robot ${{ matrix.os }} Python ${{ matrix.python }} ${{ github.run_number }}
           path: ./atest/output
         if: always()
+
+      - name: Rename uncached conda packages
+        shell: bash
+        run: mv "${CONDA_PKGS_DIR}" "${CONDA_PKGS_DIR}_do_not_cache"
 
   smoke:
     name: smoke ${{ matrix.os }} py${{ matrix.python }}
