@@ -44,7 +44,7 @@
     "**/node-gyp": "8.4.1",
     "prettier": "^2.8.1",
     "typescript": "~4.9.4",
-    "verdaccio": "file:packages/_not-a-package"
+    "verdaccio": "file:scripts/_not-a-package"
   },
   "scripts": {
     "bootstrap": "jlpm --no-optional --prefer-offline && jlpm deduplicate && lerna bootstrap && jlpm clean && jlpm build && jlpm lint",
