@@ -17,8 +17,9 @@
   - changed NPM packages namespace from `@krassowski` to `@jupyter-lsp` ([#862])
   - move client capabilities to features ([#738])
 - downstreams:
-  - use the host application's HTTP settings for requests to the REST and WebSocket routes ([#880])
+  - use the host application's HTTP settings for requests to the REST and WebSocket routes ([#881])
   - source maps are provided for improved debugging ([#882])
+  - the derived JSON Schema types are avilable as `SCHEMA` ([#882])
 - documentation:
   - add missing `--channel` to conda instruction for texlab ([#789], thanks @justin-f-perez)
   - remove references to pylsp fork ([#800] and [#814], thanks @joelostblom and @nickfong)
@@ -43,7 +44,6 @@
 [#836]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/836
 [#860]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/860
 [#864]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/864
-[#880]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/880
 [#882]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/882
 
 ### `lsp-ws-connection 0.7.1` (not-yet-released)

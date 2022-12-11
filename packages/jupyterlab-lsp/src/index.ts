@@ -3,6 +3,9 @@
 /** General public tokens, including lumino Tokens and namespaces */
 export * from './tokens';
 
+/** Generated JSON Schema types for server responses and settings */
+export * as SCHEMA from './_schema';
+
 /** Component- and feature-specific APIs */
 export * from './api';
 
