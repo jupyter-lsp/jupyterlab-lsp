@@ -15,7 +15,8 @@
   "license": "BSD-3-Clause",
   "author": "JupyterLab-LSP Development Team",
   "files": [
-    "{lib,style,schema,src}/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css,json,ts,tsx}"
+    "{lib,style,schema,src}/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css,json,ts,tsx}",
+    "LICENSE"
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

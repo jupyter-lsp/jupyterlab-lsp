@@ -11,7 +11,8 @@
   "files": [
     "lib/*.d.ts",
     "lib/*.js.map",
-    "lib/*.js"
+    "lib/*.js",
+    "LICENSE"
   ],
   "sideEffects": false,
   "main": "lib/index.js",

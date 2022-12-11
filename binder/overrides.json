@@ -1,5 +1,5 @@
 {
-  "@krassowski/jupyterlab-lsp:plugin": {
+  "@jupyter-lsp/jupyterlab-lsp:plugin": {
     "language_servers": {
       "robotframework_ls": {
         "serverSettings": {

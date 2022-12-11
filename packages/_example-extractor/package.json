@@ -7,7 +7,8 @@
   "types": "lib/index.d.ts",
   "author": "JupyterLab-LSP Development Team",
   "files": [
-    "lib/**/*.{js,ts}"
+    "lib/**/*.{js,ts}",
+    "LICENSE"
   ],
   "dependencies": {
     "@jupyter-lsp/jupyterlab-lsp": "^4.0.0-alpha.0"
