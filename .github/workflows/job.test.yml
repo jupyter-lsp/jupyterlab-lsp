@@ -132,7 +132,7 @@ jobs:
         lab: ['>=3.1.0,<4.0.0a0']
         r: ['>=4']
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: cschleiden/replace-tokens@v1
         with:
@@ -351,7 +351,7 @@ jobs:
         shell: bash
 
       - name: Publish browser test output
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ job.status }} Robot ${{ matrix.os }} Python ${{ matrix.python }} ${{ github.run_number }}
           path: ./atest/output
