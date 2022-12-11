@@ -24,13 +24,13 @@
     "lsp",
     "languageserver"
   ],
-  "homepage": "https://github.com/krassowski/jupyterlab-lsp/tree/master/packages/lsp-ws-connection",
-  "repository": "github:krassowski/jupyterlab-lsp",
+  "homepage": "https://github.com/jupyter-lsp/jupyterlab-lsp/tree/master/packages/lsp-ws-connection",
+  "repository": "github:jupyter-lsp/jupyterlab-lsp",
   "dependencies": {
     "vscode-jsonrpc": "^6.0.0",
     "vscode-languageserver-protocol": "^3.16.0",
     "vscode-languageserver-types": "^3.16.0",
-    "vscode-ws-jsonrpc": "0.2.0"
+    "vscode-ws-jsonrpc": "~1.0.2"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

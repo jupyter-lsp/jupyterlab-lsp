@@ -188,7 +188,7 @@ export class LspWsConnection
         version: documentInfo.version
       } as protocol.TextDocumentItem
     };
-    this.connection.sendNotification(
+    void this.connection.sendNotification(
       'textDocument/didOpen',
       textDocumentMessage
     );
@@ -211,7 +211,7 @@ export class LspWsConnection
       } as protocol.VersionedTextDocumentIdentifier,
       contentChanges: [{ text: documentInfo.text }]
     };
-    this.connection.sendNotification(
+    void this.connection.sendNotification(
       'textDocument/didChange',
       textDocumentChange
     );
@@ -230,7 +230,7 @@ export class LspWsConnection
       } as protocol.VersionedTextDocumentIdentifier,
       text: documentInfo.text
     };
-    this.connection.sendNotification(
+    void this.connection.sendNotification(
       'textDocument/didSave',
       textDocumentChange
     );
@@ -243,12 +243,15 @@ export class LspWsConnection
       return;
     }
 
-    this.connection.sendNotification(
+    void this.connection.sendNotification(
       'workspace/didChangeConfiguration',
       settings
     );
   }
 
+  /**
+   * @deprecated
+   */
   public async getHoverTooltip(
     location: IPosition,
     documentInfo: IDocumentInfo,
@@ -280,6 +283,9 @@ export class LspWsConnection
     return hover;
   }
 
+  /**
+   * @deprecated
+   */
   public async getCompletion(
     location: IPosition,
     token: ITokenInfo,
@@ -380,6 +386,7 @@ export class LspWsConnection
 
   /**
    * Request the locations of all matching document symbols
+   * @deprecated
    */
   public async getDocumentHighlights(
     location: IPosition,
@@ -412,6 +419,7 @@ export class LspWsConnection
   /**
    * Request a link to the definition of the current symbol. The results will not be displayed
    * unless they are within the same file URI
+   * @deprecated
    */
   public async getDefinition(
     location: IPosition,
@@ -447,6 +455,7 @@ export class LspWsConnection
   /**
    * Request a link to the type definition of the current symbol. The results will not be displayed
    * unless they are within the same file URI
+   * @deprecated
    */
   public async getTypeDefinition(
     location: IPosition,
@@ -482,6 +491,7 @@ export class LspWsConnection
   /**
    * Request a link to the implementation of the current symbol. The results will not be displayed
    * unless they are within the same file URI
+   * @deprecated
    */
   public getImplementation(location: IPosition, documentInfo: IDocumentInfo) {
     if (!this.isReady || !this.isImplementationSupported()) {
@@ -509,6 +519,7 @@ export class LspWsConnection
   /**
    * Request a link to all references to the current symbol. The results will not be displayed
    * unless they are within the same file URI
+   * @deprecated
    */
   public async getReferences(
     location: IPosition,
@@ -546,6 +557,7 @@ export class LspWsConnection
 
   /**
    * The characters that trigger completion automatically.
+   * @deprecated
    */
   public getLanguageCompletionCharacters(): string[] {
     return this.serverCapabilities?.completionProvider?.triggerCharacters || [];
@@ -553,6 +565,7 @@ export class LspWsConnection
 
   /**
    * The characters that trigger signature help automatically.
+   * @deprecated
    */
   public getLanguageSignatureCharacters(): string[] {
     return (
@@ -562,6 +575,7 @@ export class LspWsConnection
 
   /**
    * Does the server support go to definition?
+   * @deprecated
    */
   public isDefinitionSupported() {
     return !!this.serverCapabilities?.definitionProvider;
@@ -569,6 +583,7 @@ export class LspWsConnection
 
   /**
    * Does the server support go to type definition?
+   * @deprecated
    */
   public isTypeDefinitionSupported() {
     return !!this.serverCapabilities?.typeDefinitionProvider;
@@ -576,6 +591,7 @@ export class LspWsConnection
 
   /**
    * Does the server support go to implementation?
+   * @deprecated
    */
   public isImplementationSupported() {
     return !!this.serverCapabilities?.implementationProvider;
@@ -583,6 +599,7 @@ export class LspWsConnection
 
   /**
    * Does the server support find all references?
+   * @deprecated
    */
   public isReferencesSupported() {
     return !!this.serverCapabilities?.referencesProvider;
@@ -591,8 +608,8 @@ export class LspWsConnection
   protected onServerInitialized(params: protocol.InitializeResult) {
     this.isInitialized = true;
     this.serverCapabilities = params.capabilities;
-    this.connection.sendNotification('initialized', {});
-    this.connection.sendNotification('workspace/didChangeConfiguration', {
+    void this.connection.sendNotification('initialized', {});
+    void this.connection.sendNotification('workspace/didChangeConfiguration', {
       settings: {}
     });
     this.emit('serverInitialized', this.serverCapabilities);
