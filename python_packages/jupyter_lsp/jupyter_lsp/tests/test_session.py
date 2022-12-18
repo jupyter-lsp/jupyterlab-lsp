@@ -5,8 +5,8 @@ import pytest
 from ..schema import SERVERS_RESPONSE
 
 
-def assert_status_set(handler, expected_statuses, language_server=None):
-    handler.get()
+async def assert_status_set(handler, expected_statuses, language_server=None):
+    await handler.get()
     payload = handler._payload
 
     errors = list(SERVERS_RESPONSE.iter_errors(payload))
@@ -28,13 +28,13 @@ async def test_start_known(known_server, handlers, jsonrpc_init_msg):
 
     manager.initialize()
 
-    assert_status_set(handler, {"not_started"})
+    await assert_status_set(handler, {"not_started"})
 
-    ws_handler.open(known_server)
+    await ws_handler.open(known_server)
     session = manager.sessions[ws_handler.language_server]
     assert session.process is not None
 
-    assert_status_set(handler, {"started"}, known_server)
+    await assert_status_set(handler, {"started"}, known_server)
 
     await ws_handler.on_message(jsonrpc_init_msg)
 
@@ -50,8 +50,8 @@ async def test_start_known(known_server, handlers, jsonrpc_init_msg):
     assert not session.handlers
     assert not session.process
 
-    assert_status_set(handler, {"stopped"}, known_server)
-    assert_status_set(handler, {"stopped", "not_started"})
+    await assert_status_set(handler, {"stopped"}, known_server)
+    await assert_status_set(handler, {"stopped", "not_started"})
 
 
 @pytest.mark.asyncio
@@ -61,18 +61,18 @@ async def test_start_unknown(known_unknown_server, handlers, jsonrpc_init_msg):
     manager = handler.manager
     manager.initialize()
 
-    assert_status_set(handler, {"not_started"})
+    await assert_status_set(handler, {"not_started"})
 
-    ws_handler.open(known_unknown_server)
+    await ws_handler.open(known_unknown_server)
 
-    assert_status_set(handler, {"not_started"})
+    await assert_status_set(handler, {"not_started"})
 
     await ws_handler.on_message(jsonrpc_init_msg)
-    assert_status_set(handler, {"not_started"})
+    await assert_status_set(handler, {"not_started"})
     ws_handler.on_close()
 
     assert not manager.sessions.get(ws_handler.language_server)
-    assert_status_set(handler, {"not_started"})
+    await assert_status_set(handler, {"not_started"})
 
 
 @pytest.mark.asyncio
@@ -92,7 +92,7 @@ async def test_ping(handlers):
 
     assert ws_handler._ping_sent is False
 
-    ws_handler.open(a_server)
+    await ws_handler.open(a_server)
 
     assert ws_handler.ping_callback is not None and ws_handler.ping_callback.is_running
     await asyncio.sleep(ws_handler.ping_interval * 3)

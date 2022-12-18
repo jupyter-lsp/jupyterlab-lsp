@@ -3,6 +3,9 @@
 /** General public tokens, including lumino Tokens and namespaces */
 export * from './tokens';
 
+/** Generated JSON Schema types for server responses and settings */
+export * as SCHEMA from './_schema';
+
 /** Component- and feature-specific APIs */
 export * from './api';
 
@@ -174,6 +177,7 @@ export class LSPExtension implements ILSPExtension {
   ) {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
     this.language_server_manager = new LanguageServerManager({
+      settings: app.serviceManager.serverSettings,
       console: this.console.scope('LanguageServerManager')
     });
     this.connection_manager = new DocumentConnectionManager({
