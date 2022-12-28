@@ -6,7 +6,9 @@ import setuptools
 
 LABEXTENSIONS_DIR = Path("jupyterlab_lsp/labextensions")
 LABEXTENSIONS_INSTALL_DIR = Path("share") / "jupyter" / "labextensions"
-LAB_PACKAGE_PATH = LABEXTENSIONS_DIR / "@krassowski" / "jupyterlab-lsp" / "package.json"
+LAB_PACKAGE_PATH = (
+    LABEXTENSIONS_DIR / "@jupyter-lsp" / "jupyterlab-lsp" / "package.json"
+)
 
 
 def get_data_files():
@@ -20,7 +22,7 @@ def get_data_files():
 
     extension_files.append(
         (
-            str(LABEXTENSIONS_INSTALL_DIR / "@krassowski" / "jupyterlab-lsp"),
+            str(LABEXTENSIONS_INSTALL_DIR / "@jupyter-lsp" / "jupyterlab-lsp"),
             ["jupyterlab_lsp/install.json"],
         )
     )

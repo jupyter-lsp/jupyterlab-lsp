@@ -391,7 +391,8 @@ export namespace DocumentConnectionManager {
     virtual_document: VirtualDocument,
     language: string
   ): IURIs {
-    const wsBase = PageConfig.getBaseUrl().replace(/^http/, 'ws');
+    const { settings } = Private.getLanguageServerManager();
+    const wsBase = settings.wsUrl;
     const rootUri = PageConfig.getOption('rootUri');
     const virtualDocumentsUri = PageConfig.getOption('virtualDocumentsUri');
 
@@ -490,7 +491,8 @@ namespace Private {
     let connection = _connections.get(language_server_id);
 
     if (connection == null) {
-      const socket = new WebSocket(uris.socket);
+      const { settings } = Private.getLanguageServerManager();
+      const socket = new settings.WebSocket(uris.socket);
       const connection = new LSPConnection({
         languageId: language,
         serverUri: uris.server,

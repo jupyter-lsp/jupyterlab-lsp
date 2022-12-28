@@ -1,4 +1,9 @@
 import {
+  CodeJumper,
+  FileEditorJumper,
+  NotebookJumper
+} from '@jupyter-lsp/code-jumpers';
+import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
@@ -11,11 +16,6 @@ import { INotebookTracker } from '@jupyterlab/notebook';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
-import {
-  CodeJumper,
-  FileEditorJumper,
-  NotebookJumper
-} from '@krassowski/code-jumpers';
 import { AnyLocation } from 'lsp-ws-connection/lib/types';
 import type * as lsp from 'vscode-languageserver-protocol';
 

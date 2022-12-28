@@ -15,7 +15,7 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { WidgetAdapter } from '../adapters/adapter';
 import { PositionConverter } from '../converter';
-import { IEditorPosition } from '../positioning';
+import { IEditorPosition, is_equal } from '../positioning';
 
 const MIN_HEIGHT = 20;
 const MAX_HEIGHT = 250;
@@ -41,6 +41,8 @@ interface IFreeTooltipOptions extends Tooltip.IOptions {
   hideOnKeyPress?: boolean;
 }
 
+type Bundle = { 'text/plain': string } | { 'text/markdown': string };
+
 /**
  * Tooltip which can be placed  at any character, not only at the current position (derived from getCursorPosition)
  */
@@ -50,8 +52,10 @@ export class FreeTooltip extends Tooltip {
   constructor(protected options: IFreeTooltipOptions) {
     super(options);
     this._setGeometry();
-    // TODO: remove once https://github.com/jupyterlab/jupyterlab/pull/11010 is merged & released
-    const model = new MimeModel({ data: options.bundle });
+  }
+
+  setBundle(bundle: Bundle) {
+    const model = new MimeModel({ data: bundle });
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const content: IRenderMime.IRenderer = this._content;
@@ -99,35 +103,34 @@ export class FreeTooltip extends Tooltip {
       this.options.position == null
         ? editor.getCursorPosition()
         : this.options.position;
-
-    const end = editor.getOffsetAt(cursor);
-    const line = editor.getLine(cursor.line);
-
-    if (!line) {
-      return;
-    }
-
     let position: CodeEditor.IPosition | undefined;
 
-    switch (this.options.alignment) {
-      case 'start': {
-        const tokens = line.substring(0, end).split(/\W+/);
-        const last = tokens[tokens.length - 1];
-        const start = last ? end - last.length : end;
-        position = editor.getPositionAt(start);
-        break;
+    if (this.options.alignment) {
+      const end = editor.getOffsetAt(cursor);
+      const line = editor.getLine(cursor.line);
+
+      if (!line) {
+        return;
       }
-      case 'end': {
-        const tokens = line.substring(0, end).split(/\W+/);
-        const last = tokens[tokens.length - 1];
-        const start = last ? end - last.length : end;
-        position = editor.getPositionAt(start);
-        break;
+
+      switch (this.options.alignment) {
+        case 'start': {
+          const tokens = line.substring(0, end).split(/\W+/);
+          const last = tokens[tokens.length - 1];
+          const start = last ? end - last.length : end;
+          position = editor.getPositionAt(start);
+          break;
+        }
+        case 'end': {
+          const tokens = line.substring(0, end).split(/\W+/);
+          const last = tokens[tokens.length - 1];
+          const start = last ? end - last.length : end;
+          position = editor.getPositionAt(start);
+          break;
+        }
       }
-      default: {
-        position = cursor;
-        break;
-      }
+    } else {
+      position = cursor;
     }
 
     if (!position) {
@@ -138,17 +141,39 @@ export class FreeTooltip extends Tooltip {
     const style = window.getComputedStyle(this.node);
     const paddingLeft = parseInt(style.paddingLeft!, 10) || 0;
 
+    // When the editor is attached to the main area, contain the hover box
+    // to the full area available (rather than to the editor itself); the available
+    // area excludes the toolbar, hence the first Widget child between MainAreaWidget
+    // and editor is preferred.
+    const host =
+      (editor.host.closest('.jp-MainAreaWidget > .lm-Widget') as HTMLElement) ||
+      editor.host;
+
     // Calculate the geometry of the tooltip.
     HoverBox.setGeometry({
       anchor,
-      host: editor.host,
+      host: host,
       maxHeight: MAX_HEIGHT,
       minHeight: MIN_HEIGHT,
       node: this.node,
       offset: { horizontal: -1 * paddingLeft },
       privilege: this.options.privilege || 'below',
-      style: style
+      style: style,
+      // TODO: remove `ts-ignore` once minimum version is >=3.5
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      outOfViewDisplay: {
+        left: 'stick-inside',
+        right: 'stick-outside',
+        top: 'stick-outside',
+        bottom: 'stick-inside'
+      }
     });
+  }
+
+  setPosition(position: CodeEditor.IPosition) {
+    this.options.position = position;
+    this._setGeometry();
   }
 }
 
@@ -164,6 +189,12 @@ export namespace EditorTooltip {
   }
 }
 
+function markupToBundle(markup: lsProtocol.MarkupContent): Bundle {
+  return markup.kind === 'plaintext'
+    ? { 'text/plain': markup.value }
+    : { 'text/markdown': markup.value };
+}
+
 export class EditorTooltipManager {
   private currentTooltip: FreeTooltip | null = null;
   private currentOptions: EditorTooltip.IOptions | null;
@@ -175,10 +206,7 @@ export class EditorTooltipManager {
     this.currentOptions = options;
     let { markup, position, adapter } = options;
     let widget = adapter.widget;
-    const bundle: { 'text/plain': string } | { 'text/markdown': string } =
-      markup.kind === 'plaintext'
-        ? { 'text/plain': markup.value }
-        : { 'text/markdown': markup.value };
+    const bundle = markupToBundle(markup);
     const tooltip = new FreeTooltip({
       ...(options.tooltip || {}),
       anchor: widget.content,
@@ -196,6 +224,43 @@ export class EditorTooltipManager {
     return tooltip;
   }
 
+  showOrCreate(options: EditorTooltip.IOptions): FreeTooltip {
+    const samePosition =
+      this.currentOptions &&
+      is_equal(this.currentOptions.position, options.position);
+    const sameMarkup =
+      this.currentOptions &&
+      this.currentOptions.markup.value === options.markup.value &&
+      this.currentOptions.markup.kind === options.markup.kind;
+    if (
+      this.currentTooltip !== null &&
+      !this.currentTooltip.isDisposed &&
+      this.currentOptions &&
+      this.currentOptions.adapter === options.adapter &&
+      (samePosition || sameMarkup) &&
+      this.currentOptions.ce_editor === options.ce_editor &&
+      this.currentOptions.id === options.id
+    ) {
+      // we only allow either position or markup change, because if both changed,
+      // then we may get into problematic race condition in sizing after bundle update.
+      if (!sameMarkup) {
+        this.currentOptions.markup = options.markup;
+        this.currentTooltip.setBundle(markupToBundle(options.markup));
+      }
+      if (!samePosition) {
+        // setting geometry only works when visible
+        this.currentTooltip.setPosition(
+          PositionConverter.cm_to_ce(options.position)
+        );
+      }
+      this.show();
+      return this.currentTooltip;
+    } else {
+      this.remove();
+      return this.create(options);
+    }
+  }
+
   get position(): IEditorPosition {
     return this.currentOptions!.position;
   }
@@ -209,6 +274,18 @@ export class EditorTooltipManager {
       !this.currentTooltip.isDisposed &&
       this.currentTooltip.isVisible
     );
+  }
+
+  hide() {
+    if (this.currentTooltip !== null) {
+      this.currentTooltip.hide();
+    }
+  }
+
+  show() {
+    if (this.currentTooltip !== null) {
+      this.currentTooltip.show();
+    }
   }
 
   remove() {

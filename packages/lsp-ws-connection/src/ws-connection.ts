@@ -1,5 +1,6 @@
 import * as events from 'events';
 
+import 'setimmediate';
 import type * as protocol from 'vscode-languageserver-protocol';
 import type { LocationLink } from 'vscode-languageserver-types';
 import { ConsoleLogger, MessageConnection, listen } from 'vscode-ws-jsonrpc';
@@ -186,7 +187,7 @@ export class LspWsConnection
         version: documentInfo.version
       } as protocol.TextDocumentItem
     };
-    this.connection.sendNotification(
+    void this.connection.sendNotification(
       'textDocument/didOpen',
       textDocumentMessage
     );
@@ -209,7 +210,7 @@ export class LspWsConnection
       } as protocol.VersionedTextDocumentIdentifier,
       contentChanges: [{ text: documentInfo.text }]
     };
-    this.connection.sendNotification(
+    void this.connection.sendNotification(
       'textDocument/didChange',
       textDocumentChange
     );
@@ -228,7 +229,7 @@ export class LspWsConnection
       } as protocol.VersionedTextDocumentIdentifier,
       text: documentInfo.text
     };
-    this.connection.sendNotification(
+    void this.connection.sendNotification(
       'textDocument/didSave',
       textDocumentChange
     );
@@ -241,7 +242,7 @@ export class LspWsConnection
       return;
     }
 
-    this.connection.sendNotification(
+    void this.connection.sendNotification(
       'workspace/didChangeConfiguration',
       settings
     );
@@ -606,8 +607,8 @@ export class LspWsConnection
   protected onServerInitialized(params: protocol.InitializeResult) {
     this.isInitialized = true;
     this.serverCapabilities = params.capabilities;
-    this.connection.sendNotification('initialized', {});
-    this.connection.sendNotification('workspace/didChangeConfiguration', {
+    void this.connection.sendNotification('initialized', {});
+    void this.connection.sendNotification('workspace/didChangeConfiguration', {
       settings: {}
     });
     this.emit('serverInitialized', this.serverCapabilities);

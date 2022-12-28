@@ -1,3 +1,4 @@
+from .config import load_config_schema
 from .utils import NodeModuleSpec
 
 
@@ -18,4 +19,5 @@ class PyrightLanguageServer(NodeModuleSpec):
             yarn="yarn add --dev {}".format(key),
             jlpm="jlpm add --dev {}".format(key),
         ),
+        config_schema=load_config_schema(key),
     )

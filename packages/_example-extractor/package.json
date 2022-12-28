@@ -1,26 +1,27 @@
 {
-  "name": "@krassowski/jupyterlab-lsp-example-extractor",
-  "description": "Example extractor package from @krassowski/jupyterlab-lsp",
+  "name": "@jupyter-lsp/jupyterlab-lsp-example-extractor",
+  "description": "Example extractor package from @jupyter-lsp/jupyterlab-lsp",
   "version": "0.0.0",
   "private": true,
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "author": "JupyterLab-LSP Development Team",
   "files": [
-    "lib/**/*.{js,ts}"
+    "lib/**/*.{js,ts}",
+    "LICENSE"
   ],
   "dependencies": {
-    "@krassowski/jupyterlab-lsp": "^3.6"
+    "@jupyter-lsp/jupyterlab-lsp": "^4.0.0-alpha.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.4.3",
-    "@jupyterlab/application": "^3.1.0",
+    "@jupyterlab/application": "^3.3.0",
     "@types/chai": "^4.1.7",
     "@types/jest": "^23.3.11",
     "chai": "^4.2.0",
     "jest": "^26.0.0",
     "ts-jest": "^26.4.3",
-    "typescript": "~4.1.3"
+    "typescript": "~4.9.4"
   },
   "jupyterlab": {
     "extension": true

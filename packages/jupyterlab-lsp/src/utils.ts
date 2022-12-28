@@ -199,6 +199,47 @@ export const expandDottedPaths = (
   return mergeWith({}, ...settings);
 };
 
+interface ICollapsingResult {
+  result: Record<string, ReadonlyJSONValue>;
+  conflicts: Record<string, any[]>;
+}
+
+export function collapseToDotted(obj: ReadonlyJSONObject): ICollapsingResult {
+  const result: Record<string, ReadonlyJSONValue> = {};
+  const conflicts: Record<string, any[]> = {};
+
+  const collapse = (obj: any, root = ''): void => {
+    for (let [key, value] of Object.entries(obj)) {
+      const prefix = root ? root + '.' + key : key;
+      if (
+        value != null &&
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        Object.keys(value!).length !== 0
+      ) {
+        collapse(value, prefix);
+      } else {
+        if (result.hasOwnProperty(prefix) && result[prefix] !== value) {
+          if (!conflicts.hasOwnProperty(prefix)) {
+            conflicts[prefix] = [];
+            conflicts[prefix].push(result[prefix]);
+          }
+          if (!conflicts[prefix].includes(value)) {
+            conflicts[prefix].push(value);
+          }
+        }
+        result[prefix] = value as ReadonlyJSONValue;
+      }
+    }
+  };
+  collapse(obj);
+
+  return {
+    result: result as any as ReadonlyJSONObject,
+    conflicts: conflicts
+  };
+}
+
 export function escapeMarkdown(text: string) {
   // note: keeping backticks for highlighting of code sections
   text = text.replace(/([\\#*_[\]])/g, '\\$1');

@@ -1,10 +1,18 @@
 """ A configurable frontend for stream-based Language Servers
 """
+import asyncio
 import os
+import sys
 import traceback
 from typing import Dict, Text, Tuple, cast
 
-import entrypoints
+# See compatibility note on `group` keyword in
+# https://docs.python.org/3/library/importlib.metadata.html#entry-points
+if sys.version_info < (3, 10):  # pragma: no cover
+    from importlib_metadata import entry_points
+else:  # pragma: no cover
+    from importlib.metadata import entry_points
+
 from jupyter_core.paths import jupyter_config_path
 from jupyter_server.services.config import ConfigManager
 
@@ -78,6 +86,10 @@ class LanguageServerManager(LanguageServerManagerAPI):
         """
     ).tag(config=True)
 
+    _ready = Bool(
+        help="""Whether the manager has been initialized""", default_value=False
+    )
+
     all_listeners = List_(trait=LoadableCallable).tag(config=True)
     server_listeners = List_(trait=LoadableCallable).tag(config=True)
     client_listeners = List_(trait=LoadableCallable).tag(config=True)
@@ -115,6 +127,12 @@ class LanguageServerManager(LanguageServerManagerAPI):
         self.init_language_servers()
         self.init_listeners()
         self.init_sessions()
+        self._ready = True
+
+    async def ready(self):
+        while not self._ready:  # pragma: no cover
+            asyncio.sleep(0.1)
+        return True
 
     def init_language_servers(self) -> None:
         """determine the final language server configuration."""
@@ -174,13 +192,11 @@ class LanguageServerManager(LanguageServerManagerAPI):
         for scope, trt_ep in scopes.items():
             listeners, entry_point = trt_ep
 
-            for ep_name, ept in entrypoints.get_group_named(
-                entry_point
-            ).items():  # pragma: no cover
+            for ept in entry_points(group=entry_point):  # pragma: no cover
                 try:
                     listeners.append(ept.load())
                 except Exception as err:
-                    self.log.warning("Failed to load entry point %s: %s", ep_name, err)
+                    self.log.warning("Failed to load entry point %s: %s", ept.name, err)
 
             for listener in listeners:
                 self.__class__.register_message_listener(scope=scope.value)(listener)
@@ -242,22 +258,22 @@ class LanguageServerManager(LanguageServerManagerAPI):
         session.handlers = [h for h in session.handlers if h != handler]
 
     def _autodetect_language_servers(self, only_installed: bool):
-        entry_points = {}
+        _entry_points = None
 
         try:
-            entry_points = entrypoints.get_group_named(EP_SPEC_V1)
+            _entry_points = entry_points(group=EP_SPEC_V1)
         except Exception:  # pragma: no cover
             self.log.exception("Failed to load entry_points")
 
         skipped_servers = []
 
-        for ep_name, ep in entry_points.items():
+        for ep in _entry_points or []:
             try:
                 spec_finder = ep.load()  # type: SpecMaker
             except Exception as err:  # pragma: no cover
                 self.log.warning(
                     _("Failed to load language server spec finder `{}`: \n{}").format(
-                        ep_name, err
+                        ep.name, err
                     )
                 )
                 continue

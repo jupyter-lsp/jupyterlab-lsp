@@ -1,10 +1,14 @@
+import { ILSPCompletionThemeManager } from '@jupyter-lsp/completion-theme';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { CompletionHandler, ICompletionManager } from '@jupyterlab/completer';
+import {
+  CompletionHandler,
+  ICompletionManager,
+  CompleterModel
+} from '@jupyterlab/completer';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { ILSPCompletionThemeManager } from '@krassowski/completion-theme/lib/types';
 import type * as CodeMirror from 'codemirror';
 
 import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
@@ -27,6 +31,8 @@ import { ICompletionData, LSPCompletionRenderer } from './renderer';
 
 const DOC_PANEL_SELECTOR = '.jp-Completer-docpanel';
 const DOC_PANEL_PLACEHOLDER_CLASS = 'lsp-completer-placeholder';
+const LSP_COMPLETER_CLASS = 'lsp-completer';
+const LSP_COMPLETER_ENABLED_CLASS = 'lsp-completer-enabled';
 
 export class CompletionCM extends CodeMirrorIntegration {
   private _completionCharacters: string[];
@@ -88,6 +94,8 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
   protected current_adapter: WidgetAdapter<IDocumentWidget> | null = null;
   protected renderer: LSPCompletionRenderer;
   private _latestActiveItem: LazyCompletionItem | null = null;
+  private _signalConnected: boolean = false;
+  private _disabled: boolean;
 
   constructor(
     private app: JupyterFrontEnd,
@@ -108,24 +116,40 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     });
     this.renderer.activeChanged.connect(this.active_completion_changed, this);
     this.renderer.itemShown.connect(this.resolve_and_update, this);
+    this._signalConnected = false;
+    this._disabled = false;
     // TODO: figure out a better way to disable lab integration elements (postpone initialization?)
     settings.ready
       .then(() => {
+        this._disabled = settings.composite.disable;
         if (!settings.composite.disable) {
           adapterManager.adapterChanged.connect(this.swap_adapter, this);
+          this._signalConnected = true;
         }
       })
       .catch(console.warn);
+
     settings.changed.connect(() => {
-      completionThemeManager.set_theme(this.settings.composite.theme);
-      completionThemeManager.set_icons_overrides(
-        this.settings.composite.typesMap
-      );
+      this._disabled = settings.composite.disable;
       if (!settings.composite.disable) {
         document.body.dataset.lspCompleterLayout =
           this.settings.composite.layout;
+        completionThemeManager.set_theme(this.settings.composite.theme);
+        completionThemeManager.set_icons_overrides(
+          this.settings.composite.typesMap
+        );
+        if (!this._signalConnected) {
+          adapterManager.adapterChanged.connect(this.swap_adapter, this);
+          this._signalConnected = true;
+        }
+      } else {
+        completionThemeManager.set_theme(null);
+        delete document.body.dataset.lspCompleterLayout;
       }
-      if (this.current_completion_handler) {
+      if (
+        this.current_completion_handler &&
+        this.model instanceof LSPCompleterModel
+      ) {
         this.model.settings.caseSensitive =
           this.settings.composite.caseSensitive;
         this.model.settings.includePerfectMatches =
@@ -284,12 +308,17 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
       this.renderer
     ) as CompletionHandler;
     let completer = this.completer;
-    completer.addClass('lsp-completer');
-    completer.model = new LSPCompleterModel({
-      caseSensitive: this.settings.composite.caseSensitive,
-      includePerfectMatches: this.settings.composite.includePerfectMatches,
-      preFilterMatches: this.settings.composite.preFilterMatches
-    });
+    if (this._disabled) {
+      completer.removeClass(LSP_COMPLETER_CLASS);
+      completer.model = new CompleterModel();
+    } else {
+      completer.addClass(LSP_COMPLETER_CLASS);
+      completer.model = new LSPCompleterModel({
+        caseSensitive: this.settings.composite.caseSensitive,
+        includePerfectMatches: this.settings.composite.includePerfectMatches,
+        preFilterMatches: this.settings.composite.preFilterMatches
+      });
+    }
   }
 
   protected get completer() {
@@ -297,8 +326,8 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
     return this.current_completion_handler.completer;
   }
 
-  protected get model(): LSPCompleterModel {
-    return this.completer.model as LSPCompleterModel;
+  protected get model(): LSPCompleterModel | CompleterModel {
+    return this.completer.model as LSPCompleterModel | CompleterModel;
   }
 
   invoke_completer(kind: ExtendedCompletionTriggerKind) {
@@ -336,6 +365,9 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
   private get current_items() {
     // TODO upstream: allow to get completionItems() without markup
     //   (note: not trivial as _markup() does filtering too)
+    if (!(this.model instanceof LSPCompleterModel)) {
+      return [];
+    }
     return this.model.completionItems();
   }
 
@@ -412,5 +444,10 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
         ?.session,
       console: this.console
     });
+    if (this._disabled) {
+      editor.host.classList.remove(LSP_COMPLETER_ENABLED_CLASS);
+    } else {
+      editor.host.classList.add(LSP_COMPLETER_ENABLED_CLASS);
+    }
   }
 }

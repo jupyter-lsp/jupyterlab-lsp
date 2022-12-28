@@ -5,6 +5,19 @@
   "description": "LSP Hover over the code tooltip settings.",
   "type": "object",
   "properties": {
+    "autoActivate": {
+      "title": "Automatic hover",
+      "type": "boolean",
+      "default": false,
+      "description": "Automatic activation of hover without pressing a key. It will still be possible to show up tooltips with the modifier key."
+    },
+    "delay": {
+      "title": "Hover delay",
+      "type": "number",
+      "default": 300,
+      "minimum": 0,
+      "description": "Number of milliseconds after which the hover tooltip should be shown. Ignored if 'Automatic hover' is off."
+    },
     "modifierKey": {
       "title": "Modifier key",
       "type": "string",

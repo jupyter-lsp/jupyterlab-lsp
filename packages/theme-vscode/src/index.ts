@@ -1,9 +1,9 @@
-import { JupyterFrontEndPlugin } from '@jupyterlab/application';
 import {
   ICompletionIconSet,
   ICompletionTheme,
   ILSPCompletionThemeManager
-} from '@krassowski/completion-theme/lib/types';
+} from '@jupyter-lsp/completion-theme';
+import { JupyterFrontEndPlugin } from '@jupyterlab/application';
 
 import '../style/completer.css';
 import dark_file from '../style/icons/dark/file.svg';
@@ -129,7 +129,7 @@ const completionTheme: ICompletionTheme = {
 };
 
 export const plugin: JupyterFrontEndPlugin<void> = {
-  id: '@krassowski/theme-vscode',
+  id: '@jupyter-lsp/theme-vscode',
   requires: [ILSPCompletionThemeManager],
   activate: (app, completionThemeManager: ILSPCompletionThemeManager) => {
     completionThemeManager.register_theme(completionTheme);

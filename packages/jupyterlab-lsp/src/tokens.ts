@@ -45,6 +45,7 @@ export type TLanguageServerId =
   | 'r-languageserver';
 export type TServerKeys = TLanguageServerId;
 
+export type TLanguageServerSpec = SCHEMA.LanguageServerSpec;
 export type TSessionMap = Map<TServerKeys, SCHEMA.LanguageServerSession>;
 export type TSpecsMap = Map<TServerKeys, SCHEMA.LanguageServerSpec>;
 
@@ -55,6 +56,7 @@ export type TLanguageServerConfigurations = Partial<
 export interface ILanguageServerManager {
   sessionsChanged: ISignal<ILanguageServerManager, void>;
   sessions: TSessionMap;
+  settings: ServerConnection.ISettings;
   /**
    * An ordered list of matching >running< sessions, with servers of higher priority higher in the list
    */
@@ -207,7 +209,7 @@ export interface ILSPCodeExtractorsManager {
   ): void;
 }
 
-export const PLUGIN_ID = '@krassowski/jupyterlab-lsp';
+export const PLUGIN_ID = '@jupyter-lsp/jupyterlab-lsp';
 
 export const ILSPFeatureManager = new Token<ILSPFeatureManager>(
   PLUGIN_ID + ':ILSPFeatureManager'

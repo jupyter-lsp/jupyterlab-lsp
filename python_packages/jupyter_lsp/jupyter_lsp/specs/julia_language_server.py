@@ -1,3 +1,4 @@
+from .config import load_config_schema
 from .utils import ShellSpec
 
 
@@ -23,4 +24,5 @@ class JuliaLanguageServer(ShellSpec):
             issues="https://github.com/julia-vscode/LanguageServer.jl/issues",
         ),
         install=dict(julia='using Pkg; Pkg.add("LanguageServer")'),
+        config_schema=load_config_schema(key),
     )

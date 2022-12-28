@@ -19,6 +19,7 @@ import {
   KernelKind,
   PLUGIN_ID
 } from './types';
+export * from './types';
 
 export class CompletionThemeManager implements ILSPCompletionThemeManager {
   protected current_icons: Map<string, LabIcon>;
@@ -118,7 +119,9 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
       );
     }
     this.current_theme_id = id;
-    document.body.classList.add(this.current_theme_class);
+    if (id !== null) {
+      document.body.classList.add(this.current_theme_class);
+    }
     this.update_icons_set();
   }
 
@@ -171,8 +174,6 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   }
 }
 
-const LSP_CATEGORY = 'Language server protocol';
-
 export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionThemeManager> =
   {
     id: PLUGIN_ID,
@@ -193,7 +194,7 @@ export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionTheme
         }
       });
       commandPalette.addItem({
-        category: LSP_CATEGORY,
+        category: trans.__('Language server protocol'),
         command: command_id
       });
       return manager;

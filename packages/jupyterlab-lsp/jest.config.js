@@ -4,7 +4,6 @@ const upstream = func('jupyterlab-lsp', __dirname);
 const reuseFromUpstream = [
   'moduleFileExtensions',
   'moduleNameMapper',
-  'setupFiles',
   'setupFilesAfterEnv',
   'testPathIgnorePatterns'
 ];
@@ -28,7 +27,11 @@ let local = {
   },
   transformIgnorePatterns: [`/node_modules/(?!${esModules}).+`],
   testLocationInResults: true,
-  reporters: [...upstream['reporters'], 'jest-github-actions-reporter']
+  reporters: [...upstream['reporters'], 'jest-github-actions-reporter'],
+  setupFiles: [
+    ...upstream['setupFiles'],
+    '@jupyter-lsp/jupyterlab-lsp/lib/jest-shim.js'
+  ]
 };
 
 for (const option of reuseFromUpstream) {

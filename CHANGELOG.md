@@ -1,11 +1,68 @@
 ## Changelog
 
-### `@krassowski/jupyterlab-lsp 3.10.2` (unreleased)
+### `@jupyter-lsp/jupyterlab-lsp 4.0.0-alpha.0` (not-yet-released)
 
-- improvements:
+- features:
+  - implement jump target selector and jump to references ([#739])
+  - implement settings UI using native JupyterLab 3.3 UI ([#778])
+  - add option to show hover tooltip automatically ([#864], thanks @yamaton)
   - add support for language servers that can (only) communicate through TCP rather than stdio (there is no support yet for servers already running on another machine and/or port) [(#636)]
+- bug fixes:
+  - use correct websocket URL if configured as different from base URL ([#820], thanks @MikeSem)
+  - clean up all completer styles when completer feature is disabled ([#829]).
+  - fix `undefined` being inserted for path-like completion items with no `insertText` ([#833])
+  - reduce signature flickering when typing and hover flicker when moving mouse ([#836])
+  - fix sporadic misplacement of hover tooltips ([#860], thanks @yamaton)
+  - handle potential race condition in feature settings loading ([#882])
+- refactoring:
+  - changed NPM packages namespace from `@krassowski` to `@jupyter-lsp` ([#862])
+  - move client capabilities to features ([#738])
+- downstreams:
+  - use the host application's HTTP settings for requests to the REST and WebSocket routes ([#881])
+  - source maps are provided for improved debugging ([#882])
+  - the derived JSON Schema types are avilable as `SCHEMA` ([#882])
+- documentation:
+  - add missing `--channel` to conda instruction for texlab ([#789], thanks @justin-f-perez)
+  - remove references to pylsp fork ([#800] and [#814], thanks @joelostblom and @nickfong)
+  - add Robot Framework language server ([#724], thanks @bollwyvl)
+  - add a list of third-party and community language servers ([#826], thanks @cccs-jc)
+  - fix documentation of `.lsp_symlink` workaround ([#828])
+- maintenance:
+  - bump minimum required JupyterLab version to 3.3 (`>=3.3.0,<4.0.0a0`)
+  - bump minimum required Node.js version to 14.0 (12.0 reached EOL in April)
+  - use newer `@jupyterlab/builder` which provides third-party license information ([#882])
 
-[#636]: https://github.com/krassowski/jupyterlab-lsp/pull/636
+### `lsp-ws-connection 0.7.1` (not-yet-released)
+
+- downstreams:
+  - includes sourcemaps for easier debugging ([#882])
+- maintenance:
+  - handle notifcation promises more explicitly ([#882])
+
+### `jupyter-lsp 1.6.0` (not-yet-released)
+
+- dependencies:
+  - uses `importlib_metadata` (or `importlib.metadata` on 3.10+) for `entry_points` ([#882])
+- performance:
+  - `entry_point` discovery is deferred until server has started, improving
+    `jupyter_server` startup time ([#852])
+
+[#724]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/724
+[#738]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/738
+[#778]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/778
+[#789]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/789
+[#800]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/800
+[#814]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/814
+[#820]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/820
+[#826]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/826
+[#829]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/829
+[#833]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/833
+[#836]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/836
+[#852]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/852
+[#860]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/860
+[#864]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/864
+[#882]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/882
+[#636]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/636
 
 ### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
 
@@ -594,7 +651,7 @@
 
 - bug fixes
 
-  - bump version of lsp-ws-connection dependency to fix the LaTeX server issues (see [#337])
+  - bump version of `lsp-ws-connection` dependency to fix the LaTeX server issues (see [#337])
 
 [#337]: https://github.com/jupyter-lsp/jupyterlab-lsp/issues/337
 

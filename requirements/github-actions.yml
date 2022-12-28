@@ -6,6 +6,8 @@ channels:
 
 dependencies:
   - jupyterlab {lab}
+  # to test serverextension
+  - notebook
   # build dependencies
   - pip
   - nodejs {nodejs}

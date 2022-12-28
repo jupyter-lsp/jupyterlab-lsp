@@ -12,17 +12,15 @@ Library     ./config.py
 
 *** Keywords ***
 Setup Server and Browser
-    [Arguments]    ${server_extension_enabled}=${True}
     Initialize Global Variables
-    Create Notebok Server Config    ${server_extension_enabled}
+    Create Notebok Server Config
     Initialize User Settings
-    ${disable_global_config} =    Set Variable If    ${server_extension_enabled} != ${True}    '1'    ${EMPTY}
     ${server} =    Start Process    jupyter-lab
     ...    cwd=${NOTEBOOK DIR}
     ...    stdout=${LAB LOG}
     ...    stderr=STDOUT
     ...    env:HOME=${HOME}
-    ...    env:JUPYTER_NO_CONFIG=${disable_global_config}
+    ...    env:JUPYTER_NO_CONFIG=${EMPTY}
     Set Global Variable    ${SERVER}    ${server}
     Open JupyterLab
     Read Page Config
@@ -39,13 +37,17 @@ Initialize Global Variables
 
 Create Notebok Server Config
     [Documentation]    Copies in notebook server config file and updates accordingly
-    [Arguments]    ${server_extension_enabled}=${True}
-    ${conf} =    Set Variable    ${NOTEBOOK DIR}${/}${NBSERVER CONF}
+    ${conf} =    Set Variable    ${NOTEBOOK DIR}${/}${JPSERVER CONF JSON}
+    Set Environment Variable
+    ...    name=JUPYTER_CONFIG_DIR
+    ...    value=${NOTEBOOK DIR}
     ${extra_node_roots} =    Create List    ${ROOT}
     ${port} =    Get Unused Port
     Set Global Variable    ${PORT}    ${port}
     Set Global Variable    ${URL}    http://localhost:${PORT}${BASE URL}
-    Copy File    ${FIXTURES}${/}${NBSERVER CONF}    ${conf}
+    Copy File    ${FIXTURES}${/}${JPSERVER CONF JSON}    ${conf}
+    Copy File    ${FIXTURES}${/}${JPSERVER CONF PY}    ${NOTEBOOK DIR}${/}${JPSERVER CONF PY}
+    Copy File    ${FIXTURES}${/}overrides.json    ${NOTEBOOK DIR}${/}overrides.json
     Update Jupyter Config    ${conf}    ServerApp
     ...    base_url=${BASE URL}
     ...    port=${PORT}
@@ -53,19 +55,21 @@ Create Notebok Server Config
     Update Jupyter Config    ${conf}    LabApp
     ...    user_settings_dir=${SETTINGS DIR}
     ...    workspaces_dir=${WORKSPACES DIR}
-    # should be automatically enabled, so do not enable manually:
-    IF    not ${server_extension_enabled}
-        Set Server Extension State    ${conf}    enabled=${server_extension_enabled}
-    END
     Update Jupyter Config    ${conf}    LanguageServerManager
     ...    extra_node_roots=@{extra_node_roots}
 
 Set Server Extension State
-    [Arguments]    ${conf}    ${enabled}=${True}
-    ${extension_state} =    Create Dictionary    enabled=${enabled}
-    ${extensions} =    Create Dictionary    jupyter_lsp=${extension_state}
-    Update Jupyter Config    ${conf}    LabApp
-    ...    jpserver_extensions=${extensions}
+    [Arguments]    ${enabled}=${True}
+    Set Environment Variable
+    ...    name=JUPYTER_CONFIG_DIR
+    ...    value=${NOTEBOOK DIR}
+    IF    ${enabled}
+        Run Process    jupyter server extension enable jupyter_lsp
+        ...    shell=yes
+    ELSE
+        Run Process    jupyter server extension disable jupyter_lsp
+        ...    shell=yes
+    END
 
 Read Page Config
     ${script} =    Get Element Attribute    id:jupyter-config-data    innerHTML
@@ -88,7 +92,7 @@ Initialize User Settings
 
 Reset Plugin Settings
     [Arguments]    ${package}=jupyterlab-lsp    ${plugin}=plugin
-    ${LSP PLUGIN SETTINGS FILE} =    Set Variable    @krassowski${/}${package}${/}${plugin}.jupyterlab-settings
+    ${LSP PLUGIN SETTINGS FILE} =    Set Variable    @jupyter-lsp${/}${package}${/}${plugin}.jupyterlab-settings
     Create File    ${SETTINGS DIR}${/}${LSP PLUGIN SETTINGS FILE}    {}
 
 Tear Down Everything
@@ -107,7 +111,7 @@ Lab Log Should Not Contain Known Error Messages
 Wait For Splash
     Go To    ${URL}lab?reset&token=${TOKEN}
     Set Window Size    1024    768
-    Wait Until Page Contains Element    ${SPLASH}    timeout=30s
+    Wait Until Page Contains Element    ${SPLASH}    timeout=45s
     Wait Until Page Does Not Contain Element    ${SPLASH}    timeout=10s
     Execute Javascript    window.onbeforeunload \= function (){}
 
@@ -215,7 +219,7 @@ Ensure Sidebar Is Closed
     END
 
 Refresh File List
-    IF    '${LAB VERSION}'.startswith('3.4')
+    IF    [int(part) for part in "${LAB VERSION}".split(".")] >= [3, 4, 0]
         Click Element    ${JLAB CSS REFRESH FILES}
     ELSE
         Click Element    ${JLAB CSS REFRESH F_OLD}
@@ -375,7 +379,7 @@ Open in Advanced Settings
         Lab Command    Advanced Settings Editor
     END
     ${sel} =    Set Variable    css:[data-id="${plugin id}"]
-    Wait Until Page Contains Element    ${sel}
+    Wait Until Page Contains Element    ${sel}    timeout=10s
     Click Element    ${sel}
     Wait Until Page Contains    System Defaults
 
