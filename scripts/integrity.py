@@ -40,6 +40,7 @@ if True:
 REQS = ROOT / "requirements"
 BINDER = ROOT / "binder"
 BINDER_ENV = BINDER / "environment.yml"
+LICENSE = ROOT / "LICENSE"
 
 # docs
 MAIN_README = ROOT / "README.md"
@@ -64,6 +65,7 @@ JS_LSP_VERSION = PACKAGES[JS_LSP_NAME][1]["version"]
 PY_PATH = ROOT / "python_packages"
 PY_SERVER_PATH = PY_PATH / "jupyter_lsp"
 PY_FRONT_PATH = PY_PATH / "jupyterlab_lsp"
+PY_PACKAGES = [PY_SERVER_PATH, PY_FRONT_PATH]
 
 # py stuff
 PY_SERVER_NAME = "jupyter-lsp"
@@ -104,6 +106,15 @@ def the_contributing_doc():
 @pytest.fixture(scope="module")
 def the_binder_env():
     return yaml.safe_load(BINDER_ENV.read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="module")
+def the_license_header():
+    return [
+        line
+        for line in LICENSE.read_text(encoding="utf-8").splitlines()
+        if line.startswith("Copyright")
+    ][0]
 
 
 @pytest.fixture(scope="module")
@@ -257,6 +268,29 @@ def test_install_requires(pkg, requirement: str, version: str, has_specifier: bo
                 f"Version matches, but specifier might need updating:"
                 f" {requirement} {parsed_specifier}; version: {version}"
             )
+
+
+@pytest.mark.parametrize(
+    "name,path_info", [p for p in PACKAGES.items() if p[0] != META_NAME]
+)
+def test_js_license(name, path_info, the_license_header):
+    path, info = path_info
+    license = path / "LICENSE"
+    assert license.exists(), f"ensure {license} exists"
+    license_text = license.read_text(encoding="utf-8")
+    assert the_license_header in license_text, f"add {the_license_header} in {license}"
+    assert "LICENSE" in info["files"], f"{path}/package.json needs LICENSE in files"
+
+
+@pytest.mark.parametrize("path", PY_PACKAGES)
+def test_py_license(path, the_license_header):
+    license = path / "LICENSE"
+    assert license.exists(), f"ensure {license} exists"
+    license_text = license.read_text(encoding="utf-8")
+    assert the_license_header in license_text
+    manifest = path / "MANIFEST.in"
+    manifest_text = manifest.read_text(encoding="utf-8")
+    assert license.name in manifest_text
 
 
 def check_integrity():

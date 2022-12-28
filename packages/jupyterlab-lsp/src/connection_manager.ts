@@ -1,5 +1,4 @@
 import { PageConfig, URLExt } from '@jupyterlab/coreutils';
-import { ServerConnection } from '@jupyterlab/services';
 import { Signal } from '@lumino/signaling';
 import type * as protocol from 'vscode-languageserver-protocol';
 
@@ -392,7 +391,7 @@ export namespace DocumentConnectionManager {
     virtual_document: VirtualDocument,
     language: string
   ): IURIs {
-    const settings = ServerConnection.makeSettings();
+    const { settings } = Private.getLanguageServerManager();
     const wsBase = settings.wsUrl;
     const rootUri = PageConfig.getOption('rootUri');
     const virtualDocumentsUri = PageConfig.getOption('virtualDocumentsUri');
@@ -492,7 +491,8 @@ namespace Private {
     let connection = _connections.get(language_server_id);
 
     if (connection == null) {
-      const socket = new WebSocket(uris.socket);
+      const { settings } = Private.getLanguageServerManager();
+      const socket = new settings.WebSocket(uris.socket);
       const connection = new LSPConnection({
         languageId: language,
         serverUri: uris.server,

@@ -400,7 +400,7 @@ Activate Completer Suggestion
         Capture Page Screenshot    ${i}-completions.png
         ${matching_active_elements} =    Get Element Count    ${active_suggestion}
         LOG    ${matching_active_elements}
-        IF    ${matching_active_elements} == 1            BREAK
+        IF    ${matching_active_elements} == 1    BREAK
         Press Keys    None    DOWN
         Sleep    0.1s
     END
