@@ -216,6 +216,7 @@ Ensure Sidebar Is Closed
     END
 
 Refresh File List
+    Ensure File Browser is Open
     IF    [int(part) for part in "${LAB VERSION}".split(".")] >= [3, 4, 0]
         Click Element    ${JLAB CSS REFRESH FILES}
     ELSE
@@ -224,7 +225,6 @@ Refresh File List
 
 Open Context Menu for File
     [Arguments]    ${file}
-    Ensure File Browser is Open
     Refresh File List
     ${selector} =    Set Variable    xpath://span[@class='jp-DirListing-itemText']/span\[text() = '${file}']
     Wait Until Page Contains Element    ${selector}    timeout=10s
