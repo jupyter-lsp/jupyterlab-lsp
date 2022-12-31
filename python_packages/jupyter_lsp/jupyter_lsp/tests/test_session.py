@@ -126,7 +126,7 @@ async def test_stop(handlers, timeout):
 
     manager.initialize()
 
-    ws_handler.open(a_server)
+    await ws_handler.open(a_server)
 
     session = manager.sessions[ws_handler.language_server]
     session.stop_timeout = timeout
