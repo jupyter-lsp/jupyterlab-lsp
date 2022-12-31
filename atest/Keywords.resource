@@ -142,8 +142,7 @@ Reset Application State
     Try to Close All Tabs
     Accept Default Dialog Option
     Ensure All Kernels Are Shut Down
-    Lab Command    Reset Application State
-    Wait Until Keyword Succeeds    3x    5s    Wait For Splash
+    Accept Default Dialog Option
 
 Accept Default Dialog Option
     [Documentation]    Accept a dialog, if it exists
@@ -153,11 +152,9 @@ Accept Default Dialog Option
 Ensure All Kernels Are Shut Down
     Enter Command Name    Shut Down All Kernels
     ${els} =    Get WebElements    ${CMD PALETTE ITEM ACTIVE}
-    IF    ${els.__len__()}    Click Element    ${CMD PALETTE ITEM ACTIVE}
-    ${accept} =    Set Variable    css:.jp-mod-accept.jp-mod-warn
     IF    ${els.__len__()}
-        Wait Until Page Contains Element    ${accept}
-        Click Element    ${accept}
+        Click Element    ${CMD PALETTE ITEM ACTIVE}
+        Accept Default Dialog Option
     END
 
 Open Command Palette
