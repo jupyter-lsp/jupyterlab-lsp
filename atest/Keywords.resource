@@ -81,6 +81,7 @@ Setup Suite For Screenshots
     [Arguments]    ${folder}
     Set Screenshot Directory    ${SCREENSHOTS DIR}${/}${folder}
     Set Tags    lab:${LAB VERSION}
+    Reset Application State
 
 Initialize User Settings
     Create File
