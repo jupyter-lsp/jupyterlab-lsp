@@ -257,6 +257,10 @@ Open Folder
         Double Click Element    ${sel}
     END
 
+Navigate to Root Folder
+    Ensure File Browser is Open
+    Click Element    ${ROOT FOLDER}
+
 Open ${file} in ${editor}
     ${paths} =    Set Variable    ${file.split("/")}
     IF    ${paths.__len__() > 1}    Open Folder    @{paths[:-1]}
@@ -267,11 +271,17 @@ Open ${file} in ${editor}
     Mouse Over    ${editor}
     Click Element    ${editor}
 
-Clean Up After Working With File
-    [Arguments]    ${file}
-    Remove File    ${NOTEBOOK DIR}${/}${file}
+Clean Up After Working With Files
+    [Arguments]    @{files}
+    FOR    ${file}    IN    @{files}
+        Remove File    ${NOTEBOOK DIR}${/}${file}
+    END
     Reset Application State
     Lab Log Should Not Contain Known Error Messages
+
+Clean Up After Working With File
+    [Arguments]    ${file}
+    Clean Up After Working With Files    ${file}
 
 Setup Notebook
     [Arguments]    ${Language}    ${file}    ${isolated}=${True}    ${wait}=${True}
