@@ -8,7 +8,7 @@ import { Signal } from '@lumino/signaling';
 import { ILSPLogConsole } from '../../tokens';
 
 import { CompletionLabIntegration } from './completion';
-import { LazyCompletionItem } from './item';
+import { LazyCompletionItem, IExtendedCompletionItem } from './item';
 
 export interface ICompletionData {
   item: LazyCompletionItem;
@@ -147,8 +147,8 @@ export class LSPCompletionRenderer
     return li;
   }
 
-  private _elideMark(item: LazyCompletionItem, li: HTMLLIElement) {
-    if (!item) {
+  private _elideMark(item: IExtendedCompletionItem, li: HTMLLIElement) {
+    if (!item || !item.type) {
       return;
     }
     const type = item.type.toLowerCase();
