@@ -67,15 +67,15 @@ Hover works in foreign code (javascript)
     Element Should Contain    ${HOVER_BOX}    Math: Math
 
 Update hover after character deletion
-	Enter Cell Editor    4
-    Trigger Tooltip      atan2
+    Enter Cell Editor    4
+    Trigger Tooltip    atan2
     Element Text Should Be    ${HOVER_SIGNAL}    atan2
     Capture Page Screenshot    01-hover-before-delection.png
     Element Should Contain    ${HOVER_BOX}    atan2(y: SupportsFloat, x: SupportsFloat, /)
-    Place Cursor In Cell Editor At    4  line=2   character=13
+    Place Cursor In Cell Editor At    4    line=2    character=13
     Press Keys    None    DELETE
-    Trigger Tooltip      atan
-    Element Text Should Be    ${HOVER_SIGNAL}     atan
+    Trigger Tooltip    atan
+    Element Text Should Be    ${HOVER_SIGNAL}    atan
     Capture Page Screenshot    02-hover-after-delection.png
     Element Should Contain    ${HOVER_BOX}    atan(x: SupportsFloat, /)
 

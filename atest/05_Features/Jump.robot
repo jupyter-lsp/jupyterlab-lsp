@@ -89,7 +89,7 @@ Clean Up Folder With Spaces
     FOR    ${file}    IN    @{files}
         Remove File    ${NOTEBOOK DIR}${/}${FOLDER WITH SPACE}${/}${file}
     END
-    Remove Directory     ${NOTEBOOK DIR}${/}${FOLDER WITH SPACE}    recursive=True
+    Remove Directory    ${NOTEBOOK DIR}${/}${FOLDER WITH SPACE}    recursive=True
 
 Select Token Occurrence
     [Arguments]    ${token}    ${type}=variable    ${which}=last
