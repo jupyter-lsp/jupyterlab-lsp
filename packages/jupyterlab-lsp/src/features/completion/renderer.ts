@@ -31,6 +31,7 @@ export class LSPCompletionRenderer
 
   protected ITEM_PLACEHOLDER_CLASS = 'lsp-detail-placeholder';
   protected EXTRA_INFO_CLASS = 'jp-Completer-typeExtended';
+  protected LABEL_CLASS = 'jp-Completer-match';
 
   constructor(protected options: LSPCompletionRenderer.IOptions) {
     super();
@@ -113,6 +114,7 @@ export class LSPCompletionRenderer
     if (extraText) {
       const extraElement = li.getElementsByClassName(this.EXTRA_INFO_CLASS)[0];
       extraElement.textContent = extraText;
+      this._elideMark(item, li);
     }
   }
 
@@ -136,11 +138,48 @@ export class LSPCompletionRenderer
       this.visibilityObserver.observe(li);
       // TODO: build custom li from ground up
       this.updateExtraInfo(lsp_item, li);
+      this._elideMark(lsp_item, li);
     } else {
       this.updateExtraInfo(item, li);
+      this._elideMark(lsp_item, li);
     }
 
     return li;
+  }
+
+  private _elideMark(item: LazyCompletionItem, li: HTMLLIElement) {
+    if (!item) {
+      return;
+    }
+    const type = item.type.toLowerCase();
+    if (type !== 'file' && type !== 'path') {
+      // do not elide for non-paths.
+      return;
+    }
+    const labelElement = li.getElementsByClassName(this.LABEL_CLASS)[0];
+    const originalHTMLLabel = labelElement.childNodes;
+    let hasMark = false;
+    for (const node of originalHTMLLabel) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const element = node as Element;
+        const text = element.textContent;
+        if (element.tagName === 'MARK' && text) {
+          const elidableElement = document.createElement('bdo');
+          elidableElement.setAttribute('dir', 'ltr');
+          elidableElement.textContent = text;
+          elidableElement.title = text;
+          element.replaceChildren(elidableElement);
+          element.classList.add('lsp-elide');
+          hasMark = true;
+        }
+      }
+    }
+    if (hasMark) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'lsp-elide-wrapper';
+      wrapper.replaceChildren(...labelElement.childNodes);
+      labelElement.replaceChildren(wrapper);
+    }
   }
 
   createDocumentationNode(item: LazyCompletionItem): HTMLElement {
