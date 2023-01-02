@@ -1,4 +1,6 @@
 import asyncio
+import os
+from sys import platform
 
 import pytest
 
@@ -100,3 +102,46 @@ async def test_ping(handlers):
     assert ws_handler._ping_sent is True
 
     ws_handler.on_close()
+
+
+def exists_process_with_pid(pid):
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "timeout", [0, 5], ids=["terminate immediately", "after 5 seconds"]
+)
+async def test_stop(handlers, timeout):
+    """Test whether process will stop gracefully or forcefully"""
+    a_server = "pylsp"
+
+    handler, ws_handler = handlers
+    manager = handler.manager
+
+    manager.initialize()
+
+    await ws_handler.open(a_server)
+
+    session = manager.sessions[ws_handler.language_server]
+    session.stop_timeout = timeout
+
+    process_pid = session.process.pid
+    assert exists_process_with_pid(process_pid) is True
+
+    ws_handler.on_close()
+
+    if platform.startswith("win32"):  # pragma: no cover
+        # currently we cannot forcefully terminate the process on windows, so we just
+        # give it a little more extra time to finish on its own
+        await asyncio.sleep(timeout + 10)
+    else:  # pragma: no cover
+        # linux and darwin
+        await asyncio.sleep(timeout + 2)
+
+    assert exists_process_with_pid(process_pid) is False

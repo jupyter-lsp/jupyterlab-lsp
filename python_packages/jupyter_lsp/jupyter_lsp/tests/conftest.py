@@ -20,6 +20,7 @@ KNOWN_SERVERS = [
     "dockerfile-language-server-nodejs",
     "typescript-language-server",
     "pylsp",
+    "pylsp-tcp",
     "unified-language-server",
     "sql-language-server",
     "vscode-css-languageserver-bin",
@@ -110,6 +111,12 @@ def jsonrpc_init_msg():
             },
         }
     )
+
+
+# only run tests with asyncio
+@fixture
+def anyio_backend():
+    return "asyncio"
 
 
 @fixture

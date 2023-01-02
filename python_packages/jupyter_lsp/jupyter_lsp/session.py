@@ -1,43 +1,76 @@
 """ A session for managing a language server process
 """
-import asyncio
 import atexit
+import math
 import os
 import string
 import subprocess
+import sys
+from abc import ABC, ABCMeta, abstractmethod
 from copy import copy
 from datetime import datetime, timezone
+from threading import Event, Thread
+from typing import List
 
+import anyio
+from anyio import CancelScope
+from anyio.abc import Process, SocketStream
+from anyio.streams.stapled import StapledObjectStream
 from tornado.ioloop import IOLoop
-from tornado.queues import Queue
 from tornado.websocket import WebSocketHandler
-from traitlets import Bunch, Instance, Set, Unicode, UseEnum, observe
+from traitlets import Bunch, Float, Instance, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
+from traitlets.traitlets import MetaHasTraits
 
-from . import stdio
+from .connection import LspStreamReader, LspStreamWriter
 from .schema import LANGUAGE_SERVER_SPEC
 from .specs.utils import censored_spec
 from .trait_types import Schema
 from .types import SessionStatus
+from .utils import get_unused_port
 
 
-class LanguageServerSession(LoggingConfigurable):
+class LanguageServerSessionMeta(MetaHasTraits, ABCMeta):
+    pass
+
+
+class LanguageServerSessionBase(
+    LoggingConfigurable, ABC, metaclass=LanguageServerSessionMeta
+):
     """Manage a session for a connection to a language server"""
 
     language_server = Unicode(help="the language server implementation name")
     spec = Schema(LANGUAGE_SERVER_SPEC)
 
     # run-time specifics
-    process = Instance(
-        subprocess.Popen, help="the language server subprocess", allow_none=True
+    process = Instance(Process, help="the language server subprocess", allow_none=True)
+    cancelscope = Instance(
+        CancelScope, help="scope used for stopping the session", allow_none=True
     )
-    writer = Instance(stdio.LspStdIoWriter, help="the JSON-RPC writer", allow_none=True)
-    reader = Instance(stdio.LspStdIoReader, help="the JSON-RPC reader", allow_none=True)
+    started = Instance(
+        Event,
+        args=(),
+        help="event signaling that the session has finished starting",
+        allow_none=False,
+    )
+    thread = Instance(
+        Thread, help="worker thread for running an event loop", allow_none=True
+    )
+    main_loop = Instance(
+        IOLoop, help="the event loop of the main thread", allow_none=True)
+    thread_loop = Instance(
+        IOLoop, help="the event loop of the worker thread", allow_none=True)
+    writer = Instance(LspStreamWriter, help="the JSON-RPC writer", allow_none=True)
+    reader = Instance(LspStreamReader, help="the JSON-RPC reader", allow_none=True)
     from_lsp = Instance(
-        Queue, help="a queue for string messages from the server", allow_none=True
+        StapledObjectStream,
+        help="a queue for string messages from the server",
+        allow_none=True
     )
     to_lsp = Instance(
-        Queue, help="a queue for string message to the server", allow_none=True
+        StapledObjectStream,
+        help="a queue for string messages to the server",
+        allow_none=True
     )
     handlers = Set(
         trait=Instance(WebSocketHandler),
@@ -48,7 +81,15 @@ class LanguageServerSession(LoggingConfigurable):
     last_handler_message_at = Instance(datetime, allow_none=True)
     last_server_message_at = Instance(datetime, allow_none=True)
 
-    _tasks = None
+    stop_timeout_s = Float(
+        5,
+        help="timeout in seconds after which a process will be terminated forcefully",
+    ).tag(config=True)
+    queue_size = Float(
+        -1,
+        help="the maximum number of messages that can be buffered in the queue or -1 "
+             "for an unbounded queue"
+    ).tag(config=True)
 
     _skip_serialize = ["argv", "debug_argv"]
 
@@ -75,40 +116,76 @@ class LanguageServerSession(LoggingConfigurable):
             spec=censored_spec(self.spec),
         )
 
-    def initialize(self):
-        """(re)initialize a language server session"""
-        self.stop()
+    def start(self):
+        """run a language server session asynchronously inside a worker thread
+
+        will return as soon as the session is ready for communication
+        """
+        self.main_loop = IOLoop.current()
+        self.started.clear()
+        self.thread = Thread(target=anyio.run, kwargs={"func": self.run})
+        self.thread.start()
+        self.started.wait()
+
+    def stop(self):
+        """shut down the session"""
+        if self.cancelscope is not None:
+            self.thread_loop.add_callback(self.cancelscope.cancel)
+
+        # wait for the session to get cleaned up
+        if self.thread and self.thread.is_alive():
+            self.thread.join()
+        self.main_loop = None
+
+    async def run(self):
+        """run this session in a task group and clean everything up on cancellation"""
+        self.thread_loop = IOLoop.current()
+
+        try:
+            async with anyio.create_task_group() as tg:
+                self.cancelscope = tg.cancel_scope
+                await self.initialize()
+                self.started.set()
+                tg.start_soon(self._read_lsp)
+                tg.start_soon(self._write_lsp)
+                tg.start_soon(self._broadcast_from_lsp)
+        except Exception as e:  # pragma: no cover
+            self.log.exception("Execption while listening {}", e)
+        finally:
+            await self.cleanup()
+            self.cancelscope = None
+            self.thread_loop = None
+
+    async def initialize(self):
+        """initialize a language server session"""
         self.status = SessionStatus.STARTING
+
         self.init_queues()
-        self.init_process()
+        await self.init_process()
         self.init_writer()
         self.init_reader()
 
-        loop = asyncio.get_event_loop()
-        self._tasks = [
-            loop.create_task(coro())
-            for coro in [self._read_lsp, self._write_lsp, self._broadcast_from_lsp]
-        ]
-
         self.status = SessionStatus.STARTED
 
-    def stop(self):
+    async def cleanup(self):
         """clean up all of the state of the session"""
-
         self.status = SessionStatus.STOPPING
 
-        if self.process:
-            self.process.terminate()
-            self.process = None
-        if self.reader:
-            self.reader.close()
+        if self.reader is not None:
+            await self.reader.close()
             self.reader = None
-        if self.writer:
-            self.writer.close()
+        if self.writer is not None:
+            await self.writer.close()
             self.writer = None
-
-        if self._tasks:
-            [task.cancel() for task in self._tasks]
+        if self.process is not None:
+            await self.stop_process(self.stop_timeout_s)
+            self.process = None
+        if self.from_lsp is not None:
+            await self.from_lsp.aclose()
+            self.from_lsp = None
+        if self.to_lsp is not None:
+            await self.to_lsp.aclose()
+            self.to_lsp = None
 
         self.status = SessionStatus.STOPPED
 
@@ -116,44 +193,76 @@ class LanguageServerSession(LoggingConfigurable):
     def _on_handlers(self, change: Bunch):
         """re-initialize if someone starts listening, or stop if nobody is"""
         if change["new"] and not self.process:
-            self.initialize()
+            self.start()
         elif not change["new"] and self.process:
             self.stop()
 
     def write(self, message):
         """wrapper around the write queue to keep it mostly internal"""
         self.last_handler_message_at = self.now()
-        IOLoop.current().add_callback(self.to_lsp.put_nowait, message)
+        self.thread_loop.add_callback(self.to_lsp.send, message)
 
     def now(self):
         return datetime.now(timezone.utc)
 
-    def init_process(self):
-        """start the language server subprocess"""
-        self.process = subprocess.Popen(
-            self.spec["argv"],
+    async def start_process(self, argv: List[str]):
+        """start the language server subprocess given in argv"""
+        self.process = await anyio.open_process(
+            argv,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             env=self.substitute_env(self.spec.get("env", {}), os.environ),
-            bufsize=0,
         )
+
+    async def stop_process(self, timeout: int = 5):
+        """stop the language server subprocess
+
+        If the process does not terminate within timeout seconds it will be killed
+        forcefully.
+        """
+        if self.process is None:  # pragma: no cover
+            return
+
+        if timeout < 0.0:  # pragma: no cover
+            raise ValueError("Timeout must not be negative!")
+
+        # try to stop the process gracefully
+        self.process.terminate()
+        with anyio.move_on_after(timeout + 0.1):  # avoid timeout of 0s
+            self.log.debug("Waiting for process to terminate")
+            await self.process.wait()
+            return
+
+        if sys.platform.startswith("win32"):  # pragma: no cover
+            # On Windows Process.kill() is an alias to Process.terminate() so we cannot
+            # force the process to stop. if you know of a better way to handle this on
+            # Windows please consider contributing
+            self.log.warning(
+                (
+                    "The language server process (PID: {}) did not terminate within {} "
+                    "seconds. Beware, it might continue running as a zombie process."
+                ).format(self.process.pid, timeout)
+            )
+        else:  # pragma: no cover
+            self.log.debug(
+                (
+                    "Process did not terminate within {} seconds. "
+                    "Bringing it down the hard way!"
+                ).format(timeout)
+            )
+            try:  # pragma: no cover
+                self.process.kill()
+            except ProcessLookupError:
+                # process terminated on its own in the meantime
+                pass
 
     def init_queues(self):
         """create the queues"""
-        self.from_lsp = Queue()
-        self.to_lsp = Queue()
-
-    def init_reader(self):
-        """create the stdout reader (from the language server)"""
-        self.reader = stdio.LspStdIoReader(
-            stream=self.process.stdout, queue=self.from_lsp, parent=self
-        )
-
-    def init_writer(self):
-        """create the stdin writer (to the language server)"""
-        self.writer = stdio.LspStdIoWriter(
-            stream=self.process.stdin, queue=self.to_lsp, parent=self
-        )
+        queue_size = math.inf if self.queue_size < 0 else self.queue_size
+        self.from_lsp = StapledObjectStream(
+            *anyio.create_memory_object_stream(max_buffer_size=queue_size))
+        self.to_lsp = StapledObjectStream(
+            *anyio.create_memory_object_stream(max_buffer_size=queue_size))
 
     def substitute_env(self, env, base):
         final_env = copy(os.environ)
@@ -162,6 +271,25 @@ class LanguageServerSession(LoggingConfigurable):
             final_env.update({key: string.Template(value).safe_substitute(base)})
 
         return final_env
+
+    @abstractmethod
+    async def init_process(self):
+        """start the language server subprocess and store it in self.process"""
+        pass  # pragma: no cover
+
+    @abstractmethod
+    def init_reader(self):
+        """create the stream reader (from the language server) and store it in
+        self.reader
+        """
+        pass  # pragma: no cover
+
+    @abstractmethod
+    def init_writer(self):
+        """create the stream writer (to the language server) and store it in
+        self.writer
+        """
+        pass  # pragma: no cover
 
     async def _read_lsp(self):
         await self.reader.read()
@@ -175,5 +303,85 @@ class LanguageServerSession(LoggingConfigurable):
         """
         async for message in self.from_lsp:
             self.last_server_message_at = self.now()
-            await self.parent.on_server_message(message, self)
-            self.from_lsp.task_done()
+            # handle message in the main thread's event loop
+            self.main_loop.add_callback(self.parent.on_server_message, message, self)
+
+
+class LanguageServerSessionStdio(LanguageServerSessionBase):
+    async def init_process(self):
+        await self.start_process(self.spec["argv"])
+
+    def init_reader(self):
+        self.reader = LspStreamReader(
+            stream=self.process.stdout, queue=self.from_lsp, parent=self
+        )
+
+    def init_writer(self):
+        self.writer = LspStreamWriter(
+            stream=self.process.stdin, queue=self.to_lsp, parent=self
+        )
+
+
+class LanguageServerSessionTCP(LanguageServerSessionBase):
+
+    tcp_con = Instance(SocketStream, help="the tcp connection", allow_none=True)
+
+    async def init_process(self):
+        """start the language server subprocess"""
+        argv = self.spec["argv"]
+
+        host = "127.0.0.1"
+        port = get_unused_port()
+
+        # substitute arguments for host and port into the environment
+        argv = [arg.format(host=host, port=port) for arg in argv]
+
+        # start the process
+        await self.start_process(argv)
+
+        # finally open the tcp connection to the now running process
+        self.tcp_con = await self.init_tcp_connection(host, port)
+
+    async def stop_process(self, timeout: int = 5):
+        await self.tcp_con.aclose()
+        self.tcp_con = None
+
+        await super().stop_process(timeout)
+
+    async def init_tcp_connection(self, host, port, retries=12, sleep=5.0):
+        server = "{}:{}".format(host, port)
+
+        tries = 0
+        while tries < retries:
+            tries = tries + 1
+            try:
+                return await anyio.connect_tcp(host, port)
+            except OSError:  # pragma: no cover
+                if tries < retries:
+                    self.log.warning(
+                        (
+                            "Connection to server {} refused! "
+                            "Attempt {}/{}. "
+                            "Retrying in {}s"
+                        ).format(server, tries, retries, sleep)
+                    )
+                    await anyio.sleep(sleep)
+                else:
+                    self.log.warning(
+                        "Connection to server {} refused! Attempt {}/{}.".format(
+                            server, tries, retries
+                        )
+                    )
+        raise OSError(
+            "Unable to connect to server {}".format(server)
+        )  # pragma: no cover
+
+    def init_reader(self):
+        self.reader = LspStreamReader(
+            stream=self.tcp_con, queue=self.from_lsp, parent=self
+        )
+
+    def init_writer(self):
+        self.writer = LspStreamWriter(
+            stream=self.tcp_con, queue=self.to_lsp, parent=self
+        )

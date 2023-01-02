@@ -139,6 +139,13 @@
           "description": "list of MIME types supported by the language server",
           "title": "MIME Types"
         },
+        "mode": {
+          "description": "connection mode used, e.g. stdio (default), tcp",
+          "title": "Mode",
+          "type": "string",
+          "enum": ["stdio", "tcp"],
+          "default": "stdio"
+        },
         "troubleshoot": {
           "type": "string",
           "description": "information on troubleshooting the installation or auto-detection of the language server",

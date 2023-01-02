@@ -6,6 +6,7 @@
   - implement jump target selector and jump to references ([#739])
   - implement settings UI using native JupyterLab 3.3 UI ([#778])
   - add option to show hover tooltip automatically ([#864], thanks @yamaton)
+  - add support for language servers that can (only) communicate through TCP rather than stdio (there is no support yet for servers already running on another machine and/or port) [(#636)]
 - bug fixes:
   - use correct websocket URL if configured as different from base URL ([#820], thanks @MikeSem)
   - clean up all completer styles when completer feature is disabled ([#829]).
@@ -61,6 +62,7 @@
 [#860]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/860
 [#864]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/864
 [#882]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/882
+[#636]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/636
 
 ### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
 
