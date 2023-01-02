@@ -25,7 +25,7 @@
 }
 
 .lsp-completer.jp-Completer {
-  --lsp-completer-max-label-width: 300px;
+  --lsp-completer-max-label-width: 350px;
   --lsp-completer-max-detail-width: 200px;
 }
 
@@ -91,6 +91,22 @@ body[data-lsp-completer-layout='detail-below'] .jp-Completer-match {
 
 .lsp-completer .jp-mod-active .jp-Completer-typeExtended {
   text-overflow: clip;
+}
+
+.lsp-completer mark.lsp-elide:first-child {
+  display: inline-block;
+  overflow-x: clip;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  /* stretch to as much space as possible */
+  flex-shrink: 1;
+  /* always reserve small space to fit the ellipsis */
+  min-width: 20px;
+}
+
+.lsp-completer .lsp-elide-wrapper {
+  display: flex;
 }
 
 body[data-lsp-completer-layout='detail-below'] .jp-Completer-typeExtended {
