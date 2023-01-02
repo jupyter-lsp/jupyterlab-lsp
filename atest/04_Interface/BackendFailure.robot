@@ -28,3 +28,4 @@ Setup Missing Extension Test
 
 Teardown Missing Extension Test
     Set Server Extension State    enabled=${True}
+    Setup Server and Browser
