@@ -12,17 +12,15 @@ Library     ./config.py
 
 *** Keywords ***
 Setup Server and Browser
-    [Arguments]    ${server_extension_enabled}=${True}
     Initialize Global Variables
-    Create Notebok Server Config    ${server_extension_enabled}
+    Create Notebok Server Config
     Initialize User Settings
-    ${disable_global_config} =    Set Variable If    ${server_extension_enabled} != ${True}    '1'    ${EMPTY}
     ${server} =    Start Process    jupyter-lab
     ...    cwd=${NOTEBOOK DIR}
     ...    stdout=${LAB LOG}
     ...    stderr=STDOUT
     ...    env:HOME=${HOME}
-    ...    env:JUPYTER_NO_CONFIG=${disable_global_config}
+    ...    env:JUPYTER_NO_CONFIG=${EMPTY}
     Set Global Variable    ${SERVER}    ${server}
     Open JupyterLab
     Read Page Config
@@ -39,8 +37,10 @@ Initialize Global Variables
 
 Create Notebok Server Config
     [Documentation]    Copies in notebook server config file and updates accordingly
-    [Arguments]    ${server_extension_enabled}=${True}
     ${conf} =    Set Variable    ${NOTEBOOK DIR}${/}${JPSERVER CONF JSON}
+    Set Environment Variable
+    ...    name=JUPYTER_CONFIG_DIR
+    ...    value=${NOTEBOOK DIR}
     ${extra_node_roots} =    Create List    ${ROOT}
     ${port} =    Get Unused Port
     Set Global Variable    ${PORT}    ${port}
@@ -55,19 +55,21 @@ Create Notebok Server Config
     Update Jupyter Config    ${conf}    LabApp
     ...    user_settings_dir=${SETTINGS DIR}
     ...    workspaces_dir=${WORKSPACES DIR}
-    # should be automatically enabled, so do not enable manually:
-    IF    not ${server_extension_enabled}
-        Set Server Extension State    ${conf}    enabled=${server_extension_enabled}
-    END
     Update Jupyter Config    ${conf}    LanguageServerManager
     ...    extra_node_roots=@{extra_node_roots}
 
 Set Server Extension State
-    [Arguments]    ${conf}    ${enabled}=${True}
-    ${extension_state} =    Create Dictionary    enabled=${enabled}
-    ${extensions} =    Create Dictionary    jupyter_lsp=${extension_state}
-    Update Jupyter Config    ${conf}    LabApp
-    ...    jpserver_extensions=${extensions}
+    [Arguments]    ${enabled}=${True}
+    Set Environment Variable
+    ...    name=JUPYTER_CONFIG_DIR
+    ...    value=${NOTEBOOK DIR}
+    IF    ${enabled}
+        Run Process    jupyter server extension enable jupyter_lsp
+        ...    shell=yes
+    ELSE
+        Run Process    jupyter server extension disable jupyter_lsp
+        ...    shell=yes
+    END
 
 Read Page Config
     ${script} =    Get Element Attribute    id:jupyter-config-data    innerHTML
@@ -79,6 +81,7 @@ Setup Suite For Screenshots
     [Arguments]    ${folder}
     Set Screenshot Directory    ${SCREENSHOTS DIR}${/}${folder}
     Set Tags    lab:${LAB VERSION}
+    Reset Application State
 
 Initialize User Settings
     Create File
@@ -140,8 +143,7 @@ Reset Application State
     Try to Close All Tabs
     Accept Default Dialog Option
     Ensure All Kernels Are Shut Down
-    Lab Command    Reset Application State
-    Wait Until Keyword Succeeds    3x    5s    Wait For Splash
+    Accept Default Dialog Option
 
 Accept Default Dialog Option
     [Documentation]    Accept a dialog, if it exists
@@ -151,11 +153,9 @@ Accept Default Dialog Option
 Ensure All Kernels Are Shut Down
     Enter Command Name    Shut Down All Kernels
     ${els} =    Get WebElements    ${CMD PALETTE ITEM ACTIVE}
-    IF    ${els.__len__()}    Click Element    ${CMD PALETTE ITEM ACTIVE}
-    ${accept} =    Set Variable    css:.jp-mod-accept.jp-mod-warn
     IF    ${els.__len__()}
-        Wait Until Page Contains Element    ${accept}
-        Click Element    ${accept}
+        Click Element    ${CMD PALETTE ITEM ACTIVE}
+        Accept Default Dialog Option
     END
 
 Open Command Palette
@@ -217,7 +217,8 @@ Ensure Sidebar Is Closed
     END
 
 Refresh File List
-    IF    '${LAB VERSION}'.startswith('3.4')
+    Ensure File Browser is Open
+    IF    [int(part) for part in "${LAB VERSION}".split(".")] >= [3, 4, 0]
         Click Element    ${JLAB CSS REFRESH FILES}
     ELSE
         Click Element    ${JLAB CSS REFRESH F_OLD}
@@ -225,7 +226,6 @@ Refresh File List
 
 Open Context Menu for File
     [Arguments]    ${file}
-    Ensure File Browser is Open
     Refresh File List
     ${selector} =    Set Variable    xpath://span[@class='jp-DirListing-itemText']/span\[text() = '${file}']
     Wait Until Page Contains Element    ${selector}    timeout=10s
@@ -257,6 +257,10 @@ Open Folder
         Double Click Element    ${sel}
     END
 
+Navigate to Root Folder
+    Ensure File Browser is Open
+    Click Element    ${ROOT FOLDER}
+
 Open ${file} in ${editor}
     ${paths} =    Set Variable    ${file.split("/")}
     IF    ${paths.__len__() > 1}    Open Folder    @{paths[:-1]}
@@ -267,11 +271,17 @@ Open ${file} in ${editor}
     Mouse Over    ${editor}
     Click Element    ${editor}
 
-Clean Up After Working With File
-    [Arguments]    ${file}
-    Remove File    ${NOTEBOOK DIR}${/}${file}
+Clean Up After Working With Files
+    [Arguments]    @{files}
+    FOR    ${file}    IN    @{files}
+        Remove File    ${NOTEBOOK DIR}${/}${file}
+    END
     Reset Application State
     Lab Log Should Not Contain Known Error Messages
+
+Clean Up After Working With File
+    [Arguments]    ${file}
+    Clean Up After Working With Files    ${file}
 
 Setup Notebook
     [Arguments]    ${Language}    ${file}    ${isolated}=${True}    ${wait}=${True}

@@ -3,7 +3,7 @@ Resource        ../Keywords.resource
 
 Suite Setup     Setup Suite For Screenshots    gh-403
 
-Force Tags      feature:jump-to-definition    gh:403
+Test Tags       feature:jump-to-definition    gh:403
 
 
 *** Variables ***
@@ -19,7 +19,7 @@ Python Jumps Between Files
     Jump To Definition    ${sel}
     Wait Until Page Contains    ANOTHER_CONSTANT
     Capture Page Screenshot    10-jumped.png
-    Clean Up After Working With File    jump_b.py
+    [Teardown]    Clean Up Folder With Spaces    jump_a.py    jump_b.py
 
 Jumps To References With Modifier Click
     [Setup]    Prepare File for Editing    Python    editor    jump_references.py
@@ -35,7 +35,7 @@ Jumps To References With Modifier Click
     Select From List By Index    css:.jp-Dialog select    2
     Click Element    css:.jp-Dialog-button.jp-mod-accept
     Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Jump    ${original}
-    Clean Up After Working With File    jump_references.py
+    [Teardown]    Clean Up After Working With File    jump_references.py
 
 Jumps To References From Context Menu
     [Setup]    Prepare File for Editing    Python    editor    jump_references.py
@@ -51,7 +51,7 @@ Jumps To References From Context Menu
     Select From List By Index    css:.jp-Dialog select    2
     Click Element    css:.jp-Dialog-button.jp-mod-accept
     Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Jump    ${original}
-    Clean Up After Working With File    jump_references.py
+    [Teardown]    Clean Up After Working With File    jump_references.py
 
 Ctrl Click And Jumping Back Works
     [Setup]    Prepare File for Editing    Python    editor    jump.py
@@ -82,6 +82,15 @@ Copy Files to Folder With Spaces
         Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${FOLDER WITH SPACE}${/}${file}
     END
 
+Clean Up Folder With Spaces
+    [Arguments]    @{files}
+    Try to Close All Tabs
+    Navigate to Root Folder
+    FOR    ${file}    IN    @{files}
+        Remove File    ${NOTEBOOK DIR}${/}${FOLDER WITH SPACE}${/}${file}
+    END
+    Remove Directory     ${NOTEBOOK DIR}${/}${FOLDER WITH SPACE}    recursive=True
+
 Select Token Occurrence
     [Arguments]    ${token}    ${type}=variable    ${which}=last
     ${sel} =    Set Variable
@@ -92,7 +101,3 @@ Ctrl Click Element
     [Arguments]    ${element}
     ${key} =    Evaluate    'COMMAND' if platform.system() == 'Darwin' else 'CTRL'    platform
     Click Element    ${element}    modifier=${key}
-
-Should Have Expected Count
-    [Arguments]    ${expected_count}
-    ${count} =    Count Diagnostics In Panel

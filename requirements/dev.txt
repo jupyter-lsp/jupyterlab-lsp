@@ -1,12 +1,10 @@
 # development dependencies for jupyter_lsp for qa, with lab
 -r ./utest.txt
+-r ./atest.txt
 packaging
 pyls-black
 pyls-isort
 pyls-mypy
 pytest-cov
 ruamel.yaml
-robotframework-robocop
-robotframework-tidy
-robotframework >=4
 types-six
