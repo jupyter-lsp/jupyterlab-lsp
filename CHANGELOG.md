@@ -12,6 +12,7 @@
   - fix `undefined` being inserted for path-like completion items with no `insertText` ([#833])
   - reduce signature flickering when typing and hover flicker when moving mouse ([#836])
   - fix sporadic misplacement of hover tooltips ([#860], thanks @yamaton)
+  - fix hover tooltip not updated after character deletions ([#867], thanks @yamaton)
   - handle potential race condition in feature settings loading ([#882])
 - refactoring:
   - changed NPM packages namespace from `@krassowski` to `@jupyter-lsp` ([#862])
@@ -60,6 +61,7 @@
 [#852]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/852
 [#860]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/860
 [#864]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/864
+[#867]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/867
 [#882]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/882
 
 ### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
