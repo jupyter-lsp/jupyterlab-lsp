@@ -1,6 +1,8 @@
 ## Changelog
 
-### `@jupyter-lsp/jupyterlab-lsp 4.0.0-alpha.0` (not-yet-released)
+### `@jupyter-lsp/jupyterlab-lsp 4.0.0` (not-yet-released)
+
+Requires JupyterLab `>=3.6.0,<4.0.0a0` and Python 3.8 or newer.
 
 - features:
   - implement jump target selector and jump to references ([#739])
@@ -37,9 +39,9 @@
 - downstreams:
   - includes sourcemaps for easier debugging ([#882])
 - maintenance:
-  - handle notifcation promises more explicitly ([#882])
+  - handle notification promises more explicitly ([#882])
 
-### `jupyter-lsp 1.6.0` (not-yet-released)
+### `jupyter-lsp 2.0.0` (not-yet-released)
 
 - dependencies:
   - uses `importlib_metadata` (or `importlib.metadata` on 3.10+) for `entry_points` ([#882])

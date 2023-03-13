@@ -88,7 +88,8 @@ def lint():
                 ],
                 # ["pylint", *ALL_PY],
                 ["robotidy", *ALL_ROBOT],
-                ["robocop", *ROBOCOP, *ALL_ROBOT],
+                # see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/911
+                # ["robocop", *ROBOCOP, *ALL_ROBOT],
                 ["python", "scripts/atest.py", "--dryrun", "--console", "dotted"],
                 ["python", "scripts/nblint.py"],
             ],
