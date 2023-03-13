@@ -2,7 +2,7 @@
 
 ### `@jupyter-lsp/jupyterlab-lsp 4.0.0` (not-yet-released)
 
-Only supported on JupyterLab `>=3.6.0,<4.0.0a0`.
+Requires JupyterLab `>=3.6.0,<4.0.0a0` and Python 3.8 or newer.
 
 - features:
   - implement jump target selector and jump to references ([#739])

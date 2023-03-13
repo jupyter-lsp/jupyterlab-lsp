@@ -214,19 +214,18 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu', 'macos', 'windows']
-        python: ['3.7', '3.10']
+        python: ['3.8', '3.10']
         include:
-          # if using 3.7, use newer node, etc...
-          - python: '3.7'
-            # Node 14 end-of-life: April 2023
-            nodejs: '>=14,<15.0.0.a0'
-            r: '<4'
-            lab: '>=3.3.0,<3.4'
+          - python: '3.8'
+            # Node 16 end-of-life: April 2024
+            nodejs: '>=16,<17.0.0.a0'
+            r: '>=4'
+            lab: '>=3.6.0,<4'
           - python: '3.10'
             # Node 16 end-of-life: April 2024
             nodejs: '>=16,<17.0.0.a0'
             r: '>=4'
-            lab: '>=3.4.0,<4'
+            lab: '>=3.6.0,<4'
 
     steps:
       - uses: actions/checkout@v3

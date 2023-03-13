@@ -31,10 +31,8 @@ Thank you for all your contributions :heart:
 
 Development requires, at a minimum:
 
-- `nodejs >=14,!=15,<17`
-- `python >=3.7,<3.11.0a0`
-  - Python 3.7 and 3.10 are fully tested on CI
-  - Python 3.7 to 3.10 and PyPy 3 are verified to at least install and import
+- `nodejs >=16,!=17,<19`
+- `python >=3.8,<3.11.0a0`
 - `jupyterlab >=3.6.0,<4.0.0a0`
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
