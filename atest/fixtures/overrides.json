@@ -1,5 +1,8 @@
 {
     "@jupyterlab/statusbar-extension:plugin": {
         "visible": true
+    },
+    "@jupyterlab/apputils-extension:notification": {
+        "fetchNews": 'false'
     }
 }
