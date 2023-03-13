@@ -124,7 +124,7 @@ jobs:
       matrix:
         os: [ubuntu]
         nodejs: ['>=14,<15.0.0a0']
-        lab: ['>=3.1.0,<4.0.0a0']
+        lab: ['>=3.6.0,<4.0.0a0']
         r: ['>=4']
     steps:
       - uses: actions/checkout@v3
@@ -351,26 +351,23 @@ jobs:
       max-parallel: 3
       matrix:
         os: ['ubuntu', 'macos', 'windows']
-        python: ['3.7', '3.8', '3.9', '3.10', 'pypy-3.7']
+        python: ['3.8', '3.9', '3.10', 'pypy-3.8']
         exclude:
           - os: windows
             python: pypy-3.7
         include:
-          - python: '3.7'
-            dist: 'jupyter*lsp*.tar.gz'
-            lab: '>=3.3,<3.4'
           - python: '3.8'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=3.3,<3.4'
+            lab: '>=3.6,<3.7'
           - python: '3.9'
             dist: 'jupyter*lsp*.tar.gz'
-            lab: '>=3.4,<4'
+            lab: '>=3.6,<4'
           - python: '3.10'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=3.4,<4'
-          - python: 'pypy-3.7'
+            lab: '>=3.6,<4'
+          - python: 'pypy-3.8'
             dist: 'jupyter*lsp*.tar.gz'
-            lab: '>=3.4,<4'
+            lab: '>=3.6,<4'
           - os: 'windows'
             py_cmd: python
           - os: 'macos'
@@ -412,13 +409,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu]
-        python: ['3.7', '3.10']
+        python: ['3.8', '3.10']
         nodejs: ['14']
         include:
-          - python: '3.7'
-            lab: '>=3.3,<3.4'
+          - python: '3.8'
+            lab: '>=3.6,<3.7'
           - python: '3.10'
-            lab: '>=3.3,<4'
+            lab: '>=3.6,<4'
     steps:
       - name: Install Python
         uses: actions/setup-python@v4
