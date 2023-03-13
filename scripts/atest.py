@@ -29,12 +29,6 @@ NON_CRITICAL = [
     # TODO: restore when yaml-language-server supports both config and...
     # everything else: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/245
     ["language:yaml", "feature:config"],
-    # TODO: restore once busy indicator is CSS-readable on 3.3.x
-    # https://github.com/jupyterlab/jupyterlab/issues/12174
-    ["requires:busy-indicator", "lab:3.3.0"],
-    ["requires:busy-indicator", "lab:3.3.1"],
-    ["requires:busy-indicator", "lab:3.3.2"],
-    ["requires:busy-indicator", "lab:3.3.3"],
     # TODO: restore when we figure out win36 vs jedi on windows
     # ["language:python", "py:36", "os:windows"],
 ]

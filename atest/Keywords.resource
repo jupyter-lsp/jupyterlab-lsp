@@ -381,7 +381,7 @@ Open File
 
 Open in Advanced Settings
     [Arguments]    ${plugin id}
-    IF    '${LAB VERSION}'.startswith('3.3')
+    IF    '${LAB VERSION}'.startswith('3.')
         Lab Command    Advanced JSON Settings Editor
     ELSE
         Lab Command    Advanced Settings Editor
