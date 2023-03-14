@@ -40,7 +40,7 @@
     "@types/sinon": "^7.0.12",
     "buffer": "^6.0.3",
     "chai": "^4.2.0",
-    "file-loader": "~3.0.1",
+    "file-loader": "^6.2.0",
     "mocha": "^6.1.4",
     "rimraf": "^3.0.2",
     "sinon": "^7.3.2",

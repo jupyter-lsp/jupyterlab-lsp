@@ -70,7 +70,7 @@
     "@babel/preset-env": "^7.4.3",
     "@jupyterlab/application": "^3.6.0",
     "@jupyterlab/apputils": "^3.3.0",
-    "@jupyterlab/builder": "^3.3.0",
+    "@jupyterlab/builder": "^3.5.0",
     "@jupyterlab/cells": "^3.3.0",
     "@jupyterlab/codeeditor": "^3.3.0",
     "@jupyterlab/codemirror": "^3.3.0",
