@@ -1,6 +1,6 @@
 ## Changelog
 
-### `@jupyter-lsp/jupyterlab-lsp 4.0.0` (not-yet-released)
+### `@jupyter-lsp/jupyterlab-lsp 4.0.0` (2023-03-15)
 
 Requires JupyterLab `>=3.6.0,<4.0.0a0` and Python 3.8 or newer.
 
@@ -34,17 +34,18 @@ Requires JupyterLab `>=3.6.0,<4.0.0a0` and Python 3.8 or newer.
   - bump minimum required Node.js version to 14.0 (12.0 reached EOL in April)
   - use newer `@jupyterlab/builder` which provides third-party license information ([#882])
 
-### `lsp-ws-connection 0.7.1` (not-yet-released)
+### `lsp-ws-connection 0.7.1` (2023-03-15)
 
 - downstreams:
   - includes sourcemaps for easier debugging ([#882])
 - maintenance:
   - handle notification promises more explicitly ([#882])
 
-### `jupyter-lsp 2.0.0` (not-yet-released)
+### `jupyter-lsp 2.0.0` (2023-03-15)
 
 - dependencies:
   - uses `importlib_metadata` (or `importlib.metadata` on 3.10+) for `entry_points` ([#882])
+  - supports Python versions are 3.8 or newer
 - performance:
   - `entry_point` discovery is deferred until server has started, improving
     `jupyter_server` startup time ([#852])
