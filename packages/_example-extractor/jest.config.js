@@ -7,6 +7,7 @@ const esModules = [
   'lib0',
   'y\\-protocols',
   'y\\-websocket',
+  '@jupyter/ydoc',
   'yjs'
 ].join('|');
 
@@ -26,7 +27,7 @@ let local = {
     '\\.(js|jsx)?$': './transform.js',
     '\\.svg$': 'jest-raw-loader'
   },
-  transformIgnorePatterns: [`/node_modules/(?!${esModules}).+`],
+  transformIgnorePatterns: [`/node_modules/(?!${esModules}).*`],
   testLocationInResults: true,
   reporters: [...upstream['reporters'], 'jest-github-actions-reporter']
 };

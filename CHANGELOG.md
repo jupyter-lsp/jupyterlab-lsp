@@ -1,11 +1,14 @@
 ## Changelog
 
-### `@jupyter-lsp/jupyterlab-lsp 4.0.0-alpha.0` (not-yet-released)
+### `@jupyter-lsp/jupyterlab-lsp 4.0.0` (not-yet-released)
+
+Requires JupyterLab `>=3.6.0,<4.0.0a0` and Python 3.8 or newer.
 
 - features:
   - implement jump target selector and jump to references ([#739])
   - implement settings UI using native JupyterLab 3.3 UI ([#778])
   - add option to show hover tooltip automatically ([#864], thanks @yamaton)
+  - implement eliding for long paths/files in completer ([#893])
 - bug fixes:
   - use correct websocket URL if configured as different from base URL ([#820], thanks @MikeSem)
   - clean up all completer styles when completer feature is disabled ([#829]).
@@ -37,9 +40,9 @@
 - downstreams:
   - includes sourcemaps for easier debugging ([#882])
 - maintenance:
-  - handle notifcation promises more explicitly ([#882])
+  - handle notification promises more explicitly ([#882])
 
-### `jupyter-lsp 1.6.0` (not-yet-released)
+### `jupyter-lsp 2.0.0` (not-yet-released)
 
 - dependencies:
   - uses `importlib_metadata` (or `importlib.metadata` on 3.10+) for `entry_points` ([#882])
@@ -63,6 +66,7 @@
 [#864]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/864
 [#867]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/867
 [#882]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/882
+[#893]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/893
 
 ### `@krassowski/jupyterlab-lsp 3.10.1` (2022-03-21)
 

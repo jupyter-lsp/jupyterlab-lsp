@@ -90,6 +90,9 @@ Initialize User Settings
     Create File
     ...    ${SETTINGS DIR}${/}@jupyterlab${/}apputils-extension${/}palette.jupyterlab-settings
     ...    {"modal": false}
+    Create File
+    ...    ${SETTINGS DIR}${/}@jupyterlab${/}apputils-extension${/}notification.jupyterlab-settings
+    ...    {"fetchNews": "false"}
 
 Reset Plugin Settings
     [Arguments]    ${package}=jupyterlab-lsp    ${plugin}=plugin
@@ -381,7 +384,7 @@ Open File
 
 Open in Advanced Settings
     [Arguments]    ${plugin id}
-    IF    '${LAB VERSION}'.startswith('3.3')
+    IF    '${LAB VERSION}'.startswith('3.')
         Lab Command    Advanced JSON Settings Editor
     ELSE
         Lab Command    Advanced Settings Editor

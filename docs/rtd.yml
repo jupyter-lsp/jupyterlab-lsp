@@ -7,13 +7,13 @@ channels:
 
 dependencies:
   - importlib_metadata
-  - jupyterlab >=3.3.0,<4.0.0a0
+  - jupyterlab >=3.6.0,<4.0.0a0
   - myst-nb
-  - nodejs >=14,!=15,<17
+  - nodejs >=16,!=17,<19
   - pandas
   - pip
   - pytest-check-links
-  - python >=3.7,<3.11.0a0
+  - python >=3.8,<3.11.0a0
   - python-graphviz
   - python-lsp-server
   - robotframework-lsp

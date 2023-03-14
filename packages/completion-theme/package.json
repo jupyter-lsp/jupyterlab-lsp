@@ -33,7 +33,7 @@
     "clean": "rimraf lib"
   },
   "devDependencies": {
-    "@jupyterlab/builder": "^3.3.0",
+    "@jupyterlab/builder": "^3.5.0",
     "@jupyterlab/ui-components": "^3.3.0",
     "react": "^17.0.1",
     "rimraf": "^3.0.2",
