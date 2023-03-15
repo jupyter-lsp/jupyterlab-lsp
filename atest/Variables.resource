@@ -41,6 +41,7 @@ ${DIALOG WINDOW}                css:.jp-Dialog
 ${DIALOG INPUT}                 css:.jp-Input-Dialog input
 ${DIALOG ACCEPT}                css:button.jp-Dialog-button.jp-mod-accept
 ${STATUSBAR}                    css:div.lsp-statusbar-item
+${ROOT FOLDER}                  css:.jp-BreadCrumbs-home
 ${MENU EDITOR}                  xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(., "Editor")]
 ${MENU JUMP}
 ...                             xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Jump to definition")]

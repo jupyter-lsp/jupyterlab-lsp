@@ -6,6 +6,8 @@ channels:
 
 dependencies:
   - jupyterlab {lab}
+  # to test serverextension
+  - notebook
   # build dependencies
   - pip
   - nodejs {nodejs}
@@ -32,6 +34,9 @@ dependencies:
   # test tools
   - pytest-asyncio
   - pytest-cov
+  # temporary pin added on 2022-12-28, if editing this file try to remove it:
+  # pytoolconfig 1.2.4 depends on packaging>=22.0 which breaks `pip check`
+  - pytoolconfig <1.2.4
   # see https://github.com/conda-forge/pytest-flake8-feedstock/issues/20
   # and https://github.com/tholo/pytest-flake8/issues/86
   - pytest-flake8 <1.1.1

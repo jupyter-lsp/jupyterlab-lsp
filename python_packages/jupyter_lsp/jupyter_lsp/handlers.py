@@ -25,7 +25,8 @@ class LanguageServerWebSocketHandler(  # type: ignore
 
     language_server = None  # type: Optional[Text]
 
-    def open(self, language_server):
+    async def open(self, language_server):
+        await self.manager.ready()
         self.language_server = language_server
         self.manager.subscribe(self)
         self.log.debug("[{}] Opened a handler".format(self.language_server))
@@ -51,8 +52,10 @@ class LanguageServersHandler(BaseHandler):
     def initialize(self, *args, **kwargs):
         super().initialize(*args, **kwargs)
 
-    def get(self):
+    async def get(self):
         """finish with the JSON representations of the sessions"""
+        await self.manager.ready()
+
         response = {
             "version": 2,
             "sessions": {

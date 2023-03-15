@@ -1,5 +1,6 @@
 import * as events from 'events';
 
+import 'setimmediate';
 import type * as protocol from 'vscode-languageserver-protocol';
 import type { LocationLink } from 'vscode-languageserver-types';
 import { ConsoleLogger, MessageConnection, listen } from 'vscode-ws-jsonrpc';

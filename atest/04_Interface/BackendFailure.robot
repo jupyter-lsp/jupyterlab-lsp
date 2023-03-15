@@ -1,8 +1,8 @@
 *** Settings ***
 Resource            ../Keywords.resource
 
-Suite Setup         Setup Server and Browser    server_extension_enabled=${False}
-Suite Teardown      Setup Server and Browser    server_extension_enabled=${True}
+Suite Setup         Setup Missing Extension Test
+Suite Teardown      Teardown Missing Extension Test
 
 
 *** Variables ***
@@ -19,3 +19,13 @@ Handles Server Extension Failure
     Accept Default Dialog Option
     Page Should Not Contain Element    ${POPOVER}
     [Teardown]    Clean Up After Working With File    Python.ipynb
+
+
+*** Keywords ***
+Setup Missing Extension Test
+    Set Server Extension State    enabled=${False}
+    Setup Server and Browser
+
+Teardown Missing Extension Test
+    Set Server Extension State    enabled=${True}
+    Setup Server and Browser

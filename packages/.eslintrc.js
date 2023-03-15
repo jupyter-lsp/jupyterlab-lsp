@@ -15,7 +15,6 @@ module.exports = {
     'plugin:import/typescript',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
-    'prettier/@typescript-eslint',
     'plugin:react/recommended',
     'plugin:jest/recommended'
   ],
@@ -50,7 +49,6 @@ module.exports = {
     'jest/expect-expect': 'off',
     'jest/no-export': 'warn',
     'jest/no-jest-import': 'off',
-    'jest/no-try-expect': 'warn',
     'no-case-declarations': 'warn',
     'no-control-regex': 'warn',
     'no-inner-declarations': 'off',
