@@ -4,9 +4,6 @@
   },
   "@jupyter-lsp/jupyterlab-lsp:plugin": {
     "language_servers": {
-      "pyright": {
-        "priority": 1000
-      },
       "pylsp-with-override-json": {
         "serverSettings": {
           "pylsp.plugins.flake8.enabled": true,
