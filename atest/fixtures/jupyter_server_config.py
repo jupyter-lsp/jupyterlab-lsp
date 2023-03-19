@@ -7,12 +7,16 @@ pylsp_base: dict = PythonLSPServer()(manager)
 
 
 c.LanguageServerManager.language_servers.update({
-    "pylsp-with-config-override": {
+    "pylsp-with-override-spec": {
         **pylsp_base["pylsp"],
-        "display_name": "pylsp (with-config-override)",
+        "display_name": "pylsp (with override via server spec)",
         "workspace_configuration": {
           "pylsp.plugins.flake8.enabled": True,
           "pylsp.plugins.pyflakes.enabled": False
         }
+    },
+    "pylsp-with-override-json": {
+        **pylsp_base["pylsp"],
+        "display_name": "pylsp (with override via overrides.json)"
     }
 })

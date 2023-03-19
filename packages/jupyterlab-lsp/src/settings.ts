@@ -241,9 +241,15 @@ export class SettingsSchemaManager {
 
     const defaults: Record<string, any> = {};
     const knownServersConfig: Record<string, any> = {};
+    // `sharedDefaults` may be empty as we do not define/receive custom
+    // per-property defaults in schema as of the day of writing.
     const sharedDefaults = getDefaults(
       schema.properties!.language_servers.properties
     );
+    const defaultsOverrides = schema.properties!.language_servers.default as
+      | Record<string, any>
+      | undefined;
+
     for (let [serverKey, serverSpec] of languageServerManager.specs.entries()) {
       if ((serverKey as string) === '') {
         this.console.warn(
@@ -324,6 +330,26 @@ export class SettingsSchemaManager {
           configSchema.properties[key].default = value;
         }
       }
+      // add server-speficic default overrides from overrides.json (and pre-defined in schema)
+      const serverDefaultsOverrides =
+        defaultsOverrides && defaultsOverrides.hasOwnProperty(serverKey)
+          ? defaultsOverrides[serverKey]
+          : {};
+      if (serverDefaultsOverrides.serverSettings) {
+        for (const [key, value] of Object.entries(
+          serverDefaultsOverrides.serverSettings
+        )) {
+          if (!configSchema.properties.hasOwnProperty(key)) {
+            this.console.warn(
+              '`overrides.json` includes an override for key not in schema',
+              key,
+              serverKey
+            );
+            continue;
+          }
+          configSchema.properties[key].default = value;
+        }
+      }
 
       const defaultMap = getDefaults(configSchema.properties);
 
@@ -332,6 +358,7 @@ export class SettingsSchemaManager {
       knownServersConfig[serverKey] = baseSchemaCopy;
       defaults[serverKey] = {
         ...sharedDefaults,
+        ...serverDefaultsOverrides,
         serverSettings: defaultMap
       };
     }
