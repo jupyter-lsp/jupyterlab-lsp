@@ -1,5 +1,15 @@
 {
-    "@jupyterlab/statusbar-extension:plugin": {
-        "visible": true
+  "@jupyterlab/statusbar-extension:plugin": {
+    "visible": true
+  },
+  "@jupyter-lsp/jupyterlab-lsp:plugin": {
+    "language_servers": {
+      "pylsp-with-override-json": {
+        "serverSettings": {
+          "pylsp.plugins.flake8.enabled": true,
+          "pylsp.plugins.pyflakes.enabled": false
+        }
+      }
     }
+  }
 }
