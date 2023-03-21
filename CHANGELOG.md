@@ -1,11 +1,11 @@
 ## Changelog
 
-### `@jupyter-lsp/jupyterlab-lsp 4.0.1` (unreleased)
+### `@jupyter-lsp/jupyterlab-lsp 4.0.1` (2023-03-21)
 
 - bug fixes
   - overrides from `overrides.json` are now picked up again ([#919])
 
-### `jupyter-lsp 2.0.1` (unreleased)
+### `jupyter-lsp 2.0.1` (2023-03-21)
 
 - bug fixes:
   - pyright schema now includes required `python.` prefixes ([#919])
