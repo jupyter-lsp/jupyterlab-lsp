@@ -1,3 +1,13 @@
-.lsp-signature-help pre code {
+.lsp-signature-help code {
   font-size: var(--jp-code-font-size);
+}
+
+.lsp-signature-help code > mark {
+  color: var(--jp-lsp-signature-mark-color);
+  background: var(--jp-lsp-signature-mark-background);
+}
+
+.lsp-signature-help code > mark > span {
+  /* override syntax highlight colour to ensure contrast */
+  color: var(--jp-lsp-signature-mark-color) !important;
 }
