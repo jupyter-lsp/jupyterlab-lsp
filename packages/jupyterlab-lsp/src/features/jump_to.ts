@@ -79,20 +79,28 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
     virtualEditor: CodeMirrorVirtualEditor,
     event: MouseEvent
   ) {
-    document.body.addEventListener(
-      'mouseup',
-      (mouseUpEvent: MouseEvent) => {
-        if (mouseUpEvent.target !== event.target) {
-          // Cursor moved, e.g. block selection was attempted, see:
-          // https://github.com/jupyter-lsp/jupyterlab-lsp/issues/823
-          return;
+    // For Alt + click we need to wait for mouse up to enable users to create
+    // rectangular selections with Alt + drag.
+    if (this.modifierKey === 'Alt') {
+      document.body.addEventListener(
+        'mouseup',
+        (mouseUpEvent: MouseEvent) => {
+          if (mouseUpEvent.target !== event.target) {
+            // Cursor moved, possibly block selection was attempted, see:
+            // https://github.com/jupyter-lsp/jupyterlab-lsp/issues/823
+            return;
+          }
+          return this._jumpToDefinitionOrRefernce(virtualEditor, event);
+        },
+        {
+          once: true
         }
-        return this._jumpToDefinitionOrRefernce(virtualEditor, event);
-      },
-      {
-        once: true
-      }
-    );
+      );
+    } else {
+      // For Ctrl + click we need to act on mouse down to prevent
+      // adding multiple cursors if jump were to occur.
+      return this._jumpToDefinitionOrRefernce(virtualEditor, event);
+    }
   }
 
   private _jumpToDefinitionOrRefernce(
