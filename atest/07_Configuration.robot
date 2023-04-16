@@ -58,7 +58,7 @@ LaTeX
     Settings Should Change Editor Diagnostics    LaTeX    example.tex    texlab
     ...    {"chktex.onOpenAndSave": true, "chktex.onEdit": true}
     ...    ${EMPTY}
-    ...    Command terminated with space. (chktex)
+    ...    Command terminated with space.
     ...    Save File
     ...    ${needs reload}
 
