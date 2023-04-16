@@ -44,7 +44,7 @@ if TYPE_CHECKING:  # pragma: no cover
             scope: Text,
             message: LanguageServerMessage,
             language_server: Text,
-            manager: "HasListeners",
+            manager: "LanguageServerManagerAPI",
         ) -> Awaitable[None]:
             ...
 
@@ -89,7 +89,7 @@ class MessageListener(object):
         scope: Text,
         message: LanguageServerMessage,
         language_server: Text,
-        manager: "HasListeners",
+        manager: "LanguageServerManagerAPI",
     ) -> None:
         """actually dispatch the message to the listener and capture any errors"""
         try:
@@ -194,6 +194,8 @@ class HasListeners:
 
 class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
     """Public API that can be used for python-based spec finders and listeners"""
+
+    language_servers: KeyedLanguageServerSpecs
 
     nodejs = Unicode(help=_("path to nodejs executable")).tag(config=True)
 

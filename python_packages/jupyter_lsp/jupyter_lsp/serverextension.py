@@ -16,12 +16,23 @@ async def initialize(nbapp, virtual_documents_uri):  # pragma: no cover
 
     from .virtual_documents_shadow import setup_shadow_filesystem
 
-    manager = nbapp.language_server_manager
+    manager: LanguageServerManager = nbapp.language_server_manager
 
     with concurrent.futures.ThreadPoolExecutor() as pool:
         await nbapp.io_loop.run_in_executor(pool, manager.initialize)
 
-    setup_shadow_filesystem(virtual_documents_uri=virtual_documents_uri)
+    servers_requiring_disk_access = [
+        server_id
+        for server_id, server in manager.language_servers.items()
+        if server.get("requires_documents_on_disk", True)
+    ]
+
+    if any(servers_requiring_disk_access):
+        nbapp.log.debug(
+            "[lsp] servers that requested virtual documents on disk: %s",
+            servers_requiring_disk_access,
+        )
+        setup_shadow_filesystem(virtual_documents_uri=virtual_documents_uri)
 
     nbapp.log.debug(
         "[lsp] The following Language Servers will be available: {}".format(

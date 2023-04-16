@@ -8,6 +8,7 @@ from tornado.gen import convert_yielded
 
 from .manager import lsp_message_listener
 from .paths import file_uri_to_path
+from .types import LanguageServerManagerAPI
 
 # TODO: make configurable
 MAX_WORKERS = 4
@@ -101,7 +102,7 @@ class ShadowFilesystemError(ValueError):
     """Error in the shadow file system."""
 
 
-def setup_shadow_filesystem(virtual_documents_uri):
+def setup_shadow_filesystem(virtual_documents_uri: str):
 
     if not virtual_documents_uri.startswith("file:/"):
         raise ShadowFilesystemError(  # pragma: no cover
@@ -124,6 +125,11 @@ def setup_shadow_filesystem(virtual_documents_uri):
         Only create the shadow file if the URI matches the virtual documents URI.
         Returns the path on filesystem where the content was stored.
         """
+
+        # short-circut if language server does not require documents on disk
+        server_spec = manager.language_servers[language_server]
+        if not server_spec.get("requires_documents_on_disk", True):
+            return
 
         if not message.get("method") in WRITE_ONE:
             return

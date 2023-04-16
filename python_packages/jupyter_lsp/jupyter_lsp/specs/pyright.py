@@ -20,4 +20,5 @@ class PyrightLanguageServer(NodeModuleSpec):
             jlpm="jlpm add --dev {}".format(key),
         ),
         config_schema=load_config_schema(key),
+        requires_documents_on_disk=False,
     )
