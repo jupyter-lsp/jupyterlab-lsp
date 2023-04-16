@@ -71,15 +71,32 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
   }
 
   register() {
-    this.editor_handlers.set(
-      'mousedown',
-      this._jumpToDefinitionOrRefernce.bind(this)
-    );
+    this.editor_handlers.set('mousedown', this._jumpOnMouseUp.bind(this));
     super.register();
   }
 
+  private _jumpOnMouseUp(
+    virtualEditor: CodeMirrorVirtualEditor,
+    event: MouseEvent
+  ) {
+    document.body.addEventListener(
+      'mouseup',
+      (mouseUpEvent: MouseEvent) => {
+        if (mouseUpEvent.target !== event.target) {
+          // Cursor moved, e.g. block selection was attempted, see:
+          // https://github.com/jupyter-lsp/jupyterlab-lsp/issues/823
+          return;
+        }
+        return this._jumpToDefinitionOrRefernce(virtualEditor, event);
+      },
+      {
+        once: true
+      }
+    );
+  }
+
   private _jumpToDefinitionOrRefernce(
-    virtual_editor: CodeMirrorVirtualEditor,
+    virtualEditor: CodeMirrorVirtualEditor,
     event: MouseEvent
   ) {
     const { button } = event;
@@ -88,24 +105,24 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
     if (!shouldJump) {
       return;
     }
-    let root_position = this.position_from_mouse(event);
-    if (root_position == null) {
+    let rootPosition = this.position_from_mouse(event);
+    if (rootPosition == null) {
       this.console.warn(
         'Could not retrieve root position from mouse event to jump to definition/reference'
       );
       return;
     }
-    let document = virtual_editor.document_at_root_position(root_position);
-    let virtual_position =
-      virtual_editor.root_position_to_virtual_position(root_position);
+    let document = virtualEditor.document_at_root_position(rootPosition);
+    let virtualPosition =
+      virtualEditor.root_position_to_virtual_position(rootPosition);
 
     const positionParams: lsp.TextDocumentPositionParams = {
       textDocument: {
         uri: document.document_info.uri
       },
       position: {
-        line: virtual_position.line,
-        character: virtual_position.ch
+        line: virtualPosition.line,
+        character: virtualPosition.ch
       }
     };
 
@@ -239,19 +256,19 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
 
     let { uri, range } = targetInfo;
 
-    let virtual_position = PositionConverter.lsp_to_cm(
+    let virtualPosition = PositionConverter.lsp_to_cm(
       range.start
     ) as IVirtualPosition;
 
     if (uris_equal(uri, positionParams.textDocument.uri)) {
-      let editor_index = this.adapter.get_editor_index_at(virtual_position);
+      let editor_index = this.adapter.get_editor_index_at(virtualPosition);
       // if in current file, transform from the position within virtual document to the editor position:
       let editor_position =
-        this.virtual_editor.transform_virtual_to_editor(virtual_position);
+        this.virtual_editor.transform_virtual_to_editor(virtualPosition);
       if (editor_position === null) {
         this.console.warn(
           'Could not jump: conversion from virtual position to editor position failed',
-          virtual_position
+          virtualPosition
         );
         return JumpResult.PositioningFailure;
       }
@@ -281,7 +298,7 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
       return JumpResult.AssumeSuccess;
     } else {
       // otherwise there is no virtual document and we expect the returned position to be source position:
-      let source_position_ce = PositionConverter.cm_to_ce(virtual_position);
+      let source_position_ce = PositionConverter.cm_to_ce(virtualPosition);
       this.console.log(`Jumping to external file: ${uri}`);
       this.console.log('Jump target (source location):', source_position_ce);
 
@@ -344,7 +361,7 @@ class JumperLabIntegration implements IFeatureLabIntegration {
     this.jumpers = new Map();
 
     if (fileEditorTracker !== null) {
-      fileEditorTracker.widgetAdded.connect((sender, widget) => {
+      fileEditorTracker.widgetAdded.connect((_, widget) => {
         let fileEditor = widget.content;
 
         if (fileEditor.editor instanceof CodeMirrorEditor) {
@@ -354,7 +371,7 @@ class JumperLabIntegration implements IFeatureLabIntegration {
       });
     }
 
-    notebookTracker.widgetAdded.connect(async (sender, widget) => {
+    notebookTracker.widgetAdded.connect(async (_, widget) => {
       // NOTE: assuming that the default cells content factory produces CodeMirror editors(!)
       let jumper = new NotebookJumper(widget, documentManager);
       this.jumpers.set(widget.id, jumper);
@@ -432,7 +449,7 @@ const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
   },
   {
     id: 'jump-back',
-    execute: async ({ connection, virtual_position, document, features }) => {
+    execute: async ({ features }) => {
       const jump_feature = features.get(FEATURE_ID) as CMJumpToDefinition;
       jump_feature.jumper.global_jump_back();
     },
