@@ -16,9 +16,18 @@ Python
     ...    undefined name 'foo' (pyflakes)
     ...    undefined name 'foo' (flake8)
 
-Python (programmatically)
+Python (server-side via overrides.json)
+    [Documentation]    same as "Python" but changing the defaults in server specification via `overrides.json`
+    Settings Should Change Editor Diagnostics    Python    style.py    pylsp-with-override-json
+    ...    settings=100
+    ...    before=undefined name 'foo' (pyflakes)
+    ...    after=undefined name 'foo' (flake8)
+    ...    setting_key=priority
+    ...    needs reload=${True}
+
+Python (server-side via spec)
     [Documentation]    same as "Python" but changing the defaults in server specification via `workspace_configuration`
-    Settings Should Change Editor Diagnostics    Python    style.py    pylsp-with-config-override
+    Settings Should Change Editor Diagnostics    Python    style.py    pylsp-with-override-spec
     ...    settings=100
     ...    before=undefined name 'foo' (pyflakes)
     ...    after=undefined name 'foo' (flake8)
@@ -49,7 +58,7 @@ LaTeX
     Settings Should Change Editor Diagnostics    LaTeX    example.tex    texlab
     ...    {"chktex.onOpenAndSave": true, "chktex.onEdit": true}
     ...    ${EMPTY}
-    ...    Command terminated with space. (chktex)
+    ...    Command terminated with space.
     ...    Save File
     ...    ${needs reload}
 

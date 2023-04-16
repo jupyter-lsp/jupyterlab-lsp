@@ -1,5 +1,17 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 4.0.1` (2023-03-21)
+
+- bug fixes
+  - overrides from `overrides.json` are now picked up again ([#919])
+
+### `jupyter-lsp 2.0.1` (2023-03-21)
+
+- bug fixes:
+  - pyright schema now includes required `python.` prefixes ([#919])
+
+[#919]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/919
+
 ### `@jupyter-lsp/jupyterlab-lsp 4.0.0` (2023-03-15)
 
 Requires JupyterLab `>=3.6.0,<4.0.0a0` and Python 3.8 or newer.
@@ -9,6 +21,7 @@ Requires JupyterLab `>=3.6.0,<4.0.0a0` and Python 3.8 or newer.
   - implement settings UI using native JupyterLab 3.3 UI ([#778])
   - add option to show hover tooltip automatically ([#864], thanks @yamaton)
   - implement eliding for long paths/files in completer ([#893])
+  - allow to pass default workspace config (`serverSettings`) in specs ([#856])
 - bug fixes:
   - use correct websocket URL if configured as different from base URL ([#820], thanks @MikeSem)
   - clean up all completer styles when completer feature is disabled ([#829]).
@@ -50,6 +63,7 @@ Requires JupyterLab `>=3.6.0,<4.0.0a0` and Python 3.8 or newer.
 - performance:
   - `entry_point` discovery is deferred until server has started, improving
     `jupyter_server` startup time ([#852])
+- allow to pass default workspace config (`serverSettings`) in specs ([#856])
 
 [#724]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/724
 [#738]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/738
@@ -63,6 +77,7 @@ Requires JupyterLab `>=3.6.0,<4.0.0a0` and Python 3.8 or newer.
 [#833]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/833
 [#836]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/836
 [#852]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/852
+[#856]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/856
 [#860]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/860
 [#864]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/864
 [#867]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/867
