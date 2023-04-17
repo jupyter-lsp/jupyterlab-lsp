@@ -1,3 +1,8 @@
 body[data-jp-theme-light='false'] .cm-s-jupyter {
   --jp-editor-mirror-lsp-highlight-background-color: rgba(151, 173, 255, 0.3);
 }
+
+body[data-jp-theme-light='false'] {
+  --jp-lsp-signature-mark-color: white;
+  --jp-lsp-signature-mark-background: #607e01;
+}

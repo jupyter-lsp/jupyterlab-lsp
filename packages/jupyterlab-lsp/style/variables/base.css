@@ -18,4 +18,7 @@
   /* hover */
   --jp-editor-mirror-lsp-hover-decoration-style: dotted;
   --jp-editor-mirror-lsp-hover-decoration-color: var(--jp-brand-color1);
+  /* signature */
+  --jp-lsp-signature-mark-color: black;
+  --jp-lsp-signature-mark-background: yellow;
 }
