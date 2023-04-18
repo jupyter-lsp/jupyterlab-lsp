@@ -20,12 +20,14 @@ from typing import (
     Pattern,
     Text,
     Union,
+    cast,
 )
 
 try:
     from jupyter_server.transutils import _i18n as _
 except ImportError:  # pragma: no cover
     from jupyter_server.transutils import _
+
 from traitlets import Instance
 from traitlets import List as List_
 from traitlets import Unicode, default
@@ -182,7 +184,7 @@ class HasListeners:
                     scope_val,
                     message=message,
                     language_server=language_server,
-                    manager=self,
+                    manager=cast("LanguageServerManagerAPI", self),
                 )
                 for listener in listeners
                 if listener.wants(message, language_server)
