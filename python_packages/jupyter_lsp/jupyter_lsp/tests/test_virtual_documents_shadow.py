@@ -119,6 +119,7 @@ async def test_shadow(shadow_path, message_func, content, expected_content, mana
         assert f.read() == expected_content
 
 
+@pytest.mark.asyncio
 async def test_short_circuits_for_well_behaved_server(
     shadow_path,
 ):
