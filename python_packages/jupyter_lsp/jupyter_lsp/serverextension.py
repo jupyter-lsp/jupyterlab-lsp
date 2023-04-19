@@ -29,10 +29,15 @@ async def initialize(nbapp, virtual_documents_uri):  # pragma: no cover
 
     if any(servers_requiring_disk_access):
         nbapp.log.debug(
-            "[lsp] servers that requested virtual documents on disk: %s",
+            "[lsp] Servers that requested virtual documents on disk: %s",
             servers_requiring_disk_access,
         )
         setup_shadow_filesystem(virtual_documents_uri=virtual_documents_uri)
+    else:
+        nbapp.log.debug(
+            "[lsp] None of the installed servers require virtual documents"
+            " disabling shadow filesystem."
+        )
 
     nbapp.log.debug(
         "[lsp] The following Language Servers will be available: {}".format(

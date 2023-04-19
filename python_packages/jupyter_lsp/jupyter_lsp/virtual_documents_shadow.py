@@ -110,13 +110,8 @@ def setup_shadow_filesystem(virtual_documents_uri: str):
             + virtual_documents_uri
         )
 
+    initialized = False
     shadow_filesystem = Path(file_uri_to_path(virtual_documents_uri))
-    # create if does no exist (so that removal does not raise)
-    shadow_filesystem.mkdir(parents=True, exist_ok=True)
-    # remove with contents
-    rmtree(str(shadow_filesystem))
-    # create again
-    shadow_filesystem.mkdir(parents=True, exist_ok=True)
 
     @lsp_message_listener("client")
     async def shadow_virtual_documents(scope, message, language_server, manager):
@@ -125,6 +120,7 @@ def setup_shadow_filesystem(virtual_documents_uri: str):
         Only create the shadow file if the URI matches the virtual documents URI.
         Returns the path on filesystem where the content was stored.
         """
+        nonlocal initialized
 
         # short-circut if language server does not require documents on disk
         server_spec = manager.language_servers[language_server]
@@ -146,6 +142,16 @@ def setup_shadow_filesystem(virtual_documents_uri: str):
 
         if not uri.startswith(virtual_documents_uri):
             return
+
+        # initialization (/any file system operations) delayed until needed
+        if not initialized:
+            # create if does no exist (so that removal does not raise)
+            shadow_filesystem.mkdir(parents=True, exist_ok=True)
+            # remove with contents
+            rmtree(str(shadow_filesystem))
+            # create again
+            shadow_filesystem.mkdir(parents=True, exist_ok=True)
+            initialized = True
 
         path = file_uri_to_path(uri)
         editable_file = EditableFile(path)

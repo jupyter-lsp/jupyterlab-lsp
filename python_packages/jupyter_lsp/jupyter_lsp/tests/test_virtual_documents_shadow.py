@@ -120,12 +120,13 @@ async def test_shadow(shadow_path, message_func, content, expected_content, mana
 
 
 @pytest.mark.asyncio
-async def test_short_circuits_for_well_behaved_server(
+async def test_no_shadow_for_well_behaved_server(
     shadow_path,
 ):
     """We call server well behaved when it does not require a disk copy"""
-    shadow = setup_shadow_filesystem(Path(shadow_path).as_uri())
-    ok_file_path = Path(shadow_path) / "test.py"
+    shadow_path_for_well = Path(shadow_path) / "well"
+    shadow = setup_shadow_filesystem(Path(shadow_path_for_well).as_uri())
+    ok_file_path = Path(shadow_path_for_well) / "test.py"
 
     manager = SimpleNamespace(
         language_servers={"python-lsp-server": {"requires_documents_on_disk": False}}
@@ -133,7 +134,30 @@ async def test_short_circuits_for_well_behaved_server(
 
     message = did_open(ok_file_path.as_uri(), "content\nof\nopened\nfile")
     result = await shadow("client", message, "python-lsp-server", manager)
+    # should short-circuit for well behaved server
     assert result is None
+    # should not create the directory
+    assert not shadow_path_for_well.exists()
+
+
+@pytest.mark.asyncio
+async def test_shadow_created_for_ill_behaved_server(
+    shadow_path,
+):
+    shadow_path_for_ill = Path(shadow_path) / "ill"
+    shadow = setup_shadow_filesystem(shadow_path_for_ill.as_uri())
+    ok_file_path = Path(shadow_path_for_ill) / "test.py"
+
+    manager = SimpleNamespace(
+        language_servers={"python-lsp-server": {"requires_documents_on_disk": True}}
+    )
+
+    message = did_open(ok_file_path.as_uri(), "content\nof\nopened\nfile")
+    result = await shadow("client", message, "python-lsp-server", manager)
+    assert result is not None
+    # should create the directory at given path
+    assert shadow_path_for_ill.exists()
+    assert shadow_path_for_ill.is_dir()
 
 
 @pytest.mark.asyncio
