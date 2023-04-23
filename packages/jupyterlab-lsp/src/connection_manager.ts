@@ -411,9 +411,11 @@ export namespace DocumentConnectionManager {
     const specs = serverManager.getMatchingSpecs(serverOptions);
     const spec = specs.get(languageServerId);
     if (!spec) {
-      throw `Specification not available for server ${languageServerId}`;
+      console.warn(
+        `Specification not available for server ${languageServerId}`
+      );
     }
-    const requiresOnDiskFiles = spec.requires_documents_on_disk ?? true;
+    const requiresOnDiskFiles = spec?.requires_documents_on_disk ?? true;
     const supportsInMemoryFiles = !requiresOnDiskFiles;
 
     const baseUri =
