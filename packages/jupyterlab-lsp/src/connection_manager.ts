@@ -391,26 +391,37 @@ export namespace DocumentConnectionManager {
     virtual_document: VirtualDocument,
     language: string
   ): IURIs {
-    const { settings } = Private.getLanguageServerManager();
-    const wsBase = settings.wsUrl;
+    const serverManager = Private.getLanguageServerManager();
+    const wsBase = serverManager.settings.wsUrl;
     const rootUri = PageConfig.getOption('rootUri');
     const virtualDocumentsUri = PageConfig.getOption('virtualDocumentsUri');
 
-    const baseUri = virtual_document.has_lsp_supported_file
-      ? rootUri
-      : virtualDocumentsUri;
-
     // for now take the best match only
-    const matchingServers =
-      Private.getLanguageServerManager().getMatchingServers({
-        language
-      });
-    const language_server_id =
+    const serverOptions: ILanguageServerManager.IGetServerIdOptions = {
+      language
+    };
+    const matchingServers = serverManager.getMatchingServers(serverOptions);
+    const languageServerId =
       matchingServers.length === 0 ? null : matchingServers[0];
 
-    if (language_server_id === null) {
+    if (languageServerId === null) {
       throw `No language server installed for language ${language}`;
     }
+
+    const specs = serverManager.getMatchingSpecs(serverOptions);
+    const spec = specs.get(languageServerId);
+    if (!spec) {
+      console.warn(
+        `Specification not available for server ${languageServerId}`
+      );
+    }
+    const requiresOnDiskFiles = spec?.requires_documents_on_disk ?? true;
+    const supportsInMemoryFiles = !requiresOnDiskFiles;
+
+    const baseUri =
+      virtual_document.has_lsp_supported_file || supportsInMemoryFiles
+        ? rootUri
+        : virtualDocumentsUri;
 
     // workaround url-parse bug(s) (see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/595)
     let documentUri = URLExt.join(baseUri, virtual_document.uri);
@@ -435,7 +446,7 @@ export namespace DocumentConnectionManager {
         wsBase,
         ILanguageServerManager.URL_NS,
         'ws',
-        language_server_id
+        languageServerId
       )
     };
   }

@@ -126,6 +126,11 @@
           "title": "Extensions",
           "type": "array"
         },
+        "requires_documents_on_disk": {
+          "default": true,
+          "description": "Whether to write un-saved documents to disk in a transient `.virtual_documents` directory. Well-behaved language servers that work against in-memory files should set this to `false`, which will become the default in the future.",
+          "type": "boolean"
+        },
         "install": {
           "$ref": "#/definitions/install-bundle",
           "description": "a list of installation approaches keyed by package manager, e.g. pip, npm, yarn, apt",

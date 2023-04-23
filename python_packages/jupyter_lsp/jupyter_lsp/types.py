@@ -20,12 +20,14 @@ from typing import (
     Pattern,
     Text,
     Union,
+    cast,
 )
 
 try:
     from jupyter_server.transutils import _i18n as _
 except ImportError:  # pragma: no cover
     from jupyter_server.transutils import _
+
 from traitlets import Instance
 from traitlets import List as List_
 from traitlets import Unicode, default
@@ -44,7 +46,7 @@ if TYPE_CHECKING:  # pragma: no cover
             scope: Text,
             message: LanguageServerMessage,
             language_server: Text,
-            manager: "HasListeners",
+            manager: "LanguageServerManagerAPI",
         ) -> Awaitable[None]:
             ...
 
@@ -89,7 +91,7 @@ class MessageListener(object):
         scope: Text,
         message: LanguageServerMessage,
         language_server: Text,
-        manager: "HasListeners",
+        manager: "LanguageServerManagerAPI",
     ) -> None:
         """actually dispatch the message to the listener and capture any errors"""
         try:
@@ -182,7 +184,7 @@ class HasListeners:
                     scope_val,
                     message=message,
                     language_server=language_server,
-                    manager=self,
+                    manager=cast("LanguageServerManagerAPI", self),
                 )
                 for listener in listeners
                 if listener.wants(message, language_server)
@@ -194,6 +196,8 @@ class HasListeners:
 
 class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
     """Public API that can be used for python-based spec finders and listeners"""
+
+    language_servers: KeyedLanguageServerSpecs
 
     nodejs = Unicode(help=_("path to nodejs executable")).tag(config=True)
 
