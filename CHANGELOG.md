@@ -1,5 +1,25 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 4.1.0` (2023-04-24)
+
+- features:
+  - make `.virtual_documents` optional - logic for solving URIs will now check if the server does not require it ([#930])
+- bug fixes:
+  - fix contrast of mark highlights in dark mode ([#928])
+  - fix conflict with block/rectangular selections on Alt + click ([#927])
+- maintenance:
+  - update texlab expectation ([#929])
+
+[#927]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/927
+[#928]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/928
+[#929]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/929
+[#930]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/930
+
+### `jupyter-lsp 2.1.0` (2023-04-24)
+
+- features:
+  - make `.virtual_documents` optional - added `requires_documents_on_disk` spec field (default `True`, will become `False` in next major version) ([#930])
+
 ### `@jupyter-lsp/jupyterlab-lsp 4.0.1` (2023-03-21)
 
 - bug fixes
