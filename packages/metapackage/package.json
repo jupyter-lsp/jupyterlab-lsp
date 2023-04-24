@@ -1,6 +1,6 @@
 {
   "name": "@jupyter-lsp/jupyterlab-lsp-metapackage",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "JupyterLab LSP - Meta Package. All of the packages used by JupyterLab LSP",
   "homepage": "https://github.com/jupyter-lsp/jupyterlab-lsp",
   "bugs": {
