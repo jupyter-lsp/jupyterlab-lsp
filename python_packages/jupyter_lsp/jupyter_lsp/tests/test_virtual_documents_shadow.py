@@ -1,8 +1,12 @@
+import logging
+import stat
 from pathlib import Path
 from types import SimpleNamespace
 from typing import List
 
 import pytest
+
+from jupyter_lsp import LanguageServerManager
 
 from ..virtual_documents_shadow import (
     EditableFile,
@@ -93,9 +97,16 @@ def shadow_path(tmpdir):
 
 @pytest.fixture
 def manager():
-    return SimpleNamespace(
-        language_servers={"python-lsp-server": {"requires_documents_on_disk": True}}
-    )
+    manager = LanguageServerManager()
+    manager.language_servers = {
+        "python-lsp-server": {
+            "requires_documents_on_disk": True,
+            "argv": [],
+            "languages": ["python"],
+            "version": 2,
+        }
+    }
+    return manager
 
 
 @pytest.mark.asyncio
@@ -198,3 +209,43 @@ async def test_shadow_failures(shadow_path, manager):
                 "params": {"textDocument": {"uri": ok_file_uri}},
             }
         )
+
+
+@pytest.fixture
+def forbidden_shadow_path(tmpdir):
+    path = Path(tmpdir) / "no_permission_dir"
+    path.mkdir(mode=0)
+
+    yield path
+
+    # re-adjust the permissions, see https://github.com/pytest-dev/pytest/issues/7821
+    path.chmod(0o755)
+
+
+@pytest.mark.asyncio
+async def test_io_failure(forbidden_shadow_path, manager, caplog):
+    file_uri = (forbidden_shadow_path / "test.py").as_uri()
+
+    shadow = setup_shadow_filesystem(forbidden_shadow_path.as_uri())
+
+    def send_change():
+        message = did_open(file_uri, "content")
+        return shadow("client", message, "python-lsp-server", manager)
+
+    with caplog.at_level(logging.WARNING):
+        assert await send_change() is None
+        assert await send_change() is None
+    # no message should be emitted during the first two attempts
+    assert caplog.text == ""
+
+    # a wargning should be emitted on third failure
+    with caplog.at_level(logging.WARNING):
+        assert await send_change() is None
+    assert "initialization of shadow filesystem failed three times" in caplog.text
+    assert "PermissionError" in caplog.text
+    caplog.clear()
+
+    # no message should be emitted in subsequent attempts
+    with caplog.at_level(logging.WARNING):
+        assert await send_change() is None
+    assert caplog.text == ""
