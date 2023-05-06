@@ -2,6 +2,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from shutil import rmtree
+from typing import List
 
 from tornado.concurrent import run_on_executor
 from tornado.gen import convert_yielded
@@ -111,7 +112,7 @@ def setup_shadow_filesystem(virtual_documents_uri: str):
         )
 
     initialized = False
-    failures = []
+    failures: List[Exception] = []
 
     shadow_filesystem = Path(file_uri_to_path(virtual_documents_uri))
 

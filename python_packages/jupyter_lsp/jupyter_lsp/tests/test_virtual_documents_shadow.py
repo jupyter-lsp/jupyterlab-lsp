@@ -1,5 +1,4 @@
 import logging
-import stat
 from pathlib import Path
 from types import SimpleNamespace
 from typing import List
