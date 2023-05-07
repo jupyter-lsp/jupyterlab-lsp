@@ -213,7 +213,8 @@ async def test_shadow_failures(shadow_path, manager):
 @pytest.fixture
 def forbidden_shadow_path(tmpdir):
     path = Path(tmpdir) / "no_permission_dir"
-    path.mkdir(mode=0)
+    path.mkdir()
+    path.chmod(0o000)
 
     yield path
 
