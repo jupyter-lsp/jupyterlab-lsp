@@ -2,6 +2,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from shutil import rmtree
+from typing import List
 
 from tornado.concurrent import run_on_executor
 from tornado.gen import convert_yielded
@@ -111,6 +112,8 @@ def setup_shadow_filesystem(virtual_documents_uri: str):
         )
 
     initialized = False
+    failures: List[Exception] = []
+
     shadow_filesystem = Path(file_uri_to_path(virtual_documents_uri))
 
     @lsp_message_listener("client")
@@ -145,12 +148,27 @@ def setup_shadow_filesystem(virtual_documents_uri: str):
 
         # initialization (/any file system operations) delayed until needed
         if not initialized:
-            # create if does no exist (so that removal does not raise)
-            shadow_filesystem.mkdir(parents=True, exist_ok=True)
-            # remove with contents
-            rmtree(str(shadow_filesystem))
-            # create again
-            shadow_filesystem.mkdir(parents=True, exist_ok=True)
+            if len(failures) == 3:
+                return
+            try:
+                # create if does no exist (so that removal does not raise)
+                shadow_filesystem.mkdir(parents=True, exist_ok=True)
+                # remove with contents
+                rmtree(str(shadow_filesystem))
+                # create again
+                shadow_filesystem.mkdir(parents=True, exist_ok=True)
+            except (OSError, PermissionError, FileNotFoundError) as e:
+                failures.append(e)
+                if len(failures) == 3:
+                    manager.log.warn(
+                        "[lsp] initialization of shadow filesystem failed three times"
+                        " check if the path set by `LanguageServerManager.virtual_documents_dir`"
+                        " or `JP_LSP_VIRTUAL_DIR` is correct; if this is happening with a server"
+                        " for which which you control (or wish to override) jupyter-lsp specification"
+                        " you can try switching `requires_documents_on_disk` off. The errors were: %s",
+                        failures,
+                    )
+                return
             initialized = True
 
         path = file_uri_to_path(uri)
