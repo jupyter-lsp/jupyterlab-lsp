@@ -4,7 +4,7 @@ from .utils import NodeModuleSpec
 
 class BashLanguageServer(NodeModuleSpec):
     node_module = key = "bash-language-server"
-    script = ["bin", "main.js"]
+    script = ["out", "cli.js"]
     args = ["start"]
     languages = ["bash", "sh"]
     spec = dict(
