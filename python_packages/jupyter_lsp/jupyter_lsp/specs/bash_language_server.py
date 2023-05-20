@@ -28,4 +28,6 @@ class BashLanguageServer(NodeModuleSpec):
         new_path = mgr.find_node_module(self.node_module, *self.script)
         if new_path:
             return new_path
-        return mgr.find_node_module(self.node_module, *self.fallback_script)
+        return mgr.find_node_module(
+            self.node_module, *self.fallback_script
+        )  # pragma: no cover
