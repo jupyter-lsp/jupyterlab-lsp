@@ -3,7 +3,7 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.46.0",
     "@typescript-eslint/parser": "^5.46.0",
-    "bash-language-server": "^3.0.0",
+    "bash-language-server": "^4.9.2",
     "dictionary-en": "^3.0.0",
     "dockerfile-language-server-nodejs": "^0.7.1",
     "eslint": "^8.29.0",
