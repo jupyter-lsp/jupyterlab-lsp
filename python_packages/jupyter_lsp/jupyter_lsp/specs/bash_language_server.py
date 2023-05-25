@@ -13,8 +13,8 @@ class BashLanguageServer(NodeModuleSpec):
         display_name=key,
         mime_types=["text/x-sh", "application/x-sh"],
         urls=dict(
-            home="https://github.com/mads-hartmann/{}".format(key),
-            issues="https://github.com/mads-hartmann/{}/issues".format(key),
+            home="https://github.com/bash-lsp/{}".format(key),
+            issues="https://github.com/bash-lsp/{}/issues".format(key),
         ),
         install=dict(
             npm="npm install --save-dev {}".format(key),
