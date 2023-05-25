@@ -49,7 +49,7 @@ Moving Cells Around
 Foreign Extractors
     ${file} =    Set Variable    Foreign extractors.ipynb
     Configure JupyterLab Plugin
-    ...    {"language_servers": {"texlab": {"serverSettings": {"chktex.onOpenAndSave": true}}, "bash-langauge-server": {"bashIde.highlightParsingErrors": true}}, "pylsp": {"priority": 1000}}
+    ...    {"language_servers": {"texlab": {"serverSettings": {"chktex.onOpenAndSave": true}}, "bash-langauge-server": {"bashIde.enableSourceErrorDiagnostics": true}}, "pylsp": {"priority": 1000}}
     Capture Page Screenshot    10-configured.png
     Reset Application State
     Setup Notebook    Python    ${file}
