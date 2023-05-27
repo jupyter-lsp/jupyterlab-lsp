@@ -54,7 +54,7 @@ Foreign Extractors
     Reset Application State
     Setup Notebook    Python    ${file}
     @{diagnostics} =    Create List
-    ...    Failed to parse expression    # bash, configured by spec.env
+    ...    Double quote to prevent globbing and word splitting    # bash, configured by spec.env
     ...    ame 'valid'    # python, mypy and pyflakes will fight over `(N|n)ame 'valid'`, just hope for the best
     ...    Trailing whitespace is superfluous.    # r
     ...    `frob` is misspelt    # markdown
