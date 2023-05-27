@@ -27,6 +27,8 @@ dependencies:
   - r-languageserver
   - r-stringi >=1.4.6
   - rpy2
+  # bash-language-server
+  - shellcheck
   # tex
   - tectonic
   - texlab

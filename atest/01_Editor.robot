@@ -9,7 +9,10 @@ Test Tags       ui:editor    aspect:ls:features
 
 *** Test Cases ***
 Bash
-    Editor Shows Features for Language    Bash    example.sh    Diagnostics=Failed to parse expression
+    Editor Shows Features for Language
+    ...    Bash
+    ...    example.sh
+    ...    Diagnostics=Double quote to prevent globbing and word splitting.
     ...    Jump to Definition=fib
 
 CSS
