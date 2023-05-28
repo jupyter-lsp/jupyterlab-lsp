@@ -127,7 +127,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
     async def ready(self):
         while not self._ready:  # pragma: no cover
-            asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
         return True
 
     def init_language_servers(self) -> None:
