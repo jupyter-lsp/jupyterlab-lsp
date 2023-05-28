@@ -12,18 +12,24 @@ import {
   set_notebook_content,
   showAllCells
 } from '../../editor_integration/testutils';
+import { DiagnosticSeverity } from '../../lsp';
 import { is_equal } from '../../positioning';
 import { foreign_code_extractors } from '../../transclusions/ipython/extractors';
 
 import { DiagnosticsCM, diagnostics_panel } from './diagnostics';
 import { message_without_code } from './listing';
 
+const SETTING_DEFAULTS: LSPDiagnosticsSettings = {
+  ignoreCodes: [],
+  ignoreMessagesPatterns: [],
+  ignoreSeverities: [],
+  defaultSeverity: 'Warning'
+};
+
 describe('Diagnostics', () => {
   let feature: DiagnosticsCM;
-  let default_settings = new MockSettings<LSPDiagnosticsSettings>({
-    defaultSeverity: 'Warning',
-    ignoreCodes: [],
-    ignoreMessagesPatterns: []
+  let defaultSettings = new MockSettings<LSPDiagnosticsSettings>({
+    ...SETTING_DEFAULTS
   });
 
   describe('FileEditor integration', () => {
@@ -34,7 +40,7 @@ describe('Diagnostics', () => {
       feature = env.init_integration({
         constructor: DiagnosticsCM,
         id: 'Diagnostics',
-        settings: default_settings
+        settings: defaultSettings
       });
     });
     afterEach(() => {
@@ -47,14 +53,15 @@ describe('Diagnostics', () => {
       expect(feature.is_registered).to.equal(true);
     });
 
-    const diagnostics = [
+    const diagnostics: lsProtocol.Diagnostic[] = [
       {
         range: {
           start: { line: 0, character: 7 },
           end: { line: 0, character: 9 }
         },
         message: 'Undefined symbol "aa"',
-        code: 'E001'
+        code: 'E001',
+        severity: DiagnosticSeverity['Error']
       },
       {
         range: {
@@ -62,7 +69,8 @@ describe('Diagnostics', () => {
           end: { line: 1, character: 4 }
         },
         message: 'Trimming whitespace',
-        code: 'W001'
+        code: 'W001',
+        severity: DiagnosticSeverity['Warning']
       }
     ];
 
@@ -91,9 +99,32 @@ describe('Diagnostics', () => {
         constructor: DiagnosticsCM,
         id: 'Diagnostics',
         settings: new MockSettings({
-          defaultSeverity: 'Warning',
-          ignoreCodes: ['W001'],
-          ignoreMessagesPatterns: []
+          ...SETTING_DEFAULTS,
+          ignoreCodes: ['W001']
+        })
+      });
+      env.ce_editor.model.value.text = text;
+      await env.adapter.update_documents();
+
+      feature.handleDiagnostic(null as any, {
+        uri: env.document_options.path,
+        diagnostics: diagnostics
+      });
+
+      let markers = env.ce_editor.editor.getDoc().getAllMarks();
+      expect(markers.length).to.equal(1);
+      expect((markers[0] as TextMarkerOptions).title).to.equal(
+        'Undefined symbol "aa"'
+      );
+    });
+
+    it('filters out inspections by severity', async () => {
+      feature = env.init_integration({
+        constructor: DiagnosticsCM,
+        id: 'Diagnostics',
+        settings: new MockSettings({
+          ...SETTING_DEFAULTS,
+          ignoreSeverities: ['Warning']
         })
       });
       env.ce_editor.model.value.text = text;
@@ -116,8 +147,7 @@ describe('Diagnostics', () => {
         constructor: DiagnosticsCM,
         id: 'Diagnostics',
         settings: new MockSettings({
-          defaultSeverity: 'Warning',
-          ignoreCodes: [],
+          ...SETTING_DEFAULTS,
           ignoreMessagesPatterns: ['Undefined symbol "\\w+"']
         })
       });
@@ -148,7 +178,7 @@ describe('Diagnostics', () => {
       feature = env.init_integration({
         constructor: DiagnosticsCM,
         id: 'Diagnostics',
-        settings: default_settings
+        settings: defaultSettings
       });
     });
     afterEach(() => {
@@ -266,7 +296,7 @@ describe('Diagnostics', () => {
         constructor: DiagnosticsCM,
         id: 'Diagnostics',
         document: foreign_document,
-        settings: default_settings
+        settings: defaultSettings
       });
 
       let response = {
