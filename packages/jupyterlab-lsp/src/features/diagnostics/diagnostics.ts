@@ -445,6 +445,11 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
     const ignoredDiagnosticsCodes = new Set(
       this.settings.composite.ignoreCodes
     );
+    const ignoredSeverities = new Set<number>(
+      this.settings.composite.ignoreSeverities.map(
+        severityName => DiagnosticSeverity[severityName]
+      )
+    );
     const ignoredMessagesRegExp =
       this.settings.composite.ignoreMessagesPatterns.map(
         pattern => new RegExp(pattern)
@@ -462,6 +467,10 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
         code !== null &&
         ignoredDiagnosticsCodes.has(code.toString())
       ) {
+        return false;
+      }
+      let severity = diagnostic.severity;
+      if (severity && ignoredSeverities.has(severity)) {
         return false;
       }
       let message = diagnostic.message;

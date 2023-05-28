@@ -30,6 +30,17 @@
       "default": [],
       "description": "Regular expressions matching messages of diagnostics which should not be shown in the panel nor highlighted in the editor."
     },
+    "ignoreSeverities": {
+      "title": "Diagnostic severity levels to ignore",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["Error", "Warning", "Information", "Hint"]
+      },
+      "default": [],
+      "uniqueItems": true,
+      "description": "Severities of diagnostics which should not be shown in the panel nor highlighted in the editor."
+    },
     "disable": {
       "title": "Disable",
       "type": "boolean",
