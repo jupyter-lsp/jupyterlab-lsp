@@ -1,5 +1,23 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 4.2.0` (2023-05-28)
+
+- features:
+  - diagnostics can be ignored by severity level with new `ignoreSeverities` setting ([#940])
+
+### `jupyter-lsp 2.2.0` (2023-05-28)
+
+- bug fixes:
+  - await `sleep()` coroutine ([#939], thanks @jinzhen-lin)
+  - limit attempts to initialise shadow file system to three trials ([#936])
+- maintenance:
+  - support `bash-language-sever` 4.3.2+ ([#938], thanks @ackalker)
+
+[#936]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/936
+[#938]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/938
+[#939]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/939
+[#940]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/940
+
 ### `@jupyter-lsp/jupyterlab-lsp 4.1.0` (2023-04-24)
 
 - features:
