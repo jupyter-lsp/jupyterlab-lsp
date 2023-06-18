@@ -46,19 +46,19 @@ export class ReversibleOverridesMap extends OverridesMap {
   replace_all(
     raw_lines: string[],
     map: OverridesMap = this
-  ): { lines: string[]; skip_inspect: boolean[] } {
+  ): { lines: string[]; skipInspect: boolean[] } {
     let substituted_lines = new Array<string>();
-    let skip_inspect = new Array<boolean>();
+    let skipInspect = new Array<boolean>();
 
     for (let i = 0; i < raw_lines.length; i++) {
       let line = raw_lines[i];
       let override = map.override_for(line);
       substituted_lines.push(override == null ? line : override);
-      skip_inspect.push(override != null);
+      skipInspect.push(override != null);
     }
     return {
       lines: substituted_lines,
-      skip_inspect: skip_inspect
+      skipInspect: skipInspect
     };
   }
 

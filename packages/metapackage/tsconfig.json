@@ -21,9 +21,6 @@
       "path": "../theme-vscode"
     },
     {
-      "path": "../lsp-ws-connection"
-    },
-    {
       "path": "../code-jumpers"
     },
     {

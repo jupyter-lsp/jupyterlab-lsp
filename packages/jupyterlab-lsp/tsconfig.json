@@ -19,9 +19,6 @@
     },
     {
       "path": "../theme-material"
-    },
-    {
-      "path": "../lsp-ws-connection"
     }
   ]
 }

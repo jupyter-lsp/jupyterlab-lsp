@@ -5,10 +5,15 @@
  *
  * @see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/561
  */
-export { LanguageIdentifier } from '../lsp';
+export { LanguageIdentifier } from '@jupyterlab/lsp/lib/lsp';
+/**
+ * @deprecated - use `@jupyterlab/lsp`
+ */
 export {
   IForeignCodeExtractor,
-  IForeignCodeExtractorsRegistry,
   IExtractedCode
+} from '@jupyterlab/lsp';
+export {
+  IForeignCodeExtractorsRegistry
 } from '../extractors/types';
 export { RegExpForeignCodeExtractor } from '../extractors/regexp';

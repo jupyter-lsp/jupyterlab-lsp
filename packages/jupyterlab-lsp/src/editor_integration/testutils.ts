@@ -1,4 +1,3 @@
-import { JupyterFrontEnd } from '@jupyterlab/application';
 import { ICellModel } from '@jupyterlab/cells';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import {
@@ -12,7 +11,6 @@ import {
   TextModelFactory
 } from '@jupyterlab/docregistry';
 import { FileEditor, FileEditorFactory } from '@jupyterlab/fileeditor';
-import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import * as nbformat from '@jupyterlab/nbformat';
 import {
   Notebook,
@@ -21,30 +19,17 @@ import {
   NotebookPanel
 } from '@jupyterlab/notebook';
 import { ServiceManager } from '@jupyterlab/services';
-import { Mock, NBTestUtils } from '@jupyterlab/testutils';
-import { ITranslator } from '@jupyterlab/translation';
+import { NBTestUtils } from '@jupyterlab/notebook/lib/testutils';
+import { ServiceManagerMock } from '@jupyterlab/services/lib/testutils';
+import { ILSPConnection, WidgetLSPAdapter, LanguageServerManager, CodeExtractorsManager } from '@jupyterlab/lsp';
+import { LSPConnection } from '@jupyterlab/lsp/lib/connection';
 import { Signal } from '@lumino/signaling';
 
-import { WidgetAdapter } from '../adapters/adapter';
-import { FileEditorAdapter } from '../adapters/file_editor/file_editor';
-import { NotebookAdapter } from '../adapters/notebook/notebook';
-import { LSPConnection } from '../connection';
-import { DocumentConnectionManager } from '../connection_manager';
-import { IForeignCodeExtractorsRegistry } from '../extractors/types';
+import { FileEditorAdapter } from '@jupyterlab/fileeditor';
+import { NotebookAdapter } from '@jupyterlab/notebook';
 import { IFeatureSettings } from '../feature';
-import { FeatureManager, ILSPExtension } from '../index';
-import { LanguageServerManager } from '../manager';
-import { ICodeOverridesRegistry } from '../overrides/tokens';
-import {
-  ILSPFeatureManager,
-  ILSPLogConsole,
-  ILSPVirtualEditorManager,
-  WidgetAdapterConstructor
-} from '../tokens';
 import { CodeMirrorVirtualEditor } from '../virtual/codemirror_editor';
-import { BrowserConsole } from '../virtual/console';
 import { VirtualDocument } from '../virtual/document';
-import { IVirtualEditor, VirtualEditorManager } from '../virtual/editor';
 
 import {
   CodeMirrorIntegration,
@@ -62,7 +47,7 @@ export interface ITestEnvironment {
 
   virtual_editor: CodeMirrorVirtualEditor;
 
-  adapter: WidgetAdapter<any>;
+  adapter: WidgetLSPAdapter<any>;
   /**
    * Has to be called after construction!
    */
@@ -73,12 +58,15 @@ export interface ITestEnvironment {
 
 export class MockLanguageServerManager extends LanguageServerManager {
   async fetchSessions() {
+    // @ts-ignore
     this._sessions = new Map();
+    // @ts-ignore
     this._sessions.set(DEFAULT_SERVER_ID, {
       spec: {
         languages: ['python']
       }
     } as any);
+    // @ts-ignore
     this._sessionsChanged.emit(void 0);
   }
 }
@@ -99,47 +87,10 @@ export class MockSettings<T> implements IFeatureSettings<T> {
   }
 }
 
-export class MockExtension implements ILSPExtension {
-  app: JupyterFrontEnd;
-  connection_manager: DocumentConnectionManager;
-  language_server_manager: LanguageServerManager;
-  feature_manager: ILSPFeatureManager;
-  editor_type_manager: ILSPVirtualEditorManager;
-  foreign_code_extractors: IForeignCodeExtractorsRegistry;
-  code_overrides: ICodeOverridesRegistry;
-  console: ILSPLogConsole;
-  user_console: ILoggerRegistry;
-  translator: ITranslator;
-
-  constructor() {
-    this.app = null as any;
-    this.feature_manager = new FeatureManager();
-    this.editor_type_manager = new VirtualEditorManager();
-    this.language_server_manager = new MockLanguageServerManager({
-      console: new BrowserConsole()
-    });
-    this.connection_manager = new DocumentConnectionManager({
-      language_server_manager: this.language_server_manager,
-      console: new BrowserConsole()
-    });
-    this.editor_type_manager.registerEditorType({
-      implementation: CodeMirrorVirtualEditor,
-      name: 'CodeMirrorEditor',
-      supports: CodeMirrorEditor
-    });
-    this.foreign_code_extractors = {};
-    this.code_overrides = {};
-    this.console = new BrowserConsole();
-    this.user_console = null as any;
-  }
-}
-
 export abstract class TestEnvironment implements ITestEnvironment {
   virtual_editor: CodeMirrorVirtualEditor;
-  protected abstract get_adapter_type(): WidgetAdapterConstructor<any>;
-  adapter: WidgetAdapter<any>;
+  adapter: WidgetLSPAdapter<any>;
   abstract widget: IDocumentWidget;
-  protected extension: ILSPExtension;
   protected abstract get_defaults(): VirtualDocument.IOptions;
   public document_options: VirtualDocument.IOptions;
 
@@ -148,7 +99,6 @@ export abstract class TestEnvironment implements ITestEnvironment {
       ...this.get_defaults(),
       ...(options || {})
     };
-    this.extension = new MockExtension();
     this.init();
   }
 
@@ -173,7 +123,7 @@ export abstract class TestEnvironment implements ITestEnvironment {
   create_virtual_editor(): CodeMirrorVirtualEditor {
     return new CodeMirrorVirtualEditor({
       adapter: this.adapter,
-      virtual_document: new VirtualDocument(this.document_options)
+      virtualDocument: new VirtualDocument(this.document_options)
     });
   }
 
@@ -207,7 +157,7 @@ function FeatureSupport<TBase extends TestEnvironmentConstructor>(Base: TBase) {
     extends Base
     implements IFeatureTestEnvironment
   {
-    _connections: Map<CodeMirrorIntegration, LSPConnection>;
+    _connections: Map<CodeMirrorIntegration, ILSPConnection>;
 
     init() {
       this._connections = new Map();
@@ -224,7 +174,7 @@ function FeatureSupport<TBase extends TestEnvironmentConstructor>(Base: TBase) {
       let connection = this.create_dummy_connection();
       let document = options.document
         ? options.document
-        : this.virtual_editor.virtual_document;
+        : this.virtual_editor.virtualDocument;
 
       let editor_adapter = this.adapter.connect_adapter(document, connection, [
         {
@@ -236,7 +186,7 @@ function FeatureSupport<TBase extends TestEnvironmentConstructor>(Base: TBase) {
           settings: options.settings
         }
       ]);
-      this.virtual_editor.virtual_document = document;
+      this.virtual_editor.virtualDocument = document;
       document.changed.connect(async () => {
         await editor_adapter.updateAfterChange();
       });
@@ -258,7 +208,6 @@ function FeatureSupport<TBase extends TestEnvironmentConstructor>(Base: TBase) {
         serverUri: 'ws://localhost:8080',
         rootUri: 'file:///unit-test',
         serverIdentifier: DEFAULT_SERVER_ID,
-        console: new BrowserConsole(),
         capabilities: {}
       });
     }
@@ -282,16 +231,15 @@ export class FileEditorTestEnvironment extends TestEnvironment {
     return {
       language: 'python',
       path: 'dummy.py',
-      file_extension: 'py',
-      has_lsp_supported_file: true,
+      fileExtension: 'py',
+      hasLspSupportedFile: true,
       standalone: true,
-      foreign_code_extractors: {},
-      overrides_registry: {},
-      console: new BrowserConsole()
+      overridesRegistry: {},
+      foreignCodeExtractors: new CodeExtractorsManager()
     };
   }
 
-  get ce_editor(): CodeMirrorEditor {
+  get ceEditor(): CodeMirrorEditor {
     return this.widget.content.editor as CodeMirrorEditor;
   }
 
@@ -307,7 +255,7 @@ export class FileEditorTestEnvironment extends TestEnvironment {
       }
     });
     const context = new Context({
-      manager: new Mock.ServiceManagerMock(),
+      manager: new ServiceManagerMock(),
       factory: new TextModelFactory(),
       path: this.document_options.path
     });
@@ -316,7 +264,7 @@ export class FileEditorTestEnvironment extends TestEnvironment {
 
   dispose(): void {
     super.dispose();
-    this.ce_editor.dispose();
+    this.ceEditor.dispose();
   }
 }
 
@@ -334,12 +282,11 @@ export class NotebookTestEnvironment extends TestEnvironment {
     return {
       language: 'python',
       path: 'notebook.ipynb',
-      file_extension: 'py',
-      overrides_registry: {},
-      foreign_code_extractors: {},
-      has_lsp_supported_file: false,
-      standalone: true,
-      console: new BrowserConsole()
+      fileExtension: 'py',
+      overridesRegistry: {},
+      foreignCodeExtractors: new CodeExtractorsManager(),
+      hasLspSupportedFile: false,
+      standalone: true
     };
   }
 
@@ -398,7 +345,7 @@ export const python_notebook_metadata = {
       name: 'ipython',
       version: 3
     },
-    file_extension: '.py',
+    fileExtension: '.py',
     mimetype: 'text/x-python',
     name: 'python',
     nbconvert_exporter: 'python',
@@ -429,7 +376,7 @@ export async function synchronize_content(
   environment: IFeatureTestEnvironment,
   adapter: EditorAdapter<IVirtualEditor<IEditor>>
 ) {
-  await environment.adapter.update_documents();
+  await environment.adapter.updateDocuments();
   try {
     await adapter.updateAfterChange();
   } catch (e) {

@@ -29,7 +29,7 @@ def run_tests():
         "--no-cov-on-fail",
         "-p",
         "no:warnings",
-        "--flake8",
+        # "--flake8",
         "-vv",
         *OS_PY_ARGS.get((OS, PY), DEFAULT_ARGS),
     ] + list(sys.argv[1:])

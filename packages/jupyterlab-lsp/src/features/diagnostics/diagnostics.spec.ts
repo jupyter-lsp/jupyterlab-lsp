@@ -14,7 +14,7 @@ import {
 } from '../../editor_integration/testutils';
 import { DiagnosticSeverity } from '../../lsp';
 import { is_equal } from '../../positioning';
-import { foreign_code_extractors } from '../../transclusions/ipython/extractors';
+import { foreignCodeExtractors } from '../../transclusions/ipython/extractors';
 
 import { DiagnosticsCM, diagnostics_panel } from './diagnostics';
 import { message_without_code } from './listing';
@@ -77,12 +77,12 @@ describe('Diagnostics', () => {
     const text = 'res = aa + 1\nres ';
 
     it('renders inspections', async () => {
-      env.ce_editor.model.value.text = text;
+      env.ceEditor.model.value.text = text;
       await env.adapter.update_documents();
 
       let markers: TextMarker[];
 
-      markers = env.ce_editor.editor.getDoc().getAllMarks();
+      markers = env.ceEditor.editor.getDoc().getAllMarks();
       expect(markers.length).to.equal(0);
 
       feature.handleDiagnostic(null as any, {
@@ -90,7 +90,7 @@ describe('Diagnostics', () => {
         diagnostics: diagnostics
       });
 
-      let marks = env.ce_editor.editor.getDoc().getAllMarks();
+      let marks = env.ceEditor.editor.getDoc().getAllMarks();
       expect(marks.length).to.equal(2);
     });
 
@@ -103,7 +103,7 @@ describe('Diagnostics', () => {
           ignoreCodes: ['W001']
         })
       });
-      env.ce_editor.model.value.text = text;
+      env.ceEditor.model.value.text = text;
       await env.adapter.update_documents();
 
       feature.handleDiagnostic(null as any, {
@@ -111,7 +111,7 @@ describe('Diagnostics', () => {
         diagnostics: diagnostics
       });
 
-      let markers = env.ce_editor.editor.getDoc().getAllMarks();
+      let markers = env.ceEditor.editor.getDoc().getAllMarks();
       expect(markers.length).to.equal(1);
       expect((markers[0] as TextMarkerOptions).title).to.equal(
         'Undefined symbol "aa"'
@@ -127,7 +127,7 @@ describe('Diagnostics', () => {
           ignoreSeverities: ['Warning']
         })
       });
-      env.ce_editor.model.value.text = text;
+      env.ceEditor.model.value.text = text;
       await env.adapter.update_documents();
 
       feature.handleDiagnostic(null as any, {
@@ -135,7 +135,7 @@ describe('Diagnostics', () => {
         diagnostics: diagnostics
       });
 
-      let markers = env.ce_editor.editor.getDoc().getAllMarks();
+      let markers = env.ceEditor.editor.getDoc().getAllMarks();
       expect(markers.length).to.equal(1);
       expect((markers[0] as TextMarkerOptions).title).to.equal(
         'Undefined symbol "aa"'
@@ -151,7 +151,7 @@ describe('Diagnostics', () => {
           ignoreMessagesPatterns: ['Undefined symbol "\\w+"']
         })
       });
-      env.ce_editor.model.value.text = text;
+      env.ceEditor.model.value.text = text;
       await env.adapter.update_documents();
 
       feature.handleDiagnostic(null as any, {
@@ -159,7 +159,7 @@ describe('Diagnostics', () => {
         diagnostics: diagnostics
       });
 
-      let markers = env.ce_editor.editor.getDoc().getAllMarks();
+      let markers = env.ceEditor.editor.getDoc().getAllMarks();
       expect(markers.length).to.equal(1);
       expect((markers[0] as TextMarkerOptions).title).to.equal(
         'Trimming whitespace'
@@ -172,8 +172,8 @@ describe('Diagnostics', () => {
 
     beforeEach(() => {
       env = new NotebookFeatureTestEnvironment({
-        overrides_registry: {},
-        foreign_code_extractors
+        foreignCodeExtractors: {},
+        foreignCodeExtractors
       });
       feature = env.init_integration({
         constructor: DiagnosticsCM,
@@ -194,8 +194,8 @@ describe('Diagnostics', () => {
       showAllCells(env.notebook);
       await env.adapter.update_documents();
 
-      let document = env.virtual_editor.virtual_document;
-      let uri = env.virtual_editor.virtual_document.uri;
+      let document = env.virtual_editor.virtualDocument;
+      let uri = env.virtual_editor.virtualDocument.uri;
 
       feature.handleDiagnostic(null as any, {
         uri: uri,
@@ -288,19 +288,19 @@ describe('Diagnostics', () => {
       showAllCells(env.notebook);
       await env.adapter.update_documents();
 
-      let document = env.virtual_editor.virtual_document;
-      expect(document.foreign_documents.size).to.be.equal(1);
-      let foreign_document = document.foreign_documents.values().next().value;
+      let document = env.virtual_editor.virtualDocument;
+      expect(document.foreignDocuments.size).to.be.equal(1);
+      let foreignDocument = document.foreignDocuments.values().next().value;
 
       let foreign_feature: DiagnosticsCM = env.init_integration({
         constructor: DiagnosticsCM,
         id: 'Diagnostics',
-        document: foreign_document,
+        document: foreignDocument,
         settings: defaultSettings
       });
 
       let response = {
-        uri: foreign_document.uri,
+        uri: foreignDocument.uri,
         diagnostics: [
           {
             source: 'pyflakes',
@@ -317,7 +317,7 @@ describe('Diagnostics', () => {
       // test guards against wrongly propagated responses:
       feature.handleDiagnostic(null as any, response);
       let cm_editors = env.adapter.editors.map(
-        ce_editor => (ce_editor as CodeMirrorEditor).editor
+        ceEditor => (ceEditor as CodeMirrorEditor).editor
       );
 
       let marks_cell_1 = cm_editors[0].getDoc().getAllMarks();

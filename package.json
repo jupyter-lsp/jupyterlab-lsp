@@ -1,5 +1,4 @@
 {
-  "dependencies": {},
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.46.0",
     "@typescript-eslint/parser": "^5.46.0",
@@ -41,7 +40,6 @@
   },
   "private": true,
   "resolutions": {
-    "**/node-gyp": "8.4.1",
     "prettier": "^2.8.1",
     "typescript": "~4.9.4",
     "decode-uri-component": "^0.2.1"
@@ -49,7 +47,7 @@
   "scripts": {
     "bootstrap": "jlpm --no-optional --prefer-offline && jlpm deduplicate && lerna bootstrap && jlpm clean && jlpm build && jlpm lint",
     "deduplicate": "yarn-deduplicate -s fewer --fail",
-    "build": "jlpm build:schema && jlpm build:meta && jlpm build:ws && jlpm build:labextension",
+    "build": "jlpm build:schema && jlpm build:meta && jlpm build:labextension",
     "build:schema": "lerna run build:schema --stream",
     "build:meta": "lerna run build --stream --scope @jupyter-lsp/jupyterlab-lsp-metapackage",
     "build:labextension": "lerna run build:labextension --stream",
@@ -57,7 +55,6 @@
     "build:theme-vscode": "lerna run build --stream --scope @jupyter-lsp/theme-vscode",
     "build:theme-material": "lerna run build --stream --scope @jupyter-lsp/theme-material",
     "build:jupyterlab-lsp": "lerna run build --stream --scope @jupyter-lsp/jupyterlab-lsp",
-    "build:ws": "lerna run build --stream --scope lsp-ws-connection",
     "build:jump": "lerna run build --stream --scope @jupyter-lsp/code-jumpers",
     "watch": "lerna run --parallel watch",
     "bundle": "lerna run --parallel bundle",

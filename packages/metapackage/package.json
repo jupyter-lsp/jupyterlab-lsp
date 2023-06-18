@@ -33,14 +33,11 @@
     "@jupyter-lsp/jupyterlab-lsp-example-extractor": "file:../_example-extractor",
     "@jupyter-lsp/jupyterlab-lsp-klingon-integration": "file:../_klingon-integration",
     "@jupyter-lsp/theme-material": "file:../theme-material",
-    "@jupyter-lsp/theme-vscode": "file:../theme-vscode",
-    "lsp-ws-connection": "file:../lsp-ws-connection"
+    "@jupyter-lsp/theme-vscode": "file:../theme-vscode"
   },
   "devDependencies": {
-    "fs-extra": "^8.0.1",
-    "rimraf": "^3.0.2",
-    "typedoc": "^0.22.13",
-    "typescript": "~4.9.4"
+    "rimraf": "^3.0.0",
+    "typescript": "~5.0.4"
   },
   "publishConfig": {
     "access": "public"

@@ -178,21 +178,21 @@ export class HighlightsCM extends CodeMirrorIntegration {
   }
 
   protected on_cursor_activity = async () => {
-    this.sent_version = this.virtual_document.document_info.version;
+    this.sent_version = this.virtualDocument.document_info.version;
     return await this.connection.getDocumentHighlights(
       this.virtual_position,
-      this.virtual_document.document_info,
+      this.virtualDocument.document_info,
       false
     );
   };
 
   protected onCursorActivity = async () => {
-    if (!this.virtual_editor?.virtual_document?.document_info) {
+    if (!this.virtual_editor?.virtualDocument?.document_info) {
       return;
     }
     let root_position: IRootPosition;
 
-    await this.virtual_editor.virtual_document.update_manager.update_done;
+    await this.virtual_editor.virtualDocument.update_manager.update_done;
     try {
       root_position = this.virtual_editor
         .getDoc()
@@ -233,7 +233,7 @@ export class HighlightsCM extends CodeMirrorIntegration {
       );
       return;
     }
-    if (document !== this.virtual_document) {
+    if (document !== this.virtualDocument) {
       return;
     }
 
@@ -254,11 +254,11 @@ export class HighlightsCM extends CodeMirrorIntegration {
       ])
         .then(([highlights]) => {
           // in the time the response returned the document might have been closed - check that
-          if (this.virtual_document.isDisposed) {
+          if (this.virtualDocument.isDisposed) {
             return;
           }
 
-          let version_after = this.virtual_document.document_info.version;
+          let version_after = this.virtualDocument.document_info.version;
 
           /// if document was updated since (e.g. user pressed delete - token change, but position did not)
           if (version_after !== this.sent_version) {

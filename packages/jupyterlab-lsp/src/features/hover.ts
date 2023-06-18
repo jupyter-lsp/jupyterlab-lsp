@@ -43,7 +43,7 @@ interface IResponseData {
   response: lsProtocol.Hover;
   document: VirtualDocument;
   editor_range: IEditorRange;
-  ce_editor: CodeEditor.IEditor;
+  ceEditor: CodeEditor.IEditor;
 }
 
 /**
@@ -284,7 +284,7 @@ export class HoverCM extends CodeMirrorIntegration {
     ].request({
       textDocument: {
         // this might be wrong - should not it be using the specific virtual document?
-        uri: this.virtual_document.document_info.uri
+        uri: this.virtualDocument.document_info.uri
       },
       position: {
         line: virtual_position.line,
@@ -358,7 +358,7 @@ export class HoverCM extends CodeMirrorIntegration {
       this.tooltip = this.lab_integration.tooltip.showOrCreate({
         markup,
         position: editor_position,
-        ce_editor: response_data.ce_editor,
+        ceEditor: response_data.ceEditor,
         adapter: this.adapter,
         className: 'lsp-hover'
       });
@@ -424,7 +424,7 @@ export class HoverCM extends CodeMirrorIntegration {
 
     if (
       this.is_token_empty(token) ||
-      document !== this.virtual_document ||
+      document !== this.virtualDocument ||
       !this.is_event_inside_visible(event)
     ) {
       this.remove_range_highlight();
@@ -456,10 +456,10 @@ export class HoverCM extends CodeMirrorIntegration {
       let delay_ms = this.settings.composite.delay;
 
       if (response_data == null) {
-        const ce_editor =
+        const ceEditor =
           this.virtual_editor.get_editor_at_root_position(root_position);
         const cm_editor =
-          this.virtual_editor.ce_editor_to_cm_editor.get(ce_editor)!;
+          this.virtual_editor.ceEditor_to_cm_editor.get(ceEditor)!;
         const add_range_fn = (hover: lsProtocol.Hover): lsProtocol.Hover => {
           const editor_range = this.get_editor_range(
             hover,
@@ -467,7 +467,7 @@ export class HoverCM extends CodeMirrorIntegration {
             token,
             cm_editor
           );
-          return this.add_range_if_needed(hover, editor_range, ce_editor);
+          return this.add_range_if_needed(hover, editor_range, ceEditor);
         };
 
         const promise = this.debounced_get_hover.invoke(
@@ -498,7 +498,7 @@ export class HoverCM extends CodeMirrorIntegration {
             response: response,
             document: document,
             editor_range: editor_range,
-            ce_editor: ce_editor
+            ceEditor: ceEditor
           };
 
           this.cache.store(response_data);
@@ -585,7 +585,7 @@ export class HoverCM extends CodeMirrorIntegration {
   private add_range_if_needed(
     response: lsProtocol.Hover,
     editor_range: IEditorRange,
-    ce_editor: CodeEditor.IEditor
+    ceEditor: CodeEditor.IEditor
   ): lsProtocol.Hover {
     if (typeof response.range !== 'undefined') {
       return response;
@@ -596,7 +596,7 @@ export class HoverCM extends CodeMirrorIntegration {
         start: PositionConverter.cm_to_lsp(
           this.virtual_editor.root_position_to_virtual_position(
             this.virtual_editor.transform_from_editor_to_root(
-              ce_editor,
+              ceEditor,
               editor_range.start
             )!
           )
@@ -604,7 +604,7 @@ export class HoverCM extends CodeMirrorIntegration {
         end: PositionConverter.cm_to_lsp(
           this.virtual_editor.root_position_to_virtual_position(
             this.virtual_editor.transform_from_editor_to_root(
-              ce_editor,
+              ceEditor,
               editor_range.end
             )!
           )

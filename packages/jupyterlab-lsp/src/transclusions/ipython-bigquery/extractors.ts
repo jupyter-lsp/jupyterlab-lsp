@@ -21,15 +21,15 @@ const COMMAND_PATTERN =
     single_argument_options.map(command => command + ' \\w+').join('|')) +
   ')';
 
-export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
+export let foreignCodeExtractors: IForeignCodeExtractorsRegistry = {
   // general note: to match new lines use [^] instead of dot, unless the target is ES2018, then use /s
   python: [
     new RegExpForeignCodeExtractor({
       language: 'sql',
       pattern: `^%%bigquery(?: (?:${SQL_URL_PATTERN}|${COMMAND_PATTERN}|(?:\\w+ << )|(?:\\w+@\\w+)))?\n?((?:.+\n)?(?:[^]*))`,
-      foreign_capture_groups: [1],
-      is_standalone: true,
-      file_extension: 'sql'
+      foreignCaptureGroups: [1],
+      isStandalone: true,
+      fileExtension: 'sql'
     })
   ]
 };

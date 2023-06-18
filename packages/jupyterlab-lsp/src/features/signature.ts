@@ -2,7 +2,16 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { ICodeMirror } from '@jupyterlab/codemirror';
+import { IEditorExtensionRegistry, EditorExtensionRegistry } from '@jupyterlab/codemirror';
+import { EditorView } from '@codemirror/view';
+import {
+  IEditorPosition,
+  IRootPosition,
+  offsetAtPosition,
+  positionAtOffset,
+  ILSPFeatureManager,
+  ILSPDocumentConnectionManager
+} from '@jupyterlab/lsp';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import * as lsProtocol from 'vscode-languageserver-protocol';
@@ -12,16 +21,8 @@ import { EditorTooltipManager } from '../components/free_tooltip';
 import { PositionConverter } from '../converter';
 import { CodeMirrorIntegration } from '../editor_integration/codemirror';
 import { FeatureSettings, IFeatureLabIntegration } from '../feature';
-import {
-  IEditorPosition,
-  IRootPosition,
-  offset_at_position,
-  position_at_offset
-} from '../positioning';
-import { ILogConsoleCore, ILSPFeatureManager, PLUGIN_ID } from '../tokens';
+import { ILogConsoleCore, PLUGIN_ID } from '../tokens';
 import { escapeMarkdown } from '../utils';
-import { CodeMirrorVirtualEditor } from '../virtual/codemirror_editor';
-import { IEditorChange } from '../virtual/editor';
 
 const TOOLTIP_ID = 'signature';
 const CLASS_NAME = 'lsp-signature-help';
@@ -158,7 +159,7 @@ export function signatureToMarkdown(
   return markdown;
 }
 
-export class SignatureCM extends CodeMirrorIntegration {
+export class SignatureCM {
   protected signatureCharacter: IRootPosition;
   protected _signatureCharacters: string[];
 
@@ -374,7 +375,7 @@ export class SignatureCM extends CodeMirrorIntegration {
       // try to find last occurrance of trigger character to position the tooltip
       const content = cm_editor.getValue();
       const lines = content.split('\n');
-      const offset = offset_at_position(
+      const offset = offsetAtPosition(
         PositionConverter.cm_to_ce(editor_position),
         lines
       );
@@ -386,7 +387,7 @@ export class SignatureCM extends CodeMirrorIntegration {
       );
       if (lastTriggerCharacterOffset !== -1) {
         display_position = PositionConverter.ce_to_cm(
-          position_at_offset(lastTriggerCharacterOffset, lines)
+          positionAtOffset(lastTriggerCharacterOffset, lines)
         ) as IEditorPosition;
       } else {
         display_position = editor_position;
@@ -396,7 +397,7 @@ export class SignatureCM extends CodeMirrorIntegration {
       markup,
       position: display_position,
       id: TOOLTIP_ID,
-      ce_editor: this.virtual_editor.find_ce_editor(cm_editor),
+      ceEditor: this.virtual_editor.find_ceEditor(cm_editor),
       adapter: this.adapter,
       className: CLASS_NAME,
       tooltip: {
@@ -410,10 +411,10 @@ export class SignatureCM extends CodeMirrorIntegration {
     });
   }
 
-  get signatureCharacters() {
+  protected get signatureCharacters() {
     if (!this._signatureCharacters?.length) {
       this._signatureCharacters =
-        this.connection.getLanguageSignatureCharacters();
+        this.connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters || [];
     }
     return this._signatureCharacters;
   }
@@ -422,7 +423,7 @@ export class SignatureCM extends CodeMirrorIntegration {
     return this.lab_integration.tooltip.isShown(TOOLTIP_ID);
   }
 
-  afterChange(change: IEditorChange, root_position: IRootPosition) {
+  private _afterChange(change: IEditorChange, root_position: IRootPosition) {
     const last_character = this.extract_last_character(change);
 
     const isSignatureShown = this.isSignatureShown();
@@ -472,7 +473,7 @@ export class SignatureCM extends CodeMirrorIntegration {
           character: virtual_position.ch
         },
         textDocument: {
-          uri: this.virtual_document.document_info.uri
+          uri: this.virtualDocument.document_info.uri
         }
       })
       .then(help =>
@@ -489,7 +490,6 @@ class SignatureLabIntegration implements IFeatureLabIntegration {
     app: JupyterFrontEnd,
     settings: FeatureSettings<LSPSignatureSettings>,
     renderMimeRegistry: IRenderMimeRegistry,
-    public codeMirror: ICodeMirror
   ) {
     this.tooltip = new EditorTooltipManager(renderMimeRegistry);
   }
@@ -497,13 +497,36 @@ class SignatureLabIntegration implements IFeatureLabIntegration {
 
 const FEATURE_ID = PLUGIN_ID + ':signature';
 
+
+import { Widget } from '@lumino/widgets';
+
+// TODO things like where adapters and currentWidget come from and what is lumino should be hiddden
+function findActiveAdapter(manager: Pick<ILSPDocumentConnectionManager, 'adapters'>, currentWidget: Widget | null) {
+  if (currentWidget !== null) {
+    return undefined;
+  }
+  return (
+    [...manager.adapters.values()].find(adapter =>
+        adapter.widget == currentWidget
+    )
+  );
+}
+
+function rootPositionToVirtualPosition(virtualDocument: VirtualDocument, position: IRootPosition): IVirtualPosition {
+    let rootAsSource = position as ISourcePosition;
+    return virtualDocument.root.virtualPositionAtDocument(
+      rootAsSource
+    );
+  }
+
 export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
   id: FEATURE_ID,
   requires: [
     ILSPFeatureManager,
     ISettingRegistry,
     IRenderMimeRegistry,
-    ICodeMirror
+    IEditorExtensionRegistry,
+    ILSPDocumentConnectionManager
   ],
   autoStart: true,
   activate: (
@@ -511,33 +534,74 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
     renderMimeRegistry: IRenderMimeRegistry,
-    codeMirror: ICodeMirror
+    editorExtensionRegistry: IEditorExtensionRegistry,
+    connectionManager: ILSPDocumentConnectionManager
   ) => {
     const settings = new FeatureSettings<LSPSignatureSettings>(
       settingRegistry,
       FEATURE_ID
     );
-    const labIntegration = new SignatureLabIntegration(
+    new SignatureLabIntegration(
       app,
       settings,
-      renderMimeRegistry,
-      codeMirror
+      renderMimeRegistry
     );
 
+    // TODO: so we need a helper to check if current editor has an adapter
+
+    // TODO: or use IEditor.injectExtension
+    editorExtensionRegistry.addExtension({
+      name: 'lsp:codeSignature',
+      factory: () => {
+        const selectionListener = EditorView.updateListener.of((viewUpdate) => {
+           if (viewUpdate.selectionSet) {
+            // get cursor position
+             // get editor
+             // get adapter
+
+             // TODO use head or anochor whichever later?
+             //const cursor = viewUpdate.state.selection.main.anchor;
+
+             const adapter = findActiveAdapter(connectionManager, app.shell.currentWidget);
+             if (!adapter) {
+               return;
+             }
+             const editorAccessor = adapter.activeEditor;
+             // TODO: accessor is a wrapper because CodeMirror can be detached
+             // due to windowed notebook
+             const editor = editorAccessor!.getEditor()!;
+             const position = editor.getCursorPosition();
+             // TODO: why would virtual document be missing?
+             const virtualDoc = adapter.virtualDocument!;
+             // TODO: why missing
+             const rootPosition = virtualDoc.transformFromEditorToRoot(adapter.activeEditor!, {
+               line: position.line,
+               ch: position.column
+             } as IEditorPosition)!;
+
+             const virtualPosition = rootPositionToVirtualPosition(virtualDoc, rootPosition);
+             // TODO send request if needed
+           }
+        });
+        const focusListener = EditorView.domEventHandlers({
+          focus: () => {
+          },
+          blur: () => {
+          }
+        })
+
+        return EditorExtensionRegistry.createImmutableExtension([selectionListener, focusListener]);
+      }
+    });
+
     featureManager.register({
-      feature: {
-        editorIntegrationFactory: new Map([['CodeMirrorEditor', SignatureCM]]),
-        id: FEATURE_ID,
-        name: 'LSP Function signature',
-        labIntegration: labIntegration,
-        settings: settings,
-        capabilities: {
-          textDocument: {
-            signatureHelp: {
-              dynamicRegistration: true,
-              signatureInformation: {
-                documentationFormat: ['markdown', 'plaintext']
-              }
+      id: FEATURE_ID,
+      capabilities: {
+        textDocument: {
+          signatureHelp: {
+            dynamicRegistration: true,
+            signatureInformation: {
+              documentationFormat: ['markdown', 'plaintext']
             }
           }
         }

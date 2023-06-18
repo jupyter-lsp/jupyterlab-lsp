@@ -1,7 +1,6 @@
 import { IDocumentWidget } from '@jupyterlab/docregistry';
-import { expect } from 'chai';
+import { WidgetLSPAdapter } from '@jupyterlab/lsp';
 
-import { WidgetAdapter } from './adapters/adapter';
 import {
   CommandEntryPoint,
   ContextCommandManager,
@@ -15,7 +14,6 @@ describe('ContextMenuCommandManager', () => {
     constructor(options: IContextMenuOptions) {
       super({
         app: null as any,
-        adapter_manager: null as any,
         palette: null as any,
         tracker: null as any,
         suffix: null as any,
@@ -32,7 +30,7 @@ describe('ContextMenuCommandManager', () => {
     entry_point: CommandEntryPoint;
     selector: string;
 
-    get current_adapter(): WidgetAdapter<IDocumentWidget> {
+    get current_adapter(): WidgetLSPAdapter<IDocumentWidget> {
       return undefined as any;
     }
   }
@@ -57,10 +55,10 @@ describe('ContextMenuCommandManager', () => {
         rank_group_size: 5
       });
       let rank = manager.get_rank(base_command);
-      expect(rank).to.equal(0);
+      expect(rank).toBe(0);
 
       rank = manager.get_rank({ ...base_command, rank: 1 });
-      expect(rank).to.equal(1 / 5);
+      expect(rank).toBe(1 / 5);
 
       manager = new ManagerImplementation({
         selector: 'body',
@@ -69,13 +67,13 @@ describe('ContextMenuCommandManager', () => {
       });
 
       rank = manager.get_rank({ ...base_command, rank: 1 });
-      expect(rank).to.equal(1 + 1 / 5);
+      expect(rank).toBe(1 + 1 / 5);
 
       manager = new ManagerImplementation({
         selector: 'body'
       });
       rank = manager.get_rank(base_command);
-      expect(rank).to.equal(Infinity);
+      expect(rank).toBe(Infinity);
     });
   });
 
@@ -91,13 +89,13 @@ describe('ContextMenuCommandManager', () => {
       rank: 1,
       is_rank_relative: false
     });
-    expect(rank).to.equal(1);
+    expect(rank).toBe(1);
 
     rank = manager.get_rank({
       ...base_command,
       rank: 1,
       is_rank_relative: true
     });
-    expect(rank).to.equal(1 / 5);
+    expect(rank).toBe(1 / 5);
   });
 });

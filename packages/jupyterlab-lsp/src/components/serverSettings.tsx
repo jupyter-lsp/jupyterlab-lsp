@@ -3,15 +3,12 @@ import {
   ISchemaValidator
 } from '@jupyterlab/settingregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
+import { ILanguageServerManager, LanguageServerManager } from '@jupyterlab/lsp';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
-import Form, {
-  FieldProps,
-  IChangeEvent,
-  ObjectFieldTemplateProps
-} from '@rjsf/core';
+import Form, { IChangeEvent } from '@rjsf/core';
+import { FieldProps, ObjectFieldTemplateProps } from '@rjsf/utils';
 import React, { useState } from 'react';
 
-import { LanguageServerManager } from '../manager';
 import { TLanguageServerId, TLanguageServerSpec } from '../tokens';
 
 import { ServerLinksList } from './utils';
@@ -19,13 +16,12 @@ import { ServerLinksList } from './utils';
 namespace LanguageServerSettingsEditor {
   export interface IProps extends FieldProps {
     settingRegistry: ISettingRegistry;
-    languageServerManager: LanguageServerManager;
+    languageServerManager: ILanguageServerManager;
     trans: TranslationBundle;
     validationErrors: ISchemaValidator.IError[];
   }
-  export interface IState {
-    // TODO
-  }
+  // TODO
+  export type IState = any;
 }
 
 export const renderCollapseConflicts = (props: {
@@ -97,8 +93,8 @@ export class LanguageServerSettings extends React.Component<
     }
 
     const validationErrors = this.props.validationErrors.map(error => (
-      <li key={'lsp-validation-error-' + error.dataPath}>
-        <b>{error.keyword}</b>: {error.message} in <code>{error.dataPath}</code>
+      <li key={'lsp-validation-error-' + error.instancePath}>
+        <b>{error.keyword}</b>: {error.message} in <code>{error.instancePath}</code>
         {error.params && 'allowedValues' in error.params
           ? this.props.trans.__(
               'allowed values: %1',
@@ -107,7 +103,11 @@ export class LanguageServerSettings extends React.Component<
           : null}
       </li>
     ));
-
+    const templates = {
+      FieldTemplate: (this.props.registry as any).FieldTemplate,
+      ArrayFieldTemplate: (this.props.registry as any).ArrayFieldTemplate,
+      ObjectFieldTemplate: this._objectTemplate
+    }
     return (
       <div className="lsp-ServerSettings">
         <h3 className="lsp-ServerSettings-title">
@@ -131,15 +131,14 @@ export class LanguageServerSettings extends React.Component<
         <Form
           schema={this.props.schema}
           formData={this.state}
+          validator={this.props.validator}
           // note: default JupyterLab `FieldTemplate` cannot correctly distinguish fields
           // modified relative to programatically populated (transformed) schema >of objects<;
           // the issue is in lines: https://github.com/jupyterlab/jupyterlab/blob/c2907074e58725942946a73a823fc60e1795da39/packages/settingeditor/src/SettingsFormEditor.tsx#L254-L272
           // this is because 1) the schemaIds does not include the object key
           // 2) the code assumes all objects on the same have the same defaults
           // Probably the solution is to perform modification check on the level of ObjectFieldTemplate instead; this should be implemented upstream in JupyterLab.
-          FieldTemplate={(this.props.registry as any).FieldTemplate}
-          ArrayFieldTemplate={(this.props.registry as any).ArrayFieldTemplate}
-          ObjectFieldTemplate={this._objectTemplate}
+          templates={templates}
           uiSchema={this.props.uiSchema}
           fields={this.props.renderers}
           formContext={this.props.formContext}
@@ -166,7 +165,7 @@ export class LanguageServerSettings extends React.Component<
  */
 const TabbedObjectTemplateFactory = (options: {
   baseTemplate: (props: ObjectFieldTemplateProps) => JSX.Element;
-  languageServerManager: LanguageServerManager;
+  languageServerManager: ILanguageServerManager;
   objectSelector: (props: ObjectFieldTemplateProps) => boolean;
   trans: TranslationBundle;
 }): React.FC<ObjectFieldTemplateProps> => {
@@ -232,6 +231,7 @@ const TabbedObjectTemplateFactory = (options: {
     const manager = options.languageServerManager;
     const trans = options.trans;
 
+    // TODO: expose `specs` upstream
     return (
       <fieldset id={props.idSchema.$id}>
         <div className={'lsp-ServerSettings-tabs'}>
@@ -248,9 +248,9 @@ const TabbedObjectTemplateFactory = (options: {
             })}
           </div>
           <div className={'lsp-ServerSettings-content'}>
-            {manager.specs.has(tab as TLanguageServerId)
+            {(manager as LanguageServerManager).specs.has(tab as TLanguageServerId)
               ? renderServerMetadata(
-                  manager.specs.get(tab as TLanguageServerId)!
+                  (manager as LanguageServerManager).specs.get(tab as TLanguageServerId)!
                 )
               : null}
             {props.properties

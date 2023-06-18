@@ -338,9 +338,9 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
     this.adapter.adapterConnected.connect(() =>
       this.switchDiagnosticsPanelSource()
     );
-    this.virtual_document.foreign_document_closed.connect(
+    this.virtualDocument.foreignDocument_closed.connect(
       (document, context) => {
-        this.clearDocumentDiagnostics(context.foreign_document);
+        this.clearDocumentDiagnostics(context.foreignDocument);
       }
     );
     super.register();
@@ -359,7 +359,7 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
    * the corresponding cell in notebook.
    * Can be used to implement a Panel showing diagnostics list.
    *
-   * Maps virtual_document.uri to IEditorDiagnostic[].
+   * Maps virtualDocument.uri to IEditorDiagnostic[].
    */
   public get diagnostics_db(): DiagnosticsDatabase {
     // Note that virtual_editor can change at runtime (kernel restart)
@@ -510,8 +510,8 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
         ) as IVirtualPosition;
         const end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
         const last_line_number =
-          this.virtual_document.last_virtual_line -
-          this.virtual_document.blank_lines_between_cells;
+          this.virtualDocument.last_virtualLine -
+          this.virtualDocument.blank_lines_between_cells;
         if (start.line > last_line_number) {
           this.console.log(
             `Out of range diagnostic (${start.line} line > ${last_line_number}) was skipped `,
@@ -519,7 +519,7 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
           );
           return;
         } else {
-          let last_line = this.virtual_document.last_line;
+          let last_line = this.virtualDocument.last_line;
           if (start.line == last_line_number && start.ch > last_line.length) {
             this.console.log(
               `Out of range diagnostic (${start.ch} character > ${last_line.length} at line ${last_line_number}) was skipped `,
@@ -550,7 +550,7 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
         // This may happen if the response came delayed
         // and the user already changed the document so
         // that now this regions is in another virtual document!
-        if (this.virtual_document !== document) {
+        if (this.virtualDocument !== document) {
           this.console.log(
             `Ignoring inspections from ${response.uri}`,
             ` (this region is covered by a another virtual document: ${document.uri})`,
@@ -561,9 +561,9 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
         }
 
         if (
-          document.virtual_lines
+          document.virtualLines
             .get(start.line)!
-            .skip_inspect.indexOf(document.id_path) !== -1
+            .skipInspect.indexOf(document.id_path) !== -1
         ) {
           this.console.log(
             'Ignoring inspections silenced for this document:',
@@ -572,9 +572,9 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
           return;
         }
 
-        let ce_editor = document.get_editor_at_virtual_line(start);
+        let ceEditor = document.get_editor_at_virtualLine(start);
         let cm_editor =
-          this.virtual_editor.ce_editor_to_cm_editor.get(ce_editor)!;
+          this.virtual_editor.ceEditor_to_cm_editor.get(ceEditor)!;
 
         let start_in_editor = document.transform_virtual_to_editor(start);
         let end_in_editor: IEditorPosition | null;
@@ -735,7 +735,7 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
     // remove the markers which were not included in the new message
     this.removeUnusedDiagnosticMarkers(markers_to_retain);
 
-    this.diagnostics_db.set(this.virtual_document, diagnostics_list);
+    this.diagnostics_db.set(this.virtualDocument, diagnostics_list);
   }
 
   public handleDiagnostic = (
@@ -743,11 +743,11 @@ export class DiagnosticsCM extends CodeMirrorIntegration {
     response: lsProtocol.PublishDiagnosticsParams
   ) => {
     // use optional chaining operator because the diagnostics message may come late (after the document was disposed)
-    if (!uris_equal(response.uri, this.virtual_document?.document_info?.uri)) {
+    if (!uris_equal(response.uri, this.virtualDocument?.document_info?.uri)) {
       return;
     }
 
-    if (this.virtual_document.last_virtual_line === 0) {
+    if (this.virtualDocument.last_virtualLine === 0) {
       return;
     }
 

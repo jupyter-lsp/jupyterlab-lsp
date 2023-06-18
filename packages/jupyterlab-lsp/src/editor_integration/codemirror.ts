@@ -1,11 +1,9 @@
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
-import type * as CodeMirror from 'codemirror';
 import type * as lsProtocol from 'vscode-languageserver-protocol';
 
-import { StatusMessage, WidgetAdapter } from '../adapters/adapter';
-import { LSPConnection } from '../connection';
+import { ILSPConnection, WidgetLSPAdapter } from '@jupyterlab/lsp';
 import { PositionConverter } from '../converter';
 import {
   IEditorIntegrationOptions,
@@ -17,8 +15,8 @@ import {
   IEditorPosition,
   IRootPosition,
   IVirtualPosition,
-  offset_at_position
-} from '../positioning';
+  offsetAtPosition
+} from '@jupyterlab/lsp';
 import { ILSPLogConsole } from '../tokens';
 import { DefaultMap, uris_equal } from '../utils';
 import {
@@ -48,8 +46,8 @@ export interface IEditorRange {
   editor: CodeMirror.Editor;
 }
 
-function offset_from_lsp(position: lsProtocol.Position, lines: string[]) {
-  return offset_at_position(PositionConverter.lsp_to_ce(position), lines);
+function offsetFromLsp(position: lsProtocol.Position, lines: string[]) {
+  return offsetAtPosition(PositionConverter.lsp_to_ce(position), lines);
 }
 
 export interface IEditOutcome {
@@ -95,12 +93,10 @@ export abstract class CodeMirrorIntegration
   protected wrapper: HTMLElement;
 
   protected virtual_editor: CodeMirrorVirtualEditor;
-  protected virtual_document: VirtualDocument;
-  protected connection: LSPConnection;
+  protected virtualDocument: VirtualDocument;
+  protected connection: ILSPConnection;
 
-  /** @deprecated: use `setStatusMessage()` instead */
-  protected status_message: StatusMessage;
-  protected adapter: WidgetAdapter<IDocumentWidget>;
+  protected adapter: WidgetLSPAdapter<IDocumentWidget>;
   protected console: ILSPLogConsole;
 
   protected trans: TranslationBundle;
@@ -116,9 +112,8 @@ export abstract class CodeMirrorIntegration
   constructor(options: IEditorIntegrationOptions) {
     this.feature = options.feature;
     this.virtual_editor = options.virtual_editor as CodeMirrorVirtualEditor;
-    this.virtual_document = options.virtual_document;
+    this.virtualDocument = options.virtualDocument;
     this.connection = options.connection;
-    this.status_message = options.status_message;
     this.adapter = options.adapter;
     this.console = this.adapter.console.scope(options.feature.name);
     this.trans = options.trans;
@@ -186,14 +181,14 @@ export abstract class CodeMirrorIntegration
     if (cm_editor == null) {
       let start_in_root =
         this.transform_virtual_position_to_root_position(start);
-      let ce_editor =
+      let ceEditor =
         this.virtual_editor.get_editor_at_root_position(start_in_root);
-      cm_editor = this.virtual_editor.ce_editor_to_cm_editor.get(ce_editor)!;
+      cm_editor = this.virtual_editor.ceEditor_to_cm_editor.get(ceEditor)!;
     }
 
     return {
-      start: this.virtual_document.transform_virtual_to_editor(start)!,
-      end: this.virtual_document.transform_virtual_to_editor(end)!,
+      start: this.virtualDocument.transformVirtualToEditor(start)!,
+      end: this.virtualDocument.transformVirtualToEditor(end)!,
       editor: cm_editor
     };
   }
@@ -216,11 +211,11 @@ export abstract class CodeMirrorIntegration
   public transform_virtual_position_to_root_position(
     start: IVirtualPosition
   ): IRootPosition {
-    let ce_editor = this.virtual_document.virtual_lines.get(start.line)!.editor;
+    let ceEditor = this.virtualDocument.virtualLines.get(start.line)!.editor;
     let editor_position =
-      this.virtual_document.transform_virtual_to_editor(start);
+      this.virtualDocument.transformVirtualToEditor(start);
     return this.virtual_editor.transform_from_editor_to_root(
-      ce_editor,
+      ceEditor,
       editor_position!
     )!;
   }
@@ -261,20 +256,20 @@ export abstract class CodeMirrorIntegration
    * Does the edit cover the entire document?
    */
   protected is_whole_document_edit(edit: lsProtocol.TextEdit) {
-    let value = this.virtual_document.value;
+    let value = this.virtualDocument.value;
     let lines = value.split('\n');
     let range = edit.range;
     let lsp_to_ce = PositionConverter.lsp_to_ce;
     return (
-      offset_at_position(lsp_to_ce(range.start), lines) === 0 &&
-      offset_at_position(lsp_to_ce(range.end), lines) === value.length
+      offsetAtPosition(lsp_to_ce(range.start), lines) === 0 &&
+      offsetAtPosition(lsp_to_ce(range.end), lines) === value.length
     );
   }
 
   protected async apply_edit(
     workspaceEdit: lsProtocol.WorkspaceEdit
   ): Promise<IEditOutcome> {
-    let current_uri = this.virtual_document.document_info.uri;
+    let current_uri = this.virtualDocument.document_info.uri;
 
     // Specs: documentChanges are preferred over changes
     let changes = workspaceEdit.documentChanges
@@ -303,13 +298,13 @@ export abstract class CodeMirrorIntegration
 
         if (!is_whole_document_edit) {
           applied_changes = 0;
-          let value = this.virtual_document.value;
+          let value = this.virtualDocument.value;
           // TODO: make sure that it was not changed since the request was sent (using the returned document version)
           let lines = value.split('\n');
 
           let edits_by_offset = new Map<number, lsProtocol.TextEdit>();
           for (let e of change.edits) {
-            let offset = offset_from_lsp(e.range.start, lines);
+            let offset = offsetFromLsp(e.range.start, lines);
             if (edits_by_offset.has(offset)) {
               console.warn(
                 'Edits should not overlap, ignoring an overlapping edit'
@@ -339,7 +334,7 @@ export abstract class CodeMirrorIntegration
               current_new_line += 1;
             }
             new_text += prefix + edit.newText;
-            let end = offset_from_lsp(edit.range.end, lines);
+            let end = offsetFromLsp(edit.range.end, lines);
             let replaced_fragment = value.slice(start, end);
             for (let i = 0; i < edit.newText.split('\n').length; i++) {
               if (i < replaced_fragment.length) {
@@ -389,7 +384,7 @@ export abstract class CodeMirrorIntegration
     end: CodeMirror.Position,
     is_whole_document_edit = false
   ): number {
-    let document = this.virtual_document;
+    let document = this.virtualDocument;
     let newFragmentText = newText
       .split('\n')
       .slice(fragment_start.line - start.line, fragment_end.line - start.line)
@@ -399,22 +394,22 @@ export abstract class CodeMirrorIntegration
       newFragmentText = newFragmentText.slice(0, -1);
     }
 
-    let doc = this.virtual_editor.ce_editor_to_cm_editor.get(editor)!.getDoc();
+    let doc = this.virtual_editor.ceEditor_to_cm_editor.get(editor)!.getDoc();
 
     let raw_value = doc.getValue('\n');
     // extract foreign documents and substitute magics,
     // as it was done when the shadow virtual document was being created
     let { lines } = document.prepare_code_block({
       value: raw_value,
-      ce_editor: editor
+      ceEditor: editor
     });
     let old_value = lines.join('\n');
 
     if (is_whole_document_edit) {
       // partial edit
       let cm_to_ce = PositionConverter.cm_to_ce;
-      let up_to_offset = offset_at_position(cm_to_ce(start), lines);
-      let from_offset = offset_at_position(cm_to_ce(end), lines);
+      let up_to_offset = offsetAtPosition(cm_to_ce(start), lines);
+      let from_offset = offsetAtPosition(cm_to_ce(end), lines);
       newFragmentText =
         old_value.slice(0, up_to_offset) +
         newText +
@@ -425,7 +420,7 @@ export abstract class CodeMirrorIntegration
       return 0;
     }
 
-    let new_value = document.decode_code_block(newFragmentText);
+    let new_value = document.decodeCodeBlock(newFragmentText);
 
     let cursor = doc.getCursor();
 
@@ -457,15 +452,15 @@ export abstract class CodeMirrorIntegration
   }
 
   protected apply_single_edit(edit: lsProtocol.TextEdit): number {
-    let document = this.virtual_document;
+    let document = this.virtualDocument;
     let applied_changes = 0;
     let start = PositionConverter.lsp_to_cm(edit.range.start);
     let end = PositionConverter.lsp_to_cm(edit.range.end);
 
-    let start_editor = document.get_editor_at_virtual_line(
+    let start_editor = document.getEditorAtVirtualLine(
       start as IVirtualPosition
     );
-    let end_editor = document.get_editor_at_virtual_line(
+    let end_editor = document.getEditorAtVirtualLine(
       end as IVirtualPosition
     );
     if (start_editor !== end_editor) {
@@ -477,7 +472,7 @@ export abstract class CodeMirrorIntegration
       let recently_replaced = false;
       while (line <= end.line) {
         line++;
-        let editor = document.get_editor_at_virtual_line({
+        let editor = document.getEditorAtVirtualLine({
           line: line,
           ch: 0
         } as IVirtualPosition);

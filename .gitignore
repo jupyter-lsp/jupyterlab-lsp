@@ -122,3 +122,8 @@ _build
 
 # Built labextensions
 python_packages/*/*/labextensions/
+
+# Berry
+.pnp.cjs
+.pnp.loader.mjs
+.yarn/

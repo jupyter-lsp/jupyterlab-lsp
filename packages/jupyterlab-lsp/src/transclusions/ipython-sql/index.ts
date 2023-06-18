@@ -1,8 +1,9 @@
 import { JupyterFrontEndPlugin } from '@jupyterlab/application';
+import { ILSPCodeExtractorsManager } from '@jupyterlab/lsp';
 
-import { ILSPCodeExtractorsManager, PLUGIN_ID } from '../../tokens';
+import { PLUGIN_ID } from '../../tokens';
 
-import { foreign_code_extractors } from './extractors';
+import { foreignCodeExtractors } from './extractors';
 
 /**
  * Implements extraction of code for ipython-sql, see:
@@ -14,8 +15,8 @@ export const IPYTHON_SQL_TRANSCLUSIONS: JupyterFrontEndPlugin<void> = {
   id: PLUGIN_ID + ':ipython-sql',
   requires: [ILSPCodeExtractorsManager],
   activate: (app, extractors_manager: ILSPCodeExtractorsManager) => {
-    for (let language of Object.keys(foreign_code_extractors)) {
-      for (let extractor of foreign_code_extractors[language]) {
+    for (let language of Object.keys(foreignCodeExtractors)) {
+      for (let extractor of foreignCodeExtractors[language]) {
         extractors_manager.register(extractor, language);
       }
     }

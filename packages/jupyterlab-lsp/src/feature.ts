@@ -1,18 +1,16 @@
+// note: upstream FeatureManager
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
+import { ILSPConnection, WidgetLSPAdapter, IRootPosition } from '@jupyterlab/lsp';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 
-import { StatusMessage, WidgetAdapter } from './adapters/adapter';
 import { CommandEntryPoint, ICommandContext } from './command_manager';
-import { LSPConnection } from './connection';
 import { ClientCapabilities } from './lsp';
-import { IRootPosition } from './positioning';
 import { VirtualDocument } from './virtual/document';
-import { IEditorChange, IVirtualEditor } from './virtual/editor';
 
 import IEditor = CodeEditor.IEditor;
 
@@ -205,15 +203,14 @@ export interface IEditorIntegrationOptions {
    * Is aware of the document potentially having multiple editors (blocks),
    * but is NOT aware of the actual editor-implementation (such as CodeMirror).
    */
-  virtual_document: VirtualDocument;
+  virtualDocument: VirtualDocument;
   /**
    * Interfaces with the relevant JupyterLab widget, such as Notebook or FileEditor.
    * Is aware of existence of cells in notebook (exposed as multiple editors),
    * but is NOT aware of editor-implementation details (such as existence of CodeMirror).
    */
-  adapter: WidgetAdapter<IDocumentWidget>;
-  connection: LSPConnection;
-  status_message: StatusMessage;
+  adapter: WidgetLSPAdapter<IDocumentWidget>;
+  connection: ILSPConnection;
   settings: IFeatureSettings<any>;
   trans: TranslationBundle;
 }

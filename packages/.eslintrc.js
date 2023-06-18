@@ -89,8 +89,7 @@ module.exports = {
     'no-async-promise-executor': 'off',
     'prefer-spread': 'off',
     'react/display-name': 'off',
-    // TODO: re-enable once the lsp-ws-connection tests are re-written to jest
-    'jest/no-done-callback': 'off'
+    'jest/no-done-callback': 'on'
   },
   settings: {
     react: {

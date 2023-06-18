@@ -1,4 +1,4 @@
-const func = require('@jupyterlab/testutils/lib/jest-config');
+const func = require('@jupyterlab/testing/lib/jest-config');
 const upstream = func('jupyterlab-lsp', __dirname);
 
 const reuseFromUpstream = [
@@ -10,7 +10,7 @@ const reuseFromUpstream = [
 
 const esModules = [
   '@jupyterlab/',
-  '@retrolab/',
+  '@jupyter-notebook/',
   'lib0',
   'y\\-protocols',
   'y\\-websocket',

@@ -4,6 +4,7 @@
 import { HoverBox } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
+import { IEditorPosition, isEqual, WidgetLSPAdapter } from '@jupyterlab/lsp';
 import {
   IRenderMime,
   MimeModel,
@@ -13,9 +14,7 @@ import { Tooltip } from '@jupyterlab/tooltip';
 import { Widget } from '@lumino/widgets';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
-import { WidgetAdapter } from '../adapters/adapter';
 import { PositionConverter } from '../converter';
-import { IEditorPosition, is_equal } from '../positioning';
 
 const MIN_HEIGHT = 20;
 const MAX_HEIGHT = 250;
@@ -181,9 +180,9 @@ export namespace EditorTooltip {
   export interface IOptions {
     id?: string;
     markup: lsProtocol.MarkupContent;
-    ce_editor: CodeEditor.IEditor;
+    ceEditor: CodeEditor.IEditor;
     position: IEditorPosition;
-    adapter: WidgetAdapter<IDocumentWidget>;
+    adapter: WidgetLSPAdapter<IDocumentWidget>;
     className?: string;
     tooltip?: Partial<IFreeTooltipOptions>;
   }
@@ -211,7 +210,7 @@ export class EditorTooltipManager {
       ...(options.tooltip || {}),
       anchor: widget.content,
       bundle: bundle,
-      editor: options.ce_editor,
+      editor: options.ceEditor,
       rendermime: this.rendermime_registry,
       position: PositionConverter.cm_to_ce(position)
     });
@@ -227,7 +226,7 @@ export class EditorTooltipManager {
   showOrCreate(options: EditorTooltip.IOptions): FreeTooltip {
     const samePosition =
       this.currentOptions &&
-      is_equal(this.currentOptions.position, options.position);
+      isEqual(this.currentOptions.position, options.position);
     const sameMarkup =
       this.currentOptions &&
       this.currentOptions.markup.value === options.markup.value &&
@@ -238,7 +237,7 @@ export class EditorTooltipManager {
       this.currentOptions &&
       this.currentOptions.adapter === options.adapter &&
       (samePosition || sameMarkup) &&
-      this.currentOptions.ce_editor === options.ce_editor &&
+      this.currentOptions.ceEditor === options.ceEditor &&
       this.currentOptions.id === options.id
     ) {
       // we only allow either position or markup change, because if both changed,

@@ -14,7 +14,6 @@ import {
   GroupItem,
   Popup,
   TextItem,
-  interactiveItem,
   showPopup
 } from '@jupyterlab/statusbar';
 import { TranslationBundle } from '@jupyterlab/translation';
@@ -30,19 +29,13 @@ import React from 'react';
 
 import '../../style/statusbar.css';
 import * as SCHEMA from '../_schema';
-import { WidgetAdapter } from '../adapters/adapter';
-import { LSPConnection } from '../connection';
-import { DocumentConnectionManager } from '../connection_manager';
+import { ILSPConnection, collectDocuments, ILSPDocumentConnectionManager, VirtualDocument, WidgetLSPAdapter, ILanguageServerManager } from '@jupyterlab/lsp';
 import { SERVER_EXTENSION_404 } from '../errors';
-import { LanguageServerManager } from '../manager';
 import {
-  ILSPAdapterManager,
-  ILanguageServerManager,
   TSessionMap,
   TLanguageServerId,
   TSpecsMap
 } from '../tokens';
-import { VirtualDocument, collect_documents } from '../virtual/document';
 
 import { codeCheckIcon, codeClockIcon, codeWarningIcon } from './icons';
 import { DocumentLocator, ServerLinksList } from './utils';
@@ -384,8 +377,6 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
   }
 }
 
-const SELECTED_CLASS = 'jp-mod-selected';
-
 /**
  * StatusBar item.
  */
@@ -397,29 +388,14 @@ export class LSPStatus extends VDomRenderer<LSPStatus.Model> {
    * Construct a new VDomRenderer for the status item.
    */
   constructor(
-    widget_manager: ILSPAdapterManager,
     protected displayText: boolean = true,
     trans: TranslationBundle
   ) {
-    super(new LSPStatus.Model(widget_manager, trans));
-    this.addClass(interactiveItem);
+    super(new LSPStatus.Model(trans));
+    this.addClass('jp-mod-highlighted');
     this.addClass('lsp-statusbar-item');
     this.trans = trans;
     this.title.caption = this.trans.__('LSP status');
-
-    // add human-readable (and stable) class name reflecting otherwise obfuscated typestyle interactiveItem
-    this.interactiveStateObserver = new MutationObserver(() => {
-      const has_selected = this.node.classList.contains(SELECTED_CLASS);
-      if (!this.node.classList.contains(interactiveItem)) {
-        if (!has_selected) {
-          this.addClass(SELECTED_CLASS);
-        }
-      } else {
-        if (has_selected) {
-          this.removeClass(SELECTED_CLASS);
-        }
-      }
-    });
   }
 
   protected onAfterAttach(msg: any) {
@@ -454,7 +430,7 @@ export class LSPStatus extends VDomRenderer<LSPStatus.Model> {
       >
         <model.status_icon.react
           top={'2px'}
-          kind={'statusBar'}
+          stylesheet={'statusBar'}
           title={this.trans.__('LSP Code Intelligence')}
         />
         {this.displayText ? (
@@ -465,7 +441,6 @@ export class LSPStatus extends VDomRenderer<LSPStatus.Model> {
         ) : (
           <></>
         )}
-        <TextItem source={model.feature_message} />
       </GroupItem>
     );
   }
@@ -495,9 +470,8 @@ export class StatusButtonExtension
 {
   constructor(
     private options: {
-      language_server_manager: LanguageServerManager;
-      connection_manager: DocumentConnectionManager;
-      adapter_manager: ILSPAdapterManager;
+      language_server_manager: ILanguageServerManager;
+      connection_manager: ILSPDocumentConnectionManager;
       translator_bundle: TranslationBundle;
     }
   ) {}
@@ -507,7 +481,6 @@ export class StatusButtonExtension
    */
   createItem(displayText: boolean = true): LSPStatus {
     const status_bar_item = new LSPStatus(
-      this.options.adapter_manager,
       displayText,
       this.options.translator_bundle
     );
@@ -543,13 +516,13 @@ type StatusCode =
 export interface IStatus {
   connected_documents: Set<VirtualDocument>;
   initialized_documents: Set<VirtualDocument>;
-  open_connections: Array<LSPConnection>;
+  open_connections: Array<ILSPConnection>;
   detected_documents: Set<VirtualDocument>;
   status: StatusCode;
 }
 
-function collect_languages(virtual_document: VirtualDocument): Set<string> {
-  let documents = collect_documents(virtual_document);
+function collect_languages(virtualDocument: VirtualDocument): Set<string> {
+  let documents = collectDocuments(virtualDocument);
   return new Set(
     [...documents].map(document => document.language.toLocaleLowerCase())
   );
@@ -593,22 +566,13 @@ export namespace LSPStatus {
     server_extension_status: SCHEMA.ServersResponse | null = null;
     language_server_manager: ILanguageServerManager;
     trans: TranslationBundle;
-    private _connection_manager: DocumentConnectionManager;
+    private _connection_manager: ILSPDocumentConnectionManager;
 
     constructor(
-      widget_adapter_manager: ILSPAdapterManager,
       trans: TranslationBundle
     ) {
       super();
       this.trans = trans;
-      widget_adapter_manager.adapterChanged.connect((manager, adapter) => {
-        this.change_adapter(adapter);
-      }, this);
-      widget_adapter_manager.adapterDisposed.connect((manager, adapter) => {
-        if (this.adapter === adapter) {
-          this.change_adapter(null);
-        }
-      }, this);
     }
 
     get available_servers(): TSessionMap {
@@ -650,17 +614,17 @@ export namespace LSPStatus {
         SCHEMA.LanguageServerSession,
         Map<string, VirtualDocument[]>
       >();
-      if (!this.adapter?.virtual_editor) {
+      if (!this.adapter?.virtualDocument) {
         return data;
       }
 
-      let main_document = this.adapter.virtual_editor.virtual_document;
-      let documents = collect_documents(main_document);
+      let main_document = this.adapter.virtualDocument;
+      let documents = collectDocuments(main_document);
 
       for (let document of documents.values()) {
         let language = document.language.toLocaleLowerCase();
         let server_ids =
-          this._connection_manager.language_server_manager.getMatchingServers({
+          this._connection_manager.languageServerManager.getMatchingServers({
             language: document.language
           });
         if (server_ids.length === 0) {
@@ -692,11 +656,11 @@ export namespace LSPStatus {
     }
 
     get detected_languages(): Set<string> {
-      if (!this.adapter?.virtual_editor) {
+      if (!this.adapter?.virtualDocument) {
         return new Set<string>();
       }
 
-      let document = this.adapter.virtual_editor.virtual_document;
+      let document = this.adapter.virtualDocument;
       return collect_languages(document);
     }
 
@@ -710,13 +674,13 @@ export namespace LSPStatus {
     get status(): IStatus {
       let detected_documents: Map<string, VirtualDocument>;
 
-      if (!this.adapter?.virtual_editor) {
+      if (!this.adapter?.virtualDocument) {
         detected_documents = new Map();
       } else {
-        let main_document = this.adapter.virtual_editor.virtual_document;
+        let main_document = this.adapter.virtualDocument;
         const all_documents = this._connection_manager.documents;
         // detected documents that are open in the current virtual editor
-        const detected_documents_set = collect_documents(main_document);
+        const detected_documents_set = collectDocuments(main_document);
         detected_documents = new Map(
           [...all_documents].filter(([id, doc]) =>
             detected_documents_set.has(doc)
@@ -735,7 +699,7 @@ export namespace LSPStatus {
       detected_documents.forEach((document, uri) => {
         let connection = this._connection_manager.connections.get(uri);
         let server_ids =
-          this._connection_manager.language_server_manager.getMatchingServers({
+          this._connection_manager.languageServerManager.getMatchingServers({
             language: document.language
           });
 
@@ -759,7 +723,7 @@ export namespace LSPStatus {
 
       // there may be more open connections than documents if a document was recently closed
       // and the grace period has not passed yet
-      let open_connections = new Array<LSPConnection>();
+      let open_connections = new Array<ILSPConnection>();
       this._connection_manager.connections.forEach((connection, path) => {
         if (connection.isConnected) {
           open_connections.push(connection);
@@ -811,10 +775,6 @@ export namespace LSPStatus {
       return this.trans.__(shortMessageByStatus[this.status.status]);
     }
 
-    get feature_message(): string {
-      return this.adapter?.status_message?.message || '';
-    }
-
     get long_message(): string {
       if (!this.adapter) {
         return this.trans.__('not initialized');
@@ -845,7 +805,7 @@ export namespace LSPStatus {
           status.detected_documents.size,
           uninitialized.size,
           status.detected_documents.size,
-          [...uninitialized].map(document => document.id_path).join(', ')
+          [...uninitialized].map(document => document.idPath).join(', ')
         );
       } else {
         const unconnected = new Set<VirtualDocument>(status.detected_documents);
@@ -861,26 +821,14 @@ export namespace LSPStatus {
           status.connected_documents.size,
           status.detected_documents.size,
           status.open_connections.length,
-          [...unconnected].map(document => document.id_path).join(', ')
+          [...unconnected].map(document => document.idPath).join(', ')
         );
       }
       return msg;
     }
 
-    get adapter(): WidgetAdapter<IDocumentWidget> | null {
+    get adapter(): WidgetLSPAdapter<IDocumentWidget> | null {
       return this._adapter;
-    }
-
-    change_adapter(adapter: WidgetAdapter<IDocumentWidget> | null) {
-      if (this._adapter != null) {
-        this._adapter.status_message.changed.disconnect(this._onChange);
-      }
-
-      if (adapter != null) {
-        adapter.status_message.changed.connect(this._onChange);
-      }
-
-      this._adapter = adapter;
     }
 
     get connection_manager() {
@@ -896,7 +844,7 @@ export namespace LSPStatus {
         this._connection_manager.initialized.connect(this._onChange);
         this._connection_manager.disconnected.disconnect(this._onChange);
         this._connection_manager.closed.disconnect(this._onChange);
-        this._connection_manager.documents_changed.disconnect(this._onChange);
+        this._connection_manager.documentsChanged.disconnect(this._onChange);
       }
 
       if (connection_manager != null) {
@@ -904,7 +852,7 @@ export namespace LSPStatus {
         connection_manager.initialized.connect(this._onChange);
         connection_manager.disconnected.connect(this._onChange);
         connection_manager.closed.connect(this._onChange);
-        connection_manager.documents_changed.connect(this._onChange);
+        connection_manager.documentsChanged.connect(this._onChange);
       }
 
       this._connection_manager = connection_manager;
@@ -914,6 +862,6 @@ export namespace LSPStatus {
       this.stateChanged.emit(void 0);
     };
 
-    private _adapter: WidgetAdapter<IDocumentWidget> | null = null;
+    private _adapter: WidgetLSPAdapter<IDocumentWidget> | null = null;
   }
 }

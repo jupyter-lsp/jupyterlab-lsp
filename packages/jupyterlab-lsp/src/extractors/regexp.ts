@@ -1,181 +1,180 @@
 import { CodeEditor } from '@jupyterlab/codeeditor';
 
 import { replacer } from '../overrides/tokens';
-import { position_at_offset } from '../positioning';
-
-import { IExtractedCode, IForeignCodeExtractor } from './types';
+import { positionAtOffset, IExtractedCode, IForeignCodeExtractor } from '@jupyterlab/lsp';
 
 export function getIndexOfCaptureGroup(
   expression: RegExp,
-  matched_string: string,
-  value_of_captured_group: string
+  matchedString: string,
+  valueOfCapturedGroup: string
 ): number {
   // TODO: use https://github.com/tc39/proposal-regexp-match-indices once supported in >95% of browsers
   //  (probably around 2025)
 
   // get index of the part that is being extracted to foreign document
-  let captured_groups = expression.exec(matched_string);
+  let capturedGroups = expression.exec(matchedString);
 
-  if (captured_groups == null) {
+  if (capturedGroups == null) {
     console.warn(
-      `No capture group found for ${expression} in ${matched_string}`
+      `No capture group found for ${expression} in ${matchedString}`
     );
     return -1;
   }
 
-  let offset_in_match = 0;
+  let offsetInMatch = 0;
 
   // first element is a full match
-  let full_matched = captured_groups[0];
+  let fullMatched = capturedGroups[0];
 
-  for (let group of captured_groups.slice(1)) {
+  for (let group of capturedGroups.slice(1)) {
     if (typeof group === 'undefined') {
       continue;
     }
 
-    if (group === value_of_captured_group) {
-      offset_in_match += full_matched.indexOf(group);
+    if (group === valueOfCapturedGroup) {
+      offsetInMatch += fullMatched.indexOf(group);
       break;
     }
 
-    let group_end_offset = full_matched.indexOf(group) + group.length;
+    let groupEndOffset = fullMatched.indexOf(group) + group.length;
 
-    full_matched = full_matched.slice(group_end_offset);
-    offset_in_match += group_end_offset;
+    fullMatched = fullMatched.slice(groupEndOffset);
+    offsetInMatch += groupEndOffset;
   }
 
-  return offset_in_match;
+  return offsetInMatch;
 }
 
 export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
   options: RegExpForeignCodeExtractor.IOptions;
   language: string;
-  global_expression: RegExp;
-  test_expression: RegExp;
+  globalExpression: RegExp;
+  testExpression: RegExp;
   expression: RegExp;
   standalone: boolean;
-  file_extension: string;
+  fileExtension: string;
+  cellType: string[] = ['code'];
 
   constructor(options: RegExpForeignCodeExtractor.IOptions) {
     this.language = options.language;
     this.options = options;
-    this.global_expression = new RegExp(options.pattern, 'g');
-    this.test_expression = new RegExp(options.pattern, 'g');
+    this.globalExpression = new RegExp(options.pattern, 'g');
+    this.testExpression = new RegExp(options.pattern, 'g');
     this.expression = new RegExp(options.pattern);
-    this.standalone = this.options.is_standalone;
-    this.file_extension = this.options.file_extension;
+    this.standalone = this.options.isStandalone;
+    this.fileExtension = this.options.fileExtension;
   }
 
-  has_foreign_code(code: string): boolean {
-    let result = this.test_expression.test(code);
-    this.test_expression.lastIndex = 0;
+  hasForeignCode(code: string): boolean {
+    const result = this.testExpression.test(code);
+    this.testExpression.lastIndex = 0;
     return result;
   }
 
-  extract_foreign_code(code: string): IExtractedCode[] {
-    let lines = code.split('\n');
+  extractForeignCode(code: string): IExtractedCode[] {
+    const lines = code.split('\n');
 
-    let extracts = new Array<IExtractedCode>();
+    const extracts = new Array<IExtractedCode>();
 
-    let started_from = this.global_expression.lastIndex;
-    let match: RegExpExecArray | null = this.global_expression.exec(code);
-    let host_code_fragment: string;
+    let startedFrom = this.globalExpression.lastIndex;
+    let match: RegExpExecArray | null = this.globalExpression.exec(code);
+    let hostCodeFragment: string;
 
-    let chosen_replacer: string | replacer;
-    let is_new_api_replacer: boolean = false;
+    let chosenReplacer: string | replacer;
+    let isNewApiReplacer: boolean = false;
 
-    if (typeof this.options.foreign_replacer !== 'undefined') {
-      chosen_replacer = this.options.foreign_replacer;
-      is_new_api_replacer = true;
-    } else if (typeof this.options.foreign_capture_groups !== 'undefined') {
-      chosen_replacer = '$' + this.options.foreign_capture_groups.join('$');
-      is_new_api_replacer = true;
-    } else if (this.options.extract_to_foreign) {
-      chosen_replacer = this.options.extract_to_foreign;
+    if (typeof this.options.foreignReplacer !== 'undefined') {
+      chosenReplacer = this.options.foreignReplacer;
+      isNewApiReplacer = true;
+    } else if (typeof this.options.foreignCaptureGroups !== 'undefined') {
+      chosenReplacer = '$' + this.options.foreignCaptureGroups.join('$');
+      isNewApiReplacer = true;
+    } else if (this.options.extractToForeign) {
+      chosenReplacer = this.options.extractToForeign;
     } else {
       console.warn(
-        `Foreign replacer not defined for extractor: {this.expression} - this is deprecated; use 'foreign_replacer' to define it`
+        `Foreign replacer not defined for extractor: {this.expression} - this is deprecated; use 'foreignReplacer' to define it`
       );
       return [];
     }
 
     while (match != null) {
-      let matched_string = match[0];
-      let position_shift: CodeEditor.IPosition | null = null;
+      let matchedString = match[0];
+      let positionShift: CodeEditor.IPosition | null = null;
 
-      let foreign_code_fragment = matched_string.replace(
+      let foreignCodeFragment = matchedString.replace(
         this.expression,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        chosen_replacer
+        chosenReplacer
       );
       let prefix = '';
-      if (typeof this.options.extract_arguments !== 'undefined') {
-        prefix = matched_string.replace(
+      if (typeof this.options.extractArguments !== 'undefined') {
+        prefix = matchedString.replace(
           this.expression,
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          this.options.extract_arguments
+          this.options.extractArguments
         );
-        position_shift = position_at_offset(prefix.length, prefix.split('\n'));
+        positionShift = positionAtOffset(prefix.length, prefix.split('\n'));
       }
 
       // NOTE:
-      // match.index + matched_string.length === this.sticky_expression.lastIndex
+      // match.index + matchedString.length === this.sticky_expression.lastIndex
 
-      let end_index = this.global_expression.lastIndex;
+      let endIndex = this.globalExpression.lastIndex;
 
-      if (this.options.keep_in_host || this.options.keep_in_host == null) {
-        host_code_fragment = code.substring(started_from, end_index);
+      if (this.options.keepInHost || this.options.keepInHost == null) {
+        hostCodeFragment = code.substring(startedFrom, endIndex);
       } else {
-        if (started_from === match.index) {
-          host_code_fragment = '';
+        if (startedFrom === match.index) {
+          hostCodeFragment = '';
         } else {
-          host_code_fragment = code.substring(started_from, match.index) + '\n';
+          hostCodeFragment = code.substring(startedFrom, match.index) + '\n';
         }
       }
 
-      let foreign_code_group_value = foreign_code_fragment;
+      let foreignCodeGroupValue = foreignCodeFragment;
 
-      if (is_new_api_replacer) {
-        foreign_code_group_value = matched_string.replace(
+      if (isNewApiReplacer) {
+        foreignCodeGroupValue = matchedString.replace(
           this.expression,
-          '$' + Math.min(...this.options.foreign_capture_groups!)
+          '$' + Math.min(...this.options.foreignCaptureGroups!)
         );
       }
 
-      const foreign_group_index_in_match = getIndexOfCaptureGroup(
+      const foreignGroupIndexInMatch = getIndexOfCaptureGroup(
         this.expression,
-        matched_string,
-        foreign_code_group_value
+        matchedString,
+        foreignCodeGroupValue
       );
 
-      let start_offset = match.index + foreign_group_index_in_match;
+      let startOffset = match.index + foreignGroupIndexInMatch;
 
-      let start = position_at_offset(start_offset, lines);
-      let end = position_at_offset(
-        start_offset + foreign_code_fragment.length,
+      let start = positionAtOffset(startOffset, lines);
+      let end = positionAtOffset(
+        startOffset + foreignCodeFragment.length,
         lines
       );
 
       extracts.push({
-        host_code: host_code_fragment,
-        foreign_code: prefix + foreign_code_fragment,
+        hostCode: hostCodeFragment,
+        foreignCode: prefix + foreignCodeFragment,
         range: { start, end },
-        virtual_shift: position_shift
+        virtualShift: positionShift
       });
 
-      started_from = this.global_expression.lastIndex;
-      match = this.global_expression.exec(code);
+      startedFrom = this.globalExpression.lastIndex;
+      match = this.globalExpression.exec(code);
     }
 
-    if (started_from !== code.length) {
-      let final_host_code_fragment = code.substring(started_from, code.length);
+    if (startedFrom !== code.length) {
+      let finalHostCodeFragment = code.substring(startedFrom, code.length);
       extracts.push({
-        host_code: final_host_code_fragment,
-        foreign_code: null,
+        hostCode: finalHostCodeFragment,
+        foreignCode: null,
         range: null,
-        virtual_shift: null
+        virtualShift: null
       });
     }
 
@@ -203,30 +202,30 @@ namespace RegExpForeignCodeExtractor {
      * For the R example this should be `3`. Please not that these are 1-based, as the 0th index is the full match.
      * If multiple groups are given, those will be concatenated.
      *
-     * If additional code is needed in between the groups, use `foreign_replacer` in addition to
-     * `foreign_capture_groups` (but not instead!).
+     * If additional code is needed in between the groups, use `foreignReplacer` in addition to
+     * `foreignCaptureGroups` (but not instead!).
      *
-     * `foreign_capture_groups` is required for proper offset calculation and will no longer be optional in 4.0.
+     * `foreignCaptureGroups` is required for proper offset calculation and will no longer be optional in 4.0.
      */
-    foreign_capture_groups?: number[];
+    foreignCaptureGroups?: number[];
     /**
      * Function to compose the foreign document code, in case if using a capture group alone is not sufficient;
      * If specified, `foreign_capture_group` should be specified as well, so that it points to the first occurrence
-     * of the foreign code. When both are specified, `foreign_replacer` takes precedence.
+     * of the foreign code. When both are specified, `foreignReplacer` takes precedence.
      *
      * See:
      * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#specifying_a_function_as_a_parameter
      */
-    foreign_replacer?: replacer;
+    foreignReplacer?: replacer;
     /**
-     * @deprecated `extract_to_foreign` will be removed in 4.0; use `foreign_capture_group` or `foreign_replacer` instead
+     * @deprecated `extractToForeign` will be removed in 4.0; use `foreign_capture_group` or `foreignReplacer` instead
      */
-    extract_to_foreign?: string | replacer;
+    extractToForeign?: string | replacer;
     /**
      * If arguments from the cell or line magic are to be extracted and prepended before the extracted code,
-     * set extract_arguments to a replacer function taking the code and returning the string to be prepended.
+     * set extractArguments to a replacer function taking the code and returning the string to be prepended.
      */
-    extract_arguments?: replacer;
+    extractArguments?: replacer;
     /**
      * Boolean if everything (true, default) or nothing (false) should be kept in the host document.
      *
@@ -238,14 +237,14 @@ namespace RegExpForeignCodeExtractor {
      * Setting to false is DEPRECATED as it breaks the edit feature (while it could be fixed,
      * it would make the code considerably more complex).
      *
-     * @deprecated `keep_in_host` will be removed in 4.0
+     * @deprecated `keepInHost` will be removed in 4.0
      */
-    keep_in_host?: boolean;
+    keepInHost?: boolean;
     /**
      * Should the foreign code be appended (False) to the previously established virtual document of the same language,
      * or is it standalone snippet which requires separate connection?
      */
-    is_standalone: boolean;
-    file_extension: string;
+    isStandalone: boolean;
+    fileExtension: string;
   }
 }

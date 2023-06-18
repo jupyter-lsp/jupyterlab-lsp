@@ -1,18 +1,48 @@
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { ICommandPalette, IWidgetTracker } from '@jupyterlab/apputils';
-import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 
-import { WidgetAdapter } from './adapters/adapter';
-import { LSPConnection } from './connection';
+import { ILSPConnection, WidgetLSPAdapter } from '@jupyterlab/lsp';
 import { IFeatureCommand, IFeatureEditorIntegration } from './feature';
-import { IRootPosition, IVirtualPosition, PositionError } from './positioning';
-import { ILSPAdapterManager, ILSPLogConsole } from './tokens';
+import { IRootPosition, IVirtualPosition } from '@jupyterlab/lsp';
+import { ILSPLogConsole } from './tokens';
 import { VirtualDocument } from './virtual/document';
-import { IVirtualEditor } from './virtual/editor';
 
-function is_context_menu_over_token(adapter: WidgetAdapter<IDocumentWidget>) {
-  let position = adapter.get_position_from_context_menu();
+function get_position_from_context_menu(app: JupyterFrontEnd, adapter: WidgetLSPAdapter<any>): IRootPosition | null {
+  // Note: could also try using this.app.contextMenu.menu.contentNode position.
+  // Note: could add a guard on this.app.contextMenu.menu.isAttached
+
+  // get the first node as it gives the most accurate approximation
+  let leaf_node = app.contextMenuHitTest(() => true);
+
+  if (!leaf_node) {
+    return null;
+  }
+
+  let { left, top } = leaf_node.getBoundingClientRect();
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  let event = this.app._contextMenuEvent;
+
+  // if possible, use more accurate position from the actual event
+  // (but this relies on an undocumented and unstable feature)
+  if (event !== undefined) {
+    left = event.clientX;
+    top = event.clientY;
+    event.stopPropagation();
+  }
+
+  // TODO
+  return adapter.window_coords_to_root_position({
+    left: left,
+    top: top
+  });
+}
+
+function is_context_menu_over_token(adapter: WidgetLSPAdapter<IDocumentWidget>) {
+  
+  let position = get_position_from_context_menu(app, adapter);
   if (!position) {
     return false;
   }
@@ -23,7 +53,6 @@ function is_context_menu_over_token(adapter: WidgetAdapter<IDocumentWidget>) {
 export type CommandEntryPoint = string;
 
 export interface ILSPCommandManagerOptions {
-  adapter_manager: ILSPAdapterManager;
   app: JupyterFrontEnd;
   palette: ICommandPalette;
   tracker: IWidgetTracker;
@@ -33,7 +62,6 @@ export interface ILSPCommandManagerOptions {
 }
 
 abstract class LSPCommandManager {
-  protected adapter_manager: ILSPAdapterManager;
   protected app: JupyterFrontEnd;
   protected palette: ICommandPalette;
   protected tracker: IWidgetTracker;
@@ -41,7 +69,6 @@ abstract class LSPCommandManager {
   protected entry_point: CommandEntryPoint;
 
   protected constructor(options: ILSPCommandManagerOptions) {
-    this.adapter_manager = options.adapter_manager;
     this.app = options.app;
     this.palette = options.palette;
     this.tracker = options.tracker;
@@ -50,6 +77,7 @@ abstract class LSPCommandManager {
   }
 
   get current_adapter() {
+    // so this probably needs iterating over .adapters()
     return this.adapter_manager.currentAdapter;
   }
   abstract attach_command(command: IFeatureCommand): void;
@@ -187,7 +215,7 @@ export class ContextCommandManager extends LSPCommandManager {
       try {
         context = this.current_adapter?.context_from_active_document();
       } catch (e) {
-        if (e instanceof PositionError) {
+        if (e instanceof Error && e.message === 'Source line not mapped to virtual position') {
           this.console.log(
             'Could not get context from active document: it is expected when restoring workspace with open files'
           );
@@ -236,10 +264,9 @@ export class ContextCommandManager extends LSPCommandManager {
 export interface ICommandContext {
   app: JupyterFrontEnd;
   document: VirtualDocument;
-  connection?: LSPConnection;
+  connection?: ILSPConnection;
   virtual_position: IVirtualPosition;
   root_position: IRootPosition;
   features: Map<string, IFeatureEditorIntegration<any>>;
-  editor: IVirtualEditor<CodeEditor.IEditor>;
-  adapter: WidgetAdapter<IDocumentWidget>;
+  adapter: WidgetLSPAdapter<IDocumentWidget>;
 }

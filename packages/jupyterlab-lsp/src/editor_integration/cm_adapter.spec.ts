@@ -1,7 +1,4 @@
-import { expect } from 'chai';
-import type * as CodeMirror from 'codemirror';
-
-import { IRootPosition } from '../positioning';
+import { IRootPosition } from '@jupyterlab/lsp';
 import { IEditorChange } from '../virtual/editor';
 
 import { CodeMirrorIntegration } from './codemirror';
@@ -39,7 +36,7 @@ describe('CodeMirrorAdapter', () => {
       await env.adapter.update_finished;
       expect(feature.received_update).to.equal(false);
 
-      env.ce_editor.model.value.text = 'fo';
+      env.ceEditor.model.value.text = 'fo';
       await env.adapter.update_finished;
       expect(feature.received_update).to.equal(true);
       expect(feature.last_change.text[0]).to.equal('fo');

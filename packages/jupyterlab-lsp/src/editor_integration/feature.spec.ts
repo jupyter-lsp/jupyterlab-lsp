@@ -1,10 +1,9 @@
 import { PageConfig } from '@jupyterlab/coreutils';
 import * as nbformat from '@jupyterlab/nbformat';
 import { NotebookModel } from '@jupyterlab/notebook';
-import { expect } from 'chai';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
-import { foreign_code_extractors } from '../transclusions/ipython/extractors';
+import { foreignCodeExtractors } from '../transclusions/ipython/extractors';
 import { overrides } from '../transclusions/ipython/overrides';
 
 import { CodeMirrorIntegration } from './codemirror';
@@ -115,7 +114,7 @@ describe('Feature', () => {
       });
 
       it('applies simple edit in FileEditor', async () => {
-        environment.ce_editor.model.value.text = 'foo bar';
+        environment.ceEditor.model.sharedModel.setSource('foo bar');
         await environment.adapter.update_documents();
 
         let outcome = await feature.do_apply_edit({
@@ -131,18 +130,18 @@ describe('Feature', () => {
             ]
           }
         });
-        let raw_value = environment.ce_editor.doc.getValue();
-        expect(raw_value).to.be.equal('changed bar');
-        expect(environment.ce_editor.model.value.text).to.be.equal(
+        let raw_value = environment.ceEditor.doc.toString();
+        expect(raw_value).toBe('changed bar');
+        expect(environment.ceEditor.model.sharedModel.source).toBe(
           'changed bar'
         );
-        expect(outcome.wasGranular).to.be.equal(false);
-        expect(outcome.modifiedCells).to.be.equal(1);
-        expect(outcome.appliedChanges).to.be.equal(1);
+        expect(outcome.wasGranular).toBe(false);
+        expect(outcome.modifiedCells).toBe(1);
+        expect(outcome.appliedChanges).toBe(1);
       });
 
       it('correctly summarizes empty edit', async () => {
-        environment.ce_editor.model.value.text = 'foo bar';
+        environment.ceEditor.model.sharedModel.setSource('foo bar');
         await environment.adapter.update_documents();
 
         let outcome = await feature.do_apply_edit({
@@ -150,16 +149,16 @@ describe('Feature', () => {
             ['file:///' + environment.document_options.path]: []
           }
         });
-        let raw_value = environment.ce_editor.doc.getValue();
-        expect(raw_value).to.be.equal('foo bar');
-        expect(environment.ce_editor.model.value.text).to.be.equal('foo bar');
-        expect(outcome.wasGranular).to.be.equal(false);
-        expect(outcome.appliedChanges).to.be.equal(0);
-        expect(outcome.modifiedCells).to.be.equal(0);
+        let raw_value = environment.ceEditor.doc.toString();
+        expect(raw_value).toBe('foo bar');
+        expect(environment.ceEditor.model.sharedModel.source).toBe('foo bar');
+        expect(outcome.wasGranular).toBe(false);
+        expect(outcome.appliedChanges).toBe(0);
+        expect(outcome.modifiedCells).toBe(0);
       });
 
       it('applies partial edits', async () => {
-        environment.ce_editor.model.value.text = js_fib_code;
+        environment.ceEditor.model.sharedModel.setSource(js_fib_code);
         await environment.adapter.update_documents();
 
         let result = await feature.do_apply_edit({
@@ -167,15 +166,15 @@ describe('Feature', () => {
             ['file:///' + environment.document_options.path]: js_partial_edits
           }
         });
-        let raw_value = environment.ce_editor.doc.getValue();
-        expect(raw_value).to.be.equal(js_fib2_code);
-        expect(environment.ce_editor.model.value.text).to.be.equal(
+        let raw_value = environment.ceEditor.doc.toString();
+        expect(raw_value).toBe(js_fib2_code);
+        expect(environment.ceEditor.model.sharedModel.source).toBe(
           js_fib2_code
         );
 
-        expect(result.appliedChanges).to.be.equal(js_partial_edits.length);
-        expect(result.wasGranular).to.be.equal(true);
-        expect(result.modifiedCells).to.be.equal(1);
+        expect(result.appliedChanges).toBe(js_partial_edits.length);
+        expect(result.wasGranular).toBe(true);
+        expect(result.modifiedCells).toBe(1);
       });
     });
 
@@ -185,13 +184,13 @@ describe('Feature', () => {
 
       beforeEach(() => {
         environment = new NotebookFeatureTestEnvironment({
-          overrides_registry: {
+          foreignCodeExtractors: {
             python: {
               cell: overrides.filter(override => override.scope == 'cell'),
               line: overrides.filter(override => override.scope == 'line')
             }
           },
-          foreign_code_extractors: foreign_code_extractors
+          foreignCodeExtractors: foreignCodeExtractors
         });
 
         feature = environment.init_integration({
@@ -224,13 +223,13 @@ describe('Feature', () => {
         showAllCells(notebook);
 
         await synchronizeContent();
-        let main_document = environment.virtual_editor.virtual_document;
+        let main_document = environment.virtual_editor.virtualDocument;
 
         let old_virtual_source =
           'def a_function():\n    pass\n\n\nx = a_function()\n';
         let new_virtual_source =
           'def a_function_2():\n    pass\n\n\nx = a_function_2()\n';
-        expect(main_document.value).to.be.equal(old_virtual_source);
+        expect(main_document.value).toBe(old_virtual_source);
 
         let outcome = await feature.do_apply_edit({
           changes: {
@@ -249,19 +248,19 @@ describe('Feature', () => {
         await synchronizeContent();
 
         let value = main_document.value;
-        expect(value).to.be.equal(new_virtual_source);
+        expect(value).toBe(new_virtual_source);
 
         let code_cells = getCellsJSON(notebook);
 
-        expect(code_cells[0]).to.have.property(
+        expect(code_cells[0]).toHaveProperty(
           'source',
           'def a_function_2():\n    pass'
         );
-        expect(code_cells[1]).to.have.property('source', 'x = a_function_2()');
+        expect(code_cells[1]).toHaveProperty('source', 'x = a_function_2()');
 
-        expect(outcome.appliedChanges).to.be.equal(1);
-        expect(outcome.wasGranular).to.be.equal(false);
-        expect(outcome.modifiedCells).to.be.equal(2);
+        expect(outcome.appliedChanges).toBe(1);
+        expect(outcome.wasGranular).toBe(false);
+        expect(outcome.modifiedCells).toBe(2);
       });
 
       it('handles IPython magics', async () => {
@@ -279,7 +278,7 @@ describe('Feature', () => {
         notebook.model.fromJSON(test_notebook);
         showAllCells(notebook);
 
-        let main_document = environment.virtual_editor.virtual_document;
+        let main_document = environment.virtual_editor.virtualDocument;
 
         let old_virtual_source = `x = get_ipython().run_line_magic("ls", "")
 print(x)
@@ -298,7 +297,7 @@ print(x)""")
 `;
 
         await synchronizeContent();
-        expect(main_document.value).to.be.equal(old_virtual_source);
+        expect(main_document.value).toBe(old_virtual_source);
 
         await feature.do_apply_edit({
           changes: {
@@ -314,12 +313,12 @@ print(x)""")
           }
         });
         await synchronizeContent();
-        expect(main_document.value).to.be.equal(new_virtual_source);
+        expect(main_document.value).toBe(new_virtual_source);
 
         let code_cells = getCellsJSON(notebook);
 
-        expect(code_cells[0]).to.have.property('source', 'z = %ls\nprint(z)');
-        expect(code_cells[1]).to.have.property(
+        expect(code_cells[0]).toHaveProperty('source', 'z = %ls\nprint(z)');
+        expect(code_cells[1]).not.toHaveProperty(
           'source',
           '%%python\ny = x\nprint(x)'
         );

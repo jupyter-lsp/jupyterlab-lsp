@@ -1,13 +1,11 @@
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { expect } from 'chai';
+import { ISourcePosition, IVirtualPosition, isWithinRange, Document } from '@jupyterlab/lsp';
 
-import { ISourcePosition, IVirtualPosition } from '../positioning';
-import { foreign_code_extractors } from '../transclusions/ipython-rpy2/extractors';
+import { foreignCodeExtractors } from '../transclusions/ipython-rpy2/extractors';
+import { mockExtractorsManager } from '../extractors/testutils';
 
-import { BrowserConsole } from './console';
-import { VirtualDocument, is_within_range } from './document';
+import { VirtualDocument } from './document';
 
-import Mock = jest.Mock;
 
 let R_LINE_MAGICS = `%R df = data.frame()
 print("df created")
@@ -15,7 +13,7 @@ print("df created")
 print("plotted")
 `;
 
-describe('is_within_range', () => {
+describe('isWithinRange', () => {
   let line_range: CodeEditor.IRange = {
     start: { line: 1, column: 0 },
     end: { line: 1, column: 10 }
@@ -25,27 +23,27 @@ describe('is_within_range', () => {
     end: { line: 1, column: 0 }
   };
   it('recognizes positions within range in a single-line case', () => {
-    expect(is_within_range({ line: 1, column: 0 }, line_range)).to.equal(true);
-    expect(is_within_range({ line: 1, column: 5 }, line_range)).to.equal(true);
-    expect(is_within_range({ line: 1, column: 10 }, line_range)).to.equal(true);
+    expect(isWithinRange({ line: 1, column: 0 }, line_range)).toEqual(true);
+    expect(isWithinRange({ line: 1, column: 5 }, line_range)).toEqual(true);
+    expect(isWithinRange({ line: 1, column: 10 }, line_range)).toEqual(true);
   });
 
   it('recognizes positions outside of range in a single-line case', () => {
-    expect(is_within_range({ line: 0, column: 0 }, line_range)).to.equal(false);
-    expect(is_within_range({ line: 2, column: 0 }, line_range)).to.equal(false);
+    expect(isWithinRange({ line: 0, column: 0 }, line_range)).toEqual(false);
+    expect(isWithinRange({ line: 2, column: 0 }, line_range)).toEqual(false);
   });
 
   it('recognizes positions within range in multi-line case', () => {
-    expect(is_within_range({ line: 0, column: 3 }, long_range)).to.equal(true);
-    expect(is_within_range({ line: 0, column: 5 }, long_range)).to.equal(true);
-    expect(is_within_range({ line: 1, column: 0 }, long_range)).to.equal(true);
+    expect(isWithinRange({ line: 0, column: 3 }, long_range)).toEqual(true);
+    expect(isWithinRange({ line: 0, column: 5 }, long_range)).toEqual(true);
+    expect(isWithinRange({ line: 1, column: 0 }, long_range)).toEqual(true);
   });
 
   it('recognizes positions outside of range in multi-line case', () => {
-    expect(is_within_range({ line: 0, column: 0 }, long_range)).to.equal(false);
-    expect(is_within_range({ line: 0, column: 1 }, long_range)).to.equal(false);
-    expect(is_within_range({ line: 0, column: 2 }, long_range)).to.equal(false);
-    expect(is_within_range({ line: 1, column: 1 }, long_range)).to.equal(false);
+    expect(isWithinRange({ line: 0, column: 0 }, long_range)).toEqual(false);
+    expect(isWithinRange({ line: 0, column: 1 }, long_range)).toEqual(false);
+    expect(isWithinRange({ line: 0, column: 2 }, long_range)).toEqual(false);
+    expect(isWithinRange({ line: 1, column: 1 }, long_range)).toEqual(false);
   });
 });
 
@@ -55,126 +53,104 @@ describe('VirtualDocument', () => {
     document = new VirtualDocument({
       language: 'python',
       path: 'test.ipynb',
-      overrides_registry: {},
-      foreign_code_extractors: foreign_code_extractors,
+      overridesRegistry: {},
+      foreignCodeExtractors: mockExtractorsManager(foreignCodeExtractors),
       standalone: false,
-      file_extension: 'py',
-      has_lsp_supported_file: false,
-      console: new BrowserConsole()
+      fileExtension: 'py',
+      hasLspSupportedFile: false
     });
   });
 
-  describe('#dispose', () => {
-    it('disposes, but does not break methods which can be called from async callbacks', () => {
-      expect(document.isDisposed).to.equal(false);
-      // appending code block here should work fine
-      document.append_code_block({
-        value: 'code',
-        ce_editor: {} as CodeEditor.IEditor
-      });
-      document.dispose();
-      expect(document.isDisposed).to.equal(true);
-      // mock console.warn
-      console.warn = jest.fn();
-      // this one should not raise, but just warn
-      document.append_code_block({
-        value: 'code',
-        ce_editor: {} as CodeEditor.IEditor
-      });
-      expect((console.warn as Mock).mock.calls[0][0]).to.equal(
-        'Cannot append code block: document disposed'
-      );
+  let initDocumentWithPythonAndR = () => {
+    let ceEditor_for_cell_1 = {} as Document.IEditor;
+    let ceEditor_for_cell_2 = {} as Document.IEditor;
+    let ceEditor_for_cell_3 = {} as Document.IEditor;
+    let ceEditor_for_cell_4 = {} as Document.IEditor;
+    // first block
+    document.appendCodeBlock({
+      value: 'test line in Python 1\n%R 1st test line in R line magic 1',
+      ceEditor: ceEditor_for_cell_1,
+      type: 'code'
     });
-  });
+    // second block
+    document.appendCodeBlock({
+      value: 'test line in Python 2\n%R 1st test line in R line magic 2',
+      ceEditor: ceEditor_for_cell_2,
+      type: 'code'
+    });
+    // third block
+    document.appendCodeBlock({
+      value:
+        'test line in Python 3\n%R -i imported_variable 1st test line in R line magic 3',
+      ceEditor: ceEditor_for_cell_2,
+      type: 'code'
+    });
+    // fourth block
+    document.appendCodeBlock({
+      value: '%%R\n1st test line in R cell magic 1',
+      ceEditor: ceEditor_for_cell_3,
+      type: 'code'
+    });
+    // fifth block
+    document.appendCodeBlock({
+      value: '%%R -i imported_variable\n1st test line in R cell magic 2',
+      ceEditor: ceEditor_for_cell_4,
+      type: 'code'
+    });
+  };
 
-  describe('#extract_foreign_code', () => {
+  // TODO: upstream this test
+  describe('#extractForeignCode', () => {
     it('joins non-standalone fragments together', () => {
-      let { cell_code_kept, foreign_document_map } =
-        document.extract_foreign_code(
-          { value: R_LINE_MAGICS, ce_editor: null as any },
+      let { cellCodeKept, foreignDocumentsMap } =
+        document.extractForeignCode(
+          { value: R_LINE_MAGICS, ceEditor: null as any, type: 'code' },
           {
             line: 0,
             column: 0
           }
         );
 
-      // note R cell lines are kept in code (keep_in_host=true)
-      expect(cell_code_kept).to.equal(R_LINE_MAGICS);
-      expect(foreign_document_map.size).to.equal(2);
+      // note R cell lines are kept in code (keepInHost=true)
+      expect(cellCodeKept).toEqual(R_LINE_MAGICS);
+      expect(foreignDocumentsMap.size).toEqual(2);
 
-      let { virtual_document: r_document } = foreign_document_map.get(
-        foreign_document_map.keys().next().value
+      let { virtualDocument: r_document } = foreignDocumentsMap.get(
+        foreignDocumentsMap.keys().next().value
       )!;
-      expect(r_document.language).to.equal('r');
-      expect(r_document.value).to.equal('df = data.frame()\n\n\nggplot(df)\n');
+      expect(r_document.language).toEqual('r');
+      expect(r_document.value).toEqual('df = data.frame()\n\n\nggplot(df)\n');
     });
   });
 
-  afterEach(() => {
-    document.clear();
-  });
-
-  let init_document_with_Python_and_R = () => {
-    let ce_editor_for_cell_1 = {} as CodeEditor.IEditor;
-    let ce_editor_for_cell_2 = {} as CodeEditor.IEditor;
-    let ce_editor_for_cell_3 = {} as CodeEditor.IEditor;
-    let ce_editor_for_cell_4 = {} as CodeEditor.IEditor;
-    // first block
-    document.append_code_block({
-      value: 'test line in Python 1\n%R 1st test line in R line magic 1',
-      ce_editor: ce_editor_for_cell_1
-    });
-    // second block
-    document.append_code_block({
-      value: 'test line in Python 2\n%R 1st test line in R line magic 2',
-      ce_editor: ce_editor_for_cell_2
-    });
-    // third block
-    document.append_code_block({
-      value:
-        'test line in Python 3\n%R -i imported_variable 1st test line in R line magic 3',
-      ce_editor: ce_editor_for_cell_2
-    });
-    // fourth block
-    document.append_code_block({
-      value: '%%R\n1st test line in R cell magic 1',
-      ce_editor: ce_editor_for_cell_3
-    });
-    // fifth block
-    document.append_code_block({
-      value: '%%R -i imported_variable\n1st test line in R cell magic 2',
-      ce_editor: ce_editor_for_cell_4
-    });
-  };
-
-  describe('#transform_virtual_to_editor', () => {
+  describe('#transformVirtualToEditor', () => {
     it('transforms positions for the top level document', () => {
-      init_document_with_Python_and_R();
+      initDocumentWithPythonAndR();
       // The first (Python) line in the first block
-      let editor_position = document.transform_virtual_to_editor({
+      let editor_position = document.transformVirtualToEditor({
         line: 0,
         ch: 0
       } as IVirtualPosition)!;
-      expect(editor_position.line).to.equal(0);
-      expect(editor_position.ch).to.equal(0);
+      expect(editor_position.line).toEqual(0);
+      expect(editor_position.ch).toEqual(0);
 
       // The first (Python) line in the second block
-      editor_position = document.transform_virtual_to_editor({
+      editor_position = document.transformVirtualToEditor({
         line: 4,
         ch: 0
       } as IVirtualPosition)!;
-      expect(editor_position.line).to.equal(0);
-      expect(editor_position.ch).to.equal(0);
+      expect(editor_position.line).toEqual(0);
+      expect(editor_position.ch).toEqual(0);
     });
 
     it('transforms positions for the nested foreign documents', () => {
-      init_document_with_Python_and_R();
-      let foreign_document = document.document_at_source_position({
+      initDocumentWithPythonAndR();
+      let foreignDocument = document.documentAtSourcePosition({
         line: 1,
         ch: 3
       } as ISourcePosition);
-      expect(foreign_document).to.not.equal(document);
-      expect(foreign_document.value).to.equal(
+      expect(foreignDocument).not.toBe(document);
+      expect(foreignDocument.value).toEqual(
         '1st test line in R line magic 1\n\n\n' +
           '1st test line in R line magic 2\n\n\n' +
           'imported_variable <- data.frame(); 1st test line in R line magic 3\n\n\n' +
@@ -192,51 +168,51 @@ describe('VirtualDocument', () => {
       } as IVirtualPosition;
 
       // For future reference, the code below would be wrong:
-      // let source_position = foreign_document.transform_virtual_to_source(virtual_r_1_1);
-      // expect(source_position.line).to.equal(1);
-      // expect(source_position.ch).to.equal(4);
+      // let source_position = foreignDocument.transform_virtual_to_source(virtual_r_1_1);
+      // expect(source_position.line).toEqual(1);
+      // expect(source_position.ch).toEqual(4);
       // because it checks R source position, rather than checking root source positions.
 
       let editor_position =
-        foreign_document.transform_virtual_to_editor(virtual_r_1_1)!;
-      expect(editor_position.line).to.equal(1);
-      expect(editor_position.ch).to.equal(4);
+        foreignDocument.transformVirtualToEditor(virtual_r_1_1)!;
+      expect(editor_position.line).toEqual(1);
+      expect(editor_position.ch).toEqual(4);
 
       // The second R line (in source), second in the second block
       // targeting 1 in "1st test line in R line magic 2" (4th virtual line == line 3)
-      editor_position = foreign_document.transform_virtual_to_editor({
+      editor_position = foreignDocument.transformVirtualToEditor({
         line: 3,
         ch: 0
       } as IVirtualPosition)!;
       // 0th editor line is 'test line in Python 2\n'
-      expect(editor_position.line).to.equal(1);
+      expect(editor_position.line).toEqual(1);
       // 1st editor lines is '%R 1st test line in R line magic 2'
       //                      0123 - 3rd character
-      expect(editor_position.ch).to.equal(3);
+      expect(editor_position.ch).toEqual(3);
 
       // The third R line (in source), second in the third block;
       // targeting "s" in "1st" in "1st test line in R line magic 3" (7th virtual line == line 6)
-      editor_position = foreign_document.transform_virtual_to_editor({
+      editor_position = foreignDocument.transformVirtualToEditor({
         line: 6,
         ch: 36
       } as IVirtualPosition)!;
       // 0th editor line is 'test line in Python 3\n'
-      expect(editor_position.line).to.equal(1);
+      expect(editor_position.line).toEqual(1);
       // 1st editor line is '%R -i imported_variable 1st test line in R line magic 3'
       //                     01234567890123456789012345 - 25th character
-      expect(editor_position.ch).to.equal(25);
+      expect(editor_position.ch).toEqual(25);
 
       // The fifth R line (in source), second in the fifth block;
       // targeting "s" in "1st" in "1st test line in R cell magic 2" (13th virtual lines == line 12)
-      editor_position = foreign_document.transform_virtual_to_editor({
+      editor_position = foreignDocument.transformVirtualToEditor({
         line: 12,
         ch: 36
       } as IVirtualPosition)!;
       // 0th editor line is '%%R -i imported_variable\n'
-      expect(editor_position.line).to.equal(1);
+      expect(editor_position.line).toEqual(1);
       // 1st editor line is '1st test line in R cell magic 2'
       //                     01
-      expect(editor_position.ch).to.equal(1);
+      expect(editor_position.ch).toEqual(1);
     });
   });
 });

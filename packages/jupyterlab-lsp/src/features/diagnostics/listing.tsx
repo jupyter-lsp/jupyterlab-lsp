@@ -296,8 +296,8 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
     }
 
     let by_document = Array.from(diagnostics_db).map(
-      ([virtual_document, diagnostics]) => {
-        if (virtual_document.isDisposed) {
+      ([virtualDocument, diagnostics]) => {
+        if (virtualDocument.isDisposed) {
           return [];
         }
         return diagnostics.map((diagnostic_data, i) => {
@@ -308,8 +308,8 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
           }
           return {
             data: diagnostic_data,
-            key: virtual_document.uri + ',' + i,
-            document: virtual_document,
+            key: virtualDocument.uri + ',' + i,
+            document: virtualDocument,
             cell_number: cell_number,
             editor: editor
           } as IDiagnosticsRow;

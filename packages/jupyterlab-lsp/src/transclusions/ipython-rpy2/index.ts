@@ -1,9 +1,10 @@
 import { JupyterFrontEndPlugin } from '@jupyterlab/application';
+import { ILSPCodeExtractorsManager } from '@jupyterlab/lsp';
 
 import { ILSPCodeOverridesManager } from '../../overrides/tokens';
-import { ILSPCodeExtractorsManager, PLUGIN_ID } from '../../tokens';
+import { PLUGIN_ID } from '../../tokens';
 
-import { foreign_code_extractors } from './extractors';
+import { foreignCodeExtractors } from './extractors';
 import { overrides } from './overrides';
 
 export const IPYTHON_RPY2_TRANSCLUSIONS: JupyterFrontEndPlugin<void> = {
@@ -14,8 +15,8 @@ export const IPYTHON_RPY2_TRANSCLUSIONS: JupyterFrontEndPlugin<void> = {
     extractors_manager: ILSPCodeExtractorsManager,
     overrides_manager: ILSPCodeOverridesManager
   ) => {
-    for (let language of Object.keys(foreign_code_extractors)) {
-      for (let extractor of foreign_code_extractors[language]) {
+    for (let language of Object.keys(foreignCodeExtractors)) {
+      for (let extractor of foreignCodeExtractors[language]) {
         extractors_manager.register(extractor, language);
       }
     }
