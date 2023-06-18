@@ -47,7 +47,6 @@ import {
   TLanguageServerConfigurations
 } from './tokens';
 import { DEFAULT_TRANSCLUSIONS } from './transclusions/defaults';
-import { CODEMIRROR_VIRTUAL_EDITOR } from './virtual/codemirror_editor';
 import { LOG_CONSOLE } from './virtual/console';
 
 
@@ -218,7 +217,6 @@ const default_features: JupyterFrontEndPlugin<void>[] = [
 
 const plugins: JupyterFrontEndPlugin<any>[] = [
   LOG_CONSOLE,
-  CODEMIRROR_VIRTUAL_EDITOR,
   COMPLETION_THEME_MANAGER,
   THEME_VSCODE,
   THEME_MATERIAL,

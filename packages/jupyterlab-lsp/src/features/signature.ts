@@ -4,13 +4,15 @@ import {
 } from '@jupyterlab/application';
 import { IEditorExtensionRegistry, EditorExtensionRegistry } from '@jupyterlab/codemirror';
 import { EditorView } from '@codemirror/view';
+import { ChangeSet, Text } from "@codemirror/state"
 import {
   IEditorPosition,
   IRootPosition,
   offsetAtPosition,
   positionAtOffset,
   ILSPFeatureManager,
-  ILSPDocumentConnectionManager
+  ILSPDocumentConnectionManager,
+  WidgetLSPAdapter
 } from '@jupyterlab/lsp';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
@@ -18,9 +20,10 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { CodeSignature as LSPSignatureSettings } from '../_signature';
 import { EditorTooltipManager } from '../components/free_tooltip';
-import { PositionConverter } from '../converter';
-import { CodeMirrorIntegration } from '../editor_integration/codemirror';
-import { FeatureSettings, IFeatureLabIntegration } from '../feature';
+import { PositionConverter, rootPositionToVirtualPosition } from '../converter';
+import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager'
+import { BrowserConsole } from '../virtual/console';
+import { FeatureSettings, Feature } from '../feature';
 import { ILogConsoleCore, PLUGIN_ID } from '../tokens';
 import { escapeMarkdown } from '../utils';
 
@@ -159,12 +162,89 @@ export function signatureToMarkdown(
   return markdown;
 }
 
-export class SignatureCM {
+
+function extractLastCharacter(changes: ChangeSet): string {
+  // TODO test with pasting, maybe rewrite to retrieve based on cursor position.
+  let last = '';
+  changes.iterChanges((fromA: number, toA: number, fromB: number, toB: number, inserted: Text) => {
+    last = inserted.sliceString(-1);
+  })
+  return last;
+}
+
+
+export class SignatureFeature extends Feature {
+  readonly id = SignatureFeature.id;
+  readonly capabilities: lsProtocol.ClientCapabilities = {
+    textDocument: {
+      signatureHelp: {
+        dynamicRegistration: true,
+        signatureInformation: {
+          documentationFormat: ['markdown', 'plaintext']
+        }
+      }
+    }
+  }
+  tooltip: EditorTooltipManager;
+
   protected signatureCharacter: IRootPosition;
   protected _signatureCharacters: string[];
+  protected console = new BrowserConsole().scope('Signature');
+  protected settings: FeatureSettings<LSPSignatureSettings>;
 
-  get settings() {
-    return super.settings as FeatureSettings<LSPSignatureSettings>;
+  constructor(options: SignatureFeature.IOptions) {
+    super(options);
+    this.settings = new FeatureSettings(options.settingRegistry, this.id);
+    this.tooltip = new EditorTooltipManager(options.renderMimeRegistry);
+    const connectionManager = options.connectionManager;
+    options.editorExtensionRegistry.addExtension({
+      name: 'lsp:codeSignature',
+      factory: (options) => {
+        const updateListener = EditorView.updateListener.of((viewUpdate) => {
+          if (!viewUpdate.docChanged && viewUpdate.selectionSet) {
+            console.log('neither doc changed nor selection changed');
+            return;
+          }
+
+          const adapter = connectionManager.adapterByModel.get(options.model);
+
+          if (!adapter) {
+            throw Error('[signature] no adapter for model aborting');
+          }
+
+          const editorAccessor = adapter.activeEditor;
+
+          const editor = editorAccessor!.getEditor()!;
+
+          // TODO: or should it come from viewUpdate instead?!
+          // especially on copy paste this can be problematic.
+          const position = editor.getCursorPosition();
+
+          const editorPosition = {
+            line: position.line,
+            ch: position.column
+          } as IEditorPosition
+
+          if (viewUpdate.selectionSet) {
+            this.onCursorActivity(adapter, editorPosition);
+          } else {
+            this.afterChange(viewUpdate.changes, adapter, editorPosition);
+          }
+        });
+
+        const focusListener = EditorView.domEventHandlers({
+          focus: () => {
+            // TODO
+            // this.onCursorActivity()
+          },
+          blur: (event) => {
+            this.onBlur(event)
+          }
+        });
+
+        return EditorExtensionRegistry.createImmutableExtension([updateListener, focusListener]);
+      }
+    });
   }
 
   get _closeCharacters(): string[] {
@@ -174,17 +254,7 @@ export class SignatureCM {
     return this.settings.composite.closeCharacters;
   }
 
-  register(): void {
-    this.editor_handlers.set(
-      'cursorActivity',
-      this.onCursorActivity.bind(this)
-    );
-    this.editor_handlers.set('blur', this.onBlur.bind(this));
-    this.editor_handlers.set('focus', this.onCursorActivity.bind(this));
-    super.register();
-  }
-
-  onBlur(virtualEditor: CodeMirrorVirtualEditor, event: FocusEvent) {
+  onBlur(event: FocusEvent) {
     // hide unless the focus moved to the signature itself
     // (allowing user to select/copy from signature)
     if (
@@ -195,14 +265,12 @@ export class SignatureCM {
     }
   }
 
-  onCursorActivity() {
+  onCursorActivity(adapter: WidgetLSPAdapter<any>, newEditorPosition: IEditorPosition) {
     if (!this.isSignatureShown()) {
       return;
     }
-    const newRootPosition = this.virtual_editor.get_cursor_position();
-    const initialPosition = this.lab_integration.tooltip.position;
-    let newEditorPosition =
-      this.virtual_editor.root_position_to_editor(newRootPosition);
+
+    const initialPosition = this.tooltip.position;
     if (
       newEditorPosition.line === initialPosition.line &&
       newEditorPosition.ch < initialPosition.ch
@@ -212,14 +280,10 @@ export class SignatureCM {
     } else {
       // otherwise, update the signature as the active parameter could have changed,
       // or the server may want us to close the tooltip
-      this.requestSignature(newRootPosition, initialPosition)?.catch(
+      this.requestSignature(adapter, newEditorPosition, initialPosition)?.catch(
         this.console.warn
       );
     }
-  }
-
-  get lab_integration() {
-    return super.lab_integration as SignatureLabIntegration;
   }
 
   protected get_markup_for_signature_help(
@@ -263,7 +327,11 @@ export class SignatureCM {
     const code = document.createElement('code');
     pre.appendChild(code);
     code.className = `cm-s-jupyter language-${language}`;
-    this.lab_integration.codeMirror.CodeMirror.runMode(
+    // TODO
+    // temp workaround
+    code.innerText = source;
+    /**
+    this.codeMirror.CodeMirror.runMode(
       source,
       language,
       (token: string, className: string) => {
@@ -283,6 +351,7 @@ export class SignatureCM {
         code.appendChild(element);
       }
     );
+    **/
     return pre.outerHTML;
   }
 
@@ -305,19 +374,26 @@ export class SignatureCM {
   }
 
   private _removeTooltip() {
-    this.lab_integration.tooltip.remove();
+    this.tooltip.remove();
   }
 
   private _hideTooltip() {
-    this.lab_integration.tooltip.hide();
+    this.tooltip.hide();
   }
 
   private handleSignature(
     response: lsProtocol.SignatureHelp,
-    position_at_request: IRootPosition,
-    display_position: IEditorPosition | null = null
+    adapter: WidgetLSPAdapter<any>,
+    positionAtRequest: IRootPosition,
+    displayPosition: IEditorPosition | null = null
   ) {
     this.console.log('Signature received', response);
+
+    const virtualDocument = adapter.virtualDocument!;
+    const connection = this.connectionManager.connections.get(virtualDocument.uri)!;
+    // @ts-ignore
+    const signatureCharacters: string[] = connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters;
+
     if (response === null) {
       // do not hide on undefined as it simply indicates that no new info is available
       // (null means close, undefined means no update, response means update)
@@ -336,13 +412,15 @@ export class SignatureCM {
       return;
     }
 
-    let root_position = this.virtual_editor.get_cursor_position();
+    // TODO: helper?
+    const pos = adapter.activeEditor!.getEditor()!.getCursorPosition();
+    const rootPosition = {ch: pos.column, line: pos.line} as IRootPosition;
 
     // if the cursor advanced in the same line, the previously retrieved signature may still be useful
     // if the line changed or cursor moved backwards then no reason to keep the suggestions
     if (
-      position_at_request.line != root_position.line ||
-      root_position.ch < position_at_request.ch
+      positionAtRequest.line != rootPosition.line ||
+      rootPosition.ch < positionAtRequest.ch
     ) {
       this.console.debug(
         'Ignoring signature response: cursor has receded or changed line'
@@ -351,7 +429,16 @@ export class SignatureCM {
       return;
     }
 
-    let cm_editor = this.get_cm_editor(root_position);
+    const virtualPosition = rootPositionToVirtualPosition(virtualDocument, rootPosition);
+
+    let editorAccessor = adapter.editors[adapter.getEditorIndexAt(virtualPosition)].ceEditor;
+    const cm_editor = editorAccessor.getEditor();
+    if (!cm_editor) {
+      this.console.debug(
+        'Ignoring signature response: the corresponding editor is not loaded'
+      );
+      return;
+    }
     if (!cm_editor.hasFocus()) {
       this.console.debug(
         'Ignoring signature response: the corresponding editor lost focus'
@@ -359,46 +446,51 @@ export class SignatureCM {
       this._removeTooltip();
       return;
     }
-    let editor_position =
-      this.virtual_editor.root_position_to_editor(root_position);
-    let language = this.get_language_at(editor_position, cm_editor);
+    let editorPosition =
+      virtualDocument.transformVirtualToEditor(virtualPosition);
+
+    // TODO: restore language probing
+    // let language = cm_editor.getModeAt(editorPosition).name;
+    let language = 'python';
     let markup = this.get_markup_for_signature_help(response, language);
 
     this.console.log(
       'Signature will be shown',
       language,
       markup,
-      root_position,
+      rootPosition,
       response
     );
-    if (display_position === null) {
+    if (displayPosition === null) {
       // try to find last occurrance of trigger character to position the tooltip
-      const content = cm_editor.getValue();
+      const content = cm_editor.model.sharedModel.getSource();
       const lines = content.split('\n');
       const offset = offsetAtPosition(
-        PositionConverter.cm_to_ce(editor_position),
+        PositionConverter.cm_to_ce(editorPosition!),
         lines
       );
+      // maybe?
+      // const offset = cm_editor.getOffsetAt(PositionConverter.cm_to_ce(editorPosition));
       const subset = content.substring(0, offset);
       const lastTriggerCharacterOffset = Math.max(
-        ...this.signatureCharacters.map(character =>
+        ...signatureCharacters.map(character =>
           subset.lastIndexOf(character)
         )
       );
       if (lastTriggerCharacterOffset !== -1) {
-        display_position = PositionConverter.ce_to_cm(
+        displayPosition = PositionConverter.ce_to_cm(
           positionAtOffset(lastTriggerCharacterOffset, lines)
         ) as IEditorPosition;
       } else {
-        display_position = editor_position;
+        displayPosition = editorPosition;
       }
     }
-    this.lab_integration.tooltip.showOrCreate({
+    this.tooltip.showOrCreate({
       markup,
-      position: display_position,
+      position: displayPosition!,
       id: TOOLTIP_ID,
-      ceEditor: this.virtual_editor.find_ceEditor(cm_editor),
-      adapter: this.adapter,
+      ceEditor: cm_editor,
+      adapter: adapter,
       className: CLASS_NAME,
       tooltip: {
         privilege: 'forceAbove',
@@ -411,116 +503,95 @@ export class SignatureCM {
     });
   }
 
-  protected get signatureCharacters() {
-    if (!this._signatureCharacters?.length) {
-      this._signatureCharacters =
-        this.connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters || [];
-    }
-    return this._signatureCharacters;
-  }
-
   protected isSignatureShown() {
-    return this.lab_integration.tooltip.isShown(TOOLTIP_ID);
+    return this.tooltip.isShown(TOOLTIP_ID);
   }
 
-  private _afterChange(change: IEditorChange, root_position: IRootPosition) {
-    const last_character = this.extract_last_character(change);
+  afterChange(change: ChangeSet, adapter: WidgetLSPAdapter<any>, editorPosition: IEditorPosition) {
+    const lastCharacter = extractLastCharacter(change);
 
     const isSignatureShown = this.isSignatureShown();
     let previousPosition: IEditorPosition | null = null;
 
     if (isSignatureShown) {
-      previousPosition = this.lab_integration.tooltip.position;
-      if (this._closeCharacters.includes(last_character)) {
+      previousPosition = this.tooltip.position;
+      if (this._closeCharacters.includes(lastCharacter)) {
         // remove just in case but do not short-circuit in case if we need to re-trigger
         this._removeTooltip();
       }
     }
 
+    const virtualDocument = adapter.virtualDocument!;
+    const connection = this.connectionManager.connections.get(virtualDocument.uri)!;
+    // @ts-ignore
+    const signatureCharacters = connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters;
+
     // only proceed if: trigger character was used or the signature is/was visible immediately before
     if (
-      !(this.signatureCharacters.includes(last_character) || isSignatureShown)
+      !(signatureCharacters.includes(lastCharacter) || isSignatureShown)
     ) {
       return;
     }
 
-    this.requestSignature(root_position, previousPosition)?.catch(
+    this.requestSignature(adapter, editorPosition, previousPosition)?.catch(
       this.console.warn
     );
   }
 
   private requestSignature(
-    root_position: IRootPosition,
+    adapter: WidgetLSPAdapter<any>,
+    newEditorPosition: IEditorPosition,
     previousPosition: IEditorPosition | null
   ) {
+    // TODO: why would virtual document be missing?
+    const virtualDocument = adapter.virtualDocument!;
+    const connection = this.connectionManager.connections.get(virtualDocument.uri)!;
+
     if (
       !(
-        this.connection.isReady &&
-        this.connection.serverCapabilities?.signatureHelpProvider
+        connection.isReady &&
+        // @ts-ignore
+        connection.serverCapabilities?.signatureHelpProvider
       )
     ) {
       return;
     }
-    this.signatureCharacter = root_position;
 
-    let virtual_position =
-      this.virtual_editor.root_position_to_virtual_position(root_position);
+    // TODO: why missing
+    const rootPosition = virtualDocument.transformFromEditorToRoot(adapter.activeEditor!, newEditorPosition)!;
 
-    return this.connection.clientRequests['textDocument/signatureHelp']
+    this.signatureCharacter = rootPosition;
+
+    const virtualPosition = rootPositionToVirtualPosition(virtualDocument, rootPosition);
+
+    return connection.clientRequests['textDocument/signatureHelp']
       .request({
         position: {
-          line: virtual_position.line,
-          character: virtual_position.ch
+          line: virtualPosition.line,
+          character: virtualPosition.ch
         },
         textDocument: {
-          uri: this.virtualDocument.document_info.uri
+          uri: virtualDocument.documentInfo.uri
         }
       })
       .then(help =>
-        this.handleSignature(help, root_position, previousPosition)
+        this.handleSignature(help, adapter, rootPosition, previousPosition)
       );
   }
 }
 
-class SignatureLabIntegration implements IFeatureLabIntegration {
-  tooltip: EditorTooltipManager;
-  settings: FeatureSettings<LSPSignatureSettings>;
-
-  constructor(
-    app: JupyterFrontEnd,
-    settings: FeatureSettings<LSPSignatureSettings>,
-    renderMimeRegistry: IRenderMimeRegistry,
-  ) {
-    this.tooltip = new EditorTooltipManager(renderMimeRegistry);
+export namespace SignatureFeature {
+  export interface IOptions extends Feature.IOptions {
+    settingRegistry: ISettingRegistry;
+    renderMimeRegistry: IRenderMimeRegistry;
+    editorExtensionRegistry: IEditorExtensionRegistry;
   }
+  export const id = PLUGIN_ID + ':signature';
 }
 
-const FEATURE_ID = PLUGIN_ID + ':signature';
-
-
-import { Widget } from '@lumino/widgets';
-
-// TODO things like where adapters and currentWidget come from and what is lumino should be hiddden
-function findActiveAdapter(manager: Pick<ILSPDocumentConnectionManager, 'adapters'>, currentWidget: Widget | null) {
-  if (currentWidget !== null) {
-    return undefined;
-  }
-  return (
-    [...manager.adapters.values()].find(adapter =>
-        adapter.widget == currentWidget
-    )
-  );
-}
-
-function rootPositionToVirtualPosition(virtualDocument: VirtualDocument, position: IRootPosition): IVirtualPosition {
-    let rootAsSource = position as ISourcePosition;
-    return virtualDocument.root.virtualPositionAtDocument(
-      rootAsSource
-    );
-  }
 
 export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
-  id: FEATURE_ID,
+  id: SignatureFeature.id,
   requires: [
     ILSPFeatureManager,
     ISettingRegistry,
@@ -535,77 +606,15 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
     settingRegistry: ISettingRegistry,
     renderMimeRegistry: IRenderMimeRegistry,
     editorExtensionRegistry: IEditorExtensionRegistry,
-    connectionManager: ILSPDocumentConnectionManager
+    connectionManager: ILSPDocumentConnectionManagerDownstream
   ) => {
-    const settings = new FeatureSettings<LSPSignatureSettings>(
+    const feature = new SignatureFeature({
       settingRegistry,
-      FEATURE_ID
-    );
-    new SignatureLabIntegration(
-      app,
-      settings,
-      renderMimeRegistry
-    );
-
-    // TODO: so we need a helper to check if current editor has an adapter
-
-    // TODO: or use IEditor.injectExtension
-    editorExtensionRegistry.addExtension({
-      name: 'lsp:codeSignature',
-      factory: () => {
-        const selectionListener = EditorView.updateListener.of((viewUpdate) => {
-           if (viewUpdate.selectionSet) {
-            // get cursor position
-             // get editor
-             // get adapter
-
-             // TODO use head or anochor whichever later?
-             //const cursor = viewUpdate.state.selection.main.anchor;
-
-             const adapter = findActiveAdapter(connectionManager, app.shell.currentWidget);
-             if (!adapter) {
-               return;
-             }
-             const editorAccessor = adapter.activeEditor;
-             // TODO: accessor is a wrapper because CodeMirror can be detached
-             // due to windowed notebook
-             const editor = editorAccessor!.getEditor()!;
-             const position = editor.getCursorPosition();
-             // TODO: why would virtual document be missing?
-             const virtualDoc = adapter.virtualDocument!;
-             // TODO: why missing
-             const rootPosition = virtualDoc.transformFromEditorToRoot(adapter.activeEditor!, {
-               line: position.line,
-               ch: position.column
-             } as IEditorPosition)!;
-
-             const virtualPosition = rootPositionToVirtualPosition(virtualDoc, rootPosition);
-             // TODO send request if needed
-           }
-        });
-        const focusListener = EditorView.domEventHandlers({
-          focus: () => {
-          },
-          blur: () => {
-          }
-        })
-
-        return EditorExtensionRegistry.createImmutableExtension([selectionListener, focusListener]);
-      }
+      connectionManager,
+      renderMimeRegistry,
+      editorExtensionRegistry
     });
-
-    featureManager.register({
-      id: FEATURE_ID,
-      capabilities: {
-        textDocument: {
-          signatureHelp: {
-            dynamicRegistration: true,
-            signatureInformation: {
-              documentationFormat: ['markdown', 'plaintext']
-            }
-          }
-        }
-      }
-    });
+    featureManager.register(feature);
+    // return feature;
   }
 };

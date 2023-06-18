@@ -6,33 +6,35 @@ import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { LabIcon } from '@jupyterlab/ui-components';
+import { EditorView } from '@codemirror/view';
 import { Throttler } from '@lumino/polling';
-import type * as CodeMirror from 'codemirror';
+import { IEditorExtensionRegistry, EditorExtensionRegistry } from '@jupyterlab/codemirror';
+import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager'
 import type * as lsProtocol from 'vscode-languageserver-protocol';
+import { BrowserConsole } from '../virtual/console';
 
 import hoverSvg from '../../style/icons/hover.svg';
 import { CodeHover as LSPHoverSettings, ModifierKey } from '../_hover';
 import { EditorTooltipManager, FreeTooltip } from '../components/free_tooltip';
 import { PositionConverter } from '../converter';
 import {
-  CodeMirrorIntegration,
   IEditorRange
 } from '../editor_integration/codemirror';
 import {
   FeatureSettings,
-  IEditorIntegrationOptions,
-  IFeatureLabIntegration
+  Feature
 } from '../feature';
 import {
   IRootPosition,
   IVirtualPosition,
   ProtocolCoordinates,
-  is_equal
-} from '../positioning';
-import { ILSPFeatureManager, PLUGIN_ID } from '../tokens';
+  ILSPFeatureManager,
+  isEqual,
+  ILSPDocumentConnectionManager
+} from '@jupyterlab/lsp';
+import { PLUGIN_ID } from '../tokens';
 import { getModifierState } from '../utils';
 import { VirtualDocument } from '../virtual/document';
-import { IEditorChange } from '../virtual/editor';
 
 export const hoverIcon = new LabIcon({
   name: 'lsp:hover',
@@ -81,8 +83,8 @@ class ResponseCache {
     const previousIndex = this._data.findIndex(
       previous =>
         previous.document === item.document &&
-        is_equal(previous.editor_range.start, item.editor_range.start) &&
-        is_equal(previous.editor_range.end, item.editor_range.end) &&
+        isEqual(previous.editor_range.start, item.editor_range.start) &&
+        isEqual(previous.editor_range.end, item.editor_range.end) &&
         previous.editor_range.editor === item.editor_range.editor
     );
     if (previousIndex !== -1) {
@@ -120,7 +122,20 @@ function to_markup(
   }
 }
 
-export class HoverCM extends CodeMirrorIntegration {
+export class HoverFeature extends Feature {
+  readonly capabilities: lsProtocol.ClientCapabilities = {
+    textDocument: {
+      hover: {
+        dynamicRegistration: true,
+        contentFormat: ['markdown', 'plaintext']
+      }
+    }
+  }
+  readonly id = HoverFeature.id;
+  tooltipManager: EditorTooltipManager;
+
+  protected console = new BrowserConsole().scope('Signature');
+  protected settings: FeatureSettings<LSPHoverSettings>;
   protected last_hover_character: IRootPosition | null = null;
   private last_hover_response: lsProtocol.Hover | null;
   protected hover_marker: CodeMirror.TextMarker | null = null;
@@ -133,8 +148,45 @@ export class HoverCM extends CodeMirrorIntegration {
     Promise<lsProtocol.Hover | null>
   > | null = null;
 
-  constructor(options: IEditorIntegrationOptions) {
+  constructor(options: HoverFeature.IOptions) {
     super(options);
+    this.settings = new FeatureSettings(options.settingRegistry, this.id);
+    this.tooltipManager = new EditorTooltipManager(options.renderMimeRegistry);
+
+    this.cache = new ResponseCache(this.settings.composite.cacheSize);
+
+    options.editorExtensionRegistry.addExtension({
+      name: 'lsp:hover',
+      factory: (options) => {
+        const eventListeners = EditorView.domEventHandlers({
+          mousemove: (event) => {
+            // this is used to hide the tooltip on leaving cells in notebook
+            this.updateUnderlineAndTooltip(event)
+              ?.then(keep_tooltip => {
+                if (!keep_tooltip) {
+                  this.maybeHideTooltip(event);
+                }
+              })
+              .catch(this.console.warn);
+          },
+          mouseleave: (event) => {
+            this.onMouseLeave(event);
+          },
+          // show hover after pressing the modifier key
+          keydown: (event) => {
+            this.onKeyDown(event);
+          },
+        });
+        return EditorExtensionRegistry.createImmutableExtension([eventListeners]);
+      }
+    });
+
+    this.debounced_get_hover = this.create_throttler();
+
+    this.settings.changed.connect(() => {
+      this.cache.maxSize = this.settings.composite.cacheSize;
+      this.debounced_get_hover = this.create_throttler();
+    });
   }
 
   protected get modifierKey(): ModifierKey {
@@ -143,14 +195,6 @@ export class HoverCM extends CodeMirrorIntegration {
 
   protected get isHoverAutomatic(): boolean {
     return this.settings.composite.autoActivate;
-  }
-
-  get lab_integration() {
-    return super.lab_integration as HoverLabIntegration;
-  }
-
-  get settings() {
-    return super.settings as FeatureSettings<LSPHoverSettings>;
   }
 
   protected restore_from_cache(
@@ -175,44 +219,6 @@ export class HoverCM extends CodeMirrorIntegration {
     return matching_items.length != 0 ? matching_items[0] : null;
   }
 
-  register(): void {
-    this.cache = new ResponseCache(this.settings.composite.cacheSize);
-
-    this.wrapper_handlers.set('mousemove', event => {
-      // as CodeMirror.Editor does not support mouseleave nor mousemove,
-      // we simulate the mouseleave for the editor in wrapper's mousemove;
-      // this is used to hide the tooltip on leaving cells in notebook
-      this.updateUnderlineAndTooltip(event)
-        ?.then(keep_tooltip => {
-          if (!keep_tooltip) {
-            this.maybeHideTooltip(event);
-          }
-        })
-        .catch(this.console.warn);
-    });
-    this.wrapper_handlers.set('mouseleave', this.onMouseLeave);
-
-    // show hover after pressing the modifier key
-    // TODO: when the editor (notebook or file editor) is not focused, the keydown event is not getting to us
-    //  (probably getting captured by lab); this gives subpar experience when using hover in two editors open
-    //  side-by-side, BUT this does not happen for mousemove which properly reads keyModifier from the event
-    //  (so this is no too bad as most of the time the user will get the desired outcome - they just need to
-    //  budge the mice when holding ctrl if looking at a document which is not active).
-    // whether the editor is focused
-    this.wrapper_handlers.set('keydown', this.onKeyDown);
-    // or just the wrapper (e.g. the notebook but no cell active)
-    this.editor_handlers.set('keydown', (instance, event: KeyboardEvent) =>
-      this.onKeyDown(event)
-    );
-
-    this.debounced_get_hover = this.create_throttler();
-
-    this.settings.changed.connect(() => {
-      this.cache.maxSize = this.settings.composite.cacheSize;
-      this.debounced_get_hover = this.create_throttler();
-    });
-    super.register();
-  }
 
   protected onKeyDown = (event: KeyboardEvent) => {
     if (
@@ -351,7 +357,7 @@ export class HoverCM extends CodeMirrorIntegration {
     this.last_hover_response = response;
 
     if (show_tooltip) {
-      const markup = HoverCM.get_markup_for_hover(response);
+      const markup = HoverFeature.get_markup_for_hover(response);
       let editor_position =
         this.virtual_editor.root_position_to_editor(root_position);
 
@@ -433,7 +439,7 @@ export class HoverCM extends CodeMirrorIntegration {
 
     if (
       !this.last_hover_character ||
-      !is_equal(root_position, this.last_hover_character)
+      !isEqual(root_position, this.last_hover_character)
     ) {
       let virtual_position =
         this.virtual_editor.root_position_to_virtual_position(root_position);
@@ -614,54 +620,41 @@ export class HoverCM extends CodeMirrorIntegration {
   }
 }
 
-class HoverLabIntegration implements IFeatureLabIntegration {
-  tooltip: EditorTooltipManager;
-  settings: FeatureSettings<any>;
 
-  constructor(
-    app: JupyterFrontEnd,
-    settings: FeatureSettings<any>,
-    renderMimeRegistry: IRenderMimeRegistry
-  ) {
-    this.tooltip = new EditorTooltipManager(renderMimeRegistry);
+export namespace HoverFeature {
+  export interface IOptions extends Feature.IOptions {
+    settingRegistry: ISettingRegistry;
+    renderMimeRegistry: IRenderMimeRegistry;
+    editorExtensionRegistry: IEditorExtensionRegistry;
   }
+  export const id = PLUGIN_ID + ':hover';
 }
 
-const FEATURE_ID = PLUGIN_ID + ':hover';
 
 export const HOVER_PLUGIN: JupyterFrontEndPlugin<void> = {
-  id: FEATURE_ID,
-  requires: [ILSPFeatureManager, ISettingRegistry, IRenderMimeRegistry],
+  id: HoverFeature.id,
+  requires: [
+    ILSPFeatureManager,
+    ISettingRegistry,
+    IRenderMimeRegistry,
+    IEditorExtensionRegistry,
+    ILSPDocumentConnectionManager
+  ],
   autoStart: true,
   activate: (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
-    renderMimeRegistry: IRenderMimeRegistry
+    renderMimeRegistry: IRenderMimeRegistry,
+    editorExtensionRegistry: IEditorExtensionRegistry,
+    connectionManager: ILSPDocumentConnectionManagerDownstream
   ) => {
-    const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
-    const labIntegration = new HoverLabIntegration(
-      app,
-      settings,
-      renderMimeRegistry
-    );
-
-    featureManager.register({
-      feature: {
-        editorIntegrationFactory: new Map([['CodeMirrorEditor', HoverCM]]),
-        id: FEATURE_ID,
-        name: 'LSP Hover tooltip',
-        labIntegration: labIntegration,
-        settings: settings,
-        capabilities: {
-          textDocument: {
-            hover: {
-              dynamicRegistration: true,
-              contentFormat: ['markdown', 'plaintext']
-            }
-          }
-        }
-      }
-    });
+    const feature = new HoverFeature({
+      settingRegistry,
+      renderMimeRegistry,
+      editorExtensionRegistry,
+      connectionManager
+    })
+    featureManager.register(feature);
   }
 };

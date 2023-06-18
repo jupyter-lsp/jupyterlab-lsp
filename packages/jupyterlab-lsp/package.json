@@ -128,7 +128,8 @@
     "webpackConfig": "./webpack.config.js",
     "disabledExtensions": [
       "@jupyterlab/notebook-extension:language-server",
-      "@jupyterlab/fileeditor-extension:language-server"
+      "@jupyterlab/fileeditor-extension:language-server",
+      "@jupyterlab/lsp-extension:plugin"
     ],
     "discovery": {
       "server": {
