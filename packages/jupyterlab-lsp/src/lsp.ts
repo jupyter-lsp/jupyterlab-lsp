@@ -13,6 +13,18 @@ export enum DiagnosticSeverity {
   Hint = 4
 }
 
+
+export type AnyLocation =
+  | lsp.Location
+  | lsp.Location[]
+  | lsp.LocationLink[]
+  | undefined
+  | null;
+
+export type AnyCompletion =
+  | lsp.CompletionList
+  | lsp.CompletionItem[];
+
 export enum DiagnosticTag {
   Unnecessary = 1,
   Deprecated = 2

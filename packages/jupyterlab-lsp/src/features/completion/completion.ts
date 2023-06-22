@@ -313,11 +313,45 @@ export class CompletionLabIntegration implements IFeatureLabIntegration {
       completer.model = new CompleterModel();
     } else {
       completer.addClass(LSP_COMPLETER_CLASS);
-      completer.model = new LSPCompleterModel({
+      const model = new LSPCompleterModel({
         caseSensitive: this.settings.composite.caseSensitive,
         includePerfectMatches: this.settings.composite.includePerfectMatches,
         preFilterMatches: this.settings.composite.preFilterMatches
       });
+      completer.model = model;
+      model.queryChanged.connect(this._handleQuery.bind(this));
+      // TODO: disconnect!
+    }
+  }
+
+  /**
+   * User typed a character while the completer is shown changing the query.
+   */
+  private async _handleQuery(model: LSPCompleterModel, query: string) {
+    // it is important not to fail here: otherwise we break native completer too.
+    try {
+      if (!this.current_completion_connector.isIncomplete) {
+        // do nothing if the result was complete
+        return;
+      } else if(!this.current_adapter) {
+        return;
+      } else {
+        // TODO: can we only fetch LSP items, keep kernel items as-is?
+        await this.current_adapter.update_documents();
+        const reply = await this.current_completion_connector.fetch();
+        if (reply) {
+          model.query = ''
+          // ref `CompletionHandler._updateModel`
+          model.cursor = {
+            start: reply.start, // should be wrapped in `Text.charIndexToJsIndex(start, text)`,
+            end: reply.end
+          }
+          model.original = model.current;
+          model.setCompletionItems(reply.items as LazyCompletionItem[]);
+        }
+      }
+    } catch(e) {
+      this.console.error('handling query change failed', e);
     }
   }
 

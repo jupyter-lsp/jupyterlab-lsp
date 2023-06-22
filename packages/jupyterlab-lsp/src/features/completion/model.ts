@@ -3,6 +3,7 @@
 
 import { CompleterModel, CompletionHandler } from '@jupyterlab/completer';
 import { StringExt } from '@lumino/algorithm';
+import { Signal } from '@lumino/signaling';
 
 import { LazyCompletionItem } from './item';
 
@@ -41,7 +42,6 @@ export class GenericCompleterModel<
     this.query = '';
     let unfilteredItems = super.completionItems!() as T[];
     this.query = query;
-
     // always want to sort
     // TODO does this behave strangely with %%<tab> if always sorting?
     return this._sortAndFilter(query, unfilteredItems);
@@ -208,6 +208,27 @@ export namespace GenericCompleterModel {
 }
 
 export class LSPCompleterModel extends GenericCompleterModel<LazyCompletionItem> {
+  queryChanged: Signal<LSPCompleterModel, string>;
+  private _lastQuery: string;
+
+  constructor(settings: GenericCompleterModel.IOptions = {}) {
+    super(settings);
+    this.queryChanged = new Signal(this);
+    this.stateChanged.connect(this.onStateChanged.bind(this))
+  }
+
+  onStateChanged() {
+    // TODO: this does not get called for the second time.
+    // It seems that there is a condition in completer usptream which is not met.
+
+    // we will bail when query gets set to empty strings as these
+    // are to invoke setter side-effects.
+    if (this.query && this.query != this._lastQuery) {
+      this.queryChanged.emit(this.query);
+      this._lastQuery = this.query;
+    }
+  }
+
   protected getFilterText(item: LazyCompletionItem): string {
     if (item.filterText) {
       return item.filterText;
