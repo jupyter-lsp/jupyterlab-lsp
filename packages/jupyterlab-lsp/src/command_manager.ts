@@ -9,6 +9,7 @@ import { BrowserConsole } from './virtual/console';
 import { PositionConverter, documentAtRootPosition, rootPositionToVirtualPosition } from './converter';
 
 
+// TODO: reconsider naming
 export class ContextAssembler {
   protected console = new BrowserConsole().scope('ContexAssembler');
 
@@ -59,8 +60,9 @@ export class ContextAssembler {
     if (!editor) {
       return;
     }
+    // TODO are these offsets right?
     const offset = editor.getOffsetAt(PositionConverter.cm_to_ce(rootPosition));
-    let token = editor.getTokenAt(offset);
+    const token = editor.getTokenAt(offset);
     return token.value !== '';
   }
 
@@ -96,11 +98,9 @@ export class ContextAssembler {
   }
 
   private _contextFromRoot(adapter: WidgetLSPAdapter<any>, rootPosition: IRootPosition): ICommandContext | null {
-    // TODO: should probably get the document_at_root_position as before
-    const virtualDocument = adapter.virtualDocument!;
-    const document = documentAtRootPosition(virtualDocument, rootPosition);
+    const document = documentAtRootPosition(adapter, rootPosition);
     const connection = this.options.connectionManager.connections.get(document.uri)!;
-    const virtualPosition = rootPositionToVirtualPosition(virtualDocument, rootPosition);
+    const virtualPosition = rootPositionToVirtualPosition(adapter, rootPosition);
     return {
       document: document as any,
       connection,
@@ -108,6 +108,40 @@ export class ContextAssembler {
       rootPosition,
       adapter: adapter
     };
+  }
+
+  adapterFromNode(leafNode: HTMLElement): WidgetLSPAdapter<any> | undefined {
+    return [...this.options.connectionManager.adapters.values()].find(adapter =>
+        adapter.widget.node.contains(leafNode!)
+    );
+  }
+
+  positionFromCoordinates(left: number, top: number, adapter: WidgetLSPAdapter<any>): IRootPosition | null {
+    const editor = adapter.activeEditor?.getEditor();
+    if (!editor) {
+      return null;
+    }
+    const position = editor.getPositionForCoordinate({
+      left: left,
+      right: left,
+      bottom: top,
+      top: top,
+      y: top,
+      x: left,
+      width: 0,
+      height: 0
+    } as CodeEditor.ICoordinate);
+
+    if (!position) {
+      return null;
+    }
+
+    const rootPosition = {
+      ch: position.column,
+      line: position.line
+    } as IRootPosition;
+
+    return rootPosition;
   }
 
   private getContextFromContextMenu(): ICommandContext | null {
@@ -134,32 +168,17 @@ export class ContextAssembler {
       top = event.clientY;
       event.stopPropagation();
     }
-    const adapter = [...this.options.connectionManager.adapters.values()].find(adapter =>
-        adapter.widget.node.contains(leafNode!)
-    );
-    const editor = adapter?.activeEditor?.getEditor();
-    if (!editor) {
-      return null;
-    }
-    const position = editor.getPositionForCoordinate({
-      left: left,
-      right: left,
-      bottom: top,
-      top: top,
-      y: top,
-      x: left,
-      width: 0,
-      height: 0
-    } as CodeEditor.ICoordinate);
+    const adapter = this.adapterFromNode(leafNode);
 
-    if (!position) {
+    if (!adapter) {
       return null;
     }
 
-    const rootPosition =  {
-      ch: position.column,
-      line: position.line
-    } as IRootPosition;
+    const rootPosition = this.positionFromCoordinates(left, top, adapter);
+
+    if (!rootPosition) {
+      return null;
+    }
 
     return this._contextFromRoot(adapter!, rootPosition);
   }

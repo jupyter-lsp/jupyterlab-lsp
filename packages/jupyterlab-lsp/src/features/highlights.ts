@@ -1,3 +1,4 @@
+/*
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
@@ -36,9 +37,6 @@ interface IHighlightDefinition {
 export class HighlightsCM extends CodeMirrorIntegration {
   protected highlightMarkers: Map<CodeMirror.Editor, CodeMirror.TextMarker[]> =
     new Map();
-  /*
-   * @deprecated
-   */
   protected highlight_markers: CodeMirror.TextMarker[];
   private debounced_get_highlight: Debouncer<
     lsProtocol.DocumentHighlight[] | undefined
@@ -310,3 +308,4 @@ export const HIGHLIGHTS_PLUGIN: JupyterFrontEndPlugin<void> = {
     });
   }
 };
+*/

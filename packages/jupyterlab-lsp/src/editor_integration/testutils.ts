@@ -1,3 +1,4 @@
+/*
 import { ICellModel } from '@jupyterlab/cells';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import {
@@ -48,9 +49,6 @@ export interface ITestEnvironment {
   virtual_editor: CodeMirrorVirtualEditor;
 
   adapter: WidgetLSPAdapter<any>;
-  /**
-   * Has to be called after construction!
-   */
   init(): void;
 
   dispose(): void;
@@ -383,3 +381,4 @@ export async function synchronize_content(
     console.warn(e);
   }
 }
+*/

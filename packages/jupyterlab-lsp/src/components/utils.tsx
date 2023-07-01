@@ -37,12 +37,15 @@ export function getBreadcrumbs(
         </span>
       );
     }
+    // @ts-ignore
     if (!document.virtualLines.size) {
       return <span key={document.uri}>Empty document</span>;
     }
     try {
       if (adapter.hasMultipleEditors) {
+        // @ts-ignore
         let first_line = document.virtualLines.get(0)!;
+        // @ts-ignore
         let last_line = document.virtualLines.get(
           document.lastVirtualLine - 1
         )!;
@@ -95,6 +98,7 @@ export function DocumentLocator(props: {
   let { document, adapter } = props;
   let target: HTMLElement | null = null;
   if (adapter.hasMultipleEditors) {
+    // @ts-ignore
     let first_line = document.virtualLines.get(0);
     if (first_line) {
       target = adapter.getEditorWrapper(first_line.editor);

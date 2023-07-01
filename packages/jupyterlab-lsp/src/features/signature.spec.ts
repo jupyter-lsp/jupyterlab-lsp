@@ -1,5 +1,3 @@
-import { expect } from 'chai';
-
 import { BrowserConsole } from '../virtual/console';
 
 import { extractLead, signatureToMarkdown } from './signature';
@@ -11,21 +9,21 @@ describe('Signature', () => {
         ['This function does foo', '', 'But there are more details'],
         1
       )!;
-      expect(split.lead).to.equal('This function does foo');
-      expect(split.remainder).to.equal('But there are more details');
+      expect(split.lead).toBe('This function does foo');
+      expect(split.remainder).toBe('But there are more details');
     });
     it('Does not extracts when it would break markdown', () => {
       let split = extractLead(
         ['This is **not the end', '', 'of this spread sentence**'],
         1
       );
-      expect(split).to.equal(null);
+      expect(split).toBe(null);
 
       split = extractLead(
         ['This is <b>not the end', '', 'of this spread sentence</b>'],
         1
       );
-      expect(split).to.equal(null);
+      expect(split).toBe(null);
     });
     it('Extracts standalone two-line paragraph', () => {
       const split = extractLead(
@@ -37,8 +35,8 @@ describe('Signature', () => {
         ],
         2
       )!;
-      expect(split.lead).to.equal('This function does foo,\nand it does bar');
-      expect(split.remainder).to.equal('But there are more details');
+      expect(split.lead).toBe('This function does foo,\nand it does bar');
+      expect(split.remainder).toBe('But there are more details');
     });
     it('Does not extract too long paragraph', () => {
       const split = extractLead(
@@ -50,7 +48,7 @@ describe('Signature', () => {
         ],
         1
       );
-      expect(split).to.equal(null);
+      expect(split).toBe(null);
     });
   });
 
@@ -75,7 +73,7 @@ describe('Signature', () => {
         MockHighlighter,
         new BrowserConsole()
       );
-      expect(text).to.be.equal(
+      expect(text).toBe(
         'str(<u>text</u>)\n\nCreate a new \\*string\\* object from the given object.\n'
       );
     });
@@ -100,7 +98,7 @@ describe('Signature', () => {
         MockHighlighter,
         new BrowserConsole()
       );
-      expect(text).to.be.equal(
+      expect(text).toBe(
         'str(<u>text</u>)\n\nCreate a new \\*string\\* object from the given object.\n'
       );
     });
@@ -125,7 +123,7 @@ describe('Signature', () => {
         MockHighlighter,
         new BrowserConsole()
       );
-      expect(text).to.be.equal(
+      expect(text).toBe(
         'str(<u>text</u>)\n\nCreate a new *string* object from the given object.'
       );
     });
@@ -152,7 +150,7 @@ describe('Signature', () => {
         undefined,
         4
       );
-      expect(text).to.be.equal(
+      expect(text).toBe(
         'str(<u>text</u>)\n\nline 1\n<details>\nline 2\nline 3\nline 4\nline 5\n</details>'
       );
     });
@@ -172,7 +170,7 @@ describe('Signature', () => {
         undefined,
         4
       );
-      expect(text).to.be.equal(
+      expect(text).toBe(
         '```python\nstr()\n```\n\nline 1\n<details>\nline 2\nline 3\nline 4\nline 5\n</details>'
       );
     });

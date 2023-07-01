@@ -100,6 +100,7 @@ export class CMSyntaxHighlighting extends CodeMirrorIntegration {
     if (editors_with_current_highlight != this.editors_with_active_highlight) {
       for (let ceEditor of this.editors_with_active_highlight) {
         if (!editors_with_current_highlight.has(ceEditor)) {
+          // ceEditor.injectExtension ?
           ceEditor.editor.setOption('mode', ceEditor.model.mimeType);
         }
       }

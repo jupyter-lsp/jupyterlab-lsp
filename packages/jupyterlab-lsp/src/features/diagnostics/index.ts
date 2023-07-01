@@ -3,81 +3,80 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
+import { ITranslator, nullTranslator } from '@jupyterlab/translation';
+import { ILSPFeatureManager, ILSPDocumentConnectionManager } from '@jupyterlab/lsp';
 
-import { FeatureSettings, IFeatureCommand } from '../../feature';
-import { DiagnosticTag } from '../../lsp';
-import { ILSPFeatureManager, PLUGIN_ID } from '../../tokens';
+import { ContextAssembler } from '../../command_manager';
+import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../../connection_manager'
+import { DiagnosticsFeature } from './feature';
+
 
 import {
-  DiagnosticsCM,
   diagnosticsIcon,
-  diagnostics_panel
+  diagnosticsPanel
 } from './diagnostics';
 
-export const FEATURE_ID = PLUGIN_ID + ':diagnostics';
 
-const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
-  {
-    id: 'show-diagnostics-panel',
-    execute: ({ app, features, adapter }) => {
-      let diagnostics_feature = features.get(FEATURE_ID) as DiagnosticsCM;
-      diagnostics_feature.switchDiagnosticsPanelSource();
 
-      if (!diagnostics_panel.is_registered) {
-        diagnostics_panel.trans = trans;
-        diagnostics_panel.register(app);
-      }
-
-      const panel_widget = diagnostics_panel.widget;
-      if (!panel_widget.isAttached) {
-        app.shell.add(panel_widget, 'main', {
-          ref: adapter.widget_id,
-          mode: 'split-bottom'
-        });
-      }
-      app.shell.activateById(panel_widget.id);
-    },
-    is_enabled: context => {
-      return context.app.name != 'JupyterLab Classic';
-    },
-    label: trans.__('Show diagnostics panel'),
-    rank: 3,
-    icon: diagnosticsIcon
-  }
-];
+export namespace CommandIDs {
+  export const showPanel = 'lsp:show-diagnostics-panel';
+}
 
 export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<void> = {
-  id: FEATURE_ID,
-  requires: [ILSPFeatureManager, ISettingRegistry, ITranslator],
+  id: DiagnosticsFeature.id,
+  requires: [ILSPFeatureManager, ISettingRegistry, ILSPDocumentConnectionManager],
+  optional: [ITranslator],
   autoStart: true,
   activate: (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
+    connectionManager: ILSPDocumentConnectionManagerDownstream,
     translator: ITranslator
   ) => {
-    const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
-    const trans = translator.load('jupyterlab_lsp');
+    const feature = new DiagnosticsFeature({
+      settingRegistry,
+      connectionManager,
+      //renderMimeRegistry,
+      //editorExtensionRegistry
+    });
+    featureManager.register(feature);
 
-    featureManager.register({
-      feature: {
-        editorIntegrationFactory: new Map([
-          ['CodeMirrorEditor', DiagnosticsCM]
-        ]),
-        id: FEATURE_ID,
-        capabilities: {
-          textDocument: {
-            publishDiagnostics: {
-              tagSupport: {
-                valueSet: [DiagnosticTag.Deprecated, DiagnosticTag.Unnecessary]
-              }
-            }
-          }
-        },
-        name: 'LSP Diagnostics',
-        settings: settings,
-        commands: COMMANDS(trans)
+    const trans = (translator || nullTranslator).load('jupyterlab_lsp');
+
+    const assembler = new ContextAssembler({
+      app,
+      connectionManager
+    });
+
+    app.commands.addCommand(CommandIDs.showPanel, {
+      execute: async () => {
+        const context = assembler.getContext();
+        if (!context) {
+          console.warn('Could not get context');
+          return;
+        }
+        feature.switchDiagnosticsPanelSource();
+
+        if (!diagnosticsPanel.is_registered) {
+          diagnosticsPanel.trans = trans;
+          diagnosticsPanel.register(app);
+        }
+
+        const panel_widget = diagnosticsPanel.widget;
+        if (!panel_widget.isAttached) {
+          app.shell.add(panel_widget, 'main', {
+            ref: context.adapter.widgetId,
+            mode: 'split-bottom'
+          });
+        }
+        app.shell.activateById(panel_widget.id);
+      },
+      label: trans.__('Show diagnostics panel'),
+      icon: diagnosticsIcon,
+      isEnabled: () => {
+        // TODO notebook
+        return app.name != 'JupyterLab Classic';
       }
     });
   }

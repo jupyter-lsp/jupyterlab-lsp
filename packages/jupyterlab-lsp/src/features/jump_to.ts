@@ -1,3 +1,14 @@
+import { LabIcon } from '@jupyterlab/ui-components';
+
+import jumpToSvg from '../../style/icons/jump-to.svg';
+
+
+export const jumpToIcon = new LabIcon({
+  name: 'lsp:jump-to',
+  svgstr: jumpToSvg
+});
+
+/*
 import {
   CodeJumper,
   FileEditorJumper,
@@ -15,29 +26,20 @@ import { IEditorTracker } from '@jupyterlab/fileeditor';
 import { INotebookTracker } from '@jupyterlab/notebook';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
-import { LabIcon } from '@jupyterlab/ui-components';
 import { AnyLocation } from '@jupyterlab/lsp/lib/lsp';
 import type * as lsp from 'vscode-languageserver-protocol';
 
-import jumpToSvg from '../../style/icons/jump-to.svg';
 import { CodeJump as LSPJumpSettings, ModifierKey } from '../_jump_to';
-import { CommandEntryPoint } from '../command_manager';
 import { PositionConverter } from '../converter';
-import { CodeMirrorIntegration } from '../editor_integration/codemirror';
 import {
   FeatureSettings,
   IFeatureCommand,
-  IFeatureLabIntegration
 } from '../feature';
 import { IVirtualPosition, ProtocolCoordinates } from '../positioning';
 import { ILSPAdapterManager, ILSPFeatureManager, PLUGIN_ID } from '../tokens';
 import { getModifierState, uri_to_contents_path, uris_equal } from '../utils';
 import { CodeMirrorVirtualEditor } from '../virtual/codemirror_editor';
 
-export const jumpToIcon = new LabIcon({
-  name: 'lsp:jump-to',
-  svgstr: jumpToSvg
-});
 
 const jumpBackIcon = new LabIcon({
   name: 'lsp:jump-back',
@@ -539,3 +541,4 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
     });
   }
 };
+*/

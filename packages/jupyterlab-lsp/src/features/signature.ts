@@ -20,7 +20,7 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { CodeSignature as LSPSignatureSettings } from '../_signature';
 import { EditorTooltipManager } from '../components/free_tooltip';
-import { PositionConverter, rootPositionToVirtualPosition } from '../converter';
+import { PositionConverter, rootPositionToVirtualPosition, editorPositionToRootPosition } from '../converter';
 import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager'
 import { BrowserConsole } from '../virtual/console';
 import { FeatureSettings, Feature } from '../feature';
@@ -201,7 +201,7 @@ export class SignatureFeature extends Feature {
       name: 'lsp:codeSignature',
       factory: (options) => {
         const updateListener = EditorView.updateListener.of((viewUpdate) => {
-          if (!viewUpdate.docChanged && viewUpdate.selectionSet) {
+          if (!viewUpdate.docChanged && !viewUpdate.selectionSet) {
             console.log('neither doc changed nor selection changed');
             return;
           }
@@ -213,7 +213,6 @@ export class SignatureFeature extends Feature {
           }
 
           const editorAccessor = adapter.activeEditor;
-
           const editor = editorAccessor!.getEditor()!;
 
           // TODO: or should it come from viewUpdate instead?!
@@ -387,10 +386,13 @@ export class SignatureFeature extends Feature {
     positionAtRequest: IRootPosition,
     displayPosition: IEditorPosition | null = null
   ) {
-    this.console.log('Signature received', response);
+    this.console.debug('Signature received', response);
 
+    // TODO: this might wrong connection!
+    // we need to find the correct documentAtRootPosition
     const virtualDocument = adapter.virtualDocument!;
     const connection = this.connectionManager.connections.get(virtualDocument.uri)!;
+
     // @ts-ignore
     const signatureCharacters: string[] = connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters;
 
@@ -412,9 +414,21 @@ export class SignatureFeature extends Feature {
       return;
     }
 
-    // TODO: helper?
-    const pos = adapter.activeEditor!.getEditor()!.getCursorPosition();
-    const rootPosition = {ch: pos.column, line: pos.line} as IRootPosition;
+    // get_cursor_position
+    // TODO: helper? this is wrong - it is editor position, not root position
+    const editorAccessor = adapter.activeEditor!
+    const editor = editorAccessor.getEditor()!;
+    const pos = editor.getCursorPosition();
+    const editorPosition = {ch: pos.column, line: pos.line} as IEditorPosition;
+
+      // TODO should I just shove it into Feature class and have an adapter getter in there?
+    const rootPosition = editorPositionToRootPosition(adapter, editorAccessor, editorPosition);
+
+    if (!rootPosition) {
+      this.console.warn('Signature failed: could not map editor position to root position.');
+      this._removeTooltip();
+      return;
+    }
 
     // if the cursor advanced in the same line, the previously retrieved signature may still be useful
     // if the line changed or cursor moved backwards then no reason to keep the suggestions
@@ -429,25 +443,25 @@ export class SignatureFeature extends Feature {
       return;
     }
 
-    const virtualPosition = rootPositionToVirtualPosition(virtualDocument, rootPosition);
+    const virtualPosition = rootPositionToVirtualPosition(adapter, rootPosition);
 
-    let editorAccessor = adapter.editors[adapter.getEditorIndexAt(virtualPosition)].ceEditor;
-    const cm_editor = editorAccessor.getEditor();
-    if (!cm_editor) {
+    //let editorAccessor = adapter.editors[adapter.getEditorIndexAt(virtualPosition)].ceEditor;
+    //const editor = editorAccessor.getEditor();
+    if (!editor) {
       this.console.debug(
         'Ignoring signature response: the corresponding editor is not loaded'
       );
       return;
     }
-    if (!cm_editor.hasFocus()) {
+    if (!editor.hasFocus()) {
       this.console.debug(
         'Ignoring signature response: the corresponding editor lost focus'
       );
       this._removeTooltip();
       return;
     }
-    let editorPosition =
-      virtualDocument.transformVirtualToEditor(virtualPosition);
+    //let editorPosition =
+    //  virtualDocument.transformVirtualToEditor(virtualPosition);
 
     // TODO: restore language probing
     // let language = cm_editor.getModeAt(editorPosition).name;
@@ -463,7 +477,7 @@ export class SignatureFeature extends Feature {
     );
     if (displayPosition === null) {
       // try to find last occurrance of trigger character to position the tooltip
-      const content = cm_editor.model.sharedModel.getSource();
+      const content = editor.model.sharedModel.getSource();
       const lines = content.split('\n');
       const offset = offsetAtPosition(
         PositionConverter.cm_to_ce(editorPosition!),
@@ -489,7 +503,7 @@ export class SignatureFeature extends Feature {
       markup,
       position: displayPosition!,
       id: TOOLTIP_ID,
-      ceEditor: cm_editor,
+      ceEditor: editor,
       adapter: adapter,
       className: CLASS_NAME,
       tooltip: {
@@ -521,9 +535,11 @@ export class SignatureFeature extends Feature {
       }
     }
 
+    // TODO: use connection for virtual document from root position!
     const virtualDocument = adapter.virtualDocument!;
     const connection = this.connectionManager.connections.get(virtualDocument.uri)!;
-    // @ts-ignore
+
+    // @ts-ignore TODO remove after upstream fixes are released
     const signatureCharacters = connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters;
 
     // only proceed if: trigger character was used or the signature is/was visible immediately before
@@ -562,7 +578,7 @@ export class SignatureFeature extends Feature {
 
     this.signatureCharacter = rootPosition;
 
-    const virtualPosition = rootPositionToVirtualPosition(virtualDocument, rootPosition);
+    const virtualPosition = rootPositionToVirtualPosition(adapter, rootPosition);
 
     return connection.clientRequests['textDocument/signatureHelp']
       .request({

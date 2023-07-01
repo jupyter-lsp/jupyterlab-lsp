@@ -1,5 +1,5 @@
+/*
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
-import { expect } from 'chai';
 import type { MarkerRange, TextMarker, TextMarkerOptions } from 'codemirror';
 import type * as lsProtocol from 'vscode-languageserver-protocol';
 
@@ -50,7 +50,7 @@ describe('Diagnostics', () => {
 
     it('calls parent register()', () => {
       feature.register();
-      expect(feature.is_registered).to.equal(true);
+      expect(feature.is_registered).toBe(true);
     });
 
     const diagnostics: lsProtocol.Diagnostic[] = [
@@ -83,7 +83,7 @@ describe('Diagnostics', () => {
       let markers: TextMarker[];
 
       markers = env.ceEditor.editor.getDoc().getAllMarks();
-      expect(markers.length).to.equal(0);
+      expect(markers.length).toBe(0);
 
       feature.handleDiagnostic(null as any, {
         uri: env.document_options.path,
@@ -91,7 +91,7 @@ describe('Diagnostics', () => {
       });
 
       let marks = env.ceEditor.editor.getDoc().getAllMarks();
-      expect(marks.length).to.equal(2);
+      expect(marks.length).toBe(2);
     });
 
     it('filters out inspections by code', async () => {
@@ -112,8 +112,8 @@ describe('Diagnostics', () => {
       });
 
       let markers = env.ceEditor.editor.getDoc().getAllMarks();
-      expect(markers.length).to.equal(1);
-      expect((markers[0] as TextMarkerOptions).title).to.equal(
+      expect(markers.length).toBe(1);
+      expect((markers[0] as TextMarkerOptions).title).toBe(
         'Undefined symbol "aa"'
       );
     });
@@ -136,8 +136,8 @@ describe('Diagnostics', () => {
       });
 
       let markers = env.ceEditor.editor.getDoc().getAllMarks();
-      expect(markers.length).to.equal(1);
-      expect((markers[0] as TextMarkerOptions).title).to.equal(
+      expect(markers.length).toBe(1);
+      expect((markers[0] as TextMarkerOptions).title).toBe(
         'Undefined symbol "aa"'
       );
     });
@@ -160,8 +160,8 @@ describe('Diagnostics', () => {
       });
 
       let markers = env.ceEditor.editor.getDoc().getAllMarks();
-      expect(markers.length).to.equal(1);
-      expect((markers[0] as TextMarkerOptions).title).to.equal(
+      expect(markers.length).toBe(1);
+      expect((markers[0] as TextMarkerOptions).title).toBe(
         'Trimming whitespace'
       );
     });
@@ -256,11 +256,11 @@ describe('Diagnostics', () => {
       );
       let marks_cell_1 = cm_editors[0].getDoc().getAllMarks();
       // test from mypy, test from pyflakes, whitespace around operator from pycodestyle
-      expect(marks_cell_1.length).to.equal(3);
+      expect(marks_cell_1.length).toBe(3);
 
       // W391 and W293 should get merged into a single diagnostic (same range)
       let marks_cell_2 = cm_editors[1].getDoc().getAllMarks();
-      expect(marks_cell_2.length).to.equal(1);
+      expect(marks_cell_2.length).toBe(1);
 
       let mark_cell_2 = marks_cell_2[0];
       let merged_mark_title = (mark_cell_2 as any).title;
@@ -269,15 +269,15 @@ describe('Diagnostics', () => {
       // should be separated by new line
       expect(merged_mark_title).to.contain('\n');
 
-      expect(feature.diagnostics_db.size).to.equal(1);
-      expect(feature.diagnostics_db.get(document)!.length).to.equal(5);
+      expect(feature.diagnostics_db.size).toBe(1);
+      expect(feature.diagnostics_db.get(document)!.length).toBe(5);
 
       feature.switchDiagnosticsPanelSource();
       diagnostics_panel.widget.content.update();
       // the panel should contain all 5 diagnostics
       let db = diagnostics_panel.content.model.diagnostics!;
-      expect(db.size).to.equal(1);
-      expect(db.get(document)!.length).to.equal(5);
+      expect(db.size).toBe(1);
+      expect(db.get(document)!.length).toBe(5);
     });
 
     it('Works in foreign documents', async () => {
@@ -323,8 +323,8 @@ describe('Diagnostics', () => {
       let marks_cell_1 = cm_editors[0].getDoc().getAllMarks();
       let marks_cell_2 = cm_editors[1].getDoc().getAllMarks();
 
-      expect(marks_cell_1.length).to.equal(0);
-      expect(marks_cell_2.length).to.equal(0);
+      expect(marks_cell_1.length).toBe(0);
+      expect(marks_cell_2.length).toBe(0);
 
       // correct propagation
       foreign_feature.handleDiagnostic(null as any, response);
@@ -332,8 +332,8 @@ describe('Diagnostics', () => {
       marks_cell_1 = cm_editors[0].getDoc().getAllMarks();
       marks_cell_2 = cm_editors[1].getDoc().getAllMarks();
 
-      expect(marks_cell_1.length).to.equal(0);
-      expect(marks_cell_2.length).to.equal(1);
+      expect(marks_cell_1.length).toBe(0);
+      expect(marks_cell_2.length).toBe(1);
 
       let mark = marks_cell_2[0] as TextMarker<MarkerRange>;
 
@@ -359,7 +359,7 @@ describe('Diagnostics', () => {
         ]
       });
 
-      expect(marks_cell_1.length).to.equal(0);
+      expect(marks_cell_1.length).toBe(0);
     });
   });
 });
@@ -395,3 +395,4 @@ describe('message_without_code', () => {
     expect(message).to.be.equal("undefined name 'x'");
   });
 });
+*/

@@ -12,9 +12,6 @@ import { LabIcon } from '@jupyterlab/ui-components';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import renameSvg from '../../style/icons/rename.svg';
-import {
-  IEditOutcome
-} from '../editor_integration/codemirror';
 import { Feature } from '../feature';
 import { PLUGIN_ID } from '../tokens';
 import { ILSPFeatureManager, ILSPDocumentConnectionManager, WidgetLSPAdapter } from '@jupyterlab/lsp';
@@ -23,7 +20,8 @@ import { ContextAssembler } from '../command_manager';
 import { PositionConverter } from '../converter';
 
 import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager'
-
+import { EditApplicator, IEditOutcome } from '../edits';
+import { VirtualDocument } from '../virtual/document';
 
 export const renameIcon = new LabIcon({
   name: 'lsp:rename',
@@ -55,12 +53,17 @@ export class RenameFeature extends Feature {
     workspaceEdit: lsProtocol.WorkspaceEdit,
     oldValue: string,
     newValue: string,
-    adapter: WidgetLSPAdapter<any>
+    adapter: WidgetLSPAdapter<any>,
+    document: VirtualDocument
   ) {
     let outcome: IEditOutcome;
+      const applicator = new EditApplicator(
+        document,
+        adapter
+      )
 
     try {
-      outcome = await this.apply_edit(workspaceEdit);
+      outcome = await applicator.applyEdit(workspaceEdit);
     } catch (error) {
       Notification.emit(this._trans.__('Rename failed: %1', error), 'error');
       return;
@@ -186,7 +189,7 @@ export namespace RenameFeature {
   export const id = FEATURE_ID;
 }
 
-namespace CommandIDs {
+export namespace CommandIDs {
   export const renameSymbol = 'lsp:rename-symbol';
 }
 
@@ -296,7 +299,7 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
             newName: newValue
           });
           if (edit) {
-            await feature.handleRename(edit, oldValue, newValue, adapter);
+            await feature.handleRename(edit, oldValue, newValue, adapter, document);
           } else {
             handleFailure(new Error('no edit from server'));
           }
@@ -313,6 +316,7 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
         return (
           connection != null &&
           connection.isReady &&
+          // @ts-ignore TOD
           (connection ? connection.provides('renameProvider') : false)
         )
       },

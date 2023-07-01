@@ -1,6 +1,6 @@
-// TODO: use upstream
+// TODO: develop a better API upstream
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { Document } from '@jupyterlab/lsp';
+import type { IVirtualPosition, IRootPosition, Document } from '@jupyterlab/lsp';
 import { VirtualDocument as VirtualDocumentBase } from '@jupyterlab/lsp/lib/virtual/document';
 
 import { ReversibleOverridesMap } from '../overrides/maps';
@@ -45,12 +45,13 @@ export class VirtualDocument extends VirtualDocumentBase {
     }
   }
 
+  // Override parent method to hook cell magics overrides
   prepareCodeBlock(
     block: Document.ICodeBlockOptions,
     editorShift: CodeEditor.IPosition = { line: 0, column: 0 }
   ) {
     let lines: Array<string>;
-    let skipInspect: Array<Array<VirtualDocument.id_path>>;
+    let skipInspect: Array<Array<VirtualDocumentBase.idPath>>;
 
     let { cellCodeKept, foreignDocumentsMap } = this.extractForeignCode(
       block,
@@ -76,23 +77,15 @@ export class VirtualDocument extends VirtualDocumentBase {
 
     return { lines, foreignDocumentsMap, skipInspect };
   }
-}
 
-export namespace VirtualDocument {
-  /**
-   * Identifier composed of `virtual_id`s of a nested structure of documents,
-   * used to aide assignment of the connection to the virtual document
-   * handling specific, nested language usage; it will be appended to the file name
-   * when creating a connection.
-   */
-  export type id_path = string;
-  /**
-   * Instance identifier for standalone documents (snippets), or language identifier
-   * for documents which should be interpreted as one when stretched across cells.
-   */
-  export type virtual_id = string;
-  /**
-   * Identifier composed of the file path and id_path.
-   */
-  export type uri = string;
+  // add method which was previously implemented in CodeMirrorIntegration
+  // but probably should have been in VirtualDocument all along
+  transformVirtualToRoot(position: IVirtualPosition): IRootPosition | null {
+    let editor = this.virtualLines.get(position.line)!.editor;
+    let editorPosition = this.transformVirtualToEditor(position);
+    return this.transformFromEditorToRoot(
+      editor,
+      editorPosition!
+    );
+  }
 }

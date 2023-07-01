@@ -3,19 +3,15 @@ import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { caretDownIcon, caretUpIcon } from '@jupyterlab/ui-components';
-import type * as CodeMirror from 'codemirror';
 import React, { ReactElement } from 'react';
 import * as lsProtocol from 'vscode-languageserver-protocol';
+import { VirtualDocument, IEditorPosition, WidgetLSPAdapter } from '@jupyterlab/lsp';
+// import {  } from '@codemirror/view';
 
 import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
-import { StatusMessage, WidgetAdapter } from '../../adapters/adapter';
 import { DocumentLocator, focus_on } from '../../components/utils';
 import { FeatureSettings } from '../../feature';
 import { DiagnosticSeverity } from '../../lsp';
-import { IEditorPosition } from '../../positioning';
-import { CodeMirrorVirtualEditor } from '../../virtual/codemirror_editor';
-import { VirtualDocument } from '../../virtual/document';
-import { IVirtualEditor } from '../../virtual/editor';
 
 import '../../../style/diagnostics_listing.css';
 
@@ -57,7 +53,7 @@ export interface IDiagnosticsRow {
 interface IListingContext {
   db: DiagnosticsDatabase;
   editor: IVirtualEditor<CodeEditor.IEditor>;
-  adapter: WidgetAdapter<IDocumentWidget>;
+  adapter: WidgetLSPAdapter<IDocumentWidget>;
 }
 
 interface IColumnOptions {
@@ -179,7 +175,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
             />
           </td>
         ),
-        sort: (a, b) => a.document.id_path.localeCompare(b.document.id_path),
+        sort: (a, b) => a.document.idPath.localeCompare(b.document.idPath),
         is_available: context => context.db.size > 1
       }),
       new Column({
@@ -249,7 +245,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
           a.cell_number! - b.cell_number! ||
           a.data.range.start.line - b.data.range.start.line ||
           a.data.range.start.ch - b.data.range.start.ch,
-        is_available: context => context.adapter.has_multiple_editors
+        is_available: context => context.adapter.hasMultipleEditors
       }),
       new Column({
         id: 'Line:Ch',
@@ -302,7 +298,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
         }
         return diagnostics.map((diagnostic_data, i) => {
           let cell_number: number | null = null;
-          if (adapter.has_multiple_editors) {
+          if (adapter.hasMultipleEditors) {
             let { index: cell_id } = editor.find_editor(diagnostic_data.editor);
             cell_number = cell_id + 1;
           }
@@ -392,10 +388,8 @@ export namespace DiagnosticsListing {
    */
   export class Model extends VDomModel {
     diagnostics: DiagnosticsDatabase | null;
-    virtual_editor: CodeMirrorVirtualEditor | null;
-    adapter: WidgetAdapter<any> | null;
+    adapter: WidgetLSPAdapter<any> | null;
     settings: FeatureSettings<LSPDiagnosticsSettings>;
-    status_message: StatusMessage;
     trans: TranslationBundle;
 
     constructor(translator_bundle: TranslationBundle) {

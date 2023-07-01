@@ -3,20 +3,24 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { CodeEditor } from '@jupyterlab/codeeditor';
+import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { LabIcon } from '@jupyterlab/ui-components';
-import { EditorView } from '@codemirror/view';
+import { EditorView, Decoration, DecorationSet } from "@codemirror/view";
+import { StateField, StateEffect } from "@codemirror/state";
 import { Throttler } from '@lumino/polling';
 import { IEditorExtensionRegistry, EditorExtensionRegistry } from '@jupyterlab/codemirror';
 import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager'
 import type * as lsProtocol from 'vscode-languageserver-protocol';
+
 import { BrowserConsole } from '../virtual/console';
 
 import hoverSvg from '../../style/icons/hover.svg';
 import { CodeHover as LSPHoverSettings, ModifierKey } from '../_hover';
 import { EditorTooltipManager, FreeTooltip } from '../components/free_tooltip';
-import { PositionConverter } from '../converter';
+import { PositionConverter, documentAtRootPosition, rootPositionToVirtualPosition, rootPositionToEditorPosition, editorPositionToRootPosition, editorAtRootPosition, virtualPositionToRootPosition } from '../converter';
+import { ContextAssembler } from '../command_manager';
 import {
   IEditorRange
 } from '../editor_integration/codemirror';
@@ -30,11 +34,13 @@ import {
   ProtocolCoordinates,
   ILSPFeatureManager,
   isEqual,
-  ILSPDocumentConnectionManager
+  ILSPDocumentConnectionManager,
+  WidgetLSPAdapter,
+  VirtualDocument,
+  Document
 } from '@jupyterlab/lsp';
 import { PLUGIN_ID } from '../tokens';
 import { getModifierState } from '../utils';
-import { VirtualDocument } from '../virtual/document';
 
 export const hoverIcon = new LabIcon({
   name: 'lsp:hover',
@@ -122,6 +128,71 @@ function to_markup(
   }
 }
 
+/**
+ * Manage marks in multiple editor views (e.g. cells).
+ */
+interface ISimpleMarkManager {
+  putMark(view: EditorView, from: number, to: number): void;
+  /**
+   * Clear marks from all editor views.
+   */
+  clearAllMarks(): void;
+}
+
+type MarkDecorationSpec = Parameters<typeof Decoration.mark>[0] & {class: string};
+
+
+function createMarkManager(spec: MarkDecorationSpec): ISimpleMarkManager {
+  const hoverMark = Decoration.mark(spec);
+
+  const addHoverMark = StateEffect.define<{from: number, to: number}>({
+    map: ({from, to}, change) => ({from: change.mapPos(from), to: change.mapPos(to)})
+  });
+
+  const removeHoverMark = StateEffect.define<null>();
+
+  const hoverMarkField = StateField.define<DecorationSet>({
+    create() {
+      return Decoration.none
+    },
+    update(marks, tr) {
+      marks = marks.map(tr.changes)
+      for (let e of tr.effects) {
+        if (e.is(addHoverMark)) {
+          marks = marks.update({
+            add: [hoverMark.range(e.value.from, e.value.to)]
+          });
+        } else if (e.is(removeHoverMark)) {
+          marks = marks.update({
+            filter: (from, to, value) => value.spec['class'] == spec.class
+          });
+        }
+      }
+      return marks
+    },
+    provide: f => EditorView.decorations.from(f)
+  });
+  const views: EditorView[] = [];
+
+  return {
+    putMark(view: EditorView, from: number, to: number) {
+      const effects: StateEffect<unknown>[] = [addHoverMark.of({from, to})];
+
+      if (!view.state.field(hoverMarkField, false)) {
+        effects.push(StateEffect.appendConfig.of([hoverMarkField]))
+      }
+      view.dispatch({effects});
+    },
+    clearAllMarks() {
+      for (let view of views) {
+        const effects: StateEffect<unknown>[] = [removeHoverMark.of(null)];
+        view.dispatch({effects});
+      }
+      views.length = 0;
+    }
+  }
+}
+
 export class HoverFeature extends Feature {
   readonly capabilities: lsProtocol.ClientCapabilities = {
     textDocument: {
@@ -136,11 +207,13 @@ export class HoverFeature extends Feature {
 
   protected console = new BrowserConsole().scope('Signature');
   protected settings: FeatureSettings<LSPHoverSettings>;
-  protected last_hover_character: IRootPosition | null = null;
+  protected lastHoverCharacter: IRootPosition | null = null;
   private last_hover_response: lsProtocol.Hover | null;
-  protected hover_marker: CodeMirror.TextMarker | null = null;
-  private virtual_position: IVirtualPosition;
+  protected hasMarker: boolean = false;
+  protected markManager: ISimpleMarkManager;
+  private virtualPosition: IVirtualPosition;
   protected cache: ResponseCache;
+  protected contextAssembler: ContextAssembler;
 
   private debounced_get_hover: Throttler<Promise<lsProtocol.Hover | null>>;
   private tooltip: FreeTooltip;
@@ -152,16 +225,31 @@ export class HoverFeature extends Feature {
     super(options);
     this.settings = new FeatureSettings(options.settingRegistry, this.id);
     this.tooltipManager = new EditorTooltipManager(options.renderMimeRegistry);
+    this.contextAssembler = options.contextAssembler;
 
     this.cache = new ResponseCache(this.settings.composite.cacheSize);
+    const connectionManager = options.connectionManager;
+
+    this.markManager = createMarkManager({class: 'cm-lsp-hover-available'});
 
     options.editorExtensionRegistry.addExtension({
       name: 'lsp:hover',
       factory: (options) => {
+
+        //const getAdapter = () => {
+        //  return connectionManager.adapterByModel.get(options.model);
+        //}
+        const adapter = connectionManager.adapterByModel.get(options.model)!;
+
+        const updateListener = EditorView.updateListener.of((viewUpdate) => {
+          if (viewUpdate.docChanged) {
+            this.afterChange();
+          }
+        });
         const eventListeners = EditorView.domEventHandlers({
           mousemove: (event) => {
             // this is used to hide the tooltip on leaving cells in notebook
-            this.updateUnderlineAndTooltip(event)
+            this.updateUnderlineAndTooltip(event, adapter)
               ?.then(keep_tooltip => {
                 if (!keep_tooltip) {
                   this.maybeHideTooltip(event);
@@ -174,10 +262,10 @@ export class HoverFeature extends Feature {
           },
           // show hover after pressing the modifier key
           keydown: (event) => {
-            this.onKeyDown(event);
+            this.onKeyDown(event, adapter);
           },
         });
-        return EditorExtensionRegistry.createImmutableExtension([eventListeners]);
+        return EditorExtensionRegistry.createImmutableExtension([eventListeners, updateListener]);
       }
     });
 
@@ -199,9 +287,9 @@ export class HoverFeature extends Feature {
 
   protected restore_from_cache(
     document: VirtualDocument,
-    virtual_position: IVirtualPosition
+    virtualPosition: IVirtualPosition
   ): IResponseData | null {
-    const { line, ch } = virtual_position;
+    const { line, ch } = virtualPosition;
     const matching_items = this.cache.data.filter(cache_item => {
       if (cache_item.document !== document) {
         return false;
@@ -212,7 +300,7 @@ export class HoverFeature extends Feature {
     if (matching_items.length > 1) {
       this.console.warn(
         'Potential hover cache malfunction: ',
-        virtual_position,
+        virtualPosition,
         matching_items
       );
     }
@@ -220,32 +308,33 @@ export class HoverFeature extends Feature {
   }
 
 
-  protected onKeyDown = (event: KeyboardEvent) => {
+  protected onKeyDown = (event: KeyboardEvent, adapter: WidgetLSPAdapter<any>) => {
     if (
       getModifierState(event, this.modifierKey) &&
-      this.last_hover_character !== null
+      this.lastHoverCharacter !== null
     ) {
       // does not need to be shown if it is already visible (otherwise we would be creating an identical tooltip again!)
       if (this.tooltip && this.tooltip.isVisible && !this.tooltip.isDisposed) {
         return;
       }
-      const document = this.virtual_editor.document_at_root_position(
-        this.last_hover_character
+      const document = documentAtRootPosition(
+        adapter,
+        this.lastHoverCharacter
       );
-      let response_data = this.restore_from_cache(
+      let responseData = this.restore_from_cache(
         document,
-        this.virtual_position
+        this.virtualPosition
       );
-      if (response_data == null) {
+      if (responseData == null) {
         return;
       }
       event.stopPropagation();
-      this.handleResponse(response_data, this.last_hover_character, true);
+      this.handleResponse(adapter, responseData, this.lastHoverCharacter, true);
     }
   };
 
   protected onMouseLeave = (event: MouseEvent) => {
-    this.remove_range_highlight();
+    this.removeRangeHighlight();
     this.maybeHideTooltip(event);
   };
 
@@ -259,42 +348,43 @@ export class HoverFeature extends Feature {
   }
 
   protected create_throttler() {
-    return new Throttler<Promise<lsProtocol.Hover | null>>(this.on_hover, {
+    return new Throttler<Promise<lsProtocol.Hover | null>>(this.onHover, {
       limit: this.settings.composite.throttlerDelay,
       edge: 'trailing'
     });
   }
 
-  afterChange(change: IEditorChange, root_position: IRootPosition) {
-    super.afterChange(change, root_position);
+  afterChange() {
     // reset cache on any change in the document
     this.cache.clean();
-    this.last_hover_character = null;
-    this.remove_range_highlight();
+    this.lastHoverCharacter = null;
+    this.removeRangeHighlight();
   }
 
-  protected on_hover = async (
-    virtual_position: IVirtualPosition,
+  protected onHover = async (
+    virtualDocument: VirtualDocument,
+    virtualPosition: IVirtualPosition,
     add_range_fn: (hover: lsProtocol.Hover) => lsProtocol.Hover
   ): Promise<lsProtocol.Hover | null> => {
+    const connection = this.connectionManager.connections.get(virtualDocument.uri)!;
     if (
       !(
-        this.connection.isReady &&
-        this.connection.serverCapabilities?.hoverProvider
+        connection.isReady &&
+        // @ts-ignore TODO remove once upstream fix released
+        connection.serverCapabilities?.hoverProvider
       )
     ) {
       return null;
     }
-    let hover = await this.connection.clientRequests[
+    let hover = await connection.clientRequests[
       'textDocument/hover'
     ].request({
       textDocument: {
-        // this might be wrong - should not it be using the specific virtual document?
-        uri: this.virtualDocument.document_info.uri
+        uri: virtualDocument.documentInfo.uri
       },
       position: {
-        line: virtual_position.line,
-        character: virtual_position.ch
+        line: virtualPosition.line,
+        character: virtualPosition.ch
       }
     });
 
@@ -333,39 +423,44 @@ export class HoverFeature extends Feature {
   }
 
   /**
-   * Underlines the word if a tooltip is available.
+   * marks the word if a tooltip is available.
    * Displays tooltip if asked to do so.
    *
    * Returns true is the tooltip was shown.
    */
   public handleResponse = (
-    response_data: IResponseData,
-    root_position: IRootPosition,
-    show_tooltip: boolean
+    adapter: WidgetLSPAdapter<any>,
+    responseData: IResponseData,
+    rootPosition: IRootPosition,
+    showTooltip: boolean
   ): boolean => {
-    let response = response_data.response;
+    let response = responseData.response;
 
     // testing for object equality because the response will likely be reused from cache
     if (this.last_hover_response != response) {
-      this.remove_range_highlight();
-      this.hover_marker = this.highlight_range(
-        response_data.editor_range,
-        'cm-lsp-hover-available'
+      this.removeRangeHighlight();
+
+      const range = responseData.editor_range;
+      const editorView = (range.editor as CodeMirrorEditor).editor;
+       this.markManager.putMark(
+        editorView,
+        range.editor.getOffsetAt(PositionConverter.cm_to_ce(range.start)),
+         range.editor.getOffsetAt(PositionConverter.cm_to_ce(range.end))
       );
+      this.hasMarker = true;
     }
 
     this.last_hover_response = response;
 
-    if (show_tooltip) {
+    if (showTooltip) {
       const markup = HoverFeature.get_markup_for_hover(response);
-      let editor_position =
-        this.virtual_editor.root_position_to_editor(root_position);
+      let editorPosition =rootPositionToEditorPosition(adapter, rootPosition);
 
-      this.tooltip = this.lab_integration.tooltip.showOrCreate({
+      this.tooltip = this.tooltipManager.showOrCreate({
         markup,
-        position: editor_position,
-        ceEditor: response_data.ceEditor,
-        adapter: this.adapter,
+        position: editorPosition,
+        ceEditor: responseData.ceEditor,
+        adapter: adapter,
         className: 'lsp-hover'
       });
       return true;
@@ -373,8 +468,8 @@ export class HoverFeature extends Feature {
     return false;
   };
 
-  protected is_token_empty(token: CodeMirror.Token) {
-    return token.string.length === 0;
+  protected is_token_empty(token: CodeEditor.IToken) {
+    return token.value.length === 0;
     // TODO  || token.type.length === 0? (sometimes the underline is shown on meaningless tokens)
   }
 
@@ -395,56 +490,76 @@ export class HoverFeature extends Feature {
    * Returns true if the tooltip should stay.
    */
   protected async _updateUnderlineAndTooltip(
-    event: MouseEvent
+    event: MouseEvent,
+    adapter: WidgetLSPAdapter<any>
   ): Promise<boolean> {
     const target = event.target;
 
     // if over an empty space in a line (and not over a token) then not worth checking
     if (
       target == null ||
+      // TODO class list migrate
       (target as HTMLElement).classList.contains('CodeMirror-line')
     ) {
-      this.remove_range_highlight();
+      this.removeRangeHighlight();
       return false;
     }
 
-    const show_tooltip =
+    const showTooltip =
       this.isHoverAutomatic || getModifierState(event, this.modifierKey);
 
-    // currently the events are coming from notebook panel; ideally these would be connected to individual cells,
-    // (only cells with code) instead, but this is more complex to implement right. In any case filtering
-    // is needed to determine in hovered character belongs to this virtual document
+    // Filtering is needed to determine in hovered character belongs to this virtual document
 
-    const root_position = this.position_from_mouse(event);
+    // TODO: or should the adapter be derived from model and passed as an argument? Or maybe we should try both?
+    // const adapter = this.contextAssembler.adapterFromNode(target as HTMLElement);
+
+    if (!adapter) {
+      this.removeRangeHighlight();
+      return false;
+    }
+
+    const rootPosition = this.contextAssembler.positionFromCoordinates(
+      event.clientX,
+      event.clientY,
+      adapter
+    );
 
     // happens because mousemove is attached to panel, not individual code cells,
     // and because some regions of the editor (between lines) have no characters
-    if (root_position == null) {
-      this.remove_range_highlight();
+    if (rootPosition == null) {
+      this.removeRangeHighlight();
       return false;
     }
 
-    let token = this.virtual_editor.getTokenAt(root_position);
+    const editorAccessor = editorAtRootPosition(adapter, rootPosition);
+    const editor = editorAccessor.getEditor();
+    if (!editor) {
+      this.console.warn('Editor not available from accessor');
+      this.removeRangeHighlight();
+      return false;
+    }
 
-    let document = this.virtual_editor.document_at_root_position(root_position);
+    const offset = editor.getOffsetAt(PositionConverter.cm_to_ce(rootPosition));
+    const token = editor.getTokenAt(offset);
+
+    const document = documentAtRootPosition(adapter, rootPosition);
 
     if (
       this.is_token_empty(token) ||
-      document !== this.virtualDocument ||
+      //document !== this.virtualDocument ||
       !this.is_event_inside_visible(event)
     ) {
-      this.remove_range_highlight();
+      this.removeRangeHighlight();
       return false;
     }
 
     if (
-      !this.last_hover_character ||
-      !isEqual(root_position, this.last_hover_character)
+      !this.lastHoverCharacter ||
+      !isEqual(rootPosition, this.lastHoverCharacter)
     ) {
-      let virtual_position =
-        this.virtual_editor.root_position_to_virtual_position(root_position);
-      this.virtual_position = virtual_position;
-      this.last_hover_character = root_position;
+      let virtualPosition = rootPositionToVirtualPosition(adapter, rootPosition);
+      this.virtualPosition = virtualPosition;
+      this.lastHoverCharacter = rootPosition;
 
       // if we already sent a request, maybe it already covers the are of interest?
       // not harm waiting as the server won't be able to help us anyways
@@ -458,26 +573,26 @@ export class HoverFeature extends Feature {
           })
         ]);
       }
-      let response_data = this.restore_from_cache(document, virtual_position);
+      let responseData = this.restore_from_cache(document, virtualPosition);
       let delay_ms = this.settings.composite.delay;
 
-      if (response_data == null) {
-        const ceEditor =
-          this.virtual_editor.get_editor_at_root_position(root_position);
-        const cm_editor =
-          this.virtual_editor.ceEditor_to_cm_editor.get(ceEditor)!;
+      if (responseData == null) {
+        //const ceEditor =
+        //  editorAtRootPosition(adapter, rootPosition).getEditor()!;
         const add_range_fn = (hover: lsProtocol.Hover): lsProtocol.Hover => {
           const editor_range = this.get_editor_range(
+            adapter,
             hover,
-            root_position,
+            rootPosition,
             token,
-            cm_editor
+            editor
           );
-          return this.add_range_if_needed(hover, editor_range, ceEditor);
+          return this.add_range_if_needed(adapter, hover, editor_range, editorAccessor);
         };
 
         const promise = this.debounced_get_hover.invoke(
-          virtual_position,
+          document,
+          virtualPosition,
           add_range_fn
         );
         this._previousHoverRequest = promise;
@@ -489,32 +604,33 @@ export class HoverFeature extends Feature {
           response &&
           response.range &&
           ProtocolCoordinates.isWithinRange(
-            { line: virtual_position.line, character: virtual_position.ch },
+            { line: virtualPosition.line, character: virtualPosition.ch },
             response.range
           ) &&
           this.is_useful_response(response)
         ) {
           const editor_range = this.get_editor_range(
+            adapter,
             response,
-            root_position,
+            rootPosition,
             token,
-            cm_editor
+            editor
           );
-          response_data = {
+          responseData = {
             response: response,
             document: document,
             editor_range: editor_range,
-            ceEditor: ceEditor
+            ceEditor: editor
           };
 
-          this.cache.store(response_data);
+          this.cache.store(responseData);
           delay_ms = Math.max(
             0,
             this.settings.composite.delay -
               this.settings.composite.throttlerDelay
           );
         } else {
-          this.remove_range_highlight();
+          this.removeRangeHighlight();
           return false;
         }
       }
@@ -523,15 +639,15 @@ export class HoverFeature extends Feature {
         await new Promise(resolve => setTimeout(resolve, delay_ms));
       }
 
-      return this.handleResponse(response_data, root_position, show_tooltip);
+      return this.handleResponse(adapter, responseData, rootPosition, showTooltip);
     } else {
       return true;
     }
   }
 
-  protected updateUnderlineAndTooltip = (event: MouseEvent) => {
+  protected updateUnderlineAndTooltip = (event: MouseEvent, adapter: WidgetLSPAdapter<any>) => {
     try {
-      return this._updateUnderlineAndTooltip(event);
+      return this._updateUnderlineAndTooltip(event, adapter);
     } catch (e) {
       if (
         !(
@@ -545,53 +661,86 @@ export class HoverFeature extends Feature {
     }
   };
 
-  protected remove_range_highlight = () => {
-    if (this.hover_marker) {
-      this.hover_marker.clear();
-      this.hover_marker = null;
+  protected removeRangeHighlight = () => {
+    if (this.hasMarker) {
+      this.markManager.clearAllMarks();
+      this.hasMarker = false;
       this.last_hover_response = null;
-      this.last_hover_character = null;
+      this.lastHoverCharacter = null;
     }
   };
 
   remove(): void {
     this.cache.clean();
-    this.remove_range_highlight();
+    this.removeRangeHighlight();
     this.debounced_get_hover.dispose();
-    super.remove();
   }
 
+  range_to_editor_range(
+    adapter: WidgetLSPAdapter<any>,
+    range: lsProtocol.Range,
+    editor: CodeEditor.IEditor
+  ): IEditorRange {
+    let start = PositionConverter.lsp_to_cm(range.start) as IVirtualPosition;
+    let end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
+
+    let startInRoot = virtualPositionToRootPosition(adapter, start);
+    if (!startInRoot) {
+        throw Error('Could not determine position in root');
+    }
+
+    if (editor == null) {
+      let editorAccessor = editorAtRootPosition(adapter, startInRoot);
+      const candidate = editorAccessor.getEditor();
+      if (!candidate) {
+        throw Error('Editor could not be accessed');
+      }
+      editor = candidate;
+    }
+
+    const document = documentAtRootPosition(adapter, startInRoot);
+
+    return {
+      start: document.transformVirtualToEditor(start)!,
+      end: document.transformVirtualToEditor(end)!,
+      editor: editor
+    };
+  }
+
+
   private get_editor_range(
+    adapter: WidgetLSPAdapter<any>,
     response: lsProtocol.Hover,
     position: IRootPosition,
-    token: CodeMirror.Token,
-    cm_editor: CodeMirror.Editor
+    token: CodeEditor.IToken,
+    cm_editor: CodeEditor.IEditor
   ): IEditorRange {
     if (typeof response.range !== 'undefined') {
-      return this.range_to_editor_range(response.range, cm_editor);
+      return this.range_to_editor_range(adapter, response.range, cm_editor);
     }
 
     // construct the range manually using the token information
-    let start_in_root = {
+    let startInRoot = {
       line: position.line,
-      ch: token.start
+      ch: token.offset
     } as IRootPosition;
-    let end_in_root = {
+    let endInRoot = {
       line: position.line,
-      ch: token.end
+      ch: token.offset + token.value.length
     } as IRootPosition;
 
     return {
-      start: this.virtual_editor.root_position_to_editor(start_in_root),
-      end: this.virtual_editor.root_position_to_editor(end_in_root),
+      start: rootPositionToEditorPosition(adapter, startInRoot),
+      end: rootPositionToEditorPosition(adapter, endInRoot),
       editor: cm_editor
     };
   }
 
   private add_range_if_needed(
+    adapter: WidgetLSPAdapter<any>,
     response: lsProtocol.Hover,
     editor_range: IEditorRange,
-    ceEditor: CodeEditor.IEditor
+    editorAccessor: Document.IEditor
   ): lsProtocol.Hover {
     if (typeof response.range !== 'undefined') {
       return response;
@@ -600,17 +749,21 @@ export class HoverFeature extends Feature {
       ...response,
       range: {
         start: PositionConverter.cm_to_lsp(
-          this.virtual_editor.root_position_to_virtual_position(
-            this.virtual_editor.transform_from_editor_to_root(
-              ceEditor,
+          rootPositionToVirtualPosition(
+            adapter,
+            editorPositionToRootPosition(
+              adapter,
+              editorAccessor,
               editor_range.start
             )!
           )
         ),
         end: PositionConverter.cm_to_lsp(
-          this.virtual_editor.root_position_to_virtual_position(
-            this.virtual_editor.transform_from_editor_to_root(
-              ceEditor,
+          rootPositionToVirtualPosition(
+            adapter,
+            editorPositionToRootPosition(
+              adapter,
+              editorAccessor,
               editor_range.end
             )!
           )
@@ -626,6 +779,7 @@ export namespace HoverFeature {
     settingRegistry: ISettingRegistry;
     renderMimeRegistry: IRenderMimeRegistry;
     editorExtensionRegistry: IEditorExtensionRegistry;
+    contextAssembler: ContextAssembler
   }
   export const id = PLUGIN_ID + ':hover';
 }
@@ -649,11 +803,13 @@ export const HOVER_PLUGIN: JupyterFrontEndPlugin<void> = {
     editorExtensionRegistry: IEditorExtensionRegistry,
     connectionManager: ILSPDocumentConnectionManagerDownstream
   ) => {
+    const contextAssembler = new ContextAssembler({app, connectionManager});
     const feature = new HoverFeature({
       settingRegistry,
       renderMimeRegistry,
       editorExtensionRegistry,
-      connectionManager
+      connectionManager,
+      contextAssembler
     })
     featureManager.register(feature);
   }
