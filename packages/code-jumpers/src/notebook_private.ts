@@ -8,7 +8,7 @@ import { Notebook } from '@jupyterlab/notebook';
  */
 function _ensureFocus(notebook: Notebook, force = false): void {
   let activeCell = notebook.activeCell;
-  if (notebook.mode === 'edit' && activeCell) {
+  if (notebook.mode === 'edit' && activeCell && activeCell.editor) {
     if (!activeCell.editor.hasFocus()) {
       activeCell.editor.focus();
     }

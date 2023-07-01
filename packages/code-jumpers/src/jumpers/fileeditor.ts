@@ -20,7 +20,7 @@ export class FileEditorJumper extends CodeJumper {
     this.widget = editor_widget;
     this.document_manager = document_manager;
     this.editor = editor_widget.content;
-    this.history = new JumpHistory(this.editor.model.modelDB);
+    this.history = new JumpHistory();
   }
 
   get path() {
