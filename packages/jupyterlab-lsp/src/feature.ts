@@ -29,7 +29,7 @@ export abstract class Feature implements IFeature {
   }
 
   //getConnection(): ILSPConnection {
-    
+
   //}
 }
 

@@ -1,4 +1,12 @@
-import type { ISourcePosition, IVirtualPosition, IRootPosition, IPosition, IEditorPosition, WidgetLSPAdapter, Document } from '@jupyterlab/lsp';
+import type {
+  ISourcePosition,
+  IVirtualPosition,
+  IRootPosition,
+  IPosition,
+  IEditorPosition,
+  WidgetLSPAdapter,
+  Document
+} from '@jupyterlab/lsp';
 import type { VirtualDocument } from './virtual/document';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import type * as lsProtocol from 'vscode-languageserver-protocol';
@@ -25,10 +33,12 @@ export class PositionConverter {
   }
 }
 
-
 /** TODO should it be wrapped into an object? */
 
-export function documentAtRootPosition(adapter: WidgetLSPAdapter<any>, position: IRootPosition): VirtualDocument {
+export function documentAtRootPosition(
+  adapter: WidgetLSPAdapter<any>,
+  position: IRootPosition
+): VirtualDocument {
   let rootAsSource = position as ISourcePosition;
   if (!adapter.virtualDocument) {
     throw Error('Virtual document of adapter disposed!');
@@ -41,8 +51,10 @@ export function documentAtRootPosition(adapter: WidgetLSPAdapter<any>, position:
   ) as VirtualDocument;
 }
 
-
-export function editorAtRootPosition(adapter: WidgetLSPAdapter<any>, position: IRootPosition): Document.IEditor {
+export function editorAtRootPosition(
+  adapter: WidgetLSPAdapter<any>,
+  position: IRootPosition
+): Document.IEditor {
   let rootAsSource = position as ISourcePosition;
   if (!adapter.virtualDocument) {
     throw Error('Virtual document of adapter disposed!');
@@ -50,13 +62,13 @@ export function editorAtRootPosition(adapter: WidgetLSPAdapter<any>, position: I
   if (adapter.virtualDocument.root !== adapter.virtualDocument) {
     throw Error('Virtual document on adapter must be the root document');
   }
-  return adapter.virtualDocument.getEditorAtSourceLine(
-    rootAsSource
-  );
+  return adapter.virtualDocument.getEditorAtSourceLine(rootAsSource);
 }
 
-
-export function rootPositionToVirtualPosition(adapter: WidgetLSPAdapter<any>, position: IRootPosition): IVirtualPosition {
+export function rootPositionToVirtualPosition(
+  adapter: WidgetLSPAdapter<any>,
+  position: IRootPosition
+): IVirtualPosition {
   let rootAsSource = position as ISourcePosition;
   if (!adapter.virtualDocument) {
     throw Error('Virtual document of adapter disposed!');
@@ -64,9 +76,7 @@ export function rootPositionToVirtualPosition(adapter: WidgetLSPAdapter<any>, po
   if (adapter.virtualDocument.root !== adapter.virtualDocument) {
     throw Error('Virtual document on adapter must be the root document');
   }
-  return adapter.virtualDocument!.virtualPositionAtDocument(
-    rootAsSource
-  );
+  return adapter.virtualDocument!.virtualPositionAtDocument(rootAsSource);
 }
 
 export function virtualPositionToRootPosition(
@@ -81,8 +91,10 @@ export function virtualPositionToRootPosition(
   );
 }
 
-
-export function rootPositionToEditorPosition(adapter: WidgetLSPAdapter<any>, position: IRootPosition): IEditorPosition {
+export function rootPositionToEditorPosition(
+  adapter: WidgetLSPAdapter<any>,
+  position: IRootPosition
+): IEditorPosition {
   let rootAsSource = position as ISourcePosition;
   if (!adapter.virtualDocument) {
     throw Error('Virtual document of adapter disposed!');
@@ -90,13 +102,14 @@ export function rootPositionToEditorPosition(adapter: WidgetLSPAdapter<any>, pos
   if (adapter.virtualDocument.root !== adapter.virtualDocument) {
     throw Error('Virtual document on adapter must be the root document');
   }
-  return adapter.virtualDocument.transformSourceToEditor(
-    rootAsSource
-  );
+  return adapter.virtualDocument.transformSourceToEditor(rootAsSource);
 }
 
-
-export function editorPositionToRootPosition(adapter: WidgetLSPAdapter<any>, editor: Document.IEditor, position: IEditorPosition): IRootPosition | null {
+export function editorPositionToRootPosition(
+  adapter: WidgetLSPAdapter<any>,
+  editor: Document.IEditor,
+  position: IEditorPosition
+): IRootPosition | null {
   if (!adapter.virtualDocument) {
     throw Error('Virtual document of adapter disposed!');
   }

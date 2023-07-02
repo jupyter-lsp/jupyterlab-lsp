@@ -4,14 +4,15 @@
 import { Completer } from '@jupyterlab/completer';
 import { IRenderMime } from '@jupyterlab/rendermime';
 import { Signal } from '@lumino/signaling';
+import { FeatureSettings } from '../../feature';
+import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
 
 import { ILSPLogConsole } from '../../tokens';
 
-import { CompletionLabIntegration } from './completion';
-import { LazyCompletionItem, IExtendedCompletionItem } from './item';
+import { CompletionItem, IExtendedCompletionItem } from './item';
 
 export interface ICompletionData {
-  item: LazyCompletionItem;
+  item: CompletionItem;
   element: HTMLLIElement;
 }
 
@@ -26,7 +27,7 @@ export class LSPCompletionRenderer
   private visibilityObserver: IntersectionObserver;
   private activityObserver: MutationObserver;
   // element data maps (with weak references for better GC)
-  private elementToItem: WeakMap<HTMLLIElement, LazyCompletionItem>;
+  private elementToItem: WeakMap<HTMLLIElement, CompletionItem>;
   private wasActivated: WeakMap<HTMLLIElement, boolean>;
 
   protected ITEM_PLACEHOLDER_CLASS = 'lsp-detail-placeholder';
@@ -85,8 +86,8 @@ export class LSPCompletionRenderer
     });
   }
 
-  protected getExtraInfo(item: LazyCompletionItem): string {
-    const labelExtra = this.options.integrator.settings.composite.labelExtra;
+  protected getExtraInfo(item: CompletionItem): string {
+    const labelExtra = this.options.settings.composite.labelExtra;
     switch (labelExtra) {
       case 'detail':
         return item?.detail || '';
@@ -109,7 +110,7 @@ export class LSPCompletionRenderer
     }
   }
 
-  public updateExtraInfo(item: LazyCompletionItem, li: HTMLLIElement) {
+  public updateExtraInfo(item: CompletionItem, li: HTMLLIElement) {
     const extraText = this.getExtraInfo(item);
     if (extraText) {
       const extraElement = li.getElementsByClassName(this.EXTRA_INFO_CLASS)[0];
@@ -119,7 +120,7 @@ export class LSPCompletionRenderer
   }
 
   createCompletionItemNode(
-    item: LazyCompletionItem,
+    item: CompletionItem,
     orderedTypes: string[]
   ): HTMLLIElement {
     const li = super.createCompletionItemNode(item, orderedTypes);
@@ -182,7 +183,7 @@ export class LSPCompletionRenderer
     }
   }
 
-  createDocumentationNode(item: LazyCompletionItem): HTMLElement {
+  createDocumentationNode(item: CompletionItem): HTMLElement {
     // note: not worth trying to `fetchDocumentation()` as this is not
     // invoked if documentation is empty (as of jlab 3.2)
     if (item.isDocumentationMarkdown && this.options.markdownRenderer) {
@@ -224,7 +225,7 @@ export class LSPCompletionRenderer
 
 export namespace LSPCompletionRenderer {
   export interface IOptions {
-    integrator: CompletionLabIntegration;
+    settings: FeatureSettings<LSPCompletionSettings>;
     markdownRenderer: IRenderMime.IRenderer | null;
     latexTypesetter?: IRenderMime.ILatexTypesetter | null;
     console: ILSPLogConsole;

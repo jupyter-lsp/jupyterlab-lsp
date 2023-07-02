@@ -9,11 +9,6 @@ export { LanguageIdentifier } from '@jupyterlab/lsp/lib/lsp';
 /**
  * @deprecated - use `@jupyterlab/lsp`
  */
-export {
-  IForeignCodeExtractor,
-  IExtractedCode
-} from '@jupyterlab/lsp';
-export {
-  IForeignCodeExtractorsRegistry
-} from '../extractors/types';
+export { IForeignCodeExtractor, IExtractedCode } from '@jupyterlab/lsp';
+export { IForeignCodeExtractorsRegistry } from '../extractors/types';
 export { RegExpForeignCodeExtractor } from '../extractors/regexp';

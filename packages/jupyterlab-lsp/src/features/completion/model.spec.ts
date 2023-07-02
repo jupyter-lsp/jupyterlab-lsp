@@ -1,7 +1,6 @@
-import { expect } from 'chai';
 import * as lsProtocol from 'vscode-languageserver-types';
 
-import { LazyCompletionItem } from './item';
+import { CompletionItem } from './item';
 import { LSPCompleterModel } from './model';
 
 describe('LSPCompleterModel', () => {
@@ -11,13 +10,13 @@ describe('LSPCompleterModel', () => {
     match: lsProtocol.CompletionItem,
     type: string = 'dummy'
   ) {
-    return new LazyCompletionItem(
+    return new CompletionItem({
       type,
-      null as any,
+      icon: null as any,
       match,
-      null as any,
-      'file://test.ipynb'
-    );
+      connection: null as any,
+      showDocumentation: true
+    });
   }
 
   const jupyter_icon_completion = create_dummy_item({
@@ -54,7 +53,7 @@ describe('LSPCompleterModel', () => {
     model.query = '';
 
     let markedItems = model.completionItems();
-    expect(markedItems[0].label).to.be.equal(
+    expect(markedItems[0].label).toBe(
       '&lt;i class="jp-icon-jupyter"&gt;&lt;/i&gt; Jupyter'
     );
   });
@@ -64,7 +63,7 @@ describe('LSPCompleterModel', () => {
     model.query = 'Jup';
 
     let markedItems = model.completionItems();
-    expect(markedItems[0].label).to.be.equal(
+    expect(markedItems[0].label).toBe(
       '&lt;i class="jp-icon-jupyter"&gt;&lt;/i&gt; <mark>Jup</mark>yter'
     );
   });
@@ -77,11 +76,7 @@ describe('LSPCompleterModel', () => {
     ]);
     model.query = 'test';
     let sortedItems = model.completionItems();
-    expect(sortedItems.map(item => item.sortText)).to.deep.equal([
-      'a',
-      'b',
-      'c'
-    ]);
+    expect(sortedItems.map(item => item.sortText)).toEqual(['a', 'b', 'c']);
   });
 
   it('ignores perfect matches when asked', () => {
@@ -93,8 +88,8 @@ describe('LSPCompleterModel', () => {
     model.query = 'test';
     let items = model.completionItems();
     // should not include the perfect match 'test'
-    expect(items.length).to.equal(1);
-    expect(items.map(item => item.sortText)).to.deep.equal(['test_test']);
+    expect(items.length).toBe(1);
+    expect(items.map(item => item.sortText)).toEqual(['test_test']);
   });
 
   it('case-sensitivity can be changed', () => {
@@ -104,11 +99,11 @@ describe('LSPCompleterModel', () => {
 
     model.settings.caseSensitive = true;
     let items = model.completionItems();
-    expect(items.length).to.equal(0);
+    expect(items.length).toBe(0);
 
     model.settings.caseSensitive = false;
     items = model.completionItems();
-    expect(items.length).to.equal(1);
+    expect(items.length).toBe(1);
   });
 
   it('filters use filterText', () => {
@@ -117,12 +112,12 @@ describe('LSPCompleterModel', () => {
     model.query = 'font';
 
     let filteredItems = model.completionItems();
-    expect(filteredItems.length).to.equal(1);
+    expect(filteredItems.length).toBe(1);
 
     // class is in label but not in filterText
     model.query = 'class';
     filteredItems = model.completionItems();
-    expect(filteredItems.length).to.equal(0);
+    expect(filteredItems.length).toBe(0);
   });
 
   it('marks appropriate part of label when filterText matches', () => {
@@ -132,14 +127,14 @@ describe('LSPCompleterModel', () => {
 
     // nothing should get highlighted
     let markedItems = model.completionItems();
-    expect(markedItems[0].label).to.be.equal(
+    expect(markedItems[0].label).toBe(
       '&lt;i class="jp-icon-jupyter"&gt;&lt;/i&gt; Jupyter'
     );
 
     // i is in both label and filterText
     model.query = 'i';
     markedItems = model.completionItems();
-    expect(markedItems[0].label).to.be.equal(
+    expect(markedItems[0].label).toBe(
       '&lt;<mark>i</mark> class="jp-icon-jupyter"&gt;&lt;/i&gt; Jupyter'
     );
   });

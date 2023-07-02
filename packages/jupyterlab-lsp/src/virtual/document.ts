@@ -1,6 +1,10 @@
 // TODO: develop a better API upstream
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import type { IVirtualPosition, IRootPosition, Document } from '@jupyterlab/lsp';
+import type {
+  IVirtualPosition,
+  IRootPosition,
+  Document
+} from '@jupyterlab/lsp';
 import { VirtualDocument as VirtualDocumentBase } from '@jupyterlab/lsp/lib/virtual/document';
 
 import { ReversibleOverridesMap } from '../overrides/maps';
@@ -66,13 +70,9 @@ export class VirtualDocument extends VirtualDocumentBase {
       skipInspect = lines.map(l => [this.idPath]);
     } else {
       // otherwise, we replace line magics - if any
-      let result = this.lineMagicsOverrides.replace_all(
-        cellCode.split('\n')
-      );
+      let result = this.lineMagicsOverrides.replace_all(cellCode.split('\n'));
       lines = result.lines;
-      skipInspect = result.skipInspect.map(skip =>
-        skip ? [this.idPath] : []
-      );
+      skipInspect = result.skipInspect.map(skip => (skip ? [this.idPath] : []));
     }
 
     return { lines, foreignDocumentsMap, skipInspect };
@@ -83,9 +83,6 @@ export class VirtualDocument extends VirtualDocumentBase {
   transformVirtualToRoot(position: IVirtualPosition): IRootPosition | null {
     let editor = this.virtualLines.get(position.line)!.editor;
     let editorPosition = this.transformVirtualToEditor(position);
-    return this.transformFromEditorToRoot(
-      editor,
-      editorPosition!
-    );
+    return this.transformFromEditorToRoot(editor, editorPosition!);
   }
 }

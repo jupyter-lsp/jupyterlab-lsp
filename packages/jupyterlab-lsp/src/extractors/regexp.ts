@@ -1,7 +1,11 @@
 import { CodeEditor } from '@jupyterlab/codeeditor';
 
 import { replacer } from '../overrides/tokens';
-import { positionAtOffset, IExtractedCode, IForeignCodeExtractor } from '@jupyterlab/lsp';
+import {
+  positionAtOffset,
+  IExtractedCode,
+  IForeignCodeExtractor
+} from '@jupyterlab/lsp';
 
 export function getIndexOfCaptureGroup(
   expression: RegExp,

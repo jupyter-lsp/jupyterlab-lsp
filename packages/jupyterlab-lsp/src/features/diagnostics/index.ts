@@ -1,22 +1,26 @@
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
+  ILabShell
 } from '@jupyterlab/application';
+import { ICommandPalette } from '@jupyterlab/apputils';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
-import { ILSPFeatureManager, ILSPDocumentConnectionManager } from '@jupyterlab/lsp';
+import {
+  ILSPFeatureManager,
+  ILSPDocumentConnectionManager
+} from '@jupyterlab/lsp';
+import { IEditorExtensionRegistry } from '@jupyterlab/codemirror';
 
 import { ContextAssembler } from '../../command_manager';
-import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../../connection_manager'
+import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../../connection_manager';
 import { DiagnosticsFeature } from './feature';
+import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
+import { FeatureSettings } from '../../feature';
 
+import { INotebookShell } from '@jupyter-notebook/application';
 
-import {
-  diagnosticsIcon,
-  diagnosticsPanel
-} from './diagnostics';
-
-
+import { diagnosticsIcon, diagnosticsPanel } from './diagnostics';
 
 export namespace CommandIDs {
   export const showPanel = 'lsp:show-diagnostics-panel';
@@ -24,25 +28,37 @@ export namespace CommandIDs {
 
 export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<void> = {
   id: DiagnosticsFeature.id,
-  requires: [ILSPFeatureManager, ISettingRegistry, ILSPDocumentConnectionManager],
-  optional: [ITranslator],
+  requires: [
+    ILSPFeatureManager,
+    ISettingRegistry,
+    ILSPDocumentConnectionManager,
+    IEditorExtensionRegistry
+  ],
+  optional: [ICommandPalette, ITranslator],
   autoStart: true,
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
     connectionManager: ILSPDocumentConnectionManagerDownstream,
+    editorExtensionRegistry: IEditorExtensionRegistry,
+    palette: ICommandPalette,
     translator: ITranslator
   ) => {
-    const feature = new DiagnosticsFeature({
+    const trans = (translator || nullTranslator).load('jupyterlab_lsp');
+    const settings = new FeatureSettings<LSPDiagnosticsSettings>(
       settingRegistry,
+      DiagnosticsFeature.id
+    );
+    await settings.ready;
+    const feature = new DiagnosticsFeature({
+      settings,
       connectionManager,
-      //renderMimeRegistry,
-      //editorExtensionRegistry
+      shell: app.shell as ILabShell | INotebookShell,
+      editorExtensionRegistry,
+      trans
     });
     featureManager.register(feature);
-
-    const trans = (translator || nullTranslator).load('jupyterlab_lsp');
 
     const assembler = new ContextAssembler({
       app,
@@ -56,7 +72,7 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<void> = {
           console.warn('Could not get context');
           return;
         }
-        feature.switchDiagnosticsPanelSource();
+        feature.switchDiagnosticsPanelSource(context.adapter);
 
         if (!diagnosticsPanel.is_registered) {
           diagnosticsPanel.trans = trans;
@@ -78,6 +94,24 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<void> = {
         // TODO notebook
         return app.name != 'JupyterLab Classic';
       }
+    });
+
+    // add to menus
+    app.contextMenu.addItem({
+      selector: '.jp-Notebook .jp-CodeCell .jp-Editor',
+      command: CommandIDs.showPanel,
+      rank: 10
+    });
+
+    app.contextMenu.addItem({
+      selector: '.jp-FileEditor',
+      command: CommandIDs.showPanel,
+      rank: 0
+    });
+
+    palette.addItem({
+      command: CommandIDs.showPanel,
+      category: trans.__('Language Server Protocol')
     });
   }
 };

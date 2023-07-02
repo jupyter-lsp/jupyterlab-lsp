@@ -23,7 +23,7 @@ describe('IPython SQL extractors', () => {
       foreignCodeExtractors: mockExtractorsManager(foreignCodeExtractors),
       standalone: false,
       fileExtension: 'py',
-      hasLspSupportedFile: false,
+      hasLspSupportedFile: false
     });
   });
 

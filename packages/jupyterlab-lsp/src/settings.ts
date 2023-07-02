@@ -251,7 +251,9 @@ export class SettingsSchemaManager {
       | undefined;
 
     // TODO: expose `specs` upstream
-    for (let [serverKey, serverSpec] of (languageServerManager as LanguageServerManager).specs.entries()) {
+    for (let [serverKey, serverSpec] of (
+      languageServerManager as LanguageServerManager
+    ).specs.entries()) {
       if ((serverKey as string) === '') {
         this.console.warn(
           'Empty server key - skipping transformation for',

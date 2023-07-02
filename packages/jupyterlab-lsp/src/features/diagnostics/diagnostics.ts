@@ -248,7 +248,9 @@ class DiagnosticsPanel {
         navigator.clipboard
           .writeText(message)
           .then(() => {
-            Notification.info(this.trans.__('Successfully copied "%1" to clipboard', message));
+            Notification.info(
+              this.trans.__('Successfully copied "%1" to clipboard', message)
+            );
           })
           .catch(() => {
             console.warn(

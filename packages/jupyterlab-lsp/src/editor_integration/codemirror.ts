@@ -1,7 +1,5 @@
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import {
-  IEditorPosition
-} from '@jupyterlab/lsp';
+import { IEditorPosition } from '@jupyterlab/lsp';
 
 export interface IEditorRange {
   start: IEditorPosition;

@@ -1,3 +1,4 @@
+/*
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
@@ -158,3 +159,4 @@ export const SYNTAX_HIGHLIGHTING_PLUGIN: JupyterFrontEndPlugin<void> = {
     });
   }
 };
+*/

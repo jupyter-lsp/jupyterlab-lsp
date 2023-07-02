@@ -1,8 +1,12 @@
 import {
   JupyterFrontEnd,
-  JupyterFrontEndPlugin,
+  JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { InputDialog, Notification, ICommandPalette } from '@jupyterlab/apputils';
+import {
+  InputDialog,
+  Notification,
+  ICommandPalette
+} from '@jupyterlab/apputils';
 import {
   ITranslator,
   nullTranslator,
@@ -14,12 +18,16 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 import renameSvg from '../../style/icons/rename.svg';
 import { Feature } from '../feature';
 import { PLUGIN_ID } from '../tokens';
-import { ILSPFeatureManager, ILSPDocumentConnectionManager, WidgetLSPAdapter } from '@jupyterlab/lsp';
+import {
+  ILSPFeatureManager,
+  ILSPDocumentConnectionManager,
+  WidgetLSPAdapter
+} from '@jupyterlab/lsp';
 import { BrowserConsole } from '../virtual/console';
 import { ContextAssembler } from '../command_manager';
 import { PositionConverter } from '../converter';
 
-import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager'
+import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager';
 import { EditApplicator, IEditOutcome } from '../edits';
 import { VirtualDocument } from '../virtual/document';
 
@@ -39,7 +47,7 @@ export class RenameFeature extends Feature {
         honorsChangeAnnotations: false
       }
     }
-  }
+  };
   protected console = new BrowserConsole().scope('Rename');
 
   private _trans: TranslationBundle;
@@ -57,10 +65,7 @@ export class RenameFeature extends Feature {
     document: VirtualDocument
   ) {
     let outcome: IEditOutcome;
-      const applicator = new EditApplicator(
-        document,
-        adapter
-      )
+    const applicator = new EditApplicator(document, adapter);
 
     try {
       outcome = await applicator.applyEdit(workspaceEdit);
@@ -181,10 +186,9 @@ export class RenameFeature extends Feature {
    */
 }
 
-
 export namespace RenameFeature {
   export interface IOptions extends Feature.IOptions {
-    trans: TranslationBundle
+    trans: TranslationBundle;
   }
   export const id = FEATURE_ID;
 }
@@ -195,10 +199,7 @@ export namespace CommandIDs {
 
 export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
   id: FEATURE_ID,
-  requires: [
-    ILSPFeatureManager,
-    ILSPDocumentConnectionManager,
-  ],
+  requires: [ILSPFeatureManager, ILSPDocumentConnectionManager],
   optional: [ICommandPalette, ITranslator],
   // optional: [ILSPDiagnostics], - TODO
   autoStart: true,
@@ -215,7 +216,7 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
     const feature = new RenameFeature({
       trans,
       connectionManager
-    })
+    });
     featureManager.register(feature);
 
     const assembler = new ContextAssembler({
@@ -229,22 +230,19 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
         if (!context) {
           return;
         }
-        const {
-          adapter,
-          connection,
-          virtualPosition,
-          rootPosition,
-          document
-        } = context;
+        const { adapter, connection, virtualPosition, rootPosition, document } =
+          context;
 
         const editorIndex = adapter.getEditorIndexAt(virtualPosition);
         const editorAccessor = adapter.editors[editorIndex].ceEditor;
         const editor = editorAccessor?.getEditor();
         if (!editor) {
-          console.log('[rename] no editor')
+          console.log('[rename] no editor');
           return;
         }
-        const offset = editor.getOffsetAt(PositionConverter.cm_to_ce(rootPosition));
+        const offset = editor.getOffsetAt(
+          PositionConverter.cm_to_ce(rootPosition)
+        );
         let oldValue = editor.getTokenAt(offset).value;
         let handleFailure = (error: Error) => {
           let status: string | null = '';
@@ -288,7 +286,9 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
           Notification.info(
             trans.__('Renaming %1 to %2...', oldValue, newValue)
           );
-          const edit = await connection!.clientRequests['textDocument/rename'].request({
+          const edit = await connection!.clientRequests[
+            'textDocument/rename'
+          ].request({
             position: {
               line: virtualPosition.line,
               character: virtualPosition.ch
@@ -299,7 +299,13 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
             newName: newValue
           });
           if (edit) {
-            await feature.handleRename(edit, oldValue, newValue, adapter, document);
+            await feature.handleRename(
+              edit,
+              oldValue,
+              newValue,
+              adapter,
+              document
+            );
           } else {
             handleFailure(new Error('no edit from server'));
           }
@@ -318,7 +324,7 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
           connection.isReady &&
           // @ts-ignore TOD
           (connection ? connection.provides('renameProvider') : false)
-        )
+        );
       },
       isEnabled: () => {
         return assembler.isContextMenuOverToken() ? true : false;

@@ -7,11 +7,14 @@ import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { LabIcon } from '@jupyterlab/ui-components';
-import { EditorView, Decoration, DecorationSet } from "@codemirror/view";
-import { StateField, StateEffect } from "@codemirror/state";
+import { EditorView, Decoration, DecorationSet } from '@codemirror/view';
+import { StateField, StateEffect } from '@codemirror/state';
 import { Throttler } from '@lumino/polling';
-import { IEditorExtensionRegistry, EditorExtensionRegistry } from '@jupyterlab/codemirror';
-import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager'
+import {
+  IEditorExtensionRegistry,
+  EditorExtensionRegistry
+} from '@jupyterlab/codemirror';
+import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager';
 import type * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { BrowserConsole } from '../virtual/console';
@@ -19,15 +22,18 @@ import { BrowserConsole } from '../virtual/console';
 import hoverSvg from '../../style/icons/hover.svg';
 import { CodeHover as LSPHoverSettings, ModifierKey } from '../_hover';
 import { EditorTooltipManager, FreeTooltip } from '../components/free_tooltip';
-import { PositionConverter, documentAtRootPosition, rootPositionToVirtualPosition, rootPositionToEditorPosition, editorPositionToRootPosition, editorAtRootPosition, virtualPositionToRootPosition } from '../converter';
+import {
+  PositionConverter,
+  documentAtRootPosition,
+  rootPositionToVirtualPosition,
+  rootPositionToEditorPosition,
+  editorPositionToRootPosition,
+  editorAtRootPosition,
+  virtualPositionToRootPosition
+} from '../converter';
 import { ContextAssembler } from '../command_manager';
-import {
-  IEditorRange
-} from '../editor_integration/codemirror';
-import {
-  FeatureSettings,
-  Feature
-} from '../feature';
+import { IEditorRange } from '../editor_integration/codemirror';
+import { FeatureSettings, Feature } from '../feature';
 import {
   IRootPosition,
   IVirtualPosition,
@@ -139,24 +145,28 @@ interface ISimpleMarkManager {
   clearAllMarks(): void;
 }
 
-type MarkDecorationSpec = Parameters<typeof Decoration.mark>[0] & {class: string};
-
+type MarkDecorationSpec = Parameters<typeof Decoration.mark>[0] & {
+  class: string;
+};
 
 function createMarkManager(spec: MarkDecorationSpec): ISimpleMarkManager {
   const hoverMark = Decoration.mark(spec);
 
-  const addHoverMark = StateEffect.define<{from: number, to: number}>({
-    map: ({from, to}, change) => ({from: change.mapPos(from), to: change.mapPos(to)})
+  const addHoverMark = StateEffect.define<{ from: number; to: number }>({
+    map: ({ from, to }, change) => ({
+      from: change.mapPos(from),
+      to: change.mapPos(to)
+    })
   });
 
   const removeHoverMark = StateEffect.define<null>();
 
   const hoverMarkField = StateField.define<DecorationSet>({
     create() {
-      return Decoration.none
+      return Decoration.none;
     },
     update(marks, tr) {
-      marks = marks.map(tr.changes)
+      marks = marks.map(tr.changes);
       for (let e of tr.effects) {
         if (e.is(addHoverMark)) {
           marks = marks.update({
@@ -168,7 +178,7 @@ function createMarkManager(spec: MarkDecorationSpec): ISimpleMarkManager {
           });
         }
       }
-      return marks
+      return marks;
     },
     provide: f => EditorView.decorations.from(f)
   });
@@ -176,21 +186,21 @@ function createMarkManager(spec: MarkDecorationSpec): ISimpleMarkManager {
 
   return {
     putMark(view: EditorView, from: number, to: number) {
-      const effects: StateEffect<unknown>[] = [addHoverMark.of({from, to})];
+      const effects: StateEffect<unknown>[] = [addHoverMark.of({ from, to })];
 
       if (!view.state.field(hoverMarkField, false)) {
-        effects.push(StateEffect.appendConfig.of([hoverMarkField]))
+        effects.push(StateEffect.appendConfig.of([hoverMarkField]));
       }
-      view.dispatch({effects});
+      view.dispatch({ effects });
     },
     clearAllMarks() {
       for (let view of views) {
         const effects: StateEffect<unknown>[] = [removeHoverMark.of(null)];
-        view.dispatch({effects});
+        view.dispatch({ effects });
       }
       views.length = 0;
     }
-  }
+  };
 }
 
 export class HoverFeature extends Feature {
@@ -201,11 +211,11 @@ export class HoverFeature extends Feature {
         contentFormat: ['markdown', 'plaintext']
       }
     }
-  }
+  };
   readonly id = HoverFeature.id;
   tooltipManager: EditorTooltipManager;
 
-  protected console = new BrowserConsole().scope('Signature');
+  protected console = new BrowserConsole().scope('Hover');
   protected settings: FeatureSettings<LSPHoverSettings>;
   protected lastHoverCharacter: IRootPosition | null = null;
   private last_hover_response: lsProtocol.Hover | null;
@@ -223,31 +233,27 @@ export class HoverFeature extends Feature {
 
   constructor(options: HoverFeature.IOptions) {
     super(options);
-    this.settings = new FeatureSettings(options.settingRegistry, this.id);
+    this.settings = options.settings;
     this.tooltipManager = new EditorTooltipManager(options.renderMimeRegistry);
     this.contextAssembler = options.contextAssembler;
 
-    this.cache = new ResponseCache(this.settings.composite.cacheSize);
+    this.cache = new ResponseCache(10);
     const connectionManager = options.connectionManager;
 
-    this.markManager = createMarkManager({class: 'cm-lsp-hover-available'});
+    this.markManager = createMarkManager({ class: 'cm-lsp-hover-available' });
 
     options.editorExtensionRegistry.addExtension({
       name: 'lsp:hover',
-      factory: (options) => {
-
-        //const getAdapter = () => {
-        //  return connectionManager.adapterByModel.get(options.model);
-        //}
+      factory: options => {
         const adapter = connectionManager.adapterByModel.get(options.model)!;
 
-        const updateListener = EditorView.updateListener.of((viewUpdate) => {
+        const updateListener = EditorView.updateListener.of(viewUpdate => {
           if (viewUpdate.docChanged) {
             this.afterChange();
           }
         });
         const eventListeners = EditorView.domEventHandlers({
-          mousemove: (event) => {
+          mousemove: event => {
             // this is used to hide the tooltip on leaving cells in notebook
             this.updateUnderlineAndTooltip(event, adapter)
               ?.then(keep_tooltip => {
@@ -257,15 +263,18 @@ export class HoverFeature extends Feature {
               })
               .catch(this.console.warn);
           },
-          mouseleave: (event) => {
+          mouseleave: event => {
             this.onMouseLeave(event);
           },
           // show hover after pressing the modifier key
-          keydown: (event) => {
+          keydown: event => {
             this.onKeyDown(event, adapter);
-          },
+          }
         });
-        return EditorExtensionRegistry.createImmutableExtension([eventListeners, updateListener]);
+        return EditorExtensionRegistry.createImmutableExtension([
+          eventListeners,
+          updateListener
+        ]);
       }
     });
 
@@ -307,8 +316,10 @@ export class HoverFeature extends Feature {
     return matching_items.length != 0 ? matching_items[0] : null;
   }
 
-
-  protected onKeyDown = (event: KeyboardEvent, adapter: WidgetLSPAdapter<any>) => {
+  protected onKeyDown = (
+    event: KeyboardEvent,
+    adapter: WidgetLSPAdapter<any>
+  ) => {
     if (
       getModifierState(event, this.modifierKey) &&
       this.lastHoverCharacter !== null
@@ -317,10 +328,7 @@ export class HoverFeature extends Feature {
       if (this.tooltip && this.tooltip.isVisible && !this.tooltip.isDisposed) {
         return;
       }
-      const document = documentAtRootPosition(
-        adapter,
-        this.lastHoverCharacter
-      );
+      const document = documentAtRootPosition(adapter, this.lastHoverCharacter);
       let responseData = this.restore_from_cache(
         document,
         this.virtualPosition
@@ -349,7 +357,7 @@ export class HoverFeature extends Feature {
 
   protected create_throttler() {
     return new Throttler<Promise<lsProtocol.Hover | null>>(this.onHover, {
-      limit: this.settings.composite.throttlerDelay,
+      limit: this.settings.composite.throttlerDelay || 0,
       edge: 'trailing'
     });
   }
@@ -366,7 +374,9 @@ export class HoverFeature extends Feature {
     virtualPosition: IVirtualPosition,
     add_range_fn: (hover: lsProtocol.Hover) => lsProtocol.Hover
   ): Promise<lsProtocol.Hover | null> => {
-    const connection = this.connectionManager.connections.get(virtualDocument.uri)!;
+    const connection = this.connectionManager.connections.get(
+      virtualDocument.uri
+    )!;
     if (
       !(
         connection.isReady &&
@@ -376,9 +386,7 @@ export class HoverFeature extends Feature {
     ) {
       return null;
     }
-    let hover = await connection.clientRequests[
-      'textDocument/hover'
-    ].request({
+    let hover = await connection.clientRequests['textDocument/hover'].request({
       textDocument: {
         uri: virtualDocument.documentInfo.uri
       },
@@ -442,10 +450,10 @@ export class HoverFeature extends Feature {
 
       const range = responseData.editor_range;
       const editorView = (range.editor as CodeMirrorEditor).editor;
-       this.markManager.putMark(
+      this.markManager.putMark(
         editorView,
         range.editor.getOffsetAt(PositionConverter.cm_to_ce(range.start)),
-         range.editor.getOffsetAt(PositionConverter.cm_to_ce(range.end))
+        range.editor.getOffsetAt(PositionConverter.cm_to_ce(range.end))
       );
       this.hasMarker = true;
     }
@@ -454,7 +462,7 @@ export class HoverFeature extends Feature {
 
     if (showTooltip) {
       const markup = HoverFeature.get_markup_for_hover(response);
-      let editorPosition =rootPositionToEditorPosition(adapter, rootPosition);
+      let editorPosition = rootPositionToEditorPosition(adapter, rootPosition);
 
       this.tooltip = this.tooltipManager.showOrCreate({
         markup,
@@ -557,7 +565,10 @@ export class HoverFeature extends Feature {
       !this.lastHoverCharacter ||
       !isEqual(rootPosition, this.lastHoverCharacter)
     ) {
-      let virtualPosition = rootPositionToVirtualPosition(adapter, rootPosition);
+      let virtualPosition = rootPositionToVirtualPosition(
+        adapter,
+        rootPosition
+      );
       this.virtualPosition = virtualPosition;
       this.lastHoverCharacter = rootPosition;
 
@@ -587,7 +598,12 @@ export class HoverFeature extends Feature {
             token,
             editor
           );
-          return this.add_range_if_needed(adapter, hover, editor_range, editorAccessor);
+          return this.add_range_if_needed(
+            adapter,
+            hover,
+            editor_range,
+            editorAccessor
+          );
         };
 
         const promise = this.debounced_get_hover.invoke(
@@ -639,13 +655,21 @@ export class HoverFeature extends Feature {
         await new Promise(resolve => setTimeout(resolve, delay_ms));
       }
 
-      return this.handleResponse(adapter, responseData, rootPosition, showTooltip);
+      return this.handleResponse(
+        adapter,
+        responseData,
+        rootPosition,
+        showTooltip
+      );
     } else {
       return true;
     }
   }
 
-  protected updateUnderlineAndTooltip = (event: MouseEvent, adapter: WidgetLSPAdapter<any>) => {
+  protected updateUnderlineAndTooltip = (
+    event: MouseEvent,
+    adapter: WidgetLSPAdapter<any>
+  ) => {
     try {
       return this._updateUnderlineAndTooltip(event, adapter);
     } catch (e) {
@@ -686,7 +710,7 @@ export class HoverFeature extends Feature {
 
     let startInRoot = virtualPositionToRootPosition(adapter, start);
     if (!startInRoot) {
-        throw Error('Could not determine position in root');
+      throw Error('Could not determine position in root');
     }
 
     if (editor == null) {
@@ -706,7 +730,6 @@ export class HoverFeature extends Feature {
       editor: editor
     };
   }
-
 
   private get_editor_range(
     adapter: WidgetLSPAdapter<any>,
@@ -773,17 +796,15 @@ export class HoverFeature extends Feature {
   }
 }
 
-
 export namespace HoverFeature {
   export interface IOptions extends Feature.IOptions {
-    settingRegistry: ISettingRegistry;
+    settings: FeatureSettings<LSPHoverSettings>;
     renderMimeRegistry: IRenderMimeRegistry;
     editorExtensionRegistry: IEditorExtensionRegistry;
-    contextAssembler: ContextAssembler
+    contextAssembler: ContextAssembler;
   }
   export const id = PLUGIN_ID + ':hover';
 }
-
 
 export const HOVER_PLUGIN: JupyterFrontEndPlugin<void> = {
   id: HoverFeature.id,
@@ -795,7 +816,7 @@ export const HOVER_PLUGIN: JupyterFrontEndPlugin<void> = {
     ILSPDocumentConnectionManager
   ],
   autoStart: true,
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
@@ -803,14 +824,19 @@ export const HOVER_PLUGIN: JupyterFrontEndPlugin<void> = {
     editorExtensionRegistry: IEditorExtensionRegistry,
     connectionManager: ILSPDocumentConnectionManagerDownstream
   ) => {
-    const contextAssembler = new ContextAssembler({app, connectionManager});
-    const feature = new HoverFeature({
+    const contextAssembler = new ContextAssembler({ app, connectionManager });
+    const settings = new FeatureSettings<LSPHoverSettings>(
       settingRegistry,
+      HoverFeature.id
+    );
+    await settings.ready;
+    const feature = new HoverFeature({
+      settings,
       renderMimeRegistry,
       editorExtensionRegistry,
       connectionManager,
       contextAssembler
-    })
+    });
     featureManager.register(feature);
   }
 };

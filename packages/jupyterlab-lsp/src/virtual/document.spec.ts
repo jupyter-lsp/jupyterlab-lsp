@@ -1,11 +1,15 @@
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { ISourcePosition, IVirtualPosition, isWithinRange, Document } from '@jupyterlab/lsp';
+import {
+  ISourcePosition,
+  IVirtualPosition,
+  isWithinRange,
+  Document
+} from '@jupyterlab/lsp';
 
 import { foreignCodeExtractors } from '../transclusions/ipython-rpy2/extractors';
 import { mockExtractorsManager } from '../extractors/testutils';
 
 import { VirtualDocument } from './document';
-
 
 let R_LINE_MAGICS = `%R df = data.frame()
 print("df created")
@@ -102,14 +106,13 @@ describe('VirtualDocument', () => {
   // TODO: upstream this test
   describe('#extractForeignCode', () => {
     it('joins non-standalone fragments together', () => {
-      let { cellCodeKept, foreignDocumentsMap } =
-        document.extractForeignCode(
-          { value: R_LINE_MAGICS, ceEditor: null as any, type: 'code' },
-          {
-            line: 0,
-            column: 0
-          }
-        );
+      let { cellCodeKept, foreignDocumentsMap } = document.extractForeignCode(
+        { value: R_LINE_MAGICS, ceEditor: null as any, type: 'code' },
+        {
+          line: 0,
+          column: 0
+        }
+      );
 
       // note R cell lines are kept in code (keepInHost=true)
       expect(cellCodeKept).toEqual(R_LINE_MAGICS);

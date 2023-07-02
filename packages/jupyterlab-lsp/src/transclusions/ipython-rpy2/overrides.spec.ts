@@ -36,9 +36,7 @@ describe('rpy2 IPython overrides', () => {
     it('works with other Rdevice', () => {
       let line = '%Rdevice svg';
       let override = line_magics.override_for(line)!;
-      expect(override).toBe(
-        'rpy2.ipython.rmagic.RMagics.Rdevice(" svg", "")'
-      );
+      expect(override).toBe('rpy2.ipython.rmagic.RMagics.Rdevice(" svg", "")');
       let reverse = line_magics.reverse.override_for(override);
       expect(reverse).toBe(line);
     });

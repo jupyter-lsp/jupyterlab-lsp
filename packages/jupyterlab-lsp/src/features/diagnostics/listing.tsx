@@ -1,17 +1,23 @@
 import { VDomModel, VDomRenderer } from '@jupyterlab/apputils';
-import { CodeEditor } from '@jupyterlab/codeeditor';
+import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { caretDownIcon, caretUpIcon } from '@jupyterlab/ui-components';
 import React, { ReactElement } from 'react';
 import * as lsProtocol from 'vscode-languageserver-protocol';
-import { VirtualDocument, IEditorPosition, WidgetLSPAdapter } from '@jupyterlab/lsp';
+import {
+  VirtualDocument,
+  IEditorPosition,
+  WidgetLSPAdapter
+} from '@jupyterlab/lsp';
+
 // import {  } from '@codemirror/view';
 
 import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
-import { DocumentLocator, focus_on } from '../../components/utils';
+import { DocumentLocator } from '../../components/utils';
 import { FeatureSettings } from '../../feature';
 import { DiagnosticSeverity } from '../../lsp';
+import { PositionConverter } from '../../converter';
 
 import '../../../style/diagnostics_listing.css';
 
@@ -21,7 +27,7 @@ import '../../../style/diagnostics_listing.css';
  */
 export interface IEditorDiagnostic {
   diagnostic: lsProtocol.Diagnostic;
-  editor: CodeMirror.Editor;
+  editor: CodeMirrorEditor;
   range: {
     start: IEditorPosition;
     end: IEditorPosition;
@@ -52,7 +58,6 @@ export interface IDiagnosticsRow {
 
 interface IListingContext {
   db: DiagnosticsDatabase;
-  editor: IVirtualEditor<CodeEditor.IEditor>;
   adapter: WidgetLSPAdapter<IDocumentWidget>;
 }
 
@@ -274,9 +279,8 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
 
   render() {
     let diagnostics_db = this.model.diagnostics;
-    const editor = this.model.virtual_editor;
     const adapter = this.model.adapter;
-    if (diagnostics_db == null || editor == null || !adapter) {
+    if (diagnostics_db == null || !adapter) {
       return (
         <div className={DIAGNOSTICS_PLACEHOLDER_CLASS}>
           {this.trans.__('Diagnostics are not available')}
@@ -299,15 +303,16 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
         return diagnostics.map((diagnostic_data, i) => {
           let cell_number: number | null = null;
           if (adapter.hasMultipleEditors) {
-            let { index: cell_id } = editor.find_editor(diagnostic_data.editor);
-            cell_number = cell_id + 1;
+            const cellIndex = adapter.editors.findIndex(
+              value => value.ceEditor.getEditor() == diagnostic_data.editor
+            );
+            cell_number = cellIndex + 1;
           }
           return {
             data: diagnostic_data,
             key: virtualDocument.uri + ',' + i,
             document: virtualDocument,
-            cell_number: cell_number,
-            editor: editor
+            cell_number: cell_number
           } as IDiagnosticsRow;
         });
       }
@@ -326,7 +331,6 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
 
     let context: IListingContext = {
       db: diagnostics_db,
-      editor: editor,
       adapter: adapter
     };
 
@@ -376,8 +380,9 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
 
   jump_to(row: IDiagnosticsRow) {
     const cm_editor = row.data.editor;
-    focus_on(cm_editor.getWrapperElement());
-    cm_editor.getDoc().setCursor(row.data.range.start);
+    cm_editor.setCursorPosition(
+      PositionConverter.cm_to_ce(row.data.range.start)
+    );
     cm_editor.focus();
   }
 }

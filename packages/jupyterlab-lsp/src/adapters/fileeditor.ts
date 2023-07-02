@@ -18,9 +18,8 @@ import {
 import { ILSPCodeOverridesManager } from '../overrides/tokens';
 import { VirtualDocument } from '../virtual/document';
 
-
 interface IAdapterOptions extends IFileEditorAdapterOptions {
-  codeOverridesManager: ILSPCodeOverridesManager
+  codeOverridesManager: ILSPCodeOverridesManager;
 }
 
 class FileEditorAdapter extends UpstreamFileEditorAdapter {
@@ -60,7 +59,7 @@ function activateFileEditorLanguageServer(
   extractorManager: ILSPCodeExtractorsManager,
   codeOverridesManager: ILSPCodeOverridesManager
 ): void {
-    editors.widgetAdded.connect(async (_, editor) => {
+  editors.widgetAdded.connect(async (_, editor) => {
     const adapter = new FileEditorAdapter(editor, {
       connectionManager,
       featureManager,

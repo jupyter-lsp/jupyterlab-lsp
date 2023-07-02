@@ -190,9 +190,7 @@ describe('Default IPython overrides', () => {
       expect(reverse).toBe('?int');
 
       override = line_magics_map.override_for('int?')!;
-      expect(override).toBe(
-        "get_ipython().run_line_magic('pinfo',  'int')"
-      );
+      expect(override).toBe("get_ipython().run_line_magic('pinfo',  'int')");
 
       reverse = line_magics_map.reverse.override_for(override);
       expect(reverse).toBe('int?');
@@ -200,17 +198,13 @@ describe('Default IPython overrides', () => {
 
     it('overrides pinfo2', () => {
       let override = line_magics_map.override_for('??int')!;
-      expect(override).toBe(
-        "get_ipython().run_line_magic('pinfo2', 'int')"
-      );
+      expect(override).toBe("get_ipython().run_line_magic('pinfo2', 'int')");
 
       let reverse = line_magics_map.reverse.override_for(override);
       expect(reverse).toBe('??int');
 
       override = line_magics_map.override_for('int??')!;
-      expect(override).toBe(
-        "get_ipython().run_line_magic('pinfo2',  'int')"
-      );
+      expect(override).toBe("get_ipython().run_line_magic('pinfo2',  'int')");
 
       reverse = line_magics_map.reverse.override_for(override);
       expect(reverse).toBe('int??');

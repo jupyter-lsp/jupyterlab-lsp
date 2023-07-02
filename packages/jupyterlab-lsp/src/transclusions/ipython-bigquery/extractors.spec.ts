@@ -1,4 +1,8 @@
-import { extractCode, getTheOnlyVirtual, mockExtractorsManager } from '../../extractors/testutils';
+import {
+  extractCode,
+  getTheOnlyVirtual,
+  mockExtractorsManager
+} from '../../extractors/testutils';
 import { VirtualDocument } from '../../virtual/document';
 
 import { foreignCodeExtractors } from './extractors';
@@ -18,7 +22,7 @@ describe('Bigquery SQL extractors', () => {
       foreignCodeExtractors: mockExtractorsManager(foreignCodeExtractors),
       standalone: false,
       fileExtension: 'py',
-      hasLspSupportedFile: false,
+      hasLspSupportedFile: false
     });
   });
 

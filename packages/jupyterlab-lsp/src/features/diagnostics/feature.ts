@@ -1,45 +1,50 @@
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import * as lsProtocol from 'vscode-languageserver-protocol';
-import { WidgetLSPAdapter, IEditorPosition, IVirtualPosition, ILSPConnection, VirtualDocument } from '@jupyterlab/lsp';
-
+import {
+  WidgetLSPAdapter,
+  IEditorPosition,
+  IVirtualPosition,
+  ILSPConnection,
+  VirtualDocument
+} from '@jupyterlab/lsp';
+import { linter, Diagnostic } from '@codemirror/lint';
+import { EditorView } from '@codemirror/view';
 import { BrowserConsole } from '../../virtual/console';
 import { PLUGIN_ID } from '../../tokens';
 import { FeatureSettings, Feature } from '../../feature';
 import { DiagnosticSeverity, DiagnosticTag } from '../../lsp';
 import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
-//import { LSPConnection } from '../../connection';
 import { PositionConverter } from '../../converter';
-import { DefaultMap, uris_equal } from '../../utils';
-//import { VirtualDocument } from '../../virtual/document';
+import { uris_equal } from '../../utils';
 import { diagnosticsPanel } from './diagnostics';
+import { INotebookShell } from '@jupyter-notebook/application';
+import { ILabShell } from '@jupyterlab/application';
+import { IDocumentWidget } from '@jupyterlab/docregistry';
+import { TranslationBundle } from '@jupyterlab/translation';
+import {
+  CodeMirrorEditor,
+  IEditorExtensionRegistry,
+  EditorExtensionRegistry
+} from '@jupyterlab/codemirror';
 
 export const FEATURE_ID = PLUGIN_ID + ':diagnostics';
 
-
-import {
-  DiagnosticsDatabase,
-  IEditorDiagnostic
-} from './listing';
-
-
-interface IMarkerDefinition {
-  options: CodeMirror.TextMarkerOptions;
-  start: IEditorPosition;
-  end: IEditorPosition;
-  hash: string;
-}
-
-interface IMarkedDiagnostic {
-  editor: CodeMirror.Editor;
-  marker: CodeMirror.TextMarker;
-}
+import { DiagnosticsDatabase, IEditorDiagnostic } from './listing';
 
 // TODO private of feature?
-export const diagnostics_databases = new WeakMap<
+export const diagnosticsDatabases = new WeakMap<
   WidgetLSPAdapter<any>,
   DiagnosticsDatabase
 >();
 
+const SeverityMap: Record<
+  1 | 2 | 3 | 4,
+  'error' | 'warning' | 'info' | 'hint'
+> = {
+  1: 'error',
+  2: 'warning',
+  3: 'info',
+  4: 'hint'
+};
 
 export class DiagnosticsFeature extends Feature {
   readonly id = DiagnosticsFeature.id;
@@ -51,47 +56,128 @@ export class DiagnosticsFeature extends Feature {
         }
       }
     }
-  }
+  };
   protected settings: FeatureSettings<LSPDiagnosticsSettings>;
   protected console = new BrowserConsole().scope('Diagnostics');
 
   constructor(options: DiagnosticsFeature.IOptions) {
     super(options);
-    this.settings = new FeatureSettings(options.settingRegistry, this.id);
+    this.settings = options.settings;
 
     options.connectionManager.connected.connect((manager, connectionData) => {
-
       const { connection, virtualDocument } = connectionData;
+      const adapter = manager.adapters.get(virtualDocument.path)!;
       // TODO: unregister
-      connection.serverNotifications[
-        'textDocument/publishDiagnostics'
-      ].connect((connection: ILSPConnection, diagnostics) => {
-        this.handleDiagnostic(diagnostics, virtualDocument);
-      });
-      virtualDocument.foreignDocumentClosed.connect(
-      (document, context) => {
+      connection.serverNotifications['textDocument/publishDiagnostics'].connect(
+        (connection: ILSPConnection, diagnostics) => {
+          this.handleDiagnostic(diagnostics, virtualDocument, adapter);
+        }
+      );
+      virtualDocument.foreignDocumentClosed.connect((document, context) => {
         // TODO: check if we need to cast
-        this.clearDocumentDiagnostics(context.foreignDocument);
-      }
-    );
+        this.clearDocumentDiagnostics(adapter, context.foreignDocument);
+      });
     });
-    this.unique_editor_ids = new DefaultMap(() => this.unique_editor_ids.size);
+
+    //this.unique_editor_ids = new DefaultMap(() => this.unique_editor_ids.size);
     this.settings.changed.connect(this.refreshDiagnostics, this);
-    //const trans = translator.load('jupyterlab_lsp');
+    this._trans = options.trans;
 
-    // TODO below
-    this.wrapper_handlers.set('focusin', this.switchDiagnosticsPanelSource);
-    this.adapter.adapterConnected.connect(() =>
-      this.switchDiagnosticsPanelSource()
-    );
+    const connectionManager = options.connectionManager;
+    // https://github.com/jupyterlab/jupyterlab/issues/14783
+    options.shell.currentChanged.connect(shell => {
+      if (shell.currentWidget) {
+        const x = shell.currentWidget as IDocumentWidget;
+        if (x.context) {
+          console.log(
+            x.context.path,
+            connectionManager.adapters.get(x.context.path)
+          );
+        }
+      }
+      const adapter = [...connectionManager.adapters.values()].find(
+        adapter => adapter.widget == shell.currentWidget
+      );
+
+      if (!adapter) {
+        this.console.debug('No adapter');
+      } else {
+        this.switchDiagnosticsPanelSource(adapter);
+      }
+    });
+
+    options.editorExtensionRegistry.addExtension({
+      name: 'lsp:diagnostics',
+      factory: options => {
+        const source = (view: EditorView) => {
+          let diagnostics: Diagnostic[] = [];
+
+          const adapter = [...connectionManager.adapters.values()].find(
+            adapter => adapter.widget.node.contains(view.contentDOM) // this is going to be problematic with the windowed notebook. Another solution is needed.
+          );
+          // const adapter = connectionManager.adapterByModel.get(options.model)!;
+
+          if (!adapter) {
+            this.console.debug(
+              'No adapter found for editor by model. Maybe not registered yet?'
+            );
+            return [];
+          }
+          const database = this.getDiagnosticsDB(adapter);
+
+          for (const [_, editorDiagnostics] of database.entries()) {
+            for (const editorDiagnostic of editorDiagnostics) {
+              if (editorDiagnostic.editor.editor !== view) {
+                continue;
+              }
+              const diagnostic = editorDiagnostic.diagnostic;
+              const severity = SeverityMap[diagnostic.severity!];
+
+              const from = editorDiagnostic.editor.getOffsetAt(
+                PositionConverter.cm_to_ce(editorDiagnostic.range.start)
+              );
+              const to = editorDiagnostic.editor.getOffsetAt(
+                PositionConverter.cm_to_ce(editorDiagnostic.range.end)
+              );
+
+              //for (const tag of new Set(tags)) {
+              //  classNames.push('cm-lsp-diagnostic-tag-' + DiagnosticTag[tag]);
+              //}
+              //diagnostic.
+              diagnostics.push({
+                from,
+                to,
+                // TODO: how to support "hint"?
+                severity: severity as any,
+                message: diagnostic.message,
+                source: diagnostic.source
+                // TODO: support tags
+                // TODO: actions
+              });
+            }
+          }
+          return diagnostics;
+        };
+
+        // TODO: adjust config?
+        const lspLinter = linter(source, { delay: 500 });
+
+        return EditorExtensionRegistry.createImmutableExtension([lspLinter]);
+      }
+    });
+
+    //this.connectionManager.adapterRegistered.connect((adapter) =>
+    //  this.switchDiagnosticsPanelSource(adapter)
+    //);
   }
 
-  clearDocumentDiagnostics(document: VirtualDocument) {
-    this.diagnostics_db.set(document, []);
+  clearDocumentDiagnostics(
+    adapter: WidgetLSPAdapter<any>,
+    document: VirtualDocument
+  ) {
+    this.getDiagnosticsDB(adapter).set(document, []);
   }
 
-  private unique_editor_ids: DefaultMap<CodeMirror.Editor, number>;
-  private marked_diagnostics: Map<string, IMarkedDiagnostic> = new Map();
   /**
    * Allows access to the most recent diagnostics in context of the editor.
    *
@@ -101,24 +187,22 @@ export class DiagnosticsFeature extends Feature {
    *
    * Maps virtualDocument.uri to IEditorDiagnostic[].
    */
-  public get diagnostics_db(): DiagnosticsDatabase {
+  public getDiagnosticsDB(adapter: WidgetLSPAdapter<any>): DiagnosticsDatabase {
     // Note that virtual_editor can change at runtime (kernel restart)
-    if (!diagnostics_databases.has(this.virtual_editor)) {
-      diagnostics_databases.set(this.virtual_editor, new DiagnosticsDatabase());
+    if (!diagnosticsDatabases.has(adapter)) {
+      diagnosticsDatabases.set(adapter, new DiagnosticsDatabase());
     }
-    return diagnostics_databases.get(this.virtual_editor)!;
+    return diagnosticsDatabases.get(adapter)!;
   }
 
-  switchDiagnosticsPanelSource = () => {
-    diagnosticsPanel.trans = this.adapter.trans;
-    if (
-      diagnosticsPanel.content.model.virtual_editor === this.virtual_editor &&
-      diagnosticsPanel.content.model.diagnostics == this.diagnostics_db
-    ) {
+  switchDiagnosticsPanelSource = (adapter: WidgetLSPAdapter<any>) => {
+    diagnosticsPanel.trans = this._trans;
+    const diagnostics = this.getDiagnosticsDB(adapter);
+    if (diagnosticsPanel.content.model.diagnostics == diagnostics) {
       return;
     }
-    diagnosticsPanel.content.model.diagnostics = this.diagnostics_db;
-    diagnosticsPanel.content.model.adapter = this.adapter;
+    diagnosticsPanel.content.model.diagnostics = diagnostics;
+    diagnosticsPanel.content.model.adapter = adapter;
     diagnosticsPanel.content.model.settings = this.settings;
     diagnosticsPanel.feature = this;
     diagnosticsPanel.update();
@@ -222,11 +306,12 @@ export class DiagnosticsFeature extends Feature {
     });
   }
 
-  setDiagnostics(response: lsProtocol.PublishDiagnosticsParams, document: VirtualDocument) {
+  setDiagnostics(
+    response: lsProtocol.PublishDiagnosticsParams,
+    document: VirtualDocument,
+    adapter: WidgetLSPAdapter<any>
+  ) {
     let diagnostics_list: IEditorDiagnostic[] = [];
-
-    // Note: no deep equal for Sets or Maps in JS
-    const markers_to_retain: Set<string> = new Set();
 
     // add new markers, keep track of the added ones
 
@@ -236,11 +321,6 @@ export class DiagnosticsFeature extends Feature {
       this.filterDiagnostics(response.diagnostics)
     );
 
-    const markerOptionsByEditor = new Map<
-      CodeMirror.Editor,
-      IMarkerDefinition[]
-    >();
-
     diagnostics_by_range.forEach(
       (diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
         const start = PositionConverter.lsp_to_cm(
@@ -248,8 +328,7 @@ export class DiagnosticsFeature extends Feature {
         ) as IVirtualPosition;
         const end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
         const last_line_number =
-          document.lastVirtualLine -
-          document.blankLinesBetweenCells;
+          document.lastVirtualLine - document.blankLinesBetweenCells;
         if (start.line > last_line_number) {
           this.console.log(
             `Out of range diagnostic (${start.line} line > ${last_line_number}) was skipped `,
@@ -267,39 +346,6 @@ export class DiagnosticsFeature extends Feature {
           }
         }
 
-        /*
-        let document: VirtualDocument;
-        try {
-          // assuming that we got a response for this document
-          let start_in_root =
-            this.transform_virtual_position_to_root_position(start);
-          document =
-            this.virtual_editor.document_at_root_position(start_in_root);
-        } catch (e) {
-          this.console.warn(
-            `Could not place inspections from ${response.uri}`,
-            ` inspections: `,
-            diagnostics,
-            'error: ',
-            e
-          );
-          return;
-        }
-
-        // This may happen if the response came delayed
-        // and the user already changed the document so
-        // that now this regions is in another virtual document!
-        if (this.virtualDocument !== document) {
-          this.console.log(
-            `Ignoring inspections from ${response.uri}`,
-            ` (this region is covered by a another virtual document: ${document.uri})`,
-            ` inspections: `,
-            diagnostics
-          );
-          return;
-        }
-        */
-
         if (
           // @ts-ignore TODO
           document.virtualLines
@@ -313,14 +359,13 @@ export class DiagnosticsFeature extends Feature {
           return;
         }
 
-        let ceEditor = document.getEditorAtVirtualLine(start);
-        let cm_editor =
-          this.virtual_editor.ceEditor_to_cm_editor.get(ceEditor)!;
+        let editorAccessor = document.getEditorAtVirtualLine(start);
+        let editor = editorAccessor.getEditor()!;
 
-        let start_in_editor = document.transformVirtualToEditor(start);
-        let end_in_editor: IEditorPosition | null;
+        let startInEditor = document.transformVirtualToEditor(start);
+        let endInEditor: IEditorPosition | null;
 
-        if (start_in_editor === null) {
+        if (startInEditor === null) {
           this.console.warn(
             'Start in editor could not be be determined for',
             diagnostics
@@ -330,13 +375,13 @@ export class DiagnosticsFeature extends Feature {
 
         // some servers return strange positions for ends
         try {
-          end_in_editor = document.transformVirtualToEditor(end);
+          endInEditor = document.transformVirtualToEditor(end);
         } catch (err) {
           this.console.warn('Malformed range for diagnostic', end);
-          end_in_editor = { ...start_in_editor, ch: start_in_editor.ch + 1 };
+          endInEditor = { ...startInEditor, ch: startInEditor.ch + 1 };
         }
 
-        if (end_in_editor === null) {
+        if (endInEditor === null) {
           this.console.warn(
             'End in editor could not be be determined for',
             diagnostics
@@ -345,143 +390,27 @@ export class DiagnosticsFeature extends Feature {
         }
 
         let range_in_editor = {
-          start: start_in_editor,
-          end: end_in_editor
+          start: startInEditor,
+          end: endInEditor
         };
-        // what a pity there is no hash in the standard library...
-        // we could use this: https://stackoverflow.com/a/7616484 though it may not be worth it:
-        //   the stringified diagnostic objects are only about 100-200 JS characters anyway,
-        //   depending on the message length; this could be reduced using some structure-aware
-        //   stringifier; such a stringifier could also prevent the possibility of having a false
-        //   negative due to a different ordering of keys
-        // obviously, the hash would prevent recovery of info from the key.
-        let diagnostic_hash = JSON.stringify({
-          // diagnostics without ranges
-          diagnostics: diagnostics.map(diagnostic => [
-            diagnostic.severity,
-            diagnostic.message,
-            diagnostic.code,
-            diagnostic.source,
-            diagnostic.relatedInformation
-          ]),
-          // the apparent marker position will change in the notebook with every line change for each marker
-          // after the (inserted/removed) line - but such markers should not be invalidated,
-          // i.e. the invalidation should be performed in the cell space, not in the notebook coordinate space,
-          // thus we transform the coordinates and keep the cell id in the hash
-          range: range_in_editor,
-          editor: this.unique_editor_ids.get(cm_editor)
-        });
         for (let diagnostic of diagnostics) {
           diagnostics_list.push({
             diagnostic,
-            editor: cm_editor,
+            editor: editor as CodeMirrorEditor,
             range: range_in_editor
-          });
-        }
-
-        markers_to_retain.add(diagnostic_hash);
-
-        if (!this.marked_diagnostics.has(diagnostic_hash)) {
-          const highestSeverityCode = diagnostics
-            .map(diagnostic => diagnostic.severity || this.defaultSeverity)
-            .sort()[0];
-
-          const severity = DiagnosticSeverity[highestSeverityCode];
-
-          const classNames = [
-            'cm-lsp-diagnostic',
-            'cm-lsp-diagnostic-' + severity
-          ];
-
-          const tags: lsProtocol.DiagnosticTag[] = [];
-          for (let diagnostic of diagnostics) {
-            if (diagnostic.tags) {
-              tags.push(...diagnostic.tags);
-            }
-          }
-          for (const tag of new Set(tags)) {
-            classNames.push('cm-lsp-diagnostic-tag-' + DiagnosticTag[tag]);
-          }
-          let options: CodeMirror.TextMarkerOptions = {
-            title: diagnostics
-              .map(d => d.message + (d.source ? ' (' + d.source + ')' : ''))
-              .join('\n'),
-            className: classNames.join(' ')
-          };
-
-          let optionsList = markerOptionsByEditor.get(cm_editor);
-          if (!optionsList) {
-            optionsList = [];
-            markerOptionsByEditor.set(cm_editor, optionsList);
-          }
-          optionsList.push({
-            options,
-            start: start_in_editor,
-            end: end_in_editor,
-            hash: diagnostic_hash
           });
         }
       }
     );
 
-    for (const [
-      cmEditor,
-      markerDefinitions
-    ] of markerOptionsByEditor.entries()) {
-      // note: could possibly be wrapped in `requestAnimationFrame()`
-      // at a risk of sometimes having an inconsistent state in database.
-      // note: using `operation()` significantly improves performance.
-      // test cases:
-      //   - one cell with 1000 `math.pi` and `import math`; comment out import,
-      //     wait for 1000 diagnostics, then uncomment import, wait for removal:
-      //     - before:
-      //        - diagnostics show up in: 13.6s (blocking!)
-      //        - diagnostics removal in: 13.2s (blocking!)
-      //     - after:
-      //        - diagnostics show up in: 254ms
-      //        - diagnostics removal in: 160.4ms
-      //   - first open of a notebook with 10 cells, each with 88 diagnostics:
-      //     - before: 2.75s (each time)
-      //     - after 208.75ms (order of magnitude faster!)
-      //   - first open of a notebook with 100 cells, each with 1 diagnostic
-      //       this scenario is expected to have no gain (measures overhead)
-      //     - before 280.34ms, 377ms, 399ms
-      //     - after 385.29ms, 301.97ms, 309.4ms
-      cmEditor.operation(() => {
-        const doc = cmEditor.getDoc();
-        for (const definition of markerDefinitions) {
-          let marker;
-          try {
-            marker = doc.markText(
-              definition.start,
-              definition.end,
-              definition.options
-            );
-          } catch (e) {
-            this.console.warn(
-              'Marking inspection (diagnostic text) failed:',
-              definition,
-              e
-            );
-            return;
-          }
-          this.marked_diagnostics.set(definition.hash, {
-            marker,
-            editor: cmEditor
-          });
-        }
-      });
-    }
-
-    // remove the markers which were not included in the new message
-    this.removeUnusedDiagnosticMarkers(markers_to_retain);
-
-    this.diagnostics_db.set(this.virtualDocument, diagnostics_list);
+    const diagnosticsDB = this.getDiagnosticsDB(adapter);
+    diagnosticsDB.set(document, diagnostics_list);
   }
 
   public handleDiagnostic = (
     response: lsProtocol.PublishDiagnosticsParams,
-    document: VirtualDocument
+    document: VirtualDocument,
+    adapter: WidgetLSPAdapter<any>
   ) => {
     // use optional chaining operator because the diagnostics message may come late (after the document was disposed)
     if (!uris_equal(response.uri, document?.documentInfo?.uri)) {
@@ -496,7 +425,8 @@ export class DiagnosticsFeature extends Feature {
     try {
       this._lastResponse = response;
       this._lastDocument = document;
-      this.setDiagnostics(response, document);
+      this._lastAdapter = adapter;
+      this.setDiagnostics(response, document, adapter);
       diagnosticsPanel.update();
     } catch (e) {
       this.console.warn(e);
@@ -505,11 +435,16 @@ export class DiagnosticsFeature extends Feature {
 
   public refreshDiagnostics() {
     if (this._lastResponse) {
-      this.setDiagnostics(this._lastResponse, this._lastDocument);
+      this.setDiagnostics(
+        this._lastResponse,
+        this._lastDocument,
+        this._lastAdapter
+      );
     }
     diagnosticsPanel.update();
   }
 
+  /**
   protected removeUnusedDiagnosticMarkers(to_retain: Set<string>) {
     const toRemoveByEditor = new Map<
       CodeMirror.Editor,
@@ -543,12 +478,13 @@ export class DiagnosticsFeature extends Feature {
     }
   }
 
+  /**
   remove(): void {
     this.settings.changed.disconnect(this.refreshDiagnostics, this);
     // remove all markers
     this.removeUnusedDiagnosticMarkers(new Set());
     this.diagnostics_db.clear();
-    diagnostics_databases.delete(this.virtual_editor);
+    diagnosticsDatabases.delete(this.virtual_editor);
     this.unique_editor_ids.clear();
 
     if (
@@ -561,15 +497,20 @@ export class DiagnosticsFeature extends Feature {
 
     diagnosticsPanel.update();
   }
+  */
 
   private _lastResponse: lsProtocol.PublishDiagnosticsParams;
   private _lastDocument: VirtualDocument;
+  private _lastAdapter: WidgetLSPAdapter<any>;
+  private _trans: TranslationBundle;
 }
-
 
 export namespace DiagnosticsFeature {
   export interface IOptions extends Feature.IOptions {
-    settingRegistry: ISettingRegistry;
+    settings: FeatureSettings<LSPDiagnosticsSettings>;
+    shell: ILabShell | INotebookShell;
+    trans: TranslationBundle;
+    editorExtensionRegistry: IEditorExtensionRegistry;
   }
   export const id = PLUGIN_ID + ':diagnostics';
 }

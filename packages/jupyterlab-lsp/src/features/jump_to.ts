@@ -2,7 +2,6 @@ import { LabIcon } from '@jupyterlab/ui-components';
 
 import jumpToSvg from '../../style/icons/jump-to.svg';
 
-
 export const jumpToIcon = new LabIcon({
   name: 'lsp:jump-to',
   svgstr: jumpToSvg

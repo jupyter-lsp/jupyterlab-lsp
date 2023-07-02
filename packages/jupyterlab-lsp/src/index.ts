@@ -16,7 +16,11 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { ILSPDocumentConnectionManager, DocumentConnectionManager, ILanguageServerManager } from '@jupyterlab/lsp';
+import {
+  ILSPDocumentConnectionManager,
+  DocumentConnectionManager,
+  ILanguageServerManager
+} from '@jupyterlab/lsp';
 
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
@@ -32,12 +36,12 @@ import { NOTEBOOK_ADAPTER_PLUGIN } from './adapters/notebook';
 import { StatusButtonExtension } from './components/statusbar';
 import { COMPLETION_PLUGIN } from './features/completion';
 import { DIAGNOSTICS_PLUGIN } from './features/diagnostics';
-import { HIGHLIGHTS_PLUGIN } from './features/highlights';
+//import { HIGHLIGHTS_PLUGIN } from './features/highlights';
 import { HOVER_PLUGIN } from './features/hover';
-import { JUMP_PLUGIN } from './features/jump_to';
+//import { JUMP_PLUGIN } from './features/jump_to';
 import { RENAME_PLUGIN } from './features/rename';
 import { SIGNATURE_PLUGIN } from './features/signature';
-import { SYNTAX_HIGHLIGHTING_PLUGIN } from './features/syntax_highlighting';
+//import { SYNTAX_HIGHLIGHTING_PLUGIN } from './features/syntax_highlighting';
 
 import { CODE_OVERRIDES_MANAGER } from './overrides';
 import { SettingsUIManager, SettingsSchemaManager } from './settings';
@@ -48,7 +52,7 @@ import {
 } from './tokens';
 import { DEFAULT_TRANSCLUSIONS } from './transclusions/defaults';
 import { LOG_CONSOLE } from './virtual/console';
-
+import { CONNECTION_MANAGER_PROVIDER } from './connection_manager';
 
 export class LSPExtension {
   get connection_manager(): ILSPDocumentConnectionManager {
@@ -59,12 +63,10 @@ export class LSPExtension {
   private _settingsSchemaManager: SettingsSchemaManager;
 
   private _isAnyActive(): boolean {
-    const adapters = [...this._connection_manager.adapters.values()]
+    const adapters = [...this._connection_manager.adapters.values()];
     return (
       this.app.shell.currentWidget !== null &&
-      adapters.some(adapter =>
-          adapter.widget == this.app.shell.currentWidget
-      )
+      adapters.some(adapter => adapter.widget == this.app.shell.currentWidget)
     );
   }
 
@@ -116,12 +118,9 @@ export class LSPExtension {
         schemaValidated: this._settingsSchemaManager.schemaValidated
       });
       // register custom UI field for `language_servers` property
-      formRegistry.addRenderer(
-        `${PLUGIN_ID}.language_servers`,
-        {
-          fieldRenderer: settingsUI.renderForm.bind(settingsUI)
-        }
-      );
+      formRegistry.addRenderer(`${PLUGIN_ID}.language_servers`, {
+        fieldRenderer: settingsUI.renderForm.bind(settingsUI)
+      });
     }
 
     this._settingsSchemaManager
@@ -203,20 +202,19 @@ const plugin: JupyterFrontEndPlugin<void> = {
   autoStart: true
 };
 
-
 const default_features: JupyterFrontEndPlugin<void>[] = [
-  JUMP_PLUGIN,
+  //JUMP_PLUGIN,
   COMPLETION_PLUGIN,
   SIGNATURE_PLUGIN,
   HOVER_PLUGIN,
   RENAME_PLUGIN,
-  HIGHLIGHTS_PLUGIN,
-  DIAGNOSTICS_PLUGIN,
-  SYNTAX_HIGHLIGHTING_PLUGIN
+  //HIGHLIGHTS_PLUGIN,
+  DIAGNOSTICS_PLUGIN
+  //SYNTAX_HIGHLIGHTING_PLUGIN
 ];
-
 const plugins: JupyterFrontEndPlugin<any>[] = [
   LOG_CONSOLE,
+  CONNECTION_MANAGER_PROVIDER,
   COMPLETION_THEME_MANAGER,
   THEME_VSCODE,
   THEME_MATERIAL,

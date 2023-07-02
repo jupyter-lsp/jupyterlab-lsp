@@ -94,7 +94,8 @@ export class LanguageServerSettings extends React.Component<
 
     const validationErrors = this.props.validationErrors.map(error => (
       <li key={'lsp-validation-error-' + error.instancePath}>
-        <b>{error.keyword}</b>: {error.message} in <code>{error.instancePath}</code>
+        <b>{error.keyword}</b>: {error.message} in{' '}
+        <code>{error.instancePath}</code>
         {error.params && 'allowedValues' in error.params
           ? this.props.trans.__(
               'allowed values: %1',
@@ -107,7 +108,7 @@ export class LanguageServerSettings extends React.Component<
       FieldTemplate: (this.props.registry as any).FieldTemplate,
       ArrayFieldTemplate: (this.props.registry as any).ArrayFieldTemplate,
       ObjectFieldTemplate: this._objectTemplate
-    }
+    };
     return (
       <div className="lsp-ServerSettings">
         <h3 className="lsp-ServerSettings-title">
@@ -248,9 +249,13 @@ const TabbedObjectTemplateFactory = (options: {
             })}
           </div>
           <div className={'lsp-ServerSettings-content'}>
-            {(manager as LanguageServerManager).specs.has(tab as TLanguageServerId)
+            {(manager as LanguageServerManager).specs.has(
+              tab as TLanguageServerId
+            )
               ? renderServerMetadata(
-                  (manager as LanguageServerManager).specs.get(tab as TLanguageServerId)!
+                  (manager as LanguageServerManager).specs.get(
+                    tab as TLanguageServerId
+                  )!
                 )
               : null}
             {props.properties

@@ -11,14 +11,14 @@ import {
   IAdapterOptions as IUpstreamIAdapterOptions,
   ILSPCodeExtractorsManager,
   ILSPFeatureManager,
-  ILSPDocumentConnectionManager } from '@jupyterlab/lsp';
+  ILSPDocumentConnectionManager
+} from '@jupyterlab/lsp';
 
 import { ILSPCodeOverridesManager } from '../overrides/tokens';
 import { VirtualDocument } from '../virtual/document';
 
-
 interface IAdapterOptions extends IUpstreamIAdapterOptions {
-  codeOverridesManager: ILSPCodeOverridesManager
+  codeOverridesManager: ILSPCodeOverridesManager;
 }
 
 class NotebookAdapter extends UpstreamNotebookAdapter {

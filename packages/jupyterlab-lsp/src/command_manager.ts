@@ -1,13 +1,21 @@
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 
-import { ILSPConnection, WidgetLSPAdapter, ILSPDocumentConnectionManager, IEditorPosition } from '@jupyterlab/lsp';
+import {
+  ILSPConnection,
+  WidgetLSPAdapter,
+  ILSPDocumentConnectionManager,
+  IEditorPosition
+} from '@jupyterlab/lsp';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IRootPosition, IVirtualPosition } from '@jupyterlab/lsp';
 import { VirtualDocument } from './virtual/document';
 import { BrowserConsole } from './virtual/console';
-import { PositionConverter, documentAtRootPosition, rootPositionToVirtualPosition } from './converter';
-
+import {
+  PositionConverter,
+  documentAtRootPosition,
+  rootPositionToVirtualPosition
+} from './converter';
 
 // TODO: reconsider naming
 export class ContextAssembler {
@@ -38,7 +46,10 @@ export class ContextAssembler {
       try {
         context = this._contextFromActiveDocument();
       } catch (e) {
-        if (e instanceof Error && e.message === 'Source line not mapped to virtual position') {
+        if (
+          e instanceof Error &&
+          e.message === 'Source line not mapped to virtual position'
+        ) {
           this.console.log(
             'Could not get context from active document: it is expected when restoring workspace with open files'
           );
@@ -67,13 +78,12 @@ export class ContextAssembler {
   }
 
   private _contextFromActiveDocument(): ICommandContext | null {
-
-    const adapter = [...this.options.connectionManager.adapters.values()].find(adapter =>
-        adapter.widget == this.options.app.shell.currentWidget
+    const adapter = [...this.options.connectionManager.adapters.values()].find(
+      adapter => adapter.widget == this.options.app.shell.currentWidget
     );
 
     if (!adapter) {
-      this.console.debug('No adapter')
+      this.console.debug('No adapter');
       return null;
     }
 
@@ -86,8 +96,15 @@ export class ContextAssembler {
     let ce_cursor = editor.getCursorPosition();
     let cm_cursor = PositionConverter.ce_to_cm(ce_cursor) as IEditorPosition;
 
-    const virtualDocument = adapter.virtualDocument!;
-    const rootPosition = virtualDocument.transformFromEditorToRoot(adapter.activeEditor!, cm_cursor)!;
+    const virtualDocument = adapter.virtualDocument;
+    if (!virtualDocument) {
+      console.warn('Could not retrieve current context', virtualDocument);
+      return null;
+    }
+    const rootPosition = virtualDocument.transformFromEditorToRoot(
+      adapter.activeEditor!,
+      cm_cursor
+    )!;
 
     if (rootPosition == null) {
       console.warn('Could not retrieve current context', virtualDocument);
@@ -97,10 +114,18 @@ export class ContextAssembler {
     return this._contextFromRoot(adapter, rootPosition);
   }
 
-  private _contextFromRoot(adapter: WidgetLSPAdapter<any>, rootPosition: IRootPosition): ICommandContext | null {
+  private _contextFromRoot(
+    adapter: WidgetLSPAdapter<any>,
+    rootPosition: IRootPosition
+  ): ICommandContext | null {
     const document = documentAtRootPosition(adapter, rootPosition);
-    const connection = this.options.connectionManager.connections.get(document.uri)!;
-    const virtualPosition = rootPositionToVirtualPosition(adapter, rootPosition);
+    const connection = this.options.connectionManager.connections.get(
+      document.uri
+    )!;
+    const virtualPosition = rootPositionToVirtualPosition(
+      adapter,
+      rootPosition
+    );
     return {
       document: document as any,
       connection,
@@ -112,11 +137,15 @@ export class ContextAssembler {
 
   adapterFromNode(leafNode: HTMLElement): WidgetLSPAdapter<any> | undefined {
     return [...this.options.connectionManager.adapters.values()].find(adapter =>
-        adapter.widget.node.contains(leafNode!)
+      adapter.widget.node.contains(leafNode!)
     );
   }
 
-  positionFromCoordinates(left: number, top: number, adapter: WidgetLSPAdapter<any>): IRootPosition | null {
+  positionFromCoordinates(
+    left: number,
+    top: number,
+    adapter: WidgetLSPAdapter<any>
+  ): IRootPosition | null {
     const editor = adapter.activeEditor?.getEditor();
     if (!editor) {
       return null;
@@ -187,11 +216,9 @@ export class ContextAssembler {
 export namespace ContextAssembler {
   export interface IOptions {
     app: JupyterFrontEnd;
-    connectionManager: ILSPDocumentConnectionManager
+    connectionManager: ILSPDocumentConnectionManager;
   }
 }
-
-
 
 export interface ICommandContext {
   document: VirtualDocument;

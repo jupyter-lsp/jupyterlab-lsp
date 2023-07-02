@@ -11,7 +11,6 @@ import {
 import { DefaultMap, uris_equal } from './utils';
 import { VirtualDocument } from './virtual/document';
 
-
 export interface IEditOutcome {
   appliedChanges: number | null;
   modifiedCells: number;
@@ -22,7 +21,6 @@ export interface IEditOutcome {
 function offsetFromLsp(position: lsProtocol.Position, lines: string[]) {
   return offsetAtPosition(PositionConverter.lsp_to_ce(position), lines);
 }
-
 
 function toDocumentChanges(changes: {
   [uri: string]: lsProtocol.TextEdit[];
@@ -38,7 +36,10 @@ function toDocumentChanges(changes: {
 }
 
 export class EditApplicator {
-  constructor (protected virtualDocument: VirtualDocument, protected adapter: WidgetLSPAdapter<any>) {
+  constructor(
+    protected virtualDocument: VirtualDocument,
+    protected adapter: WidgetLSPAdapter<any>
+  ) {
     // no-op
   }
 
@@ -252,9 +253,7 @@ export class EditApplicator {
     let start_editor = document.getEditorAtVirtualLine(
       start as IVirtualPosition
     );
-    let end_editor = document.getEditorAtVirtualLine(
-      end as IVirtualPosition
-    );
+    let end_editor = document.getEditorAtVirtualLine(end as IVirtualPosition);
     if (start_editor !== end_editor) {
       let last_editor = start_editor;
       let fragment_start = start;

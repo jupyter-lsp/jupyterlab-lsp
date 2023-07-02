@@ -114,14 +114,10 @@ describe('collapseToDotted', () => {
 
 describe('escapeMarkdown', () => {
   it('escapes italics', () => {
-    expect(escapeMarkdown('pre *italic* post')).toBe(
-      'pre \\*italic\\* post'
-    );
+    expect(escapeMarkdown('pre *italic* post')).toBe('pre \\*italic\\* post');
   });
   it('escapes underscore italics', () => {
-    expect(escapeMarkdown('pre _italic_ post')).toBe(
-      'pre \\_italic\\_ post'
-    );
+    expect(escapeMarkdown('pre _italic_ post')).toBe('pre \\_italic\\_ post');
   });
   it('escapes escaped italics', () => {
     expect(escapeMarkdown('pre \\*non-italic\\* post')).toBe(

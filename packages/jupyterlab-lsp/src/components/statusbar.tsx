@@ -10,12 +10,7 @@ import {
 } from '@jupyterlab/apputils';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
-import {
-  GroupItem,
-  Popup,
-  TextItem,
-  showPopup
-} from '@jupyterlab/statusbar';
+import { GroupItem, Popup, TextItem, showPopup } from '@jupyterlab/statusbar';
 import { TranslationBundle } from '@jupyterlab/translation';
 import {
   LabIcon,
@@ -29,13 +24,16 @@ import React from 'react';
 
 import '../../style/statusbar.css';
 import * as SCHEMA from '../_schema';
-import { ILSPConnection, collectDocuments, ILSPDocumentConnectionManager, VirtualDocument, WidgetLSPAdapter, ILanguageServerManager } from '@jupyterlab/lsp';
-import { SERVER_EXTENSION_404 } from '../errors';
 import {
-  TSessionMap,
-  TLanguageServerId,
-  TSpecsMap
-} from '../tokens';
+  ILSPConnection,
+  collectDocuments,
+  ILSPDocumentConnectionManager,
+  VirtualDocument,
+  WidgetLSPAdapter,
+  ILanguageServerManager
+} from '@jupyterlab/lsp';
+import { SERVER_EXTENSION_404 } from '../errors';
+import { TSessionMap, TLanguageServerId, TSpecsMap } from '../tokens';
 
 import { codeCheckIcon, codeClockIcon, codeWarningIcon } from './icons';
 import { DocumentLocator, ServerLinksList } from './utils';
@@ -382,33 +380,16 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
  */
 export class LSPStatus extends VDomRenderer<LSPStatus.Model> {
   protected _popup: Popup | null = null;
-  private interactiveStateObserver: MutationObserver;
   private trans: TranslationBundle;
   /**
    * Construct a new VDomRenderer for the status item.
    */
-  constructor(
-    protected displayText: boolean = true,
-    trans: TranslationBundle
-  ) {
+  constructor(protected displayText: boolean = true, trans: TranslationBundle) {
     super(new LSPStatus.Model(trans));
     this.addClass('jp-mod-highlighted');
     this.addClass('lsp-statusbar-item');
     this.trans = trans;
     this.title.caption = this.trans.__('LSP status');
-  }
-
-  protected onAfterAttach(msg: any) {
-    super.onAfterAttach(msg);
-    this.interactiveStateObserver.observe(this.node, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-  }
-
-  protected onBeforeDetach(msg: any) {
-    super.onBeforeDetach(msg);
-    this.interactiveStateObserver.disconnect();
   }
 
   /**
@@ -568,9 +549,7 @@ export namespace LSPStatus {
     trans: TranslationBundle;
     private _connection_manager: ILSPDocumentConnectionManager;
 
-    constructor(
-      trans: TranslationBundle
-    ) {
+    constructor(trans: TranslationBundle) {
       super();
       this.trans = trans;
     }

@@ -1,15 +1,21 @@
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { Document, VirtualDocument, CodeExtractorsManager } from '@jupyterlab/lsp';
+import {
+  Document,
+  VirtualDocument,
+  CodeExtractorsManager
+} from '@jupyterlab/lsp';
 
 import { IForeignCodeExtractorsRegistry } from '../extractors/types';
 
-export function mockExtractorsManager(foreignCodeExtractors: IForeignCodeExtractorsRegistry): CodeExtractorsManager {
+export function mockExtractorsManager(
+  foreignCodeExtractors: IForeignCodeExtractorsRegistry
+): CodeExtractorsManager {
   const extractorManager = new CodeExtractorsManager();
-    for (const [language, list] of Object.entries(foreignCodeExtractors)) {
-      for (const extractor of list) {
-        extractorManager.register(extractor, language);
-      }
+  for (const [language, list] of Object.entries(foreignCodeExtractors)) {
+    for (const extractor of list) {
+      extractorManager.register(extractor, language);
     }
+  }
   return extractorManager;
 }
 

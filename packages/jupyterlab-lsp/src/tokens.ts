@@ -31,7 +31,6 @@ export type TLanguageServerConfigurations = Partial<
   Record<TServerKeys, LSPLanguageServerSettings>
 >;
 
-
 export interface ILogConsoleCore {
   debug(...args: any[]): void;
   log(...args: any[]): void;
@@ -44,7 +43,6 @@ export interface ILSPLogConsole extends ILogConsoleCore {
 }
 
 export const PLUGIN_ID = '@jupyter-lsp/jupyterlab-lsp';
-
 
 export const ILSPLogConsole = new Token<ILSPLogConsole>(
   PLUGIN_ID + ':ILSPLogConsole'

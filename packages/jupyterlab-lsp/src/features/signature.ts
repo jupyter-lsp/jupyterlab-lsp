@@ -2,9 +2,12 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { IEditorExtensionRegistry, EditorExtensionRegistry } from '@jupyterlab/codemirror';
+import {
+  IEditorExtensionRegistry,
+  EditorExtensionRegistry
+} from '@jupyterlab/codemirror';
 import { EditorView } from '@codemirror/view';
-import { ChangeSet, Text } from "@codemirror/state"
+import { ChangeSet, Text } from '@codemirror/state';
 import {
   IEditorPosition,
   IRootPosition,
@@ -20,8 +23,12 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { CodeSignature as LSPSignatureSettings } from '../_signature';
 import { EditorTooltipManager } from '../components/free_tooltip';
-import { PositionConverter, rootPositionToVirtualPosition, editorPositionToRootPosition } from '../converter';
-import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager'
+import {
+  PositionConverter,
+  rootPositionToVirtualPosition,
+  editorPositionToRootPosition
+} from '../converter';
+import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager';
 import { BrowserConsole } from '../virtual/console';
 import { FeatureSettings, Feature } from '../feature';
 import { ILogConsoleCore, PLUGIN_ID } from '../tokens';
@@ -162,16 +169,22 @@ export function signatureToMarkdown(
   return markdown;
 }
 
-
 function extractLastCharacter(changes: ChangeSet): string {
   // TODO test with pasting, maybe rewrite to retrieve based on cursor position.
   let last = '';
-  changes.iterChanges((fromA: number, toA: number, fromB: number, toB: number, inserted: Text) => {
-    last = inserted.sliceString(-1);
-  })
+  changes.iterChanges(
+    (
+      fromA: number,
+      toA: number,
+      fromB: number,
+      toB: number,
+      inserted: Text
+    ) => {
+      last = inserted.sliceString(-1);
+    }
+  );
   return last;
 }
-
 
 export class SignatureFeature extends Feature {
   readonly id = SignatureFeature.id;
@@ -184,7 +197,7 @@ export class SignatureFeature extends Feature {
         }
       }
     }
-  }
+  };
   tooltip: EditorTooltipManager;
 
   protected signatureCharacter: IRootPosition;
@@ -194,13 +207,13 @@ export class SignatureFeature extends Feature {
 
   constructor(options: SignatureFeature.IOptions) {
     super(options);
-    this.settings = new FeatureSettings(options.settingRegistry, this.id);
+    this.settings = options.settings;
     this.tooltip = new EditorTooltipManager(options.renderMimeRegistry);
     const connectionManager = options.connectionManager;
     options.editorExtensionRegistry.addExtension({
       name: 'lsp:codeSignature',
-      factory: (options) => {
-        const updateListener = EditorView.updateListener.of((viewUpdate) => {
+      factory: options => {
+        const updateListener = EditorView.updateListener.of(viewUpdate => {
           if (!viewUpdate.docChanged && !viewUpdate.selectionSet) {
             console.log('neither doc changed nor selection changed');
             return;
@@ -222,7 +235,7 @@ export class SignatureFeature extends Feature {
           const editorPosition = {
             line: position.line,
             ch: position.column
-          } as IEditorPosition
+          } as IEditorPosition;
 
           if (viewUpdate.selectionSet) {
             this.onCursorActivity(adapter, editorPosition);
@@ -236,12 +249,15 @@ export class SignatureFeature extends Feature {
             // TODO
             // this.onCursorActivity()
           },
-          blur: (event) => {
-            this.onBlur(event)
+          blur: event => {
+            this.onBlur(event);
           }
         });
 
-        return EditorExtensionRegistry.createImmutableExtension([updateListener, focusListener]);
+        return EditorExtensionRegistry.createImmutableExtension([
+          updateListener,
+          focusListener
+        ]);
       }
     });
   }
@@ -264,7 +280,10 @@ export class SignatureFeature extends Feature {
     }
   }
 
-  onCursorActivity(adapter: WidgetLSPAdapter<any>, newEditorPosition: IEditorPosition) {
+  onCursorActivity(
+    adapter: WidgetLSPAdapter<any>,
+    newEditorPosition: IEditorPosition
+  ) {
     if (!this.isSignatureShown()) {
       return;
     }
@@ -391,10 +410,13 @@ export class SignatureFeature extends Feature {
     // TODO: this might wrong connection!
     // we need to find the correct documentAtRootPosition
     const virtualDocument = adapter.virtualDocument!;
-    const connection = this.connectionManager.connections.get(virtualDocument.uri)!;
+    const connection = this.connectionManager.connections.get(
+      virtualDocument.uri
+    )!;
 
     // @ts-ignore
-    const signatureCharacters: string[] = connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters;
+    const signatureCharacters: string[] =
+      connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters;
 
     if (response === null) {
       // do not hide on undefined as it simply indicates that no new info is available
@@ -416,16 +438,25 @@ export class SignatureFeature extends Feature {
 
     // get_cursor_position
     // TODO: helper? this is wrong - it is editor position, not root position
-    const editorAccessor = adapter.activeEditor!
+    const editorAccessor = adapter.activeEditor!;
     const editor = editorAccessor.getEditor()!;
     const pos = editor.getCursorPosition();
-    const editorPosition = {ch: pos.column, line: pos.line} as IEditorPosition;
+    const editorPosition = {
+      ch: pos.column,
+      line: pos.line
+    } as IEditorPosition;
 
-      // TODO should I just shove it into Feature class and have an adapter getter in there?
-    const rootPosition = editorPositionToRootPosition(adapter, editorAccessor, editorPosition);
+    // TODO should I just shove it into Feature class and have an adapter getter in there?
+    const rootPosition = editorPositionToRootPosition(
+      adapter,
+      editorAccessor,
+      editorPosition
+    );
 
     if (!rootPosition) {
-      this.console.warn('Signature failed: could not map editor position to root position.');
+      this.console.warn(
+        'Signature failed: could not map editor position to root position.'
+      );
       this._removeTooltip();
       return;
     }
@@ -443,7 +474,7 @@ export class SignatureFeature extends Feature {
       return;
     }
 
-    const virtualPosition = rootPositionToVirtualPosition(adapter, rootPosition);
+    //const virtualPosition = rootPositionToVirtualPosition(adapter, rootPosition);
 
     //let editorAccessor = adapter.editors[adapter.getEditorIndexAt(virtualPosition)].ceEditor;
     //const editor = editorAccessor.getEditor();
@@ -487,9 +518,7 @@ export class SignatureFeature extends Feature {
       // const offset = cm_editor.getOffsetAt(PositionConverter.cm_to_ce(editorPosition));
       const subset = content.substring(0, offset);
       const lastTriggerCharacterOffset = Math.max(
-        ...signatureCharacters.map(character =>
-          subset.lastIndexOf(character)
-        )
+        ...signatureCharacters.map(character => subset.lastIndexOf(character))
       );
       if (lastTriggerCharacterOffset !== -1) {
         displayPosition = PositionConverter.ce_to_cm(
@@ -521,7 +550,11 @@ export class SignatureFeature extends Feature {
     return this.tooltip.isShown(TOOLTIP_ID);
   }
 
-  afterChange(change: ChangeSet, adapter: WidgetLSPAdapter<any>, editorPosition: IEditorPosition) {
+  afterChange(
+    change: ChangeSet,
+    adapter: WidgetLSPAdapter<any>,
+    editorPosition: IEditorPosition
+  ) {
     const lastCharacter = extractLastCharacter(change);
 
     const isSignatureShown = this.isSignatureShown();
@@ -537,15 +570,16 @@ export class SignatureFeature extends Feature {
 
     // TODO: use connection for virtual document from root position!
     const virtualDocument = adapter.virtualDocument!;
-    const connection = this.connectionManager.connections.get(virtualDocument.uri)!;
+    const connection = this.connectionManager.connections.get(
+      virtualDocument.uri
+    )!;
 
     // @ts-ignore TODO remove after upstream fixes are released
-    const signatureCharacters = connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters;
+    const signatureCharacters =
+      connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters;
 
     // only proceed if: trigger character was used or the signature is/was visible immediately before
-    if (
-      !(signatureCharacters.includes(lastCharacter) || isSignatureShown)
-    ) {
+    if (!(signatureCharacters.includes(lastCharacter) || isSignatureShown)) {
       return;
     }
 
@@ -561,7 +595,9 @@ export class SignatureFeature extends Feature {
   ) {
     // TODO: why would virtual document be missing?
     const virtualDocument = adapter.virtualDocument!;
-    const connection = this.connectionManager.connections.get(virtualDocument.uri)!;
+    const connection = this.connectionManager.connections.get(
+      virtualDocument.uri
+    )!;
 
     if (
       !(
@@ -574,11 +610,17 @@ export class SignatureFeature extends Feature {
     }
 
     // TODO: why missing
-    const rootPosition = virtualDocument.transformFromEditorToRoot(adapter.activeEditor!, newEditorPosition)!;
+    const rootPosition = virtualDocument.transformFromEditorToRoot(
+      adapter.activeEditor!,
+      newEditorPosition
+    )!;
 
     this.signatureCharacter = rootPosition;
 
-    const virtualPosition = rootPositionToVirtualPosition(adapter, rootPosition);
+    const virtualPosition = rootPositionToVirtualPosition(
+      adapter,
+      rootPosition
+    );
 
     return connection.clientRequests['textDocument/signatureHelp']
       .request({
@@ -598,13 +640,12 @@ export class SignatureFeature extends Feature {
 
 export namespace SignatureFeature {
   export interface IOptions extends Feature.IOptions {
-    settingRegistry: ISettingRegistry;
+    settings: FeatureSettings<LSPSignatureSettings>;
     renderMimeRegistry: IRenderMimeRegistry;
     editorExtensionRegistry: IEditorExtensionRegistry;
   }
   export const id = PLUGIN_ID + ':signature';
 }
-
 
 export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
   id: SignatureFeature.id,
@@ -616,7 +657,7 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
     ILSPDocumentConnectionManager
   ],
   autoStart: true,
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
@@ -624,8 +665,13 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
     editorExtensionRegistry: IEditorExtensionRegistry,
     connectionManager: ILSPDocumentConnectionManagerDownstream
   ) => {
-    const feature = new SignatureFeature({
+    const settings = new FeatureSettings<LSPSignatureSettings>(
       settingRegistry,
+      SignatureFeature.id
+    );
+    await settings.ready;
+    const feature = new SignatureFeature({
+      settings,
       connectionManager,
       renderMimeRegistry,
       editorExtensionRegistry

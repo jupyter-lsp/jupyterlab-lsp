@@ -4,7 +4,7 @@
 import { CompleterModel, CompletionHandler } from '@jupyterlab/completer';
 import { StringExt } from '@lumino/algorithm';
 
-import { LazyCompletionItem } from './item';
+import { CompletionItem } from './item';
 
 interface ICompletionMatch<T extends CompletionHandler.ICompletionItem> {
   /**
@@ -207,8 +207,8 @@ export namespace GenericCompleterModel {
   };
 }
 
-export class LSPCompleterModel extends GenericCompleterModel<LazyCompletionItem> {
-  protected getFilterText(item: LazyCompletionItem): string {
+export class LSPCompleterModel extends GenericCompleterModel<CompletionItem> {
+  protected getFilterText(item: CompletionItem): string {
     if (item.filterText) {
       return item.filterText;
     }
@@ -216,8 +216,8 @@ export class LSPCompleterModel extends GenericCompleterModel<LazyCompletionItem>
   }
 
   protected compareMatches(
-    a: ICompletionMatch<LazyCompletionItem>,
-    b: ICompletionMatch<LazyCompletionItem>
+    a: ICompletionMatch<CompletionItem>,
+    b: ICompletionMatch<CompletionItem>
   ): number {
     const delta = a.score - b.score;
     if (delta !== 0) {
