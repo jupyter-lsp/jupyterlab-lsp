@@ -2595,7 +2595,7 @@ __metadata:
 
 "@jupyter-lsp/code-jumpers@file:../code-jumpers::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
   version: 1.2.0
-  resolution: "@jupyter-lsp/code-jumpers@file:../code-jumpers#../code-jumpers::hash=f20c0f&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  resolution: "@jupyter-lsp/code-jumpers@file:../code-jumpers#../code-jumpers::hash=224d9a&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
   peerDependencies:
     "@jupyterlab/apputils": ^4.0.0
     "@jupyterlab/codeeditor": ^4.0.0
@@ -2606,7 +2606,7 @@ __metadata:
     "@jupyterlab/notebook": ^4.0.0
     "@jupyterlab/observables": ^5.0.0
     "@jupyterlab/translation": ^4.0.0
-  checksum: f0d2e0352a5341f539c2be4c86536bdd3a78e74b1c741f5f023fd47f20f7f7fba9ceea32cfad28d92e7cb4b4d27497f5a2410b691b2d5761a824a436205ccaea
+  checksum: 72d9357a1abf470b72bf390eaffbe0c4234ae9d8f32a38f0657ff6bba83a329d4165551502496fe8c20995a97ea6855f307d3d685a31353b8b9d2155332386ab
   languageName: node
   linkType: hard
 
@@ -2653,17 +2653,17 @@ __metadata:
 
 "@jupyter-lsp/completion-theme@file:../completion-theme::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
   version: 3.3.0
-  resolution: "@jupyter-lsp/completion-theme@file:../completion-theme#../completion-theme::hash=602b4a&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
-  checksum: 271045b4289d9006a15ed81e19fad3fc89220e538bd7b7b49c77efcbed8af0c48b1f664d13cba3d25d6f6d1c293692ecec952fc755593445fdf857e2b8976035
+  resolution: "@jupyter-lsp/completion-theme@file:../completion-theme#../completion-theme::hash=2f5fde&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  checksum: d1d98190cbbaeff78e1ecfddebdc2673e269c3dea444ff2745e5882a41695a5344e7888f36bf1f5ee1a33044a719eb071c79920a25ceb2e648aaf749d75c4298
   languageName: node
   linkType: hard
 
 "@jupyter-lsp/jupyterlab-lsp-example-extractor@file:../_example-extractor::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
   version: 0.0.0
-  resolution: "@jupyter-lsp/jupyterlab-lsp-example-extractor@file:../_example-extractor#../_example-extractor::hash=fa8dec&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  resolution: "@jupyter-lsp/jupyterlab-lsp-example-extractor@file:../_example-extractor#../_example-extractor::hash=8f3689&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
   dependencies:
     "@jupyter-lsp/jupyterlab-lsp": ^4.0.0-alpha.0
-  checksum: 3efeccad74ab860dd6ed7cbca12d9d7d686f14502b40e43655253c7f7d4125940e8a007493ca53e6a4cebd8869102f69770de6ad0f4b7aa6c340cd1100e58e84
+  checksum: 152c7a0e4418102ccbda07fd3dd1a53d9e9450ff5d89d858d4b418975e61849953de4a8519beac4ccc3f774610e39590ab423cf7ecb9144644c4ed289213838c
   languageName: node
   linkType: hard
 
@@ -2683,10 +2683,10 @@ __metadata:
 
 "@jupyter-lsp/jupyterlab-lsp-klingon-integration@file:../_klingon-integration::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
   version: 0.0.0
-  resolution: "@jupyter-lsp/jupyterlab-lsp-klingon-integration@file:../_klingon-integration#../_klingon-integration::hash=0c35be&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  resolution: "@jupyter-lsp/jupyterlab-lsp-klingon-integration@file:../_klingon-integration#../_klingon-integration::hash=7dd7cf&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
   dependencies:
     "@jupyterlab/application": ^4.0.0
-  checksum: 5d44963f1ace7a2f55e8fb3823a96d2f6182c17327ad2c6ec5410ef30d085cd00dc3cc930394f9e5a6fbc1422cbd099d953f6d90fc99b6978ed1c95873fdcadb
+  checksum: 032241abc4b4d95661eb5df7830dd885f52a3ee6cc21d05f7420b9c0da3070bbe4aca8c6103fa5d2646afc52784e556f09b11260849b29d5b0261fac50926af0
   languageName: node
   linkType: hard
 
@@ -2753,6 +2753,7 @@ __metadata:
     jest: ^29.2.0
     json-schema-to-typescript: ^8.0.0
     lodash.mergewith: ^4.6.1
+    npm-run-all: ^4.1.5
     prettier: ^2.6.0
     react: ^18.2.0
     rimraf: ^3.0.0
@@ -2785,7 +2786,7 @@ __metadata:
 
 "@jupyter-lsp/jupyterlab-lsp@file:../jupyterlab-lsp::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
   version: 4.2.0
-  resolution: "@jupyter-lsp/jupyterlab-lsp@file:../jupyterlab-lsp#../jupyterlab-lsp::hash=6616e8&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  resolution: "@jupyter-lsp/jupyterlab-lsp@file:../jupyterlab-lsp#../jupyterlab-lsp::hash=5b48fe&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
   dependencies:
     "@jupyter-lsp/code-jumpers": ~1.2.0
     "@jupyter-lsp/completion-theme": ~3.3.0
@@ -2815,16 +2816,16 @@ __metadata:
     "@lumino/algorithm": "*"
     "@lumino/widgets": ^2.0.0
     react: "*"
-  checksum: 71d1f4e6ffcbd4fc3d445c17e5228c8b98ad0af1bbd8573c092117741996f557c9bcb11250c64cc566eaeb7d8284873270502fd6b34587215f2d75cd9e6d9d11
+  checksum: d9a02f5e0626d6db5c0fbe2284b05a6f219a5729b8239f624cc29595c1c52252f1aecb27b8781837522ec5f1187057b651b4a69f2ad8fbb4b000a3cad98fc4cc
   languageName: node
   linkType: hard
 
 "@jupyter-lsp/theme-material@file:../theme-material::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
   version: 2.1.1
-  resolution: "@jupyter-lsp/theme-material@file:../theme-material#../theme-material::hash=580689&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  resolution: "@jupyter-lsp/theme-material@file:../theme-material#../theme-material::hash=1cabee&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
   dependencies:
     "@jupyter-lsp/completion-theme": ^3.0.0
-  checksum: 7367a177b7a5ab99428a78710a40971892660e80e5d27f132c701b8bb7c670027b9c83b680fe4e9bf341f885ea95d7e87061760cc02fb7b7ddb35131baecf19e
+  checksum: a9885df8539a6fa3ee974701281fe90c1d6b8bc2c26e87d24caf59c0b81136d05cd202b3fda4ae383681147836a915eb43fb4d6af8b8b86d5f0cb38c9717b59d
   languageName: node
   linkType: hard
 
@@ -2838,10 +2839,10 @@ __metadata:
 
 "@jupyter-lsp/theme-vscode@file:../theme-vscode::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
   version: 2.1.1
-  resolution: "@jupyter-lsp/theme-vscode@file:../theme-vscode#../theme-vscode::hash=c50fbf&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  resolution: "@jupyter-lsp/theme-vscode@file:../theme-vscode#../theme-vscode::hash=9505aa&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
   dependencies:
     "@jupyter-lsp/completion-theme": ^3.0.0
-  checksum: 263000f8649b7a67032f163377e252012196a9bba2656093f19fc8a176ccbd7d10763937794dd09a3134ff4e18c780477524b56bd41448b71aac979d766f42ac
+  checksum: 6f8e26a30a3b44dbe3444a979d2aa4d37790192025e40c80e5728c94286b976531e73f34fb3b267fc4528eeb30cd2907327fc3e1bc97a514ea7997da4affb90d
   languageName: node
   linkType: hard
 
