@@ -2,7 +2,6 @@ import { IGlobalPosition } from './positions';
 
 const DATABASE: Array<IGlobalPosition> = [];
 
-
 export class JumpHistory {
   store(position: IGlobalPosition) {
     DATABASE.push(position);
