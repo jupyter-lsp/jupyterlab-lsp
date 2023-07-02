@@ -1,9 +1,9 @@
 import { IDocumentWidget } from '@jupyterlab/docregistry';
+import { VirtualDocument, WidgetLSPAdapter } from '@jupyterlab/lsp';
 import { nullTranslator, TranslationBundle } from '@jupyterlab/translation';
 import React from 'react';
 
 import { TLanguageServerSpec } from '../tokens';
-import { VirtualDocument, WidgetLSPAdapter } from '@jupyterlab/lsp';
 
 export function getBreadcrumbs(
   document: VirtualDocument,

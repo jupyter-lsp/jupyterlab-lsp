@@ -1,4 +1,12 @@
-import * as lsProtocol from 'vscode-languageserver-protocol';
+import { linter, Diagnostic } from '@codemirror/lint';
+import { EditorView } from '@codemirror/view';
+import { INotebookShell } from '@jupyter-notebook/application';
+import { ILabShell } from '@jupyterlab/application';
+import {
+  CodeMirrorEditor,
+  IEditorExtensionRegistry,
+  EditorExtensionRegistry
+} from '@jupyterlab/codemirror';
 import {
   WidgetLSPAdapter,
   IEditorPosition,
@@ -6,25 +14,18 @@ import {
   ILSPConnection,
   VirtualDocument
 } from '@jupyterlab/lsp';
-import { linter, Diagnostic } from '@codemirror/lint';
-import { EditorView } from '@codemirror/view';
-import { BrowserConsole } from '../../virtual/console';
-import { PLUGIN_ID } from '../../tokens';
-import { FeatureSettings, Feature } from '../../feature';
-import { DiagnosticSeverity, DiagnosticTag } from '../../lsp';
+import { TranslationBundle } from '@jupyterlab/translation';
+import * as lsProtocol from 'vscode-languageserver-protocol';
+
 import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
 import { PositionConverter } from '../../converter';
+import { FeatureSettings, Feature } from '../../feature';
+import { DiagnosticSeverity, DiagnosticTag } from '../../lsp';
+import { PLUGIN_ID } from '../../tokens';
 import { uris_equal } from '../../utils';
+import { BrowserConsole } from '../../virtual/console';
+
 import { diagnosticsPanel } from './diagnostics';
-import { INotebookShell } from '@jupyter-notebook/application';
-import { ILabShell } from '@jupyterlab/application';
-import { IDocumentWidget } from '@jupyterlab/docregistry';
-import { TranslationBundle } from '@jupyterlab/translation';
-import {
-  CodeMirrorEditor,
-  IEditorExtensionRegistry,
-  EditorExtensionRegistry
-} from '@jupyterlab/codemirror';
 
 export const FEATURE_ID = PLUGIN_ID + ':diagnostics';
 
@@ -86,15 +87,6 @@ export class DiagnosticsFeature extends Feature {
     const connectionManager = options.connectionManager;
     // https://github.com/jupyterlab/jupyterlab/issues/14783
     options.shell.currentChanged.connect(shell => {
-      if (shell.currentWidget) {
-        const x = shell.currentWidget as IDocumentWidget;
-        if (x.context) {
-          console.log(
-            x.context.path,
-            connectionManager.adapters.get(x.context.path)
-          );
-        }
-      }
       const adapter = [...connectionManager.adapters.values()].find(
         adapter => adapter.widget == shell.currentWidget
       );
@@ -115,7 +107,6 @@ export class DiagnosticsFeature extends Feature {
           const adapter = [...connectionManager.adapters.values()].find(
             adapter => adapter.widget.node.contains(view.contentDOM) // this is going to be problematic with the windowed notebook. Another solution is needed.
           );
-          // const adapter = connectionManager.adapterByModel.get(options.model)!;
 
           if (!adapter) {
             this.console.debug(
@@ -136,6 +127,7 @@ export class DiagnosticsFeature extends Feature {
               const from = editorDiagnostic.editor.getOffsetAt(
                 PositionConverter.cm_to_ce(editorDiagnostic.range.start)
               );
+              // TODO: this is wrong; there is however an issue if this is not applied
               const to = editorDiagnostic.editor.getOffsetAt(
                 PositionConverter.cm_to_ce(editorDiagnostic.range.end)
               );

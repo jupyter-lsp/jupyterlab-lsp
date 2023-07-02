@@ -1,39 +1,15 @@
+import { StateField, StateEffect } from '@codemirror/state';
+import { EditorView, Decoration, DecorationSet } from '@codemirror/view';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { CodeMirrorEditor } from '@jupyterlab/codemirror';
-import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { LabIcon } from '@jupyterlab/ui-components';
-import { EditorView, Decoration, DecorationSet } from '@codemirror/view';
-import { StateField, StateEffect } from '@codemirror/state';
-import { Throttler } from '@lumino/polling';
 import {
+  CodeMirrorEditor,
   IEditorExtensionRegistry,
   EditorExtensionRegistry
 } from '@jupyterlab/codemirror';
-import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager';
-import type * as lsProtocol from 'vscode-languageserver-protocol';
-
-import { BrowserConsole } from '../virtual/console';
-
-import hoverSvg from '../../style/icons/hover.svg';
-import { CodeHover as LSPHoverSettings, ModifierKey } from '../_hover';
-import { EditorTooltipManager, FreeTooltip } from '../components/free_tooltip';
-import {
-  PositionConverter,
-  documentAtRootPosition,
-  rootPositionToVirtualPosition,
-  rootPositionToEditorPosition,
-  editorPositionToRootPosition,
-  editorAtRootPosition,
-  virtualPositionToRootPosition
-} from '../converter';
-import { ContextAssembler } from '../command_manager';
-import { IEditorRange } from '../editor_integration/codemirror';
-import { FeatureSettings, Feature } from '../feature';
 import {
   IRootPosition,
   IVirtualPosition,
@@ -45,8 +21,30 @@ import {
   VirtualDocument,
   Document
 } from '@jupyterlab/lsp';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { LabIcon } from '@jupyterlab/ui-components';
+import { Throttler } from '@lumino/polling';
+import type * as lsProtocol from 'vscode-languageserver-protocol';
+
+import hoverSvg from '../../style/icons/hover.svg';
+import { CodeHover as LSPHoverSettings, ModifierKey } from '../_hover';
+import { ContextAssembler } from '../command_manager';
+import { EditorTooltipManager, FreeTooltip } from '../components/free_tooltip';
+import {
+  PositionConverter,
+  documentAtRootPosition,
+  rootPositionToVirtualPosition,
+  rootPositionToEditorPosition,
+  editorPositionToRootPosition,
+  editorAtRootPosition,
+  virtualPositionToRootPosition
+} from '../converter';
+import { IEditorRange } from '../editor_integration/codemirror';
+import { FeatureSettings, Feature } from '../feature';
 import { PLUGIN_ID } from '../tokens';
 import { getModifierState } from '../utils';
+import { BrowserConsole } from '../virtual/console';
 
 export const hoverIcon = new LabIcon({
   name: 'lsp:hover',
@@ -245,8 +243,6 @@ export class HoverFeature extends Feature {
     options.editorExtensionRegistry.addExtension({
       name: 'lsp:hover',
       factory: options => {
-        const adapter = connectionManager.adapterByModel.get(options.model)!;
-
         const updateListener = EditorView.updateListener.of(viewUpdate => {
           if (viewUpdate.docChanged) {
             this.afterChange();
@@ -254,6 +250,17 @@ export class HoverFeature extends Feature {
         });
         const eventListeners = EditorView.domEventHandlers({
           mousemove: event => {
+            const adapter = [...connectionManager.adapters.values()].find(
+              adapter =>
+                adapter.widget.node.contains(
+                  event.currentTarget! as HTMLElement
+                )
+            );
+            if (!adapter) {
+              this.console.warn('Adapter not found');
+              return;
+            }
+
             // this is used to hide the tooltip on leaving cells in notebook
             this.updateUnderlineAndTooltip(event, adapter)
               ?.then(keep_tooltip => {
@@ -268,6 +275,16 @@ export class HoverFeature extends Feature {
           },
           // show hover after pressing the modifier key
           keydown: event => {
+            const adapter = [...connectionManager.adapters.values()].find(
+              adapter =>
+                adapter.widget.node.contains(
+                  event.currentTarget! as HTMLElement
+                )
+            );
+            if (!adapter) {
+              this.console.warn('Adapter not found');
+              return;
+            }
             this.onKeyDown(event, adapter);
           }
         });
@@ -822,7 +839,7 @@ export const HOVER_PLUGIN: JupyterFrontEndPlugin<void> = {
     settingRegistry: ISettingRegistry,
     renderMimeRegistry: IRenderMimeRegistry,
     editorExtensionRegistry: IEditorExtensionRegistry,
-    connectionManager: ILSPDocumentConnectionManagerDownstream
+    connectionManager: ILSPDocumentConnectionManager
   ) => {
     const contextAssembler = new ContextAssembler({ app, connectionManager });
     const settings = new FeatureSettings<LSPHoverSettings>(

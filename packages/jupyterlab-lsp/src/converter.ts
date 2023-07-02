@@ -1,3 +1,4 @@
+import { CodeEditor } from '@jupyterlab/codeeditor';
 import type {
   ISourcePosition,
   IVirtualPosition,
@@ -7,9 +8,9 @@ import type {
   WidgetLSPAdapter,
   Document
 } from '@jupyterlab/lsp';
-import type { VirtualDocument } from './virtual/document';
-import { CodeEditor } from '@jupyterlab/codeeditor';
 import type * as lsProtocol from 'vscode-languageserver-protocol';
+
+import type { VirtualDocument } from './virtual/document';
 
 export class PositionConverter {
   static lsp_to_cm(position: lsProtocol.Position): IPosition {

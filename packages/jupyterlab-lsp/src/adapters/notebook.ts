@@ -3,16 +3,16 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import {
-  NotebookAdapter as UpstreamNotebookAdapter,
-  INotebookTracker,
-  NotebookPanel
-} from '@jupyterlab/notebook';
-import {
   IAdapterOptions as IUpstreamIAdapterOptions,
   ILSPCodeExtractorsManager,
   ILSPFeatureManager,
   ILSPDocumentConnectionManager
 } from '@jupyterlab/lsp';
+import {
+  NotebookAdapter as UpstreamNotebookAdapter,
+  INotebookTracker,
+  NotebookPanel
+} from '@jupyterlab/notebook';
 
 import { ILSPCodeOverridesManager } from '../overrides/tokens';
 import { VirtualDocument } from '../virtual/document';

@@ -1,6 +1,3 @@
-import type * as lsProtocol from 'vscode-languageserver-protocol';
-
-import { PositionConverter } from './converter';
 import {
   IVirtualPosition,
   offsetAtPosition,
@@ -8,6 +5,9 @@ import {
   Document,
   IPosition
 } from '@jupyterlab/lsp';
+import type * as lsProtocol from 'vscode-languageserver-protocol';
+
+import { PositionConverter } from './converter';
 import { DefaultMap, uris_equal } from './utils';
 import { VirtualDocument } from './virtual/document';
 

@@ -3,22 +3,22 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { ICompletionProviderManager } from '@jupyterlab/completer';
 import {
   ILSPFeatureManager,
   ILSPDocumentConnectionManager
 } from '@jupyterlab/lsp';
-import { ICompletionProviderManager } from '@jupyterlab/completer';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import * as lsProtocol from 'vscode-languageserver-protocol';
 import { LabIcon } from '@jupyterlab/ui-components';
+import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import completionSvg from '../../../style/icons/completion.svg';
 import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
 import { FeatureSettings, Feature } from '../../feature';
-import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../../connection_manager';
 import { CompletionItemTag } from '../../lsp';
 import { PLUGIN_ID } from '../../tokens';
+
 import { CompletionProvider } from './provider';
 
 export const completionIcon = new LabIcon({
@@ -42,17 +42,45 @@ export class CompletionFeature extends Feature {
             valueSet: [CompletionItemTag.Deprecated]
           }
         },
-        contextSupport: false
+        contextSupport: true
       }
     }
   };
-  protected settings: FeatureSettings<LSPCompletionSettings>;
 
-  constructor(options: CompletionFeature.IOptions) {
+  constructor(protected options: CompletionFeature.IOptions) {
     super(options);
-    this.settings = options.settings;
+    this._configure();
+
+    options.settings.changed.connect(() => {
+      this._configure();
+    });
+
     const provider = new CompletionProvider({ ...options });
     options.completionProviderManager.registerProvider(provider);
+  }
+
+  private _configure() {
+    const settings = this.options.settings;
+    const completionThemeManager = this.options.iconsThemeManager;
+
+    /*
+    this._disabled = settings.composite.disable;
+    if (this._disabled) {
+      completer.removeClass(LSP_COMPLETER_CLASS);
+      completer.model = new CompleterModel();
+    } else {
+      completer.addClass(LSP_COMPLETER_CLASS);
+    }
+    */
+
+    if (!settings.composite.disable) {
+      document.body.dataset.lspCompleterLayout = settings.composite.layout;
+      completionThemeManager.set_theme(settings.composite.theme);
+      completionThemeManager.set_icons_overrides(settings.composite.typesMap);
+    } else {
+      completionThemeManager.set_theme(null);
+      delete document.body.dataset.lspCompleterLayout;
+    }
   }
 }
 
@@ -84,7 +112,7 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
     completionProviderManager: ICompletionProviderManager,
     iconsThemeManager: ILSPCompletionThemeManager,
     renderMimeRegistry: IRenderMimeRegistry,
-    connectionManager: ILSPDocumentConnectionManagerDownstream
+    connectionManager: ILSPDocumentConnectionManager
   ) => {
     const settings = new FeatureSettings<LSPCompletionSettings>(
       settingRegistry,

@@ -6,8 +6,8 @@ import {
   Document
 } from '@jupyterlab/lsp';
 
-import { foreignCodeExtractors } from '../transclusions/ipython-rpy2/extractors';
 import { mockExtractorsManager } from '../extractors/testutils';
+import { foreignCodeExtractors } from '../transclusions/ipython-rpy2/extractors';
 
 import { VirtualDocument } from './document';
 

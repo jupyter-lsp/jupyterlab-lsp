@@ -1,23 +1,23 @@
 import { VDomModel, VDomRenderer } from '@jupyterlab/apputils';
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
-import { TranslationBundle } from '@jupyterlab/translation';
-import { caretDownIcon, caretUpIcon } from '@jupyterlab/ui-components';
-import React, { ReactElement } from 'react';
-import * as lsProtocol from 'vscode-languageserver-protocol';
 import {
   VirtualDocument,
   IEditorPosition,
   WidgetLSPAdapter
 } from '@jupyterlab/lsp';
+import { TranslationBundle } from '@jupyterlab/translation';
+import { caretDownIcon, caretUpIcon } from '@jupyterlab/ui-components';
+import React, { ReactElement } from 'react';
+import * as lsProtocol from 'vscode-languageserver-protocol';
 
 // import {  } from '@codemirror/view';
 
 import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
 import { DocumentLocator } from '../../components/utils';
+import { PositionConverter } from '../../converter';
 import { FeatureSettings } from '../../feature';
 import { DiagnosticSeverity } from '../../lsp';
-import { PositionConverter } from '../../converter';
 
 import '../../../style/diagnostics_listing.css';
 

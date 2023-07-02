@@ -5,7 +5,7 @@ import type {
   IRootPosition,
   Document
 } from '@jupyterlab/lsp';
-import { VirtualDocument as VirtualDocumentBase } from '@jupyterlab/lsp/lib/virtual/document';
+import { VirtualDocument as VirtualDocumentBase } from '@jupyterlab/lsp';
 
 import { ReversibleOverridesMap } from '../overrides/maps';
 import { ICodeOverridesRegistry } from '../overrides/tokens';

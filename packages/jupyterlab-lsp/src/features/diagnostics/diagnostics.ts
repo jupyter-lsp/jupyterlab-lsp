@@ -7,13 +7,13 @@ import { Menu } from '@lumino/widgets';
 import diagnosticsSvg from '../../../style/icons/diagnostics.svg';
 import { jumpToIcon } from '../jump_to';
 
+import { DiagnosticsFeature } from './feature';
 import {
   DIAGNOSTICS_LISTING_CLASS,
   DiagnosticsDatabase,
   DiagnosticsListing,
   IDiagnosticsRow
 } from './listing';
-import { DiagnosticsFeature } from './feature';
 
 export const diagnosticsIcon = new LabIcon({
   name: 'lsp:diagnostics',

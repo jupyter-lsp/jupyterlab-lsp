@@ -1,21 +1,22 @@
 import { JupyterFrontEnd } from '@jupyterlab/application';
+import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
-
 import {
   ILSPConnection,
   WidgetLSPAdapter,
   ILSPDocumentConnectionManager,
-  IEditorPosition
+  IEditorPosition,
+  IRootPosition,
+  IVirtualPosition
 } from '@jupyterlab/lsp';
-import { CodeEditor } from '@jupyterlab/codeeditor';
-import { IRootPosition, IVirtualPosition } from '@jupyterlab/lsp';
-import { VirtualDocument } from './virtual/document';
-import { BrowserConsole } from './virtual/console';
+
 import {
   PositionConverter,
   documentAtRootPosition,
   rootPositionToVirtualPosition
 } from './converter';
+import { BrowserConsole } from './virtual/console';
+import { VirtualDocument } from './virtual/document';
 
 // TODO: reconsider naming
 export class ContextAssembler {

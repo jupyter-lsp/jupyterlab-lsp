@@ -4,9 +4,9 @@
 import { Completer } from '@jupyterlab/completer';
 import { IRenderMime } from '@jupyterlab/rendermime';
 import { Signal } from '@lumino/signaling';
-import { FeatureSettings } from '../../feature';
-import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
 
+import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
+import { FeatureSettings } from '../../feature';
 import { ILSPLogConsole } from '../../tokens';
 
 import { CompletionItem, IExtendedCompletionItem } from './item';
@@ -123,6 +123,7 @@ export class LSPCompletionRenderer
     item: CompletionItem,
     orderedTypes: string[]
   ): HTMLLIElement {
+    console.log('createCompletionItemNode');
     const li = super.createCompletionItemNode(item, orderedTypes);
 
     // make sure that an instance reference, and not an object copy is being used;

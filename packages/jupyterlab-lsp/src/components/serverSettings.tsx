@@ -1,9 +1,9 @@
+import { ILanguageServerManager, LanguageServerManager } from '@jupyterlab/lsp';
 import {
   ISettingRegistry,
   ISchemaValidator
 } from '@jupyterlab/settingregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
-import { ILanguageServerManager, LanguageServerManager } from '@jupyterlab/lsp';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import Form, { IChangeEvent } from '@rjsf/core';
 import { FieldProps, ObjectFieldTemplateProps } from '@rjsf/utils';

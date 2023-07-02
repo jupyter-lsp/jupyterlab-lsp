@@ -1,5 +1,6 @@
-import { RegExpForeignCodeExtractor } from '../../extractors/regexp';
 import { IForeignCodeExtractor } from '@jupyterlab/lsp';
+
+import { RegExpForeignCodeExtractor } from '../../extractors/regexp';
 
 interface IForeignCodeExtractorsRegistry {
   [host_language: string]: IForeignCodeExtractor[];

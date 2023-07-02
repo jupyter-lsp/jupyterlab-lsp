@@ -8,6 +8,11 @@ import {
   ICommandPalette
 } from '@jupyterlab/apputils';
 import {
+  ILSPFeatureManager,
+  ILSPDocumentConnectionManager,
+  WidgetLSPAdapter
+} from '@jupyterlab/lsp';
+import {
   ITranslator,
   nullTranslator,
   TranslationBundle
@@ -16,19 +21,12 @@ import { LabIcon } from '@jupyterlab/ui-components';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import renameSvg from '../../style/icons/rename.svg';
-import { Feature } from '../feature';
-import { PLUGIN_ID } from '../tokens';
-import {
-  ILSPFeatureManager,
-  ILSPDocumentConnectionManager,
-  WidgetLSPAdapter
-} from '@jupyterlab/lsp';
-import { BrowserConsole } from '../virtual/console';
 import { ContextAssembler } from '../command_manager';
 import { PositionConverter } from '../converter';
-
-import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager';
 import { EditApplicator, IEditOutcome } from '../edits';
+import { Feature } from '../feature';
+import { PLUGIN_ID } from '../tokens';
+import { BrowserConsole } from '../virtual/console';
 import { VirtualDocument } from '../virtual/document';
 
 export const renameIcon = new LabIcon({
@@ -206,7 +204,7 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
   activate: (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
-    connectionManager: ILSPDocumentConnectionManagerDownstream,
+    connectionManager: ILSPDocumentConnectionManager,
     palette: ICommandPalette,
     //diagnostics: ILSPDiagnostics,
     translator: ITranslator

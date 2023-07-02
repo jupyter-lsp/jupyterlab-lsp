@@ -1,26 +1,24 @@
+import { INotebookShell } from '@jupyter-notebook/application';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
   ILabShell
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { ITranslator, nullTranslator } from '@jupyterlab/translation';
+import { IEditorExtensionRegistry } from '@jupyterlab/codemirror';
 import {
   ILSPFeatureManager,
   ILSPDocumentConnectionManager
 } from '@jupyterlab/lsp';
-import { IEditorExtensionRegistry } from '@jupyterlab/codemirror';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 
-import { ContextAssembler } from '../../command_manager';
-import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../../connection_manager';
-import { DiagnosticsFeature } from './feature';
 import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
+import { ContextAssembler } from '../../command_manager';
 import { FeatureSettings } from '../../feature';
 
-import { INotebookShell } from '@jupyter-notebook/application';
-
 import { diagnosticsIcon, diagnosticsPanel } from './diagnostics';
+import { DiagnosticsFeature } from './feature';
 
 export namespace CommandIDs {
   export const showPanel = 'lsp:show-diagnostics-panel';
@@ -40,7 +38,7 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<void> = {
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
-    connectionManager: ILSPDocumentConnectionManagerDownstream,
+    connectionManager: ILSPDocumentConnectionManager,
     editorExtensionRegistry: IEditorExtensionRegistry,
     palette: ICommandPalette,
     translator: ITranslator

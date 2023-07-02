@@ -1,4 +1,4 @@
-import { IFeature } from '@jupyterlab/lsp';
+import { IFeature, ILSPDocumentConnectionManager } from '@jupyterlab/lsp';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
@@ -11,7 +11,6 @@ export interface IFeatureSettings<T> {
 
   set(setting: keyof T, value: any): void;
 }
-import { ILSPDocumentConnectionManager } from './connection_manager';
 
 export namespace Feature {
   export interface IOptions {

@@ -1,9 +1,7 @@
 import { CompletionHandler } from '@jupyterlab/completer';
+import { ILSPConnection } from '@jupyterlab/lsp';
 import { LabIcon } from '@jupyterlab/ui-components';
 import * as lsProtocol from 'vscode-languageserver-types';
-import { until_ready } from '../../utils';
-
-import { ILSPConnection } from '@jupyterlab/lsp';
 
 /**
  * To be upstreamed
@@ -53,7 +51,6 @@ export class CompletionItem implements IExtendedCompletionItem {
   private _detail: string | undefined;
   private _documentation: string | undefined;
   private _is_documentation_markdown: boolean;
-  private _requested_resolution: boolean;
   private _resolved: boolean;
   /**
    * Self-reference to make sure that the instance for will remain accessible
@@ -76,17 +73,18 @@ export class CompletionItem implements IExtendedCompletionItem {
 
   public source: ICompletionsSource;
 
+  icon: LabIcon;
   private match: lsProtocol.CompletionItem;
 
   constructor(protected options: CompletionItem.IOptions) {
     const match = options.match;
     this.label = match.label;
     this._setDocumentation(match.documentation);
-    this._requested_resolution = false;
     this._resolved = false;
     this._detail = match.detail;
     this.match = match;
     this.self = this;
+    this.icon = options.icon;
   }
 
   get type() {
@@ -148,10 +146,6 @@ export class CompletionItem implements IExtendedCompletionItem {
       return false;
     }
 
-    if (this._requested_resolution) {
-      return false;
-    }
-
     return this._supportsResolution();
   }
 
@@ -164,18 +158,13 @@ export class CompletionItem implements IExtendedCompletionItem {
    */
   public async resolve(): Promise<CompletionItem> {
     if (this._resolved) {
-      return Promise.resolve(this);
+      return this;
     }
     if (!this._supportsResolution()) {
-      return Promise.resolve(this);
-    }
-    if (this._requested_resolution) {
-      return until_ready(() => this._resolved, 100, 50).then(() => this);
+      return this;
     }
 
     const connection = this.options.connection;
-
-    this._requested_resolution = true;
 
     const resolvedCompletionItem = await connection.clientRequests[
       'completionItem/resolve'

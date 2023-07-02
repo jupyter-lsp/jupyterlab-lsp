@@ -16,13 +16,12 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import {
   ILSPDocumentConnectionManager,
   DocumentConnectionManager,
   ILanguageServerManager
 } from '@jupyterlab/lsp';
-
-import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStatusBar } from '@jupyterlab/statusbar';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
@@ -52,7 +51,6 @@ import {
 } from './tokens';
 import { DEFAULT_TRANSCLUSIONS } from './transclusions/defaults';
 import { LOG_CONSOLE } from './virtual/console';
-import { CONNECTION_MANAGER_PROVIDER } from './connection_manager';
 
 export class LSPExtension {
   get connection_manager(): ILSPDocumentConnectionManager {
@@ -214,7 +212,6 @@ const default_features: JupyterFrontEndPlugin<void>[] = [
 ];
 const plugins: JupyterFrontEndPlugin<any>[] = [
   LOG_CONSOLE,
-  CONNECTION_MANAGER_PROVIDER,
   COMPLETION_THEME_MANAGER,
   THEME_VSCODE,
   THEME_MATERIAL,

@@ -24,6 +24,7 @@ import React from 'react';
 
 import '../../style/statusbar.css';
 import * as SCHEMA from '../_schema';
+
 import {
   ILSPConnection,
   collectDocuments,
@@ -32,6 +33,7 @@ import {
   WidgetLSPAdapter,
   ILanguageServerManager
 } from '@jupyterlab/lsp';
+
 import { SERVER_EXTENSION_404 } from '../errors';
 import { TSessionMap, TLanguageServerId, TSpecsMap } from '../tokens';
 

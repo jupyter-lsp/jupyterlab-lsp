@@ -1,6 +1,6 @@
 import { IDocumentWidget } from '@jupyterlab/docregistry';
-import { nullTranslator } from '@jupyterlab/translation';
 import { CodeExtractorsManager, WidgetLSPAdapter } from '@jupyterlab/lsp';
+import { nullTranslator } from '@jupyterlab/translation';
 
 import { VirtualDocument } from '../virtual/document';
 

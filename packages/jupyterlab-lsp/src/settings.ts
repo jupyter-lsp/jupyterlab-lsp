@@ -1,10 +1,10 @@
 import { showDialog, Dialog } from '@jupyterlab/apputils';
+import { ILanguageServerManager, LanguageServerManager } from '@jupyterlab/lsp';
 import {
   ISettingRegistry,
   ISchemaValidator
 } from '@jupyterlab/settingregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
-import { ILanguageServerManager, LanguageServerManager } from '@jupyterlab/lsp';
 import {
   JSONExt,
   ReadonlyPartialJSONObject,

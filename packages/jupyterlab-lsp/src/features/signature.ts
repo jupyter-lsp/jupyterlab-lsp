@@ -1,3 +1,5 @@
+import { ChangeSet, Text } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
@@ -6,8 +8,6 @@ import {
   IEditorExtensionRegistry,
   EditorExtensionRegistry
 } from '@jupyterlab/codemirror';
-import { EditorView } from '@codemirror/view';
-import { ChangeSet, Text } from '@codemirror/state';
 import {
   IEditorPosition,
   IRootPosition,
@@ -28,11 +28,10 @@ import {
   rootPositionToVirtualPosition,
   editorPositionToRootPosition
 } from '../converter';
-import { ILSPDocumentConnectionManager as ILSPDocumentConnectionManagerDownstream } from '../connection_manager';
-import { BrowserConsole } from '../virtual/console';
 import { FeatureSettings, Feature } from '../feature';
 import { ILogConsoleCore, PLUGIN_ID } from '../tokens';
 import { escapeMarkdown } from '../utils';
+import { BrowserConsole } from '../virtual/console';
 
 const TOOLTIP_ID = 'signature';
 const CLASS_NAME = 'lsp-signature-help';
@@ -183,7 +182,7 @@ function extractLastCharacter(changes: ChangeSet): string {
       last = inserted.sliceString(-1);
     }
   );
-  return last;
+  return last ? last[0] : '';
 }
 
 export class SignatureFeature extends Feature {
@@ -214,12 +213,9 @@ export class SignatureFeature extends Feature {
       name: 'lsp:codeSignature',
       factory: options => {
         const updateListener = EditorView.updateListener.of(viewUpdate => {
-          if (!viewUpdate.docChanged && !viewUpdate.selectionSet) {
-            console.log('neither doc changed nor selection changed');
-            return;
-          }
-
-          const adapter = connectionManager.adapterByModel.get(options.model);
+          const adapter = [...connectionManager.adapters.values()].find(
+            adapter => adapter.widget.node.contains(viewUpdate.view.contentDOM)
+          );
 
           if (!adapter) {
             throw Error('[signature] no adapter for model aborting');
@@ -237,11 +233,15 @@ export class SignatureFeature extends Feature {
             ch: position.column
           } as IEditorPosition;
 
-          if (viewUpdate.selectionSet) {
-            this.onCursorActivity(adapter, editorPosition);
-          } else {
-            this.afterChange(viewUpdate.changes, adapter, editorPosition);
-          }
+          // Delay handling by moving on top of the stack
+          // so that virtual document is updated.
+          setTimeout(() => {
+            if (viewUpdate.docChanged) {
+              this.afterChange(viewUpdate.changes, adapter, editorPosition);
+            } else {
+              this.onCursorActivity(adapter, editorPosition);
+            }
+          }, 0);
         });
 
         const focusListener = EditorView.domEventHandlers({
@@ -414,8 +414,8 @@ export class SignatureFeature extends Feature {
       virtualDocument.uri
     )!;
 
-    // @ts-ignore
     const signatureCharacters: string[] =
+      // @ts-ignore
       connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters;
 
     if (response === null) {
@@ -556,6 +556,7 @@ export class SignatureFeature extends Feature {
     editorPosition: IEditorPosition
   ) {
     const lastCharacter = extractLastCharacter(change);
+    console.log('lastCharacter', lastCharacter);
 
     const isSignatureShown = this.isSignatureShown();
     let previousPosition: IEditorPosition | null = null;
@@ -569,13 +570,18 @@ export class SignatureFeature extends Feature {
     }
 
     // TODO: use connection for virtual document from root position!
-    const virtualDocument = adapter.virtualDocument!;
+    const virtualDocument = adapter.virtualDocument;
+    if (!virtualDocument) {
+      this.console.warn('Could not access virtual document');
+      return;
+    }
     const connection = this.connectionManager.connections.get(
       virtualDocument.uri
     )!;
 
     // @ts-ignore TODO remove after upstream fixes are released
     const signatureCharacters =
+      // @ts-ignore
       connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters;
 
     // only proceed if: trigger character was used or the signature is/was visible immediately before
@@ -663,7 +669,7 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
     settingRegistry: ISettingRegistry,
     renderMimeRegistry: IRenderMimeRegistry,
     editorExtensionRegistry: IEditorExtensionRegistry,
-    connectionManager: ILSPDocumentConnectionManagerDownstream
+    connectionManager: ILSPDocumentConnectionManager
   ) => {
     const settings = new FeatureSettings<LSPSignatureSettings>(
       settingRegistry,
