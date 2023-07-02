@@ -90,7 +90,7 @@ Use context menu on rows in the panel to filter out diagnostics or copy their me
 
 You will need to have both of the following installed:
 
-- JupyterLab >=3.6.0,<4.0.0a0
+- JupyterLab >=4.0.0,<5.0.0a0
 - Python 3.8+
 
 In addition, if you wish to use javascript, html, markdown or any other NodeJS-based language server you will need to have appropriate NodeJS version installed.
@@ -113,9 +113,9 @@ Use of a python `virtualenv` or a conda env is also recommended.
 1. install JupyterLab and the extensions
 
    ```bash
-   conda install -c conda-forge 'jupyterlab>=3.0.0,<4.0.0a0' jupyterlab-lsp
+   conda install -c conda-forge 'jupyterlab>=4.0.0,<5.0.0a0' jupyterlab-lsp
    # or
-   pip install 'jupyterlab>=3.0.0,<4.0.0a0' jupyterlab-lsp
+   pip install 'jupyterlab>=4.0.0,<5.0.0a0' jupyterlab-lsp
    ```
 
    > Note: `jupyterlab-lsp` provides both the server extension and the lab extension.
