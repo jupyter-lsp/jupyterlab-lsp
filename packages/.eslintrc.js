@@ -89,7 +89,7 @@ module.exports = {
     'no-async-promise-executor': 'off',
     'prefer-spread': 'off',
     'react/display-name': 'off',
-    'jest/no-done-callback': 'on'
+    'jest/no-done-callback': 2
   },
   settings: {
     react: {
