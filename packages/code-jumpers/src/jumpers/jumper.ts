@@ -1,9 +1,9 @@
+import { EditorView } from '@codemirror/view';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
-import { EditorView } from '@codemirror/view';
 
 import { JumpHistory } from '../history';
 import { IGlobalPosition, ILocalPosition } from '../positions';
