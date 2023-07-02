@@ -172,7 +172,9 @@ function createMarkManager(spec: MarkDecorationSpec): ISimpleMarkManager {
           });
         } else if (e.is(removeHoverMark)) {
           marks = marks.update({
-            filter: (from, to, value) => value.spec['class'] == spec.class
+            filter: (from, to, value) => {
+              return value.spec['class'] !== spec.class;
+            }
           });
         }
       }
@@ -180,7 +182,7 @@ function createMarkManager(spec: MarkDecorationSpec): ISimpleMarkManager {
     },
     provide: f => EditorView.decorations.from(f)
   });
-  const views: EditorView[] = [];
+  const views = new Set<EditorView>();
 
   return {
     putMark(view: EditorView, from: number, to: number) {
@@ -190,13 +192,14 @@ function createMarkManager(spec: MarkDecorationSpec): ISimpleMarkManager {
         effects.push(StateEffect.appendConfig.of([hoverMarkField]));
       }
       view.dispatch({ effects });
+      views.add(view);
     },
     clearAllMarks() {
       for (let view of views) {
         const effects: StateEffect<unknown>[] = [removeHoverMark.of(null)];
         view.dispatch({ effects });
       }
-      views.length = 0;
+      views.clear();
     }
   };
 }
@@ -252,10 +255,9 @@ export class HoverFeature extends Feature {
           mousemove: event => {
             const adapter = [...connectionManager.adapters.values()].find(
               adapter =>
-                adapter.widget.node.contains(
-                  event.currentTarget! as HTMLElement
-                )
+                adapter.widget.node.contains(event.target as HTMLElement)
             );
+
             if (!adapter) {
               this.console.warn('Adapter not found');
               return;
@@ -500,7 +502,7 @@ export class HoverFeature extends Feature {
 
   protected is_event_inside_visible(event: MouseEvent) {
     let target = event.target as HTMLElement;
-    return target.closest('.CodeMirror-sizer') != null;
+    return target.closest('.cm-scroller') != null;
   }
 
   protected is_useful_response(response: lsProtocol.Hover) {
@@ -522,9 +524,10 @@ export class HoverFeature extends Feature {
 
     // if over an empty space in a line (and not over a token) then not worth checking
     if (
-      target == null ||
-      // TODO class list migrate
-      (target as HTMLElement).classList.contains('CodeMirror-line')
+      target == null
+      // TODO this no longer works in CodeMirror6 as it tires to avoid wrapping
+      // html elements as much as possible.
+      // || (target as HTMLElement).classList.contains('cm-line')
     ) {
       this.removeRangeHighlight();
       return false;
