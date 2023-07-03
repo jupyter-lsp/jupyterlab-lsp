@@ -67,6 +67,7 @@
     "lodash.mergewith": "^4.6.1"
   },
   "devDependencies": {
+    "@codemirror/lint": "^6.4.0",
     "@jupyter-notebook/application": "^7.0.0-beta.4",
     "@jupyterlab/application": "^4.0.0",
     "@jupyterlab/apputils": "^4.0.0",

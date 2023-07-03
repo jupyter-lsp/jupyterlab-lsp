@@ -1888,6 +1888,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@codemirror/lint@npm:^6.4.0":
+  version: 6.4.0
+  resolution: "@codemirror/lint@npm:6.4.0"
+  dependencies:
+    "@codemirror/state": ^6.0.0
+    "@codemirror/view": ^6.0.0
+    crelt: ^1.0.5
+  checksum: ba15f7dd87afbceafaa0b68f94b0d53727e4aacca7a81a4ed3278706df5787fdf18cd3f0d807a136f902b2fc2296bf3490462fd543d1d4ced17a0d8c171820fd
+  languageName: node
+  linkType: hard
+
 "@codemirror/search@npm:^6.3.0":
   version: 6.5.0
   resolution: "@codemirror/search@npm:6.5.0"
@@ -2720,6 +2731,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@jupyter-lsp/jupyterlab-lsp@workspace:packages/jupyterlab-lsp"
   dependencies:
+    "@codemirror/lint": ^6.4.0
     "@jupyter-lsp/code-jumpers": ~1.2.0
     "@jupyter-lsp/completion-theme": ~3.3.0
     "@jupyter-lsp/theme-material": ~2.1.1
@@ -2786,7 +2798,7 @@ __metadata:
 
 "@jupyter-lsp/jupyterlab-lsp@file:../jupyterlab-lsp::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
   version: 4.2.0
-  resolution: "@jupyter-lsp/jupyterlab-lsp@file:../jupyterlab-lsp#../jupyterlab-lsp::hash=5dbb85&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  resolution: "@jupyter-lsp/jupyterlab-lsp@file:../jupyterlab-lsp#../jupyterlab-lsp::hash=6f2f98&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
   dependencies:
     "@jupyter-lsp/code-jumpers": ~1.2.0
     "@jupyter-lsp/completion-theme": ~3.3.0
@@ -2816,7 +2828,7 @@ __metadata:
     "@lumino/algorithm": "*"
     "@lumino/widgets": ^2.0.0
     react: "*"
-  checksum: 07a03ddc7ac2584f3c29a392336e715971252306a11e23addbeac26b62cc182ecc19d41f7a684aa66ab8588f11e92216eb49aec7d1258d4d87252a47b5722534
+  checksum: 486ade2353d7c343561a9dd04ed3051d64be20c3e0f8e0b20979c6c671e29f8a8c2b44ab80bb8422631eefa311dddfd675d3138e741b4abf6d190fe82702e74e
   languageName: node
   linkType: hard
 

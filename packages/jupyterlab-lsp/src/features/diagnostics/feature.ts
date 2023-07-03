@@ -132,18 +132,17 @@ export class DiagnosticsFeature extends Feature {
                 PositionConverter.cm_to_ce(editorDiagnostic.range.end)
               );
 
-              //for (const tag of new Set(tags)) {
-              //  classNames.push('cm-lsp-diagnostic-tag-' + DiagnosticTag[tag]);
-              //}
-              //diagnostic.
+              const classNames = [];
+              for (const tag of new Set(diagnostic.tags)) {
+                classNames.push('cm-lsp-diagnostic-tag-' + DiagnosticTag[tag]);
+              }
               diagnostics.push({
                 from,
-                to,
-                // TODO: how to support "hint"?
-                severity: severity as any,
+                to: Math.min(to, view.state.doc.length),
+                severity: severity,
                 message: diagnostic.message,
-                source: diagnostic.source
-                // TODO: support tags
+                source: diagnostic.source,
+                markClass: classNames.join(' ')
                 // TODO: actions
               });
             }
