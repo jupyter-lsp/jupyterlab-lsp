@@ -143,11 +143,11 @@
       }
     },
     "sharedPackages": {
-        "@jupyterlab/lsp": {
-            "bundled": false,
-            "singleton": true,
-            "strictVersion": true
-        }
+      "@jupyterlab/lsp": {
+        "bundled": false,
+        "singleton": true,
+        "strictVersion": true
+      }
     },
     "schemaDir": "schema",
     "outputDir": "../../python_packages/jupyterlab_lsp/jupyterlab_lsp/labextensions/@jupyter-lsp/jupyterlab-lsp"
