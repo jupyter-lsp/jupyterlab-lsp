@@ -1,13 +1,4 @@
-import { LabIcon } from '@jupyterlab/ui-components';
-
-import jumpToSvg from '../../style/icons/jump-to.svg';
-
-export const jumpToIcon = new LabIcon({
-  name: 'lsp:jump-to',
-  svgstr: jumpToSvg
-});
-
-/*
+import { EditorView } from '@codemirror/view';
 import {
   CodeJumper,
   FileEditorJumper,
@@ -17,37 +8,53 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { InputDialog } from '@jupyterlab/apputils';
-import { CodeMirrorEditor } from '@jupyterlab/codemirror';
+import { InputDialog , ICommandPalette , Notification } from '@jupyterlab/apputils';
+import { CodeMirrorEditor ,
+  IEditorExtensionRegistry,
+  EditorExtensionRegistry
+} from '@jupyterlab/codemirror';
 import { URLExt } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IEditorTracker } from '@jupyterlab/fileeditor';
+import {
+  IVirtualPosition,
+  ProtocolCoordinates,
+  WidgetLSPAdapter,
+  ILSPFeatureManager,
+  ILSPDocumentConnectionManager
+} from '@jupyterlab/lsp';
+import { AnyLocation } from '@jupyterlab/lsp/lib/lsp';
 import { INotebookTracker } from '@jupyterlab/notebook';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
-import { AnyLocation } from '@jupyterlab/lsp/lib/lsp';
-import type * as lsp from 'vscode-languageserver-protocol';
-
-import { CodeJump as LSPJumpSettings, ModifierKey } from '../_jump_to';
-import { PositionConverter } from '../converter';
 import {
-  FeatureSettings,
-  IFeatureCommand,
-} from '../feature';
-import { IVirtualPosition, ProtocolCoordinates } from '../positioning';
-import { ILSPAdapterManager, ILSPFeatureManager, PLUGIN_ID } from '../tokens';
-import { getModifierState, uri_to_contents_path, uris_equal } from '../utils';
-import { CodeMirrorVirtualEditor } from '../virtual/codemirror_editor';
+  ITranslator,
+  TranslationBundle,
+  nullTranslator
+} from '@jupyterlab/translation';
+import { LabIcon } from '@jupyterlab/ui-components';
+import type * as lsp from 'vscode-languageserver-protocol';
+import * as lsProtocol from 'vscode-languageserver-protocol';
 
+import jumpToSvg from '../../style/icons/jump-to.svg';
+import { CodeJump as LSPJumpSettings, ModifierKey } from '../_jump_to';
+import { ContextAssembler } from '../command_manager';
+import { PositionConverter } from '../converter';
+import { FeatureSettings, Feature } from '../feature';
+import { PLUGIN_ID } from '../tokens';
+import { getModifierState, uri_to_contents_path, uris_equal } from '../utils';
+import { BrowserConsole } from '../virtual/console';
+
+
+
+export const jumpToIcon = new LabIcon({
+  name: 'lsp:jump-to',
+  svgstr: jumpToSvg
+});
 
 const jumpBackIcon = new LabIcon({
   name: 'lsp:jump-back',
   svgstr: jumpToSvg.replace('jp-icon3', 'lsp-icon-flip-x jp-icon3')
 });
-
-const FEATURE_ID = PLUGIN_ID + ':jump_to';
-
-let trans: TranslationBundle;
 
 const enum JumpResult {
   NoTargetsFound = 1,
@@ -58,28 +65,93 @@ const enum JumpResult {
   AlreadyAtTarget = 6
 }
 
-export class CMJumpToDefinition extends CodeMirrorIntegration {
-  get jumper() {
-    return (this.feature.labIntegration as JumperLabIntegration).jumper;
+export class NavigationFeature extends Feature {
+  readonly id = NavigationFeature.id;
+  readonly capabilities: lsProtocol.ClientCapabilities = {
+    textDocument: {
+      declaration: {
+        dynamicRegistration: true,
+        linkSupport: true
+      },
+      definition: {
+        dynamicRegistration: true,
+        linkSupport: true
+      },
+      typeDefinition: {
+        dynamicRegistration: true,
+        linkSupport: true
+      },
+      implementation: {
+        dynamicRegistration: true,
+        linkSupport: true
+      }
+    }
+  };
+  protected settings: FeatureSettings<LSPJumpSettings>;
+  protected console = new BrowserConsole().scope('Navigation');
+
+  constructor(options: NavigationFeature.IOptions) {
+    super(options);
+    this.settings = options.settings;
+    this._trans = options.trans;
+    const connectionManager = options.connectionManager;
+
+    options.editorExtensionRegistry.addExtension({
+      name: 'lsp:codeSignature',
+      factory: options => {
+        const clickListener = EditorView.domEventHandlers({
+          mouseUp: event => {
+            const adapter = [...connectionManager.adapters.values()].find(
+              adapter =>
+                adapter.widget.node.contains(event.target as HTMLElement)
+            );
+
+            if (!adapter) {
+              this.console.warn('Adapter not found');
+              return;
+            }
+            this._jumpOnMouseUp(event, adapter);
+            // TODO
+          }
+        });
+
+        return EditorExtensionRegistry.createImmutableExtension([
+          clickListener
+        ]);
+      }
+    });
+
+    this._jumpers = new Map();
+    const { fileEditorTracker, notebookTracker, documentManager } = options;
+
+    if (fileEditorTracker !== null) {
+      fileEditorTracker.widgetAdded.connect((_, widget) => {
+        let fileEditor = widget.content;
+
+        if (fileEditor.editor instanceof CodeMirrorEditor) {
+          let jumper = new FileEditorJumper(widget, documentManager);
+          this._jumpers.set(widget.id, jumper);
+        }
+      });
+    }
+
+    notebookTracker.widgetAdded.connect(async (_, widget) => {
+      // NOTE: assuming that the default cells content factory produces CodeMirror editors(!)
+      let jumper = new NotebookJumper(widget, documentManager);
+      this._jumpers.set(widget.id, jumper);
+    });
   }
 
-  get settings() {
-    return super.settings as FeatureSettings<LSPJumpSettings>;
+  get jumper(): CodeJumper {
+    let current = this.adapterManager.currentAdapter.widget.id;
+    return this._jumpers.get(current)!;
   }
 
   protected get modifierKey(): ModifierKey {
     return this.settings.composite.modifierKey;
   }
 
-  register() {
-    this.editor_handlers.set('mousedown', this._jumpOnMouseUp.bind(this));
-    super.register();
-  }
-
-  private _jumpOnMouseUp(
-    virtualEditor: CodeMirrorVirtualEditor,
-    event: MouseEvent
-  ) {
+  private _jumpOnMouseUp(event: MouseEvent, adapter: WidgetLSPAdapter<any>) {
     // For Alt + click we need to wait for mouse up to enable users to create
     // rectangular selections with Alt + drag.
     if (this.modifierKey === 'Alt') {
@@ -91,7 +163,7 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
             // https://github.com/jupyter-lsp/jupyterlab-lsp/issues/823
             return;
           }
-          return this._jumpToDefinitionOrRefernce(virtualEditor, event);
+          return this._jumpToDefinitionOrRefernce(event, adapter);
         },
         {
           once: true
@@ -100,13 +172,13 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
     } else {
       // For Ctrl + click we need to act on mouse down to prevent
       // adding multiple cursors if jump were to occur.
-      return this._jumpToDefinitionOrRefernce(virtualEditor, event);
+      return this._jumpToDefinitionOrRefernce(event, adapter);
     }
   }
 
   private _jumpToDefinitionOrRefernce(
-    virtualEditor: CodeMirrorVirtualEditor,
-    event: MouseEvent
+    event: MouseEvent,
+    adapter: WidgetLSPAdapter<any>
   ) {
     const { button } = event;
     const shouldJump =
@@ -114,7 +186,9 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
     if (!shouldJump) {
       return;
     }
+    // TODO context assembelr
     let rootPosition = this.position_from_mouse(event);
+
     if (rootPosition == null) {
       this.console.warn(
         'Could not retrieve root position from mouse event to jump to definition/reference'
@@ -123,7 +197,7 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
     }
     let document = virtualEditor.document_at_root_position(rootPosition);
     let virtualPosition =
-      virtualEditor.root_position_to_virtual_position(rootPosition);
+      virtualEditor.root_position_to_virtualPosition(rootPosition);
 
     const positionParams: lsp.TextDocumentPositionParams = {
       textDocument: {
@@ -135,7 +209,7 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
       }
     };
 
-    this.connection.clientRequests['textDocument/definition']
+    connection.clientRequests['textDocument/definition']
       .request(positionParams)
       .then(targets => {
         this.handleJump(targets, positionParams)
@@ -145,7 +219,7 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
               result === JumpResult.AlreadyAtTarget
             ) {
               // definition was not found, or we are in definition already, suggest references
-              this.connection.clientRequests['textDocument/references']
+              connection.clientRequests['textDocument/references']
                 .request({
                   ...positionParams,
                   context: { includeDeclaration: false }
@@ -211,8 +285,8 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
       // the preview should use this.jumper.document_manager.services.contents
 
       let getItemOptions = {
-        title: trans.__('Choose the jump target'),
-        okLabel: trans.__('Jump'),
+        title: this._trans.__('Choose the jump target'),
+        okLabel: this._trans.__('Jump'),
         items: choices
       };
       // TODO: use showHints() or completion-like widget instead?
@@ -259,7 +333,10 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
     const targetInfo = await this._chooseTarget(locations);
 
     if (!targetInfo) {
-      this.setStatusMessage(trans.__('No jump targets found'), 2 * 1000);
+      const notificationID = Notification.info(
+        this._trans.__('No jump targets found')
+      );
+      setTimeout(() => Notification.dismiss(notificationID), 2 * 1000);
       return JumpResult.NoTargetsFound;
     }
 
@@ -270,7 +347,7 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
     ) as IVirtualPosition;
 
     if (uris_equal(uri, positionParams.textDocument.uri)) {
-      let editor_index = this.adapter.get_editor_index_at(virtualPosition);
+      let editor_index = adapter.get_editor_index_at(virtualPosition);
       // if in current file, transform from the position within virtual document to the editor position:
       let editor_position =
         this.virtual_editor.transform_virtual_to_editor(virtualPosition);
@@ -285,7 +362,7 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
       this.console.log(`Jumping to ${editor_index}th editor of ${uri}`);
       this.console.log('Jump target within editor:', editor_position_ce);
 
-      let contentsPath = this.adapter.widget.context.path;
+      let contentsPath = adapter.widget.context.path;
 
       const didUserChooseThis = locations.length > 1;
 
@@ -351,193 +428,223 @@ export class CMJumpToDefinition extends CodeMirrorIntegration {
       return JumpResult.AssumeSuccess;
     }
   }
+
+  private _trans: TranslationBundle;
+  private _jumpers: Map<string, CodeJumper>;
 }
 
-class JumperLabIntegration implements IFeatureLabIntegration {
-  private adapterManager: ILSPAdapterManager;
-  private jumpers: Map<string, CodeJumper>;
-  settings: FeatureSettings<any>;
-
-  constructor(
-    settings: FeatureSettings<any>,
-    adapterManager: ILSPAdapterManager,
-    notebookTracker: INotebookTracker,
-    documentManager: IDocumentManager,
-    fileEditorTracker: IEditorTracker | null
-  ) {
-    this.settings = settings;
-    this.adapterManager = adapterManager;
-    this.jumpers = new Map();
-
-    if (fileEditorTracker !== null) {
-      fileEditorTracker.widgetAdded.connect((_, widget) => {
-        let fileEditor = widget.content;
-
-        if (fileEditor.editor instanceof CodeMirrorEditor) {
-          let jumper = new FileEditorJumper(widget, documentManager);
-          this.jumpers.set(widget.id, jumper);
-        }
-      });
-    }
-
-    notebookTracker.widgetAdded.connect(async (_, widget) => {
-      // NOTE: assuming that the default cells content factory produces CodeMirror editors(!)
-      let jumper = new NotebookJumper(widget, documentManager);
-      this.jumpers.set(widget.id, jumper);
-    });
+export namespace NavigationFeature {
+  export interface IOptions extends Feature.IOptions {
+    settings: FeatureSettings<LSPJumpSettings>;
+    trans: TranslationBundle;
+    notebookTracker: INotebookTracker;
+    documentManager: IDocumentManager;
+    editorExtensionRegistry: IEditorExtensionRegistry;
+    fileEditorTracker: IEditorTracker | null;
   }
-
-  get jumper(): CodeJumper {
-    let current = this.adapterManager.currentAdapter.widget.id;
-    return this.jumpers.get(current)!;
-  }
+  export const id = PLUGIN_ID + ':navigation';
 }
 
-const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
-  {
-    id: 'jump-to-definition',
-    execute: async ({ connection, virtual_position, document, features }) => {
-      const jumpFeature = features.get(FEATURE_ID) as CMJumpToDefinition;
-      if (!connection) {
-        jumpFeature.setStatusMessage(
-          trans.__('Connection not found for jump'),
-          2 * 1000
-        );
-        return;
-      }
-
-      const positionParams: lsp.TextDocumentPositionParams = {
-        textDocument: {
-          uri: document.document_info.uri
-        },
-        position: {
-          line: virtual_position.line,
-          character: virtual_position.ch
-        }
-      };
-      const targets = await connection.clientRequests[
-        'textDocument/definition'
-      ].request(positionParams);
-      await jumpFeature.handleJump(targets, positionParams);
-    },
-    is_enabled: ({ connection }) =>
-      connection ? connection.provides('definitionProvider') : false,
-    label: trans.__('Jump to definition'),
-    icon: jumpToIcon
-  },
-  {
-    id: 'jump-to-reference',
-    execute: async ({ connection, virtual_position, document, features }) => {
-      const jumpFeature = features.get(FEATURE_ID) as CMJumpToDefinition;
-      if (!connection) {
-        jumpFeature.setStatusMessage(
-          trans.__('Connection not found for jump'),
-          2 * 1000
-        );
-        return;
-      }
-
-      const positionParams: lsp.TextDocumentPositionParams = {
-        textDocument: {
-          uri: document.document_info.uri
-        },
-        position: {
-          line: virtual_position.line,
-          character: virtual_position.ch
-        }
-      };
-      const targets = await connection.clientRequests[
-        'textDocument/references'
-      ].request({ ...positionParams, context: { includeDeclaration: false } });
-      await jumpFeature.handleJump(targets, positionParams);
-    },
-    is_enabled: ({ connection }) =>
-      connection ? connection.provides('referencesProvider') : false,
-    label: trans.__('Jump to references'),
-    icon: jumpToIcon
-  },
-  {
-    id: 'jump-back',
-    execute: async ({ features }) => {
-      const jump_feature = features.get(FEATURE_ID) as CMJumpToDefinition;
-      jump_feature.jumper.global_jump_back();
-    },
-    is_enabled: ({ connection }) =>
-      connection
-        ? connection.provides('definitionProvider') ||
-          connection.provides('referencesProvider')
-        : false,
-    label: trans.__('Jump back'),
-    icon: jumpBackIcon,
-    // do not attach to any of the context menus
-    attach_to: new Set<CommandEntryPoint>()
-  }
-];
+export namespace CommandIDs {
+  export const jumpToDefinition = 'lsp:jump-to-definition';
+  export const jumpToReference = 'lsp:jump-to-reference';
+  export const jumpBack = 'lsp:jump-back';
+}
 
 export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
-  id: FEATURE_ID,
+  id: NavigationFeature.id,
   requires: [
     ILSPFeatureManager,
     ISettingRegistry,
-    ILSPAdapterManager,
+    ILSPDocumentConnectionManager,
     INotebookTracker,
     IDocumentManager,
-    ITranslator
+    IEditorExtensionRegistry
   ],
-  optional: [IEditorTracker],
+  optional: [IEditorTracker, ICommandPalette, ITranslator],
   autoStart: true,
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
-    adapterManager: ILSPAdapterManager,
+    connectionManager: ILSPDocumentConnectionManager,
     notebookTracker: INotebookTracker,
     documentManager: IDocumentManager,
-    translator: ITranslator,
-    fileEditorTracker: IEditorTracker | null
+    editorExtensionRegistry: IEditorExtensionRegistry,
+    fileEditorTracker: IEditorTracker | null,
+    palette: ICommandPalette | null,
+    translator: ITranslator | null
   ) => {
-    const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
-    trans = translator.load('jupyterlab-lsp');
-    let labIntegration = new JumperLabIntegration(
+    const trans = (translator || nullTranslator).load('jupyterlab_lsp');
+    const settings = new FeatureSettings<LSPJumpSettings>(
+      settingRegistry,
+      NavigationFeature.id
+    );
+    await settings.ready;
+    const feature = new NavigationFeature({
       settings,
-      adapterManager,
+      connectionManager,
       notebookTracker,
       documentManager,
-      fileEditorTracker
-    );
+      fileEditorTracker,
+      editorExtensionRegistry,
+      trans
+    });
+    featureManager.register(feature);
 
-    featureManager.register({
-      feature: {
-        editorIntegrationFactory: new Map([
-          ['CodeMirrorEditor', CMJumpToDefinition]
-        ]),
-        commands: COMMANDS(trans),
-        id: FEATURE_ID,
-        name: 'Jump to definition',
-        labIntegration: labIntegration,
-        settings: settings,
-        capabilities: {
-          textDocument: {
-            declaration: {
-              dynamicRegistration: true,
-              linkSupport: true
-            },
-            definition: {
-              dynamicRegistration: true,
-              linkSupport: true
-            },
-            typeDefinition: {
-              dynamicRegistration: true,
-              linkSupport: true
-            },
-            implementation: {
-              dynamicRegistration: true,
-              linkSupport: true
-            }
-          }
+    const assembler = new ContextAssembler({
+      app,
+      connectionManager
+    });
+
+    app.commands.addCommand(CommandIDs.jumpToDefinition, {
+      execute: async () => {
+        const context = assembler.getContext();
+        if (!context) {
+          console.warn('Could not get context');
+          return;
         }
+        const { connection, virtualPosition, document } = context;
+
+        if (!connection) {
+          const notificationId = Notification.info(
+            trans.__('Connection not found for jump')
+          );
+          setTimeout(() => {
+            Notification.dismiss(notificationId);
+          }, 2 * 1000);
+          return;
+        }
+
+        const positionParams: lsp.TextDocumentPositionParams = {
+          textDocument: {
+            uri: document.documentInfo.uri
+          },
+          position: {
+            line: virtualPosition.line,
+            character: virtualPosition.ch
+          }
+        };
+        const targets = await connection.clientRequests[
+          'textDocument/definition'
+        ].request(positionParams);
+        await feature.handleJump(targets, positionParams);
+      },
+      label: trans.__('Jump to definition'),
+      icon: jumpToIcon,
+      isEnabled: () => {
+        const context = assembler.getContext();
+        if (!context) {
+          console.warn('Could not get context');
+          return false;
+        }
+        const { connection } = context;
+        // @ts-ignore
+        return connection ? connection.provides('definitionProvider') : false;
       }
     });
+
+    app.commands.addCommand(CommandIDs.jumpToReference, {
+      execute: async () => {
+        const context = assembler.getContext();
+        if (!context) {
+          console.warn('Could not get context');
+          return;
+        }
+        const { connection, virtualPosition, document } = context;
+
+        if (!connection) {
+          const notificationId = Notification.info(
+            trans.__('Connection not found for jump')
+          );
+          setTimeout(() => {
+            Notification.dismiss(notificationId);
+          }, 2 * 1000);
+          return;
+        }
+
+        const positionParams: lsp.TextDocumentPositionParams = {
+          textDocument: {
+            uri: document.documentInfo.uri
+          },
+          position: {
+            line: virtualPosition.line,
+            character: virtualPosition.ch
+          }
+        };
+        const targets = await connection.clientRequests[
+          'textDocument/references'
+        ].request({
+          ...positionParams,
+          context: { includeDeclaration: false }
+        });
+        await feature.handleJump(targets, positionParams);
+      },
+      label: trans.__('Jump to references'),
+      icon: jumpToIcon,
+      isEnabled: () => {
+        const context = assembler.getContext();
+        if (!context) {
+          console.warn('Could not get context');
+          return false;
+        }
+        const { connection } = context;
+        // @ts-ignore
+        return connection ? connection.provides('referencesProvider') : false;
+      }
+    });
+
+    app.commands.addCommand(CommandIDs.jumpBack, {
+      execute: async () => {
+        feature.jumper.global_jump_back();
+      },
+      label: trans.__('Jump back'),
+      icon: jumpBackIcon,
+      isEnabled: () => {
+        const context = assembler.getContext();
+        if (!context) {
+          console.warn('Could not get context');
+          return false;
+        }
+        const { connection } = context;
+        return connection
+          ? // @ts-ignore
+            connection.provides('definitionProvider') ||
+              // @ts-ignore
+              connection.provides('referencesProvider')
+          : false;
+      }
+    });
+
+    for (const commandID of [
+      CommandIDs.jumpToDefinition,
+      CommandIDs.jumpToReference
+    ]) {
+      // add to menus
+      app.contextMenu.addItem({
+        selector: '.jp-Notebook .jp-CodeCell .jp-Editor',
+        command: commandID,
+        rank: 10
+      });
+
+      app.contextMenu.addItem({
+        selector: '.jp-FileEditor',
+        command: commandID,
+        rank: 0
+      });
+    }
+
+    for (const commandID of [
+      CommandIDs.jumpToDefinition,
+      CommandIDs.jumpToReference,
+      CommandIDs.jumpBack
+    ]) {
+      if (palette) {
+        palette.addItem({
+          command: commandID,
+          category: trans.__('Language Server Protocol')
+        });
+      }
+    }
   }
 };
-*/
