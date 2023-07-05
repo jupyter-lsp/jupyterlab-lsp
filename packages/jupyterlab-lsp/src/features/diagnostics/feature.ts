@@ -26,9 +26,6 @@ import { uris_equal } from '../../utils';
 import { BrowserConsole } from '../../virtual/console';
 
 import { diagnosticsPanel } from './diagnostics';
-
-export const FEATURE_ID = PLUGIN_ID + ':diagnostics';
-
 import { DiagnosticsDatabase, IEditorDiagnostic } from './listing';
 
 // TODO private of feature?
@@ -434,61 +431,6 @@ export class DiagnosticsFeature extends Feature {
     }
     diagnosticsPanel.update();
   }
-
-  /**
-  protected removeUnusedDiagnosticMarkers(to_retain: Set<string>) {
-    const toRemoveByEditor = new Map<
-      CodeMirror.Editor,
-      { marker: CodeMirror.TextMarker; hash: string }[]
-    >();
-
-    for (const [
-      diagnosticHash,
-      markedDiagnostic
-    ] of this.marked_diagnostics.entries()) {
-      if (!to_retain.has(diagnosticHash)) {
-        let diagnosticsList = toRemoveByEditor.get(markedDiagnostic.editor);
-        if (!diagnosticsList) {
-          diagnosticsList = [];
-          toRemoveByEditor.set(markedDiagnostic.editor, diagnosticsList);
-        }
-        diagnosticsList.push({
-          marker: markedDiagnostic.marker,
-          hash: diagnosticHash
-        });
-      }
-    }
-
-    for (const [cmEditor, markers] of toRemoveByEditor.entries()) {
-      cmEditor.operation(() => {
-        for (const markerData of markers) {
-          markerData.marker.clear();
-          this.marked_diagnostics.delete(markerData.hash);
-        }
-      });
-    }
-  }
-
-  /**
-  remove(): void {
-    this.settings.changed.disconnect(this.refreshDiagnostics, this);
-    // remove all markers
-    this.removeUnusedDiagnosticMarkers(new Set());
-    this.diagnostics_db.clear();
-    diagnosticsDatabases.delete(this.virtual_editor);
-    this.unique_editor_ids.clear();
-
-    if (
-      diagnosticsPanel.content.model.virtual_editor === this.virtual_editor
-    ) {
-      diagnosticsPanel.content.model.virtual_editor = null;
-      diagnosticsPanel.content.model.diagnostics = null;
-      diagnosticsPanel.content.model.adapter = null;
-    }
-
-    diagnosticsPanel.update();
-  }
-  */
 
   private _lastResponse: lsProtocol.PublishDiagnosticsParams;
   private _lastDocument: VirtualDocument;

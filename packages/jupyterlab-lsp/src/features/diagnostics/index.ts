@@ -40,8 +40,8 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<void> = {
     settingRegistry: ISettingRegistry,
     connectionManager: ILSPDocumentConnectionManager,
     editorExtensionRegistry: IEditorExtensionRegistry,
-    palette: ICommandPalette,
-    translator: ITranslator
+    palette: ICommandPalette | null,
+    translator: ITranslator | null
   ) => {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
     const settings = new FeatureSettings<LSPDiagnosticsSettings>(
@@ -107,9 +107,11 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<void> = {
       rank: 0
     });
 
-    palette.addItem({
-      command: CommandIDs.showPanel,
-      category: trans.__('Language Server Protocol')
-    });
+    if (palette) {
+      palette.addItem({
+        command: CommandIDs.showPanel,
+        category: trans.__('Language Server Protocol')
+      });
+    }
   }
 };
