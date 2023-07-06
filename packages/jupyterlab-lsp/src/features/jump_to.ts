@@ -47,6 +47,7 @@ import {
   PositionConverter,
   documentAtRootPosition,
   rootPositionToVirtualPosition,
+  rootPositionToEditorPosition,
   virtualPositionToRootPosition
 } from '../converter';
 import { FeatureSettings, Feature } from '../feature';
@@ -368,20 +369,24 @@ export class NavigationFeature extends Feature {
     if (uris_equal(uri, positionParams.textDocument.uri)) {
       let editorIndex = adapter.getEditorIndexAt(virtualPosition);
       // if in current file, transform from the position within virtual document to the editor position:
-      let editorPosition = virtualPositionToRootPosition(
+      const rootPosition = virtualPositionToRootPosition(
         adapter,
         virtualPosition
       );
-      if (editorPosition === null) {
+      if (rootPosition === null) {
         this.console.warn(
           'Could not jump: conversion from virtual position to editor position failed',
           virtualPosition
         );
         return JumpResult.PositioningFailure;
       }
-      let editorPosition_ce = PositionConverter.cm_to_ce(editorPosition);
+      const editorPosition = rootPositionToEditorPosition(
+        adapter,
+        rootPosition
+      );
+
       this.console.log(`Jumping to ${editorIndex}th editor of ${uri}`);
-      this.console.log('Jump target within editor:', editorPosition_ce);
+      this.console.log('Jump target within editor:', editorPosition);
 
       let contentsPath = adapter.widget.context.path;
 
@@ -396,7 +401,7 @@ export class NavigationFeature extends Feature {
       }
 
       jumper.global_jump({
-        line: editorPosition_ce.line,
+        line: editorPosition.line,
         column: editorPosition.ch,
         editor_index: editorIndex,
         is_symlink: false,
