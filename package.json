@@ -13,7 +13,7 @@
     "eslint-plugin-react": "^7.31.11",
     "husky": "^3.0.9",
     "jest-github-actions-reporter": "^1.0.3",
-    "lerna": "^6.0.0",
+    "lerna": "^6.6.2",
     "npm-run-all": "^4.1.5",
     "precise-commits": "^1.0.2",
     "prettier": "^2.8.1",
