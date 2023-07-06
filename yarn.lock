@@ -2604,7 +2604,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyter-lsp/code-jumpers@workspace:*, @jupyter-lsp/code-jumpers@workspace:packages/code-jumpers, @jupyter-lsp/code-jumpers@~1.2.0":
+"@jupyter-lsp/code-jumpers@file:../code-jumpers::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
+  version: 1.2.0
+  resolution: "@jupyter-lsp/code-jumpers@file:../code-jumpers#../code-jumpers::hash=509956&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  peerDependencies:
+    "@jupyterlab/apputils": ^4.0.0
+    "@jupyterlab/codeeditor": ^4.0.0
+    "@jupyterlab/coreutils": ^6.0.0
+    "@jupyterlab/docmanager": ^4.0.0
+    "@jupyterlab/docregistry": ^4.0.0
+    "@jupyterlab/fileeditor": ^4.0.0
+    "@jupyterlab/notebook": ^4.0.0
+    "@jupyterlab/observables": ^5.0.0
+    "@jupyterlab/translation": ^4.0.0
+  checksum: c366ebec30e294bda2fcdad216ba2c600dd0cf0ffecc0fc8ab6c62c04002e992e510769f66608faae51abd5aa6df2c5cf12cd181922762c44d92381a60f8d6de
+  languageName: node
+  linkType: hard
+
+"@jupyter-lsp/code-jumpers@workspace:packages/code-jumpers, @jupyter-lsp/code-jumpers@~1.2.0":
   version: 0.0.0-use.local
   resolution: "@jupyter-lsp/code-jumpers@workspace:packages/code-jumpers"
   dependencies:
@@ -2633,7 +2650,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupyter-lsp/completion-theme@^3.0.0, @jupyter-lsp/completion-theme@workspace:*, @jupyter-lsp/completion-theme@workspace:packages/completion-theme, @jupyter-lsp/completion-theme@~3.3.0":
+"@jupyter-lsp/completion-theme@^3.0.0, @jupyter-lsp/completion-theme@workspace:packages/completion-theme, @jupyter-lsp/completion-theme@~3.3.0":
   version: 0.0.0-use.local
   resolution: "@jupyter-lsp/completion-theme@workspace:packages/completion-theme"
   dependencies:
@@ -2645,7 +2662,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupyter-lsp/jupyterlab-lsp-example-extractor@workspace:*, @jupyter-lsp/jupyterlab-lsp-example-extractor@workspace:packages/_example-extractor":
+"@jupyter-lsp/completion-theme@file:../completion-theme::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
+  version: 3.3.0
+  resolution: "@jupyter-lsp/completion-theme@file:../completion-theme#../completion-theme::hash=2f5fde&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  checksum: d1d98190cbbaeff78e1ecfddebdc2673e269c3dea444ff2745e5882a41695a5344e7888f36bf1f5ee1a33044a719eb071c79920a25ceb2e648aaf749d75c4298
+  languageName: node
+  linkType: hard
+
+"@jupyter-lsp/jupyterlab-lsp-example-extractor@file:../_example-extractor::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
+  version: 0.0.0
+  resolution: "@jupyter-lsp/jupyterlab-lsp-example-extractor@file:../_example-extractor#../_example-extractor::hash=4b7e6c&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  dependencies:
+    "@jupyter-lsp/jupyterlab-lsp": ^4.0.0-alpha.0
+  checksum: 2476a9ec4f7f301b506e23c15dd9f5146cfa3521a68bb247a7058ffe24e97e9ea8079de85d5620cb5bf4839628783f9fa64bd97af406f3f58becfd4dc24e5b1e
+  languageName: node
+  linkType: hard
+
+"@jupyter-lsp/jupyterlab-lsp-example-extractor@workspace:packages/_example-extractor":
   version: 0.0.0-use.local
   resolution: "@jupyter-lsp/jupyterlab-lsp-example-extractor@workspace:packages/_example-extractor"
   dependencies:
@@ -2659,7 +2692,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupyter-lsp/jupyterlab-lsp-klingon-integration@workspace:*, @jupyter-lsp/jupyterlab-lsp-klingon-integration@workspace:packages/_klingon-integration":
+"@jupyter-lsp/jupyterlab-lsp-klingon-integration@file:../_klingon-integration::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
+  version: 0.0.0
+  resolution: "@jupyter-lsp/jupyterlab-lsp-klingon-integration@file:../_klingon-integration#../_klingon-integration::hash=7dd7cf&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  dependencies:
+    "@jupyterlab/application": ^4.0.0
+  checksum: 032241abc4b4d95661eb5df7830dd885f52a3ee6cc21d05f7420b9c0da3070bbe4aca8c6103fa5d2646afc52784e556f09b11260849b29d5b0261fac50926af0
+  languageName: node
+  linkType: hard
+
+"@jupyter-lsp/jupyterlab-lsp-klingon-integration@workspace:packages/_klingon-integration":
   version: 0.0.0-use.local
   resolution: "@jupyter-lsp/jupyterlab-lsp-klingon-integration@workspace:packages/_klingon-integration"
   dependencies:
@@ -2673,19 +2715,19 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@jupyter-lsp/jupyterlab-lsp-metapackage@workspace:packages/metapackage"
   dependencies:
-    "@jupyter-lsp/code-jumpers": "workspace:*"
-    "@jupyter-lsp/completion-theme": "workspace:*"
-    "@jupyter-lsp/jupyterlab-lsp": "workspace:*"
-    "@jupyter-lsp/jupyterlab-lsp-example-extractor": "workspace:*"
-    "@jupyter-lsp/jupyterlab-lsp-klingon-integration": "workspace:*"
-    "@jupyter-lsp/theme-material": "workspace:*"
-    "@jupyter-lsp/theme-vscode": "workspace:*"
+    "@jupyter-lsp/code-jumpers": "file:../code-jumpers"
+    "@jupyter-lsp/completion-theme": "file:../completion-theme"
+    "@jupyter-lsp/jupyterlab-lsp": "file:../jupyterlab-lsp"
+    "@jupyter-lsp/jupyterlab-lsp-example-extractor": "file:../_example-extractor"
+    "@jupyter-lsp/jupyterlab-lsp-klingon-integration": "file:../_klingon-integration"
+    "@jupyter-lsp/theme-material": "file:../theme-material"
+    "@jupyter-lsp/theme-vscode": "file:../theme-vscode"
     rimraf: ^3.0.0
     typescript: ~5.0.4
   languageName: unknown
   linkType: soft
 
-"@jupyter-lsp/jupyterlab-lsp@^4.0.0-alpha.0, @jupyter-lsp/jupyterlab-lsp@workspace:*, @jupyter-lsp/jupyterlab-lsp@workspace:packages/jupyterlab-lsp":
+"@jupyter-lsp/jupyterlab-lsp@^4.0.0-alpha.0, @jupyter-lsp/jupyterlab-lsp@workspace:packages/jupyterlab-lsp":
   version: 0.0.0-use.local
   resolution: "@jupyter-lsp/jupyterlab-lsp@workspace:packages/jupyterlab-lsp"
   dependencies:
@@ -2754,7 +2796,52 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupyter-lsp/theme-material@workspace:*, @jupyter-lsp/theme-material@workspace:packages/theme-material, @jupyter-lsp/theme-material@~2.1.1":
+"@jupyter-lsp/jupyterlab-lsp@file:../jupyterlab-lsp::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
+  version: 4.2.0
+  resolution: "@jupyter-lsp/jupyterlab-lsp@file:../jupyterlab-lsp#../jupyterlab-lsp::hash=6f2f98&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  dependencies:
+    "@jupyter-lsp/code-jumpers": ~1.2.0
+    "@jupyter-lsp/completion-theme": ~3.3.0
+    "@jupyter-lsp/theme-material": ~2.1.1
+    "@jupyter-lsp/theme-vscode": ~2.1.1
+    "@jupyterlab/lsp": ^4.0.0
+    lodash.mergewith: ^4.6.1
+  peerDependencies:
+    "@codemirror/state": "*"
+    "@codemirror/view": "*"
+    "@jupyterlab/application": ^4.0.0
+    "@jupyterlab/apputils": ^4.0.0
+    "@jupyterlab/cells": ^4.0.0
+    "@jupyterlab/codeeditor": ^4.0.0
+    "@jupyterlab/codemirror": ^4.0.0
+    "@jupyterlab/completer": ^3.3.0
+    "@jupyterlab/coreutils": ^6.0.0
+    "@jupyterlab/docmanager": ^4.0.0
+    "@jupyterlab/docregistry": ^4.0.0
+    "@jupyterlab/fileeditor": ^4.0.0
+    "@jupyterlab/notebook": ^4.0.0
+    "@jupyterlab/rendermime": ^4.0.0
+    "@jupyterlab/services": ^7.0.0
+    "@jupyterlab/statusbar": ^4.0.0
+    "@jupyterlab/tooltip": ^4.0.0
+    "@jupyterlab/ui-components": ^4.0.0
+    "@lumino/algorithm": "*"
+    "@lumino/widgets": ^2.0.0
+    react: "*"
+  checksum: 486ade2353d7c343561a9dd04ed3051d64be20c3e0f8e0b20979c6c671e29f8a8c2b44ab80bb8422631eefa311dddfd675d3138e741b4abf6d190fe82702e74e
+  languageName: node
+  linkType: hard
+
+"@jupyter-lsp/theme-material@file:../theme-material::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
+  version: 2.1.1
+  resolution: "@jupyter-lsp/theme-material@file:../theme-material#../theme-material::hash=1cabee&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  dependencies:
+    "@jupyter-lsp/completion-theme": ^3.0.0
+  checksum: a9885df8539a6fa3ee974701281fe90c1d6b8bc2c26e87d24caf59c0b81136d05cd202b3fda4ae383681147836a915eb43fb4d6af8b8b86d5f0cb38c9717b59d
+  languageName: node
+  linkType: hard
+
+"@jupyter-lsp/theme-material@workspace:packages/theme-material, @jupyter-lsp/theme-material@~2.1.1":
   version: 0.0.0-use.local
   resolution: "@jupyter-lsp/theme-material@workspace:packages/theme-material"
   dependencies:
@@ -2762,7 +2849,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupyter-lsp/theme-vscode@workspace:*, @jupyter-lsp/theme-vscode@workspace:packages/theme-vscode, @jupyter-lsp/theme-vscode@~2.1.1":
+"@jupyter-lsp/theme-vscode@file:../theme-vscode::locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage":
+  version: 2.1.1
+  resolution: "@jupyter-lsp/theme-vscode@file:../theme-vscode#../theme-vscode::hash=9505aa&locator=%40jupyter-lsp%2Fjupyterlab-lsp-metapackage%40workspace%3Apackages%2Fmetapackage"
+  dependencies:
+    "@jupyter-lsp/completion-theme": ^3.0.0
+  checksum: 6f8e26a30a3b44dbe3444a979d2aa4d37790192025e40c80e5728c94286b976531e73f34fb3b267fc4528eeb30cd2907327fc3e1bc97a514ea7997da4affb90d
+  languageName: node
+  linkType: hard
+
+"@jupyter-lsp/theme-vscode@workspace:packages/theme-vscode, @jupyter-lsp/theme-vscode@~2.1.1":
   version: 0.0.0-use.local
   resolution: "@jupyter-lsp/theme-vscode@workspace:packages/theme-vscode"
   dependencies:
