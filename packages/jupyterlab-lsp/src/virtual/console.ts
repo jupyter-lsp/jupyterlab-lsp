@@ -4,7 +4,7 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { Signal } from '@lumino/signaling';
 
 import {
-  LanguageServer as LSPSettings,
+  LanguageServers as LSPSettings,
   LoggingConsoleVerbosityLevel
 } from '../_plugin';
 import { ILSPLogConsole, ILogConsoleCore, PLUGIN_ID } from '../tokens';

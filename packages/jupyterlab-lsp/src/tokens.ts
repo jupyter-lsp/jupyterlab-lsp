@@ -1,6 +1,6 @@
 import { Token } from '@lumino/coreutils';
 
-import { LanguageServer2 as LSPLanguageServerSettings } from './_plugin';
+import { LanguageServer1 as LSPLanguageServerSettings } from './_plugin';
 import * as SCHEMA from './_schema';
 
 export type TLanguageId = string;

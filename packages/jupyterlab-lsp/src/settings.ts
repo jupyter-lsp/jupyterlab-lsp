@@ -13,7 +13,7 @@ import {
 import { Signal, ISignal } from '@lumino/signaling';
 import { FieldProps } from '@rjsf/utils';
 
-import { LanguageServer } from './_plugin';
+import { LanguageServers } from './_plugin';
 import {
   renderLanguageServerSettings,
   renderCollapseConflicts
@@ -23,7 +23,7 @@ import { collapseToDotted } from './utils';
 
 type ValueOf<T> = T[keyof T];
 type ServerSchemaWrapper = ValueOf<
-  Required<LanguageServer>['language_servers']
+  Required<LanguageServers>['language_servers']
 >;
 
 /**
@@ -374,8 +374,8 @@ export class SettingsSchemaManager {
   }
 
   async normalizeSettings(
-    composite: Required<LanguageServer>
-  ): Promise<Required<LanguageServer>> {
+    composite: Required<LanguageServers>
+  ): Promise<Required<LanguageServers>> {
     await this._defaultsPopulated;
     // Cache collapsed settings for speed and to only show dialog once.
     // Note that JupyterLab attempts to transform in "preload" step (before splash screen end)

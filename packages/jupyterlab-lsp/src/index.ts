@@ -29,7 +29,7 @@ import { IFormRendererRegistry } from '@jupyterlab/ui-components';
 
 import '../style/index.css';
 
-import { LanguageServer } from './_plugin';
+import { LanguageServers } from './_plugin';
 import { FILEEDITOR_ADAPTER_PLUGIN } from './adapters/fileeditor';
 import { NOTEBOOK_ADAPTER_PLUGIN } from './adapters/notebook';
 import { StatusButtonExtension } from './components/statusbar';
@@ -146,7 +146,7 @@ export class LSPExtension {
     afterInitialization = false
   ) {
     const options = await this._settingsSchemaManager.normalizeSettings(
-      settings.composite as Required<LanguageServer>
+      settings.composite as Required<LanguageServers>
     );
     // Store the initial server settings, to be sent asynchronously
     // when the servers are initialized.
