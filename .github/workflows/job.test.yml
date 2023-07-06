@@ -79,17 +79,12 @@ jobs:
           key: |
             ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
 
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "dir=$(jlpm config get cacheFolder)" >> $GITHUB_OUTPUT
-        shell: bash
-
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: actions/cache@v3
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          path: '.yarn/cache'
           key: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
@@ -160,17 +155,12 @@ jobs:
           key: |
             ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
 
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "dir=$(jlpm config get cacheFolder)" >> $GITHUB_OUTPUT
-        shell: bash
-
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: actions/cache@v3
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          path: '.yarn/cache'
           key: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
@@ -269,17 +259,12 @@ jobs:
           key: |
             ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-atest-${{ hashFiles('yarn.lock') }}
 
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "dir=$(jlpm config get cacheFolder)" >> $GITHUB_OUTPUT
-        shell: bash
-
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: actions/cache@v3
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          path: '.yarn/cache'
           key: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
