@@ -7,13 +7,15 @@ import {
   ILSPDocumentConnectionManager,
   IEditorPosition,
   IRootPosition,
-  IVirtualPosition
+  IVirtualPosition,
+  Document
 } from '@jupyterlab/lsp';
 
 import {
   PositionConverter,
   documentAtRootPosition,
-  rootPositionToVirtualPosition
+  rootPositionToVirtualPosition,
+  editorPositionToRootPosition
 } from './converter';
 import { BrowserConsole } from './virtual/console';
 import { VirtualDocument } from './virtual/document';
@@ -147,7 +149,35 @@ export class ContextAssembler {
     top: number,
     adapter: WidgetLSPAdapter<any>
   ): IRootPosition | null {
-    const editor = adapter.activeEditor?.getEditor();
+    const editorAccessor = adapter.activeEditor;
+
+    if (!editorAccessor) {
+      return null;
+    }
+
+    const editorPosition = this.editorPositionFromCoordinates(
+      left,
+      top,
+      editorAccessor
+    );
+
+    if (!editorPosition) {
+      return null;
+    }
+
+    return editorPositionToRootPosition(
+      adapter,
+      editorAccessor,
+      editorPosition
+    );
+  }
+
+  editorPositionFromCoordinates(
+    left: number,
+    top: number,
+    editorAccessor: Document.IEditor
+  ): IEditorPosition | null {
+    const editor = editorAccessor.getEditor();
     if (!editor) {
       return null;
     }
@@ -166,12 +196,12 @@ export class ContextAssembler {
       return null;
     }
 
-    const rootPosition = {
+    const editorPosition = {
       ch: position.column,
       line: position.line
-    } as IRootPosition;
+    } as IEditorPosition;
 
-    return rootPosition;
+    return editorPosition;
   }
 
   private getContextFromContextMenu(): ICommandContext | null {
