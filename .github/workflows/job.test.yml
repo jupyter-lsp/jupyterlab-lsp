@@ -30,7 +30,7 @@ env:
 
   ATEST_PROCESSES: 2
   ATEST_RETRIES: 3
-  JLPM_CMD: jlpm install --immutable --immutable-cache
+  JLPM_CMD: jlpm install --immutable
 
   # Increase this value to reset all caches
   CACHE_EPOCH: 4
@@ -79,12 +79,17 @@ jobs:
           key: |
             ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
 
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(jlpm config get cacheFolder)" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: actions/cache@v3
         with:
-          path: .yarn-packages
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
@@ -155,12 +160,17 @@ jobs:
           key: |
             ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', 'requirements/github-actions.yml') }}
 
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(jlpm config get cacheFolder)" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: actions/cache@v3
         with:
-          path: .yarn-packages
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
@@ -259,12 +269,17 @@ jobs:
           key: |
             ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-atest-${{ hashFiles('yarn.lock') }}
 
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(jlpm config get cacheFolder)" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: actions/cache@v3
         with:
-          path: .yarn-packages
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
@@ -410,12 +425,12 @@ jobs:
       matrix:
         os: [ubuntu]
         python: ['3.8', '3.10']
-        nodejs: ['14']
+        nodejs: ['16']
         include:
           - python: '3.8'
-            lab: '>=3.6,<3.7'
+            lab: '>=4,<5'
           - python: '3.10'
-            lab: '>=3.6,<4'
+            lab: '>=4,<5'
     steps:
       - name: Install Python
         uses: actions/setup-python@v4
