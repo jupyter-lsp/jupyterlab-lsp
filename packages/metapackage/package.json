@@ -27,13 +27,13 @@
     "watch": "tsc -b --watch --preserveWatchOutput"
   },
   "dependencies": {
-    "@jupyter-lsp/code-jumpers": "file:../code-jumpers",
-    "@jupyter-lsp/completion-theme": "file:../completion-theme",
-    "@jupyter-lsp/jupyterlab-lsp": "file:../jupyterlab-lsp",
-    "@jupyter-lsp/jupyterlab-lsp-example-extractor": "file:../_example-extractor",
-    "@jupyter-lsp/jupyterlab-lsp-klingon-integration": "file:../_klingon-integration",
-    "@jupyter-lsp/theme-material": "file:../theme-material",
-    "@jupyter-lsp/theme-vscode": "file:../theme-vscode"
+    "@jupyter-lsp/code-jumpers": "portal:../code-jumpers",
+    "@jupyter-lsp/completion-theme": "portal:../completion-theme",
+    "@jupyter-lsp/jupyterlab-lsp": "portal:../jupyterlab-lsp",
+    "@jupyter-lsp/jupyterlab-lsp-example-extractor": "portal:../_example-extractor",
+    "@jupyter-lsp/jupyterlab-lsp-klingon-integration": "portal:../_klingon-integration",
+    "@jupyter-lsp/theme-material": "portal:../theme-material",
+    "@jupyter-lsp/theme-vscode": "portal:../theme-vscode"
   },
   "devDependencies": {
     "rimraf": "^3.0.0",
