@@ -37,7 +37,7 @@ import { COMPLETION_PLUGIN } from './features/completion';
 import { DIAGNOSTICS_PLUGIN } from './features/diagnostics';
 //import { HIGHLIGHTS_PLUGIN } from './features/highlights';
 import { HOVER_PLUGIN } from './features/hover';
-//import { JUMP_PLUGIN } from './features/jump_to';
+import { JUMP_PLUGIN } from './features/jump_to';
 import { RENAME_PLUGIN } from './features/rename';
 import { SIGNATURE_PLUGIN } from './features/signature';
 //import { SYNTAX_HIGHLIGHTING_PLUGIN } from './features/syntax_highlighting';
@@ -201,7 +201,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 };
 
 const default_features: JupyterFrontEndPlugin<void>[] = [
-  //JUMP_PLUGIN,
+  JUMP_PLUGIN,
   COMPLETION_PLUGIN,
   SIGNATURE_PLUGIN,
   HOVER_PLUGIN,

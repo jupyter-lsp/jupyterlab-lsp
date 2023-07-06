@@ -567,7 +567,11 @@ export class HoverFeature extends Feature {
       return false;
     }
 
-    const offset = editor.getOffsetAt(PositionConverter.cm_to_ce(rootPosition));
+    const editorPosition = rootPositionToEditorPosition(adapter, rootPosition);
+
+    const offset = editor.getOffsetAt(
+      PositionConverter.cm_to_ce(editorPosition)
+    );
     const token = editor.getTokenAt(offset);
 
     const document = documentAtRootPosition(adapter, rootPosition);
@@ -693,14 +697,7 @@ export class HoverFeature extends Feature {
     try {
       return this._updateUnderlineAndTooltip(event, adapter);
     } catch (e) {
-      if (
-        !(
-          e.message === 'Cell not found in cell_line_map' ||
-          e.message === "Cannot read property 'string' of undefined"
-        )
-      ) {
-        this.console.warn(e);
-      }
+      this.console.warn(e);
       return undefined;
     }
   };
