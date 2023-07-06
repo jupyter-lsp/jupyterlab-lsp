@@ -30,7 +30,7 @@ env:
 
   ATEST_PROCESSES: 2
   ATEST_RETRIES: 3
-  JLPM_CMD: jlpm --prefer-offline --frozen-lockfile
+  JLPM_CMD: jlpm install --immutable --immutable-cache
 
   # Increase this value to reset all caches
   CACHE_EPOCH: 4
