@@ -1,4 +1,5 @@
-import { linter, Diagnostic } from '@codemirror/lint';
+import { linter, Diagnostic, lintGutter } from '@codemirror/lint';
+import { StateField, StateEffect, StateEffectType } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { INotebookShell } from '@jupyter-notebook/application';
 import { ILabShell } from '@jupyterlab/application';
@@ -15,6 +16,7 @@ import {
   VirtualDocument
 } from '@jupyterlab/lsp';
 import { TranslationBundle } from '@jupyterlab/translation';
+import { PromiseDelegate } from '@lumino/coreutils';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
@@ -57,6 +59,7 @@ export class DiagnosticsFeature extends Feature {
   };
   protected settings: FeatureSettings<LSPDiagnosticsSettings>;
   protected console = new BrowserConsole().scope('Diagnostics');
+  private _responseReceived: PromiseDelegate<void> = new PromiseDelegate();
 
   constructor(options: DiagnosticsFeature.IOptions) {
     super(options);
@@ -80,7 +83,18 @@ export class DiagnosticsFeature extends Feature {
     //this.unique_editor_ids = new DefaultMap(() => this.unique_editor_ids.size);
     this.settings.changed.connect(this.refreshDiagnostics, this);
     this._trans = options.trans;
-
+    this._invalidate = StateEffect.define<void>();
+    this._invalidationCounter = StateField.define<number>({
+      create: () => 0,
+      update: (value, tr) => {
+        for (const e of tr.effects) {
+          if (e.is(this._invalidate)) {
+            value += 1;
+          }
+        }
+        return value;
+      }
+    });
     const connectionManager = options.connectionManager;
     // https://github.com/jupyterlab/jupyterlab/issues/14783
     options.shell.currentChanged.connect(shell => {
@@ -95,10 +109,11 @@ export class DiagnosticsFeature extends Feature {
       }
     });
 
+    const settings = options.settings;
     options.editorExtensionRegistry.addExtension({
       name: 'lsp:diagnostics',
       factory: options => {
-        const source = (view: EditorView) => {
+        const source = async (view: EditorView) => {
           let diagnostics: Diagnostic[] = [];
 
           const adapter = [...connectionManager.adapters.values()].find(
@@ -111,6 +126,14 @@ export class DiagnosticsFeature extends Feature {
             );
             return [];
           }
+          // NHT: `response.version` could be checked against document versions
+          // and if non matches we could yield (raise an error or hang for a
+          // few seconds to trigger timeout). Because `response.version` is
+          // optional it would require further testing.
+
+          await adapter.updateFinished;
+          await this._responseReceived.promise;
+
           const database = this.getDiagnosticsDB(adapter);
 
           for (const [_, editorDiagnostics] of database.entries()) {
@@ -147,16 +170,23 @@ export class DiagnosticsFeature extends Feature {
           return diagnostics;
         };
 
-        // TODO: adjust config?
-        const lspLinter = linter(source, { delay: 500 });
+        // never run linter on typing - we will trigger it manually when update is needed
+        const lspLinter = linter(source, {
+          delay: settings.composite.debounceDelay || 250,
+          needsRefresh: update => {
+            const previous = update.startState.field(this._invalidationCounter);
+            const current = update.state.field(this._invalidationCounter);
+            return previous !== current;
+          }
+        });
 
-        return EditorExtensionRegistry.createImmutableExtension([lspLinter]);
+        const extensions = [lspLinter, this._invalidationCounter];
+        if (settings.composite.gutter) {
+          extensions.push(lintGutter());
+        }
+        return EditorExtensionRegistry.createImmutableExtension(extensions);
       }
     });
-
-    //this.connectionManager.adapterRegistered.connect((adapter) =>
-    //  this.switchDiagnosticsPanelSource(adapter)
-    //);
   }
 
   clearDocumentDiagnostics(
@@ -196,7 +226,7 @@ export class DiagnosticsFeature extends Feature {
     diagnosticsPanel.update();
   };
 
-  protected collapseOverlappingDiagnostics(
+  protected diagnosticsByRange(
     diagnostics: lsProtocol.Diagnostic[]
   ): Map<lsProtocol.Range, lsProtocol.Diagnostic[]> {
     // because Range is not a primitive type, the equality of the objects having
@@ -299,16 +329,12 @@ export class DiagnosticsFeature extends Feature {
     document: VirtualDocument,
     adapter: WidgetLSPAdapter<any>
   ) {
-    let diagnostics_list: IEditorDiagnostic[] = [];
-
-    // add new markers, keep track of the added ones
-
+    let diagnosticsList: IEditorDiagnostic[] = [];
     // TODO: test case for severity class always being set, even if diagnostic has no severity
 
-    let diagnostics_by_range = this.collapseOverlappingDiagnostics(
+    let diagnostics_by_range = this.diagnosticsByRange(
       this.filterDiagnostics(response.diagnostics)
     );
-
     diagnostics_by_range.forEach(
       (diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
         const start = PositionConverter.lsp_to_cm(
@@ -347,10 +373,10 @@ export class DiagnosticsFeature extends Feature {
           return;
         }
 
-        let editorAccessor = document.getEditorAtVirtualLine(start);
-        let editor = editorAccessor.getEditor()!;
+        const editorAccessor = document.getEditorAtVirtualLine(start);
+        const editor = editorAccessor.getEditor()!;
 
-        let startInEditor = document.transformVirtualToEditor(start);
+        const startInEditor = document.transformVirtualToEditor(start);
         let endInEditor: IEditorPosition | null;
 
         if (startInEditor === null) {
@@ -377,22 +403,50 @@ export class DiagnosticsFeature extends Feature {
           return;
         }
 
-        let range_in_editor = {
-          start: startInEditor,
-          end: endInEditor
-        };
         for (let diagnostic of diagnostics) {
-          diagnostics_list.push({
+          diagnosticsList.push({
             diagnostic,
             editor: editor as CodeMirrorEditor,
-            range: range_in_editor
+            range: {
+              start: startInEditor,
+              end: endInEditor
+            }
           });
         }
       }
     );
 
     const diagnosticsDB = this.getDiagnosticsDB(adapter);
-    diagnosticsDB.set(document, diagnostics_list);
+
+    const previousList = diagnosticsDB.get(document);
+    const editorsWhichHadDiagnostics = new Set(
+      previousList?.map(d => d.editor)
+    );
+
+    const editorsWithDiagnostics = new Set(diagnosticsList?.map(d => d.editor));
+    diagnosticsDB.set(document, diagnosticsList);
+
+    // Refresh editors with diagnostics; this is needed because linter's
+    // `source()` method will only refresh the cell with changes, but a change
+    // in one cell can influence validity of code in all other cells (e.g. due
+    // to removal of variable definition or usage).
+    for (const block of adapter.editors) {
+      const editor = block.ceEditor.getEditor() as CodeMirrorEditor | undefined;
+      if (!editor) {
+        continue;
+      }
+      if (
+        !(
+          editorsWithDiagnostics.has(editor) ||
+          editorsWhichHadDiagnostics.has(editor)
+        )
+      ) {
+        continue;
+      }
+      editor.editor.dispatch({
+        effects: this._invalidate.of()
+      });
+    }
   }
 
   public handleDiagnostic = (
@@ -409,12 +463,13 @@ export class DiagnosticsFeature extends Feature {
       return;
     }
 
-    /* TODO: gutters */
     try {
       this._lastResponse = response;
       this._lastDocument = document;
       this._lastAdapter = adapter;
       this.setDiagnostics(response, document, adapter);
+      this._responseReceived.resolve();
+      this._responseReceived = new PromiseDelegate();
       diagnosticsPanel.update();
     } catch (e) {
       this.console.warn(e);
@@ -436,6 +491,8 @@ export class DiagnosticsFeature extends Feature {
   private _lastDocument: VirtualDocument;
   private _lastAdapter: WidgetLSPAdapter<any>;
   private _trans: TranslationBundle;
+  private _invalidate: StateEffectType<void>;
+  private _invalidationCounter: StateField<number>;
 }
 
 export namespace DiagnosticsFeature {

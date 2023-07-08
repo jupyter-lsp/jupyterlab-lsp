@@ -12,6 +12,16 @@
       "default": "Warning",
       "description": "Default level of the severity for diagnostics without severity provided by the language server."
     },
+    "gutter": {
+      "title": "Show guttter (experimental, requires restart)",
+      "type": "boolean",
+      "default": false
+    },
+    "debounceDelay": {
+      "title": "Delay between typing and refreshing diagnostic (requires restart)",
+      "type": "number",
+      "default": 250
+    },
     "ignoreCodes": {
       "title": "Diagnostic codes to ignore",
       "type": "array",
