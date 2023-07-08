@@ -22,12 +22,18 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import renameSvg from '../../style/icons/rename.svg';
 import { ContextAssembler } from '../command_manager';
-import { PositionConverter } from '../converter';
+import {
+  PositionConverter,
+  editorAtRootPosition,
+  rootPositionToEditorPosition
+} from '../converter';
 import { EditApplicator, IEditOutcome } from '../edits';
 import { Feature } from '../feature';
 import { PLUGIN_ID } from '../tokens';
 import { BrowserConsole } from '../virtual/console';
 import { VirtualDocument } from '../virtual/document';
+
+import { IDiagnosticsFeature } from './diagnostics/tokens';
 
 export const renameIcon = new LabIcon({
   name: 'lsp:rename',
@@ -115,73 +121,67 @@ export class RenameFeature extends Feature {
 
     return outcome;
   }
+}
 
-  /**
-   * In #115 an issue with rename for Python (when using pyls) was identified:
-   * rename was failing with an obscure message when the source code could
-   * not be parsed correctly by rope (due to a user's syntax error).
-   *
-   * This function detects such a condition using diagnostics feature
-   * and provides a nice error message to the user.
-  static ux_workaround_for_rope_limitation(
-    error: Error,
-    diagnostics_feature: DiagnosticsCM,
-    editor: CodeMirrorVirtualEditor,
-    rename_feature: RenameFeature
-  ): string | null {
-    let has_index_error = false;
-    try {
-      has_index_error = error.message.includes('IndexError');
-    } catch (e) {
-      return null;
-    }
-    if (!has_index_error) {
-      return null;
-    }
-    let dire_python_errors = (
-      diagnostics_feature.diagnostics_db.all || []
-    ).filter(
-      diagnostic =>
-        diagnostic.diagnostic.message.includes('invalid syntax') ||
-        diagnostic.diagnostic.message.includes('SyntaxError') ||
-        diagnostic.diagnostic.message.includes('IndentationError')
-    );
-
-    if (dire_python_errors.length === 0) {
-      return null;
-    }
-
-    let dire_errors = [
-      ...new Set(
-        dire_python_errors.map(diagnostic => {
-          let message = diagnostic.diagnostic.message;
-          let start = diagnostic.range.start;
-          if (rename_feature.adapter.hasMultipleEditors) {
-            let { index: editor_id } = editor.find_editor(diagnostic.editor);
-            let cell_number = editor_id + 1;
-            // TODO: should we show "code cell" numbers, or just cell number?
-            return rename_feature._trans.__(
-              '%1 in cell %2 at line %3',
-              message,
-              cell_number,
-              start.line
-            );
-          } else {
-            return rename_feature._trans.__(
-              '%1 at line %2',
-              message,
-              start.line
-            );
-          }
-        })
-      )
-    ].join(', ');
-    return rename_feature._trans.__(
-      'Syntax error(s) prevents rename: %1',
-      dire_errors
-    );
+/**
+ * In #115 an issue with rename for Python (when using pyls) was identified:
+ * rename was failing with an obscure message when the source code could
+ * not be parsed correctly by rope (due to a user's syntax error).
+ *
+ * This function detects such a condition using diagnostics feature
+ * and provides a nice error message to the user.
+ */
+function guessFailureReason(
+  error: Error,
+  adapter: WidgetLSPAdapter<any>,
+  diagnostics: IDiagnosticsFeature,
+  trans: TranslationBundle
+): string | null {
+  let hasIndexError = false;
+  try {
+    hasIndexError = error.message.includes('IndexError');
+  } catch (e) {
+    return null;
   }
-   */
+  if (!hasIndexError) {
+    return null;
+  }
+  let direPythonErrors = (
+    diagnostics.getDiagnosticsDB(adapter).all || []
+  ).filter(
+    diagnostic =>
+      diagnostic.diagnostic.message.includes('invalid syntax') ||
+      diagnostic.diagnostic.message.includes('SyntaxError') ||
+      diagnostic.diagnostic.message.includes('IndentationError')
+  );
+
+  if (direPythonErrors.length === 0) {
+    return null;
+  }
+
+  let dire_errors = [
+    ...new Set(
+      direPythonErrors.map(diagnostic => {
+        let message = diagnostic.diagnostic.message;
+        let start = diagnostic.range.start;
+        if (adapter.hasMultipleEditors) {
+          let editorIndex = adapter.editors.findIndex(
+            e => e.ceEditor.getEditor() === diagnostic.editor
+          );
+          let cellNumber = editorIndex === -1 ? '(?)' : editorIndex + 1;
+          return trans.__(
+            '%1 in cell %2 at line %3',
+            message,
+            cellNumber,
+            start.line
+          );
+        } else {
+          return trans.__('%1 at line %2', message, start.line);
+        }
+      })
+    )
+  ].join(', ');
+  return trans.__('Syntax error(s) prevents rename: %1', dire_errors);
 }
 
 export namespace RenameFeature {
@@ -198,15 +198,14 @@ export namespace CommandIDs {
 export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
   id: FEATURE_ID,
   requires: [ILSPFeatureManager, ILSPDocumentConnectionManager],
-  optional: [ICommandPalette, ITranslator],
-  // optional: [ILSPDiagnostics], - TODO
+  optional: [ICommandPalette, IDiagnosticsFeature, ITranslator],
   autoStart: true,
   activate: (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     connectionManager: ILSPDocumentConnectionManager,
     palette: ICommandPalette,
-    //diagnostics: ILSPDiagnostics,
+    diagnostics: IDiagnosticsFeature,
     translator: ITranslator
   ) => {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
@@ -231,35 +230,26 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
         const { adapter, connection, virtualPosition, rootPosition, document } =
           context;
 
-        const editorIndex = adapter.getEditorIndexAt(virtualPosition);
-        const editorAccessor = adapter.editors[editorIndex].ceEditor;
+        const editorAccessor = editorAtRootPosition(adapter, rootPosition);
         const editor = editorAccessor?.getEditor();
         if (!editor) {
-          console.log('[rename] no editor');
+          console.log('Could not rename - no editor');
           return;
         }
+        const editorPosition = rootPositionToEditorPosition(
+          adapter,
+          rootPosition
+        );
         const offset = editor.getOffsetAt(
-          PositionConverter.cm_to_ce(rootPosition)
+          PositionConverter.cm_to_ce(editorPosition)
         );
         let oldValue = editor.getTokenAt(offset).value;
         let handleFailure = (error: Error) => {
           let status: string | null = '';
 
-          /*
-          // TODO
-          if (features.has(DIAGNOSTICS_PLUGIN_ID)) {
-            let diagnostics_feature = features.get(
-              DIAGNOSTICS_PLUGIN_ID
-            ) as DiagnosticsCM;
-
-            status = RenameFeature.ux_workaround_for_rope_limitation(
-              error,
-              diagnostics_feature,
-              editor as CodeMirrorVirtualEditor,
-              feature
-            );
+          if (diagnostics) {
+            status = guessFailureReason(error, adapter, diagnostics, trans);
           }
-          */
 
           if (!status) {
             Notification.error(trans.__(`Rename failed: %1`, error));

@@ -68,7 +68,10 @@ export class ContextAssembler {
   isContextMenuOverToken() {
     const context = this.getContextFromContextMenu();
     if (!context) {
-      return false;
+      // annoyingly `isEnabled()` gets called again when mouse is over the menu
+      // which means we are no longer able to retrieve context; therefore we cache
+      // last value and return it if the mouse is over menu.
+      return this._wasOverToken;
     }
     const { rootPosition, adapter } = context;
     const editor = adapter.activeEditor?.getEditor();
@@ -82,8 +85,11 @@ export class ContextAssembler {
       PositionConverter.cm_to_ce(editorPosition)
     );
     const token = editor.getTokenAt(offset);
-    return token.value !== '';
+    const isOverToken = token.value !== '';
+    this._wasOverToken = isOverToken;
+    return isOverToken;
   }
+  private _wasOverToken = false;
 
   private _contextFromActiveDocument(): ICommandContext | null {
     const adapter = [...this.options.connectionManager.adapters.values()].find(
@@ -219,7 +225,7 @@ export class ContextAssembler {
     // Note: could add a guard on this.app.contextMenu.menu.isAttached
 
     // get the first node as it gives the most accurate approximation
-    let leafNode = this.options.app.contextMenuHitTest(() => true);
+    const leafNode = this.options.app.contextMenuHitTest(() => true);
 
     if (!leafNode) {
       return null;

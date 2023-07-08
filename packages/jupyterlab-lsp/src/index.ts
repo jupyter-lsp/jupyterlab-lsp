@@ -199,7 +199,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
   autoStart: true
 };
 
-const default_features: JupyterFrontEndPlugin<void>[] = [
+const default_features: JupyterFrontEndPlugin<any>[] = [
   JUMP_PLUGIN,
   COMPLETION_PLUGIN,
   SIGNATURE_PLUGIN,

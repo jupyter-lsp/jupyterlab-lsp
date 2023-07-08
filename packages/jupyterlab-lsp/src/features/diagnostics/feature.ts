@@ -28,13 +28,8 @@ import { uris_equal } from '../../utils';
 import { BrowserConsole } from '../../virtual/console';
 
 import { diagnosticsPanel } from './diagnostics';
-import { DiagnosticsDatabase, IEditorDiagnostic } from './listing';
-
-// TODO private of feature?
-export const diagnosticsDatabases = new WeakMap<
-  WidgetLSPAdapter<any>,
-  DiagnosticsDatabase
->();
+import { DiagnosticsDatabase } from './listing';
+import { IDiagnosticsFeature, IEditorDiagnostic } from './tokens';
 
 const SeverityMap: Record<
   1 | 2 | 3 | 4,
@@ -46,7 +41,7 @@ const SeverityMap: Record<
   4: 'hint'
 };
 
-export class DiagnosticsFeature extends Feature {
+export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
   readonly id = DiagnosticsFeature.id;
   readonly capabilities: lsProtocol.ClientCapabilities = {
     textDocument: {
@@ -60,6 +55,10 @@ export class DiagnosticsFeature extends Feature {
   protected settings: FeatureSettings<LSPDiagnosticsSettings>;
   protected console = new BrowserConsole().scope('Diagnostics');
   private _responseReceived: PromiseDelegate<void> = new PromiseDelegate();
+  private _diagnosticsDatabases = new WeakMap<
+    WidgetLSPAdapter<any>,
+    DiagnosticsDatabase
+  >();
 
   constructor(options: DiagnosticsFeature.IOptions) {
     super(options);
@@ -207,10 +206,10 @@ export class DiagnosticsFeature extends Feature {
    */
   public getDiagnosticsDB(adapter: WidgetLSPAdapter<any>): DiagnosticsDatabase {
     // Note that virtual_editor can change at runtime (kernel restart)
-    if (!diagnosticsDatabases.has(adapter)) {
-      diagnosticsDatabases.set(adapter, new DiagnosticsDatabase());
+    if (!this._diagnosticsDatabases.has(adapter)) {
+      this._diagnosticsDatabases.set(adapter, new DiagnosticsDatabase());
     }
-    return diagnosticsDatabases.get(adapter)!;
+    return this._diagnosticsDatabases.get(adapter)!;
   }
 
   switchDiagnosticsPanelSource = (adapter: WidgetLSPAdapter<any>) => {

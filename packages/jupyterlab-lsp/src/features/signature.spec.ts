@@ -1,4 +1,3 @@
-
 import { python } from '@codemirror/lang-python';
 import { Language } from '@codemirror/language';
 import * as lsProtocol from 'vscode-languageserver-protocol';

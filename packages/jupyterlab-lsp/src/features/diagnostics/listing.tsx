@@ -1,17 +1,10 @@
 import { VDomModel, VDomRenderer } from '@jupyterlab/apputils';
-import { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
-import {
-  VirtualDocument,
-  IEditorPosition,
-  WidgetLSPAdapter
-} from '@jupyterlab/lsp';
+import { VirtualDocument, WidgetLSPAdapter } from '@jupyterlab/lsp';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { caretDownIcon, caretUpIcon } from '@jupyterlab/ui-components';
 import React, { ReactElement } from 'react';
 import * as lsProtocol from 'vscode-languageserver-protocol';
-
-// import {  } from '@codemirror/view';
 
 import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
 import { DocumentLocator } from '../../components/utils';
@@ -19,20 +12,9 @@ import { PositionConverter } from '../../converter';
 import { FeatureSettings } from '../../feature';
 import { DiagnosticSeverity } from '../../lsp';
 
-import '../../../style/diagnostics_listing.css';
+import { IEditorDiagnostic } from './tokens';
 
-/**
- * Diagnostic which is localized at a specific editor (cell) within a notebook
- * (if used in the context of a FileEditor, then there is just a single editor)
- */
-export interface IEditorDiagnostic {
-  diagnostic: lsProtocol.Diagnostic;
-  editor: CodeMirrorEditor;
-  range: {
-    start: IEditorPosition;
-    end: IEditorPosition;
-  };
-}
+import '../../../style/diagnostics_listing.css';
 
 export const DIAGNOSTICS_LISTING_CLASS = 'lsp-diagnostics-listing';
 const DIAGNOSTICS_PLACEHOLDER_CLASS = 'lsp-diagnostics-placeholder';
@@ -41,7 +23,7 @@ export class DiagnosticsDatabase extends Map<
   VirtualDocument,
   IEditorDiagnostic[]
 > {
-  get all(): Array<IEditorDiagnostic> {
+  get all(): IEditorDiagnostic[] {
     return [].concat.apply([], this.values() as any);
   }
 }

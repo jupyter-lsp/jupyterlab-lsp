@@ -19,12 +19,13 @@ import { FeatureSettings } from '../../feature';
 
 import { diagnosticsIcon, diagnosticsPanel } from './diagnostics';
 import { DiagnosticsFeature } from './feature';
+import { IDiagnosticsFeature } from './tokens';
 
 export namespace CommandIDs {
   export const showPanel = 'lsp:show-diagnostics-panel';
 }
 
-export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<void> = {
+export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<IDiagnosticsFeature> = {
   id: DiagnosticsFeature.id,
   requires: [
     ILSPFeatureManager,
@@ -113,5 +114,6 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<void> = {
         category: trans.__('Language Server Protocol')
       });
     }
+    return feature;
   }
 };

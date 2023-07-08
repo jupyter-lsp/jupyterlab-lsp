@@ -223,10 +223,7 @@ export class EditApplicator {
 
     model.sharedModel.updateSource(
       editor.getOffsetAt({ line: 0, column: 0 }),
-      editor.getOffsetAt({
-        line: fragment_end.line - fragment_start.line + 1,
-        column: 0
-      }),
+      old_value.length,
       newValue
     );
 
