@@ -1,4 +1,6 @@
 import { ILSPCompletionThemeManager } from '@jupyter-lsp/completion-theme';
+import { SourceChange } from '@jupyter/ydoc';
+import { CodeEditor } from '@jupyterlab/codeeditor';
 import {
   ICompletionProvider,
   CompletionHandler,
@@ -23,6 +25,7 @@ import {
 } from '../../converter';
 import { FeatureSettings } from '../../feature';
 import { CompletionTriggerKind, CompletionItemKind } from '../../lsp';
+import { ILSPLogConsole } from '../../tokens';
 import { BrowserConsole } from '../../virtual/console';
 
 import { CompletionItem } from './item';
@@ -65,7 +68,6 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
         this.options.settings.composite.includePerfectMatches
     });
   };
-  // shouldShowContinuousHint
 
   /**
    * Resolve (fetch) details such as documentation.
@@ -88,13 +90,34 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
     };
   }
 
+  shouldShowContinuousHint(
+    completerIsVisible: boolean,
+    changed: SourceChange
+  ): boolean {
+    // TODO https://github.com/jupyterlab/jupyterlab/issues/14806
+    // for now below is a copy of `KernelCompleterProvider` implementation.
+    const sourceChange = changed.sourceChange;
+    if (sourceChange == null) {
+      return true;
+    }
+
+    if (sourceChange.some(delta => delta.delete != null)) {
+      return false;
+    }
+
+    return sourceChange.some(
+      delta =>
+        delta.insert != null &&
+        (delta.insert === '.' ||
+          (!completerIsVisible && delta.insert.trim().length > 0))
+    );
+  }
+
   async fetch(
     request: CompletionHandler.IRequest,
     context: ICompletionContext
   ): Promise<CompletionHandler.ICompletionItemsReply<CompletionItem>> {
-    this.console.log('will fetch');
     const manager = this.options.connectionManager;
-    // TODO should widget be IDocumentWidget?
     const widget = context.widget as IDocumentWidget;
     const adapter = manager.adapters.get(widget.context.path);
 
@@ -109,6 +132,10 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
     const editorPosition = PositionConverter.ce_to_cm(
       editor.getPositionAt(request.offset)!
     ) as IEditorPosition;
+    const token = editor.getTokenAt(request.offset);
+    const positionInToken = token.offset - request.offset;
+    // TODO: (typedCharacter can serve as a proxy for triggerCharacter)
+    // const typedCharacter = token.value[positionInToken + 1];
 
     // TODO: direct mapping
     // because we need editorAccessor, not the editor itself we perform this rather sad dance:
@@ -157,7 +184,7 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
         character: virtualPosition.ch
       },
       context: {
-        triggerKind: CompletionTriggerKind.Invoked
+        triggerKind: CompletionTriggerKind.TriggerCharacter
         //triggerCharacter: (note should be undefined unless CompletionTriggerKind.TriggerCharacter)
       }
     });
@@ -170,24 +197,114 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
           } as lsProtocol.CompletionList)
         : lspCompletionReply;
 
-    return {
-      start: request.offset,
-      end: request.offset,
-      items: completionList.items.map(match => {
-        const type = match.kind ? CompletionItemKind[match.kind] : 'Text';
+    return transformLSPCompletions(
+      token,
+      positionInToken,
+      completionList.items,
+      (kind, match) => {
         return new CompletionItem({
           match,
           connection,
-          type,
-          icon: this.options.iconsThemeManager.get_icon(type) as LabIcon | null,
+          type: kind,
+          icon: this.options.iconsThemeManager.get_icon(kind) as LabIcon | null,
           showDocumentation: this.options.settings.composite.showDocumentation,
           source: this.label
         });
-      })
-    };
+      },
+      this.console
+    );
   }
 
   async isApplicable(context: ICompletionContext): Promise<boolean> {
     return true;
   }
+}
+export function transformLSPCompletions<T>(
+  token: CodeEditor.IToken,
+  positionInToken: number,
+  lspCompletionItems: lsProtocol.CompletionItem[],
+  createCompletionItem: (kind: string, match: lsProtocol.CompletionItem) => T,
+  console: ILSPLogConsole
+) {
+  let prefix = token.value.slice(0, positionInToken + 1);
+  let all_non_prefixed = true;
+  let items: T[] = [];
+  lspCompletionItems.forEach(match => {
+    let kind = match.kind ? CompletionItemKind[match.kind] : '';
+
+    // Update prefix values
+    let text = match.insertText ? match.insertText : match.label;
+
+    // declare prefix presence if needed and update it
+    if (text.toLowerCase().startsWith(prefix.toLowerCase())) {
+      all_non_prefixed = false;
+      if (prefix !== token.value) {
+        if (text.toLowerCase().startsWith(token.value.toLowerCase())) {
+          // given a completion insert text "display_table" and two test cases:
+          // disp<tab>data →  display_table<cursor>data
+          // disp<tab>lay  →  display_table<cursor>
+          // we have to adjust the prefix for the latter (otherwise we would get display_table<cursor>lay),
+          // as we are constrained NOT to replace after the prefix (which would be "disp" otherwise)
+          prefix = token.value;
+        }
+      }
+    }
+    // add prefix if needed
+    else if (token.type === 'string' && prefix.includes('/')) {
+      // special case for path completion in strings, ensuring that:
+      //     '/Com<tab> → '/Completion.ipynb
+      // when the returned insert text is `Completion.ipynb` (the token here is `'/Com`)
+      // developed against pyls and pylsp server, may not work well in other cases
+      const parts = prefix.split('/');
+      if (
+        text.toLowerCase().startsWith(parts[parts.length - 1].toLowerCase())
+      ) {
+        let pathPrefix = parts.slice(0, -1).join('/') + '/';
+        match.insertText = pathPrefix + text;
+        // for label removing the prefix quote if present
+        if (pathPrefix.startsWith("'") || pathPrefix.startsWith('"')) {
+          pathPrefix = pathPrefix.substr(1);
+        }
+        match.label = pathPrefix + match.label;
+        all_non_prefixed = false;
+      }
+    }
+
+    let completionItem = createCompletionItem(kind, match);
+
+    items.push(completionItem);
+  });
+  console.debug('Transformed');
+  // required to make the repetitive trigger characters like :: or ::: work for R with R languageserver,
+  // see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/436
+  let prefix_offset = token.value.length;
+  // completion of dictionaries for Python with jedi-language-server was
+  // causing an issue for dic['<tab>'] case; to avoid this let's make
+  // sure that prefix.length >= prefix.offset
+  if (all_non_prefixed && prefix_offset > prefix.length) {
+    prefix_offset = prefix.length;
+  }
+
+  let response = {
+    // note in the ContextCompleter it was:
+    // start: token.offset,
+    // end: token.offset + token.value.length,
+    // which does not work with "from statistics import <tab>" as the last token ends at "t" of "import",
+    // so the completer would append "mean" as "from statistics importmean" (without space!);
+    // (in such a case the typedCharacters is undefined as we are out of range)
+    // a different workaround would be to prepend the token.value prefix:
+    // text = token.value + text;
+    // but it did not work for "from statistics <tab>" and lead to "from statisticsimport" (no space)
+    start: token.offset + (all_non_prefixed ? prefix_offset : 0),
+    end: token.offset + prefix.length,
+    items: items,
+    source: 'LSP'
+  };
+  if (response.start > response.end) {
+    console.warn(
+      'Response contains start beyond end; this should not happen!',
+      response
+    );
+  }
+  return response;
 }

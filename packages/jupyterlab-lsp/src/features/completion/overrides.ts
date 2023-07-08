@@ -4,8 +4,10 @@ import {
 } from '@jupyter-lsp/completion-theme';
 import {
   ContextCompleterProvider,
-  KernelCompleterProvider
-, CompletionHandler, ICompletionContext } from '@jupyterlab/completer';
+  KernelCompleterProvider,
+  CompletionHandler,
+  ICompletionContext
+} from '@jupyterlab/completer';
 import { LabIcon } from '@jupyterlab/ui-components';
 
 import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
