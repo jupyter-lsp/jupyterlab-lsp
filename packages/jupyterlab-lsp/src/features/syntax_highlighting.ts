@@ -97,7 +97,7 @@ export class SyntaxHighlightingFeature extends Feature {
     // TODO no way to map from EditorView to Document.IEditor is blocking here.
     // TODO: active editor is not necessairly the editor that triggered the update
     const editorAccessor = adapter.activeEditor;
-    const editor = editorAccessor?.getEditor()!;
+    const editor = editorAccessor?.getEditor();
     if (
       !editorAccessor ||
       !editor ||
