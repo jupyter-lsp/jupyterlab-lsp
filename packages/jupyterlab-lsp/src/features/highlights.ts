@@ -97,8 +97,7 @@ export class HighlightsFeature extends Feature {
             viewUpdate.selectionSet ||
             viewUpdate.focusChanged
           ) {
-            // TODO how to get adapter here?
-            // this.onCursorActivity();
+            // TODO a better way to get the adapter here?
             const adapter = [...connectionManager.adapters.values()].find(
               adapter => adapter.widget.node.contains(viewUpdate.view.dom)
             );
@@ -152,9 +151,7 @@ export class HighlightsFeature extends Feature {
     if (this.settings.composite.removeOnBlur) {
       this.markManager.clearEditorMarks(view);
       this._lastToken = null;
-    } // else {
-    //  this.onCursorActivity().catch(console.warn);
-    //}
+    }
   }
 
   protected handleHighlight(
@@ -200,6 +197,9 @@ export class HighlightsFeature extends Feature {
       //     - operation():
       //        - highlight `math`: 160ms
       //        - then highlight `pi`: 227ms
+      //     - CodeMirror6, measuring `markManager.putMarks`:
+      //        - highlight `math`: 181ms
+      //        - then highlight `pi`: 334ms
       //   - 100 cells with `math.pi` and one with `import math`; move cursor to `math`,
       //     wait for 1000 highlights, then move to `pi` (this is overhead control,
       //     no gains expected):
@@ -254,7 +254,6 @@ export class HighlightsFeature extends Feature {
   };
 
   protected async onCursorActivity(adapter: WidgetLSPAdapter<any>) {
-    // TODO: use setTimeout(() => resolve(), 0) to make sure document is updated?
     if (!adapter.virtualDocument) {
       this.console.log('virtualDocument not ready on adapter');
       return;
