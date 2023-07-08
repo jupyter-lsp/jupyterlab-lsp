@@ -221,6 +221,7 @@ export class SignatureFeature extends Feature {
             throw Error('[signature] no adapter for model aborting');
           }
 
+          // TODO: the assumption that updated editor = active editor will fail on RTC. How to get `CodeEditor.IEditor` and `Document.IEditor` from `EditorView`? we got `CodeEditor.IModel` from `options.model` but may need more context here.
           const editorAccessor = adapter.activeEditor;
           const editor = editorAccessor!.getEditor()!;
 
@@ -228,10 +229,9 @@ export class SignatureFeature extends Feature {
           // especially on copy paste this can be problematic.
           const position = editor.getCursorPosition();
 
-          const editorPosition = {
-            line: position.line,
-            ch: position.column
-          } as IEditorPosition;
+          const editorPosition = PositionConverter.ce_to_cm(
+            position
+          ) as IEditorPosition;
 
           // Delay handling by moving on top of the stack
           // so that virtual document is updated.
@@ -436,15 +436,11 @@ export class SignatureFeature extends Feature {
       return;
     }
 
-    // get_cursor_position
-    // TODO: helper? this is wrong - it is editor position, not root position
+    // TODO: helper?
     const editorAccessor = adapter.activeEditor!;
     const editor = editorAccessor.getEditor()!;
     const pos = editor.getCursorPosition();
-    const editorPosition = {
-      ch: pos.column,
-      line: pos.line
-    } as IEditorPosition;
+    const editorPosition = PositionConverter.ce_to_cm(pos) as IEditorPosition;
 
     // TODO should I just shove it into Feature class and have an adapter getter in there?
     const rootPosition = editorPositionToRootPosition(
@@ -578,11 +574,15 @@ export class SignatureFeature extends Feature {
     const connection = this.connectionManager.connections.get(
       virtualDocument.uri
     )!;
+    if (!connection.isReady) {
+      return;
+    }
 
     // @ts-ignore TODO remove after upstream fixes are released
     const signatureCharacters =
       // @ts-ignore
-      connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters;
+      connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters ??
+      [];
 
     // only proceed if: trigger character was used or the signature is/was visible immediately before
     if (!(signatureCharacters.includes(lastCharacter) || isSignatureShown)) {

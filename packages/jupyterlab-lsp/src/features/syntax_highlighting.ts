@@ -1,4 +1,4 @@
-/*
+import { EditorView } from '@codemirror/view';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
@@ -7,48 +7,69 @@ import {
   IEditorMimeTypeService,
   IEditorServices
 } from '@jupyterlab/codeeditor';
-import { CodeMirrorEditor, ICodeMirror } from '@jupyterlab/codemirror';
+import { CodeMirrorEditor ,
+  IEditorExtensionRegistry,
+  IEditorLanguageRegistry,
+  EditorExtensionRegistry
+} from '@jupyterlab/codemirror';
+import {
+  ILSPFeatureManager,
+  ILSPDocumentConnectionManager,
+  WidgetLSPAdapter
+} from '@jupyterlab/lsp';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { ITranslator } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
 
 import syntaxSvg from '../../style/icons/syntax-highlight.svg';
 import { CodeSyntax as LSPSyntaxHighlightingSettings } from '../_syntax_highlighting';
-import { CodeMirrorIntegration } from '../editor_integration/codemirror';
-import {
-  FeatureSettings,
-  IEditorIntegrationOptions,
-  IFeatureLabIntegration,
-  IFeatureSettings
-} from '../feature';
-import { ILSPFeatureManager, PLUGIN_ID } from '../tokens';
+import { FeatureSettings, Feature } from '../feature';
+import { PLUGIN_ID } from '../tokens';
+import { VirtualDocument } from '../virtual/document';
 
 export const syntaxHighlightingIcon = new LabIcon({
   name: 'lsp:syntax-highlighting',
   svgstr: syntaxSvg
 });
 
-const FEATURE_ID = PLUGIN_ID + ':syntax_highlighting';
+export class SyntaxHighlightingFeature extends Feature {
+  readonly id = SyntaxHighlightingFeature.id;
+  // note: semantic highlighting could be implemented here
+  readonly capabilities = {};
+  protected originalModes = new Map<CodeMirrorEditor, string>();
 
-export class CMSyntaxHighlighting extends CodeMirrorIntegration {
-  editors_with_active_highlight: Set<CodeMirrorEditor>;
-
-  constructor(options: IEditorIntegrationOptions) {
+  constructor(protected options: SyntaxHighlightingFeature.IOptions) {
     super(options);
-    this.virtualDocument.changed.connect(this.update_mode.bind(this), this);
-    this.editors_with_active_highlight = new Set();
+    const connectionManager = options.connectionManager;
+
+    options.editorExtensionRegistry.addExtension({
+      name: 'lsp:codeSignature',
+      factory: options => {
+        const updateListener = EditorView.updateListener.of(viewUpdate => {
+          if (!viewUpdate.docChanged) {
+            return;
+          }
+
+          const adapter = [...connectionManager.adapters.values()].find(
+            adapter => adapter.widget.node.contains(viewUpdate.view.contentDOM)
+          );
+
+          // TODO https://github.com/jupyterlab/jupyterlab/issues/14711#issuecomment-1624442627
+          // const editor = adapter.editors.find(e => e.model === options.model);
+
+          if (adapter) {
+            this.update_mode(adapter, viewUpdate.view);
+          }
+        });
+
+        return EditorExtensionRegistry.createImmutableExtension([
+          updateListener
+        ]);
+      }
+    });
   }
 
-  get lab_integration() {
-    return super.lab_integration as SyntaxLabIntegration;
-  }
-
-  get settings() {
-    return super.settings as IFeatureSettings<LSPSyntaxHighlightingSettings>;
-  }
-
-  private get_mode(language: string) {
-    let mimetype = this.lab_integration.mimeTypeService.getMimeTypeByLanguage({
+  private getMode(language: string): string | undefined {
+    let mimetype = this.options.mimeTypeService.getMimeTypeByLanguage({
       name: language
     });
 
@@ -59,28 +80,45 @@ export class CMSyntaxHighlighting extends CodeMirrorIntegration {
       return;
     }
 
-    return this.lab_integration.codeMirror.CodeMirror.findModeByMIME(mimetype);
+    const editorLanguage = this.options.languageRegistry.findByMIME(mimetype);
+
+    if (!editorLanguage) {
+      return;
+    }
+
+    return mimetype;
   }
 
-  update_mode() {
-    let root = this.virtualDocument;
-    let editors_with_current_highlight = new Set<CodeMirrorEditor>();
+  update_mode(adapter: WidgetLSPAdapter<any>, view: EditorView) {
+    let topDocument = adapter.virtualDocument as VirtualDocument;
+    const totalArea = view.state.doc.length;
 
-    for (let map of root.foreignDocument_maps) {
+    // TODO no way to map from EditorView to Document.IEditor is blocking here.
+    // TODO: active editor is not necessairly the editor that triggered the update
+    const editorAccessor = adapter.activeEditor;
+    const editor = editorAccessor?.getEditor()!;
+    if (
+      !editorAccessor ||
+      !editor ||
+      (editor as CodeMirrorEditor).editor !== view
+    ) {
+      // TODO: ideally we would not have to do this (we would have view -> editor map)
+      return;
+    }
+    if (!topDocument) {
+      return;
+    }
+
+    const overrides = new Map();
+    for (let map of topDocument.getForeignDocuments(editorAccessor)) {
       for (let [range, block] of map.entries()) {
-        let ceEditor = block.editor as CodeMirrorEditor;
-        let editor = ceEditor.editor;
-        let lines = editor.getValue('\n');
-        let total_area = lines.concat('').length;
-
+        let editor = block.editor.getEditor()! as CodeMirrorEditor;
         let covered_area =
-          ceEditor.getOffsetAt(range.end) - ceEditor.getOffsetAt(range.start);
-
-        let coverage = covered_area / total_area;
+          editor.getOffsetAt(range.end) - editor.getOffsetAt(range.start);
+        let coverage = covered_area / totalArea;
 
         let language = block.virtualDocument.language;
-
-        let mode = this.get_mode(language);
+        let mode = this.getMode(language);
 
         // if not highlighting mode available, skip this editor
         if (typeof mode === 'undefined') {
@@ -88,75 +126,80 @@ export class CMSyntaxHighlighting extends CodeMirrorIntegration {
         }
 
         // change the mode if the majority of the code is the foreign code
-        if (coverage > this.settings.composite.foreignCodeThreshold) {
-          editors_with_current_highlight.add(ceEditor);
-          let old_mode = editor.getOption('mode');
-          if (old_mode != mode.mime) {
-            editor.setOption('mode', mode.mime);
-          }
+        if (coverage > this.options.settings.composite.foreignCodeThreshold) {
+          // this will trigger a side effect of switching language by updating
+          // private language compartment (implementation detail).
+          editor.model.mimeType = mode;
+          overrides.set(editor, editor.model.mimeType);
         }
       }
     }
-
-    if (editors_with_current_highlight != this.editors_with_active_highlight) {
-      for (let ceEditor of this.editors_with_active_highlight) {
-        if (!editors_with_current_highlight.has(ceEditor)) {
-          // ceEditor.injectExtension ?
-          ceEditor.editor.setOption('mode', ceEditor.model.mimeType);
-        }
+    const relevantEditors = new Set(
+      adapter.editors.map(e => e.ceEditor.getEditor())
+    );
+    // restore modes on editors which are no longer over the threshold
+    // (but only those which belong to this adapter).
+    for (const [editor, originalMode] of this.originalModes) {
+      if (!relevantEditors.has(editor)) {
+        continue;
+      }
+      if (overrides.has(editor)) {
+        continue;
+      } else {
+        editor.model.mimeType = originalMode;
       }
     }
-
-    this.editors_with_active_highlight = editors_with_current_highlight;
+    // add new ovverrides to remember the original mode
+    for (const [editor, mode] of overrides) {
+      if (!this.originalModes.has(editor)) {
+        this.originalModes.set(editor, mode);
+      }
+    }
   }
 }
 
-class SyntaxLabIntegration implements IFeatureLabIntegration {
-  // TODO: we could accept custom mimetype mapping from settings
-  settings: IFeatureSettings<LSPSyntaxHighlightingSettings>;
-
-  constructor(
-    public mimeTypeService: IEditorMimeTypeService,
-    public codeMirror: ICodeMirror
-  ) {}
+export namespace SyntaxHighlightingFeature {
+  export interface IOptions extends Feature.IOptions {
+    settings: FeatureSettings<LSPSyntaxHighlightingSettings>;
+    mimeTypeService: IEditorMimeTypeService;
+    editorExtensionRegistry: IEditorExtensionRegistry;
+    languageRegistry: IEditorLanguageRegistry;
+  }
+  export const id = PLUGIN_ID + ':syntax_highlighting';
 }
 
 export const SYNTAX_HIGHLIGHTING_PLUGIN: JupyterFrontEndPlugin<void> = {
-  id: FEATURE_ID,
+  id: SyntaxHighlightingFeature.id,
   requires: [
     ILSPFeatureManager,
     IEditorServices,
     ISettingRegistry,
-    ICodeMirror,
-    ITranslator
+    IEditorExtensionRegistry,
+    IEditorLanguageRegistry
   ],
   autoStart: true,
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     editorServices: IEditorServices,
     settingRegistry: ISettingRegistry,
-    codeMirror: ICodeMirror,
-    translator: ITranslator
+    editorExtensionRegistry: IEditorExtensionRegistry,
+    languageRegistry: IEditorLanguageRegistry,
+    connectionManager: ILSPDocumentConnectionManager
   ) => {
-    const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
-    const trans = translator.load('jupyterlab_lsp');
-
-    featureManager.register({
-      feature: {
-        editorIntegrationFactory: new Map([
-          ['CodeMirrorEditor', CMSyntaxHighlighting]
-        ]),
-        commands: [],
-        id: FEATURE_ID,
-        name: trans.__('Syntax highlighting'),
-        labIntegration: new SyntaxLabIntegration(
-          editorServices.mimeTypeService,
-          codeMirror
-        ),
-        settings: settings
-      }
+    const settings = new FeatureSettings<LSPSyntaxHighlightingSettings>(
+      settingRegistry,
+      SyntaxHighlightingFeature.id
+    );
+    await settings.ready;
+    const feature = new SyntaxHighlightingFeature({
+      settings,
+      connectionManager,
+      editorExtensionRegistry,
+      mimeTypeService: editorServices.mimeTypeService,
+      languageRegistry
     });
+    featureManager.register(feature);
+    // return feature;
   }
 };
-*/

@@ -14,7 +14,7 @@
     "preserveWatchOutput": true,
     "resolveJsonModule": true,
     "sourceMap": true,
-    "target": "es2018",
+    "target": "es2019",
     "skipLibCheck": true,
     "strictNullChecks": true,
     "noImplicitThis": true,

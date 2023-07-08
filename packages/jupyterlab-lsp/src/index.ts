@@ -35,7 +35,7 @@ import { NOTEBOOK_ADAPTER_PLUGIN } from './adapters/notebook';
 import { StatusButtonExtension } from './components/statusbar';
 import { COMPLETION_PLUGIN } from './features/completion';
 import { DIAGNOSTICS_PLUGIN } from './features/diagnostics';
-//import { HIGHLIGHTS_PLUGIN } from './features/highlights';
+import { HIGHLIGHTS_PLUGIN } from './features/highlights';
 import { HOVER_PLUGIN } from './features/hover';
 import { JUMP_PLUGIN } from './features/jump_to';
 import { RENAME_PLUGIN } from './features/rename';
@@ -206,7 +206,7 @@ const default_features: JupyterFrontEndPlugin<void>[] = [
   SIGNATURE_PLUGIN,
   HOVER_PLUGIN,
   RENAME_PLUGIN,
-  //HIGHLIGHTS_PLUGIN,
+  HIGHLIGHTS_PLUGIN,
   DIAGNOSTICS_PLUGIN
   //SYNTAX_HIGHLIGHTING_PLUGIN
 ];

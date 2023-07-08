@@ -77,6 +77,19 @@
 }
 
 /* highlight */
-.cm-lsp-highlight {
+.cm-lsp-highlight-Read {
+  /* highlight on places where variable is accessed, e.g. `print(var)` */
+  background-color: var(--jp-editor-mirror-lsp-highlight-background-color);
+  outline: 1px dashed var(--jp-editor-mirror-lsp-highlight-border-color);
+}
+
+.cm-lsp-highlight-Write {
+  /* highlight on places where variable is defined, e.g. `var = 1` */
+  background-color: var(--jp-editor-mirror-lsp-highlight-background-color);
+  outline: 1px solid var(--jp-editor-mirror-lsp-highlight-border-color);
+}
+
+.cm-lsp-highlight-Text {
+  /* highlight on places where variable was matched based on text rather than semantics */
   background-color: var(--jp-editor-mirror-lsp-highlight-background-color);
 }

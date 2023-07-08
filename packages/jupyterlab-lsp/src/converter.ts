@@ -34,7 +34,13 @@ export class PositionConverter {
   }
 }
 
-/** TODO should it be wrapped into an object? */
+/** TODO should it be wrapped into an object? Where should these live? */
+
+export interface IEditorRange {
+  start: IEditorPosition;
+  end: IEditorPosition;
+  editor: CodeEditor.IEditor;
+}
 
 export function documentAtRootPosition(
   adapter: WidgetLSPAdapter<any>,
@@ -115,4 +121,35 @@ export function editorPositionToRootPosition(
     throw Error('Virtual document of adapter disposed!');
   }
   return adapter.virtualDocument.transformFromEditorToRoot(editor, position);
+}
+
+export function rangeToEditorRange(
+  adapter: WidgetLSPAdapter<any>,
+  range: lsProtocol.Range,
+  editor: CodeEditor.IEditor | null
+): IEditorRange {
+  let start = PositionConverter.lsp_to_cm(range.start) as IVirtualPosition;
+  let end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
+
+  let startInRoot = virtualPositionToRootPosition(adapter, start);
+  if (!startInRoot) {
+    throw Error('Could not determine position in root');
+  }
+
+  if (editor == null) {
+    let editorAccessor = editorAtRootPosition(adapter, startInRoot);
+    const candidate = editorAccessor.getEditor();
+    if (!candidate) {
+      throw Error('Editor could not be accessed');
+    }
+    editor = candidate;
+  }
+
+  const document = documentAtRootPosition(adapter, startInRoot);
+
+  return {
+    start: document.transformVirtualToEditor(start)!,
+    end: document.transformVirtualToEditor(end)!,
+    editor: editor
+  };
 }

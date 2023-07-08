@@ -149,6 +149,11 @@ export class ContextAssembler {
     top: number,
     adapter: WidgetLSPAdapter<any>
   ): IRootPosition | null {
+    // TODO: this relies on the editor under the cursor being the active editor;
+    // this may not be the case. Instead we should find editor from DOM and then
+    // have a magic way of transforming editor instances into CodeEditor and Document.Editor
+    // a naive way is to iterate all the editors in adapter (=cells) and see which one matches
+    // but the predicate is expensive and fallible in windowed notebook.
     const editorAccessor = adapter.activeEditor;
 
     if (!editorAccessor) {

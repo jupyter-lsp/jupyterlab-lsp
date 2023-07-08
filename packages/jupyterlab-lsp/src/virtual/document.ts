@@ -3,7 +3,8 @@ import { CodeEditor } from '@jupyterlab/codeeditor';
 import type {
   IVirtualPosition,
   IRootPosition,
-  Document
+  Document,
+  ForeignDocumentsMap
 } from '@jupyterlab/lsp';
 import { VirtualDocument as VirtualDocumentBase } from '@jupyterlab/lsp';
 
@@ -49,7 +50,9 @@ export class VirtualDocument extends VirtualDocumentBase {
     }
   }
 
-  // Override parent method to hook cell magics overrides
+  /**
+   * Extends parent method to hook cell magics overrides.
+   */
   prepareCodeBlock(
     block: Document.ICodeBlockOptions,
     editorShift: CodeEditor.IPosition = { line: 0, column: 0 }
@@ -78,11 +81,27 @@ export class VirtualDocument extends VirtualDocumentBase {
     return { lines, foreignDocumentsMap, skipInspect };
   }
 
-  // add method which was previously implemented in CodeMirrorIntegration
-  // but probably should have been in VirtualDocument all along
+  /**
+   * @experimental
+   */
   transformVirtualToRoot(position: IVirtualPosition): IRootPosition | null {
+    // a method which was previously implemented in CodeMirrorIntegration
+    // but probably should have been in VirtualDocument all along
     let editor = this.virtualLines.get(position.line)!.editor;
     let editorPosition = this.transformVirtualToEditor(position);
     return this.transformFromEditorToRoot(editor, editorPosition!);
+  }
+
+  /**
+   * @experimental
+   */
+  getForeignDocuments(editorAccessor: Document.IEditor): ForeignDocumentsMap[] {
+    let maps = new Set<ForeignDocumentsMap>();
+    for (let line of this.sourceLines.values()) {
+      if (line.editor === editorAccessor) {
+        maps.add(line.foreignDocumentsMap);
+      }
+    }
+    return [...maps.values()];
   }
 }
