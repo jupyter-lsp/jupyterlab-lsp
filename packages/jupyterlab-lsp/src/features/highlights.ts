@@ -105,7 +105,7 @@ export class HighlightsFeature extends Feature {
               this.console.warn('Adapter not found');
               return;
             }
-            this.onCursorActivity(adapter);
+            this.onCursorActivity(adapter).catch(this.console.warn);
           }
         });
         const eventListeners = EditorView.domEventHandlers({
@@ -123,7 +123,7 @@ export class HighlightsFeature extends Feature {
               this.console.warn('Adapter not found');
               return;
             }
-            this.onCursorActivity(adapter);
+            this.onCursorActivity(adapter).catch(this.console.warn);
           },
           keydown: event => {
             const adapter = [...connectionManager.adapters.values()].find(
@@ -136,7 +136,7 @@ export class HighlightsFeature extends Feature {
               this.console.warn('Adapter not found');
               return;
             }
-            this.onCursorActivity(adapter);
+            this.onCursorActivity(adapter).catch(this.console.warn);
           }
         });
         return EditorExtensionRegistry.createImmutableExtension([
