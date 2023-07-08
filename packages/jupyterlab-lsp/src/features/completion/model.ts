@@ -39,12 +39,18 @@ export class GenericCompleterModel<
   completionItems(): T[] {
     let query = this.query;
     this.query = '';
-    let unfilteredItems = super.completionItems!() as T[];
+    let unfilteredItems = (
+      super.completionItems() as CompletionHandler.ICompletionItem[]
+    ).map(this.harmoniseItem);
     this.query = query;
 
     // always want to sort
     // TODO does this behave strangely with %%<tab> if always sorting?
     return this._sortAndFilter(query, unfilteredItems);
+  }
+
+  protected harmoniseItem(item: CompletionHandler.ICompletionItem): T {
+    return item as T;
   }
 
   setCompletionItems(newValue: T[]) {
@@ -207,17 +213,27 @@ export namespace GenericCompleterModel {
   };
 }
 
-export class LSPCompleterModel extends GenericCompleterModel<CompletionItem> {
-  protected getFilterText(item: CompletionItem): string {
+type MaybeCompletionItem = Partial<CompletionItem> &
+  CompletionHandler.ICompletionItem;
+
+export class LSPCompleterModel extends GenericCompleterModel<MaybeCompletionItem> {
+  protected getFilterText(item: MaybeCompletionItem): string {
     if (item.filterText) {
       return item.filterText;
     }
     return super.getFilterText(item);
   }
 
+  protected harmoniseItem(item: CompletionHandler.ICompletionItem) {
+    if ((item as any).self) {
+      return (item as any).self;
+    }
+    return super.harmoniseItem(item);
+  }
+
   protected compareMatches(
-    a: ICompletionMatch<CompletionItem>,
-    b: ICompletionMatch<CompletionItem>
+    a: ICompletionMatch<MaybeCompletionItem>,
+    b: ICompletionMatch<MaybeCompletionItem>
   ): number {
     const delta = a.score - b.score;
     if (delta !== 0) {
@@ -226,6 +242,6 @@ export class LSPCompleterModel extends GenericCompleterModel<CompletionItem> {
     // solve ties using sortText
 
     // note: locale compare is case-insensitive
-    return a.item.sortText.localeCompare(b.item.sortText);
+    return (a.item.sortText ?? 'z').localeCompare(b.item.sortText ?? 'z');
   }
 }

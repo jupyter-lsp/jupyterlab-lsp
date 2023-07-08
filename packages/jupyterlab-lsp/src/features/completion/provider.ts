@@ -1,7 +1,4 @@
-import {
-  ILSPCompletionThemeManager,
-  KernelKind
-} from '@jupyter-lsp/completion-theme';
+import { ILSPCompletionThemeManager } from '@jupyter-lsp/completion-theme';
 import {
   ICompletionProvider,
   CompletionHandler,
@@ -36,12 +33,12 @@ interface IOptions {
   settings: FeatureSettings<LSPCompletionSettings>;
   renderMimeRegistry: IRenderMimeRegistry;
   iconsThemeManager: ILSPCompletionThemeManager;
-  //editorExtensionRegistry: IEditorExtensionRegistry;
   connectionManager: ILSPDocumentConnectionManager;
 }
 
 export class CompletionProvider implements ICompletionProvider<CompletionItem> {
   readonly identifier = 'lsp';
+  readonly label = 'LSP';
   protected console = new BrowserConsole().scope('Completion provider');
 
   constructor(protected options: IOptions) {
@@ -58,14 +55,16 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
 
   renderer: LSPCompletionRenderer;
 
-  async modelFactory(context: ICompletionContext): Promise<Completer.IModel> {
+  modelFactory = async (
+    context: ICompletionContext
+  ): Promise<Completer.IModel> => {
     return new LSPCompleterModel({
       caseSensitive: this.options.settings.composite.caseSensitive,
       preFilterMatches: this.options.settings.composite.preFilterMatches,
       includePerfectMatches:
         this.options.settings.composite.includePerfectMatches
     });
-  }
+  };
   // shouldShowContinuousHint
 
   /**
@@ -82,8 +81,8 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
       filterText: completionItem.filterText,
       sortText: completionItem.sortText,
       insertText: completionItem.insertText,
-      type: completionItem.type,
       source: completionItem.source,
+      type: completionItem.type,
       isDocumentationMarkdown: completionItem.isDocumentationMarkdown,
       icon: completionItem.icon
     };
@@ -159,7 +158,7 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
       },
       context: {
         triggerKind: CompletionTriggerKind.Invoked
-        //triggerCharacter: (not should be undefined unless CompletionTriggerKind.TriggerCharacter)
+        //triggerCharacter: (note should be undefined unless CompletionTriggerKind.TriggerCharacter)
       }
     });
 
@@ -175,26 +174,17 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
       start: request.offset,
       end: request.offset,
       items: completionList.items.map(match => {
-        const type = match.kind ? CompletionItemKind[match.kind] : '';
-        console.log('type', type, match.kind, this.iconFor(type));
+        const type = match.kind ? CompletionItemKind[match.kind] : 'Text';
         return new CompletionItem({
           match,
           connection,
           type,
-          icon: this.iconFor(type),
-          showDocumentation: this.options.settings.composite.showDocumentation
+          icon: this.options.iconsThemeManager.get_icon(type) as LabIcon | null,
+          showDocumentation: this.options.settings.composite.showDocumentation,
+          source: this.label
         });
       })
     };
-  }
-
-  protected iconFor(type: string): LabIcon {
-    if (typeof type === 'undefined') {
-      type = KernelKind;
-    }
-    return (
-      (this.options.iconsThemeManager.get_icon(type) as LabIcon) || undefined
-    );
   }
 
   async isApplicable(context: ICompletionContext): Promise<boolean> {

@@ -94,12 +94,12 @@ export class LSPCompletionRenderer
       case 'type':
         return item?.type?.toLowerCase?.();
       case 'source':
-        return item?.source?.name;
+        return item?.source;
       case 'auto':
         return [
           item?.detail || '',
           item?.type?.toLowerCase?.(),
-          item?.source?.name
+          item?.source
         ].filter(x => !!x)[0];
       default:
         this.options.console.warn(

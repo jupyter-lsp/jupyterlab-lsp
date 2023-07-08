@@ -6,29 +6,11 @@ import * as lsProtocol from 'vscode-languageserver-types';
 /**
  * To be upstreamed
  */
-export interface ICompletionsSource {
-  /**
-   * The name displayed in the GUI
-   */
-  name: string;
-  /**
-   * The higher the number the higher the priority
-   */
-  priority: number;
-  /**
-   * The icon to be displayed if no type icon is present
-   */
-  fallbackIcon?: LabIcon;
-}
-
-/**
- * To be upstreamed
- */
 export interface IExtendedCompletionItem
   extends CompletionHandler.ICompletionItem {
   insertText: string;
   sortText: string;
-  source?: ICompletionsSource;
+  source: string;
 }
 
 namespace CompletionItem {
@@ -40,10 +22,11 @@ namespace CompletionItem {
     /**
      * LabIcon object for icon to be rendered with completion type.
      */
-    icon: LabIcon;
+    icon: LabIcon | null;
     match: lsProtocol.CompletionItem;
     connection: ILSPConnection;
     showDocumentation: boolean;
+    source: string;
   }
 }
 
@@ -59,6 +42,7 @@ export class CompletionItem implements IExtendedCompletionItem {
    */
   public self: CompletionItem;
   public element: HTMLLIElement;
+  public source: string;
   private _currentInsertText: string;
 
   get isDocumentationMarkdown(): boolean {
@@ -71,9 +55,7 @@ export class CompletionItem implements IExtendedCompletionItem {
    */
   public label: string;
 
-  public source: ICompletionsSource;
-
-  icon: LabIcon;
+  icon: LabIcon | undefined;
   private match: lsProtocol.CompletionItem;
 
   constructor(protected options: CompletionItem.IOptions) {
@@ -84,7 +66,8 @@ export class CompletionItem implements IExtendedCompletionItem {
     this._detail = match.detail;
     this.match = match;
     this.self = this;
-    this.icon = options.icon;
+    this.source = options.source;
+    this.icon = options.icon ? options.icon : undefined;
   }
 
   get type() {

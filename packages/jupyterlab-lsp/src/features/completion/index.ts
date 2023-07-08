@@ -19,6 +19,10 @@ import { FeatureSettings, Feature } from '../../feature';
 import { CompletionItemTag } from '../../lsp';
 import { PLUGIN_ID } from '../../tokens';
 
+import {
+  EnhancedContextCompleterProvider,
+  EnhancedKernelCompleterProvider
+} from './overrides';
 import { CompletionProvider } from './provider';
 
 export const completionIcon = new LabIcon({
@@ -57,6 +61,12 @@ export class CompletionFeature extends Feature {
 
     const provider = new CompletionProvider({ ...options });
     options.completionProviderManager.registerProvider(provider);
+    options.completionProviderManager.registerProvider(
+      new EnhancedContextCompleterProvider(options)
+    );
+    options.completionProviderManager.registerProvider(
+      new EnhancedKernelCompleterProvider(options)
+    );
   }
 
   private _configure() {
