@@ -1,3 +1,8 @@
+
+import { python } from '@codemirror/lang-python';
+import { Language } from '@codemirror/language';
+import * as lsProtocol from 'vscode-languageserver-protocol';
+
 import { BrowserConsole } from '../virtual/console';
 
 import { extractLead, signatureToMarkdown } from './signature';
@@ -53,8 +58,14 @@ describe('Signature', () => {
   });
 
   describe('SignatureToMarkdown', () => {
-    const MockHighlighter = (code: string, fragment: string) =>
-      code.replace(fragment, `<u>${fragment}</u>`);
+    const MockHighlighter = (
+      code: string,
+      fragment: lsProtocol.ParameterInformation,
+      _language: Language | undefined
+    ) => {
+      const label = typeof fragment.label === 'string' ? fragment.label : '';
+      return code.replace(label, `<u>${label}</u>`);
+    };
 
     it('renders plaintext signature', async () => {
       let text = signatureToMarkdown(
@@ -69,7 +80,7 @@ describe('Signature', () => {
           ],
           activeParameter: 0
         },
-        'python',
+        python().language,
         MockHighlighter,
         new BrowserConsole()
       );
@@ -94,7 +105,7 @@ describe('Signature', () => {
           ],
           activeParameter: 0
         },
-        'python',
+        python().language,
         MockHighlighter,
         new BrowserConsole()
       );
@@ -119,7 +130,7 @@ describe('Signature', () => {
           ],
           activeParameter: 0
         },
-        'python',
+        python().language,
         MockHighlighter,
         new BrowserConsole()
       );
@@ -144,7 +155,7 @@ describe('Signature', () => {
           ],
           activeParameter: 0
         },
-        'python',
+        python().language,
         MockHighlighter,
         new BrowserConsole(),
         undefined,
@@ -164,7 +175,7 @@ describe('Signature', () => {
             kind: 'plaintext'
           }
         },
-        'python',
+        python().language,
         MockHighlighter,
         new BrowserConsole(),
         undefined,

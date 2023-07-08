@@ -1,3 +1,4 @@
+import { Language } from '@codemirror/language';
 import { ChangeSet, Text } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import {
@@ -6,7 +7,9 @@ import {
 } from '@jupyterlab/application';
 import {
   IEditorExtensionRegistry,
-  EditorExtensionRegistry
+  EditorExtensionRegistry,
+  IEditorLanguageRegistry,
+  jupyterHighlightStyle
 } from '@jupyterlab/codemirror';
 import {
   IEditorPosition,
@@ -19,6 +22,7 @@ import {
 } from '@jupyterlab/lsp';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { highlightTree } from '@lezer/highlight';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { CodeSignature as LSPSignatureSettings } from '../_signature';
@@ -84,11 +88,11 @@ export function extractLead(lines: string[], size: number): ISplit | null {
  */
 export function signatureToMarkdown(
   item: lsProtocol.SignatureInformation,
-  language: string = '',
+  language: Language | undefined,
   codeHighlighter: (
     source: string,
-    variable: string,
-    language: string
+    variable: lsProtocol.ParameterInformation,
+    language: Language | undefined
   ) => string,
   logger: ILogConsoleCore,
   activeParameterFallback?: number | null,
@@ -109,11 +113,7 @@ export function signatureToMarkdown(
       markdown = '```' + language + '\n' + label + '\n```';
     } else {
       const parameter = item.parameters[activeParameter];
-      let substring: string =
-        typeof parameter.label === 'string'
-          ? parameter.label
-          : label.slice(parameter.label[0], parameter.label[1]);
-      markdown = codeHighlighter(label, substring, language);
+      markdown = codeHighlighter(label, parameter, language);
     }
   } else {
     markdown = '```' + language + '\n' + label + '\n```';
@@ -185,6 +185,30 @@ function extractLastCharacter(changes: ChangeSet): string {
   return last ? last[0] : '';
 }
 
+function runMode(
+  source: string,
+  language: Language,
+  callback: (
+    text: string,
+    style: string | null,
+    from: number,
+    to: number
+  ) => void
+): void {
+  const tree = language.parser.parse(source);
+  let pos = 0;
+  highlightTree(tree, jupyterHighlightStyle, (from, to, token) => {
+    if (from > pos) {
+      callback(source.slice(pos, from), null, pos, from);
+    }
+    callback(source.slice(from, to), token, from, to);
+    pos = to;
+  });
+  if (pos != tree.length) {
+    callback(source.slice(pos, tree.length), null, pos, tree.length);
+  }
+}
+
 export class SignatureFeature extends Feature {
   readonly id = SignatureFeature.id;
   readonly capabilities: lsProtocol.ClientCapabilities = {
@@ -203,11 +227,13 @@ export class SignatureFeature extends Feature {
   protected _signatureCharacters: string[];
   protected console = new BrowserConsole().scope('Signature');
   protected settings: FeatureSettings<LSPSignatureSettings>;
+  protected languageRegistry: IEditorLanguageRegistry;
 
   constructor(options: SignatureFeature.IOptions) {
     super(options);
     this.settings = options.settings;
     this.tooltip = new EditorTooltipManager(options.renderMimeRegistry);
+    this.languageRegistry = options.languageRegistry;
     const connectionManager = options.connectionManager;
     options.editorExtensionRegistry.addExtension({
       name: 'lsp:codeSignature',
@@ -218,7 +244,8 @@ export class SignatureFeature extends Feature {
           );
 
           if (!adapter) {
-            throw Error('[signature] no adapter for model aborting');
+            this.console.log('No adapter, will not show signature');
+            return;
           }
 
           // TODO: the assumption that updated editor = active editor will fail on RTC. How to get `CodeEditor.IEditor` and `Document.IEditor` from `EditorView`? we got `CodeEditor.IModel` from `options.model` but may need more context here.
@@ -237,9 +264,15 @@ export class SignatureFeature extends Feature {
           // so that virtual document is updated.
           setTimeout(() => {
             if (viewUpdate.docChanged) {
-              this.afterChange(viewUpdate.changes, adapter, editorPosition);
+              this.afterChange(
+                viewUpdate.changes,
+                adapter,
+                editorPosition
+              ).catch(this.console.warn);
             } else {
-              this.onCursorActivity(adapter, editorPosition);
+              this.onCursorActivity(adapter, editorPosition).catch(
+                this.console.warn
+              );
             }
           }, 0);
         });
@@ -272,15 +305,16 @@ export class SignatureFeature extends Feature {
   onBlur(event: FocusEvent) {
     // hide unless the focus moved to the signature itself
     // (allowing user to select/copy from signature)
+    const target = event.relatedTarget as Element | null;
     if (
       this.isSignatureShown() &&
-      (event.relatedTarget as Element).closest('.' + CLASS_NAME) === null
+      (target ? target.closest('.' + CLASS_NAME) === null : true)
     ) {
       this._removeTooltip();
     }
   }
 
-  onCursorActivity(
+  async onCursorActivity(
     adapter: WidgetLSPAdapter<any>,
     newEditorPosition: IEditorPosition
   ) {
@@ -298,15 +332,13 @@ export class SignatureFeature extends Feature {
     } else {
       // otherwise, update the signature as the active parameter could have changed,
       // or the server may want us to close the tooltip
-      this.requestSignature(adapter, newEditorPosition, initialPosition)?.catch(
-        this.console.warn
-      );
+      await this._requestSignature(adapter, newEditorPosition, initialPosition);
     }
   }
 
   protected get_markup_for_signature_help(
     response: lsProtocol.SignatureHelp,
-    language: string = ''
+    language: Language | undefined
   ): lsProtocol.MarkupContent {
     let signatures = new Array<string>();
 
@@ -340,36 +372,60 @@ export class SignatureFeature extends Feature {
     };
   }
 
-  protected highlightCode(source: string, variable: string, language: string) {
+  protected highlightCode(
+    source: string,
+    parameter: lsProtocol.ParameterInformation,
+    language: Language | undefined
+  ) {
     const pre = document.createElement('pre');
     const code = document.createElement('code');
     pre.appendChild(code);
-    code.className = `cm-s-jupyter language-${language}`;
-    // TODO
-    // temp workaround
-    code.innerText = source;
-    /**
-    this.codeMirror.CodeMirror.runMode(
-      source,
-      language,
-      (token: string, className: string) => {
-        let element: HTMLElement | Node;
-        if (className) {
-          element = document.createElement('span');
-          (element as HTMLElement).classList.add('cm-' + className);
-          element.textContent = token;
-        } else {
-          element = document.createTextNode(token);
+    code.className =
+      'cm-s-jupyter' + language ? `language-${language?.name}` : '';
+
+    const substring: string =
+      typeof parameter.label === 'string'
+        ? parameter.label
+        : source.slice(parameter.label[0], parameter.label[1]);
+    const start = source.indexOf(substring);
+    const end = start + substring.length;
+
+    if (!language) {
+      code.innerText = source;
+    } else {
+      runMode(
+        source,
+        language,
+        (token: string, className: string, from: number, to: number) => {
+          let element: HTMLElement | Node;
+          if (className) {
+            element = document.createElement('span');
+            (element as HTMLElement).classList.add(className);
+            element.textContent = token;
+          } else {
+            element = document.createTextNode(token);
+          }
+          // In CodeMirror6 variables are not necessairly tokenized,
+          // we need to split them manually
+          if (from <= end && start <= to) {
+            const a = Math.max(start, from);
+            const b = Math.min(to, end);
+            const prefix = source.slice(from, a);
+            const content = source.slice(a, b);
+            const suffix = source.slice(b, to);
+
+            const mark = document.createElement('mark');
+            mark.appendChild(document.createTextNode(content));
+            code.appendChild(document.createTextNode(prefix));
+            code.appendChild(mark);
+            code.appendChild(document.createTextNode(suffix));
+          } else {
+            code.appendChild(element);
+          }
         }
-        if (className === 'variable' && token === variable) {
-          const mark = document.createElement('mark');
-          mark.appendChild(element);
-          element = mark;
-        }
-        code.appendChild(element);
-      }
-    );
-    **/
+      );
+    }
+
     return pre.outerHTML;
   }
 
@@ -378,7 +434,7 @@ export class SignatureFeature extends Feature {
    */
   protected signatureToMarkdown(
     item: lsProtocol.SignatureInformation,
-    language: string,
+    language: Language | undefined,
     activeParameterFallback?: number | null
   ): string {
     return signatureToMarkdown(
@@ -487,12 +543,16 @@ export class SignatureFeature extends Feature {
       this._removeTooltip();
       return;
     }
+
     //let editorPosition =
     //  virtualDocument.transformVirtualToEditor(virtualPosition);
 
+    const editorLanguage = this.languageRegistry.findByMIME(
+      editor.model.mimeType
+    );
     // TODO: restore language probing
     // let language = cm_editor.getModeAt(editorPosition).name;
-    let language = 'python';
+    const language = editorLanguage?.support?.language;
     let markup = this.get_markup_for_signature_help(response, language);
 
     this.console.debug(
@@ -546,7 +606,7 @@ export class SignatureFeature extends Feature {
     return this.tooltip.isShown(TOOLTIP_ID);
   }
 
-  afterChange(
+  async afterChange(
     change: ChangeSet,
     adapter: WidgetLSPAdapter<any>,
     editorPosition: IEditorPosition
@@ -555,6 +615,7 @@ export class SignatureFeature extends Feature {
 
     const isSignatureShown = this.isSignatureShown();
     let previousPosition: IEditorPosition | null = null;
+    await adapter.updateFinished;
 
     if (isSignatureShown) {
       previousPosition = this.tooltip.position;
@@ -588,12 +649,10 @@ export class SignatureFeature extends Feature {
       return;
     }
 
-    this.requestSignature(adapter, editorPosition, previousPosition)?.catch(
-      this.console.warn
-    );
+    await this._requestSignature(adapter, editorPosition, previousPosition);
   }
 
-  private requestSignature(
+  private async _requestSignature(
     adapter: WidgetLSPAdapter<any>,
     newEditorPosition: IEditorPosition,
     previousPosition: IEditorPosition | null
@@ -627,19 +686,18 @@ export class SignatureFeature extends Feature {
       rootPosition
     );
 
-    return connection.clientRequests['textDocument/signatureHelp']
-      .request({
-        position: {
-          line: virtualPosition.line,
-          character: virtualPosition.ch
-        },
-        textDocument: {
-          uri: virtualDocument.documentInfo.uri
-        }
-      })
-      .then(help =>
-        this.handleSignature(help, adapter, rootPosition, previousPosition)
-      );
+    const help = await connection.clientRequests[
+      'textDocument/signatureHelp'
+    ].request({
+      position: {
+        line: virtualPosition.line,
+        character: virtualPosition.ch
+      },
+      textDocument: {
+        uri: virtualDocument.documentInfo.uri
+      }
+    });
+    return this.handleSignature(help, adapter, rootPosition, previousPosition);
   }
 }
 
@@ -648,6 +706,7 @@ export namespace SignatureFeature {
     settings: FeatureSettings<LSPSignatureSettings>;
     renderMimeRegistry: IRenderMimeRegistry;
     editorExtensionRegistry: IEditorExtensionRegistry;
+    languageRegistry: IEditorLanguageRegistry;
   }
   export const id = PLUGIN_ID + ':signature';
 }
@@ -659,7 +718,8 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
     ISettingRegistry,
     IRenderMimeRegistry,
     IEditorExtensionRegistry,
-    ILSPDocumentConnectionManager
+    ILSPDocumentConnectionManager,
+    IEditorLanguageRegistry
   ],
   autoStart: true,
   activate: async (
@@ -668,7 +728,8 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
     settingRegistry: ISettingRegistry,
     renderMimeRegistry: IRenderMimeRegistry,
     editorExtensionRegistry: IEditorExtensionRegistry,
-    connectionManager: ILSPDocumentConnectionManager
+    connectionManager: ILSPDocumentConnectionManager,
+    languageRegistry: IEditorLanguageRegistry
   ) => {
     const settings = new FeatureSettings<LSPSignatureSettings>(
       settingRegistry,
@@ -679,7 +740,8 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
       settings,
       connectionManager,
       renderMimeRegistry,
-      editorExtensionRegistry
+      editorExtensionRegistry,
+      languageRegistry
     });
     featureManager.register(feature);
     // return feature;
