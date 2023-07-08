@@ -24,7 +24,7 @@ import type * as lsProtocol from 'vscode-languageserver-protocol';
 
 import highlightSvg from '../../style/icons/highlight.svg';
 import { CodeHighlights as LSPHighlightsSettings } from '../_highlights';
-import { ContextAssembler } from '../command_manager';
+import { ContextAssembler } from '../context';
 import {
   PositionConverter,
   rootPositionToVirtualPosition,

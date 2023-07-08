@@ -29,7 +29,7 @@ import type * as lsProtocol from 'vscode-languageserver-protocol';
 
 import hoverSvg from '../../style/icons/hover.svg';
 import { CodeHover as LSPHoverSettings, ModifierKey } from '../_hover';
-import { ContextAssembler } from '../command_manager';
+import { ContextAssembler } from '../context';
 import { EditorTooltipManager, FreeTooltip } from '../components/free_tooltip';
 import {
   PositionConverter,

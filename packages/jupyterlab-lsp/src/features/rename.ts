@@ -21,7 +21,7 @@ import { LabIcon } from '@jupyterlab/ui-components';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import renameSvg from '../../style/icons/rename.svg';
-import { ContextAssembler } from '../command_manager';
+import { ContextAssembler } from '../context';
 import {
   PositionConverter,
   editorAtRootPosition,

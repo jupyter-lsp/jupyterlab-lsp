@@ -14,7 +14,7 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 
 import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
-import { ContextAssembler } from '../../command_manager';
+import { ContextAssembler } from '../../context';
 import { FeatureSettings } from '../../feature';
 
 import { diagnosticsIcon, diagnosticsPanel } from './diagnostics';

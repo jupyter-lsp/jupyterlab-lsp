@@ -42,7 +42,7 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import jumpToSvg from '../../style/icons/jump-to.svg';
 import { CodeJump as LSPJumpSettings, ModifierKey } from '../_jump_to';
-import { ContextAssembler } from '../command_manager';
+import { ContextAssembler } from '../context';
 import {
   PositionConverter,
   documentAtRootPosition,
