@@ -15,7 +15,8 @@ import {
   PositionConverter,
   documentAtRootPosition,
   rootPositionToVirtualPosition,
-  editorPositionToRootPosition
+  editorPositionToRootPosition,
+  rootPositionToEditorPosition
 } from './converter';
 import { BrowserConsole } from './virtual/console';
 import { VirtualDocument } from './virtual/document';
@@ -74,8 +75,12 @@ export class ContextAssembler {
     if (!editor) {
       return;
     }
-    // TODO are these offsets right?
-    const offset = editor.getOffsetAt(PositionConverter.cm_to_ce(rootPosition));
+
+    const editorPosition = rootPositionToEditorPosition(adapter, rootPosition);
+
+    const offset = editor.getOffsetAt(
+      PositionConverter.cm_to_ce(editorPosition)
+    );
     const token = editor.getTokenAt(offset);
     return token.value !== '';
   }
