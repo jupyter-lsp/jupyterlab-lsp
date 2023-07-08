@@ -1,5 +1,5 @@
 import { IDocumentWidget } from '@jupyterlab/docregistry';
-import { VirtualDocument, WidgetLSPAdapter } from '@jupyterlab/lsp';
+import { VirtualDocument, WidgetLSPAdapter, Document } from '@jupyterlab/lsp';
 import { nullTranslator, TranslationBundle } from '@jupyterlab/translation';
 import React from 'react';
 
@@ -71,23 +71,13 @@ export function getBreadcrumbs(
   });
 }
 
-/**
- * @deprecated please use getBreadcrumbs instead; `get_breadcrumbs` will be removed in 4.0
- */
-export function get_breadcrumbs(
-  document: VirtualDocument,
-  adapter: WidgetLSPAdapter<IDocumentWidget>,
-  collapse = true
-) {
-  return getBreadcrumbs(document, adapter, undefined, collapse);
-}
-
-export function focus_on(node: HTMLElement) {
-  if (!node) {
+async function focusEditor(accessor: Document.IEditor) {
+  if (!accessor) {
     return;
   }
-  node.scrollIntoView();
-  node.focus();
+  await accessor.reveal();
+  const editor = accessor.getEditor();
+  editor!.focus();
 }
 
 export function DocumentLocator(props: {
@@ -96,12 +86,12 @@ export function DocumentLocator(props: {
   trans?: TranslationBundle;
 }) {
   let { document, adapter } = props;
-  let target: HTMLElement | null = null;
+  let target: Document.IEditor | null = null;
   if (adapter.hasMultipleEditors) {
     // @ts-ignore
     let first_line = document.virtualLines.get(0);
     if (first_line) {
-      target = adapter.getEditorWrapper(first_line.editor);
+      target = first_line.editor;
     } else {
       console.warn('Could not get first line of ', document);
     }
@@ -110,7 +100,7 @@ export function DocumentLocator(props: {
   return (
     <div
       className={'lsp-document-locator'}
-      onClick={() => (target ? focus_on(target) : null)}
+      onClick={() => (target ? focusEditor(target) : null)}
     >
       {breadcrumbs}
     </div>
