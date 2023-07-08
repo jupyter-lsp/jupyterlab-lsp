@@ -495,7 +495,7 @@ export class SignatureFeature extends Feature {
     let language = 'python';
     let markup = this.get_markup_for_signature_help(response, language);
 
-    this.console.log(
+    this.console.debug(
       'Signature will be shown',
       language,
       markup,
@@ -552,7 +552,6 @@ export class SignatureFeature extends Feature {
     editorPosition: IEditorPosition
   ) {
     const lastCharacter = extractLastCharacter(change);
-    console.log('lastCharacter', lastCharacter);
 
     const isSignatureShown = this.isSignatureShown();
     let previousPosition: IEditorPosition | null = null;

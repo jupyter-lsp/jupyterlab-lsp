@@ -7,7 +7,8 @@ import {
   IEditorMimeTypeService,
   IEditorServices
 } from '@jupyterlab/codeeditor';
-import { CodeMirrorEditor ,
+import {
+  CodeMirrorEditor,
   IEditorExtensionRegistry,
   IEditorLanguageRegistry,
   EditorExtensionRegistry
@@ -42,7 +43,7 @@ export class SyntaxHighlightingFeature extends Feature {
     const connectionManager = options.connectionManager;
 
     options.editorExtensionRegistry.addExtension({
-      name: 'lsp:codeSignature',
+      name: 'lsp:syntaxHighlighting',
       factory: options => {
         const updateListener = EditorView.updateListener.of(viewUpdate => {
           if (!viewUpdate.docChanged) {
@@ -57,7 +58,7 @@ export class SyntaxHighlightingFeature extends Feature {
           // const editor = adapter.editors.find(e => e.model === options.model);
 
           if (adapter) {
-            this.update_mode(adapter, viewUpdate.view);
+            this.updateMode(adapter, viewUpdate.view).catch(console.warn);
           }
         });
 
@@ -69,7 +70,7 @@ export class SyntaxHighlightingFeature extends Feature {
   }
 
   private getMode(language: string): string | undefined {
-    let mimetype = this.options.mimeTypeService.getMimeTypeByLanguage({
+    const mimetype = this.options.mimeTypeService.getMimeTypeByLanguage({
       name: language
     });
 
@@ -89,8 +90,8 @@ export class SyntaxHighlightingFeature extends Feature {
     return mimetype;
   }
 
-  update_mode(adapter: WidgetLSPAdapter<any>, view: EditorView) {
-    let topDocument = adapter.virtualDocument as VirtualDocument;
+  async updateMode(adapter: WidgetLSPAdapter<any>, view: EditorView) {
+    const topDocument = adapter.virtualDocument as VirtualDocument;
     const totalArea = view.state.doc.length;
 
     // TODO no way to map from EditorView to Document.IEditor is blocking here.
@@ -108,17 +109,18 @@ export class SyntaxHighlightingFeature extends Feature {
     if (!topDocument) {
       return;
     }
+    await topDocument.updateManager.updateDone;
 
     const overrides = new Map();
-    for (let map of topDocument.getForeignDocuments(editorAccessor)) {
-      for (let [range, block] of map.entries()) {
-        let editor = block.editor.getEditor()! as CodeMirrorEditor;
-        let covered_area =
+    for (const map of topDocument.getForeignDocuments(editorAccessor)) {
+      for (const [range, block] of map.entries()) {
+        const editor = block.editor.getEditor()! as CodeMirrorEditor;
+        const coveredArea =
           editor.getOffsetAt(range.end) - editor.getOffsetAt(range.start);
-        let coverage = covered_area / totalArea;
+        const coverage = coveredArea / totalArea;
 
-        let language = block.virtualDocument.language;
-        let mode = this.getMode(language);
+        const language = block.virtualDocument.language;
+        const mode = this.getMode(language);
 
         // if not highlighting mode available, skip this editor
         if (typeof mode === 'undefined') {
@@ -127,10 +129,11 @@ export class SyntaxHighlightingFeature extends Feature {
 
         // change the mode if the majority of the code is the foreign code
         if (coverage > this.options.settings.composite.foreignCodeThreshold) {
+          const original = editor.model.mimeType;
           // this will trigger a side effect of switching language by updating
           // private language compartment (implementation detail).
           editor.model.mimeType = mode;
-          overrides.set(editor, editor.model.mimeType);
+          overrides.set(editor, original);
         }
       }
     }
@@ -175,7 +178,8 @@ export const SYNTAX_HIGHLIGHTING_PLUGIN: JupyterFrontEndPlugin<void> = {
     IEditorServices,
     ISettingRegistry,
     IEditorExtensionRegistry,
-    IEditorLanguageRegistry
+    IEditorLanguageRegistry,
+    ILSPDocumentConnectionManager
   ],
   autoStart: true,
   activate: async (
