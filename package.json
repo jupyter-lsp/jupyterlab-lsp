@@ -45,7 +45,7 @@
     "decode-uri-component": "^0.2.1"
   },
   "scripts": {
-    "bootstrap": "jlpm --no-optional --prefer-offline && jlpm deduplicate && lerna bootstrap && jlpm clean && jlpm build && jlpm lint",
+    "bootstrap": "jlpm & jlpm deduplicate && lerna bootstrap && jlpm clean && jlpm build && jlpm lint",
     "deduplicate": "yarn-deduplicate -s fewer --fail",
     "build": "jlpm build:schema && jlpm build:meta && jlpm build:labextension",
     "build:schema": "lerna run build:schema --stream",
