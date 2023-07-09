@@ -30,7 +30,7 @@ env:
 
   ATEST_PROCESSES: 2
   ATEST_RETRIES: 3
-  JLPM_CMD: YARN_ENABLE_IMMUTABLE_INSTALLS=0 jlpm install
+  JLPM_CMD: jlpm install
 
   # Increase this value to reset all caches
   CACHE_EPOCH: 4
