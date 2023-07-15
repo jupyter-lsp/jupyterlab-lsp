@@ -2,6 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 // Based on the @jupyterlab/codemirror-extension statusbar
 
+import { JupyterFrontEnd } from '@jupyterlab/application';
 import {
   VDomModel,
   VDomRenderer,
@@ -9,6 +10,14 @@ import {
   showDialog
 } from '@jupyterlab/apputils';
 import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
+import {
+  ILSPConnection,
+  collectDocuments,
+  ILSPDocumentConnectionManager,
+  VirtualDocument,
+  WidgetLSPAdapter,
+  ILanguageServerManager
+} from '@jupyterlab/lsp';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 import { GroupItem, Popup, TextItem, showPopup } from '@jupyterlab/statusbar';
 import { TranslationBundle } from '@jupyterlab/translation';
@@ -24,16 +33,6 @@ import React from 'react';
 
 import '../../style/statusbar.css';
 import * as SCHEMA from '../_schema';
-
-import {
-  ILSPConnection,
-  collectDocuments,
-  ILSPDocumentConnectionManager,
-  VirtualDocument,
-  WidgetLSPAdapter,
-  ILanguageServerManager
-} from '@jupyterlab/lsp';
-
 import { SERVER_EXTENSION_404 } from '../errors';
 import { TSessionMap, TLanguageServerId, TSpecsMap } from '../tokens';
 
@@ -386,8 +385,12 @@ export class LSPStatus extends VDomRenderer<LSPStatus.Model> {
   /**
    * Construct a new VDomRenderer for the status item.
    */
-  constructor(protected displayText: boolean = true, trans: TranslationBundle) {
-    super(new LSPStatus.Model(trans));
+  constructor(
+    protected displayText: boolean = true,
+    shell: JupyterFrontEnd.IShell,
+    trans: TranslationBundle
+  ) {
+    super(new LSPStatus.Model(shell, trans));
     this.addClass('jp-mod-highlighted');
     this.addClass('lsp-statusbar-item');
     this.trans = trans;
@@ -442,7 +445,8 @@ export class LSPStatus extends VDomRenderer<LSPStatus.Model> {
       this._popup = showPopup({
         body: new LSPPopup(this.model),
         anchor: this,
-        align: 'left'
+        align: 'left',
+        hasDynamicSize: true
       });
     }
   };
@@ -453,9 +457,10 @@ export class StatusButtonExtension
 {
   constructor(
     private options: {
-      language_server_manager: ILanguageServerManager;
-      connection_manager: ILSPDocumentConnectionManager;
-      translator_bundle: TranslationBundle;
+      languageServerManager: ILanguageServerManager;
+      connectionManager: ILSPDocumentConnectionManager;
+      shell: JupyterFrontEnd.IShell;
+      translatorBundle: TranslationBundle;
     }
   ) {}
 
@@ -463,14 +468,15 @@ export class StatusButtonExtension
    * For statusbar registration and for internal use.
    */
   createItem(displayText: boolean = true): LSPStatus {
-    const status_bar_item = new LSPStatus(
+    const statusBarItem = new LSPStatus(
       displayText,
-      this.options.translator_bundle
+      this.options.shell,
+      this.options.translatorBundle
     );
-    status_bar_item.model.language_server_manager =
-      this.options.language_server_manager;
-    status_bar_item.model.connection_manager = this.options.connection_manager;
-    return status_bar_item;
+    statusBarItem.model.language_server_manager =
+      this.options.languageServerManager;
+    statusBarItem.model.connection_manager = this.options.connectionManager;
+    return statusBarItem;
   }
 
   /**
@@ -532,15 +538,6 @@ const iconByStatus: Record<StatusCode, LabIcon> = {
   connecting: codeClockIcon
 };
 
-const shortMessageByStatus: StatusMap = {
-  no_server_extension: 'Server extension missing',
-  waiting: 'Waiting...',
-  initialized: 'Fully initialized',
-  initialized_but_some_missing: 'Initialized (additional servers needed)',
-  initializing: 'Initializing...',
-  connecting: 'Connecting...'
-};
-
 export namespace LSPStatus {
   /**
    * A VDomModel for the LSP of current file editor/notebook.
@@ -550,10 +547,24 @@ export namespace LSPStatus {
     language_server_manager: ILanguageServerManager;
     trans: TranslationBundle;
     private _connection_manager: ILSPDocumentConnectionManager;
+    private _shortMessageByStatus: StatusMap;
 
-    constructor(trans: TranslationBundle) {
+    constructor(
+      private _shell: JupyterFrontEnd.IShell,
+      trans: TranslationBundle
+    ) {
       super();
       this.trans = trans;
+      this._shortMessageByStatus = {
+        no_server_extension: trans.__('Server extension missing'),
+        waiting: trans.__('Waiting…'),
+        initialized: trans.__('Fully initialized'),
+        initialized_but_some_missing: trans.__(
+          'Initialized (additional servers needed)'
+        ),
+        initializing: trans.__('Initializing…'),
+        connecting: trans.__('Connecting…')
+      };
     }
 
     get available_servers(): TSessionMap {
@@ -751,9 +762,9 @@ export namespace LSPStatus {
 
     get short_message(): string {
       if (!this.adapter) {
-        return this.trans.__('not initialized');
+        return this.trans.__('Not initialized');
       }
-      return this.trans.__(shortMessageByStatus[this.status.status]);
+      return this._shortMessageByStatus[this.status.status];
     }
 
     get long_message(): string {
@@ -809,7 +820,10 @@ export namespace LSPStatus {
     }
 
     get adapter(): WidgetLSPAdapter<IDocumentWidget> | null {
-      return this._adapter;
+      const adapter = [...this.connection_manager.adapters.values()].find(
+        adapter => adapter.widget == this._shell.currentWidget
+      );
+      return adapter ?? null;
     }
 
     get connection_manager() {
@@ -842,7 +856,5 @@ export namespace LSPStatus {
     private _onChange = () => {
       this.stateChanged.emit(void 0);
     };
-
-    private _adapter: WidgetLSPAdapter<IDocumentWidget> | null = null;
   }
 }

@@ -74,7 +74,7 @@ export class LSPExtension {
     public console: ILSPLogConsole,
     public translator: ITranslator,
     public user_console: ILoggerRegistry | null,
-    status_bar: IStatusBar | null,
+    statusBar: IStatusBar | null,
     formRegistry: IFormRendererRegistry | null
   ) {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
@@ -82,13 +82,14 @@ export class LSPExtension {
     this._connection_manager = connection_manager;
 
     const statusButtonExtension = new StatusButtonExtension({
-      language_server_manager: this.language_server_manager,
-      connection_manager: this.connection_manager,
-      translator_bundle: trans
+      languageServerManager: this.language_server_manager,
+      connectionManager: this.connection_manager,
+      translatorBundle: trans,
+      shell: app.shell
     });
 
-    if (status_bar !== null) {
-      status_bar.registerStatusItem(PLUGIN_ID + ':language-server-status', {
+    if (statusBar !== null) {
+      statusBar.registerStatusItem(PLUGIN_ID + ':language-server-status', {
         item: statusButtonExtension.createItem(),
         align: 'left',
         rank: 1,
