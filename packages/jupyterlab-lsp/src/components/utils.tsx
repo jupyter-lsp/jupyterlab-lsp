@@ -37,18 +37,17 @@ export function getBreadcrumbs(
         </span>
       );
     }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    if (!document.virtualLines.size) {
+    const virtualLines = document.virtualLines;
+
+    if (!virtualLines.size) {
       return <span key={document.uri}>Empty document</span>;
     }
     try {
       if (adapter.hasMultipleEditors) {
-        // @ts-ignore
-        let first_line = document.virtualLines.get(0)!;
-        // @ts-ignore
-        let last_line = document.virtualLines.get(
-          document.lastVirtualLine - 1
-        )!;
+        let first_line = virtualLines.get(0)!;
+        let last_line = virtualLines.get(document.lastVirtualLine - 1)!;
 
         let first_cell = adapter.getEditorIndex(first_line.editor);
         let last_cell = adapter.getEditorIndex(last_line.editor);
@@ -88,6 +87,7 @@ export function DocumentLocator(props: {
   let { document, adapter } = props;
   let target: Document.IEditor | null = null;
   if (adapter.hasMultipleEditors) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     let first_line = document.virtualLines.get(0);
     if (first_line) {

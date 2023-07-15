@@ -360,6 +360,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
         }
 
         if (
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore TODO
           document.virtualLines
             .get(start.line)!
