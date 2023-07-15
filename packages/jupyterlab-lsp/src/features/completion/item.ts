@@ -105,15 +105,11 @@ export class CompletionItem implements IExtendedCompletionItem {
     return this.match.filterText;
   }
 
-  private _supportsResolution() {
+  private _supportsResolution(): boolean {
     const connection = this.options.connection;
-
-    if (!connection) {
-      console.debug('No connection to determine resolution support');
-    }
-
-    // @ts-ignore TODO
-    return connection.serverCapabilities?.completionProvider?.resolveProvider;
+    return (
+      connection.serverCapabilities.completionProvider?.resolveProvider ?? false
+    );
   }
 
   get detail(): string | undefined {

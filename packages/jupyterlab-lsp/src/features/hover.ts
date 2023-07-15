@@ -342,13 +342,7 @@ export class HoverFeature extends Feature {
     const connection = this.connectionManager.connections.get(
       virtualDocument.uri
     )!;
-    if (
-      !(
-        connection.isReady &&
-        // @ts-ignore TODO remove once upstream fix released
-        connection.serverCapabilities?.hoverProvider
-      )
-    ) {
+    if (!(connection.isReady && connection.serverCapabilities.hoverProvider)) {
       return null;
     }
     let response = await connection.clientRequests[

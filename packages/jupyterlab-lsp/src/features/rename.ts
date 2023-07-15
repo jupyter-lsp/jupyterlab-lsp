@@ -304,14 +304,13 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
       isVisible: () => {
         const context = assembler.getContext();
         if (!context) {
-          return;
+          return false;
         }
         const { connection } = context;
         return (
           connection != null &&
           connection.isReady &&
-          // @ts-ignore TOD
-          (connection ? connection.provides('renameProvider') : false)
+          connection.provides('renameProvider')
         );
       },
       isEnabled: () => {

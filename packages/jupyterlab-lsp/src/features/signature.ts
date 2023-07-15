@@ -471,8 +471,8 @@ export class SignatureFeature extends Feature {
     )!;
 
     const signatureCharacters: string[] =
-      // @ts-ignore
-      connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters;
+      connection.serverCapabilities.signatureHelpProvider?.triggerCharacters ??
+      [];
 
     if (response === null) {
       // do not hide on undefined as it simply indicates that no new info is available
@@ -638,10 +638,8 @@ export class SignatureFeature extends Feature {
       return;
     }
 
-    // @ts-ignore TODO remove after upstream fixes are released
     const signatureCharacters =
-      // @ts-ignore
-      connection.serverCapabilities?.signatureHelpProvider?.triggerCharacters ??
+      connection.serverCapabilities.signatureHelpProvider?.triggerCharacters ??
       [];
 
     // only proceed if: trigger character was used or the signature is/was visible immediately before
@@ -666,8 +664,7 @@ export class SignatureFeature extends Feature {
     if (
       !(
         connection.isReady &&
-        // @ts-ignore
-        connection.serverCapabilities?.signatureHelpProvider
+        connection.serverCapabilities.signatureHelpProvider
       )
     ) {
       return;

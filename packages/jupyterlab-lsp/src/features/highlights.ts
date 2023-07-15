@@ -233,8 +233,7 @@ export class HighlightsFeature extends Feature {
     if (
       !(
         connection.isReady &&
-        // @ts-ignore TODO remove once upstream fix released
-        connection.serverCapabilities?.documentHighlightProvider
+        connection.serverCapabilities.documentHighlightProvider
       )
     ) {
       return null;

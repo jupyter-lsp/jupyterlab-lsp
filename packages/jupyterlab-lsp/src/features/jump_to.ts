@@ -569,7 +569,6 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
           return false;
         }
         const { connection } = context;
-        // @ts-ignore
         return connection ? connection.provides('definitionProvider') : false;
       }
     });
@@ -619,7 +618,6 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
           return false;
         }
         const { connection } = context;
-        // @ts-ignore
         return connection ? connection.provides('referencesProvider') : false;
       }
     });
@@ -643,9 +641,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
         }
         const { connection } = context;
         return connection
-          ? // @ts-ignore
-            connection.provides('definitionProvider') ||
-              // @ts-ignore
+          ? connection.provides('definitionProvider') ||
               connection.provides('referencesProvider')
           : false;
       }
