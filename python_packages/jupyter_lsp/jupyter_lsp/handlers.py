@@ -75,6 +75,21 @@ class LanguageServersHandler(BaseHandler):
 
         self.finish(response)
 
+    def options(self, *args, **kwargs):
+        """Get the options."""
+        self.log.warning("handle options request: %s", self.request.path)
+        if "Access-Control-Allow-Headers" in self.settings.get("headers", {}):
+            self.set_header(
+                "Access-Control-Allow-Headers",
+                self.settings["headers"]["Access-Control-Allow-Headers"],
+            )
+        else:
+            self.set_header(
+                "Access-Control-Allow-Headers",
+                "accept, content-type, authorization, x-xsrftoken",
+            )
+        self.set_header("Access-Control-Allow-Methods", "GET, PUT, POST, PATCH, DELETE, OPTIONS")
+
 
 def add_handlers(nbapp):
     """Add Language Server routes to the notebook server web application"""
