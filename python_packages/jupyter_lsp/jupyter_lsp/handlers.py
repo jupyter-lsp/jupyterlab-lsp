@@ -2,7 +2,7 @@
 """
 from typing import Optional, Text
 
-from jupyter_server.base.handlers import JupyterHandler
+from jupyter_server.base.handlers import APIHandler
 from jupyter_server.base.zmqhandlers import WebSocketHandler, WebSocketMixin
 from jupyter_server.utils import url_path_join as ujoin
 
@@ -11,7 +11,7 @@ from .schema import SERVERS_RESPONSE
 from .specs.utils import censored_spec
 
 
-class BaseHandler(JupyterHandler):
+class BaseHandler(APIHandler):
     manager = None  # type: LanguageServerManager
 
     def initialize(self, manager: LanguageServerManager):
@@ -74,21 +74,6 @@ class LanguageServersHandler(BaseHandler):
             self.log.warning("{} validation errors: {}".format(len(errors), errors))
 
         self.finish(response)
-
-    def options(self, *args, **kwargs):
-        """Get the options."""
-        self.log.warning("handle options request: %s", self.request.path)
-        if "Access-Control-Allow-Headers" in self.settings.get("headers", {}):
-            self.set_header(
-                "Access-Control-Allow-Headers",
-                self.settings["headers"]["Access-Control-Allow-Headers"],
-            )
-        else:
-            self.set_header(
-                "Access-Control-Allow-Headers",
-                "accept, content-type, authorization, x-xsrftoken",
-            )
-        self.set_header("Access-Control-Allow-Methods", "GET, PUT, POST, PATCH, DELETE, OPTIONS")
 
 
 def add_handlers(nbapp):
