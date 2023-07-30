@@ -110,13 +110,13 @@ export function signatureToMarkdown(
         'LSP server returned wrong number for activeSignature for: ',
         item
       );
-      markdown = '```' + language + '\n' + label + '\n```';
+      markdown = '```' + language?.name + '\n' + label + '\n```';
     } else {
       const parameter = item.parameters[activeParameter];
       markdown = codeHighlighter(label, parameter, language);
     }
   } else {
-    markdown = '```' + language + '\n' + label + '\n```';
+    markdown = '```' + language?.name + '\n' + label + '\n```';
   }
   let details = '';
   if (item.documentation) {
