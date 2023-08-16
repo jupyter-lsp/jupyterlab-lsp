@@ -9,7 +9,7 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
 import { DocumentLocator } from '../../components/utils';
 import { PositionConverter } from '../../converter';
-import { FeatureSettings } from '../../feature';
+import { IFeatureSettings } from '../../feature';
 import { DiagnosticSeverity } from '../../lsp';
 
 import { IEditorDiagnostic } from './tokens';
@@ -114,7 +114,7 @@ function SortableTH(props: {
   );
 }
 
-export function message_without_code(diagnostic: lsProtocol.Diagnostic) {
+export function messageWithoutCode(diagnostic: lsProtocol.Diagnostic) {
   let message = diagnostic.message;
   let code_str = '' + diagnostic.code;
   if (
@@ -169,7 +169,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
         id: 'Message',
         label: this.trans.__('Message'),
         render_cell: row => {
-          let message = message_without_code(row.data.diagnostic);
+          let message = messageWithoutCode(row.data.diagnostic);
           return <td key={1}>{message}</td>;
         },
         sort: (a, b) =>
@@ -376,7 +376,7 @@ export namespace DiagnosticsListing {
   export class Model extends VDomModel {
     diagnostics: DiagnosticsDatabase | null;
     adapter: WidgetLSPAdapter<any> | null;
-    settings: FeatureSettings<LSPDiagnosticsSettings>;
+    settings: IFeatureSettings<LSPDiagnosticsSettings>;
     trans: TranslationBundle;
 
     constructor(translator_bundle: TranslationBundle) {

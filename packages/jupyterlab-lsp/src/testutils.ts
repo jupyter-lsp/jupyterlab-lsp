@@ -1,9 +1,12 @@
 import { ICellModel } from '@jupyterlab/cells';
-import { CodeEditor } from '@jupyterlab/codeeditor';
+import { IEditorServices } from '@jupyterlab/codeeditor';
 import {
+  CodeMirrorEditor,
   CodeMirrorEditorFactory,
   EditorLanguageRegistry,
-  CodeMirrorMimeTypeService
+  CodeMirrorMimeTypeService,
+  EditorExtensionRegistry,
+  ybinding
 } from '@jupyterlab/codemirror';
 import {
   Context,
@@ -27,9 +30,10 @@ import {
   Notebook,
   NotebookModel,
   NotebookModelFactory,
-  NotebookPanel
+  NotebookPanel,
+  StaticNotebook
 } from '@jupyterlab/notebook';
-import { NBTestUtils } from '@jupyterlab/notebook/lib/testutils';
+import { defaultRenderMime } from '@jupyterlab/rendermime/lib/testutils';
 import { ServiceManagerMock } from '@jupyterlab/services/lib/testutils';
 import { nullTranslator } from '@jupyterlab/translation';
 import { Signal } from '@lumino/signaling';
@@ -41,8 +45,6 @@ import { NotebookAdapter } from './adapters/notebook';
 import { IFeatureSettings } from './feature';
 import { CodeOverridesManager } from './overrides';
 import { VirtualDocument } from './virtual/document';
-
-import createNotebookPanel = NBTestUtils.createNotebookPanel;
 
 const DEFAULT_SERVER_ID = 'pylsp';
 
@@ -184,7 +186,9 @@ export abstract class TestEnvironment implements ITestEnvironment {
   adapter: WidgetLSPAdapter<any>;
   abstract widget: IDocumentWidget;
   protected abstract getDefaults(): VirtualDocument.IOptions;
-  public documentOptions: VirtualDocument.IOptions;
+  documentOptions: VirtualDocument.IOptions;
+  editorExtensionRegistry: EditorExtensionRegistry;
+  editorServices: IEditorServices;
 
   constructor(
     protected options?: {
@@ -192,6 +196,26 @@ export abstract class TestEnvironment implements ITestEnvironment {
       connection?: Partial<MockConnection.IOptions>;
     }
   ) {
+    this.editorExtensionRegistry = new EditorExtensionRegistry();
+    this.editorExtensionRegistry.addExtension({
+      name: 'binding',
+      factory: ({ model }) =>
+        EditorExtensionRegistry.createImmutableExtension(
+          ybinding({ ytext: (model.sharedModel as any).ysource })
+        )
+    });
+    const languages = new EditorLanguageRegistry();
+    this.editorServices = {
+      factoryService: new CodeMirrorEditorFactory({
+        languages,
+        extensions: this.editorExtensionRegistry
+      }),
+      mimeTypeService: new CodeMirrorMimeTypeService(languages)
+    };
+    this.connectionManager = new MockDocumentConnectionManager({
+      languageServerManager: new MockLanguageServerManager({}),
+      connection: this.options?.connection
+    });
     this.documentOptions = {
       ...this.getDefaults(),
       ...(options?.document || {})
@@ -203,8 +227,8 @@ export abstract class TestEnvironment implements ITestEnvironment {
     | typeof FileEditorAdapter
     | typeof NotebookAdapter;
 
-  get activeEditor(): CodeEditor.IEditor {
-    return this.adapter.activeEditor!.getEditor()!;
+  get activeEditor(): CodeMirrorEditor {
+    return this.adapter.activeEditor!.getEditor()! as CodeMirrorEditor;
   }
 
   connectionManager: MockDocumentConnectionManager;
@@ -213,10 +237,6 @@ export abstract class TestEnvironment implements ITestEnvironment {
     this.widget = this.createWidget();
     let adapterType = this.getAdapterType();
     const docRegistry = new DocumentRegistry();
-    this.connectionManager = new MockDocumentConnectionManager({
-      languageServerManager: new MockLanguageServerManager({}),
-      connection: this.options?.connection
-    });
 
     const { foreignCodeExtractors, overridesRegistry } = this.documentOptions;
     const overridesManager = new CodeOverridesManager();
@@ -255,8 +275,12 @@ export abstract class TestEnvironment implements ITestEnvironment {
       translator: nullTranslator
     });
     await this.widget.context.sessionContext.ready;
-    await this.connectionManager.ready;
     await this.adapter.ready;
+    this.connectionManager.adapters.set(
+      this.adapter.virtualDocument!.path,
+      this.adapter
+    );
+    await this.connectionManager.ready;
   }
 
   dispose(): void {
@@ -292,12 +316,8 @@ export class FileEditorTestEnvironment extends TestEnvironment {
   }
 
   createWidget(): IDocumentWidget {
-    const languages = new EditorLanguageRegistry();
     let factory = new FileEditorFactory({
-      editorServices: {
-        factoryService: new CodeMirrorEditorFactory({ languages }),
-        mimeTypeService: new CodeMirrorMimeTypeService(languages)
-      },
+      editorServices: this.editorServices,
       factoryOptions: {
         name: 'Editor',
         fileTypes: ['*']
@@ -354,11 +374,26 @@ export class NotebookTestEnvironment extends TestEnvironment {
     });
     void context.initialize(true);
     void context.sessionContext.initialize();
-    return createNotebookPanel(context);
+    const editorFactory =
+      this.editorServices.factoryService.newInlineEditor.bind(
+        this.editorServices.factoryService
+      );
+    return new NotebookPanel({
+      content: new Notebook({
+        rendermime: defaultRenderMime(),
+        contentFactory: new Notebook.ContentFactory({ editorFactory }),
+        mimeTypeService: this.editorServices.mimeTypeService,
+        notebookConfig: {
+          ...StaticNotebook.defaultNotebookConfig,
+          windowingMode: 'none'
+        }
+      }),
+      context
+    });
   }
 }
 
-export function code_cell(
+export function codeCell(
   source: string[] | string,
   metadata: Partial<nbformat.ICodeCellMetadata> = { trusted: false }
 ) {
@@ -371,7 +406,7 @@ export function code_cell(
   } as nbformat.ICodeCell;
 }
 
-export function set_notebook_content(
+export function setNotebookContent(
   notebook: Notebook,
   cells: nbformat.ICodeCell[],
   metadata = python_notebook_metadata

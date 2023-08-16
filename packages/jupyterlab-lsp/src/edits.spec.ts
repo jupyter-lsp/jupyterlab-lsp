@@ -3,11 +3,10 @@ import { CodeExtractorsManager } from '@jupyterlab/lsp';
 import * as nbformat from '@jupyterlab/nbformat';
 import { NotebookModel } from '@jupyterlab/notebook';
 import * as lsProtocol from 'vscode-languageserver-protocol';
-//import { CodeMirrorEditor} from '@jupyterlab/codemirror'
 
 import { EditApplicator } from './edits';
 import {
-  code_cell,
+  codeCell,
   getCellsJSON,
   python_notebook_metadata,
   showAllCells,
@@ -130,8 +129,8 @@ describe('EditApplicator', () => {
         expect(environment.activeEditor.model.sharedModel.source).toBe(
           'changed bar'
         );
-        //let raw_value = (environment.activeEditor as CodeMirrorEditor).editor.state.doc.toString();
-        //expect(raw_value).toBe('changed bar');
+        let raw_value = environment.activeEditor.editor.state.doc.toString();
+        expect(raw_value).toBe('changed bar');
         expect(outcome.wasGranular).toBe(false);
         expect(outcome.modifiedCells).toBe(1);
         expect(outcome.appliedChanges).toBe(1);
@@ -146,8 +145,8 @@ describe('EditApplicator', () => {
             ['file:///' + environment.documentOptions.path]: []
           }
         });
-        //let raw_value = (environment.activeEditor as CodeMirrorEditor).editor.state.doc.toString();
-        //expect(raw_value).toBe('foo bar');
+        let raw_value = environment.activeEditor.editor.state.doc.toString();
+        expect(raw_value).toBe('foo bar');
         expect(environment.activeEditor.model.sharedModel.source).toBe(
           'foo bar'
         );
@@ -165,8 +164,8 @@ describe('EditApplicator', () => {
             ['file:///' + environment.documentOptions.path]: js_partial_edits
           }
         });
-        //let raw_value = (environment.activeEditor as CodeMirrorEditor).editor.state.doc.toString();
-        // expect(raw_value).toBe(js_fib2_code);
+        let raw_value = environment.activeEditor.editor.state.doc.toString();
+        expect(raw_value).toBe(js_fib2_code);
         expect(environment.activeEditor.model.sharedModel.source).toBe(
           js_fib2_code
         );
@@ -218,8 +217,8 @@ describe('EditApplicator', () => {
       it('applies edit across cells', async () => {
         let test_notebook = {
           cells: [
-            code_cell(['def a_function():', '    pass']),
-            code_cell(['x = a_function()'])
+            codeCell(['def a_function():', '    pass']),
+            codeCell(['x = a_function()'])
           ],
           metadata: python_notebook_metadata
         } as nbformat.INotebookContent;
@@ -258,13 +257,13 @@ describe('EditApplicator', () => {
         let value = mainDocument.value;
         expect(value).toBe(new_virtual_source);
 
-        let code_cells = getCellsJSON(notebook);
+        let codeCells = getCellsJSON(notebook);
 
-        expect(code_cells[0]).toHaveProperty(
+        expect(codeCells[0]).toHaveProperty(
           'source',
           'def a_function_2():\n    pass'
         );
-        expect(code_cells[1]).toHaveProperty('source', 'x = a_function_2()');
+        expect(codeCells[1]).toHaveProperty('source', 'x = a_function_2()');
 
         expect(outcome.appliedChanges).toBe(1);
         expect(outcome.wasGranular).toBe(false);
@@ -274,8 +273,8 @@ describe('EditApplicator', () => {
       it('handles IPython magics', async () => {
         let test_notebook = {
           cells: [
-            code_cell(['x = %ls', 'print(x)']),
-            code_cell(['%%python', 'y = x', 'print(x)'])
+            codeCell(['x = %ls', 'print(x)']),
+            codeCell(['%%python', 'y = x', 'print(x)'])
           ],
           metadata: python_notebook_metadata
         } as nbformat.INotebookContent;
@@ -323,10 +322,10 @@ print(x)""")
         await synchronizeContent();
         expect(mainDocument.value).toBe(new_virtual_source);
 
-        let code_cells = getCellsJSON(notebook);
+        let codeCells = getCellsJSON(notebook);
 
-        expect(code_cells[0]).toHaveProperty('source', 'z = %ls\nprint(z)');
-        //expect(code_cells[1]).not.toHaveProperty(
+        expect(codeCells[0]).toHaveProperty('source', 'z = %ls\nprint(z)');
+        //expect(codeCells[1]).not.toHaveProperty(
         //  'source',
         //  '%%python\ny = x\nprint(x)'
         //);

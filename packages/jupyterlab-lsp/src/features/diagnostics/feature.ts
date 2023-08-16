@@ -21,7 +21,7 @@ import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
 import { PositionConverter } from '../../converter';
-import { FeatureSettings, Feature } from '../../feature';
+import { IFeatureSettings, Feature } from '../../feature';
 import { DiagnosticSeverity, DiagnosticTag } from '../../lsp';
 import { PLUGIN_ID } from '../../tokens';
 import { uris_equal } from '../../utils';
@@ -52,7 +52,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
       }
     }
   };
-  protected settings: FeatureSettings<LSPDiagnosticsSettings>;
+  protected settings: IFeatureSettings<LSPDiagnosticsSettings>;
   protected console = new BrowserConsole().scope('Diagnostics');
   private _responseReceived: PromiseDelegate<void> = new PromiseDelegate();
   private _diagnosticsDatabases = new WeakMap<
@@ -66,11 +66,11 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
 
     options.connectionManager.connected.connect((manager, connectionData) => {
       const { connection, virtualDocument } = connectionData;
-      const adapter = manager.adapters.get(virtualDocument.path)!;
+      const adapter = manager.adapters.get(virtualDocument.root.path)!;
       // TODO: unregister
       connection.serverNotifications['textDocument/publishDiagnostics'].connect(
-        (connection: ILSPConnection, diagnostics) => {
-          this.handleDiagnostic(diagnostics, virtualDocument, adapter);
+        async (connection: ILSPConnection, diagnostics) => {
+          await this.handleDiagnostic(diagnostics, virtualDocument, adapter);
         }
       );
       virtualDocument.foreignDocumentClosed.connect((document, context) => {
@@ -331,10 +331,11 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
     let diagnosticsList: IEditorDiagnostic[] = [];
     // TODO: test case for severity class always being set, even if diagnostic has no severity
 
-    let diagnostics_by_range = this.diagnosticsByRange(
+    let diagnosticsByRange = this.diagnosticsByRange(
       this.filterDiagnostics(response.diagnostics)
     );
-    diagnostics_by_range.forEach(
+
+    diagnosticsByRange.forEach(
       (diagnostics: lsProtocol.Diagnostic[], range: lsProtocol.Range) => {
         const start = PositionConverter.lsp_to_cm(
           range.start
@@ -368,7 +369,9 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
         ) {
           this.console.log(
             'Ignoring inspections silenced for this document:',
-            diagnostics
+            diagnostics,
+            document.idPath,
+            start.line
           );
           return;
         }
@@ -443,13 +446,14 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
       ) {
         continue;
       }
+
       editor.editor.dispatch({
         effects: this._invalidate.of()
       });
     }
   }
 
-  public handleDiagnostic = (
+  public handleDiagnostic = async (
     response: lsProtocol.PublishDiagnosticsParams,
     document: VirtualDocument,
     adapter: WidgetLSPAdapter<any>
@@ -468,9 +472,15 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
       this._lastDocument = document;
       this._lastAdapter = adapter;
       this.setDiagnostics(response, document, adapter);
-      this._responseReceived.resolve();
-      this._responseReceived = new PromiseDelegate();
+      const done = new Promise<void>(resolve => {
+        setTimeout(() => {
+          this._responseReceived.resolve();
+          this._responseReceived = new PromiseDelegate();
+          resolve();
+        }, 0);
+      });
       diagnosticsPanel.update();
+      return done;
     } catch (e) {
       this.console.warn(e);
     }
@@ -497,7 +507,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
 
 export namespace DiagnosticsFeature {
   export interface IOptions extends Feature.IOptions {
-    settings: FeatureSettings<LSPDiagnosticsSettings>;
+    settings: IFeatureSettings<LSPDiagnosticsSettings>;
     shell: ILabShell | INotebookShell;
     trans: TranslationBundle;
     editorExtensionRegistry: IEditorExtensionRegistry;
