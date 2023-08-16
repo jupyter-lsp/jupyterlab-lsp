@@ -21,7 +21,7 @@ interface IAdapterOptions extends IUpstreamIAdapterOptions {
   codeOverridesManager: ILSPCodeOverridesManager;
 }
 
-class NotebookAdapter extends UpstreamNotebookAdapter {
+export class NotebookAdapter extends UpstreamNotebookAdapter {
   constructor(
     public editorWidget: NotebookPanel,
     protected options: IAdapterOptions

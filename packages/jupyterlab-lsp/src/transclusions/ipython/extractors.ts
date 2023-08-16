@@ -2,7 +2,7 @@ import { IForeignCodeExtractor } from '@jupyterlab/lsp';
 
 import { RegExpForeignCodeExtractor } from '../../extractors/regexp';
 
-interface IForeignCodeExtractorsRegistry {
+export interface IForeignCodeExtractorsRegistry {
   [host_language: string]: IForeignCodeExtractor[];
 }
 

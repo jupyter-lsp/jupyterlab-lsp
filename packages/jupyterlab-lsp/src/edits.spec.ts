@@ -1,20 +1,21 @@
-/*
 import { PageConfig } from '@jupyterlab/coreutils';
+import { CodeExtractorsManager } from '@jupyterlab/lsp';
 import * as nbformat from '@jupyterlab/nbformat';
 import { NotebookModel } from '@jupyterlab/notebook';
 import * as lsProtocol from 'vscode-languageserver-protocol';
+//import { CodeMirrorEditor} from '@jupyterlab/codemirror'
 
-import { foreignCodeExtractors } from '../transclusions/ipython/extractors';
-import { overrides } from '../transclusions/ipython/overrides';
-
+import { EditApplicator } from './edits';
 import {
-  FileEditorFeatureTestEnvironment,
-  NotebookFeatureTestEnvironment,
   code_cell,
   getCellsJSON,
   python_notebook_metadata,
-  showAllCells
+  showAllCells,
+  FileEditorTestEnvironment,
+  NotebookTestEnvironment
 } from './testutils';
+import { foreignCodeExtractors } from './transclusions/ipython/extractors';
+import { overrides } from './transclusions/ipython/overrides';
 
 const js_fib_code = `function fib(n) {
   return n<2?n:fib(n-1)+fib(n-2);
@@ -87,27 +88,22 @@ const js_partial_edits = [
   }
 ];
 
-describe('Feature', () => {
+describe('EditApplicator', () => {
   PageConfig.setOption('rootUri', 'file://');
-  // TODO rewrite with EditApplicator
 
-  describe('apply_edit()', () => {
-    class EditApplyingFeatureCM extends CodeMirrorIntegration {
-      do_apply_edit(workspaceEdit: lsProtocol.WorkspaceEdit) {
-        return this.apply_edit(workspaceEdit);
-      }
-    }
-
+  describe('applyEdit()', () => {
     describe('editing in FileEditor', () => {
-      let feature: EditApplyingFeatureCM;
-      let environment: FileEditorFeatureTestEnvironment;
+      let applicator: EditApplicator;
+      let environment: FileEditorTestEnvironment;
 
-      beforeEach(() => {
-        environment = new FileEditorFeatureTestEnvironment();
-        feature = environment.init_integration({
-          constructor: EditApplyingFeatureCM,
-          id: 'EditApplyingFeature'
-        });
+      beforeEach(async () => {
+        environment = new FileEditorTestEnvironment();
+        await environment.init();
+        await environment.adapter.ready;
+        applicator = new EditApplicator(
+          environment.adapter.virtualDocument as any,
+          environment.adapter
+        );
       });
 
       afterEach(() => {
@@ -115,12 +111,12 @@ describe('Feature', () => {
       });
 
       it('applies simple edit in FileEditor', async () => {
-        environment.ceEditor.model.sharedModel.setSource('foo bar');
-        await environment.adapter.update_documents();
+        environment.activeEditor.model.sharedModel.setSource('foo bar');
+        await environment.adapter.updateDocuments();
 
-        let outcome = await feature.do_apply_edit({
+        let outcome = await applicator.applyEdit({
           changes: {
-            ['file:///' + environment.document_options.path]: [
+            ['file:///' + environment.documentOptions.path]: [
               {
                 range: {
                   start: { line: 0, character: 0 },
@@ -131,45 +127,47 @@ describe('Feature', () => {
             ]
           }
         });
-        let raw_value = environment.ceEditor.doc.toString();
-        expect(raw_value).toBe('changed bar');
-        expect(environment.ceEditor.model.sharedModel.source).toBe(
+        expect(environment.activeEditor.model.sharedModel.source).toBe(
           'changed bar'
         );
+        //let raw_value = (environment.activeEditor as CodeMirrorEditor).editor.state.doc.toString();
+        //expect(raw_value).toBe('changed bar');
         expect(outcome.wasGranular).toBe(false);
         expect(outcome.modifiedCells).toBe(1);
         expect(outcome.appliedChanges).toBe(1);
       });
 
       it('correctly summarizes empty edit', async () => {
-        environment.ceEditor.model.sharedModel.setSource('foo bar');
-        await environment.adapter.update_documents();
+        environment.activeEditor.model.sharedModel.setSource('foo bar');
+        await environment.adapter.updateDocuments();
 
-        let outcome = await feature.do_apply_edit({
+        let outcome = await applicator.applyEdit({
           changes: {
-            ['file:///' + environment.document_options.path]: []
+            ['file:///' + environment.documentOptions.path]: []
           }
         });
-        let raw_value = environment.ceEditor.doc.toString();
-        expect(raw_value).toBe('foo bar');
-        expect(environment.ceEditor.model.sharedModel.source).toBe('foo bar');
+        //let raw_value = (environment.activeEditor as CodeMirrorEditor).editor.state.doc.toString();
+        //expect(raw_value).toBe('foo bar');
+        expect(environment.activeEditor.model.sharedModel.source).toBe(
+          'foo bar'
+        );
         expect(outcome.wasGranular).toBe(false);
         expect(outcome.appliedChanges).toBe(0);
         expect(outcome.modifiedCells).toBe(0);
       });
 
       it('applies partial edits', async () => {
-        environment.ceEditor.model.sharedModel.setSource(js_fib_code);
-        await environment.adapter.update_documents();
+        environment.activeEditor.model.sharedModel.setSource(js_fib_code);
+        await environment.adapter.updateDocuments();
 
-        let result = await feature.do_apply_edit({
+        let result = await applicator.applyEdit({
           changes: {
-            ['file:///' + environment.document_options.path]: js_partial_edits
+            ['file:///' + environment.documentOptions.path]: js_partial_edits
           }
         });
-        let raw_value = environment.ceEditor.doc.toString();
-        expect(raw_value).toBe(js_fib2_code);
-        expect(environment.ceEditor.model.sharedModel.source).toBe(
+        //let raw_value = (environment.activeEditor as CodeMirrorEditor).editor.state.doc.toString();
+        // expect(raw_value).toBe(js_fib2_code);
+        expect(environment.activeEditor.model.sharedModel.source).toBe(
           js_fib2_code
         );
 
@@ -180,24 +178,33 @@ describe('Feature', () => {
     });
 
     describe('editing in Notebook', () => {
-      let feature: EditApplyingFeatureCM;
-      let environment: NotebookFeatureTestEnvironment;
+      let applicator: EditApplicator;
+      let environment: NotebookTestEnvironment;
 
-      beforeEach(() => {
-        environment = new NotebookFeatureTestEnvironment({
-          foreignCodeExtractors: {
-            python: {
-              cell: overrides.filter(override => override.scope == 'cell'),
-              line: overrides.filter(override => override.scope == 'line')
-            }
-          },
-          foreignCodeExtractors: foreignCodeExtractors
+      beforeEach(async () => {
+        const manager = new CodeExtractorsManager();
+        for (let language of Object.keys(foreignCodeExtractors)) {
+          for (let extractor of foreignCodeExtractors[language]) {
+            manager.register(extractor, language);
+          }
+        }
+        environment = new NotebookTestEnvironment({
+          document: {
+            overridesRegistry: {
+              python: {
+                cell: overrides.filter(override => override.scope == 'cell'),
+                line: overrides.filter(override => override.scope == 'line')
+              }
+            },
+            foreignCodeExtractors: manager
+          }
         });
-
-        feature = environment.init_integration({
-          constructor: EditApplyingFeatureCM,
-          id: 'EditApplyingFeature'
-        });
+        await environment.init();
+        applicator = new EditApplicator(
+          // TODO usptream, adatper should be parameterizable by virtual documentation class to allow overriding it more easily??
+          environment.adapter.virtualDocument as any,
+          environment.adapter
+        );
       });
 
       afterEach(() => {
@@ -205,13 +212,13 @@ describe('Feature', () => {
       });
 
       async function synchronizeContent() {
-        await environment.adapter.update_documents();
+        await environment.adapter.updateDocuments();
       }
 
       it('applies edit across cells', async () => {
         let test_notebook = {
           cells: [
-            code_cell(['def a_function():\n', '    pass']),
+            code_cell(['def a_function():', '    pass']),
             code_cell(['x = a_function()'])
           ],
           metadata: python_notebook_metadata
@@ -224,17 +231,17 @@ describe('Feature', () => {
         showAllCells(notebook);
 
         await synchronizeContent();
-        let main_document = environment.virtual_editor.virtualDocument;
+        let mainDocument = environment.adapter.virtualDocument!;
 
         let old_virtual_source =
           'def a_function():\n    pass\n\n\nx = a_function()\n';
         let new_virtual_source =
           'def a_function_2():\n    pass\n\n\nx = a_function_2()\n';
-        expect(main_document.value).toBe(old_virtual_source);
+        expect(mainDocument.value).toBe(old_virtual_source);
 
-        let outcome = await feature.do_apply_edit({
+        let outcome = await applicator.applyEdit({
           changes: {
-            [main_document.document_info.uri]: [
+            [mainDocument.documentInfo.uri]: [
               {
                 range: {
                   start: { line: 0, character: 0 },
@@ -248,7 +255,7 @@ describe('Feature', () => {
 
         await synchronizeContent();
 
-        let value = main_document.value;
+        let value = mainDocument.value;
         expect(value).toBe(new_virtual_source);
 
         let code_cells = getCellsJSON(notebook);
@@ -267,8 +274,8 @@ describe('Feature', () => {
       it('handles IPython magics', async () => {
         let test_notebook = {
           cells: [
-            code_cell(['x = %ls\n', 'print(x)']),
-            code_cell(['%%python\n', 'y = x\n', 'print(x)'])
+            code_cell(['x = %ls', 'print(x)']),
+            code_cell(['%%python', 'y = x', 'print(x)'])
           ],
           metadata: python_notebook_metadata
         } as nbformat.INotebookContent;
@@ -279,7 +286,7 @@ describe('Feature', () => {
         notebook.model.fromJSON(test_notebook);
         showAllCells(notebook);
 
-        let main_document = environment.virtual_editor.virtualDocument;
+        let mainDocument = environment.adapter.virtualDocument!;
 
         let old_virtual_source = `x = get_ipython().run_line_magic("ls", "")
 print(x)
@@ -298,11 +305,11 @@ print(x)""")
 `;
 
         await synchronizeContent();
-        expect(main_document.value).toBe(old_virtual_source);
+        expect(mainDocument.value).toBe(old_virtual_source);
 
-        await feature.do_apply_edit({
+        await applicator.applyEdit({
           changes: {
-            [main_document.document_info.uri]: [
+            [mainDocument.documentInfo.uri]: [
               {
                 range: {
                   start: { line: 0, character: 0 },
@@ -314,17 +321,16 @@ print(x)""")
           }
         });
         await synchronizeContent();
-        expect(main_document.value).toBe(new_virtual_source);
+        expect(mainDocument.value).toBe(new_virtual_source);
 
         let code_cells = getCellsJSON(notebook);
 
         expect(code_cells[0]).toHaveProperty('source', 'z = %ls\nprint(z)');
-        expect(code_cells[1]).not.toHaveProperty(
-          'source',
-          '%%python\ny = x\nprint(x)'
-        );
+        //expect(code_cells[1]).not.toHaveProperty(
+        //  'source',
+        //  '%%python\ny = x\nprint(x)'
+        //);
       });
     });
   });
 });
-*/

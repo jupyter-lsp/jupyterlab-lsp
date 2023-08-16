@@ -22,7 +22,7 @@ interface IAdapterOptions extends IFileEditorAdapterOptions {
   codeOverridesManager: ILSPCodeOverridesManager;
 }
 
-class FileEditorAdapter extends UpstreamFileEditorAdapter {
+export class FileEditorAdapter extends UpstreamFileEditorAdapter {
   constructor(
     public editorWidget: IDocumentWidget<FileEditor>,
     protected options: IAdapterOptions
