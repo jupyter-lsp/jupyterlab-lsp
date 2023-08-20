@@ -182,6 +182,13 @@ class MockDocumentConnectionManager extends DocumentConnectionManager {
   }
 }
 
+export namespace TestEnvironment {
+  export interface IOptions {
+    document?: Partial<VirtualDocument.IOptions>;
+    connection?: Partial<MockConnection.IOptions>;
+  }
+}
+
 export abstract class TestEnvironment implements ITestEnvironment {
   adapter: WidgetLSPAdapter<any>;
   abstract widget: IDocumentWidget;
@@ -190,12 +197,7 @@ export abstract class TestEnvironment implements ITestEnvironment {
   editorExtensionRegistry: EditorExtensionRegistry;
   editorServices: IEditorServices;
 
-  constructor(
-    protected options?: {
-      document?: Partial<VirtualDocument.IOptions>;
-      connection?: Partial<MockConnection.IOptions>;
-    }
-  ) {
+  constructor(protected options?: TestEnvironment.IOptions) {
     this.editorExtensionRegistry = new EditorExtensionRegistry();
     this.editorExtensionRegistry.addExtension({
       name: 'binding',

@@ -23,7 +23,6 @@ import {
   setNotebookContent,
   showAllCells
 } from '../../testutils';
-//import { isEqual } from '../../positioning';
 import { foreignCodeExtractors } from '../../transclusions/ipython/extractors';
 
 import { diagnosticsPanel } from './diagnostics';
