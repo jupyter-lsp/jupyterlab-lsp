@@ -402,7 +402,7 @@ jobs:
       matrix:
         os: [ubuntu]
         python: ['3.8', '3.11']
-        nodejs: ['16']
+        nodejs: ['18']
         include:
           - python: '3.8'
             lab: '>=4,<5'
