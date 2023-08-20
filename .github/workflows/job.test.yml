@@ -99,7 +99,7 @@ jobs:
         run: jlpm build
 
       - name: Run frontend unit tests
-        run: jlpm test
+        run: jlpm test --no-bail
 
       - name: Lint backend
         run: python scripts/lint.py
