@@ -45,11 +45,13 @@ import { CODE_OVERRIDES_MANAGER } from './overrides';
 import { SettingsUIManager, SettingsSchemaManager } from './settings';
 import {
   ILSPLogConsole,
-  PLUGIN_ID,
+  PLUGIN_ID as PLUGIN_ID_BASE,
   TLanguageServerConfigurations
 } from './tokens';
 import { DEFAULT_TRANSCLUSIONS } from './transclusions/defaults';
 import { LOG_CONSOLE } from './virtual/console';
+
+const PLUGIN_ID = PLUGIN_ID_BASE + ':plugin';
 
 export class LSPExtension {
   get connection_manager(): ILSPDocumentConnectionManager {
@@ -89,7 +91,7 @@ export class LSPExtension {
     });
 
     if (statusBar !== null) {
-      statusBar.registerStatusItem(PLUGIN_ID + ':language-server-status', {
+      statusBar.registerStatusItem(PLUGIN_ID_BASE + ':language-server-status', {
         item: statusButtonExtension.createItem(),
         align: 'left',
         rank: 1,
@@ -174,7 +176,7 @@ export class LSPExtension {
  * The plugin registration information.
  */
 const plugin: JupyterFrontEndPlugin<void> = {
-  id: PLUGIN_ID + ':plugin',
+  id: PLUGIN_ID,
   requires: [
     ISettingRegistry,
     ILSPDocumentConnectionManager,
