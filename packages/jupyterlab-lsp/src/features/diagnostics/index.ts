@@ -4,7 +4,7 @@ import {
   JupyterFrontEndPlugin,
   ILabShell
 } from '@jupyterlab/application';
-import { ICommandPalette } from '@jupyterlab/apputils';
+import { ICommandPalette, IThemeManager } from '@jupyterlab/apputils';
 import { IEditorExtensionRegistry } from '@jupyterlab/codemirror';
 import {
   ILSPFeatureManager,
@@ -33,7 +33,7 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<IDiagnosticsFeature> = {
     ILSPDocumentConnectionManager,
     IEditorExtensionRegistry
   ],
-  optional: [ICommandPalette, ITranslator],
+  optional: [IThemeManager, ICommandPalette, ITranslator],
   autoStart: true,
   activate: async (
     app: JupyterFrontEnd,
@@ -41,6 +41,7 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<IDiagnosticsFeature> = {
     settingRegistry: ISettingRegistry,
     connectionManager: ILSPDocumentConnectionManager,
     editorExtensionRegistry: IEditorExtensionRegistry,
+    themeManager: IThemeManager | null,
     palette: ICommandPalette | null,
     translator: ITranslator | null
   ) => {
@@ -55,6 +56,7 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<IDiagnosticsFeature> = {
       connectionManager,
       shell: app.shell as ILabShell | INotebookShell,
       editorExtensionRegistry,
+      themeManager,
       trans
     });
     featureManager.register(feature);

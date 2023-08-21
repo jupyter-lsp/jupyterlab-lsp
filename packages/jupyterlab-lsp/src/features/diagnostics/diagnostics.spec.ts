@@ -66,7 +66,8 @@ describe('Diagnostics', () => {
         settings: defaultSettings,
         connectionManager: env.connectionManager,
         shell: new ShellMock() as any,
-        editorExtensionRegistry: env.editorExtensionRegistry
+        editorExtensionRegistry: env.editorExtensionRegistry,
+        themeManager: null
       });
       await env.init();
     });
@@ -217,7 +218,8 @@ describe('Diagnostics', () => {
         settings: defaultSettings,
         connectionManager: env.connectionManager,
         shell: new ShellMock() as any,
-        editorExtensionRegistry: env.editorExtensionRegistry
+        editorExtensionRegistry: env.editorExtensionRegistry,
+        themeManager: null
       });
       await env.init();
     });

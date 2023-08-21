@@ -3,6 +3,7 @@ import { StateField, StateEffect, StateEffectType } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { INotebookShell } from '@jupyter-notebook/application';
 import { ILabShell } from '@jupyterlab/application';
+import { IThemeManager } from '@jupyterlab/apputils';
 import {
   CodeMirrorEditor,
   IEditorExtensionRegistry,
@@ -30,6 +31,7 @@ import { BrowserConsole } from '../../virtual/console';
 import { diagnosticsPanel } from './diagnostics';
 import { DiagnosticsDatabase } from './listing';
 import { IDiagnosticsFeature, IEditorDiagnostic } from './tokens';
+import { underline } from './underline';
 
 const SeverityMap: Record<
   1 | 2 | 3 | 4,
@@ -109,6 +111,17 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
     });
 
     const settings = options.settings;
+    const themeManager = options.themeManager;
+
+    this._reconfigureTheme();
+    document.head.appendChild(this._styleElement);
+
+    if (themeManager) {
+      themeManager.themeChanged.connect(() => {
+        this._reconfigureTheme();
+      });
+    }
+
     options.editorExtensionRegistry.addExtension({
       name: 'lsp:diagnostics',
       factory: options => {
@@ -183,9 +196,51 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
         if (settings.composite.gutter) {
           extensions.push(lintGutter());
         }
+
         return EditorExtensionRegistry.createImmutableExtension(extensions);
       }
     });
+  }
+
+  private _reconfigureTheme() {
+    const style = getComputedStyle(document.body);
+    const baseTheme = EditorView.baseTheme({
+      '.cm-lintRange-error': {
+        backgroundImage: underline(
+          style.getPropertyValue(
+            '--jp-editor-mirror-lsp-diagnostic-error-decoration-color'
+          )
+        )
+      },
+      '.cm-lintRange-warning': {
+        backgroundImage: underline(
+          style.getPropertyValue(
+            '--jp-editor-mirror-lsp-diagnostic-warning-decoration-color'
+          )
+        )
+      },
+      '.cm-lintRange-info': {
+        backgroundImage: underline(
+          style.getPropertyValue(
+            '--jp-editor-mirror-lsp-diagnostic-information-decoration-color'
+          )
+        )
+      },
+      '.cm-lintRange-hint': {
+        backgroundImage: underline(
+          style.getPropertyValue(
+            '--jp-editor-mirror-lsp-diagnostic-hint-decoration-color'
+          )
+        )
+      }
+    });
+    const tempEditor = new EditorView({ extensions: baseTheme });
+    const styleModules = tempEditor.state.facet(EditorView.styleModule);
+    const ourRules = styleModules.find(styleModule => {
+      const rules = styleModule.getRules().split('\n');
+      return rules.every(rule => rule.includes('cm-lintRange'));
+    })!;
+    this._styleElement.innerHTML = ourRules.getRules();
   }
 
   clearDocumentDiagnostics(
@@ -503,6 +558,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
   private _trans: TranslationBundle;
   private _invalidate: StateEffectType<void>;
   private _invalidationCounter: StateField<number>;
+  private _styleElement: HTMLStyleElement = document.createElement('style');
 }
 
 export namespace DiagnosticsFeature {
@@ -511,6 +567,7 @@ export namespace DiagnosticsFeature {
     shell: ILabShell | INotebookShell;
     trans: TranslationBundle;
     editorExtensionRegistry: IEditorExtensionRegistry;
+    themeManager: IThemeManager | null;
   }
   export const id = PLUGIN_ID + ':diagnostics';
 }
