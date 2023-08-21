@@ -321,29 +321,33 @@ Gently Reset Workspace
 
 Enter Cell Editor
     [Arguments]    ${cell_nr}    ${line}=1
-    Click Element    css:.jp-Cell:nth-child(${cell_nr}) .CodeMirror-line:nth-child(${line})
-    Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_nr}) .CodeMirror-focused
+    Click Element    css:.jp-Cell:nth-child(${cell_nr}) .cm-line:nth-child(${line})
+    Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_nr}) .cm-focused
 
 Open Context Menu Over Cell Editor
     [Arguments]    ${cell_nr}    ${line}=1
     Enter Cell Editor    ${cell_nr}    line=${line}
-    Open Context Menu Over    css:.jp-Cell:nth-child(${cell_nr}) .CodeMirror-line:nth-child(${line})
+    Open Context Menu Over    css:.jp-Cell:nth-child(${cell_nr}) .cm-line:nth-child(${line})
 
 Place Cursor In Cell Editor At
     [Arguments]    ${cell_nr}    ${line}    ${character}
     Enter Cell Editor    ${cell_nr}    ${line}
     Execute JavaScript
-    ...    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
+    ...    view = document.querySelector('.jp-Cell:nth-child(${cell_nr}) .cm-content').cmView.view;
+    ...    pos = view.doc.line(${line}).from + ${character};
+    ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
 Enter File Editor
-    Click Element    css:.jp-FileEditor .CodeMirror
-    Wait Until Page Contains Element    css:.jp-FileEditor .CodeMirror-focused
+    Click Element    css:.jp-FileEditor .cm-editor
+    Wait Until Page Contains Element    css:.jp-FileEditor .cm-focused
 
 Place Cursor In File Editor At
     [Arguments]    ${line}    ${character}
     Enter File Editor
     Execute JavaScript
-    ...    return document.querySelector('.jp-FileEditor .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
+    ...    view = document.querySelector('.jp-FileEditor .cm-content').cmView.view;
+    ...    pos = view.doc.line(${line}).from + ${character};
+    ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
 Wait Until Fully Initialized
     Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=60s
@@ -398,11 +402,13 @@ Open in Advanced Settings
 
 Set Editor Content
     [Arguments]    ${text}    ${css}=${EMPTY}
-    Execute JavaScript    return document.querySelector('${css} .CodeMirror').CodeMirror.setValue(`${text}`)
+    Execute JavaScript
+    ...    doc = document.querySelector('${css} .cm-content').cmView.view.doc;
+    ...    return doc.replace(0, doc.length, `${text}`);
 
 Get Editor Content
     [Arguments]    ${css}=${EMPTY}
-    ${content} =    Execute JavaScript    return document.querySelector('${css} .CodeMirror').CodeMirror.getValue()
+    ${content} =    Execute JavaScript    return document.querySelector('${css} .cm-content').cmView.view.doc.toString()
     RETURN    ${content}
 
 Configure JupyterLab Plugin

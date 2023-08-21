@@ -52,7 +52,7 @@ Status Changes Between Notebooks
     Setup Notebook    Python    Python.ipynb
     Wait Until Fully Initialized
     Open New Notebook
-    Element Should Contain    ${STATUSBAR}    Waiting...
+    Element Should Contain    ${STATUSBAR}    Waiting…
     Wait Until Fully Initialized
     Switch To Tab    Python.ipynb
     Wait Until Fully Initialized
