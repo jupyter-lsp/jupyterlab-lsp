@@ -44,7 +44,7 @@ jobs:
       matrix:
         os: [ubuntu]
         nodejs: ['>=16,<17.0.0a0']
-        lab: ['>=4.0.3,<5.0.0a0']
+        lab: ['>=4.0.5,<5.0.0a0']
         r: ['>=4']
     steps:
       - uses: actions/checkout@v3

@@ -11,11 +11,11 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@jupyterlab/application": "^4.0.3"
+    "@jupyterlab/application": "^4.0.5"
   },
   "devDependencies": {
-    "@jupyterlab/application": "^4.0.3",
-    "@jupyterlab/builder": "^4.0.3",
+    "@jupyterlab/application": "^4.0.5",
+    "@jupyterlab/builder": "^4.0.5",
     "typescript": "~5.0.4"
   },
   "jupyterlab": {
