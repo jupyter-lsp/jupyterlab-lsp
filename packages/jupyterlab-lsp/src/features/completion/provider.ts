@@ -92,30 +92,103 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
 
   shouldShowContinuousHint(
     completerIsVisible: boolean,
-    changed: SourceChange
+    changed: SourceChange,
+    context?: ICompletionContext
   ): boolean {
-    // TODO https://github.com/jupyterlab/jupyterlab/issues/14806
-    // for now below is a copy of `KernelCompleterProvider` implementation.
+    if (!context) {
+      // waiting for https://github.com/jupyterlab/jupyterlab/pull/15015 due to
+      // https://github.com/jupyterlab/jupyterlab/issues/15014
+      return false;
+      // throw Error('Completion context was expected');
+    }
+
+    const manager = this.options.connectionManager;
+    const widget = context?.widget as IDocumentWidget;
+    const adapter = manager.adapters.get(widget.context.path);
+    if (!context.editor) {
+      // TODO: why is editor optional in the first place?
+      throw Error('No editor');
+    }
+    if (!adapter) {
+      throw Error('No adapter');
+    }
+    const editor = context.editor;
+    const editorPosition = PositionConverter.ce_to_cm(
+      editor.getCursorPosition()
+    ) as IEditorPosition;
+
+    const block = adapter.editors.find(
+      value => value.ceEditor.getEditor() == editor
+    );
+
+    if (!block) {
+      throw Error('Could not get block with editor');
+    }
+    const rootPosition = editorPositionToRootPosition(
+      adapter,
+      block.ceEditor,
+      editorPosition
+    );
+
+    if (!rootPosition) {
+      throw Error('Could not get root position');
+    }
+
+    const virtualDocument = documentAtRootPosition(adapter, rootPosition);
+    const connection = manager.connections.get(virtualDocument.uri);
+
+    if (!connection) {
+      throw Error('Could not find connection for virtual document');
+    }
+
+    const triggerCharacters =
+      connection.serverCapabilities?.completionProvider?.triggerCharacters ||
+      [];
+
     const sourceChange = changed.sourceChange;
+
     if (sourceChange == null) {
-      return true;
+      return false;
     }
 
     if (sourceChange.some(delta => delta.delete != null)) {
+      return false;
+    }
+    const token = editor.getTokenAtCursor();
+
+    if (this.options.settings.composite.continuousHinting) {
+      // if token type is known and not ignored token type is ignored - show completer
+      if (
+        token.type &&
+        !this.options.settings.composite.suppressContinuousHintingIn.includes(
+          token.type
+        )
+      ) {
+        return true;
+      }
+      // otherwise show it may still be shown due to trigger character
+    }
+    if (
+      !token.type ||
+      this.options.settings.composite.suppressTriggerCharacterIn.includes(
+        token.type
+      )
+    ) {
       return false;
     }
 
     return sourceChange.some(
       delta =>
         delta.insert != null &&
-        (delta.insert === '.' ||
+        (triggerCharacters.includes(delta.insert) ||
           (!completerIsVisible && delta.insert.trim().length > 0))
     );
   }
 
   async fetch(
     request: CompletionHandler.IRequest,
-    context: ICompletionContext
+    context: ICompletionContext,
+    trigger?: CompletionTriggerKind
   ): Promise<CompletionHandler.ICompletionItemsReply<CompletionItem>> {
     const manager = this.options.connectionManager;
     const widget = context.widget as IDocumentWidget;
@@ -135,7 +208,7 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
     const token = editor.getTokenAt(request.offset);
     const positionInToken = token.offset - request.offset;
     // TODO: (typedCharacter can serve as a proxy for triggerCharacter)
-    // const typedCharacter = token.value[positionInToken + 1];
+    const typedCharacter = token.value[positionInToken + 1];
 
     // TODO: direct mapping
     // because we need editorAccessor, not the editor itself we perform this rather sad dance:
@@ -168,11 +241,6 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
       throw Error('Could not find connection for virtual document');
     }
 
-    //const triggerKind =
-    //  this.trigger_kind == AdditionalCompletionTriggerKinds.AutoInvoked
-    //    ? CompletionTriggerKind.Invoked
-    //    : this.trigger_kind;
-
     const lspCompletionReply = await connection.clientRequests[
       'textDocument/completion'
     ].request({
@@ -184,8 +252,11 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
         character: virtualPosition.ch
       },
       context: {
-        triggerKind: CompletionTriggerKind.TriggerCharacter
-        //triggerCharacter: (note should be undefined unless CompletionTriggerKind.TriggerCharacter)
+        triggerKind: trigger || CompletionTriggerKind.Invoked,
+        triggerCharacter:
+          trigger === CompletionTriggerKind.TriggerCharacter
+            ? typedCharacter
+            : undefined
       }
     });
 
