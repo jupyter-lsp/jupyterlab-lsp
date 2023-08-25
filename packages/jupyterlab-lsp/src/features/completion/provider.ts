@@ -61,12 +61,19 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
   modelFactory = async (
     context: ICompletionContext
   ): Promise<Completer.IModel> => {
-    return new LSPCompleterModel({
-      caseSensitive: this.options.settings.composite.caseSensitive,
-      preFilterMatches: this.options.settings.composite.preFilterMatches,
-      includePerfectMatches:
-        this.options.settings.composite.includePerfectMatches
+    const composite = this.options.settings.composite;
+    const model = new LSPCompleterModel({
+      caseSensitive: composite.caseSensitive,
+      preFilterMatches: composite.preFilterMatches,
+      includePerfectMatches: composite.includePerfectMatches
     });
+    this.options.settings.changed.connect(() => {
+      const composite = this.options.settings.composite;
+      model.settings.caseSensitive = composite.caseSensitive;
+      model.settings.preFilterMatches = composite.preFilterMatches;
+      model.settings.includePerfectMatches = composite.includePerfectMatches;
+    });
+    return model;
   };
 
   /**
@@ -287,6 +294,20 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
   }
 
   async isApplicable(context: ICompletionContext): Promise<boolean> {
+    if (this.options.settings.composite.disable) {
+      return false;
+    }
+    /*
+    // Disabled due to the result being effectively cached until user changes
+    // cells which can lead to bad UX; upstream issue:
+    // https://github.com/jupyterlab/jupyterlab/issues/15016
+    const manager = this.options.connectionManager;
+    const widget = context.widget as IDocumentWidget;
+    const adapter = manager.adapters.get(widget.context.path);
+    if (!adapter) {
+      return false;
+    }
+    */
     return true;
   }
 }
