@@ -11,7 +11,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@jupyter-lsp/jupyterlab-lsp": "^4.0.0-alpha.0"
+    "@jupyter-lsp/jupyterlab-lsp": "^5.0.0-alpha.0"
   },
   "devDependencies": {
     "@jupyterlab/application": "^4.0.5",

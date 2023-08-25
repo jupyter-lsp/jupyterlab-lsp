@@ -1,6 +1,6 @@
 ## Changelog
 
-### `@jupyter-lsp/jupyterlab-lsp 5.0.0a0`
+### `@jupyter-lsp/jupyterlab-lsp 5.0.0-alpha.0`
 
 - maintenance:
   - support JupyterLab 4

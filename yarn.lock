@@ -2135,7 +2135,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@jupyter-lsp/jupyterlab-lsp-example-extractor@workspace:packages/_example-extractor"
   dependencies:
-    "@jupyter-lsp/jupyterlab-lsp": ^4.0.0-alpha.0
+    "@jupyter-lsp/jupyterlab-lsp": ^5.0.0-alpha.0
     "@jupyterlab/application": ^4.0.5
     "@jupyterlab/testing": ^4.0.5
     "@types/jest": ^29.5.4
@@ -2171,7 +2171,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupyter-lsp/jupyterlab-lsp@^4.0.0-alpha.0, @jupyter-lsp/jupyterlab-lsp@workspace:*, @jupyter-lsp/jupyterlab-lsp@workspace:packages/jupyterlab-lsp":
+"@jupyter-lsp/jupyterlab-lsp@^5.0.0-alpha.0, @jupyter-lsp/jupyterlab-lsp@workspace:*, @jupyter-lsp/jupyterlab-lsp@workspace:packages/jupyterlab-lsp":
   version: 0.0.0-use.local
   resolution: "@jupyter-lsp/jupyterlab-lsp@workspace:packages/jupyterlab-lsp"
   dependencies:
