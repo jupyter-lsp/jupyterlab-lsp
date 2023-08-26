@@ -333,8 +333,8 @@ Place Cursor In Cell Editor At
     [Arguments]    ${cell_nr}    ${line}    ${character}
     Enter Cell Editor    ${cell_nr}    ${line}
     Execute JavaScript
-    ...    view = document.querySelector('.jp-Cell:nth-child(${cell_nr}) .cm-content').cmView.view;
-    ...    pos = view.doc.line(${line}).from + ${character};
+    ...    var view = document.querySelector('.jp-Cell:nth-child(${cell_nr}) .cm-content').cmView.view;
+    ...    var pos = view.doc.line(${line}).from + ${character};
     ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
 Enter File Editor
@@ -345,8 +345,8 @@ Place Cursor In File Editor At
     [Arguments]    ${line}    ${character}
     Enter File Editor
     Execute JavaScript
-    ...    view = document.querySelector('.jp-FileEditor .cm-content').cmView.view;
-    ...    pos = view.doc.line(${line}).from + ${character};
+    ...    var view = document.querySelector('.jp-FileEditor .cm-content').cmView.view;
+    ...    var pos = view.doc.line(${line}).from + ${character};
     ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
 Wait Until Fully Initialized
@@ -402,12 +402,14 @@ Open in Advanced Settings
 
 Set Editor Content
     [Arguments]    ${text}    ${css}=${EMPTY}
+    Wait Until Page Contains Element    css:${css} .cm-content
     Execute JavaScript
-    ...    doc = document.querySelector('${css} .cm-content').cmView.view.doc;
+    ...    var doc = document.querySelector('${css} .cm-content').cmView.view.doc;
     ...    return doc.replace(0, doc.length, `${text}`);
 
 Get Editor Content
     [Arguments]    ${css}=${EMPTY}
+    Wait Until Page Contains Element    css:${css} .cm-content
     ${content} =    Execute JavaScript    return document.querySelector('${css} .cm-content').cmView.view.doc.toString()
     RETURN    ${content}
 

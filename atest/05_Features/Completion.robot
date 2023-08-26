@@ -12,6 +12,7 @@ Test Tags           feature:completion
 ${COMPLETER_BOX}            css:.jp-Completer.jp-HoverBox
 ${DOCUMENTATION_PANEL}      css:.jp-Completer-docpanel
 ${KERNEL_BUSY_INDICATOR}    css:.jp-Notebook-ExecutionIndicator[data-status="busy"]
+${MANAGER PLUGIN ID}        @jupyterlab/completer-extension:manager
 
 
 *** Test Cases ***
@@ -148,6 +149,8 @@ Completes In Strings Or Python Dictionaries
 Continuous Hinting Works
     [Setup]    Prepare File for Editing    Python    completion    completion.py
     Configure JupyterLab Plugin    {"continuousHinting": true}    plugin id=${COMPLETION PLUGIN ID}
+    # TODO: remove once we resolve https://github.com/jupyterlab/jupyterlab/issues/15022
+    Configure JupyterLab Plugin    {"autoCompletion": true}    plugin id=${MANAGER PLUGIN ID}
     Place Cursor In File Editor At    9    2
     Wait For Ready State
     Press Keys    None    d
@@ -193,7 +196,7 @@ User Can Select Lowercase After Starting Uppercase
 Mid Token Completions Do Not Overwrite
     # `disp<tab>data` → `display_table<cursor>data`
     Place Cursor In Cell Editor At    9    line=1    character=4
-    Wait For Our Completer To Replace Native In Cell    9
+    Wait For Our Completer To Initialize
     Trigger Completer
     Completer Should Suggest    display_table
     Select Completer Suggestion    display_table
@@ -201,7 +204,7 @@ Mid Token Completions Do Not Overwrite
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    9    display_tabledata
     # `disp<tab>lay` → `display_table<cursor>`
     Place Cursor In Cell Editor At    11    line=1    character=4
-    Wait For Our Completer To Replace Native In Cell    11
+    Wait For Our Completer To Initialize
     Trigger Completer
     Wait For Ready State
     Completer Should Suggest    display_table
@@ -230,6 +233,7 @@ Kernel And LSP Completions Merge Prefix Conflicts Are Resolved
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    15    import os.path
 
 Triggers Completer On Dot
+    Configure JupyterLab Plugin    {"autoCompletion": true}    plugin id=${MANAGER PLUGIN ID}
     Enter Cell Editor    2    line=1
     Press Keys    None    .
     Wait Until Keyword Succeeds    10x    0.5s    Cell Editor Should Equal    2    list.
@@ -296,7 +300,7 @@ Completes Correctly With R Double And Triple Colon
     [Setup]    Prepare File for Editing    R    completion    completion.R
     Place Cursor In File Editor At    2    7
     Wait Until Fully Initialized
-    Wait For Our Completer To Replace Native In File Editor
+    Wait For Our Completer To Initialize
     Trigger Completer
     Completer Should Suggest    .print.via.format
     Select Completer Suggestion    .print.via.format
@@ -319,9 +323,10 @@ Completes Large Namespaces
 
 Shows Documentation With CompletionItem Resolve
     [Setup]    Prepare File for Editing    R    completion    completion.R
+    Configure JupyterLab Plugin    {"showDocumentationPanel": true}    plugin id=${MANAGER PLUGIN ID}
     Place Cursor In File Editor At    8    7
     Wait Until Fully Initialized
-    Wait For Our Completer To Replace Native In File Editor
+    Wait For Our Completer To Initialize
     Trigger Completer
     Completer Should Suggest    print.data.frame
     # if data.frame is not active, activate it (it should be in top 10 on any platform)
@@ -348,7 +353,7 @@ Completes In R Magics
     # - R lanugage server is very sensitive to off-by-one errors (see https://github.com/REditorSupport/languageserver/issues/395)
     # '%%R\n librar<tab>'
     Enter Cell Editor    22    line=2
-    Wait For Our Completer To Replace Native In Cell    22
+    Wait For Our Completer To Initialize
     Trigger Completer
     Completer Should Suggest    library
     # '%R lib<tab>'
@@ -358,7 +363,7 @@ Completes In R Magics
 
 Completes Paths In Strings
     Enter Cell Editor    26
-    Wait For Our Completer To Replace Native In Cell    26
+    Wait For Our Completer To Initialize
     Press Keys    None    LEFT
     Trigger Completer
     Press Keys    None    ENTER
@@ -371,13 +376,11 @@ Setup Completion Test
 
 Get Cell Editor Content
     [Arguments]    ${cell_nr}
-    ${content} =    Execute JavaScript
-    ...    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.getValue()
+    ${content} =    Get Editor Content    .jp-Cell:nth-child(${cell_nr})
     RETURN    ${content}
 
 Get File Editor Content
-    ${content} =    Execute JavaScript
-    ...    return document.querySelector('.jp-FileEditorCodeWrapper .CodeMirror').CodeMirror.getValue()
+    ${content} =    Get Editor Content    .jp-FileEditorCodeWrapper
     RETURN    ${content}
 
 Cell Editor Should Equal
@@ -466,14 +469,5 @@ Should Complete While Kernel Is Busy
     # Confirm that the kernel indicator was busy all along
     Page Should Contain Element    ${KERNEL_BUSY_INDICATOR}
 
-Wait For Our Completer To Replace Native In File Editor
-    # Normally the completion adapter taking time to initialise is not a problem
-    # but because the token-based completion fallback would break some test example
-    # if it kicked in (by instant-completing some token) so we try to avoid it
-    # TODO remove after migrating to JupyterLab 4.0 native adapters.
-    Wait Until Page Contains Element    css:.jp-FileEditor .lsp-completer-enabled
-
-Wait For Our Completer To Replace Native In Cell
-    [Arguments]    ${cell_nr}
-    # TODO remove after migrating to JupyterLab 4.0 native adapters.
-    Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_nr}) .lsp-completer-enabled
+Wait For Our Completer To Initialize
+    Wait Until Page Contains Element    css:.body[data-lsp-completer-layout]
