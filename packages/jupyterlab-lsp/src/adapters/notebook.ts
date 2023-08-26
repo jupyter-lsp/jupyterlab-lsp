@@ -6,7 +6,8 @@ import {
   IAdapterOptions as IUpstreamIAdapterOptions,
   ILSPCodeExtractorsManager,
   ILSPFeatureManager,
-  ILSPDocumentConnectionManager
+  ILSPDocumentConnectionManager,
+  Document
 } from '@jupyterlab/lsp';
 import {
   NotebookAdapter as UpstreamNotebookAdapter,
@@ -45,6 +46,35 @@ export class NotebookAdapter extends UpstreamNotebookAdapter {
       overridesRegistry: this.options.codeOverridesManager.registry
     });
   }
+
+  protected async onForeignDocumentOpened(
+    _: VirtualDocument,
+    context: Document.IForeignContext
+  ): Promise<void> {
+    /*
+    Opening a standalone foreign document can result in an inifnite loop,
+    as a new connection gets opened for these, and once that is ready
+    `updateDocuments()` gets called.
+
+    To avoid the problem, `updateDocuments()` gets suppressed for standalone
+    documents. It does not affect non-standalone documents, because no new
+    connection gets opened for these.
+    */
+    try {
+      this._blockUpdates = true;
+      await super.onForeignDocumentOpened(_, context);
+    } finally {
+      this._blockUpdates = false;
+    }
+  }
+
+  updateDocuments(): Promise<void> {
+    if (this._blockUpdates) {
+      return Promise.resolve();
+    }
+    return super.updateDocuments();
+  }
+  private _blockUpdates = false;
 }
 
 /**

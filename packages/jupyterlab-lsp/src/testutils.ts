@@ -36,6 +36,7 @@ import {
 import { defaultRenderMime } from '@jupyterlab/rendermime/lib/testutils';
 import { ServiceManagerMock } from '@jupyterlab/services/lib/testutils';
 import { nullTranslator } from '@jupyterlab/translation';
+import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import type * as lsProtocol from 'vscode-languageserver-protocol';
 import type { MessageConnection } from 'vscode-ws-jsonrpc';
@@ -59,19 +60,23 @@ export interface ITestEnvironment {
 
 export class MockLanguageServerManager extends LanguageServerManager {
   async fetchSessions() {
+    const spec = {
+      languages: ['python']
+    };
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     this._sessions = new Map();
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     this._sessions.set(DEFAULT_SERVER_ID, {
-      spec: {
-        languages: ['python']
-      }
+      spec
     } as any);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     this._sessionsChanged.emit(void 0);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    this._specs = new Map(Object.entries({ [DEFAULT_SERVER_ID]: spec }));
   }
 }
 
@@ -214,8 +219,9 @@ export abstract class TestEnvironment implements ITestEnvironment {
       }),
       mimeTypeService: new CodeMirrorMimeTypeService(languages)
     };
+    this._languageServerManager = new MockLanguageServerManager({});
     this.connectionManager = new MockDocumentConnectionManager({
-      languageServerManager: new MockLanguageServerManager({}),
+      languageServerManager: this._languageServerManager,
       connection: this.options?.connection
     });
     this.documentOptions = {
@@ -285,17 +291,34 @@ export abstract class TestEnvironment implements ITestEnvironment {
     await this.connectionManager.ready;
   }
 
+  private _languageServerManager: LanguageServerManager;
+
   dispose(): void {
     this.adapter.dispose();
+    this._languageServerManager.dispose();
   }
 }
 
-class MockNotebookAdapter extends NotebookAdapter {
+export class MockNotebookAdapter extends NotebookAdapter {
   get language() {
     return 'python';
   }
   isReady(): boolean {
     return true;
+  }
+  foreingDocumentOpened = new PromiseDelegate();
+  async onForeignDocumentOpened(
+    _: VirtualDocument,
+    context: any
+  ): Promise<void> {
+    try {
+      const result = await super.onForeignDocumentOpened(_, context);
+      this.foreingDocumentOpened.resolve(undefined);
+      this.foreingDocumentOpened = new PromiseDelegate();
+      return result;
+    } catch (e) {
+      console.warn(`onForeignDocumentOpened failed: ${e}`);
+    }
   }
 }
 

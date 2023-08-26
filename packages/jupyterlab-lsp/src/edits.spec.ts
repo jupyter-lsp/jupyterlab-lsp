@@ -11,7 +11,8 @@ import {
   python_notebook_metadata,
   showAllCells,
   FileEditorTestEnvironment,
-  NotebookTestEnvironment
+  NotebookTestEnvironment,
+  MockNotebookAdapter
 } from './testutils';
 import { foreignCodeExtractors } from './transclusions/ipython/extractors';
 import { overrides } from './transclusions/ipython/overrides';
@@ -285,6 +286,9 @@ describe('EditApplicator', () => {
         notebook.model.fromJSON(test_notebook);
         showAllCells(notebook);
 
+        await (environment.adapter as MockNotebookAdapter).foreingDocumentOpened
+          .promise;
+
         let mainDocument = environment.adapter.virtualDocument!;
 
         let old_virtual_source = `x = get_ipython().run_line_magic("ls", "")
@@ -319,6 +323,9 @@ print(x)""")
             ]
           }
         });
+        await (environment.adapter as MockNotebookAdapter).foreingDocumentOpened
+          .promise;
+
         await synchronizeContent();
         expect(mainDocument.value).toBe(new_virtual_source);
 
