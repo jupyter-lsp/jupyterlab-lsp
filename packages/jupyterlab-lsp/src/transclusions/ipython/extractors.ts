@@ -1,7 +1,12 @@
-import { RegExpForeignCodeExtractor } from '../../extractors/regexp';
-import { IForeignCodeExtractorsRegistry } from '../../extractors/types';
+import { IForeignCodeExtractor } from '@jupyterlab/lsp';
 
-export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
+import { RegExpForeignCodeExtractor } from '../../extractors/regexp';
+
+export interface IForeignCodeExtractorsRegistry {
+  [host_language: string]: IForeignCodeExtractor[];
+}
+
+export let foreignCodeExtractors: IForeignCodeExtractorsRegistry = {
   // general note: to match new lines use [^] instead of dot, unless the target is ES2018, then use /s
   python: [
     //
@@ -11,37 +16,37 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
     new RegExpForeignCodeExtractor({
       language: 'python',
       pattern: '^%%(python|python2|python3|pypy)( .*?)?\n([^]*)',
-      foreign_capture_groups: [3],
-      is_standalone: true,
-      file_extension: 'py'
+      foreignCaptureGroups: [3],
+      isStandalone: true,
+      fileExtension: 'py'
     }),
     new RegExpForeignCodeExtractor({
       language: 'perl',
       pattern: '^%%(perl)( .*?)?\n([^]*)',
-      foreign_capture_groups: [3],
-      is_standalone: true,
-      file_extension: 'pl'
+      foreignCaptureGroups: [3],
+      isStandalone: true,
+      fileExtension: 'pl'
     }),
     new RegExpForeignCodeExtractor({
       language: 'ruby',
       pattern: '^%%(ruby)( .*?)?\n([^]*)',
-      foreign_capture_groups: [3],
-      is_standalone: true,
-      file_extension: 'rb'
+      foreignCaptureGroups: [3],
+      isStandalone: true,
+      fileExtension: 'rb'
     }),
     new RegExpForeignCodeExtractor({
       language: 'sh',
       pattern: '^%%(sh|bash)( .*?)?\n([^]*)',
-      foreign_capture_groups: [3],
-      is_standalone: true,
-      file_extension: 'sh'
+      foreignCaptureGroups: [3],
+      isStandalone: true,
+      fileExtension: 'sh'
     }),
     new RegExpForeignCodeExtractor({
       language: 'html',
       pattern: '^%%(html --isolated)( .*?)?\n([^]*)',
-      foreign_capture_groups: [3],
-      is_standalone: true,
-      file_extension: 'html'
+      foreignCaptureGroups: [3],
+      isStandalone: true,
+      fileExtension: 'html'
     }),
     //
     // IPython magics producing continuous documents (non-standalone):
@@ -49,30 +54,30 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
     new RegExpForeignCodeExtractor({
       language: 'javascript',
       pattern: '^%%(js|javascript)( .*?)?\n([^]*)',
-      foreign_capture_groups: [3],
-      is_standalone: false,
-      file_extension: 'js'
+      foreignCaptureGroups: [3],
+      isStandalone: false,
+      fileExtension: 'js'
     }),
     new RegExpForeignCodeExtractor({
       language: 'html',
       pattern: '^%%(?!html --isolated)(html)( .*?)?\n([^]*)',
-      foreign_capture_groups: [3],
-      is_standalone: false,
-      file_extension: 'html'
+      foreignCaptureGroups: [3],
+      isStandalone: false,
+      fileExtension: 'html'
     }),
     new RegExpForeignCodeExtractor({
       language: 'latex',
       pattern: '^%%(latex)( .*?)?\n([^]*)',
-      foreign_capture_groups: [3],
-      is_standalone: false,
-      file_extension: 'tex'
+      foreignCaptureGroups: [3],
+      isStandalone: false,
+      fileExtension: 'tex'
     }),
     new RegExpForeignCodeExtractor({
       language: 'markdown',
       pattern: '^%%(markdown)( .*?)?\n([^]*)',
-      foreign_capture_groups: [3],
-      is_standalone: false,
-      file_extension: 'md'
+      foreignCaptureGroups: [3],
+      isStandalone: false,
+      fileExtension: 'md'
     })
   ]
 };

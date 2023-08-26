@@ -2,7 +2,16 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { InputDialog } from '@jupyterlab/apputils';
+import {
+  InputDialog,
+  Notification,
+  ICommandPalette
+} from '@jupyterlab/apputils';
+import {
+  ILSPFeatureManager,
+  ILSPDocumentConnectionManager,
+  WidgetLSPAdapter
+} from '@jupyterlab/lsp';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import {
   ITranslator,
@@ -13,16 +22,20 @@ import { LabIcon } from '@jupyterlab/ui-components';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import renameSvg from '../../style/icons/rename.svg';
+import { CodeRename as LSPRenameSettings } from '../_rename';
+import { ContextAssembler } from '../context';
 import {
-  CodeMirrorIntegration,
-  IEditOutcome
-} from '../editor_integration/codemirror';
-import { FeatureSettings, IFeatureCommand } from '../feature';
-import { ILSPFeatureManager, PLUGIN_ID } from '../tokens';
-import { CodeMirrorVirtualEditor } from '../virtual/codemirror_editor';
+  PositionConverter,
+  editorAtRootPosition,
+  rootPositionToEditorPosition
+} from '../converter';
+import { EditApplicator, IEditOutcome } from '../edits';
+import { FeatureSettings, Feature } from '../feature';
+import { PLUGIN_ID } from '../tokens';
+import { BrowserConsole } from '../virtual/console';
+import { VirtualDocument } from '../virtual/document';
 
-import { FEATURE_ID as DIAGNOSTICS_PLUGIN_ID } from './diagnostics';
-import { DiagnosticsCM } from './diagnostics/diagnostics';
+import { IDiagnosticsFeature } from './diagnostics/tokens';
 
 export const renameIcon = new LabIcon({
   name: 'lsp:rename',
@@ -31,128 +44,63 @@ export const renameIcon = new LabIcon({
 
 const FEATURE_ID = PLUGIN_ID + ':rename';
 
-const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
-  {
-    id: 'rename-symbol',
-    execute: async ({
-      editor,
-      connection,
-      virtual_position,
-      document,
-      features
-    }) => {
-      const rename_feature = features.get(FEATURE_ID) as RenameCM;
-      rename_feature.setTrans(trans);
-
-      let root_position =
-        rename_feature.transform_virtual_position_to_root_position(
-          virtual_position
-        );
-      let old_value = editor.get_token_at(root_position).value;
-      let handle_failure = (error: Error) => {
-        let status: string | null = '';
-
-        if (features.has(DIAGNOSTICS_PLUGIN_ID)) {
-          let diagnostics_feature = features.get(
-            DIAGNOSTICS_PLUGIN_ID
-          ) as DiagnosticsCM;
-
-          status = RenameCM.ux_workaround_for_rope_limitation(
-            error,
-            diagnostics_feature,
-            editor as CodeMirrorVirtualEditor,
-            rename_feature
-          );
-        }
-
-        if (!status) {
-          status = trans.__(`Rename failed: %1`, error);
-        }
-
-        rename_feature.setStatus(status, 7.5 * 1000);
-      };
-
-      const dialog_value = await InputDialog.getText({
-        title: trans.__('Rename to'),
-        text: old_value,
-        okLabel: trans.__('Rename'),
-        cancelLabel: trans.__('Cancel')
-      });
-
-      try {
-        const new_value = dialog_value.value;
-        if (dialog_value.button.accept != true || new_value == null) {
-          // the user has cancelled the rename action or did not provide new value
-          return;
-        }
-        rename_feature.setStatus(
-          trans.__('Renaming %1 to %2...', old_value, new_value),
-          2 * 1000
-        );
-        const edit = await connection?.rename(
-          virtual_position,
-          document.document_info,
-          new_value,
-          false
-        );
-        if (edit) {
-          await rename_feature.handleRename(edit, old_value, new_value);
-        } else {
-          handle_failure(new Error('no edit from server'));
-        }
-      } catch (error) {
-        handle_failure(error);
+export class RenameFeature extends Feature {
+  readonly id = RenameFeature.id;
+  readonly capabilities: lsProtocol.ClientCapabilities = {
+    textDocument: {
+      rename: {
+        prepareSupport: false,
+        honorsChangeAnnotations: false
       }
-    },
-    is_enabled: ({ connection }) =>
-      connection ? connection.provides('renameProvider') : false,
-    label: trans.__('Rename symbol'),
-    icon: renameIcon
-  }
-];
+    }
+  };
+  protected console = new BrowserConsole().scope('Rename');
 
-export class RenameCM extends CodeMirrorIntegration {
-  public setTrans(trans: TranslationBundle) {
-    this.trans = trans;
-  }
+  private _trans: TranslationBundle;
 
-  public setStatus(message: string, timeout: number) {
-    return this.status_message.set(message, timeout);
+  constructor(options: RenameFeature.IOptions) {
+    super(options);
+    this._trans = options.trans;
   }
 
   async handleRename(
     workspaceEdit: lsProtocol.WorkspaceEdit,
-    old_value: string,
-    new_value: string
+    oldValue: string,
+    newValue: string,
+    adapter: WidgetLSPAdapter<any>,
+    document: VirtualDocument
   ) {
     let outcome: IEditOutcome;
+    const applicator = new EditApplicator(document, adapter);
 
     try {
-      outcome = await this.apply_edit(workspaceEdit);
+      outcome = await applicator.applyEdit(workspaceEdit);
     } catch (error) {
-      this.status_message.set(this.trans.__('Rename failed: %1', error));
+      Notification.emit(this._trans.__('Rename failed: %1', error), 'error');
       return;
     }
 
     try {
       let status: string;
-      const change_text = this.trans.__('%1 to %2', old_value, new_value);
+      const change_text = this._trans.__('%1 to %2', oldValue, newValue);
+      let severity: 'success' | 'warning' | 'error' = 'success';
 
       if (outcome.appliedChanges === 0) {
-        status = this.trans.__(
+        status = this._trans.__(
           'Could not rename %1 - consult the language server documentation',
           change_text
         );
+        severity = 'warning';
       } else if (outcome.wasGranular) {
-        status = this.trans._n(
+        status = this._trans._n(
           'Renamed %2 in %3 place',
           'Renamed %2 in %3 places',
           outcome.appliedChanges!,
           change_text,
           outcome.appliedChanges
         );
-      } else if (this.adapter.has_multiple_editors) {
-        status = this.trans._n(
+      } else if (adapter.hasMultipleEditors) {
+        status = this._trans._n(
           'Renamed %2 in %3 cell',
           'Renamed %2 in %3 cells',
           outcome.modifiedCells,
@@ -160,110 +108,249 @@ export class RenameCM extends CodeMirrorIntegration {
           outcome.modifiedCells
         );
       } else {
-        status = this.trans.__('Renamed %1', change_text);
+        status = this._trans.__('Renamed %1', change_text);
       }
 
       if (outcome.errors.length !== 0) {
-        status += this.trans.__(' with errors: %1', outcome.errors);
+        status += this._trans.__(' with errors: %1', outcome.errors);
+        severity = 'error';
       }
 
-      this.status_message.set(status, 5 * 1000);
+      Notification.emit(status, severity);
     } catch (error) {
       this.console.warn(error);
     }
 
     return outcome;
   }
+}
 
-  /**
-   * In #115 an issue with rename for Python (when using pyls) was identified:
-   * rename was failing with an obscure message when the source code could
-   * not be parsed correctly by rope (due to a user's syntax error).
-   *
-   * This function detects such a condition using diagnostics feature
-   * and provides a nice error message to the user.
-   */
-  static ux_workaround_for_rope_limitation(
-    error: Error,
-    diagnostics_feature: DiagnosticsCM,
-    editor: CodeMirrorVirtualEditor,
-    rename_feature: RenameCM
-  ): string | null {
-    let has_index_error = false;
-    try {
-      has_index_error = error.message.includes('IndexError');
-    } catch (e) {
-      return null;
-    }
-    if (!has_index_error) {
-      return null;
-    }
-    let dire_python_errors = (
-      diagnostics_feature.diagnostics_db.all || []
-    ).filter(
-      diagnostic =>
-        diagnostic.diagnostic.message.includes('invalid syntax') ||
-        diagnostic.diagnostic.message.includes('SyntaxError') ||
-        diagnostic.diagnostic.message.includes('IndentationError')
-    );
-
-    if (dire_python_errors.length === 0) {
-      return null;
-    }
-
-    let dire_errors = [
-      ...new Set(
-        dire_python_errors.map(diagnostic => {
-          let message = diagnostic.diagnostic.message;
-          let start = diagnostic.range.start;
-          if (rename_feature.adapter.has_multiple_editors) {
-            let { index: editor_id } = editor.find_editor(diagnostic.editor);
-            let cell_number = editor_id + 1;
-            // TODO: should we show "code cell" numbers, or just cell number?
-            return rename_feature.trans.__(
-              '%1 in cell %2 at line %3',
-              message,
-              cell_number,
-              start.line
-            );
-          } else {
-            return rename_feature.trans.__(
-              '%1 at line %2',
-              message,
-              start.line
-            );
-          }
-        })
-      )
-    ].join(', ');
-    return rename_feature.trans.__(
-      'Syntax error(s) prevent rename: %1',
-      dire_errors
-    );
+/**
+ * In #115 an issue with rename for Python (when using pyls) was identified:
+ * rename was failing with an obscure message when the source code could
+ * not be parsed correctly by rope (due to a user's syntax error).
+ *
+ * This function detects such a condition using diagnostics feature
+ * and provides a nice error message to the user.
+ */
+function guessFailureReason(
+  error: Error,
+  adapter: WidgetLSPAdapter<any>,
+  diagnostics: IDiagnosticsFeature,
+  trans: TranslationBundle
+): string | null {
+  let hasIndexError = false;
+  try {
+    hasIndexError = error.message.includes('IndexError');
+  } catch (e) {
+    return null;
   }
+  if (!hasIndexError) {
+    return null;
+  }
+  let direPythonErrors = (
+    diagnostics.getDiagnosticsDB(adapter).all || []
+  ).filter(
+    diagnostic =>
+      diagnostic.diagnostic.message.includes('invalid syntax') ||
+      diagnostic.diagnostic.message.includes('SyntaxError') ||
+      diagnostic.diagnostic.message.includes('IndentationError')
+  );
+
+  if (direPythonErrors.length === 0) {
+    return null;
+  }
+
+  let dire_errors = [
+    ...new Set(
+      direPythonErrors.map(diagnostic => {
+        let message = diagnostic.diagnostic.message;
+        let start = diagnostic.range.start;
+        if (adapter.hasMultipleEditors) {
+          let editorIndex = adapter.editors.findIndex(
+            e => e.ceEditor.getEditor() === diagnostic.editor
+          );
+          let cellNumber = editorIndex === -1 ? '(?)' : editorIndex + 1;
+          return trans.__(
+            '%1 in cell %2 at line %3',
+            message,
+            cellNumber,
+            start.line
+          );
+        } else {
+          return trans.__('%1 at line %2', message, start.line);
+        }
+      })
+    )
+  ].join(', ');
+  return trans.__('Syntax error(s) prevents rename: %1', dire_errors);
+}
+
+export namespace RenameFeature {
+  export interface IOptions extends Feature.IOptions {
+    trans: TranslationBundle;
+  }
+  export const id = FEATURE_ID;
+}
+
+export namespace CommandIDs {
+  export const renameSymbol = 'lsp:rename-symbol';
 }
 
 export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
   id: FEATURE_ID,
-  requires: [ILSPFeatureManager, ISettingRegistry, ITranslator],
+  requires: [
+    ILSPFeatureManager,
+    ISettingRegistry,
+    ILSPDocumentConnectionManager
+  ],
+  optional: [ICommandPalette, IDiagnosticsFeature, ITranslator],
   autoStart: true,
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
+    connectionManager: ILSPDocumentConnectionManager,
+    palette: ICommandPalette,
+    diagnostics: IDiagnosticsFeature,
     translator: ITranslator
   ) => {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
-    const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
+    const settings = new FeatureSettings<LSPRenameSettings>(
+      settingRegistry,
+      RenameFeature.id
+    );
+    await settings.ready;
 
-    featureManager.register({
-      feature: {
-        editorIntegrationFactory: new Map([['CodeMirrorEditor', RenameCM]]),
-        id: FEATURE_ID,
-        name: 'LSP Rename',
-        settings: settings,
-        commands: COMMANDS(trans)
-      }
+    if (settings.composite.disable) {
+      return;
+    }
+    const feature = new RenameFeature({
+      trans,
+      connectionManager
+    });
+    featureManager.register(feature);
+
+    const assembler = new ContextAssembler({
+      app,
+      connectionManager
+    });
+
+    app.commands.addCommand(CommandIDs.renameSymbol, {
+      execute: async () => {
+        const context = assembler.getContext();
+        if (!context) {
+          return;
+        }
+        const { adapter, connection, virtualPosition, rootPosition, document } =
+          context;
+
+        const editorAccessor = editorAtRootPosition(adapter, rootPosition);
+        const editor = editorAccessor?.getEditor();
+        if (!editor) {
+          console.log('Could not rename - no editor');
+          return;
+        }
+        const editorPosition = rootPositionToEditorPosition(
+          adapter,
+          rootPosition
+        );
+        const offset = editor.getOffsetAt(
+          PositionConverter.cm_to_ce(editorPosition)
+        );
+        let oldValue = editor.getTokenAt(offset).value;
+        let handleFailure = (error: Error) => {
+          let status: string | null = '';
+
+          if (diagnostics) {
+            status = guessFailureReason(error, adapter, diagnostics, trans);
+          }
+
+          if (!status) {
+            Notification.error(trans.__(`Rename failed: %1`, error));
+          } else {
+            Notification.info(status);
+          }
+        };
+
+        const dialogValue = await InputDialog.getText({
+          title: trans.__('Rename to'),
+          text: oldValue,
+          okLabel: trans.__('Rename'),
+          cancelLabel: trans.__('Cancel')
+        });
+
+        try {
+          const newValue = dialogValue.value;
+          if (dialogValue.button.accept != true || newValue == null) {
+            // the user has cancelled the rename action or did not provide new value
+            return;
+          }
+          Notification.info(
+            trans.__('Renaming %1 to %2...', oldValue, newValue)
+          );
+          const edit = await connection!.clientRequests[
+            'textDocument/rename'
+          ].request({
+            position: {
+              line: virtualPosition.line,
+              character: virtualPosition.ch
+            },
+            textDocument: {
+              uri: document.documentInfo.uri
+            },
+            newName: newValue
+          });
+          if (edit) {
+            await feature.handleRename(
+              edit,
+              oldValue,
+              newValue,
+              adapter,
+              document
+            );
+          } else {
+            handleFailure(new Error('no edit from server'));
+          }
+        } catch (error) {
+          handleFailure(error);
+        }
+      },
+      isVisible: () => {
+        const context = assembler.getContext();
+        if (!context) {
+          return false;
+        }
+        const { connection } = context;
+        return (
+          connection != null &&
+          connection.isReady &&
+          connection.provides('renameProvider')
+        );
+      },
+      isEnabled: () => {
+        return assembler.isContextMenuOverToken() ? true : false;
+      },
+      label: trans.__('Rename symbol'),
+      icon: renameIcon
+    });
+
+    // add to menus
+    app.contextMenu.addItem({
+      selector: '.jp-Notebook .jp-CodeCell .jp-Editor',
+      command: CommandIDs.renameSymbol,
+      rank: 10
+    });
+
+    app.contextMenu.addItem({
+      selector: '.jp-FileEditor',
+      command: CommandIDs.renameSymbol,
+      rank: 0
+    });
+
+    palette.addItem({
+      command: CommandIDs.renameSymbol,
+      category: trans.__('Language Server Protocol')
     });
   }
 };

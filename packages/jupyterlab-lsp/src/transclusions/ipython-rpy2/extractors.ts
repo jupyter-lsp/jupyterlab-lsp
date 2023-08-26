@@ -33,7 +33,7 @@ function rpy2_args(match: string, ...args: string[]) {
   return inputs;
 }
 
-export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
+export let foreignCodeExtractors: IForeignCodeExtractorsRegistry = {
   // general note: to match new lines use [^] instead of dot, unless the target is ES2018, then use /s
   python: [
     //
@@ -42,12 +42,12 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
     new RegExpForeignCodeExtractor({
       language: 'r',
       pattern: '^%%R' + rpy2_args_pattern(RPY2_MAX_ARGS) + '\n([^]*)',
-      foreign_capture_groups: [RPY2_MAX_ARGS * 2 + 1],
+      foreignCaptureGroups: [RPY2_MAX_ARGS * 2 + 1],
       // it is important to not strip any leading spaces
-      foreign_replacer: rpy2_code_extractor_non_stripping,
-      extract_arguments: rpy2_args,
-      is_standalone: false,
-      file_extension: 'R'
+      foreignReplacer: rpy2_code_extractor_non_stripping,
+      extractArguments: rpy2_args,
+      isStandalone: false,
+      fileExtension: 'R'
     }),
     new RegExpForeignCodeExtractor({
       language: 'r',
@@ -55,11 +55,11 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       // otherwise the offset will be off by one and the R language server will crash
       pattern:
         '(?:^|\n)%R' + rpy2_args_pattern(RPY2_MAX_ARGS) + '(?: (.*))?(?:\n|$)',
-      foreign_capture_groups: [RPY2_MAX_ARGS * 2 + 1],
-      foreign_replacer: create_rpy_code_extractor(true),
-      extract_arguments: rpy2_args,
-      is_standalone: false,
-      file_extension: 'R'
+      foreignCaptureGroups: [RPY2_MAX_ARGS * 2 + 1],
+      foreignReplacer: create_rpy_code_extractor(true),
+      extractArguments: rpy2_args,
+      isStandalone: false,
+      fileExtension: 'R'
     })
   ]
 };

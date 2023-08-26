@@ -9,7 +9,8 @@ Test Setup      Try to Close All Tabs
 Python
     [Setup]    Setup Notebook    Python    Python.ipynb
     ${diagnostic} =    Set Variable    W291 trailing whitespace (pycodestyle)
-    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title="${diagnostic}"]    timeout=35s
+    # TODO: no title for diagnostics; we can get the title with JS via `element.cmView.mark.spec.diagnostic.message` but this is not selectable
+    Wait Until Page Contains Element    css:.cm-lintRange[title="${diagnostic}"]    timeout=35s
     Capture Page Screenshot    01-python.png
     [Teardown]    Clean Up After Working With File    Python.ipynb
 

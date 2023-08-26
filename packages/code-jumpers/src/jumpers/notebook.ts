@@ -19,12 +19,12 @@ export class NotebookJumper extends CodeJumper {
     super();
     this.widget = notebook_widget;
     this.notebook = notebook_widget.content;
-    this.history = new JumpHistory(this.notebook.model!.modelDB);
+    this.history = new JumpHistory();
     this.document_manager = document_manager;
   }
 
   get editors() {
-    return this.notebook.widgets.map(cell => cell.editor);
+    return this.notebook.widgets.map(cell => cell.editor!);
   }
 
   jump(position: ILocalPosition) {
@@ -38,7 +38,7 @@ export class NotebookJumper extends CodeJumper {
       this.notebook.mode = 'edit';
 
       // find out offset for the element
-      let activeEditor = this.notebook.activeCell!.editor;
+      let activeEditor = this.notebook.activeCell!.editor!;
 
       // place cursor in the line with the definition
       let position = activeEditor.getPositionAt(token.offset)!;

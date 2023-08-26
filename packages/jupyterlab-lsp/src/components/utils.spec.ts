@@ -1,8 +1,7 @@
 import { IDocumentWidget } from '@jupyterlab/docregistry';
+import { CodeExtractorsManager, WidgetLSPAdapter } from '@jupyterlab/lsp';
 import { nullTranslator } from '@jupyterlab/translation';
 
-import { WidgetAdapter } from '../adapters/adapter';
-import { BrowserConsole } from '../virtual/console';
 import { VirtualDocument } from '../virtual/document';
 
 import { getBreadcrumbs } from './utils';
@@ -10,12 +9,11 @@ import { getBreadcrumbs } from './utils';
 function create_dummy_document(options: Partial<VirtualDocument.IOptions>) {
   return new VirtualDocument({
     language: 'python',
-    foreign_code_extractors: {},
-    overrides_registry: {},
+    overridesRegistry: {},
+    foreignCodeExtractors: new CodeExtractorsManager(),
     path: 'Untitled.ipynb.py',
-    file_extension: 'py',
-    has_lsp_supported_file: false,
-    console: new BrowserConsole(),
+    fileExtension: 'py',
+    hasLspSupportedFile: false,
     ...options
   });
 }
@@ -29,8 +27,8 @@ describe('getBreadcrumbs', () => {
     let breadcrumbs = getBreadcrumbs(
       document,
       {
-        has_multiple_editors: false
-      } as WidgetAdapter<IDocumentWidget>,
+        hasMultipleEditors: false
+      } as WidgetLSPAdapter<IDocumentWidget>,
       trans
     );
     expect(breadcrumbs[0].props['title']).toBe('dir1/dir2/Test.ipynb');
@@ -40,14 +38,14 @@ describe('getBreadcrumbs', () => {
   it('should trim the extra filename suffix for files created out of notebooks', () => {
     let document = create_dummy_document({
       path: 'Test.ipynb.py',
-      file_extension: 'py',
-      has_lsp_supported_file: false
+      fileExtension: 'py',
+      hasLspSupportedFile: false
     });
     let breadcrumbs = getBreadcrumbs(
       document,
       {
-        has_multiple_editors: false
-      } as WidgetAdapter<IDocumentWidget>,
+        hasMultipleEditors: false
+      } as WidgetLSPAdapter<IDocumentWidget>,
       trans
     );
     expect(breadcrumbs[0].props['children']).toBe('Test.ipynb');
@@ -56,14 +54,14 @@ describe('getBreadcrumbs', () => {
   it('should not trim the filename suffix for standalone files', () => {
     let document = create_dummy_document({
       path: 'test.py',
-      file_extension: 'py',
-      has_lsp_supported_file: true
+      fileExtension: 'py',
+      hasLspSupportedFile: true
     });
     let breadcrumbs = getBreadcrumbs(
       document,
       {
-        has_multiple_editors: false
-      } as WidgetAdapter<IDocumentWidget>,
+        hasMultipleEditors: false
+      } as WidgetLSPAdapter<IDocumentWidget>,
       trans
     );
     expect(breadcrumbs[0].props['children']).toBe('test.py');

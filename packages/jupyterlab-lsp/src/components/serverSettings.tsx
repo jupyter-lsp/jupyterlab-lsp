@@ -1,17 +1,19 @@
+import { ILanguageServerManager, LanguageServerManager } from '@jupyterlab/lsp';
 import {
   ISettingRegistry,
   ISchemaValidator
 } from '@jupyterlab/settingregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
-import Form, {
+import Form, { IChangeEvent } from '@rjsf/core';
+import {
   FieldProps,
-  IChangeEvent,
-  ObjectFieldTemplateProps
-} from '@rjsf/core';
+  ObjectFieldTemplateProps,
+  TemplatesType
+} from '@rjsf/utils';
+import validatorAjv8 from '@rjsf/validator-ajv8';
 import React, { useState } from 'react';
 
-import { LanguageServerManager } from '../manager';
 import { TLanguageServerId, TLanguageServerSpec } from '../tokens';
 
 import { ServerLinksList } from './utils';
@@ -19,15 +21,13 @@ import { ServerLinksList } from './utils';
 namespace LanguageServerSettingsEditor {
   export interface IProps extends FieldProps {
     settingRegistry: ISettingRegistry;
-    languageServerManager: LanguageServerManager;
+    languageServerManager: ILanguageServerManager;
     trans: TranslationBundle;
     validationErrors: ISchemaValidator.IError[];
   }
-  export interface IState {
-    // TODO
-  }
+  // TODO
+  export type IState = any;
 }
-
 export const renderCollapseConflicts = (props: {
   conflicts: Record<string, Record<string, any[]>>;
   trans: TranslationBundle;
@@ -75,7 +75,7 @@ export class LanguageServerSettings extends React.Component<
     super(props);
     this.state = { ...props.formData };
     this._objectTemplate = TabbedObjectTemplateFactory({
-      baseTemplate: (this.props.registry as any).ObjectFieldTemplate,
+      baseTemplate: this.props.registry.templates.ObjectFieldTemplate,
       objectSelector: props => {
         return (
           props.title === this.props.schema.title &&
@@ -97,8 +97,9 @@ export class LanguageServerSettings extends React.Component<
     }
 
     const validationErrors = this.props.validationErrors.map(error => (
-      <li key={'lsp-validation-error-' + error.dataPath}>
-        <b>{error.keyword}</b>: {error.message} in <code>{error.dataPath}</code>
+      <li key={'lsp-validation-error-' + error.instancePath}>
+        <b>{error.keyword}</b>: {error.message} in{' '}
+        <code>{error.instancePath}</code>
         {error.params && 'allowedValues' in error.params
           ? this.props.trans.__(
               'allowed values: %1',
@@ -107,6 +108,16 @@ export class LanguageServerSettings extends React.Component<
           : null}
       </li>
     ));
+    const templates = {
+      ...this.props.registry.templates,
+      ObjectFieldTemplate: this._objectTemplate
+    };
+    // remove self field to avoid infinite recursion
+    const fields = Object.fromEntries(
+      Object.entries(this.props.registry.fields).filter(
+        f => f[0] != 'language_servers'
+      )
+    );
 
     return (
       <div className="lsp-ServerSettings">
@@ -131,17 +142,17 @@ export class LanguageServerSettings extends React.Component<
         <Form
           schema={this.props.schema}
           formData={this.state}
+          validator={validatorAjv8}
           // note: default JupyterLab `FieldTemplate` cannot correctly distinguish fields
           // modified relative to programatically populated (transformed) schema >of objects<;
           // the issue is in lines: https://github.com/jupyterlab/jupyterlab/blob/c2907074e58725942946a73a823fc60e1795da39/packages/settingeditor/src/SettingsFormEditor.tsx#L254-L272
           // this is because 1) the schemaIds does not include the object key
           // 2) the code assumes all objects on the same have the same defaults
           // Probably the solution is to perform modification check on the level of ObjectFieldTemplate instead; this should be implemented upstream in JupyterLab.
-          FieldTemplate={(this.props.registry as any).FieldTemplate}
-          ArrayFieldTemplate={(this.props.registry as any).ArrayFieldTemplate}
-          ObjectFieldTemplate={this._objectTemplate}
+          // TODO
+          templates={templates}
           uiSchema={this.props.uiSchema}
-          fields={this.props.renderers}
+          fields={fields}
           formContext={this.props.formContext}
           liveValidate
           idPrefix={this.props.idPrefix + '_language_servers'}
@@ -165,14 +176,15 @@ export class LanguageServerSettings extends React.Component<
  * Template for tabbed interface.
  */
 const TabbedObjectTemplateFactory = (options: {
-  baseTemplate: (props: ObjectFieldTemplateProps) => JSX.Element;
-  languageServerManager: LanguageServerManager;
+  baseTemplate: TemplatesType['ObjectFieldTemplate'];
+  languageServerManager: ILanguageServerManager;
   objectSelector: (props: ObjectFieldTemplateProps) => boolean;
   trans: TranslationBundle;
 }): React.FC<ObjectFieldTemplateProps> => {
   const factory = (props: ObjectFieldTemplateProps) => {
     if (!options.objectSelector(props)) {
-      return options.baseTemplate(props);
+      const BaseTemplate = options.baseTemplate;
+      return <BaseTemplate {...props} />;
     }
     const [tab, setTab] = useState(
       props.properties.length > 0 ? props.properties[0].name : null
@@ -232,6 +244,7 @@ const TabbedObjectTemplateFactory = (options: {
     const manager = options.languageServerManager;
     const trans = options.trans;
 
+    // TODO: expose `specs` upstream
     return (
       <fieldset id={props.idSchema.$id}>
         <div className={'lsp-ServerSettings-tabs'}>
@@ -248,9 +261,13 @@ const TabbedObjectTemplateFactory = (options: {
             })}
           </div>
           <div className={'lsp-ServerSettings-content'}>
-            {manager.specs.has(tab as TLanguageServerId)
+            {(manager as LanguageServerManager).specs.has(
+              tab as TLanguageServerId
+            )
               ? renderServerMetadata(
-                  manager.specs.get(tab as TLanguageServerId)!
+                  (manager as LanguageServerManager).specs.get(
+                    tab as TLanguageServerId
+                  )!
                 )
               : null}
             {props.properties

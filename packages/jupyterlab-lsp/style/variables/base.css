@@ -1,6 +1,7 @@
 :root {
   /* highlight */
   --jp-editor-mirror-lsp-highlight-background-color: var(--jp-layout-color2);
+  --jp-editor-mirror-lsp-highlight-border-color: var(--jp-layout-color3);
   /* diagnostics */
   --jp-editor-mirror-lsp-diagnostic-decoration-style: dashed;
   --jp-editor-mirror-lsp-diagnostic-error-decoration-color: var(

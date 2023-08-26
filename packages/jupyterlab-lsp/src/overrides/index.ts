@@ -6,7 +6,7 @@ import {
   IScopedCodeOverride
 } from './tokens';
 
-class CodeOverridesManager implements ILSPCodeOverridesManager {
+export class CodeOverridesManager implements ILSPCodeOverridesManager {
   private readonly _overrides: ICodeOverridesRegistry;
 
   get registry() {

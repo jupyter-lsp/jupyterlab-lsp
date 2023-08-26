@@ -11,13 +11,12 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@jupyterlab/application": "^3.3.0"
+    "@jupyterlab/application": "^4.0.5"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.4.3",
-    "@jupyterlab/application": "^3.3.0",
-    "@jupyterlab/builder": "^3.5.0",
-    "typescript": "~4.9.4"
+    "@jupyterlab/application": "^4.0.5",
+    "@jupyterlab/builder": "^4.0.5",
+    "typescript": "~5.0.4"
   },
   "jupyterlab": {
     "extension": true,

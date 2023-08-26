@@ -1,4 +1,6 @@
-import { expect } from 'chai';
+import { python } from '@codemirror/lang-python';
+import { Language } from '@codemirror/language';
+import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { BrowserConsole } from '../virtual/console';
 
@@ -11,21 +13,21 @@ describe('Signature', () => {
         ['This function does foo', '', 'But there are more details'],
         1
       )!;
-      expect(split.lead).to.equal('This function does foo');
-      expect(split.remainder).to.equal('But there are more details');
+      expect(split.lead).toBe('This function does foo');
+      expect(split.remainder).toBe('But there are more details');
     });
     it('Does not extracts when it would break markdown', () => {
       let split = extractLead(
         ['This is **not the end', '', 'of this spread sentence**'],
         1
       );
-      expect(split).to.equal(null);
+      expect(split).toBe(null);
 
       split = extractLead(
         ['This is <b>not the end', '', 'of this spread sentence</b>'],
         1
       );
-      expect(split).to.equal(null);
+      expect(split).toBe(null);
     });
     it('Extracts standalone two-line paragraph', () => {
       const split = extractLead(
@@ -37,8 +39,8 @@ describe('Signature', () => {
         ],
         2
       )!;
-      expect(split.lead).to.equal('This function does foo,\nand it does bar');
-      expect(split.remainder).to.equal('But there are more details');
+      expect(split.lead).toBe('This function does foo,\nand it does bar');
+      expect(split.remainder).toBe('But there are more details');
     });
     it('Does not extract too long paragraph', () => {
       const split = extractLead(
@@ -50,13 +52,19 @@ describe('Signature', () => {
         ],
         1
       );
-      expect(split).to.equal(null);
+      expect(split).toBe(null);
     });
   });
 
   describe('SignatureToMarkdown', () => {
-    const MockHighlighter = (code: string, fragment: string) =>
-      code.replace(fragment, `<u>${fragment}</u>`);
+    const MockHighlighter = (
+      code: string,
+      fragment: lsProtocol.ParameterInformation,
+      _language: Language | undefined
+    ) => {
+      const label = typeof fragment.label === 'string' ? fragment.label : '';
+      return code.replace(label, `<u>${label}</u>`);
+    };
 
     it('renders plaintext signature', async () => {
       let text = signatureToMarkdown(
@@ -71,11 +79,11 @@ describe('Signature', () => {
           ],
           activeParameter: 0
         },
-        'python',
+        python().language,
         MockHighlighter,
         new BrowserConsole()
       );
-      expect(text).to.be.equal(
+      expect(text).toBe(
         'str(<u>text</u>)\n\nCreate a new \\*string\\* object from the given object.\n'
       );
     });
@@ -96,11 +104,11 @@ describe('Signature', () => {
           ],
           activeParameter: 0
         },
-        'python',
+        python().language,
         MockHighlighter,
         new BrowserConsole()
       );
-      expect(text).to.be.equal(
+      expect(text).toBe(
         'str(<u>text</u>)\n\nCreate a new \\*string\\* object from the given object.\n'
       );
     });
@@ -121,11 +129,11 @@ describe('Signature', () => {
           ],
           activeParameter: 0
         },
-        'python',
+        python().language,
         MockHighlighter,
         new BrowserConsole()
       );
-      expect(text).to.be.equal(
+      expect(text).toBe(
         'str(<u>text</u>)\n\nCreate a new *string* object from the given object.'
       );
     });
@@ -146,13 +154,13 @@ describe('Signature', () => {
           ],
           activeParameter: 0
         },
-        'python',
+        python().language,
         MockHighlighter,
         new BrowserConsole(),
         undefined,
         4
       );
-      expect(text).to.be.equal(
+      expect(text).toBe(
         'str(<u>text</u>)\n\nline 1\n<details>\nline 2\nline 3\nline 4\nline 5\n</details>'
       );
     });
@@ -166,13 +174,13 @@ describe('Signature', () => {
             kind: 'plaintext'
           }
         },
-        'python',
+        python().language,
         MockHighlighter,
         new BrowserConsole(),
         undefined,
         4
       );
-      expect(text).to.be.equal(
+      expect(text).toBe(
         '```python\nstr()\n```\n\nline 1\n<details>\nline 2\nline 3\nline 4\nline 5\n</details>'
       );
     });

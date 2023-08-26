@@ -4,7 +4,7 @@
 import { CompleterModel, CompletionHandler } from '@jupyterlab/completer';
 import { StringExt } from '@lumino/algorithm';
 
-import { LazyCompletionItem } from './item';
+import { CompletionItem } from './item';
 
 interface ICompletionMatch<T extends CompletionHandler.ICompletionItem> {
   /**
@@ -23,7 +23,7 @@ function escapeHTML(text: string) {
 }
 
 /**
- * This will be contributed upstream
+ * A lot of this was contributed upstream
  */
 export class GenericCompleterModel<
   T extends CompletionHandler.ICompletionItem
@@ -38,8 +38,14 @@ export class GenericCompleterModel<
 
   completionItems(): T[] {
     let query = this.query;
+    // TODO: make use of `processedItemsCache` when made available upstream,
+    // see https://github.com/jupyterlab/jupyterlab/pull/15025
+    // (setting query is bad because it resets the cache; ideally we would
+    // modify the sorting and filtering algorithm upstream).
     this.query = '';
-    let unfilteredItems = super.completionItems!() as T[];
+    let unfilteredItems = (
+      super.completionItems() as CompletionHandler.ICompletionItem[]
+    ).map(this.harmoniseItem);
     this.query = query;
 
     // always want to sort
@@ -47,8 +53,12 @@ export class GenericCompleterModel<
     return this._sortAndFilter(query, unfilteredItems);
   }
 
+  protected harmoniseItem(item: CompletionHandler.ICompletionItem): T {
+    return item as T;
+  }
+
   setCompletionItems(newValue: T[]) {
-    super.setCompletionItems!(newValue);
+    super.setCompletionItems(newValue);
 
     if (this.settings.preFilterMatches && this.current && this.cursor) {
       // set initial query to pre-filter items; in future we should use:
@@ -207,17 +217,27 @@ export namespace GenericCompleterModel {
   };
 }
 
-export class LSPCompleterModel extends GenericCompleterModel<LazyCompletionItem> {
-  protected getFilterText(item: LazyCompletionItem): string {
+type MaybeCompletionItem = Partial<CompletionItem> &
+  CompletionHandler.ICompletionItem;
+
+export class LSPCompleterModel extends GenericCompleterModel<MaybeCompletionItem> {
+  protected getFilterText(item: MaybeCompletionItem): string {
     if (item.filterText) {
       return item.filterText;
     }
     return super.getFilterText(item);
   }
 
+  protected harmoniseItem(item: CompletionHandler.ICompletionItem) {
+    if ((item as any).self) {
+      return (item as any).self;
+    }
+    return super.harmoniseItem(item);
+  }
+
   protected compareMatches(
-    a: ICompletionMatch<LazyCompletionItem>,
-    b: ICompletionMatch<LazyCompletionItem>
+    a: ICompletionMatch<MaybeCompletionItem>,
+    b: ICompletionMatch<MaybeCompletionItem>
   ): number {
     const delta = a.score - b.score;
     if (delta !== 0) {
@@ -226,6 +246,6 @@ export class LSPCompleterModel extends GenericCompleterModel<LazyCompletionItem>
     // solve ties using sortText
 
     // note: locale compare is case-insensitive
-    return a.item.sortText.localeCompare(b.item.sortText);
+    return (a.item.sortText ?? 'z').localeCompare(b.item.sortText ?? 'z');
   }
 }

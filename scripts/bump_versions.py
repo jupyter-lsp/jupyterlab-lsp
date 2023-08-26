@@ -156,6 +156,10 @@ def update_versions(dry: bool):
                     path=Path("python_packages/jupyterlab_lsp/setup.cfg"),
                     template="jupyterlab {version}",
                 ),
+                VersionLocation(
+                    path=Path(".github/workflows/job.test.yml"),
+                    template="lab: ['{version}']",
+                ),
             ],
         ),
     ]

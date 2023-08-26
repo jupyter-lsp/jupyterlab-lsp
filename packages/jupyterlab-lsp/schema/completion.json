@@ -5,17 +5,11 @@
   "description": "LSP Completion settings.",
   "type": "object",
   "properties": {
-    "showDocumentation": {
-      "title": "Show documentation box",
-      "type": "boolean",
-      "default": true,
-      "description": "Whether to show documentation box next to the completion suggestions."
-    },
     "continuousHinting": {
       "title": "Continuous hinting",
       "type": "boolean",
       "default": false,
-      "description": "Whether to enable continuous hinting (Hinterland mode)."
+      "description": "Whether to enable continuous hinting (Hinterland mode). Requires enabling autocompletion in the other 'Code completion' settings"
     },
     "suppressContinuousHintingIn": {
       "title": "Suppress invoke continuous hinting in specific code fragments",
@@ -23,7 +17,7 @@
       "items": {
         "type": "string"
       },
-      "default": ["comment", "string", "def"],
+      "default": ["Comment", "BlockComment", "LineComment", "String"],
       "description": "An array of CodeMirror tokens for which the continuous hinting should be suppressed. The token names vary between languages (modes)."
     },
     "suppressTriggerCharacterIn": {
@@ -32,25 +26,8 @@
       "items": {
         "type": "string"
       },
-      "default": ["comment", "string"],
+      "default": ["Comment", "BlockComment", "LineComment", "String"],
       "description": "An array of CodeMirror tokens for which the auto-invoke after entering a trigger (e.g. `.` in Python or `::` in R) character should be suppressed. The token names vary between languages (modes)."
-    },
-    "kernelResponseTimeout": {
-      "title": "Kernel completion response timeout",
-      "default": 600,
-      "type": "number",
-      "description": "The time to wait for the kernel completions suggestions in milliseconds. Set to 0 to disable kernel completions, or to -1 to wait indefinitely (not recommended)."
-    },
-    "disableCompletionsFrom": {
-      "title": "Disable completions by source",
-      "description": "The sources from which to exclude completion from. Possible values include 'Kernel', 'LSP'.",
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": ["Kernel", "LSP"]
-      },
-      "default": [],
-      "uniqueItems": true
     },
     "waitForBusyKernel": {
       "title": "Wait for kernel if busy",

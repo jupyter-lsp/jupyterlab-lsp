@@ -1,4 +1,5 @@
 import { showDialog, Dialog } from '@jupyterlab/apputils';
+import { ILanguageServerManager, LanguageServerManager } from '@jupyterlab/lsp';
 import {
   ISettingRegistry,
   ISchemaValidator
@@ -10,20 +11,19 @@ import {
   ReadonlyJSONObject
 } from '@lumino/coreutils';
 import { Signal, ISignal } from '@lumino/signaling';
-import { FieldProps } from '@rjsf/core';
+import { FieldProps } from '@rjsf/utils';
 
-import { LanguageServer } from './_plugin';
+import { LanguageServers } from './_plugin';
 import {
   renderLanguageServerSettings,
   renderCollapseConflicts
 } from './components/serverSettings';
-import { LanguageServerManager } from './manager';
 import { ILSPLogConsole } from './tokens';
 import { collapseToDotted } from './utils';
 
 type ValueOf<T> = T[keyof T];
 type ServerSchemaWrapper = ValueOf<
-  Required<LanguageServer>['language_servers']
+  Required<LanguageServers>['language_servers']
 >;
 
 /**
@@ -93,7 +93,7 @@ export class SettingsUIManager {
   constructor(
     protected options: {
       settingRegistry: ISettingRegistry;
-      languageServerManager: LanguageServerManager;
+      languageServerManager: ILanguageServerManager;
       console: ILSPLogConsole;
       trans: TranslationBundle;
       schemaValidated: ISignal<
@@ -128,7 +128,7 @@ export class SettingsSchemaManager {
   constructor(
     protected options: {
       settingRegistry: ISettingRegistry;
-      languageServerManager: LanguageServerManager;
+      languageServerManager: ILanguageServerManager;
       console: ILSPLogConsole;
       trans: TranslationBundle;
       /**
@@ -250,7 +250,10 @@ export class SettingsSchemaManager {
       | Record<string, any>
       | undefined;
 
-    for (let [serverKey, serverSpec] of languageServerManager.specs.entries()) {
+    // TODO: expose `specs` upstream
+    for (let [serverKey, serverSpec] of (
+      languageServerManager as LanguageServerManager
+    ).specs.entries()) {
       if ((serverKey as string) === '') {
         this.console.warn(
           'Empty server key - skipping transformation for',
@@ -371,8 +374,8 @@ export class SettingsSchemaManager {
   }
 
   async normalizeSettings(
-    composite: Required<LanguageServer>
-  ): Promise<Required<LanguageServer>> {
+    composite: Required<LanguageServers>
+  ): Promise<Required<LanguageServers>> {
     await this._defaultsPopulated;
     // Cache collapsed settings for speed and to only show dialog once.
     // Note that JupyterLab attempts to transform in "preload" step (before splash screen end)

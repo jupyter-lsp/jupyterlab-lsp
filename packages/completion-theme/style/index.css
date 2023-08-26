@@ -17,19 +17,18 @@
   justify-content: space-between;
 }
 
-/* a workaround for scrollbars being always on in the completer documentation panel, see
- https://github.com/jupyter-lsp/jupyterlab-lsp/pull/322#issuecomment-682724175
- */
-.lsp-completer .jp-Completer-docpanel {
-  overflow: auto;
+body[data-lsp-completer-layout] .jp-Completer-docpanel {
+  width: 300px;
+  /* https://github.com/jupyterlab/jupyterlab/pull/15024 */
+  flex-shrink: 0;
 }
 
-.lsp-completer.jp-Completer {
+body[data-lsp-completer-layout] .jp-Completer {
   --lsp-completer-max-label-width: 350px;
   --lsp-completer-max-detail-width: 200px;
 }
 
-.lsp-completer .jp-Completer-match {
+body[data-lsp-completer-layout] .jp-Completer-match {
   max-width: var(--lsp-completer-max-label-width);
   overflow-x: hidden;
   white-space: nowrap;
@@ -37,7 +36,7 @@
   text-overflow: ellipsis;
 }
 
-.lsp-completer .jp-mod-active .jp-Completer-match {
+body[data-lsp-completer-layout] .jp-mod-active .jp-Completer-match {
   text-overflow: clip;
 }
 
@@ -47,7 +46,7 @@
 }
 
 /* a workaround for code being larger font size than text in markdown-rendered panel */
-.lsp-completer .jp-Completer-docpanel pre code {
+body[data-lsp-completer-layout] .jp-Completer-docpanel pre code {
   font-size: 90%;
 }
 
@@ -89,11 +88,11 @@ body[data-lsp-completer-layout='detail-below'] .jp-Completer-match {
   white-space: nowrap;
 }
 
-.lsp-completer .jp-mod-active .jp-Completer-typeExtended {
+body[data-lsp-completer-layout] .jp-mod-active .jp-Completer-typeExtended {
   text-overflow: clip;
 }
 
-.lsp-completer mark.lsp-elide:first-child {
+body[data-lsp-completer-layout] mark.lsp-elide:first-child {
   display: inline-block;
   overflow-x: clip;
   text-overflow: ellipsis;
@@ -105,7 +104,7 @@ body[data-lsp-completer-layout='detail-below'] .jp-Completer-match {
   min-width: 20px;
 }
 
-.lsp-completer .lsp-elide-wrapper {
+body[data-lsp-completer-layout] .lsp-elide-wrapper {
   display: flex;
 }
 

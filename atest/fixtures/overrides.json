@@ -9,6 +9,12 @@
           "pylsp.plugins.flake8.enabled": true,
           "pylsp.plugins.pyflakes.enabled": false
         }
+      },
+      "pyright": {
+        "priority": 500,
+        "serverSettings": {
+          "python.analysis.useLibraryCodeForTypes": false
+        }
       }
     }
   }

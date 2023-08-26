@@ -1,35 +1,40 @@
-const func = require('@jupyterlab/testutils/lib/jest-config');
+const func = require('@jupyterlab/testing/lib/jest-config');
 const upstream = func('jupyterlab-lsp', __dirname);
+
+const reuseFromUpstream = [
+  'moduleFileExtensions',
+  'moduleNameMapper',
+  'setupFilesAfterEnv',
+  'testPathIgnorePatterns',
+  'setupFiles',
+  'testEnvironment'
+];
 
 const esModules = [
   '@jupyterlab/',
-  '@retrolab/',
+  '@jupyter-notebook/',
   'lib0',
+  'nanoid',
+  'vscode-ws-jsonrpc',
   'y\\-protocols',
   'y\\-websocket',
   '@jupyter/ydoc',
   'yjs'
 ].join('|');
 
-const reuseFromUpstream = [
-  'moduleFileExtensions',
-  'moduleNameMapper',
-  'setupFiles',
-  'setupFilesAfterEnv',
-  'testPathIgnorePatterns'
-];
-
 let local = {
   globals: { 'ts-jest': { tsconfig: 'tsconfig.json' } },
   testRegex: `.*\.spec\.tsx?$`,
+  transformIgnorePatterns: [`/node_modules/(?!${esModules}).*`],
+  testLocationInResults: true,
   transform: {
     '\\.(ts|tsx)?$': 'ts-jest',
     '\\.(js|jsx)?$': './transform.js',
-    '\\.svg$': 'jest-raw-loader'
+    '\\.svg$': '@jupyterlab/testing/lib/jest-raw-loader.js'
   },
-  transformIgnorePatterns: [`/node_modules/(?!${esModules}).*`],
-  testLocationInResults: true,
-  reporters: [...upstream['reporters'], 'jest-github-actions-reporter']
+  reporters: [
+    ...new Set([...upstream['reporters'], 'github-actions', 'summary'])
+  ]
 };
 
 for (const option of reuseFromUpstream) {

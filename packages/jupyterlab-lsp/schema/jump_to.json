@@ -21,22 +21,22 @@
   },
   "jupyter.lab.shortcuts": [
     {
-      "command": "lsp:jump-to-definition-notebook",
+      "command": "lsp:jump-to-definition",
       "keys": ["Accel B"],
       "selector": ".jp-Notebook .jp-CodeCell"
     },
     {
-      "command": "lsp:jump-back-notebook",
+      "command": "lsp:jump-back",
       "keys": ["Alt O"],
       "selector": ".jp-Notebook .jp-CodeCell"
     },
     {
-      "command": "lsp:jump-to-definition-file_editor",
+      "command": "lsp:jump-to-definition",
       "keys": ["Accel B"],
       "selector": ".jp-FileEditor"
     },
     {
-      "command": "lsp:jump-back-file_editor",
+      "command": "lsp:jump-back",
       "keys": ["Alt O"],
       "selector": ".jp-FileEditor"
     }

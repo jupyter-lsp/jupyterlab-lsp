@@ -33,7 +33,7 @@ Development requires, at a minimum:
 
 - `nodejs >=16,!=17,<19`
 - `python >=3.8,<3.11.0a0`
-- `jupyterlab >=3.6.0,<4.0.0a0`
+- `jupyterlab >=4.0.5,<5.0.0a0`
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
 for development.

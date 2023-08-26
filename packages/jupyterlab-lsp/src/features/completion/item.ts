@@ -1,28 +1,7 @@
 import { CompletionHandler } from '@jupyterlab/completer';
+import { ILSPConnection } from '@jupyterlab/lsp';
 import { LabIcon } from '@jupyterlab/ui-components';
 import * as lsProtocol from 'vscode-languageserver-types';
-
-import { until_ready } from '../../utils';
-
-import { LSPConnector } from './completion_handler';
-
-/**
- * To be upstreamed
- */
-export interface ICompletionsSource {
-  /**
-   * The name displayed in the GUI
-   */
-  name: string;
-  /**
-   * The higher the number the higher the priority
-   */
-  priority: number;
-  /**
-   * The icon to be displayed if no type icon is present
-   */
-  fallbackIcon?: LabIcon;
-}
 
 /**
  * To be upstreamed
@@ -31,22 +10,38 @@ export interface IExtendedCompletionItem
   extends CompletionHandler.ICompletionItem {
   insertText: string;
   sortText: string;
-  source?: ICompletionsSource;
+  source: string;
 }
 
-export class LazyCompletionItem implements IExtendedCompletionItem {
+namespace CompletionItem {
+  export interface IOptions {
+    /**
+     * Type of this completion item.
+     */
+    type: string;
+    /**
+     * LabIcon object for icon to be rendered with completion type.
+     */
+    icon: LabIcon | null;
+    match: lsProtocol.CompletionItem;
+    connection: ILSPConnection;
+    source: string;
+  }
+}
+
+export class CompletionItem implements IExtendedCompletionItem {
   private _detail: string | undefined;
   private _documentation: string | undefined;
   private _is_documentation_markdown: boolean;
-  private _requested_resolution: boolean;
   private _resolved: boolean;
   /**
    * Self-reference to make sure that the instance for will remain accessible
    * after any copy operation (whether via spread syntax or Object.assign)
    * performed by the JupyterLab completer internals.
    */
-  public self: LazyCompletionItem;
+  public self: CompletionItem;
   public element: HTMLLIElement;
+  public source: string;
   private _currentInsertText: string;
 
   get isDocumentationMarkdown(): boolean {
@@ -59,27 +54,23 @@ export class LazyCompletionItem implements IExtendedCompletionItem {
    */
   public label: string;
 
-  public source: ICompletionsSource;
+  icon: LabIcon | undefined;
+  private match: lsProtocol.CompletionItem;
 
-  constructor(
-    /**
-     * Type of this completion item.
-     */
-    public type: string,
-    /**
-     * LabIcon object for icon to be rendered with completion type.
-     */
-    public icon: LabIcon,
-    private match: lsProtocol.CompletionItem,
-    private connector: LSPConnector,
-    private uri: string
-  ) {
+  constructor(protected options: CompletionItem.IOptions) {
+    const match = options.match;
     this.label = match.label;
     this._setDocumentation(match.documentation);
-    this._requested_resolution = false;
     this._resolved = false;
     this._detail = match.detail;
+    this.match = match;
     this.self = this;
+    this.source = options.source;
+    this.icon = options.icon ? options.icon : undefined;
+  }
+
+  get type() {
+    return this.options.type;
   }
 
   private _setDocumentation(
@@ -113,10 +104,11 @@ export class LazyCompletionItem implements IExtendedCompletionItem {
     return this.match.filterText;
   }
 
-  public supportsResolution() {
-    const connection = this.connector.get_connection(this.uri);
-
-    return connection != null && connection.isCompletionResolveProvider();
+  private _supportsResolution(): boolean {
+    const connection = this.options.connection;
+    return (
+      connection.serverCapabilities.completionProvider?.resolveProvider ?? false
+    );
   }
 
   get detail(): string | undefined {
@@ -132,11 +124,7 @@ export class LazyCompletionItem implements IExtendedCompletionItem {
       return false;
     }
 
-    if (this._requested_resolution) {
-      return false;
-    }
-
-    return this.supportsResolution();
+    return this._supportsResolution();
   }
 
   public isResolved() {
@@ -146,34 +134,29 @@ export class LazyCompletionItem implements IExtendedCompletionItem {
   /**
    * Resolve (fetch) details such as documentation.
    */
-  public resolve(): Promise<lsProtocol.CompletionItem> {
+  public async resolve(): Promise<CompletionItem> {
     if (this._resolved) {
-      return Promise.resolve(this);
+      return this;
     }
-    if (!this.supportsResolution()) {
-      return Promise.resolve(this);
-    }
-    if (this._requested_resolution) {
-      return until_ready(() => this._resolved, 100, 50).then(() => this);
+    if (!this._supportsResolution()) {
+      return this;
     }
 
-    const connection = this.connector.get_connection(this.uri)!;
+    const connection = this.options.connection;
 
-    this._requested_resolution = true;
+    const resolvedCompletionItem = await connection.clientRequests[
+      'completionItem/resolve'
+    ].request(this.match);
 
-    return connection
-      .getCompletionResolve(this.match)
-      .then(resolvedCompletionItem => {
-        if (resolvedCompletionItem === null) {
-          return resolvedCompletionItem;
-        }
-        this._setDocumentation(resolvedCompletionItem?.documentation);
-        this._detail = resolvedCompletionItem?.detail;
-        // TODO: implement in pyls and enable with proper LSP communication
-        // this.label = resolvedCompletionItem.label;
-        this._resolved = true;
-        return this;
-      });
+    if (resolvedCompletionItem === null) {
+      return this;
+    }
+    this._setDocumentation(resolvedCompletionItem?.documentation);
+    this._detail = resolvedCompletionItem?.detail;
+    // TODO: implement in pylsp and enable with proper LSP communication
+    // this.label = resolvedCompletionItem.label;
+    this._resolved = true;
+    return this;
   }
 
   /**
@@ -181,9 +164,6 @@ export class LazyCompletionItem implements IExtendedCompletionItem {
    * about this item, like type or symbol information.
    */
   get documentation(): string | undefined {
-    if (!this.connector.should_show_documentation) {
-      return undefined;
-    }
     if (this._documentation) {
       return this._documentation;
     }

@@ -1,5 +1,4 @@
 import { IExtractedCode } from '@jupyter-lsp/jupyterlab-lsp';
-import { expect } from 'chai';
 
 import { extractor } from '.';
 
@@ -9,37 +8,37 @@ bar
 
 let FIXTURES: { [key: string]: IExtractedCode } = {
   'does extract foo': {
-    foreign_code: 'bar\n',
-    host_code: EXAMPLE,
+    foreignCode: 'bar\n',
+    hostCode: EXAMPLE,
     range: { end: { column: 0, line: 2 }, start: { column: 0, line: 1 } },
-    virtual_shift: null
+    virtualShift: null
   },
   'does NOT extract bar': {
-    foreign_code: null,
-    host_code: 'baz',
+    foreignCode: null,
+    hostCode: 'baz',
     range: null,
-    virtual_shift: null
+    virtualShift: null
   },
   'does NOT extract foobar': {
-    foreign_code: null,
-    host_code: EXAMPLE.replace('foo', 'foobar'),
+    foreignCode: null,
+    hostCode: EXAMPLE.replace('foo', 'foobar'),
     range: null,
-    virtual_shift: null
+    virtualShift: null
   }
 };
 
 FIXTURES['does extract foo -v bar'] = {
   ...FIXTURES['does extract foo'],
-  host_code: EXAMPLE.replace('foo', 'foo -v')
+  hostCode: EXAMPLE.replace('foo', 'foo -v')
 };
 
 describe('The foo extractor', () => {
   test.each(Object.entries(FIXTURES))(
     '%s',
     (_: string, expected: IExtractedCode) => {
-      const extracted = extractor.extract_foreign_code(expected.host_code!);
-      expect(extracted).to.have.length(1);
-      expect(extracted[0]).to.deep.equal(expected);
+      const extracted = extractor.extractForeignCode(expected.hostCode!);
+      expect(extracted.length).toBe(1);
+      expect(extracted[0]).toEqual(expected);
     }
   );
 });
