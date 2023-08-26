@@ -206,7 +206,7 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
   ],
   optional: [ICommandPalette, IDiagnosticsFeature, ITranslator],
   autoStart: true,
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
@@ -220,6 +220,8 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
       settingRegistry,
       RenameFeature.id
     );
+    await settings.ready;
+
     if (settings.composite.disable) {
       return;
     }
