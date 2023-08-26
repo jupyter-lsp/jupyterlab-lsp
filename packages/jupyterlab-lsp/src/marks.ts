@@ -62,8 +62,8 @@ export function createMarkManager<Kinds extends string | number>(
           marks = marks.update({
             add: [
               kindToMark[e.value.kind].range(
-                Math.min(e.value.from, tr.newDoc.length - 1),
-                Math.min(e.value.to, tr.newDoc.length - 1)
+                Math.min(e.value.from, tr.newDoc.length),
+                Math.min(e.value.to, tr.newDoc.length)
               )
             ]
           });

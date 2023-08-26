@@ -156,12 +156,31 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
               const diagnostic = editorDiagnostic.diagnostic;
               const severity = SeverityMap[diagnostic.severity!];
 
+              const lines = view.state.doc.lines;
+              const lastLineLength = view.state.doc.line(lines).length;
+              const start = PositionConverter.cm_to_ce(
+                editorDiagnostic.range.start
+              );
+              const end = PositionConverter.cm_to_ce(
+                editorDiagnostic.range.end
+              );
+
               const from = editorDiagnostic.editor.getOffsetAt(
-                PositionConverter.cm_to_ce(editorDiagnostic.range.start)
+                start.line >= lines
+                  ? {
+                      line: Math.min(start.line, lines),
+                      column: Math.min(start.column, lastLineLength)
+                    }
+                  : start
               );
               // TODO: this is wrong; there is however an issue if this is not applied
               const to = editorDiagnostic.editor.getOffsetAt(
-                PositionConverter.cm_to_ce(editorDiagnostic.range.end)
+                end.line >= lines
+                  ? {
+                      line: Math.min(end.line, lines),
+                      column: Math.min(end.column, lastLineLength)
+                    }
+                  : end
               );
 
               const classNames = [];
@@ -170,8 +189,8 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
               }
 
               diagnostics.push({
-                from: Math.min(from, view.state.doc.length - 1),
-                to: Math.min(to, view.state.doc.length - 1),
+                from: Math.min(from, view.state.doc.length),
+                to: Math.min(to, view.state.doc.length),
                 severity: severity,
                 message: diagnostic.message,
                 source: diagnostic.source,
