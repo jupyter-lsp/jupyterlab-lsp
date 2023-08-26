@@ -285,7 +285,6 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
           connection,
           type: kind,
           icon: this.options.iconsThemeManager.get_icon(kind) as LabIcon | null,
-          showDocumentation: this.options.settings.composite.showDocumentation,
           source: this.label
         });
       },

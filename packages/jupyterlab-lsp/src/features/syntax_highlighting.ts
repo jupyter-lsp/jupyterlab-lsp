@@ -196,6 +196,9 @@ export const SYNTAX_HIGHLIGHTING_PLUGIN: JupyterFrontEndPlugin<void> = {
       SyntaxHighlightingFeature.id
     );
     await settings.ready;
+    if (settings.composite.disable) {
+      return;
+    }
     const feature = new SyntaxHighlightingFeature({
       settings,
       connectionManager,

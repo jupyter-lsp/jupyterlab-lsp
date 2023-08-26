@@ -762,6 +762,9 @@ export const HOVER_PLUGIN: JupyterFrontEndPlugin<void> = {
       HoverFeature.id
     );
     await settings.ready;
+    if (settings.composite.disable) {
+      return;
+    }
     const feature = new HoverFeature({
       settings,
       renderMimeRegistry,

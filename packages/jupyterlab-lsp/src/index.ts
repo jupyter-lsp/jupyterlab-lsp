@@ -198,7 +198,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
       ])
     );
   },
-  //provides: ILSPExtension,
   autoStart: true
 };
 

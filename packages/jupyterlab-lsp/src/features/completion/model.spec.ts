@@ -15,7 +15,6 @@ describe('LSPCompleterModel', () => {
       icon: null as any,
       match,
       connection: null as any,
-      showDocumentation: true,
       source: 'lsp'
     });
   }

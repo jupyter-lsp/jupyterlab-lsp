@@ -12,6 +12,7 @@ import {
   ILSPDocumentConnectionManager,
   WidgetLSPAdapter
 } from '@jupyterlab/lsp';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import {
   ITranslator,
   nullTranslator,
@@ -21,6 +22,7 @@ import { LabIcon } from '@jupyterlab/ui-components';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import renameSvg from '../../style/icons/rename.svg';
+import { CodeRename as LSPRenameSettings } from '../_rename';
 import { ContextAssembler } from '../context';
 import {
   PositionConverter,
@@ -28,7 +30,7 @@ import {
   rootPositionToEditorPosition
 } from '../converter';
 import { EditApplicator, IEditOutcome } from '../edits';
-import { Feature } from '../feature';
+import { FeatureSettings, Feature } from '../feature';
 import { PLUGIN_ID } from '../tokens';
 import { BrowserConsole } from '../virtual/console';
 import { VirtualDocument } from '../virtual/document';
@@ -197,19 +199,30 @@ export namespace CommandIDs {
 
 export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
   id: FEATURE_ID,
-  requires: [ILSPFeatureManager, ILSPDocumentConnectionManager],
+  requires: [
+    ILSPFeatureManager,
+    ISettingRegistry,
+    ILSPDocumentConnectionManager
+  ],
   optional: [ICommandPalette, IDiagnosticsFeature, ITranslator],
   autoStart: true,
   activate: (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
+    settingRegistry: ISettingRegistry,
     connectionManager: ILSPDocumentConnectionManager,
     palette: ICommandPalette,
     diagnostics: IDiagnosticsFeature,
     translator: ITranslator
   ) => {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
-
+    const settings = new FeatureSettings<LSPRenameSettings>(
+      settingRegistry,
+      RenameFeature.id
+    );
+    if (settings.composite.disable) {
+      return;
+    }
     const feature = new RenameFeature({
       trans,
       connectionManager

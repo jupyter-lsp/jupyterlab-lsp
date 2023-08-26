@@ -59,62 +59,64 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<IDiagnosticsFeature> = {
       themeManager,
       trans
     });
-    featureManager.register(feature);
+    if (!settings.composite.disable) {
+      featureManager.register(feature);
 
-    const assembler = new ContextAssembler({
-      app,
-      connectionManager
-    });
-
-    app.commands.addCommand(CommandIDs.showPanel, {
-      execute: async () => {
-        const context = assembler.getContext();
-        if (!context) {
-          console.warn('Could not get context');
-          return;
-        }
-        feature.switchDiagnosticsPanelSource(context.adapter);
-
-        if (!diagnosticsPanel.is_registered) {
-          diagnosticsPanel.trans = trans;
-          diagnosticsPanel.register(app);
-        }
-
-        const panel_widget = diagnosticsPanel.widget;
-        if (!panel_widget.isAttached) {
-          app.shell.add(panel_widget, 'main', {
-            ref: context.adapter.widgetId,
-            mode: 'split-bottom'
-          });
-        }
-        app.shell.activateById(panel_widget.id);
-      },
-      label: trans.__('Show diagnostics panel'),
-      icon: diagnosticsIcon,
-      isEnabled: () => {
-        // TODO notebook
-        return app.name != 'JupyterLab Classic';
-      }
-    });
-
-    // add to menus
-    app.contextMenu.addItem({
-      selector: '.jp-Notebook .jp-CodeCell .jp-Editor',
-      command: CommandIDs.showPanel,
-      rank: 10
-    });
-
-    app.contextMenu.addItem({
-      selector: '.jp-FileEditor',
-      command: CommandIDs.showPanel,
-      rank: 0
-    });
-
-    if (palette) {
-      palette.addItem({
-        command: CommandIDs.showPanel,
-        category: trans.__('Language Server Protocol')
+      const assembler = new ContextAssembler({
+        app,
+        connectionManager
       });
+
+      app.commands.addCommand(CommandIDs.showPanel, {
+        execute: async () => {
+          const context = assembler.getContext();
+          if (!context) {
+            console.warn('Could not get context');
+            return;
+          }
+          feature.switchDiagnosticsPanelSource(context.adapter);
+
+          if (!diagnosticsPanel.is_registered) {
+            diagnosticsPanel.trans = trans;
+            diagnosticsPanel.register(app);
+          }
+
+          const panel_widget = diagnosticsPanel.widget;
+          if (!panel_widget.isAttached) {
+            app.shell.add(panel_widget, 'main', {
+              ref: context.adapter.widgetId,
+              mode: 'split-bottom'
+            });
+          }
+          app.shell.activateById(panel_widget.id);
+        },
+        label: trans.__('Show diagnostics panel'),
+        icon: diagnosticsIcon,
+        isEnabled: () => {
+          // TODO notebook
+          return app.name != 'JupyterLab Classic';
+        }
+      });
+
+      // add to menus
+      app.contextMenu.addItem({
+        selector: '.jp-Notebook .jp-CodeCell .jp-Editor',
+        command: CommandIDs.showPanel,
+        rank: 10
+      });
+
+      app.contextMenu.addItem({
+        selector: '.jp-FileEditor',
+        command: CommandIDs.showPanel,
+        rank: 0
+      });
+
+      if (palette) {
+        palette.addItem({
+          command: CommandIDs.showPanel,
+          category: trans.__('Language Server Protocol')
+        });
+      }
     }
     return feature;
   }

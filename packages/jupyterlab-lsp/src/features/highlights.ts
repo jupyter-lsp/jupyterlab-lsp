@@ -385,6 +385,9 @@ export const HIGHLIGHTS_PLUGIN: JupyterFrontEndPlugin<void> = {
       HighlightsFeature.id
     );
     await settings.ready;
+    if (settings.composite.disable) {
+      return;
+    }
     const feature = new HighlightsFeature({
       settings,
       editorExtensionRegistry,

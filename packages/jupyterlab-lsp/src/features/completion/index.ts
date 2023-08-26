@@ -73,16 +73,6 @@ export class CompletionFeature extends Feature {
     const settings = this.options.settings;
     const completionThemeManager = this.options.iconsThemeManager;
 
-    /*
-    this._disabled = settings.composite.disable;
-    if (this._disabled) {
-      completer.removeClass(LSP_COMPLETER_CLASS);
-      completer.model = new CompleterModel();
-    } else {
-      completer.addClass(LSP_COMPLETER_CLASS);
-    }
-    */
-
     if (!settings.composite.disable) {
       document.body.dataset.lspCompleterLayout = settings.composite.layout;
       completionThemeManager.set_theme(settings.composite.theme);
@@ -129,6 +119,9 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
       CompletionFeature.id
     );
     await settings.ready;
+    if (settings.composite.disable) {
+      return;
+    }
     const feature = new CompletionFeature({
       settings,
       connectionManager,

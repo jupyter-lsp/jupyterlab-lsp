@@ -23,7 +23,7 @@ function escapeHTML(text: string) {
 }
 
 /**
- * This will be contributed upstream
+ * A lot of this was contributed upstream
  */
 export class GenericCompleterModel<
   T extends CompletionHandler.ICompletionItem
@@ -38,6 +38,10 @@ export class GenericCompleterModel<
 
   completionItems(): T[] {
     let query = this.query;
+    // TODO: make use of `processedItemsCache` when made available upstream,
+    // see https://github.com/jupyterlab/jupyterlab/pull/15025
+    // (setting query is bad because it resets the cache; ideally we would
+    // modify the sorting and filtering algorithm upstream).
     this.query = '';
     let unfilteredItems = (
       super.completionItems() as CompletionHandler.ICompletionItem[]
@@ -54,7 +58,7 @@ export class GenericCompleterModel<
   }
 
   setCompletionItems(newValue: T[]) {
-    super.setCompletionItems!(newValue);
+    super.setCompletionItems(newValue);
 
     if (this.settings.preFilterMatches && this.current && this.cursor) {
       // set initial query to pre-filter items; in future we should use:

@@ -25,7 +25,6 @@ namespace CompletionItem {
     icon: LabIcon | null;
     match: lsProtocol.CompletionItem;
     connection: ILSPConnection;
-    showDocumentation: boolean;
     source: string;
   }
 }
@@ -165,9 +164,6 @@ export class CompletionItem implements IExtendedCompletionItem {
    * about this item, like type or symbol information.
    */
   get documentation(): string | undefined {
-    if (!this.options.showDocumentation) {
-      return undefined;
-    }
     if (this._documentation) {
       return this._documentation;
     }

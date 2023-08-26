@@ -123,7 +123,6 @@ export class LSPCompletionRenderer
     item: CompletionItem,
     orderedTypes: string[]
   ): HTMLLIElement {
-    console.log('createCompletionItemNode');
     const li = super.createCompletionItemNode(item, orderedTypes);
 
     // make sure that an instance reference, and not an object copy is being used;
@@ -221,6 +220,17 @@ export class LSPCompletionRenderer
       }
       return node;
     }
+  }
+
+  itemWidthHeuristic(item: CompletionItem): number {
+    const labelSize = item.label.replace(/<\?mark>/g, '').length;
+    const extraTextSize = this.getExtraInfo(item).length;
+    if (this.options.settings.composite.layout === 'side-by-side') {
+      // in 'side-by-side' take the sum
+      return labelSize + extraTextSize;
+    }
+    // 'detail-below' mode take whichever is longer
+    return Math.max(labelSize, extraTextSize);
   }
 }
 

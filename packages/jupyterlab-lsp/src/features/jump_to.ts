@@ -510,6 +510,11 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
       NavigationFeature.id
     );
     await settings.ready;
+
+    if (settings.composite.disable) {
+      return;
+    }
+
     const feature = new NavigationFeature({
       settings,
       connectionManager,

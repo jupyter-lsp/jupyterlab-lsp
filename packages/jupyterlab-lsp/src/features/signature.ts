@@ -733,6 +733,9 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
       SignatureFeature.id
     );
     await settings.ready;
+    if (settings.composite.disable) {
+      return;
+    }
     const feature = new SignatureFeature({
       settings,
       connectionManager,
