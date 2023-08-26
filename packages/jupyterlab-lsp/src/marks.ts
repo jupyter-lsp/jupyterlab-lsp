@@ -60,7 +60,12 @@ export function createMarkManager<Kinds extends string | number>(
       for (let e of tr.effects) {
         if (e.is(addMark)) {
           marks = marks.update({
-            add: [kindToMark[e.value.kind].range(e.value.from, e.value.to)]
+            add: [
+              kindToMark[e.value.kind].range(
+                Math.min(e.value.from, tr.newDoc.length - 1),
+                Math.min(e.value.to, tr.newDoc.length - 1)
+              )
+            ]
           });
         } else if (e.is(removeMark)) {
           marks = marks.update({

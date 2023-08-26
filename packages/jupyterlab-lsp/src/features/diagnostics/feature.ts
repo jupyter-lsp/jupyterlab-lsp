@@ -168,9 +168,10 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
               for (const tag of new Set(diagnostic.tags)) {
                 classNames.push('cm-lsp-diagnostic-tag-' + DiagnosticTag[tag]);
               }
+
               diagnostics.push({
-                from,
-                to: Math.min(to, view.state.doc.length),
+                from: Math.min(from, view.state.doc.length - 1),
+                to: Math.min(to, view.state.doc.length - 1),
                 severity: severity,
                 message: diagnostic.message,
                 source: diagnostic.source,
