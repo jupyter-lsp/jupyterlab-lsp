@@ -16,7 +16,7 @@ export interface IGlobalPosition {
   /**
    * In notebooks, the index of the target editor; 0 in widgets with single editor.
    */
-  editor_index: number;
+  editorIndex: number;
 
   line: number;
   column: number;
@@ -24,7 +24,7 @@ export interface IGlobalPosition {
   /**
    * The Jupyter ContentsManager path, _not_ passed through encode URI.
    */
-  contents_path: string;
+  contentsPath: string;
 
-  is_symlink: boolean;
+  isSymlink: boolean;
 }

@@ -36,15 +36,14 @@ export class VirtualDocument extends VirtualDocumentBase {
   }
 
   // TODO: this could be moved out
-  decodeCodeBlock(raw_code: string): string {
+  decodeCodeBlock(rawCode: string): string {
     // TODO: add back previously extracted foreign code
-    const cellOverride =
-      this.cellMagicsOverrides.reverse.override_for(raw_code);
+    const cellOverride = this.cellMagicsOverrides.reverse.overrideFor(rawCode);
     if (cellOverride != null) {
       return cellOverride;
     } else {
-      let lines = this.lineMagicsOverrides.reverse_replace_all(
-        raw_code.split('\n')
+      let lines = this.lineMagicsOverrides.reverseReplaceAll(
+        rawCode.split('\n')
       );
       return lines.join('\n');
     }
@@ -67,13 +66,13 @@ export class VirtualDocument extends VirtualDocumentBase {
     const cellCode = cellCodeKept;
 
     // cell magics are replaced if requested and matched
-    const cellOverride = this.cellMagicsOverrides.override_for(cellCode);
+    const cellOverride = this.cellMagicsOverrides.overrideFor(cellCode);
     if (cellOverride != null) {
       lines = cellOverride.split('\n');
-      skipInspect = lines.map(l => [this.idPath]);
+      skipInspect = lines.map(_line => [this.idPath]);
     } else {
       // otherwise, we replace line magics - if any
-      let result = this.lineMagicsOverrides.replace_all(cellCode.split('\n'));
+      let result = this.lineMagicsOverrides.replaceAll(cellCode.split('\n'));
       lines = result.lines;
       skipInspect = result.skipInspect.map(skip => (skip ? [this.idPath] : []));
     }

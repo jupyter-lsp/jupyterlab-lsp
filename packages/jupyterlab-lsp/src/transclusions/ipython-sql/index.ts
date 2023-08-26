@@ -14,10 +14,10 @@ import { foreignCodeExtractors } from './extractors';
 export const IPYTHON_SQL_TRANSCLUSIONS: JupyterFrontEndPlugin<void> = {
   id: PLUGIN_ID + ':ipython-sql',
   requires: [ILSPCodeExtractorsManager],
-  activate: (app, extractors_manager: ILSPCodeExtractorsManager) => {
+  activate: (app, extractorsManager: ILSPCodeExtractorsManager) => {
     for (let language of Object.keys(foreignCodeExtractors)) {
       for (let extractor of foreignCodeExtractors[language]) {
-        extractors_manager.register(extractor, language);
+        extractorsManager.register(extractor, language);
       }
     }
   },

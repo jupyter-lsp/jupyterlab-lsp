@@ -12,28 +12,6 @@ export async function sleep(timeout: number) {
   });
 }
 
-// TODO: there is a JL native version of this which uses adaptive rate, maybe use instead?
-export function until_ready(
-  is_ready: any,
-  max_retrials: number = 35,
-  interval = 50,
-  interval_modifier = (i: number) => i
-) {
-  return new Promise(async (resolve, reject) => {
-    let i = 0;
-    while (is_ready() !== true) {
-      i += 1;
-      if (max_retrials !== -1 && i > max_retrials) {
-        reject('Too many retrials');
-        break;
-      }
-      interval = interval_modifier(interval);
-      await sleep(interval);
-    }
-    resolve(is_ready);
-  });
-}
-
 export type ModifierKey =
   | 'Shift'
   | 'Alt'
@@ -91,28 +69,28 @@ export function getModifierState(
 
 export class DefaultMap<K, V> extends Map<K, V> {
   constructor(
-    private default_factory: (...args: any[]) => V,
+    private defaultFactory: (...args: any[]) => V,
     entries?: ReadonlyArray<readonly [K, V]> | null
   ) {
     super(entries);
   }
 
   get(k: K): V {
-    return this.get_or_create(k);
+    return this.getOrCreate(k);
   }
 
-  get_or_create(k: K, ...args: any[]): V {
+  getOrCreate(k: K, ...args: any[]): V {
     if (this.has(k)) {
       return super.get(k)!;
     } else {
-      let v = this.default_factory(k, ...args);
+      let v = this.defaultFactory(k, ...args);
       this.set(k, v);
       return v;
     }
   }
 }
 
-export function server_root_uri() {
+function serverRootUri() {
   return PageConfig.getOption('rootUri');
 }
 
@@ -122,11 +100,11 @@ export function server_root_uri() {
  * - uri encoding
  * TODO: probably use vscode-uri
  */
-export function uris_equal(a: string, b: string) {
-  const win_paths = is_win_path(a) && is_win_path(b);
-  if (win_paths) {
-    a = normalize_win_path(a);
-    b = normalize_win_path(b);
+export function urisEqual(a: string, b: string) {
+  const winPaths = isWinPath(a) && isWinPath(b);
+  if (winPaths) {
+    a = normalizeWinPath(a);
+    b = normalizeWinPath(b);
   }
   return a === b || decodeURI(a) === decodeURI(b);
 }
@@ -134,14 +112,14 @@ export function uris_equal(a: string, b: string) {
 /**
  * grossly detect whether a URI represents a file on a windows drive
  */
-export function is_win_path(uri: string) {
+export function isWinPath(uri: string) {
   return uri.match(RE_PATH_ANCHOR);
 }
 
 /**
  * lowercase the drive component of a URI
  */
-export function normalize_win_path(uri: string) {
+export function normalizeWinPath(uri: string) {
   // Pyright encodes colon on Windows, see:
   // https://github.com/jupyter-lsp/jupyterlab-lsp/pull/587#issuecomment-844225253
   return uri.replace(RE_PATH_ANCHOR, it =>
@@ -149,8 +127,8 @@ export function normalize_win_path(uri: string) {
   );
 }
 
-export function uri_to_contents_path(child: string, parent?: string) {
-  parent = parent || server_root_uri();
+export function uriToContentsPath(child: string, parent?: string) {
+  parent = parent || serverRootUri();
   if (parent == null) {
     return null;
   }

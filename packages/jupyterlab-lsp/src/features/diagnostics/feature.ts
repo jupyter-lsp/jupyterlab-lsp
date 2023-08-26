@@ -25,7 +25,7 @@ import { PositionConverter } from '../../converter';
 import { IFeatureSettings, Feature } from '../../feature';
 import { DiagnosticSeverity, DiagnosticTag } from '../../lsp';
 import { PLUGIN_ID } from '../../tokens';
-import { uris_equal } from '../../utils';
+import { urisEqual } from '../../utils';
 import { BrowserConsole } from '../../virtual/console';
 
 import { diagnosticsPanel } from './diagnostics';
@@ -148,7 +148,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
 
           const database = this.getDiagnosticsDB(adapter);
 
-          for (const [_, editorDiagnostics] of database.entries()) {
+          for (const editorDiagnostics of database.values()) {
             for (const editorDiagnostic of editorDiagnostics) {
               if (editorDiagnostic.editor.editor !== view) {
                 continue;
@@ -310,10 +310,10 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
     // an alternative would be using nested [start line][start character][end line][end character] structure,
     // which would increase the code complexity, but reduce memory use and may be slightly faster.
     type RangeID = string;
-    const range_id_to_range = new Map<RangeID, lsProtocol.Range>();
-    const range_id_to_diagnostics = new Map<RangeID, lsProtocol.Diagnostic[]>();
+    const rangeIdToRange = new Map<RangeID, lsProtocol.Range>();
+    const rangeIdToDiagnostics = new Map<RangeID, lsProtocol.Diagnostic[]>();
 
-    function get_range_id(range: lsProtocol.Range): RangeID {
+    function getRangeId(range: lsProtocol.Range): RangeID {
       return (
         range.start.line +
         ',' +
@@ -327,22 +327,22 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
 
     diagnostics.forEach((diagnostic: lsProtocol.Diagnostic) => {
       let range = diagnostic.range;
-      let range_id = get_range_id(range);
-      range_id_to_range.set(range_id, range);
-      if (range_id_to_diagnostics.has(range_id)) {
-        let ranges_list = range_id_to_diagnostics.get(range_id)!;
-        ranges_list.push(diagnostic);
+      let rangeId = getRangeId(range);
+      rangeIdToRange.set(rangeId, range);
+      if (rangeIdToDiagnostics.has(rangeId)) {
+        let rangesList = rangeIdToDiagnostics.get(rangeId)!;
+        rangesList.push(diagnostic);
       } else {
-        range_id_to_diagnostics.set(range_id, [diagnostic]);
+        rangeIdToDiagnostics.set(rangeId, [diagnostic]);
       }
     });
 
     let map = new Map<lsProtocol.Range, lsProtocol.Diagnostic[]>();
 
-    range_id_to_diagnostics.forEach(
-      (range_diagnostics: lsProtocol.Diagnostic[], range_id: RangeID) => {
-        let range = range_id_to_range.get(range_id)!;
-        map.set(range, range_diagnostics);
+    rangeIdToDiagnostics.forEach(
+      (rangeDiagnostics: lsProtocol.Diagnostic[], rangeId: RangeID) => {
+        let range = rangeIdToRange.get(rangeId)!;
+        map.set(range, rangeDiagnostics);
       }
     );
 
@@ -416,19 +416,19 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
           range.start
         ) as IVirtualPosition;
         const end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
-        const last_line_number =
+        const lastLineNumber =
           document.lastVirtualLine - document.blankLinesBetweenCells;
-        if (start.line > last_line_number) {
+        if (start.line > lastLineNumber) {
           this.console.log(
-            `Out of range diagnostic (${start.line} line > ${last_line_number}) was skipped `,
+            `Out of range diagnostic (${start.line} line > ${lastLineNumber}) was skipped `,
             diagnostics
           );
           return;
         } else {
-          let last_line = document.lastLine;
-          if (start.line == last_line_number && start.ch > last_line.length) {
+          let lastLine = document.lastLine;
+          if (start.line == lastLineNumber && start.ch > lastLine.length) {
             this.console.log(
-              `Out of range diagnostic (${start.ch} character > ${last_line.length} at line ${last_line_number}) was skipped `,
+              `Out of range diagnostic (${start.ch} character > ${lastLine.length} at line ${lastLineNumber}) was skipped `,
               diagnostics
             );
             return;
@@ -534,7 +534,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
     adapter: WidgetLSPAdapter<any>
   ) => {
     // use optional chaining operator because the diagnostics message may come late (after the document was disposed)
-    if (!uris_equal(response.uri, document?.documentInfo?.uri)) {
+    if (!urisEqual(response.uri, document?.documentInfo?.uri)) {
       return;
     }
 

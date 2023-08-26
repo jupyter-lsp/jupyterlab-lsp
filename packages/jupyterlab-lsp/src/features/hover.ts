@@ -55,7 +55,7 @@ export const hoverIcon = new LabIcon({
 interface IResponseData {
   response: lsProtocol.Hover;
   document: VirtualDocument;
-  editor_range: IEditorRange;
+  editorRange: IEditorRange;
   ceEditor: CodeEditor.IEditor;
 }
 
@@ -94,9 +94,9 @@ class ResponseCache {
     const previousIndex = this._data.findIndex(
       previous =>
         previous.document === item.document &&
-        isEqual(previous.editor_range.start, item.editor_range.start) &&
-        isEqual(previous.editor_range.end, item.editor_range.end) &&
-        previous.editor_range.editor === item.editor_range.editor
+        isEqual(previous.editorRange.start, item.editorRange.start) &&
+        isEqual(previous.editorRange.end, item.editorRange.end) &&
+        previous.editorRange.editor === item.editorRange.editor
     );
     if (previousIndex !== -1) {
       this._data[previousIndex] = item;
@@ -114,7 +114,7 @@ class ResponseCache {
   }
 }
 
-function to_markup(
+function toMarkup(
   content: string | lsProtocol.MarkedString
 ): lsProtocol.MarkupContent {
   if (typeof content === 'string') {
@@ -155,7 +155,7 @@ export class HoverFeature extends Feature {
   protected console = new BrowserConsole().scope('Hover');
   protected settings: FeatureSettings<LSPHoverSettings>;
   protected lastHoverCharacter: IRootPosition | null = null;
-  private last_hover_response: lsProtocol.Hover | null;
+  private lastHoverResponse: lsProtocol.Hover | null;
   protected hasMarker: boolean = false;
   protected markManager: ISimpleMarkManager<'hover'>;
   private virtualPosition: IVirtualPosition;
@@ -207,8 +207,8 @@ export class HoverFeature extends Feature {
 
             // this is used to hide the tooltip on leaving cells in notebook
             this.updateUnderlineAndTooltip(event, adapter)
-              ?.then(keep_tooltip => {
-                if (!keep_tooltip) {
+              ?.then(keepTooltip => {
+                if (!keepTooltip) {
                   this.maybeHideTooltip(event);
                 }
               })
@@ -239,15 +239,15 @@ export class HoverFeature extends Feature {
       }
     });
 
-    this.debouncedGetHover = this.create_throttler();
+    this.debouncedGetHover = this.createThrottler();
 
     this.settings.changed.connect(() => {
       this.cache.maxSize = this.settings.composite.cacheSize;
-      this.debouncedGetHover = this.create_throttler();
+      this.debouncedGetHover = this.createThrottler();
     });
   }
 
-  protected create_throttler() {
+  protected createThrottler() {
     return new Throttler<
       Promise<lsProtocol.Hover | null>,
       void,
@@ -266,26 +266,26 @@ export class HoverFeature extends Feature {
     return this.settings.composite.autoActivate;
   }
 
-  protected restore_from_cache(
+  protected restoreFromCache(
     document: VirtualDocument,
     virtualPosition: IVirtualPosition
   ): IResponseData | null {
     const { line, ch } = virtualPosition;
-    const matching_items = this.cache.data.filter(cache_item => {
-      if (cache_item.document !== document) {
+    const matchingItems = this.cache.data.filter(cacheItem => {
+      if (cacheItem.document !== document) {
         return false;
       }
-      let range = cache_item.response.range!;
+      let range = cacheItem.response.range!;
       return ProtocolCoordinates.isWithinRange({ line, character: ch }, range);
     });
-    if (matching_items.length > 1) {
+    if (matchingItems.length > 1) {
       this.console.warn(
         'Potential hover cache malfunction: ',
         virtualPosition,
-        matching_items
+        matchingItems
       );
     }
-    return matching_items.length != 0 ? matching_items[0] : null;
+    return matchingItems.length != 0 ? matchingItems[0] : null;
   }
 
   protected onKeyDown = (
@@ -301,10 +301,7 @@ export class HoverFeature extends Feature {
         return;
       }
       const document = documentAtRootPosition(adapter, this.lastHoverCharacter);
-      let responseData = this.restore_from_cache(
-        document,
-        this.virtualPosition
-      );
+      let responseData = this.restoreFromCache(document, this.virtualPosition);
       if (responseData == null) {
         return;
       }
@@ -379,7 +376,7 @@ export class HoverFeature extends Feature {
     );
   };
 
-  protected static get_markup_for_hover(
+  protected static getMarkupForHover(
     response: lsProtocol.Hover
   ): lsProtocol.MarkupContent {
     let contents = response.contents;
@@ -392,7 +389,7 @@ export class HoverFeature extends Feature {
       return contents as lsProtocol.MarkupContent;
     }
 
-    let markups = contents.map(to_markup);
+    let markups = contents.map(toMarkup);
     if (markups.every(markup => markup.kind == 'plaintext')) {
       return {
         kind: 'plaintext',
@@ -421,10 +418,10 @@ export class HoverFeature extends Feature {
     let response = responseData.response;
 
     // testing for object equality because the response will likely be reused from cache
-    if (this.last_hover_response != response) {
+    if (this.lastHoverResponse != response) {
       this.removeRangeHighlight();
 
-      const range = responseData.editor_range;
+      const range = responseData.editorRange;
       const editorView = (range.editor as CodeMirrorEditor).editor;
       const from = range.editor.getOffsetAt(
         PositionConverter.cm_to_ce(range.start)
@@ -436,10 +433,10 @@ export class HoverFeature extends Feature {
       this.hasMarker = true;
     }
 
-    this.last_hover_response = response;
+    this.lastHoverResponse = response;
 
     if (showTooltip) {
-      const markup = HoverFeature.get_markup_for_hover(response);
+      const markup = HoverFeature.getMarkupForHover(response);
       let editorPosition = rootPositionToEditorPosition(adapter, rootPosition);
 
       this.tooltip = this.tooltipManager.showOrCreate({
@@ -454,17 +451,17 @@ export class HoverFeature extends Feature {
     return false;
   };
 
-  protected is_token_empty(token: CodeEditor.IToken) {
+  protected isTokenEmpty(token: CodeEditor.IToken) {
     return token.value.length === 0;
     // TODO  || token.type.length === 0? (sometimes the underline is shown on meaningless tokens)
   }
 
-  protected is_event_inside_visible(event: MouseEvent) {
+  protected isEventInsideVisible(event: MouseEvent) {
     let target = event.target as HTMLElement;
     return target.closest('.cm-scroller') != null;
   }
 
-  protected is_useful_response(response: lsProtocol.Hover) {
+  protected isResponseUseful(response: lsProtocol.Hover) {
     return (
       response &&
       response.contents &&
@@ -536,9 +533,9 @@ export class HoverFeature extends Feature {
     const document = documentAtRootPosition(adapter, rootPosition);
 
     if (
-      this.is_token_empty(token) ||
+      this.isTokenEmpty(token) ||
       //document !== this.virtualDocument ||
-      !this.is_event_inside_visible(event)
+      !this.isEventInsideVisible(event)
     ) {
       this.removeRangeHighlight();
       return false;
@@ -567,8 +564,8 @@ export class HoverFeature extends Feature {
           })
         ]);
       }
-      let responseData = this.restore_from_cache(document, virtualPosition);
-      let delay_ms = this.settings.composite.delay;
+      let responseData = this.restoreFromCache(document, virtualPosition);
+      let delayMilliseconds = this.settings.composite.delay;
 
       if (responseData == null) {
         //const ceEditor =
@@ -595,7 +592,7 @@ export class HoverFeature extends Feature {
             { line: virtualPosition.line, character: virtualPosition.ch },
             response.range
           ) &&
-          this.is_useful_response(response)
+          this.isResponseUseful(response)
         ) {
           // TODO: I am reconstructing the range anyways - do I really want to ensure it in getHover?
           const editorRange = this._getEditorRange(
@@ -607,12 +604,12 @@ export class HoverFeature extends Feature {
           responseData = {
             response: response,
             document: document,
-            editor_range: editorRange,
+            editorRange: editorRange,
             ceEditor: editor
           };
 
           this.cache.store(responseData);
-          delay_ms = Math.max(
+          delayMilliseconds = Math.max(
             0,
             this.settings.composite.delay -
               this.settings.composite.throttlerDelay
@@ -624,7 +621,7 @@ export class HoverFeature extends Feature {
       }
 
       if (this.isHoverAutomatic) {
-        await new Promise(resolve => setTimeout(resolve, delay_ms));
+        await new Promise(resolve => setTimeout(resolve, delayMilliseconds));
       }
 
       return this.handleResponse(
@@ -654,7 +651,7 @@ export class HoverFeature extends Feature {
     if (this.hasMarker) {
       this.markManager.clearAllMarks();
       this.hasMarker = false;
-      this.last_hover_response = null;
+      this.lastHoverResponse = null;
       this.lastHoverCharacter = null;
     }
   };

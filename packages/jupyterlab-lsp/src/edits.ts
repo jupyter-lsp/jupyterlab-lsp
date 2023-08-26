@@ -8,7 +8,7 @@ import {
 import type * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { PositionConverter } from './converter';
-import { DefaultMap, uris_equal } from './utils';
+import { DefaultMap, urisEqual } from './utils';
 import { VirtualDocument } from './virtual/document';
 
 export interface IEditOutcome {
@@ -46,7 +46,7 @@ export class EditApplicator {
   async applyEdit(
     workspaceEdit: lsProtocol.WorkspaceEdit
   ): Promise<IEditOutcome> {
-    let current_uri = this.virtualDocument.documentInfo.uri;
+    let currentUri = this.virtualDocument.documentInfo.uri;
 
     // Specs: documentChanges are preferred over changes
     let changes = workspaceEdit.documentChanges
@@ -54,76 +54,76 @@ export class EditApplicator {
           change => change as lsProtocol.TextDocumentEdit
         )
       : toDocumentChanges(workspaceEdit.changes!);
-    let applied_changes = 0;
-    let edited_cells: number = 0;
-    let _isWholeDocumentEdit: boolean = false;
+    let appliedChanges = 0;
+    let editedCells: number = 0;
+    let isWholeDocumentEdit: boolean = false;
     let errors: string[] = [];
 
     for (let change of changes) {
       let uri = change.textDocument.uri;
 
-      if (!uris_equal(uri, current_uri)) {
+      if (!urisEqual(uri, currentUri)) {
         errors.push(
-          `Workspace-wide edits not implemented: ${uri} != ${current_uri}`
+          `Workspace-wide edits not implemented: ${uri} != ${currentUri}`
         );
       } else {
-        _isWholeDocumentEdit =
+        isWholeDocumentEdit =
           change.edits.length === 1 &&
           this._isWholeDocumentEdit(change.edits[0]);
 
         let edit: lsProtocol.TextEdit;
 
-        if (!_isWholeDocumentEdit) {
-          applied_changes = 0;
+        if (!isWholeDocumentEdit) {
+          appliedChanges = 0;
           let value = this.virtualDocument.value;
           // TODO: make sure that it was not changed since the request was sent (using the returned document version)
           let lines = value.split('\n');
 
-          let edits_by_offset = new Map<number, lsProtocol.TextEdit>();
+          let editsByOffset = new Map<number, lsProtocol.TextEdit>();
           for (let e of change.edits) {
             let offset = offsetFromLsp(e.range.start, lines);
-            if (edits_by_offset.has(offset)) {
+            if (editsByOffset.has(offset)) {
               console.warn(
                 'Edits should not overlap, ignoring an overlapping edit'
               );
             } else {
-              edits_by_offset.set(offset, e);
-              applied_changes += 1;
+              editsByOffset.set(offset, e);
+              appliedChanges += 1;
             }
           }
 
-          // TODO make use of old_to_new_line for edits which add of remove lines:
+          // TODO make use of oldToNewLine for edits which add of remove lines:
           //  this is crucial to preserve cell boundaries in notebook in such cases
-          let old_to_new_line = new DefaultMap<number, number[]>(() => []);
-          let new_text = '';
-          let last_end = 0;
-          let current_old_line = 0;
-          let current_new_line = 0;
+          let oldToNewLine = new DefaultMap<number, number[]>(() => []);
+          let newText = '';
+          let lastEnd = 0;
+          let currentOldLine = 0;
+          let currentNewLine = 0;
           // going over the edits in descending order of start points:
-          let start_offsets = [...edits_by_offset.keys()].sort((a, b) => a - b);
-          for (let start of start_offsets) {
-            let edit = edits_by_offset.get(start)!;
-            let prefix = value.slice(last_end, start);
+          let startOffsets = [...editsByOffset.keys()].sort((a, b) => a - b);
+          for (let start of startOffsets) {
+            let edit = editsByOffset.get(start)!;
+            let prefix = value.slice(lastEnd, start);
             for (let i = 0; i < prefix.split('\n').length; i++) {
-              let new_lines = old_to_new_line.get_or_create(current_old_line);
-              new_lines.push(current_new_line);
-              current_old_line += 1;
-              current_new_line += 1;
+              let newLines = oldToNewLine.getOrCreate(currentOldLine);
+              newLines.push(currentNewLine);
+              currentOldLine += 1;
+              currentNewLine += 1;
             }
-            new_text += prefix + edit.newText;
+            newText += prefix + edit.newText;
             let end = offsetFromLsp(edit.range.end, lines);
-            let replaced_fragment = value.slice(start, end);
+            let replacedFragment = value.slice(start, end);
             for (let i = 0; i < edit.newText.split('\n').length; i++) {
-              if (i < replaced_fragment.length) {
-                current_old_line += 1;
+              if (i < replacedFragment.length) {
+                currentOldLine += 1;
               }
-              current_new_line += 1;
-              let new_lines = old_to_new_line.get_or_create(current_old_line);
-              new_lines.push(current_new_line);
+              currentNewLine += 1;
+              let newLines = oldToNewLine.getOrCreate(currentOldLine);
+              newLines.push(currentNewLine);
             }
-            last_end = end;
+            lastEnd = end;
           }
-          new_text += value.slice(last_end, value.length);
+          newText += value.slice(lastEnd, value.length);
 
           edit = {
             range: {
@@ -133,21 +133,21 @@ export class EditApplicator {
                 character: lines[lines.length - 1].length
               }
             },
-            newText: new_text
+            newText: newText
           };
           console.assert(this._isWholeDocumentEdit(edit));
         } else {
           edit = change.edits[0];
-          applied_changes += 1;
+          appliedChanges += 1;
         }
-        edited_cells = this._applySingleEdit(edit);
+        editedCells = this._applySingleEdit(edit);
       }
     }
-    const all_empty = changes.every(change => change.edits.length === 0);
+    const allEmpty = changes.every(change => change.edits.length === 0);
     return {
-      appliedChanges: applied_changes,
-      modifiedCells: edited_cells,
-      wasGranular: !_isWholeDocumentEdit && !all_empty,
+      appliedChanges: appliedChanges,
+      modifiedCells: editedCells,
+      wasGranular: !isWholeDocumentEdit && !allEmpty,
       errors: errors
     };
   }
@@ -169,16 +169,16 @@ export class EditApplicator {
   private _replaceFragment(
     newText: string,
     editorAccessor: Document.IEditor,
-    fragment_start: IPosition,
-    fragment_end: IPosition,
+    fragmentStart: IPosition,
+    fragmentEnd: IPosition,
     start: IPosition,
     end: IPosition,
-    _isWholeDocumentEdit = false
+    isWholeDocumentEdit = false
   ): number {
     let document = this.virtualDocument;
     let newFragmentText = newText
       .split('\n')
-      .slice(fragment_start.line - start.line, fragment_end.line - start.line)
+      .slice(fragmentStart.line - start.line, fragmentEnd.line - start.line)
       .join('\n');
 
     if (newFragmentText.endsWith('\n')) {
@@ -200,20 +200,18 @@ export class EditApplicator {
       ceEditor: editorAccessor,
       type: 'code'
     });
-    let old_value = lines.join('\n');
+    let oldValue = lines.join('\n');
 
-    if (_isWholeDocumentEdit) {
+    if (isWholeDocumentEdit) {
       // partial edit
       let cm_to_ce = PositionConverter.cm_to_ce;
-      let up_to_offset = offsetAtPosition(cm_to_ce(start), lines);
-      let from_offset = offsetAtPosition(cm_to_ce(end), lines);
+      let upToOffset = offsetAtPosition(cm_to_ce(start), lines);
+      let fromOffset = offsetAtPosition(cm_to_ce(end), lines);
       newFragmentText =
-        old_value.slice(0, up_to_offset) +
-        newText +
-        old_value.slice(from_offset);
+        oldValue.slice(0, upToOffset) + newText + oldValue.slice(fromOffset);
     }
 
-    if (old_value === newFragmentText) {
+    if (oldValue === newFragmentText) {
       return 0;
     }
 
@@ -223,7 +221,7 @@ export class EditApplicator {
 
     model.sharedModel.updateSource(
       editor.getOffsetAt({ line: 0, column: 0 }),
-      old_value.length,
+      oldValue.length,
       newValue
     );
 
@@ -243,21 +241,21 @@ export class EditApplicator {
 
   private _applySingleEdit(edit: lsProtocol.TextEdit): number {
     let document = this.virtualDocument;
-    let applied_changes = 0;
+    let appliedChanges = 0;
     let start = PositionConverter.lsp_to_cm(edit.range.start);
     let end = PositionConverter.lsp_to_cm(edit.range.end);
 
-    let start_editor = document.getEditorAtVirtualLine(
+    let startEditor = document.getEditorAtVirtualLine(
       start as IVirtualPosition
     );
-    let end_editor = document.getEditorAtVirtualLine(end as IVirtualPosition);
-    if (start_editor !== end_editor) {
-      let last_editor = start_editor;
-      let fragment_start = start;
-      let fragment_end = { ...start };
+    let endEditor = document.getEditorAtVirtualLine(end as IVirtualPosition);
+    if (startEditor !== endEditor) {
+      let lastEditor = startEditor;
+      let fragmentStart = start;
+      let fragmentEnd = { ...start };
 
       let line = start.line;
-      let recently_replaced = false;
+      let recentlyReplaced = false;
       while (line <= end.line) {
         line++;
         let editor = document.getEditorAtVirtualLine({
@@ -265,51 +263,51 @@ export class EditApplicator {
           ch: 0
         } as IVirtualPosition);
 
-        if (editor === last_editor) {
-          fragment_end.line = line;
-          fragment_end.ch = 0;
-          recently_replaced = false;
+        if (editor === lastEditor) {
+          fragmentEnd.line = line;
+          fragmentEnd.ch = 0;
+          recentlyReplaced = false;
         } else {
-          applied_changes += this._replaceFragment(
+          appliedChanges += this._replaceFragment(
             edit.newText,
-            last_editor,
-            fragment_start,
-            fragment_end,
+            lastEditor,
+            fragmentStart,
+            fragmentEnd,
             start,
             end
           );
-          recently_replaced = true;
-          fragment_start = {
+          recentlyReplaced = true;
+          fragmentStart = {
             line: line,
             ch: 0
           };
-          fragment_end = {
+          fragmentEnd = {
             line: line,
             ch: 0
           };
-          last_editor = editor;
+          lastEditor = editor;
         }
       }
-      if (!recently_replaced) {
-        applied_changes += this._replaceFragment(
+      if (!recentlyReplaced) {
+        appliedChanges += this._replaceFragment(
           edit.newText,
-          last_editor,
-          fragment_start,
-          fragment_end,
+          lastEditor,
+          fragmentStart,
+          fragmentEnd,
           start,
           end
         );
       }
     } else {
-      applied_changes += this._replaceFragment(
+      appliedChanges += this._replaceFragment(
         edit.newText,
-        start_editor,
+        startEditor,
         start,
         end,
         start,
         end
       );
     }
-    return applied_changes;
+    return appliedChanges;
   }
 }

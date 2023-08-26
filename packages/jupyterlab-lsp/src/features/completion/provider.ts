@@ -284,7 +284,7 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
           match,
           connection,
           type: kind,
-          icon: this.options.iconsThemeManager.get_icon(kind) as LabIcon | null,
+          icon: this.options.iconsThemeManager.getIcon(kind) as LabIcon | null,
           source: this.label
         });
       },
@@ -318,7 +318,7 @@ export function transformLSPCompletions<T>(
   console: ILSPLogConsole
 ) {
   let prefix = token.value.slice(0, positionInToken + 1);
-  let all_non_prefixed = true;
+  let allNonPrefixed = true;
   let items: T[] = [];
   lspCompletionItems.forEach(match => {
     let kind = match.kind ? CompletionItemKind[match.kind] : '';
@@ -328,7 +328,7 @@ export function transformLSPCompletions<T>(
 
     // declare prefix presence if needed and update it
     if (text.toLowerCase().startsWith(prefix.toLowerCase())) {
-      all_non_prefixed = false;
+      allNonPrefixed = false;
       if (prefix !== token.value) {
         if (text.toLowerCase().startsWith(token.value.toLowerCase())) {
           // given a completion insert text "display_table" and two test cases:
@@ -357,7 +357,7 @@ export function transformLSPCompletions<T>(
           pathPrefix = pathPrefix.substr(1);
         }
         match.label = pathPrefix + match.label;
-        all_non_prefixed = false;
+        allNonPrefixed = false;
       }
     }
 
@@ -368,12 +368,12 @@ export function transformLSPCompletions<T>(
   console.debug('Transformed');
   // required to make the repetitive trigger characters like :: or ::: work for R with R languageserver,
   // see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/436
-  let prefix_offset = token.value.length;
+  let prefixOffset = token.value.length;
   // completion of dictionaries for Python with jedi-language-server was
   // causing an issue for dic['<tab>'] case; to avoid this let's make
   // sure that prefix.length >= prefix.offset
-  if (all_non_prefixed && prefix_offset > prefix.length) {
-    prefix_offset = prefix.length;
+  if (allNonPrefixed && prefixOffset > prefix.length) {
+    prefixOffset = prefix.length;
   }
 
   let response = {
@@ -386,7 +386,7 @@ export function transformLSPCompletions<T>(
     // a different workaround would be to prepend the token.value prefix:
     // text = token.value + text;
     // but it did not work for "from statistics <tab>" and lead to "from statisticsimport" (no space)
-    start: token.offset + (all_non_prefixed ? prefix_offset : 0),
+    start: token.offset + (allNonPrefixed ? prefixOffset : 0),
     end: token.offset + prefix.length,
     items: items,
     source: 'LSP'

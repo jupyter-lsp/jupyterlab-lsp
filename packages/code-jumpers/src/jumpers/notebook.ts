@@ -13,14 +13,14 @@ export class NotebookJumper extends CodeJumper {
   widget: NotebookPanel;
 
   constructor(
-    notebook_widget: NotebookPanel,
-    document_manager: IDocumentManager
+    notebookWidget: NotebookPanel,
+    documentManager: IDocumentManager
   ) {
     super();
-    this.widget = notebook_widget;
-    this.notebook = notebook_widget.content;
+    this.widget = notebookWidget;
+    this.notebook = notebookWidget.content;
     this.history = new JumpHistory();
-    this.document_manager = document_manager;
+    this.documentManager = documentManager;
   }
 
   get editors() {
@@ -55,21 +55,21 @@ export class NotebookJumper extends CodeJumper {
       this.editors[this.notebook.activeCellIndex].getCursorPosition();
 
     return {
-      editor_index: this.notebook.activeCellIndex,
+      editorIndex: this.notebook.activeCellIndex,
       line: position.line,
       column: position.column,
-      contents_path: this.widget.context.path,
-      is_symlink: false
+      contentsPath: this.widget.context.path,
+      isSymlink: false
     };
   }
 
-  getJumpPosition(position: CodeEditor.IPosition, input_number: number) {
+  getJumpPosition(position: CodeEditor.IPosition, inputNumber: number) {
     return {
       token: {
-        offset: this.getOffset(position, input_number),
+        offset: this.getOffset(position, inputNumber),
         value: ''
       },
-      index: input_number
+      index: inputNumber
     };
   }
 }

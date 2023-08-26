@@ -36,9 +36,9 @@ describe('IPython extractors', () => {
       let { cellCodeKept, foreignDocumentsMap } = extract(code);
 
       expect(cellCodeKept).toBe(code);
-      let python_document = getTheOnlyVirtual(foreignDocumentsMap);
-      expect(python_document.language).toBe('python');
-      expect(python_document.value).toBe('sys.exit()\n');
+      let pythonDocument = getTheOnlyVirtual(foreignDocumentsMap);
+      expect(pythonDocument.language).toBe('python');
+      expect(pythonDocument.value).toBe('sys.exit()\n');
     });
   });
 
@@ -47,18 +47,18 @@ describe('IPython extractors', () => {
       let code = '%%html\n<div>safe</div>';
       let { foreignDocumentsMap } = extract(code);
 
-      let html_document = getTheOnlyVirtual(foreignDocumentsMap);
-      expect(html_document.language).toBe('html');
-      expect(html_document.value).toBe('<div>safe</div>\n');
+      let htmlDocument = getTheOnlyVirtual(foreignDocumentsMap);
+      expect(htmlDocument.language).toBe('html');
+      expect(htmlDocument.value).toBe('<div>safe</div>\n');
     });
 
     it('works with html in isolated mode', () => {
       let code = '%%html --isolated\n<div>dangerous</div>';
       let { foreignDocumentsMap } = extract(code);
 
-      let html_document = getTheOnlyVirtual(foreignDocumentsMap);
-      expect(html_document.language).toBe('html');
-      expect(html_document.value).toBe('<div>dangerous</div>\n');
+      let htmlDocument = getTheOnlyVirtual(foreignDocumentsMap);
+      expect(htmlDocument.language).toBe('html');
+      expect(htmlDocument.value).toBe('<div>dangerous</div>\n');
     });
   });
 });

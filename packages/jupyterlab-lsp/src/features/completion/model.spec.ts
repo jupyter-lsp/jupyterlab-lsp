@@ -6,7 +6,7 @@ import { LSPCompleterModel } from './model';
 describe('LSPCompleterModel', () => {
   let model: LSPCompleterModel;
 
-  function create_dummy_item(
+  function createDummyItem(
     match: lsProtocol.CompletionItem,
     type: string = 'dummy'
   ) {
@@ -19,24 +19,24 @@ describe('LSPCompleterModel', () => {
     });
   }
 
-  const jupyter_icon_completion = create_dummy_item({
+  const jupyterIconCompletion = createDummyItem({
     label: '<i class="jp-icon-jupyter"></i> Jupyter',
     filterText: 'i font icon jupyter Jupyter',
     documentation: 'A Jupyter icon implemented with <i> tag'
   });
-  const test_a_completion = create_dummy_item({
+  const testCompletionA = createDummyItem({
     label: 'test',
     sortText: 'a'
   });
-  const test_b_completion = create_dummy_item({
+  const testCompletionB = createDummyItem({
     label: 'test',
     sortText: 'b'
   });
-  const test_c_completion = create_dummy_item({
+  const testCompletionC = createDummyItem({
     label: 'test',
     sortText: 'c'
   });
-  const test_test_completion = create_dummy_item({
+  const testCompletionTest = createDummyItem({
     label: 'test_test',
     sortText: 'test_test'
   });
@@ -49,7 +49,7 @@ describe('LSPCompleterModel', () => {
   });
 
   it('returns escaped when no query', () => {
-    model.setCompletionItems([jupyter_icon_completion]);
+    model.setCompletionItems([jupyterIconCompletion]);
     model.query = '';
 
     let markedItems = model.completionItems();
@@ -59,7 +59,7 @@ describe('LSPCompleterModel', () => {
   });
 
   it('marks html correctly', () => {
-    model.setCompletionItems([jupyter_icon_completion]);
+    model.setCompletionItems([jupyterIconCompletion]);
     model.query = 'Jup';
 
     let markedItems = model.completionItems();
@@ -70,9 +70,9 @@ describe('LSPCompleterModel', () => {
 
   it('ties are solved with sortText', () => {
     model.setCompletionItems([
-      test_a_completion,
-      test_c_completion,
-      test_b_completion
+      testCompletionA,
+      testCompletionC,
+      testCompletionB
     ]);
     model.query = 'test';
     let sortedItems = model.completionItems();
@@ -84,7 +84,7 @@ describe('LSPCompleterModel', () => {
       includePerfectMatches: false
     });
 
-    model.setCompletionItems([test_a_completion, test_test_completion]);
+    model.setCompletionItems([testCompletionA, testCompletionTest]);
     model.query = 'test';
     let items = model.completionItems();
     // should not include the perfect match 'test'
@@ -94,7 +94,7 @@ describe('LSPCompleterModel', () => {
 
   it('case-sensitivity can be changed', () => {
     model = new LSPCompleterModel();
-    model.setCompletionItems([test_a_completion]);
+    model.setCompletionItems([testCompletionA]);
     model.query = 'Test';
 
     model.settings.caseSensitive = true;
@@ -107,7 +107,7 @@ describe('LSPCompleterModel', () => {
   });
 
   it('filters use filterText', () => {
-    model.setCompletionItems([jupyter_icon_completion]);
+    model.setCompletionItems([jupyterIconCompletion]);
     // font is in filterText but not in label
     model.query = 'font';
 
@@ -121,7 +121,7 @@ describe('LSPCompleterModel', () => {
   });
 
   it('marks appropriate part of label when filterText matches', () => {
-    model.setCompletionItems([jupyter_icon_completion]);
+    model.setCompletionItems([jupyterIconCompletion]);
     // font is in filterText but not in label
     model.query = 'font';
 

@@ -336,7 +336,7 @@ export class SignatureFeature extends Feature {
     }
   }
 
-  protected get_markup_for_signature_help(
+  protected getMarkupForSignatureHelp(
     response: lsProtocol.SignatureHelp,
     language: Language | undefined
   ): lsProtocol.MarkupContent {
@@ -553,7 +553,7 @@ export class SignatureFeature extends Feature {
     // TODO: restore language probing
     // let language = cm_editor.getModeAt(editorPosition).name;
     const language = editorLanguage?.support?.language;
-    let markup = this.get_markup_for_signature_help(response, language);
+    let markup = this.getMarkupForSignatureHelp(response, language);
 
     this.console.debug(
       'Signature will be shown',

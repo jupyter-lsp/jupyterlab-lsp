@@ -3,7 +3,7 @@ import { IForeignCodeExtractorsRegistry } from '../../extractors/types';
 
 export const SQL_URL_PATTERN = '(?:(?:.*?)://(?:.*))';
 // note: -a/--connection_arguments and -f/--file are not supported yet
-const single_argument_options = [
+const singleArgumentOptions = [
   '--destination_table',
   '--project',
   '--use_bqstorage_api',
@@ -12,13 +12,13 @@ const single_argument_options = [
   '--verbose',
   '--params'
 ];
-const zero_argument_options = ['-l', '--connections'];
+const zeroArgumentOptions = ['-l', '--connections'];
 
 const COMMAND_PATTERN =
   '(?:' +
-  (zero_argument_options.join('|') +
+  (zeroArgumentOptions.join('|') +
     '|' +
-    single_argument_options.map(command => command + ' \\w+').join('|')) +
+    singleArgumentOptions.map(command => command + ' \\w+').join('|')) +
   ')';
 
 export let foreignCodeExtractors: IForeignCodeExtractorsRegistry = {

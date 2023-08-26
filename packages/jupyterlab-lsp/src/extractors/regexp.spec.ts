@@ -38,7 +38,7 @@ describe('getIndexOfCaptureGroup', () => {
 });
 
 describe('RegExpForeignCodeExtractor', () => {
-  let r_cell_extractor = new RegExpForeignCodeExtractor({
+  let rCellEextractor = new RegExpForeignCodeExtractor({
     language: 'R',
     pattern: '^%%R( .*?)?\n([^]*)',
     foreignCaptureGroups: [2],
@@ -47,7 +47,7 @@ describe('RegExpForeignCodeExtractor', () => {
     fileExtension: 'R'
   });
 
-  let r_line_extractor = new RegExpForeignCodeExtractor({
+  let rLineExtractor = new RegExpForeignCodeExtractor({
     language: 'R',
     pattern: '(^|\n)%R (.*)\n?',
     foreignCaptureGroups: [2],
@@ -56,7 +56,7 @@ describe('RegExpForeignCodeExtractor', () => {
     fileExtension: 'R'
   });
 
-  let python_cell_extractor = new RegExpForeignCodeExtractor({
+  let pythonCellExtractor = new RegExpForeignCodeExtractor({
     language: 'python',
     pattern: '^%%(python|python2|python3|pypy)( .*?)?\\n([^]*)',
     foreignCaptureGroups: [3],
@@ -67,13 +67,13 @@ describe('RegExpForeignCodeExtractor', () => {
 
   describe('#hasForeignCode()', () => {
     it('detects cell magics', () => {
-      let result = r_cell_extractor.hasForeignCode(R_CELL_MAGIC_EXISTS);
+      let result = rCellEextractor.hasForeignCode(R_CELL_MAGIC_EXISTS);
       expect(result).toBe(true);
 
-      result = r_cell_extractor.hasForeignCode(R_LINE_MAGICS);
+      result = rCellEextractor.hasForeignCode(R_LINE_MAGICS);
       expect(result).toBe(false);
 
-      result = r_cell_extractor.hasForeignCode(NO_CELL_MAGIC);
+      result = rCellEextractor.hasForeignCode(NO_CELL_MAGIC);
       expect(result).toBe(false);
     });
 
@@ -81,25 +81,25 @@ describe('RegExpForeignCodeExtractor', () => {
       // stateful implementation of regular expressions in JS can easily lead to
       // an error manifesting it two consecutive checks giving different results,
       // as the last index was moved in between:
-      let result = r_cell_extractor.hasForeignCode(R_CELL_MAGIC_EXISTS);
+      let result = rCellEextractor.hasForeignCode(R_CELL_MAGIC_EXISTS);
       expect(result).toBe(true);
 
-      result = r_cell_extractor.hasForeignCode(R_CELL_MAGIC_EXISTS);
+      result = rCellEextractor.hasForeignCode(R_CELL_MAGIC_EXISTS);
       expect(result).toBe(true);
     });
 
     it('detects line magics', () => {
-      let result = r_line_extractor.hasForeignCode(R_LINE_MAGICS);
+      let result = rLineExtractor.hasForeignCode(R_LINE_MAGICS);
       expect(result).toBe(true);
 
-      result = r_line_extractor.hasForeignCode(R_CELL_MAGIC_EXISTS);
+      result = rLineExtractor.hasForeignCode(R_CELL_MAGIC_EXISTS);
       expect(result).toBe(false);
     });
   });
 
   describe('#extractForeignCode()', () => {
     it('should correctly return the range', () => {
-      let results = python_cell_extractor.extractForeignCode(
+      let results = pythonCellExtractor.extractForeignCode(
         PYTHON_CELL_MAGIC_WITH_H
       );
       expect(results.length).toBe(1);
@@ -119,7 +119,7 @@ describe('RegExpForeignCodeExtractor', () => {
     it('should work with non-line magic and non-cell magic code snippets as well', () => {
       // Note: in the real application, one should NOT use regular expressions for HTML extraction
 
-      let html_extractor = new RegExpForeignCodeExtractor({
+      let htmlExtractor = new RegExpForeignCodeExtractor({
         language: 'HTML',
         pattern: '(<(.*?)( .*?)?>([^]*?)</\\2>)',
         foreignCaptureGroups: [1],
@@ -128,7 +128,7 @@ describe('RegExpForeignCodeExtractor', () => {
         fileExtension: 'html'
       });
 
-      let results = html_extractor.extractForeignCode(HTML_IN_PYTHON);
+      let results = htmlExtractor.extractForeignCode(HTML_IN_PYTHON);
       expect(results.length).toBe(2);
       let result = results[0];
       // TODO: is tolerating the new line added here ok?
@@ -140,12 +140,12 @@ describe('RegExpForeignCodeExtractor', () => {
       expect(result.range!.start.column).toBe(7);
       expect(result.range!.end.line).toBe(3);
       expect(result.range!.end.column).toBe(4);
-      let last_bit = results[1];
-      expect(last_bit.hostCode).toBe('""";\nprint(x)');
+      let lastBit = results[1];
+      expect(lastBit.hostCode).toBe('""";\nprint(x)');
     });
 
     it('should extract cell magics and keep in host', () => {
-      let results = r_cell_extractor.extractForeignCode(R_CELL_MAGIC_EXISTS);
+      let results = rCellEextractor.extractForeignCode(R_CELL_MAGIC_EXISTS);
       expect(results.length).toBe(1);
       let result = results[0];
 
@@ -174,7 +174,7 @@ describe('RegExpForeignCodeExtractor', () => {
     });
 
     it('should extract multiple line magics deleting them from host', () => {
-      let r_line_extractor = new RegExpForeignCodeExtractor({
+      let rLineExtractor = new RegExpForeignCodeExtractor({
         language: 'R',
         pattern: '(^|\n)%R (.*)\n?',
         foreignCaptureGroups: [2],
@@ -182,55 +182,53 @@ describe('RegExpForeignCodeExtractor', () => {
         isStandalone: false,
         fileExtension: 'R'
       });
-      let results = r_line_extractor.extractForeignCode(R_LINE_MAGICS);
+      let results = rLineExtractor.extractForeignCode(R_LINE_MAGICS);
 
       // 2 line magics to be extracted + the unprocessed host code
       expect(results.length).toBe(3);
 
-      let first_magic = results[0];
+      let firstMagic = results[0];
 
-      expect(first_magic.foreignCode).toBe('df = data.frame()');
-      expect(first_magic.hostCode).toBe('');
+      expect(firstMagic.foreignCode).toBe('df = data.frame()');
+      expect(firstMagic.hostCode).toBe('');
 
-      let second_magic = results[1];
+      let secondMagic = results[1];
 
-      expect(second_magic.foreignCode).toBe('ggplot(df)');
-      expect(second_magic.hostCode).toBe('print("df created")\n');
+      expect(secondMagic.foreignCode).toBe('ggplot(df)');
+      expect(secondMagic.hostCode).toBe('print("df created")\n');
 
-      let final_bit = results[2];
+      let finalBit = results[2];
 
-      expect(final_bit.foreignCode).toBe(null);
-      expect(final_bit.hostCode).toBe('print("plotted")\n');
+      expect(finalBit.foreignCode).toBe(null);
+      expect(finalBit.hostCode).toBe('print("plotted")\n');
     });
 
     it('should extract multiple line magics preserving them in host', () => {
-      let results = r_line_extractor.extractForeignCode(R_LINE_MAGICS);
+      let results = rLineExtractor.extractForeignCode(R_LINE_MAGICS);
 
       // 2 line magics to be extracted + the unprocessed host code
       expect(results.length).toBe(3);
 
-      let first_magic = results[0];
+      let firstMagic = results[0];
 
-      expect(first_magic.foreignCode).toBe('df = data.frame()');
-      expect(first_magic.hostCode).toBe('%R df = data.frame()\n');
-      expect(first_magic.range!.end.line).toBe(0);
-      expect(first_magic.range!.end.column).toBe(20);
+      expect(firstMagic.foreignCode).toBe('df = data.frame()');
+      expect(firstMagic.hostCode).toBe('%R df = data.frame()\n');
+      expect(firstMagic.range!.end.line).toBe(0);
+      expect(firstMagic.range!.end.column).toBe(20);
 
-      let second_magic = results[1];
+      let secondMagic = results[1];
 
-      expect(second_magic.foreignCode).toBe('ggplot(df)');
-      expect(second_magic.hostCode).toBe(
-        'print("df created")\n%R ggplot(df)\n'
-      );
+      expect(secondMagic.foreignCode).toBe('ggplot(df)');
+      expect(secondMagic.hostCode).toBe('print("df created")\n%R ggplot(df)\n');
 
-      let final_bit = results[2];
+      let finalBit = results[2];
 
-      expect(final_bit.foreignCode).toBe(null);
-      expect(final_bit.hostCode).toBe('print("plotted")\n');
+      expect(finalBit.foreignCode).toBe(null);
+      expect(finalBit.hostCode).toBe('print("plotted")\n');
     });
 
     it('should extract single line magic which does not end with a blank line', () => {
-      let results = r_line_extractor.extractForeignCode('%R test');
+      let results = rLineExtractor.extractForeignCode('%R test');
 
       expect(results.length).toBe(1);
       let result = results[0];
@@ -238,7 +236,7 @@ describe('RegExpForeignCodeExtractor', () => {
     });
 
     it('should not extract magic-like text from the middle of the cell', () => {
-      let results = r_cell_extractor.extractForeignCode(NO_CELL_MAGIC);
+      let results = rCellEextractor.extractForeignCode(NO_CELL_MAGIC);
 
       expect(results.length).toBe(1);
       let result = results[0];

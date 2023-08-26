@@ -34,7 +34,28 @@ module.exports = {
   },
   plugins: ['@typescript-eslint', 'jest', 'import'],
   rules: {
-    '@typescript-eslint/camelcase': 'off',
+    camelcase: [
+      'error',
+      {
+        ignoreGlobals: true,
+        allow: [
+          'cell_type',
+          'execution_count',
+          'language_info',
+          'nbconvert_exporter',
+          'pygments_lexer',
+          'codemirror_mode',
+          'orig_nbformat',
+          'display_name',
+          'language_servers',
+          'cm_to_ce',
+          'lsp_to_ce',
+          'ce_to_cm',
+          'cm_to_lsp',
+          'lsp_to_cm'
+        ]
+      }
+    ],
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-empty-interface': 'off',

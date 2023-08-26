@@ -75,10 +75,10 @@ export class CompletionFeature extends Feature {
 
     if (!settings.composite.disable) {
       document.body.dataset.lspCompleterLayout = settings.composite.layout;
-      completionThemeManager.set_theme(settings.composite.theme);
-      completionThemeManager.set_icons_overrides(settings.composite.typesMap);
+      completionThemeManager.setTheme(settings.composite.theme);
+      completionThemeManager.setIconsOverrides(settings.composite.typesMap);
     } else {
-      completionThemeManager.set_theme(null);
+      completionThemeManager.setTheme(null);
       delete document.body.dataset.lspCompleterLayout;
     }
   }

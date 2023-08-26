@@ -31,7 +31,7 @@ describe('Rename', () => {
     it('renames files', async () => {
       env.activeEditor.model.sharedModel.setSource('x = 1\n');
       await env.adapter.updateDocuments();
-      let main_document = env.adapter.virtualDocument!;
+      let mainDocument = env.adapter.virtualDocument!;
 
       await feature.handleRename(
         {
@@ -50,14 +50,14 @@ describe('Rename', () => {
         'x',
         'y',
         env.adapter,
-        main_document as VirtualDocument
+        mainDocument as VirtualDocument
       );
 
       await env.adapter.updateDocuments();
 
       // TODO: intercept notifications
       // expect(env.status_message.message).toBe('Renamed x to y');
-      expect(main_document.value).toBe('y = 1\n');
+      expect(mainDocument.value).toBe('y = 1\n');
     });
   });
 });

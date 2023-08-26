@@ -126,23 +126,23 @@ export class LSPCompletionRenderer
     const li = super.createCompletionItemNode(item, orderedTypes);
 
     // make sure that an instance reference, and not an object copy is being used;
-    const lsp_item = item.self;
+    const lspItem = item.self;
 
     // only monitor nodes that have item.self as others are not our completion items
-    if (lsp_item) {
-      lsp_item.element = li;
-      this.elementToItem.set(li, lsp_item);
+    if (lspItem) {
+      lspItem.element = li;
+      this.elementToItem.set(li, lspItem);
       this.activityObserver.observe(li, {
         attributes: true,
         attributeFilter: ['class']
       });
       this.visibilityObserver.observe(li);
       // TODO: build custom li from ground up
-      this.updateExtraInfo(lsp_item, li);
-      this._elideMark(lsp_item, li);
+      this.updateExtraInfo(lspItem, li);
+      this._elideMark(lspItem, li);
     } else {
       this.updateExtraInfo(item, li);
-      this._elideMark(lsp_item, li);
+      this._elideMark(lspItem, li);
     }
 
     return li;

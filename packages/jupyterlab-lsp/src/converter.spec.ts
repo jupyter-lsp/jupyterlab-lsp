@@ -38,20 +38,20 @@ describe('Position conversion', () => {
 
   describe('#documentAtRootPosition()', () => {
     it('returns correct document', () => {
-      let ceEditor_for_cell_1 = {} as Document.IEditor;
-      let ceEditor_for_cell_2 = {} as Document.IEditor;
+      let ceEditorForCell1 = {} as Document.IEditor;
+      let ceEditorForCell2 = {} as Document.IEditor;
       const adapter = environment.adapter!;
       const mainDocument = environment.adapter.virtualDocument!;
 
       mainDocument.clear();
       mainDocument.appendCodeBlock({
         value: 'test line in Python 1\n%R test line in R 1',
-        ceEditor: ceEditor_for_cell_1,
+        ceEditor: ceEditorForCell1,
         type: 'code'
       });
       mainDocument.appendCodeBlock({
         value: 'test line in Python 2\n%R test line in R 2',
-        ceEditor: ceEditor_for_cell_2,
+        ceEditor: ceEditorForCell2,
         type: 'code'
       });
 

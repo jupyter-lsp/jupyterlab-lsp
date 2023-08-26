@@ -41,7 +41,7 @@ class DiagnosticsPanel {
   private _content: DiagnosticsListing | null = null;
   private _widget: MainAreaWidget<DiagnosticsListing> | null = null;
   feature: DiagnosticsFeature;
-  is_registered = false;
+  isRegistered = false;
   trans: TranslationBundle;
 
   constructor(trans: TranslationBundle) {
@@ -87,7 +87,7 @@ class DiagnosticsPanel {
   register(app: JupyterFrontEnd) {
     const widget = this.widget;
 
-    let get_column = (id: string) => {
+    let getColumn = (id: string) => {
       // TODO: a hashmap in the panel itself?
       for (let column of widget.content.columns) {
         if (column.id === id) {
@@ -98,59 +98,59 @@ class DiagnosticsPanel {
     };
 
     /** Columns Menu **/
-    let columns_menu = new Menu({ commands: app.commands });
-    columns_menu.title.label = this.trans.__('Panel columns');
+    let columnsMenu = new Menu({ commands: app.commands });
+    columnsMenu.title.label = this.trans.__('Panel columns');
 
     app.commands.addCommand(CMD_COLUMN_VISIBILITY, {
       execute: args => {
-        let column = get_column(args['id'] as string)!;
-        column.is_visible = !column.is_visible;
+        let column = getColumn(args['id'] as string)!;
+        column.isVisible = !column.isVisible;
         widget.update();
       },
       label: args => this.trans.__(args['id'] as string),
       isToggled: args => {
-        let column = get_column(args['id'] as string);
-        return column ? column.is_visible : false;
+        let column = getColumn(args['id'] as string);
+        return column ? column.isVisible : false;
       }
     });
 
     for (let column of widget.content.columns) {
-      columns_menu.addItem({
+      columnsMenu.addItem({
         command: CMD_COLUMN_VISIBILITY,
         args: { id: column.id }
       });
     }
     app.contextMenu.addItem({
       selector: '.' + DIAGNOSTICS_LISTING_CLASS + ' th',
-      submenu: columns_menu,
+      submenu: columnsMenu,
       type: 'submenu'
     });
 
     /** Diagnostics Menu **/
-    let ignore_diagnostics_menu = new Menu({ commands: app.commands });
-    ignore_diagnostics_menu.title.label = this.trans.__(
+    let ignoreDiagnosticsMenu = new Menu({ commands: app.commands });
+    ignoreDiagnosticsMenu.title.label = this.trans.__(
       'Ignore diagnostics like this'
     );
 
-    let get_row = (): IDiagnosticsRow | undefined => {
+    let getRow = (): IDiagnosticsRow | undefined => {
       let tr = app.contextMenuHitTest(
         node => node.tagName.toLowerCase() == 'tr'
       );
       if (!tr) {
         return;
       }
-      return this.widget.content.get_diagnostic(tr.dataset.key!);
+      return this.widget.content.getDiagnostic(tr.dataset.key!);
     };
 
-    ignore_diagnostics_menu.addItem({
+    ignoreDiagnosticsMenu.addItem({
       command: CMD_IGNORE_DIAGNOSTIC_CODE
     });
-    ignore_diagnostics_menu.addItem({
+    ignoreDiagnosticsMenu.addItem({
       command: CMD_IGNORE_DIAGNOSTIC_MSG
     });
     app.commands.addCommand(CMD_IGNORE_DIAGNOSTIC_CODE, {
       execute: () => {
-        const row = get_row();
+        const row = getRow();
         if (!row) {
           console.warn(
             'LPS: diagnostics row not found for ignore code execute()'
@@ -166,7 +166,7 @@ class DiagnosticsPanel {
         this.feature.refreshDiagnostics();
       },
       isVisible: () => {
-        const row = get_row();
+        const row = getRow();
         if (!row) {
           return false;
         }
@@ -174,7 +174,7 @@ class DiagnosticsPanel {
         return !!diagnostic.code;
       },
       label: () => {
-        const row = get_row();
+        const row = getRow();
         if (!row) {
           return '';
         }
@@ -187,7 +187,7 @@ class DiagnosticsPanel {
     });
     app.commands.addCommand(CMD_IGNORE_DIAGNOSTIC_MSG, {
       execute: () => {
-        const row = get_row();
+        const row = getRow();
         if (!row) {
           console.warn(
             'LPS: diagnostics row not found for ignore message execute()'
@@ -204,7 +204,7 @@ class DiagnosticsPanel {
         this.feature.refreshDiagnostics();
       },
       isVisible: () => {
-        const row = get_row();
+        const row = getRow();
         if (!row) {
           return false;
         }
@@ -212,7 +212,7 @@ class DiagnosticsPanel {
         return !!diagnostic.message;
       },
       label: () => {
-        const row = get_row();
+        const row = getRow();
         if (!row) {
           return '';
         }
@@ -226,12 +226,12 @@ class DiagnosticsPanel {
 
     app.commands.addCommand(CMD_JUMP_TO_DIAGNOSTIC, {
       execute: () => {
-        const row = get_row();
+        const row = getRow();
         if (!row) {
           console.warn('LPS: diagnostics row not found for jump execute()');
           return;
         }
-        this.widget.content.jump_to(row);
+        this.widget.content.jumpTo(row);
       },
       label: this.trans.__('Jump to location'),
       icon: jumpToIcon
@@ -239,7 +239,7 @@ class DiagnosticsPanel {
 
     app.commands.addCommand(CMD_COPY_DIAGNOSTIC, {
       execute: () => {
-        const row = get_row();
+        const row = getRow();
         if (!row) {
           console.warn('LPS: diagnostics row not found for copy execute()');
           return;
@@ -278,11 +278,11 @@ class DiagnosticsPanel {
     });
     app.contextMenu.addItem({
       selector: '.' + DIAGNOSTICS_LISTING_CLASS + ' tbody tr',
-      submenu: ignore_diagnostics_menu,
+      submenu: ignoreDiagnosticsMenu,
       type: 'submenu'
     });
 
-    this.is_registered = true;
+    this.isRegistered = true;
   }
 }
 

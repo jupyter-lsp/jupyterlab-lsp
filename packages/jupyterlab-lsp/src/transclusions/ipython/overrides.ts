@@ -8,7 +8,7 @@ function unescape(x: string) {
   return x.replace(/\\([\\"])/g, '$1');
 }
 
-function empty_or_escaped(x: string) {
+function emptyOrEscaped(x: string) {
   if (!x) {
     return '';
   } else {
@@ -66,11 +66,11 @@ export let overrides: IScopedCodeOverride[] = [
     //    ?x['a']
     // would not be solved, leading to "Object `x['a']` not found."
     pattern: '^(\\s*)' + '(\\?{1,2})' + PYTHON_IDENTIFIER + '(\n)?$',
-    replacement: (match, prefix, marks, name, line_break) => {
+    replacement: (match, prefix, marks, name, lineBreak) => {
       const cmd = marks == '?' ? 'pinfo' : 'pinfo2';
-      line_break = line_break || '';
+      lineBreak = lineBreak || '';
       // trick: use single quotes to distinguish
-      return `${prefix}get_ipython().run_line_magic(\'${cmd}\', \'${name}\')${line_break}`;
+      return `${prefix}get_ipython().run_line_magic(\'${cmd}\', \'${name}\')${lineBreak}`;
     },
     scope: 'line',
     reverse: {
@@ -85,11 +85,11 @@ export let overrides: IScopedCodeOverride[] = [
   },
   {
     pattern: '^(\\s*)' + PYTHON_IDENTIFIER + '(\\?{1,2})(\n)?',
-    replacement: (match, prefix, name, marks, line_break) => {
+    replacement: (match, prefix, name, marks, lineBreak) => {
       const cmd = marks == '?' ? 'pinfo' : 'pinfo2';
-      line_break = line_break || '';
+      lineBreak = lineBreak || '';
       // trick: use two spaces to distinguish pinfo using suffix (int?) from the one using prefix (?int)
-      return `${prefix}get_ipython().run_line_magic(\'${cmd}\',  \'${name}\')${line_break}`;
+      return `${prefix}get_ipython().run_line_magic(\'${cmd}\',  \'${name}\')${lineBreak}`;
     },
     scope: 'line',
     reverse: {
@@ -104,10 +104,10 @@ export let overrides: IScopedCodeOverride[] = [
   },
   {
     pattern: LINE_MAGIC_PREFIX + '%(\\S+)(.*)(\n)?',
-    replacement: (match, prefix, name, args, line_break) => {
-      args = empty_or_escaped(args);
-      line_break = line_break || '';
-      return `${prefix}get_ipython().run_line_magic("${name}", "${args}")${line_break}`;
+    replacement: (match, prefix, name, args, lineBreak) => {
+      args = emptyOrEscaped(args);
+      lineBreak = lineBreak || '';
+      return `${prefix}get_ipython().run_line_magic("${name}", "${args}")${lineBreak}`;
     },
     scope: 'line',
     reverse: {
@@ -124,14 +124,14 @@ export let overrides: IScopedCodeOverride[] = [
    */
   {
     pattern: '^%%(\\S+)(.*\n)([\\s\\S]*)',
-    replacement: (match, name, first_line, content, offset, entire) => {
-      first_line = empty_or_escaped(first_line);
-      if (first_line) {
+    replacement: (match, name, firstLine, content, offset, entire) => {
+      firstLine = emptyOrEscaped(firstLine);
+      if (firstLine) {
         // remove the new line
-        first_line = first_line.slice(0, -1);
+        firstLine = firstLine.slice(0, -1);
       }
       content = content.replace(/"""/g, '\\"\\"\\"');
-      return `get_ipython().run_cell_magic("${name}", "${first_line}", """${content}""")`;
+      return `get_ipython().run_cell_magic("${name}", "${firstLine}", """${content}""")`;
     },
     scope: 'cell',
     reverse: {

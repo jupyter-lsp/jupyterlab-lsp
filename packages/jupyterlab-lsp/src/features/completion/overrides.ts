@@ -47,9 +47,7 @@ export class EnhancedContextCompleterProvider extends ContextCompleterProvider {
   }
 
   protected iconFor(type: string): LabIcon | undefined {
-    const icon = this.options.iconsThemeManager.get_icon(
-      type
-    ) as LabIcon | null;
+    const icon = this.options.iconsThemeManager.getIcon(type) as LabIcon | null;
     return icon ? icon : undefined;
   }
 }
@@ -78,9 +76,7 @@ export class EnhancedKernelCompleterProvider extends KernelCompleterProvider {
   }
 
   protected iconFor(type: string): LabIcon | undefined {
-    const icon = this.options.iconsThemeManager.get_icon(
-      type
-    ) as LabIcon | null;
+    const icon = this.options.iconsThemeManager.getIcon(type) as LabIcon | null;
     return icon ? icon : undefined;
   }
 }

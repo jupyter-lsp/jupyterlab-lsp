@@ -107,17 +107,17 @@ export interface ICompletionTheme {
 }
 
 export interface ILSPCompletionThemeManager {
-  get_icon(type: string): LabIcon.ILabIcon | null;
+  getIcon(type: string): LabIcon.ILabIcon | null;
 
-  set_theme(theme_id: string | null): void;
+  setTheme(theme_id: string | null): void;
 
-  register_theme(theme: ICompletionTheme): void;
+  registerTheme(theme: ICompletionTheme): void;
 
-  get_iconset(
+  getIconSet(
     theme: ICompletionTheme
   ): Map<keyof ICompletionIconSet, LabIcon.ILabIcon>;
 
-  set_icons_overrides(
+  setIconsOverrides(
     map: Record<string, CompletionItemKindStrings | 'Kernel'>
   ): void;
 }

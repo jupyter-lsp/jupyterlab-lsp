@@ -6,7 +6,7 @@ import { VirtualDocument } from '../virtual/document';
 
 import { getBreadcrumbs } from './utils';
 
-function create_dummy_document(options: Partial<VirtualDocument.IOptions>) {
+function createDummyDocument(options: Partial<VirtualDocument.IOptions>) {
   return new VirtualDocument({
     language: 'python',
     overridesRegistry: {},
@@ -21,7 +21,7 @@ function create_dummy_document(options: Partial<VirtualDocument.IOptions>) {
 describe('getBreadcrumbs', () => {
   const trans = nullTranslator.load('jupyterlab_lsp');
   it('should collapse long paths', () => {
-    let document = create_dummy_document({
+    let document = createDummyDocument({
       path: 'dir1/dir2/Test.ipynb'
     });
     let breadcrumbs = getBreadcrumbs(
@@ -36,7 +36,7 @@ describe('getBreadcrumbs', () => {
   });
 
   it('should trim the extra filename suffix for files created out of notebooks', () => {
-    let document = create_dummy_document({
+    let document = createDummyDocument({
       path: 'Test.ipynb.py',
       fileExtension: 'py',
       hasLspSupportedFile: false
@@ -52,7 +52,7 @@ describe('getBreadcrumbs', () => {
   });
 
   it('should not trim the filename suffix for standalone files', () => {
-    let document = create_dummy_document({
+    let document = createDummyDocument({
       path: 'test.py',
       fileExtension: 'py',
       hasLspSupportedFile: true
