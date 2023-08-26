@@ -1,11 +1,11 @@
 # Language Server Protocol integration for Jupyter(Lab)
 
-[![tests](https://github.com/jupyter-lsp/jupyterlab-lsp/workflows/CI/badge.svg)](https://github.com/jupyter-lsp/jupyterlab-lsp/actions?query=workflow%3ACI+branch%3Amaster)
+[![tests](https://github.com/jupyter-lsp/jupyterlab-lsp/workflows/CI/badge.svg)](https://github.com/jupyter-lsp/jupyterlab-lsp/actions?query=workflow%3ACI+branch%3Amain)
 [![Documentation Status](https://readthedocs.org/projects/jupyterlab-lsp/badge/?version=latest)](https://jupyterlab-lsp.readthedocs.io/en/latest/?badge=latest)
 [![Python Demo](https://img.shields.io/badge/demo-Python-blue)](https://mybinder.org/v2/gh/jupyter-lsp/demo-python/main?urlpath=lab)
 [![R Demo](https://img.shields.io/badge/demo-R-blue)](https://mybinder.org/v2/gh/jupyter-lsp/demo-r/main?urlpath=lab)
 [![Julia Demo](https://img.shields.io/badge/demo-Julia-blue)](https://mybinder.org/v2/gh/jupyter-lsp/demo-julia/main?urlpath=lab)
-[![Binder](https://img.shields.io/badge/launch-dev_version-blue)](https://mybinder.org/v2/gh/jupyter-lsp/jupyterlab-lsp/master?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
+[![Binder](https://img.shields.io/badge/launch-dev_version-blue)](https://mybinder.org/v2/gh/jupyter-lsp/jupyterlab-lsp/main?urlpath=lab%2Ftree%2Fexamples%2FPython.ipynb)
 
 **[Installation](#installation) | [Configuring](./docs/Configuring.ipynb) | [Changelog](./CHANGELOG.md) | [Roadmap](./docs/Roadmap.ipynb) | [Contributing](./CONTRIBUTING.md) | [Extending](./docs/Extending.ipynb)**
 
@@ -19,20 +19,20 @@ Hover over any piece of code; if an underline appears, you can press <kbd>Ctrl</
 to get a tooltip with function/class signature, module documentation or any other
 piece of information that the language server provides
 
-![hover](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/master/examples/screenshots/hover.png)
+![hover](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/main/examples/screenshots/hover.png)
 
 ### Diagnostics
 
 Critical errors have red underline, warnings are orange, etc. Hover
 over the underlined code to see a more detailed message
 
-![inspections](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/master/examples/screenshots/inspections.png)
+![inspections](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/main/examples/screenshots/inspections.png)
 
 ### Jump to Definition and References
 
 Use the context menu entry, or <kbd>Alt</kbd> + :computer_mouse: to jump to definitions/references (you can change it to <kbd>Ctrl</kbd>/<kbd>⌘</kbd> in settings); use <kbd>Alt</kbd> + <kbd>o</kbd> to jump back.
 
-![jump](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/master/examples/screenshots/jump_to_definition.png)
+![jump](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/main/examples/screenshots/jump_to_definition.png)
 
 ### Highlight References
 
@@ -44,19 +44,19 @@ Place your cursor on a variable, function, etc and all the usages will be highli
   completion.
 - You can choose to receive the completion suggestions as you type by enabling `continuousHinting` setting.
 
-![invoke](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/master/examples/screenshots/autocompletion.gif)
+![invoke](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/main/examples/screenshots/autocompletion.gif)
 
 ### Automatic Signature Suggestions
 
 Function signatures will automatically be displayed
 
-![signature](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/master/examples/screenshots/signature.png)
+![signature](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/main/examples/screenshots/signature.png)
 
 ### Kernel-less Autocompletion
 
 Advanced static-analysis autocompletion without a running kernel
 
-![autocompletion](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/master/examples/screenshots/completions-Julia-Python-R.gif)
+![autocompletion](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/main/examples/screenshots/completions-Julia-Python-R.gif)
 
 #### The runtime kernel suggestions are still there
 
@@ -76,7 +76,7 @@ setting; Or add both if you like to code in hardcore mode and get no completions
 Rename variables, functions and more, in both: notebooks and the file editor.
 Use the context menu option or the <kbd>F2</kbd> shortcut to invoke.
 
-![rename](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/master/examples/screenshots/rename.png)
+![rename](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/main/examples/screenshots/rename.png)
 
 ### Diagnostics panel
 
@@ -84,7 +84,7 @@ Sort and jump between the diagnostics using the diagnostics panel.
 Open it searching for "Show diagnostics panel" in JupyterLab commands palette or from the context menu.
 Use context menu on rows in the panel to filter out diagnostics or copy their message.
 
-![panel](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/master/examples/screenshots/panel.png)
+![panel](https://raw.githubusercontent.com/jupyter-lsp/jupyterlab-lsp/main/examples/screenshots/panel.png)
 
 ## Prerequisites
 

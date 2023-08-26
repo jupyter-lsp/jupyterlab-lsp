@@ -3,14 +3,14 @@ name: CI
 on:
   push:
     branches:
-      - master
-      - 2.x
+      - main
       - 3.x
+      - 4.x
   pull_request:
     branches:
-      - master
-      - 2.x
+      - main
       - 3.x
+      - 4.x
   workflow_dispatch:
 
 # TODO: might need to tweak `group`
