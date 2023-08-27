@@ -45,11 +45,11 @@ JSX
 
 LaTeX
     [Tags]    language:latex
-    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-line')][contains(text(), 'foo')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'foo')])[last()]
     Editor Shows Features for Language    LaTeX    example.tex    Jump to Definition=${def}    Rename=${def}
 
 Less
-    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-line')][contains(text(), '@width')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')][contains(text(), '@width')])[last()]
     Editor Shows Features for Language    Less    example.less    Diagnostics=Do not use empty rulesets
     ...    Jump to Definition=${def}
 
@@ -57,7 +57,7 @@ Markdown
     Editor Shows Features for Language    Markdown    example.md    Diagnostics=`Color` is misspelt
 
 Python (pylsp)
-    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-line')][contains(text(), 'fib')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'fib')])[last()]
     Editor Shows Features for Server
     ...    pylsp
     ...    Python
@@ -72,30 +72,30 @@ Python (pyright)
     ...    Jump to Definition=${def}
 
 R
-    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-line')][contains(text(), 'fib')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'fib')])[last()]
     Editor Shows Features for Language    R    example.R    Diagnostics=Put spaces around all infix operators
     ...    Jump to Definition=${def}
 
 Robot Framework
     [Tags]    gh:332
     ${def} =    Set Variable
-    ...    xpath:(//span[contains(@class, 'cm-line')][contains(text(), 'Special Log')])[last()]
+    ...    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'Special Log')])[last()]
     Editor Shows Features for Language    Robot Framework    example.robot    Diagnostics=Undefined keyword
     ...    Jump to Definition=${def}
 
 SCSS
     ${def} =    Set Variable
-    ...    xpath:(//span[contains(@class, 'cm-line')][contains(text(), 'primary-color')])[last()]
+    ...    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'primary-color')])[last()]
     Editor Shows Features for Language    SCSS    example.scss    Diagnostics=Do not use empty rulesets
     ...    Jump to Definition=${def}
 
 TSX
-    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-line')][contains(text(), 'HelloWorld')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'HelloWorld')])[last()]
     Editor Shows Features for Language    TSX    example.tsx
     ...    Diagnostics='hello' is declared but its value is never read.    Jump to Definition=${def}    Rename=${def}
 
 TypeScript
-    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-line')][contains(text(), 'inc')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'inc')])[last()]
     Editor Shows Features for Language    TypeScript    example.ts    Diagnostics=The left-hand side of an arithmetic
     ...    Jump to Definition=${def}    Rename=${def}
 
