@@ -116,7 +116,9 @@ export class RenameFeature extends Feature {
         severity = 'error';
       }
 
-      Notification.emit(status, severity);
+      Notification.emit(status, severity, {
+        autoClose: (severity === 'error' ? 5 : 3) * 1000
+      });
     } catch (error) {
       this.console.warn(error);
     }
@@ -267,9 +269,11 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
           }
 
           if (!status) {
-            Notification.error(trans.__(`Rename failed: %1`, error));
+            Notification.error(trans.__(`Rename failed: %1`, error), {
+              autoClose: 5 * 1000
+            });
           } else {
-            Notification.info(status);
+            Notification.warning(status, { autoClose: 3 * 1000 });
           }
         };
 
@@ -287,7 +291,8 @@ export const RENAME_PLUGIN: JupyterFrontEndPlugin<void> = {
             return;
           }
           Notification.info(
-            trans.__('Renaming %1 to %2...', oldValue, newValue)
+            trans.__('Renaming %1 to %2…', oldValue, newValue),
+            { autoClose: 3 * 1000 }
           );
           const edit = await connection!.clientRequests[
             'textDocument/rename'
