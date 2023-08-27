@@ -9,8 +9,7 @@ Test Setup      Try to Close All Tabs
 Python
     [Setup]    Setup Notebook    Python    Python.ipynb
     ${diagnostic} =    Set Variable    W291 trailing whitespace (pycodestyle)
-    # TODO: no title for diagnostics; we can get the title with JS via `element.cmView.mark.spec.diagnostic.message` but this is not selectable
-    Wait Until Page Contains Element    css:.cm-lintRange[title="${diagnostic}"]    timeout=35s
+    Wait Until Page Contains Diagnostic    [title="${diagnostic}"]    timeout=35s
     Capture Page Screenshot    01-python.png
     [Teardown]    Clean Up After Working With File    Python.ipynb
 
@@ -40,11 +39,11 @@ Moving Cells Around
     [Setup]    Setup Notebook    Python    Python.ipynb
     ${diagnostic} =    Set Variable    undefined name 'test' (pyflakes)
     Enter Cell Editor    1
-    Lab Command    Move Cells Down
-    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title="${diagnostic}"]    timeout=35s
+    Lab Command    Move Cell Down
+    Wait Until Page Contains Diagnostic    [title="${diagnostic}"]    timeout=35s
     Enter Cell Editor    1
-    Lab Command    Move Cells Down
-    Wait Until Page Does Not Contain Element    css:.cm-lsp-diagnostic[title="${diagnostic}"]    timeout=35s
+    Lab Command    Move Cell Down
+    Wait Until Page Does Not Contain Diagnostic    [title="${diagnostic}"]    timeout=35s
     [Teardown]    Clean Up After Working With File    Python.ipynb
 
 Foreign Extractors
@@ -61,7 +60,7 @@ Foreign Extractors
     ...    `frob` is misspelt    # markdown
     ...    Command terminated with space    # latex
     FOR    ${diagnostic}    IN    @{diagnostics}
-        Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*\="${diagnostic}"]    timeout=35s
+        Wait Until Page Contains Diagnostic    [title*\="${diagnostic}"]    timeout=35s
     END
     Capture Page Screenshot    11-extracted.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}

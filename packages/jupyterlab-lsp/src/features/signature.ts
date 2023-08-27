@@ -544,14 +544,9 @@ export class SignatureFeature extends Feature {
       return;
     }
 
-    //let editorPosition =
-    //  virtualDocument.transformVirtualToEditor(virtualPosition);
-
     const editorLanguage = this.languageRegistry.findByMIME(
       editor.model.mimeType
     );
-    // TODO: restore language probing
-    // let language = cm_editor.getModeAt(editorPosition).name;
     const language = editorLanguage?.support?.language;
     let markup = this.getMarkupForSignatureHelp(response, language);
 

@@ -46,6 +46,7 @@ import { ContextAssembler } from '../context';
 import {
   PositionConverter,
   documentAtRootPosition,
+  editorAtRootPosition,
   rootPositionToVirtualPosition,
   rootPositionToEditorPosition,
   virtualPositionToRootPosition
@@ -367,7 +368,6 @@ export class NavigationFeature extends Feature {
     ) as IVirtualPosition;
 
     if (urisEqual(uri, positionParams.textDocument.uri)) {
-      let editorIndex = adapter.getEditorIndexAt(virtualPosition);
       // if in current file, transform from the position within virtual document to the editor position:
       const rootPosition = virtualPositionToRootPosition(
         adapter,
@@ -384,6 +384,19 @@ export class NavigationFeature extends Feature {
         adapter,
         rootPosition
       );
+
+      const editorAccessor = editorAtRootPosition(adapter, rootPosition);
+
+      // TODO: getEditorIndex should work, but does not
+      // adapter.getEditorIndex(editorAccessor)
+      await editorAccessor.reveal();
+      const editor = editorAccessor.getEditor();
+      const editorIndex = adapter.editors.findIndex(
+        e => e.ceEditor.getEditor() === editor
+      );
+      if (editorIndex === -1) {
+        return JumpResult.PositioningFailure;
+      }
 
       this.console.log(`Jumping to ${editorIndex}th editor of ${uri}`);
       this.console.log('Jump target within editor:', editorPosition);
