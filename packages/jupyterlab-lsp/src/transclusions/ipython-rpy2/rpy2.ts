@@ -1,6 +1,6 @@
 export const RPY2_MAX_ARGS = 10;
 
-export function extract_r_args(args: string[], content_position: number) {
+export function extractArgs(args: string[], contentPosition: number) {
   let inputs = [];
   let outputs = [];
   let others = [];
@@ -20,35 +20,32 @@ export function extract_r_args(args: string[], content_position: number) {
   return {
     inputs: inputs,
     outputs: outputs,
-    rest: args[args.length + content_position],
+    rest: args[args.length + contentPosition],
     others: others
   };
 }
 
-export function parse_r_args(args: string[], content_position: number) {
-  let { inputs, outputs, rest, others } = extract_r_args(
-    args,
-    content_position
-  );
-  let input_variables = inputs.join(', ');
-  if (input_variables) {
-    input_variables = ', ' + input_variables;
+export function parseArgs(args: string[], contentPosition: number) {
+  let { inputs, outputs, rest, others } = extractArgs(args, contentPosition);
+  let inputVariables = inputs.join(', ');
+  if (inputVariables) {
+    inputVariables = ', ' + inputVariables;
   }
-  let output_variables = outputs.join(', ');
-  if (output_variables) {
-    output_variables = output_variables + ' = ';
+  let outputVariables = outputs.join(', ');
+  if (outputVariables) {
+    outputVariables = outputVariables + ' = ';
   }
   return {
     content: rest,
     others: others.join(' '),
-    inputs: input_variables,
-    outputs: output_variables
+    inputs: inputVariables,
+    outputs: outputVariables
   };
 }
 
-export function rpy2_reverse_pattern(
+export function reversePattern(
   quote = '"',
-  multi_line = false,
+  multiLine = false,
   magic = 'R'
 ): string {
   return (
@@ -58,7 +55,7 @@ export function rpy2_reverse_pattern(
     magic +
     '\\(' +
     quote +
-    (multi_line ? '([\\s\\S]*)' : '(.*?)') +
+    (multiLine ? '([\\s\\S]*)' : '(.*?)') +
     quote +
     ', "(.*?)"' +
     '(?:, (\\S+))?'.repeat(10) +
@@ -66,7 +63,7 @@ export function rpy2_reverse_pattern(
   );
 }
 
-export function rpy2_reverse_replacement(match: string, ...args: string[]) {
+export function reverseReplacement(match: string, ...args: string[]) {
   let outputs = [];
   for (let i = 0; i < 10; i++) {
     if (args[i] == null) {
@@ -81,27 +78,27 @@ export function rpy2_reverse_replacement(match: string, ...args: string[]) {
     }
     inputs.push(args[i]);
   }
-  let input_variables = inputs.join(' -i ');
-  if (input_variables) {
-    input_variables = ' -i ' + input_variables;
+  let inputVariables = inputs.join(' -i ');
+  if (inputVariables) {
+    inputVariables = ' -i ' + inputVariables;
   }
-  let output_variables = outputs.join(' -o ');
-  if (output_variables) {
-    output_variables = ' -o ' + output_variables;
+  let outputVariables = outputs.join(' -o ');
+  if (outputVariables) {
+    outputVariables = ' -o ' + outputVariables;
   }
   let contents = args[11];
-  let other_args = args[12];
-  if (other_args) {
-    other_args = ' ' + other_args;
+  let otherArgs = args[12];
+  if (otherArgs) {
+    otherArgs = ' ' + otherArgs;
   }
   return {
-    input: input_variables,
-    output: output_variables,
-    other: other_args,
+    input: inputVariables,
+    output: outputVariables,
+    other: otherArgs,
     contents: contents
   };
 }
 
-export function rpy2_args_pattern(max_n: number) {
-  return '(?: -(\\S+) (\\S+))?'.repeat(max_n);
+export function argsPattern(maxN: number) {
+  return '(?: -(\\S+) (\\S+))?'.repeat(maxN);
 }

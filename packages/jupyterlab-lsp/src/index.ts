@@ -54,15 +54,15 @@ import { LOG_CONSOLE } from './virtual/console';
 const PLUGIN_ID = PLUGIN_ID_BASE + ':plugin';
 
 export class LSPExtension {
-  get connection_manager(): ILSPDocumentConnectionManager {
-    return this._connection_manager;
+  get connectionManager(): ILSPDocumentConnectionManager {
+    return this._connectionManager;
   }
-  private _connection_manager: DocumentConnectionManager;
-  language_server_manager: ILanguageServerManager;
+  private _connectionManager: DocumentConnectionManager;
+  languageServerManager: ILanguageServerManager;
   private _settingsSchemaManager: SettingsSchemaManager;
 
   private _isAnyActive(): boolean {
-    const adapters = [...this._connection_manager.adapters.values()];
+    const adapters = [...this._connectionManager.adapters.values()];
     return (
       this.app.shell.currentWidget !== null &&
       adapters.some(adapter => adapter.widget == this.app.shell.currentWidget)
@@ -71,21 +71,21 @@ export class LSPExtension {
 
   constructor(
     public app: JupyterFrontEnd,
-    private setting_registry: ISettingRegistry,
-    connection_manager: DocumentConnectionManager,
+    private settingRegistry: ISettingRegistry,
+    connectionManager: DocumentConnectionManager,
     public console: ILSPLogConsole,
     public translator: ITranslator,
-    public user_console: ILoggerRegistry | null,
+    public userConsole: ILoggerRegistry | null,
     statusBar: IStatusBar | null,
     formRegistry: IFormRendererRegistry | null
   ) {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
-    this.language_server_manager = connection_manager.languageServerManager;
-    this._connection_manager = connection_manager;
+    this.languageServerManager = connectionManager.languageServerManager;
+    this._connectionManager = connectionManager;
 
     const statusButtonExtension = new StatusButtonExtension({
-      languageServerManager: this.language_server_manager,
-      connectionManager: this.connection_manager,
+      languageServerManager: this.languageServerManager,
+      connectionManager: this.connectionManager,
       translatorBundle: trans,
       shell: app.shell
     });
@@ -102,8 +102,8 @@ export class LSPExtension {
     }
 
     this._settingsSchemaManager = new SettingsSchemaManager({
-      settingRegistry: this.setting_registry,
-      languageServerManager: this.language_server_manager,
+      settingRegistry: this.settingRegistry,
+      languageServerManager: this.languageServerManager,
       trans: trans,
       console: this.console.scope('SettingsSchemaManager'),
       restored: app.restored
@@ -111,9 +111,9 @@ export class LSPExtension {
 
     if (formRegistry != null) {
       const settingsUI = new SettingsUIManager({
-        settingRegistry: this.setting_registry,
+        settingRegistry: this.settingRegistry,
         console: this.console.scope('SettingsUIManager'),
-        languageServerManager: this.language_server_manager,
+        languageServerManager: this.languageServerManager,
         trans: trans,
         schemaValidated: this._settingsSchemaManager.schemaValidated
       });
@@ -130,7 +130,7 @@ export class LSPExtension {
   }
 
   private _activate(): void {
-    this.setting_registry
+    this.settingRegistry
       .load(plugin.id)
       .then(async settings => {
         await this._updateOptions(settings, false);
@@ -155,17 +155,15 @@ export class LSPExtension {
     const languageServerSettings = (options.language_servers ||
       {}) as TLanguageServerConfigurations;
 
-    this._connection_manager.initialConfigurations = languageServerSettings;
+    this._connectionManager.initialConfigurations = languageServerSettings;
     // TODO: if priorities changed reset connections
 
     // update the server-independent part of configuration immediately
-    this.connection_manager.updateConfiguration(languageServerSettings);
+    this.connectionManager.updateConfiguration(languageServerSettings);
     if (afterInitialization) {
-      this.connection_manager.updateServerConfigurations(
-        languageServerSettings
-      );
+      this.connectionManager.updateServerConfigurations(languageServerSettings);
     }
-    this._connection_manager.updateLogging(
+    this._connectionManager.updateLogging(
       options.logAllCommunication,
       options.setTrace!
     );
@@ -201,7 +199,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
   autoStart: true
 };
 
-const default_features: JupyterFrontEndPlugin<any>[] = [
+const DEFAULT_FEATURES: JupyterFrontEndPlugin<any>[] = [
   JUMP_PLUGIN,
   COMPLETION_PLUGIN,
   SIGNATURE_PLUGIN,
@@ -221,7 +219,7 @@ const plugins: JupyterFrontEndPlugin<any>[] = [
   FILEEDITOR_ADAPTER_PLUGIN,
   plugin,
   ...DEFAULT_TRANSCLUSIONS,
-  ...default_features
+  ...DEFAULT_FEATURES
 ];
 
 /**

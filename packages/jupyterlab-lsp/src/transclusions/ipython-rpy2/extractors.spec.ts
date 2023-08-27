@@ -70,42 +70,42 @@ describe('IPython rpy2 extractors', () => {
 
       // should not be removed, but left for the static analysis (using magic overrides)
       expect(cellCodeKept).toBe(code);
-      let r_document = getTheOnlyVirtual(foreignDocumentsMap);
-      expect(r_document.language).toBe('r');
-      expect(r_document.value).toBe('ggplot()\n');
+      let rDocument = getTheOnlyVirtual(foreignDocumentsMap);
+      expect(rDocument.language).toBe('r');
+      expect(rDocument.value).toBe('ggplot()\n');
     });
 
     it('parses input (into a dummy data frame)', () => {
       let code = wrapInPythonLines('%R -i df ggplot(df)');
       let { foreignDocumentsMap } = extract(code);
 
-      let r_document = getTheOnlyVirtual(foreignDocumentsMap);
-      expect(r_document.language).toBe('r');
-      expect(r_document.value).toBe('df <- data.frame(); ggplot(df)\n');
+      let rDocument = getTheOnlyVirtual(foreignDocumentsMap);
+      expect(rDocument.language).toBe('r');
+      expect(rDocument.value).toBe('df <- data.frame(); ggplot(df)\n');
     });
 
     it('parses input when no code is given', () => {
       let code = '%R -i df';
       let { foreignDocumentsMap } = extract(code);
 
-      let r_document = getTheOnlyVirtual(foreignDocumentsMap);
-      expect(r_document.value).toBe('df <- data.frame();\n');
+      let rDocument = getTheOnlyVirtual(foreignDocumentsMap);
+      expect(rDocument.value).toBe('df <- data.frame();\n');
     });
 
     it('parses multiple inputs (into dummy data frames)', () => {
       let code = wrapInPythonLines('%R -i df -i x ggplot(df)');
-      let { virtualDocument: r_document } = getTheOnlyPair(
+      let { virtualDocument: rDocument } = getTheOnlyPair(
         extract(code).foreignDocumentsMap
       );
-      expect(r_document.value).toBe(
+      expect(rDocument.value).toBe(
         'df <- data.frame(); x <- data.frame(); ggplot(df)\n'
       );
     });
 
     it('parses inputs ignoring other arguments', () => {
       let code = wrapInPythonLines('%R -i df --width 300 -o x ggplot(df)');
-      let r_document = getTheOnlyVirtual(extract(code).foreignDocumentsMap);
-      expect(r_document.value).toBe('df <- data.frame(); ggplot(df)\n');
+      let rDocument = getTheOnlyVirtual(extract(code).foreignDocumentsMap);
+      expect(rDocument.value).toBe('df <- data.frame(); ggplot(df)\n');
     });
   });
 
@@ -115,9 +115,9 @@ describe('IPython rpy2 extractors', () => {
       let { cellCodeKept, foreignDocumentsMap } = extract(code);
 
       expect(cellCodeKept).toBe(code);
-      let r_document = getTheOnlyVirtual(foreignDocumentsMap);
-      expect(r_document.language).toBe('r');
-      expect(r_document.value).toBe('ggplot()\n');
+      let rDocument = getTheOnlyVirtual(foreignDocumentsMap);
+      expect(rDocument.language).toBe('r');
+      expect(rDocument.value).toBe('ggplot()\n');
     });
   });
 
@@ -125,9 +125,9 @@ describe('IPython rpy2 extractors', () => {
     let code = '%%R -i df\nggplot(df)';
     let { foreignDocumentsMap } = extract(code);
 
-    let r_document = getTheOnlyVirtual(foreignDocumentsMap);
-    expect(r_document.language).toBe('r');
-    expect(r_document.value).toBe('df <- data.frame(); ggplot(df)\n');
+    let rDocument = getTheOnlyVirtual(foreignDocumentsMap);
+    expect(rDocument.language).toBe('r');
+    expect(rDocument.value).toBe('df <- data.frame(); ggplot(df)\n');
   });
 
   it('correctly gives ranges in source', () => {

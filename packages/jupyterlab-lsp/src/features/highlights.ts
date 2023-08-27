@@ -82,10 +82,10 @@ export class HighlightsFeature extends Feature {
       [DocumentHighlightKind.Write]: { class: 'cm-lsp-highlight-Write' }
     });
 
-    this._debouncedGetHighlight = this.create_debouncer();
+    this._debouncedGetHighlight = this.createDebouncer();
 
     this.settings.changed.connect(() => {
-      this._debouncedGetHighlight = this.create_debouncer();
+      this._debouncedGetHighlight = this.createDebouncer();
     });
 
     options.editorExtensionRegistry.addExtension({
@@ -215,15 +215,15 @@ export class HighlightsFeature extends Feature {
     }
   }
 
-  protected create_debouncer() {
+  protected createDebouncer() {
     return new Debouncer<
       lsProtocol.DocumentHighlight[] | null,
       void,
       [VirtualDocument, IVirtualPosition]
-    >(this.on_cursor_activity, this.settings.composite.debouncerDelay);
+    >(this.requestHighlights, this.settings.composite.debouncerDelay);
   }
 
-  protected on_cursor_activity = async (
+  protected requestHighlights = async (
     virtualDocument: VirtualDocument,
     virtualPosition: IVirtualPosition
   ) => {
@@ -327,13 +327,13 @@ export class HighlightsFeature extends Feature {
         return;
       }
 
-      let version_after = document.documentInfo.version;
+      let versionAfter = document.documentInfo.version;
 
       /// if document was updated since (e.g. user pressed delete - token change, but position did not)
-      if (version_after !== this._versionSent) {
+      if (versionAfter !== this._versionSent) {
         this.console.log(
           'skipping highlights response delayed by ' +
-            (version_after - this._versionSent) +
+            (versionAfter - this._versionSent) +
             ' document versions'
         );
         return;

@@ -8,7 +8,7 @@ import { FileEditor } from '@jupyterlab/fileeditor';
 import { JumpHistory } from '../history';
 import { IGlobalPosition, ILocalPosition } from '../positions';
 
-const movement_keys = [
+const movementKeys = [
   'ArrowRight',
   'ArrowLeft',
   'ArrowUp',
@@ -21,7 +21,7 @@ const movement_keys = [
 
 const modifiers = ['Alt', 'AltGraph', 'Control', 'Shift'];
 
-const system_keys = [
+const systemKeys = [
   'F1',
   'F2',
   'F3',
@@ -38,66 +38,66 @@ const system_keys = [
 ];
 
 export abstract class CodeJumper {
-  document_manager: IDocumentManager;
+  documentManager: IDocumentManager;
   widget: IDocumentWidget;
 
   history: JumpHistory;
 
   abstract get editors(): ReadonlyArray<CodeEditor.IEditor>;
 
-  private go_to_position(
-    document_widget: IDocumentWidget,
+  private goToPosition(
+    documentWidget: IDocumentWidget,
     jumper: string,
     column: number,
-    line_number: number,
-    input_number = 0
+    lineNumber: number,
+    inputNumber = 0
   ) {
-    let document_jumper: CodeJumper;
-    let position = { line: line_number, column: column };
-    let document_jumper_type = jumpers.get(jumper);
+    let documentJumper: CodeJumper;
+    let position = { line: lineNumber, column: column };
+    let documentJumperType = jumpers.get(jumper);
 
-    document_jumper = new document_jumper_type(
-      document_widget,
-      this.document_manager
+    documentJumper = new documentJumperType(
+      documentWidget,
+      this.documentManager
     );
-    let jump_position = document_jumper.getJumpPosition(position, input_number);
-    document_jumper.jump(jump_position);
+    let jumpPosition = documentJumper.getJumpPosition(position, inputNumber);
+    documentJumper.jump(jumpPosition);
   }
 
-  private _global_jump(position: IGlobalPosition) {
-    let document_widget = this.document_manager.openOrReveal(
-      position.contents_path
+  private _globalJump(position: IGlobalPosition) {
+    let documentWidget = this.documentManager.openOrReveal(
+      position.contentsPath
     );
-    if (!document_widget) {
+    if (!documentWidget) {
       console.log('Widget failed to open for jump');
       return;
     }
-    let is_symlink = position.is_symlink;
+    let isSymlink = position.isSymlink;
 
-    document_widget.revealed
+    documentWidget.revealed
       .then(() => {
-        this.go_to_position(
-          document_widget!,
-          position.contents_path.endsWith('.ipynb') ? 'notebook' : 'fileeditor',
+        this.goToPosition(
+          documentWidget!,
+          position.contentsPath.endsWith('.ipynb') ? 'notebook' : 'fileeditor',
           position.column,
           position.line,
-          position.editor_index
+          position.editorIndex
         );
 
         // protect external files from accidental edition
-        if (is_symlink) {
-          this.protectFromAccidentalEditing(document_widget!);
+        if (isSymlink) {
+          this.protectFromAccidentalEditing(documentWidget!);
         }
       })
       .catch(console.warn);
   }
 
-  private protectFromAccidentalEditing(document_widget: IDocumentWidget) {
-    let editor_widget = document_widget as IDocumentWidget<FileEditor>;
-    // We used to adjust `editor_widget.title.label` here but an upstream
+  private protectFromAccidentalEditing(documentWidget: IDocumentWidget) {
+    let editorWidget = documentWidget as IDocumentWidget<FileEditor>;
+    // We used to adjust `editorWidget.title.label` here but an upstream
     // bug (https://github.com/jupyterlab/jupyterlab/issues/10856) prevents
     // us from doing so anymore.
-    let editor = editor_widget.content.editor;
+    let editor = editorWidget.content.editor;
     let active = true;
     editor.injectExtension(
       EditorView.domEventHandlers({
@@ -107,9 +107,9 @@ export abstract class CodeJumper {
           }
           // allow to move around, select text and use modifiers & browser keys freely
           if (
-            movement_keys.indexOf(event.key) !== -1 ||
+            movementKeys.indexOf(event.key) !== -1 ||
             modifiers.indexOf(event.key) !== -1 ||
-            system_keys.indexOf(event.key) !== -1
+            systemKeys.indexOf(event.key) !== -1
           ) {
             return false;
           }
@@ -120,7 +120,7 @@ export abstract class CodeJumper {
             return false;
           }
 
-          let dialog_promise = showDialog({
+          let dialogPromise = showDialog({
             title: 'Edit external file?',
             body:
               'This file is located outside of the root of the JupyterLab start directory. ' +
@@ -131,7 +131,7 @@ export abstract class CodeJumper {
             ]
           });
 
-          dialog_promise
+          dialogPromise
             .then(result => {
               if (result.button.accept) {
                 active = false;
@@ -148,17 +148,17 @@ export abstract class CodeJumper {
 
   protected abstract jump(position: ILocalPosition): void;
 
-  global_jump_back() {
-    let previous_position = this.history.recollect();
-    if (previous_position) {
-      this._global_jump(previous_position);
+  globalJumpBack() {
+    let previousPosition = this.history.recollect();
+    if (previousPosition) {
+      this._globalJump(previousPosition);
     }
   }
 
-  global_jump(position: IGlobalPosition) {
-    const current_position = this.getCurrentPosition();
-    this.history.store(current_position);
-    this._global_jump(position);
+  globalJump(position: IGlobalPosition) {
+    const currentPosition = this.getCurrentPosition();
+    this.history.store(currentPosition);
+    this._globalJump(position);
   }
 
   abstract getCurrentPosition(): IGlobalPosition;
@@ -167,7 +167,7 @@ export abstract class CodeJumper {
 
   abstract getJumpPosition(
     position: CodeEditor.IPosition,
-    input_number?: number
+    inputNumber?: number
   ): ILocalPosition;
 }
 

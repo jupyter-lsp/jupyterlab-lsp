@@ -1,13 +1,13 @@
 import { ICodeOverride, replacer } from './tokens';
 
 abstract class OverridesMap extends Map<RegExp, string | replacer> {
-  protected constructor(magic_overrides: ICodeOverride[]) {
-    super(magic_overrides.map(m => [new RegExp(m.pattern), m.replacement]));
+  protected constructor(magicOverrides: ICodeOverride[]) {
+    super(magicOverrides.map(m => [new RegExp(m.pattern), m.replacement]));
   }
 
-  abstract override_for(code: string): string | null;
+  abstract overrideFor(code: string): string | null;
 
-  protected _override_for(code: string): string | null {
+  protected _overrideFor(code: string): string | null {
     for (let [key, value] of this) {
       if (code.match(key)) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -22,9 +22,9 @@ abstract class OverridesMap extends Map<RegExp, string | replacer> {
 export class ReversibleOverridesMap extends OverridesMap {
   private overrides: ICodeOverride[];
 
-  constructor(magic_overrides: ICodeOverride[]) {
-    super(magic_overrides);
-    this.overrides = magic_overrides;
+  constructor(magicOverrides: ICodeOverride[]) {
+    super(magicOverrides);
+    this.overrides = magicOverrides;
   }
 
   get reverse(): OverridesMap {
@@ -39,30 +39,30 @@ export class ReversibleOverridesMap extends OverridesMap {
     return new ReversibleOverridesMap(overrides);
   }
 
-  override_for(cell: string): string | null {
-    return super._override_for(cell);
+  overrideFor(cell: string): string | null {
+    return super._overrideFor(cell);
   }
 
-  replace_all(
-    raw_lines: string[],
+  replaceAll(
+    rawLines: string[],
     map: OverridesMap = this
   ): { lines: string[]; skipInspect: boolean[] } {
-    let substituted_lines = new Array<string>();
+    let substitutedLines = new Array<string>();
     let skipInspect = new Array<boolean>();
 
-    for (let i = 0; i < raw_lines.length; i++) {
-      let line = raw_lines[i];
-      let override = map.override_for(line);
-      substituted_lines.push(override == null ? line : override);
+    for (let i = 0; i < rawLines.length; i++) {
+      let line = rawLines[i];
+      let override = map.overrideFor(line);
+      substitutedLines.push(override == null ? line : override);
       skipInspect.push(override != null);
     }
     return {
-      lines: substituted_lines,
+      lines: substitutedLines,
       skipInspect: skipInspect
     };
   }
 
-  reverse_replace_all(raw_lines: string[]): string[] {
-    return this.replace_all(raw_lines, this.reverse).lines;
+  reverseReplaceAll(rawLines: string[]): string[] {
+    return this.replaceAll(rawLines, this.reverse).lines;
   }
 }

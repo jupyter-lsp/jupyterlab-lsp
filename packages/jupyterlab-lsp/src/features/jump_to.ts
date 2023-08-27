@@ -52,7 +52,7 @@ import {
 } from '../converter';
 import { FeatureSettings, Feature } from '../feature';
 import { PLUGIN_ID } from '../tokens';
-import { getModifierState, uri_to_contents_path, uris_equal } from '../utils';
+import { getModifierState, uriToContentsPath, urisEqual } from '../utils';
 import { BrowserConsole } from '../virtual/console';
 
 export const jumpToIcon = new LabIcon({
@@ -331,7 +331,7 @@ export class NavigationFeature extends Feature {
   }
 
   private _resolvePath(uri: string): string | null {
-    let contentsPath = uri_to_contents_path(uri);
+    let contentsPath = uriToContentsPath(uri);
 
     if (contentsPath == null) {
       if (uri.startsWith('file://')) {
@@ -366,7 +366,7 @@ export class NavigationFeature extends Feature {
       range.start
     ) as IVirtualPosition;
 
-    if (uris_equal(uri, positionParams.textDocument.uri)) {
+    if (urisEqual(uri, positionParams.textDocument.uri)) {
       let editorIndex = adapter.getEditorIndexAt(virtualPosition);
       // if in current file, transform from the position within virtual document to the editor position:
       const rootPosition = virtualPositionToRootPosition(
@@ -400,24 +400,24 @@ export class NavigationFeature extends Feature {
         return JumpResult.AlreadyAtTarget;
       }
 
-      jumper.global_jump({
+      jumper.globalJump({
         line: editorPosition.line,
         column: editorPosition.ch,
-        editor_index: editorIndex,
-        is_symlink: false,
-        contents_path: contentsPath
+        editorIndex,
+        isSymlink: false,
+        contentsPath
       });
       return JumpResult.AssumeSuccess;
     } else {
       // otherwise there is no virtual document and we expect the returned position to be source position:
-      let source_position_ce = PositionConverter.cm_to_ce(virtualPosition);
+      let sourcePosition = PositionConverter.cm_to_ce(virtualPosition);
       this.console.log(`Jumping to external file: ${uri}`);
-      this.console.log('Jump target (source location):', source_position_ce);
+      this.console.log('Jump target (source location):', sourcePosition);
 
-      let jump_data = {
-        editor_index: 0,
-        line: source_position_ce.line,
-        column: source_position_ce.column
+      let jumpData = {
+        editorIndex: 0,
+        line: sourcePosition.line,
+        column: sourcePosition.column
       };
 
       // assume that we got a relative path to a file within the project
@@ -433,13 +433,13 @@ export class NavigationFeature extends Feature {
       }
 
       try {
-        await jumper.document_manager.services.contents.get(contentsPath, {
+        await jumper.documentManager.services.contents.get(contentsPath, {
           content: false
         });
-        jumper.global_jump({
-          contents_path: contentsPath,
-          ...jump_data,
-          is_symlink: false
+        jumper.globalJump({
+          contentsPath,
+          ...jumpData,
+          isSymlink: false
         });
         return JumpResult.AssumeSuccess;
       } catch (err) {
@@ -447,10 +447,10 @@ export class NavigationFeature extends Feature {
       }
 
       // TODO: user debugger source request?
-      jumper.global_jump({
-        contents_path: URLExt.join('.lsp_symlink', contentsPath),
-        ...jump_data,
-        is_symlink: true
+      jumper.globalJump({
+        contentsPath: URLExt.join('.lsp_symlink', contentsPath),
+        ...jumpData,
+        isSymlink: true
       });
       return JumpResult.AssumeSuccess;
     }
@@ -634,7 +634,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
           console.warn('Could not get context');
           return;
         }
-        feature.getJumper(context.adapter).global_jump_back();
+        feature.getJumper(context.adapter).globalJumpBack();
       },
       label: trans.__('Jump back'),
       icon: jumpBackIcon,

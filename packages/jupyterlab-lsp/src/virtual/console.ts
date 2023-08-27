@@ -14,7 +14,7 @@ interface ILogConsoleImplementation extends ILogConsoleCore {
   bindThis(): any;
 }
 
-function to_string(args: any[]): string {
+function toString(args: any[]): string {
   return args
     .map(arg => {
       let textual: string;
@@ -61,16 +61,16 @@ class FloatingConsole implements ILogConsoleImplementation {
   }
 
   debug(...args: any[]) {
-    this.append(to_string(args), 'debug');
+    this.append(toString(args), 'debug');
   }
   log(...args: any[]) {
-    this.append(to_string(args), 'log');
+    this.append(toString(args), 'log');
   }
   warn(...args: any[]) {
-    this.append(to_string(args), 'warn');
+    this.append(toString(args), 'warn');
   }
   error(...args: any[]) {
-    this.append(to_string(args), 'error');
+    this.append(toString(args), 'error');
   }
 }
 
@@ -106,8 +106,8 @@ class ConsoleWrapper implements ILSPLogConsole {
     this.breadcrumbs = scope;
     this._scope = this.breadcrumbs.join('.') + ':';
     this.singleton = singleton;
-    this.singleton.changed.connect(this._rebind_functions.bind(this));
-    this._rebind_functions();
+    this.singleton.changed.connect(this._rebindFunctions.bind(this));
+    this._rebindFunctions();
   }
 
   /**
@@ -115,22 +115,22 @@ class ConsoleWrapper implements ILSPLogConsole {
    * location (file:line) of the actual call rather than of this wrapper
    * when using with the browser implementation.
    */
-  _rebind_functions() {
-    const no_op = () => {
+  _rebindFunctions() {
+    const noOp = () => {
       // do nothing
     };
-    const bind_arg = this.implementation.bindThis();
+    const bindArg = this.implementation.bindThis();
 
     if (this.verbosity === 'debug') {
-      this.debug = this.implementation.debug.bind(bind_arg, this._scope);
+      this.debug = this.implementation.debug.bind(bindArg, this._scope);
     } else {
-      this.debug = no_op;
+      this.debug = noOp;
     }
 
     if (this.verbosity === 'debug' || this.verbosity === 'log') {
-      this.log = this.implementation.log.bind(bind_arg, this._scope);
+      this.log = this.implementation.log.bind(bindArg, this._scope);
     } else {
-      this.log = no_op;
+      this.log = noOp;
     }
 
     if (
@@ -138,12 +138,12 @@ class ConsoleWrapper implements ILSPLogConsole {
       this.verbosity === 'log' ||
       this.verbosity === 'warn'
     ) {
-      this.warn = this.implementation.warn.bind(bind_arg, this._scope);
+      this.warn = this.implementation.warn.bind(bindArg, this._scope);
     } else {
-      this.warn = no_op;
+      this.warn = noOp;
     }
 
-    this.error = this.implementation.error.bind(bind_arg, this._scope);
+    this.error = this.implementation.error.bind(bindArg, this._scope);
   }
 
   get verbosity() {
@@ -177,13 +177,13 @@ class ConsoleSingleton {
   public implementation: ILogConsoleImplementation;
   public changed: Signal<ConsoleSingleton, void>;
 
-  constructor(setting_registry: ISettingRegistry) {
+  constructor(settingRegistry: ISettingRegistry) {
     // until loaded log everything, to browser console
     this.verbosity = 'debug';
     this.implementation = new BrowserConsole();
     this.changed = new Signal(this);
 
-    setting_registry
+    settingRegistry
       .load(PLUGIN_ID + ':plugin')
       .then(settings => {
         this.updateSettings(settings);
@@ -223,8 +223,8 @@ class ConsoleSingleton {
 export const LOG_CONSOLE: JupyterFrontEndPlugin<ILSPLogConsole> = {
   id: PLUGIN_ID + ':ILSPLogConsole',
   requires: [ISettingRegistry],
-  activate: (app, setting_registry: ISettingRegistry) => {
-    const singleton = new ConsoleSingleton(setting_registry);
+  activate: (app, settingRegistry: ISettingRegistry) => {
+    const singleton = new ConsoleSingleton(settingRegistry);
     return new ConsoleWrapper(['LSP'], singleton);
   },
   provides: ILSPLogConsole,

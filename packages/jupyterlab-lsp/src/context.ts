@@ -107,8 +107,8 @@ export class ContextAssembler {
       return null;
     }
 
-    let ce_cursor = editor.getCursorPosition();
-    let cm_cursor = PositionConverter.ce_to_cm(ce_cursor) as IEditorPosition;
+    let ceCursor = editor.getCursorPosition();
+    let cmCursor = PositionConverter.ce_to_cm(ceCursor) as IEditorPosition;
 
     const virtualDocument = adapter.virtualDocument;
     if (!virtualDocument) {
@@ -117,7 +117,7 @@ export class ContextAssembler {
     }
     const rootPosition = virtualDocument.transformFromEditorToRoot(
       adapter.activeEditor!,
-      cm_cursor
+      cmCursor
     )!;
 
     if (rootPosition == null) {

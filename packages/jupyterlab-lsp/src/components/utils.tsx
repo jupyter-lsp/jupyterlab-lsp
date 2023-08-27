@@ -24,7 +24,7 @@ export function getBreadcrumbs(
       ) {
         path = path.slice(0, -document.fileExtension.length - 1);
       }
-      const full_path = path;
+      const fullPath = path;
       if (collapse) {
         let parts = path.split('/');
         if (parts.length > 2) {
@@ -32,7 +32,7 @@ export function getBreadcrumbs(
         }
       }
       return (
-        <span key={document.uri} title={full_path}>
+        <span key={document.uri} title={fullPath}>
           {path}
         </span>
       );
@@ -46,20 +46,20 @@ export function getBreadcrumbs(
     }
     try {
       if (adapter.hasMultipleEditors) {
-        let first_line = virtualLines.get(0)!;
-        let last_line = virtualLines.get(document.lastVirtualLine - 1)!;
+        let firstLine = virtualLines.get(0)!;
+        let lastLine = virtualLines.get(document.lastVirtualLine - 1)!;
 
-        let first_cell = adapter.getEditorIndex(first_line.editor);
-        let last_cell = adapter.getEditorIndex(last_line.editor);
+        let firstCell = adapter.getEditorIndex(firstLine.editor);
+        let lastCell = adapter.getEditorIndex(lastLine.editor);
 
-        let cell_locator =
-          first_cell === last_cell
-            ? trans!.__('cell %1', first_cell + 1)
-            : trans!.__('cells: %1-%2', first_cell + 1, last_cell + 1);
+        let cellLocator =
+          firstCell === lastCell
+            ? trans!.__('cell %1', firstCell + 1)
+            : trans!.__('cells: %1-%2', firstCell + 1, lastCell + 1);
 
         return (
           <span key={document.uri}>
-            {document.language} ({cell_locator})
+            {document.language} ({cellLocator})
           </span>
         );
       }
@@ -89,9 +89,9 @@ export function DocumentLocator(props: {
   if (adapter.hasMultipleEditors) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    let first_line = document.virtualLines.get(0);
-    if (first_line) {
-      target = first_line.editor;
+    let firstLine = document.virtualLines.get(0);
+    if (firstLine) {
+      target = firstLine.editor;
     } else {
       console.warn('Could not get first line of ', document);
     }

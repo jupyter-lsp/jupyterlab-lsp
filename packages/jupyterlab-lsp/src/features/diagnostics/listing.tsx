@@ -35,7 +35,7 @@ export interface IDiagnosticsRow {
   /**
    * Cell number is the ordinal, 1-based cell identifier displayed to the user.
    */
-  cell_number?: number;
+  cellNumber?: number;
 }
 
 interface IListingContext {
@@ -46,20 +46,20 @@ interface IListingContext {
 interface IColumnOptions {
   id: string;
   label: string;
-  render_cell(data: IDiagnosticsRow, context?: IListingContext): ReactElement;
+  renderCell(data: IDiagnosticsRow, context?: IListingContext): ReactElement;
   sort(a: IDiagnosticsRow, b: IDiagnosticsRow): number;
-  is_available?(context: IListingContext): boolean;
+  isAvailable?(context: IListingContext): boolean;
 }
 
 class Column {
-  public is_visible: boolean;
+  public isVisible: boolean;
 
   constructor(private options: IColumnOptions) {
-    this.is_visible = true;
+    this.isVisible = true;
   }
 
-  render_cell(data: IDiagnosticsRow, context: IListingContext) {
-    return this.options.render_cell(data, context);
+  renderCell(data: IDiagnosticsRow, context: IListingContext) {
+    return this.options.renderCell(data, context);
   }
 
   sort(a: IDiagnosticsRow, b: IDiagnosticsRow) {
@@ -70,14 +70,14 @@ class Column {
     return this.options.id;
   }
 
-  is_available(context: IListingContext) {
-    if (this.options.is_available != null) {
-      return this.options.is_available(context);
+  isAvailable(context: IListingContext) {
+    if (this.options.isAvailable != null) {
+      return this.options.isAvailable(context);
     }
     return true;
   }
 
-  render_header(listing: DiagnosticsListing): ReactElement {
+  renderHeader(listing: DiagnosticsListing): ReactElement {
     return (
       <SortableTH
         label={this.options.label}
@@ -94,16 +94,16 @@ function SortableTH(props: {
   label: string;
   listing: DiagnosticsListing;
 }): ReactElement {
-  const is_sort_key = props.id === props.listing.sort_key;
+  const isSortKey = props.id === props.listing.sortKey;
   const sortIcon =
-    !is_sort_key || props.listing.sort_direction === 1
+    !isSortKey || props.listing.sortDirection === 1
       ? caretUpIcon
       : caretDownIcon;
   return (
     <th
       key={props.id}
       onClick={() => props.listing.sort(props.id)}
-      className={is_sort_key ? 'lsp-sorted-header' : undefined}
+      className={isSortKey ? 'lsp-sorted-header' : undefined}
       data-id={props.id}
     >
       <div>
@@ -116,20 +116,20 @@ function SortableTH(props: {
 
 export function messageWithoutCode(diagnostic: lsProtocol.Diagnostic) {
   let message = diagnostic.message;
-  let code_str = '' + diagnostic.code;
+  let codeString = '' + diagnostic.code;
   if (
     diagnostic.code != null &&
     diagnostic.code !== '' &&
-    message.startsWith(code_str + '')
+    message.startsWith(codeString + '')
   ) {
-    return message.slice(code_str.length).trim();
+    return message.slice(codeString.length).trim();
   }
   return message;
 }
 
 export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
-  sort_key = 'Severity';
-  sort_direction = 1;
+  sortKey = 'Severity';
+  sortDirection = 1;
   private _diagnostics: Map<string, IDiagnosticsRow>;
   protected trans: TranslationBundle;
   public columns: Column[];
@@ -153,7 +153,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
       new Column({
         id: 'Virtual Document',
         label: this.trans.__('Virtual Document'),
-        render_cell: (row, context: IListingContext) => (
+        renderCell: (row, context: IListingContext) => (
           <td key={0}>
             <DocumentLocator
               document={row.document}
@@ -163,12 +163,12 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
           </td>
         ),
         sort: (a, b) => a.document.idPath.localeCompare(b.document.idPath),
-        is_available: context => context.db.size > 1
+        isAvailable: context => context.db.size > 1
       }),
       new Column({
         id: 'Message',
         label: this.trans.__('Message'),
-        render_cell: row => {
+        renderCell: row => {
           let message = messageWithoutCode(row.data.diagnostic);
           return <td key={1}>{message}</td>;
         },
@@ -178,7 +178,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
       new Column({
         id: 'Code',
         label: this.trans.__('Code'),
-        render_cell: row => <td key={2}>{row.data.diagnostic.code}</td>,
+        renderCell: row => <td key={2}>{row.data.diagnostic.code}</td>,
         sort: (a, b) =>
           (a.data.diagnostic.code + '').localeCompare(
             b.data.diagnostic.source + ''
@@ -188,7 +188,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
         id: 'Severity',
         label: this.trans.__('Severity'),
         // TODO: use default diagnostic severity
-        render_cell: row => {
+        renderCell: row => {
           const severity = DiagnosticSeverity[
             row.data.diagnostic.severity || 1
           ] as keyof typeof DiagnosticSeverity;
@@ -211,7 +211,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
       new Column({
         id: 'Source',
         label: this.trans.__('Source'),
-        render_cell: row => <td key={4}>{row.data.diagnostic.source}</td>,
+        renderCell: row => <td key={4}>{row.data.diagnostic.source}</td>,
         sort: (a, b) => {
           if (!a.data.diagnostic.source) {
             return +1;
@@ -227,17 +227,17 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
       new Column({
         id: 'Cell',
         label: this.trans.__('Cell'),
-        render_cell: row => <td key={5}>{row.cell_number}</td>,
+        renderCell: row => <td key={5}>{row.cellNumber}</td>,
         sort: (a, b) =>
-          a.cell_number! - b.cell_number! ||
+          a.cellNumber! - b.cellNumber! ||
           a.data.range.start.line - b.data.range.start.line ||
           a.data.range.start.ch - b.data.range.start.ch,
-        is_available: context => context.adapter.hasMultipleEditors
+        isAvailable: context => context.adapter.hasMultipleEditors
       }),
       new Column({
         id: 'Line:Ch',
         label: this.trans.__('Line:Ch'),
-        render_cell: row => (
+        renderCell: row => (
           <td key={6}>
             {row.data.range.start.line}:{row.data.range.start.ch}
           </td>
@@ -250,26 +250,26 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
   }
 
   sort(key: string) {
-    if (key === this.sort_key) {
-      this.sort_direction = this.sort_direction * -1;
+    if (key === this.sortKey) {
+      this.sortDirection = this.sortDirection * -1;
     } else {
-      this.sort_key = key;
-      this.sort_direction = 1;
+      this.sortKey = key;
+      this.sortDirection = 1;
     }
     this.update();
   }
 
   render() {
-    let diagnostics_db = this.model.diagnostics;
+    let diagnosticsDatabase = this.model.diagnostics;
     const adapter = this.model.adapter;
-    if (diagnostics_db == null || !adapter) {
+    if (diagnosticsDatabase == null || !adapter) {
       return (
         <div className={DIAGNOSTICS_PLACEHOLDER_CLASS}>
           {this.trans.__('Diagnostics are not available')}
         </div>
       );
     }
-    if (diagnostics_db.size === 0) {
+    if (diagnosticsDatabase.size === 0) {
       return (
         <div className={DIAGNOSTICS_PLACEHOLDER_CLASS}>
           {this.trans.__('No issues detected, great job!')}
@@ -277,52 +277,52 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
       );
     }
 
-    let by_document = Array.from(diagnostics_db).map(
+    let byDocument = Array.from(diagnosticsDatabase).map(
       ([virtualDocument, diagnostics]) => {
         if (virtualDocument.isDisposed) {
           return [];
         }
-        return diagnostics.map((diagnostic_data, i) => {
-          let cell_number: number | null = null;
+        return diagnostics.map((diagnosticData, i) => {
+          let cellNumber: number | null = null;
           if (adapter.hasMultipleEditors) {
             const cellIndex = adapter.editors.findIndex(
-              value => value.ceEditor.getEditor() == diagnostic_data.editor
+              value => value.ceEditor.getEditor() == diagnosticData.editor
             );
-            cell_number = cellIndex + 1;
+            cellNumber = cellIndex + 1;
           }
           return {
-            data: diagnostic_data,
+            data: diagnosticData,
             key: virtualDocument.uri + ',' + i,
             document: virtualDocument,
-            cell_number: cell_number
+            cellNumber: cellNumber
           } as IDiagnosticsRow;
         });
       }
     );
     let flattened: IDiagnosticsRow[] = ([] as IDiagnosticsRow[]).concat.apply(
       [],
-      by_document
+      byDocument
     );
     this._diagnostics = new Map(flattened.map(row => [row.key, row]));
 
-    let sorted_column = this.columns.filter(
-      column => column.id === this.sort_key
+    let sortedColumn = this.columns.filter(
+      column => column.id === this.sortKey
     )[0];
-    let sorter = sorted_column.sort.bind(sorted_column);
-    let sorted = flattened.sort((a, b) => sorter(a, b) * this.sort_direction);
+    let sorter = sortedColumn.sort.bind(sortedColumn);
+    let sorted = flattened.sort((a, b) => sorter(a, b) * this.sortDirection);
 
     let context: IListingContext = {
-      db: diagnostics_db,
+      db: diagnosticsDatabase,
       adapter: adapter
     };
 
-    let columns_to_display = this.columns.filter(
-      column => column.is_available(context) && column.is_visible
+    let columnsToDisplay = this.columns.filter(
+      column => column.isAvailable(context) && column.isVisible
     );
 
     let elements = sorted.map(row => {
-      let cells = columns_to_display.map(column =>
-        column.render_cell(row, context)
+      let cells = columnsToDisplay.map(column =>
+        column.renderCell(row, context)
       );
 
       return (
@@ -330,7 +330,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
           key={row.key}
           data-key={row.key}
           onClick={() => {
-            this.jump_to(row);
+            this.jumpTo(row);
           }}
         >
           {cells}
@@ -338,21 +338,21 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
       );
     });
 
-    let columns_headers = columns_to_display.map(column =>
-      column.render_header(this)
+    let columnsHeaders = columnsToDisplay.map(column =>
+      column.renderHeader(this)
     );
 
     return (
       <table className={DIAGNOSTICS_LISTING_CLASS}>
         <thead>
-          <tr>{columns_headers}</tr>
+          <tr>{columnsHeaders}</tr>
         </thead>
         <tbody>{elements}</tbody>
       </table>
     );
   }
 
-  get_diagnostic(key: string): IDiagnosticsRow | undefined {
+  getDiagnostic(key: string): IDiagnosticsRow | undefined {
     if (!this._diagnostics.has(key)) {
       console.warn('Could not find the diagnostics row with key', key);
       return;
@@ -360,12 +360,12 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
     return this._diagnostics.get(key);
   }
 
-  jump_to(row: IDiagnosticsRow) {
-    const cm_editor = row.data.editor;
-    cm_editor.setCursorPosition(
+  jumpTo(row: IDiagnosticsRow) {
+    const cmEditor = row.data.editor;
+    cmEditor.setCursorPosition(
       PositionConverter.cm_to_ce(row.data.range.start)
     );
-    cm_editor.focus();
+    cmEditor.focus();
   }
 }
 
@@ -379,9 +379,9 @@ export namespace DiagnosticsListing {
     settings: IFeatureSettings<LSPDiagnosticsSettings>;
     trans: TranslationBundle;
 
-    constructor(translator_bundle: TranslationBundle) {
+    constructor(translatorBundle: TranslationBundle) {
       super();
-      this.trans = translator_bundle;
+      this.trans = translatorBundle;
     }
   }
 }

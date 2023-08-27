@@ -76,19 +76,19 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<IDiagnosticsFeature> = {
           }
           feature.switchDiagnosticsPanelSource(context.adapter);
 
-          if (!diagnosticsPanel.is_registered) {
+          if (!diagnosticsPanel.isRegistered) {
             diagnosticsPanel.trans = trans;
             diagnosticsPanel.register(app);
           }
 
-          const panel_widget = diagnosticsPanel.widget;
-          if (!panel_widget.isAttached) {
-            app.shell.add(panel_widget, 'main', {
+          const panelWidget = diagnosticsPanel.widget;
+          if (!panelWidget.isAttached) {
+            app.shell.add(panelWidget, 'main', {
               ref: context.adapter.widgetId,
               mode: 'split-bottom'
             });
           }
-          app.shell.activateById(panel_widget.id);
+          app.shell.activateById(panelWidget.id);
         },
         label: trans.__('Show diagnostics panel'),
         icon: diagnosticsIcon,

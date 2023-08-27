@@ -434,18 +434,18 @@ export function codeCell(
 export function setNotebookContent(
   notebook: Notebook,
   cells: nbformat.ICodeCell[],
-  metadata = python_notebook_metadata
+  metadata = pythonNotebookMetadata
 ) {
-  let test_notebook = {
+  let testNotebook = {
     cells: cells,
     metadata: metadata
   } as nbformat.INotebookContent;
 
   notebook.model = new NotebookModel();
-  notebook.model.fromJSON(test_notebook);
+  notebook.model.fromJSON(testNotebook);
 }
 
-export const python_notebook_metadata = {
+export const pythonNotebookMetadata = {
   kernelspec: {
     display_name: 'Python [default]',
     language: 'python',
@@ -481,17 +481,4 @@ export function getCellsJSON(notebook: Notebook): Array<nbformat.ICell> {
     cells.push(notebook.model!.cells.get(i));
   }
   return cells.map(cell => cell.toJSON());
-}
-
-export async function synchronize_content(
-  environment: ITestEnvironment,
-  adapter: WidgetLSPAdapter<any>
-) {
-  await environment.adapter.updateDocuments();
-  try {
-    // TODO
-    await adapter.updateFinished;
-  } catch (e) {
-    console.warn(e);
-  }
 }

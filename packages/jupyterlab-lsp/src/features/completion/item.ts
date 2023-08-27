@@ -32,7 +32,7 @@ namespace CompletionItem {
 export class CompletionItem implements IExtendedCompletionItem {
   private _detail: string | undefined;
   private _documentation: string | undefined;
-  private _is_documentation_markdown: boolean;
+  private _isDocumentationMarkdown: boolean;
   private _resolved: boolean;
   /**
    * Self-reference to make sure that the instance for will remain accessible
@@ -45,7 +45,7 @@ export class CompletionItem implements IExtendedCompletionItem {
   private _currentInsertText: string;
 
   get isDocumentationMarkdown(): boolean {
-    return this._is_documentation_markdown;
+    return this._isDocumentationMarkdown;
   }
 
   /**
@@ -78,10 +78,10 @@ export class CompletionItem implements IExtendedCompletionItem {
   ) {
     if (lsProtocol.MarkupContent.is(documentation)) {
       this._documentation = documentation.value;
-      this._is_documentation_markdown = documentation.kind === 'markdown';
+      this._isDocumentationMarkdown = documentation.kind === 'markdown';
     } else {
       this._documentation = documentation;
-      this._is_documentation_markdown = false;
+      this._isDocumentationMarkdown = false;
     }
   }
 

@@ -301,18 +301,18 @@ describe('Diagnostics', () => {
       );
       await framePromise();
 
-      let cm_editors = env.adapter.editors.map(
+      let cmEditors = env.adapter.editors.map(
         editor => (editor.ceEditor.getEditor()! as CodeMirrorEditor).editor
       );
-      const marks_cell_1 = getDiagnostics(cm_editors[0].state);
+      const marksCell1 = getDiagnostics(cmEditors[0].state);
       // test from mypy, test from pyflakes, whitespace around operator from pycodestyle
-      expect(marks_cell_1.length).toBe(3);
+      expect(marksCell1.length).toBe(3);
 
-      const marks_cell_2 = getDiagnostics(cm_editors[1].state);
-      expect(marks_cell_2.length).toBe(2);
+      const marksCell2 = getDiagnostics(cmEditors[1].state);
+      expect(marksCell2.length).toBe(2);
 
-      expect(marks_cell_2[1].message).toContain('W391');
-      expect(marks_cell_2[0].message).toContain('W293');
+      expect(marksCell2[1].message).toContain('W391');
+      expect(marksCell2[0].message).toContain('W293');
 
       expect(feature.getDiagnosticsDB(env.adapter).size).toBe(1);
       expect(feature.getDiagnosticsDB(env.adapter).get(document)!.length).toBe(
@@ -358,15 +358,15 @@ describe('Diagnostics', () => {
       // test guards against wrongly propagated responses:
       await feature.handleDiagnostic(response, foreignDocument, env.adapter);
 
-      let cm_editors = env.adapter.editors.map(
+      let cmEditors = env.adapter.editors.map(
         editor => editor.ceEditor.getEditor()! as CodeMirrorEditor
       );
 
-      let marks_cell_1 = getDiagnostics(cm_editors[0].state);
-      let marks_cell_2 = getDiagnostics(cm_editors[1].state);
+      let marksCell1 = getDiagnostics(cmEditors[0].state);
+      let marksCell2 = getDiagnostics(cmEditors[1].state);
 
-      expect(marks_cell_1.length).toBe(0);
-      expect(marks_cell_2.length).toBe(0);
+      expect(marksCell1.length).toBe(0);
+      expect(marksCell2.length).toBe(0);
 
       // correct propagation
       await feature.handleDiagnostic(
@@ -375,16 +375,16 @@ describe('Diagnostics', () => {
         env.adapter
       );
 
-      marks_cell_1 = getDiagnostics(cm_editors[0].state);
-      marks_cell_2 = getDiagnostics(cm_editors[1].state);
+      marksCell1 = getDiagnostics(cmEditors[0].state);
+      marksCell2 = getDiagnostics(cmEditors[1].state);
 
-      expect(marks_cell_1.length).toBe(0);
-      expect(marks_cell_2.length).toBe(1);
+      expect(marksCell1.length).toBe(0);
+      expect(marksCell2.length).toBe(1);
 
-      let mark = marks_cell_2[0];
+      let mark = marksCell2[0];
 
-      const from = cm_editors[1].getPositionAt(mark.from);
-      const to = cm_editors[1].getPositionAt(mark.to);
+      const from = cmEditors[1].getPositionAt(mark.from);
+      const to = cmEditors[1].getPositionAt(mark.to);
 
       // second line (0th and 1st virtual lines) + 1 line for '%%python\n' => line: 2
       expect(
@@ -414,7 +414,7 @@ describe('Diagnostics', () => {
         env.adapter
       );
 
-      expect(marks_cell_1.length).toBe(0);
+      expect(marksCell1.length).toBe(0);
     });
   });
 });

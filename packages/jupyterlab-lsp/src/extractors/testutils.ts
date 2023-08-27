@@ -35,20 +35,20 @@ interface IDocumentWithRange {
 }
 
 export function getTheOnlyPair(
-  foreignDocument_map: Map<CodeEditor.IRange, Document.IVirtualDocumentBlock>
+  foreignDocumentMap: Map<CodeEditor.IRange, Document.IVirtualDocumentBlock>
 ): IDocumentWithRange {
-  expect(foreignDocument_map.size).toBe(1);
+  expect(foreignDocumentMap.size).toBe(1);
 
-  let range = foreignDocument_map.keys().next().value;
-  let { virtualDocument } = foreignDocument_map.get(range)!;
+  let range = foreignDocumentMap.keys().next().value;
+  let { virtualDocument } = foreignDocumentMap.get(range)!;
 
   return { range, virtualDocument };
 }
 
 export function getTheOnlyVirtual(
-  foreignDocument_map: Map<CodeEditor.IRange, Document.IVirtualDocumentBlock>
+  foreignDocumentMap: Map<CodeEditor.IRange, Document.IVirtualDocumentBlock>
 ) {
-  let { virtualDocument } = getTheOnlyPair(foreignDocument_map);
+  let { virtualDocument } = getTheOnlyPair(foreignDocumentMap);
   return virtualDocument;
 }
 

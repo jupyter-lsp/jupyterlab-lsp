@@ -12,16 +12,16 @@ export const IPYTHON_TRANSCLUSIONS: JupyterFrontEndPlugin<void> = {
   requires: [ILSPCodeExtractorsManager, ILSPCodeOverridesManager],
   activate: (
     app,
-    extractors_manager: ILSPCodeExtractorsManager,
-    overrides_manager: ILSPCodeOverridesManager
+    extractorsManager: ILSPCodeExtractorsManager,
+    overrideManager: ILSPCodeOverridesManager
   ) => {
     for (let language of Object.keys(foreignCodeExtractors)) {
       for (let extractor of foreignCodeExtractors[language]) {
-        extractors_manager.register(extractor, language);
+        extractorsManager.register(extractor, language);
       }
     }
     for (let override of overrides) {
-      overrides_manager.register(override, 'python');
+      overrideManager.register(override, 'python');
     }
   },
   autoStart: true

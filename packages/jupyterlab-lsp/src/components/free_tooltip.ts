@@ -195,7 +195,7 @@ export class EditorTooltipManager {
   private currentTooltip: FreeTooltip | null = null;
   private currentOptions: EditorTooltip.IOptions | null;
 
-  constructor(private rendermime_registry: IRenderMimeRegistry) {}
+  constructor(private rendermimeRegistry: IRenderMimeRegistry) {}
 
   create(options: EditorTooltip.IOptions): FreeTooltip {
     this.remove();
@@ -208,7 +208,7 @@ export class EditorTooltipManager {
       anchor: widget.content,
       bundle: bundle,
       editor: options.ceEditor,
-      rendermime: this.rendermime_registry,
+      rendermime: this.rendermimeRegistry,
       position: PositionConverter.cm_to_ce(position)
     });
     tooltip.addClass(CLASS_NAME);

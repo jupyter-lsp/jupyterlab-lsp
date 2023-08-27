@@ -8,7 +8,7 @@ import { EditApplicator } from './edits';
 import {
   codeCell,
   getCellsJSON,
-  python_notebook_metadata,
+  pythonNotebookMetadata,
   showAllCells,
   FileEditorTestEnvironment,
   NotebookTestEnvironment,
@@ -17,7 +17,7 @@ import {
 import { foreignCodeExtractors } from './transclusions/ipython/extractors';
 import { overrides } from './transclusions/ipython/overrides';
 
-const js_fib_code = `function fib(n) {
+const jsFibCode = `function fib(n) {
   return n<2?n:fib(n-1)+fib(n-2);
 }
 
@@ -25,7 +25,7 @@ fib(5);
 
 window.location /;`;
 
-const js_fib2_code = `function fib2(n) {
+const jsFib2Code = `function fib2(n) {
   return n<2?n:fib2(n-1)+fib2(n-2);
 }
 
@@ -33,7 +33,7 @@ fib2(5);
 
 window.location /;`;
 
-const js_partial_edits = [
+const jsPartialEdits = [
   {
     range: {
       start: {
@@ -130,8 +130,8 @@ describe('EditApplicator', () => {
         expect(environment.activeEditor.model.sharedModel.source).toBe(
           'changed bar'
         );
-        let raw_value = environment.activeEditor.editor.state.doc.toString();
-        expect(raw_value).toBe('changed bar');
+        let rawValue = environment.activeEditor.editor.state.doc.toString();
+        expect(rawValue).toBe('changed bar');
         expect(outcome.wasGranular).toBe(false);
         expect(outcome.modifiedCells).toBe(1);
         expect(outcome.appliedChanges).toBe(1);
@@ -146,8 +146,8 @@ describe('EditApplicator', () => {
             ['file:///' + environment.documentOptions.path]: []
           }
         });
-        let raw_value = environment.activeEditor.editor.state.doc.toString();
-        expect(raw_value).toBe('foo bar');
+        let rawValue = environment.activeEditor.editor.state.doc.toString();
+        expect(rawValue).toBe('foo bar');
         expect(environment.activeEditor.model.sharedModel.source).toBe(
           'foo bar'
         );
@@ -157,21 +157,21 @@ describe('EditApplicator', () => {
       });
 
       it('applies partial edits', async () => {
-        environment.activeEditor.model.sharedModel.setSource(js_fib_code);
+        environment.activeEditor.model.sharedModel.setSource(jsFibCode);
         await environment.adapter.updateDocuments();
 
         let result = await applicator.applyEdit({
           changes: {
-            ['file:///' + environment.documentOptions.path]: js_partial_edits
+            ['file:///' + environment.documentOptions.path]: jsPartialEdits
           }
         });
-        let raw_value = environment.activeEditor.editor.state.doc.toString();
-        expect(raw_value).toBe(js_fib2_code);
+        let rawValue = environment.activeEditor.editor.state.doc.toString();
+        expect(rawValue).toBe(jsFib2Code);
         expect(environment.activeEditor.model.sharedModel.source).toBe(
-          js_fib2_code
+          jsFib2Code
         );
 
-        expect(result.appliedChanges).toBe(js_partial_edits.length);
+        expect(result.appliedChanges).toBe(jsPartialEdits.length);
         expect(result.wasGranular).toBe(true);
         expect(result.modifiedCells).toBe(1);
       });
@@ -216,28 +216,28 @@ describe('EditApplicator', () => {
       }
 
       it('applies edit across cells', async () => {
-        let test_notebook = {
+        let testNotebook = {
           cells: [
             codeCell(['def a_function():', '    pass']),
             codeCell(['x = a_function()'])
           ],
-          metadata: python_notebook_metadata
+          metadata: pythonNotebookMetadata
         } as nbformat.INotebookContent;
 
         let notebook = environment.notebook;
 
         notebook.model = new NotebookModel();
-        notebook.model.fromJSON(test_notebook);
+        notebook.model.fromJSON(testNotebook);
         showAllCells(notebook);
 
         await synchronizeContent();
         let mainDocument = environment.adapter.virtualDocument!;
 
-        let old_virtual_source =
+        let oldVirtualSource =
           'def a_function():\n    pass\n\n\nx = a_function()\n';
-        let new_virtual_source =
+        let newVirtualSource =
           'def a_function_2():\n    pass\n\n\nx = a_function_2()\n';
-        expect(mainDocument.value).toBe(old_virtual_source);
+        expect(mainDocument.value).toBe(oldVirtualSource);
 
         let outcome = await applicator.applyEdit({
           changes: {
@@ -247,7 +247,7 @@ describe('EditApplicator', () => {
                   start: { line: 0, character: 0 },
                   end: { line: 5, character: 0 }
                 },
-                newText: new_virtual_source
+                newText: newVirtualSource
               } as lsProtocol.TextEdit
             ]
           }
@@ -256,7 +256,7 @@ describe('EditApplicator', () => {
         await synchronizeContent();
 
         let value = mainDocument.value;
-        expect(value).toBe(new_virtual_source);
+        expect(value).toBe(newVirtualSource);
 
         let codeCells = getCellsJSON(notebook);
 
@@ -272,18 +272,18 @@ describe('EditApplicator', () => {
       });
 
       it('handles IPython magics', async () => {
-        let test_notebook = {
+        let testNotebook = {
           cells: [
             codeCell(['x = %ls', 'print(x)']),
             codeCell(['%%python', 'y = x', 'print(x)'])
           ],
-          metadata: python_notebook_metadata
+          metadata: pythonNotebookMetadata
         } as nbformat.INotebookContent;
 
         let notebook = environment.notebook;
 
         notebook.model = new NotebookModel();
-        notebook.model.fromJSON(test_notebook);
+        notebook.model.fromJSON(testNotebook);
         showAllCells(notebook);
 
         await (environment.adapter as MockNotebookAdapter).foreingDocumentOpened
@@ -291,7 +291,7 @@ describe('EditApplicator', () => {
 
         let mainDocument = environment.adapter.virtualDocument!;
 
-        let old_virtual_source = `x = get_ipython().run_line_magic("ls", "")
+        let oldVirtualSource = `x = get_ipython().run_line_magic("ls", "")
 print(x)
 
 
@@ -299,7 +299,7 @@ get_ipython().run_cell_magic("python", "", """y = x
 print(x)""")
 `;
 
-        let new_virtual_source = `z = get_ipython().run_line_magic("ls", "")
+        let newVirtualSource = `z = get_ipython().run_line_magic("ls", "")
 print(z)
 
 
@@ -308,7 +308,7 @@ print(x)""")
 `;
 
         await synchronizeContent();
-        expect(mainDocument.value).toBe(old_virtual_source);
+        expect(mainDocument.value).toBe(oldVirtualSource);
 
         await applicator.applyEdit({
           changes: {
@@ -318,7 +318,7 @@ print(x)""")
                   start: { line: 0, character: 0 },
                   end: { line: 6, character: 10 }
                 },
-                newText: new_virtual_source
+                newText: newVirtualSource
               } as lsProtocol.TextEdit
             ]
           }
@@ -327,7 +327,7 @@ print(x)""")
           .promise;
 
         await synchronizeContent();
-        expect(mainDocument.value).toBe(new_virtual_source);
+        expect(mainDocument.value).toBe(newVirtualSource);
 
         let codeCells = getCellsJSON(notebook);
 

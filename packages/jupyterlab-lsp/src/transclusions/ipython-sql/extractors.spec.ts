@@ -33,7 +33,7 @@ describe('IPython SQL extractors', () => {
 
   describe('SQL url pattern', () => {
     it('matches connection strings', () => {
-      const correct_urls = [
+      const correctUrls = [
         'mysql+pymysql://scott:tiger@localhost/foo',
         'oracle://scott:tiger@127.0.0.1:1521/sidname',
         'sqlite://',
@@ -42,7 +42,7 @@ describe('IPython SQL extractors', () => {
         'impala://hserverhost:port/default?kerberos_service_name=hive&auth_mechanism=GSSAPI'
       ];
       const pattern = new RegExp(SQL_URL_PATTERN);
-      for (let url of correct_urls) {
+      for (let url of correctUrls) {
         expect(pattern.test(url)).toBe(true);
       }
     });

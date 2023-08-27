@@ -82,13 +82,13 @@ export class RenameFeature extends Feature {
 
     try {
       let status: string;
-      const change_text = this._trans.__('%1 to %2', oldValue, newValue);
+      const changeText = this._trans.__('%1 to %2', oldValue, newValue);
       let severity: 'success' | 'warning' | 'error' = 'success';
 
       if (outcome.appliedChanges === 0) {
         status = this._trans.__(
           'Could not rename %1 - consult the language server documentation',
-          change_text
+          changeText
         );
         severity = 'warning';
       } else if (outcome.wasGranular) {
@@ -96,7 +96,7 @@ export class RenameFeature extends Feature {
           'Renamed %2 in %3 place',
           'Renamed %2 in %3 places',
           outcome.appliedChanges!,
-          change_text,
+          changeText,
           outcome.appliedChanges
         );
       } else if (adapter.hasMultipleEditors) {
@@ -104,11 +104,11 @@ export class RenameFeature extends Feature {
           'Renamed %2 in %3 cell',
           'Renamed %2 in %3 cells',
           outcome.modifiedCells,
-          change_text,
+          changeText,
           outcome.modifiedCells
         );
       } else {
-        status = this._trans.__('Renamed %1', change_text);
+        status = this._trans.__('Renamed %1', changeText);
       }
 
       if (outcome.errors.length !== 0) {
@@ -161,7 +161,7 @@ function guessFailureReason(
     return null;
   }
 
-  let dire_errors = [
+  let direErrors = [
     ...new Set(
       direPythonErrors.map(diagnostic => {
         let message = diagnostic.diagnostic.message;
@@ -183,7 +183,7 @@ function guessFailureReason(
       })
     )
   ].join(', ');
-  return trans.__('Syntax error(s) prevents rename: %1', dire_errors);
+  return trans.__('Syntax error(s) prevents rename: %1', direErrors);
 }
 
 export namespace RenameFeature {
