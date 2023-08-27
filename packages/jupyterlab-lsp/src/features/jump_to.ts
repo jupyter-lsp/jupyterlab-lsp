@@ -197,10 +197,24 @@ export class NavigationFeature extends Feature {
       return;
     }
 
+    const accessorFromNode = this.contextAssembler.editorFromNode(
+      adapter,
+      event.target as HTMLElement
+    );
+    if (!accessorFromNode) {
+      this.console.warn(
+        'Editor accessor not found from node, falling back to activeEditor'
+      );
+    }
+    const editorAccessor = accessorFromNode
+      ? accessorFromNode
+      : adapter.activeEditor;
+
     const rootPosition = this.contextAssembler.positionFromCoordinates(
       event.clientX,
       event.clientY,
-      adapter
+      adapter,
+      editorAccessor
     );
 
     if (rootPosition == null) {
