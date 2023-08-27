@@ -1,10 +1,16 @@
 import { INotebookShell } from '@jupyter-notebook/application';
 import {
+  ILayoutRestorer,
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
   ILabShell
 } from '@jupyterlab/application';
-import { ICommandPalette, IThemeManager } from '@jupyterlab/apputils';
+import {
+  ICommandPalette,
+  IThemeManager,
+  MainAreaWidget,
+  WidgetTracker
+} from '@jupyterlab/apputils';
 import { IEditorExtensionRegistry } from '@jupyterlab/codemirror';
 import {
   ILSPFeatureManager,
@@ -19,6 +25,7 @@ import { FeatureSettings } from '../../feature';
 
 import { diagnosticsIcon, diagnosticsPanel } from './diagnostics';
 import { DiagnosticsFeature } from './feature';
+import { DiagnosticsListing } from './listing';
 import { IDiagnosticsFeature } from './tokens';
 
 export namespace CommandIDs {
@@ -33,7 +40,7 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<IDiagnosticsFeature> = {
     ILSPDocumentConnectionManager,
     IEditorExtensionRegistry
   ],
-  optional: [IThemeManager, ICommandPalette, ITranslator],
+  optional: [ILayoutRestorer, IThemeManager, ICommandPalette, ITranslator],
   autoStart: true,
   activate: async (
     app: JupyterFrontEnd,
@@ -41,6 +48,7 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<IDiagnosticsFeature> = {
     settingRegistry: ISettingRegistry,
     connectionManager: ILSPDocumentConnectionManager,
     editorExtensionRegistry: IEditorExtensionRegistry,
+    restorer: ILayoutRestorer | null,
     themeManager: IThemeManager | null,
     palette: ICommandPalette | null,
     translator: ITranslator | null
@@ -67,14 +75,21 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<IDiagnosticsFeature> = {
         connectionManager
       });
 
+      const namespace = 'lsp-diagnostics';
+      const tracker = new WidgetTracker<MainAreaWidget<DiagnosticsListing>>({
+        namespace: namespace
+      });
+
       app.commands.addCommand(CommandIDs.showPanel, {
         execute: async () => {
           const context = assembler.getContext();
-          if (!context) {
+          let ref = null;
+          if (context) {
+            feature.switchDiagnosticsPanelSource(context.adapter);
+            ref = context.adapter.widgetId;
+          } else {
             console.warn('Could not get context');
-            return;
           }
-          feature.switchDiagnosticsPanelSource(context.adapter);
 
           if (!diagnosticsPanel.isRegistered) {
             diagnosticsPanel.trans = trans;
@@ -83,12 +98,14 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<IDiagnosticsFeature> = {
 
           const panelWidget = diagnosticsPanel.widget;
           if (!panelWidget.isAttached) {
+            void tracker.add(panelWidget);
             app.shell.add(panelWidget, 'main', {
-              ref: context.adapter.widgetId,
+              ref: ref,
               mode: 'split-bottom'
             });
           }
           app.shell.activateById(panelWidget.id);
+          void tracker.save(panelWidget);
         },
         label: trans.__('Show diagnostics panel'),
         icon: diagnosticsIcon,
@@ -115,6 +132,13 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<IDiagnosticsFeature> = {
         palette.addItem({
           command: CommandIDs.showPanel,
           category: trans.__('Language Server Protocol')
+        });
+      }
+
+      if (restorer) {
+        void restorer.restore(tracker, {
+          command: CommandIDs.showPanel,
+          name: _ => 'listing'
         });
       }
     }
