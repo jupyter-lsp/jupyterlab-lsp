@@ -9,26 +9,27 @@ Test Tags       ui:editor    aspect:ls:features
 
 *** Test Cases ***
 Bash
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')]//text()[contains(., 'HelloWorld')])[last()]
     Editor Shows Features for Language
     ...    Bash
     ...    example.sh
     ...    Diagnostics=Double quote to prevent globbing and word splitting.
-    ...    Jump to Definition=fib
+    ...    Jump to Definition=${def}
 
 CSS
     ${def} =    Set Variable
-    ...    xpath:(//span[contains(@class, 'cm-line')][contains(text(), '--some-var')])[last()]
+    ...    xpath:(//div[contains(@class, 'cm-line')]//text()[contains(., '--some-var')])[last()]
     Editor Shows Features for Language    CSS    example.css    Diagnostics=Do not use empty rulesets
     ...    Jump to Definition=${def}    Rename=${def}
 
 Docker
-    ${def} =    Set Variable    xpath://span[contains(@class, 'cm-line')][contains(text(), 'PLANET')]
+    ${def} =    Set Variable    xpath://div[contains(@class, 'cm-line')]//text()[contains(., 'PLANET')]
     Wait Until Keyword Succeeds    3x    100ms    Editor Shows Features for Language    Docker    Dockerfile
     ...    Diagnostics=Instructions should be written in uppercase letters    Jump to Definition=${def}
     ...    Rename=${def}
 
 JS
-    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-variable')][contains(text(), 'fib')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')]//text()[contains(., 'fib')])[last()]
     Editor Shows Features for Language    JS    example.js    Diagnostics=Expression expected
     ...    Jump to Definition=${def}    Rename=${def}
 
@@ -36,20 +37,20 @@ JSON
     Editor Shows Features for Language    JSON    example.json    Diagnostics=Duplicate object key
 
 JSX
-    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-line')][contains(text(), 'hello')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')]//text()[contains(., 'hello')])[last()]
     Editor Shows Features for Language    JSX    example.jsx    Diagnostics=Expression expected
     ...    Jump to Definition=${def}    Rename=${def}
 # Julia
-#    ${def} =    Set Variable    xpath:(//span[contains(@class, 'cm-line')][contains(text(), 'add_together')])[last()]
+#    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')]//text()[contains(., 'add_together')])[last()]
 #    Editor Shows Features for Language    Julia    example.jl    Jump to Definition=${def}    Rename=${def}
 
 LaTeX
     [Tags]    language:latex
-    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'foo')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')]//span[contains(text(), 'foo')])[last()]
     Editor Shows Features for Language    LaTeX    example.tex    Jump to Definition=${def}    Rename=${def}
 
 Less
-    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')][contains(text(), '@width')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')]//text()[contains(., '@width')])[last()]
     Editor Shows Features for Language    Less    example.less    Diagnostics=Do not use empty rulesets
     ...    Jump to Definition=${def}
 
@@ -57,7 +58,7 @@ Markdown
     Editor Shows Features for Language    Markdown    example.md    Diagnostics=`Color` is misspelt
 
 Python (pylsp)
-    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'fib')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')]//text()[contains(., 'fib')])[last()]
     Editor Shows Features for Server
     ...    pylsp
     ...    Python
@@ -67,35 +68,35 @@ Python (pylsp)
     ...    Rename=${def}
 
 Python (pyright)
-    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'fib')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')]//text()[contains(., 'fib')])[last()]
     Editor Shows Features for Server    pyright    Python    example.py    Diagnostics=is not defined (Pyright)
     ...    Jump to Definition=${def}
 
 R
-    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'fib')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')]//text()[contains(., 'fib')])[last()]
     Editor Shows Features for Language    R    example.R    Diagnostics=Put spaces around all infix operators
     ...    Jump to Definition=${def}
 
 Robot Framework
     [Tags]    gh:332
     ${def} =    Set Variable
-    ...    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'Special Log')])[last()]
+    ...    xpath:(//div[contains(@class, 'cm-line')]//text()[contains(., 'Special Log')])[last()]
     Editor Shows Features for Language    Robot Framework    example.robot    Diagnostics=Undefined keyword
     ...    Jump to Definition=${def}
 
 SCSS
     ${def} =    Set Variable
-    ...    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'primary-color')])[last()]
+    ...    xpath:(//div[contains(@class, 'cm-line')]//text()[contains(., 'primary-color')])[last()]
     Editor Shows Features for Language    SCSS    example.scss    Diagnostics=Do not use empty rulesets
     ...    Jump to Definition=${def}
 
 TSX
-    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'HelloWorld')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')]//text()[contains(., 'HelloWorld')])[last()]
     Editor Shows Features for Language    TSX    example.tsx
     ...    Diagnostics='hello' is declared but its value is never read.    Jump to Definition=${def}    Rename=${def}
 
 TypeScript
-    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')][contains(text(), 'inc')])[last()]
+    ${def} =    Set Variable    xpath:(//div[contains(@class, 'cm-line')]//text()[contains(., 'inc')])[last()]
     Editor Shows Features for Language    TypeScript    example.ts    Diagnostics=The left-hand side of an arithmetic
     ...    Jump to Definition=${def}    Rename=${def}
 
