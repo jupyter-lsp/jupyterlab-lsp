@@ -80,6 +80,67 @@ export class VirtualDocument extends VirtualDocumentBase {
     return { lines, foreignDocumentsMap, skipInspect };
   }
 
+  appendCodeBlock(
+    block: Document.ICodeBlockOptions,
+    editorShift: CodeEditor.IPosition = { line: 0, column: 0 },
+    virtualShift?: CodeEditor.IPosition
+  ): void {
+    let cellCode = block.value;
+    let ceEditor = block.ceEditor;
+
+    if (this.isDisposed) {
+      console.warn('Cannot append code block: document disposed');
+      return;
+    }
+    let sourceCellLines = cellCode.split('\n');
+    let { lines, foreignDocumentsMap, skipInspect } = this.prepareCodeBlock(
+      block,
+      editorShift
+    );
+
+    for (let i = 0; i < lines.length; i++) {
+      this.virtualLines.set(this.lastVirtualLine + i, {
+        skipInspect: skipInspect[i],
+        editor: ceEditor,
+        // TODO this is incorrect, wont work if something was extracted
+        sourceLine: this.lastSourceLine + i
+      });
+    }
+    for (let i = 0; i < sourceCellLines.length; i++) {
+      this.sourceLines.set(this.lastSourceLine + i, {
+        editorLine: i,
+        editorShift: {
+          line: editorShift.line - (virtualShift?.line || 0),
+          column: i === 0 ? editorShift.column - (virtualShift?.column || 0) : 0
+        },
+        // TODO: move those to a new abstraction layer (DocumentBlock class)
+        editor: ceEditor,
+        foreignDocumentsMap,
+        // TODO this is incorrect, wont work if something was extracted
+        virtualLine: this.lastVirtualLine + i
+      });
+    }
+
+    this.lastVirtualLine += lines.length;
+
+    // one empty line is necessary to separate code blocks, next 'n' lines are to silence linters;
+    // the final cell does not get the additional lines (thanks to the use of join, see below)
+
+    this.lineBlocks.push(lines.join('\n') + '\n');
+
+    // adding the virtual lines for the blank lines
+    for (let i = 0; i < this.blankLinesBetweenCells; i++) {
+      this.virtualLines.set(this.lastVirtualLine + i, {
+        skipInspect: [this.idPath],
+        editor: ceEditor,
+        sourceLine: null
+      });
+    }
+
+    this.lastVirtualLine += this.blankLinesBetweenCells;
+    this.lastSourceLine += sourceCellLines.length;
+  }
+
   /**
    * @experimental
    */

@@ -438,8 +438,8 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore TODO
           document.virtualLines
-            .get(start.line - 1)!
-            .skipInspect.indexOf(document.idPath) !== -1
+            .get(start.line)!
+            .skipInspect.includes(document.idPath)
         ) {
           this.console.log(
             'Ignoring inspections silenced for this document:',
