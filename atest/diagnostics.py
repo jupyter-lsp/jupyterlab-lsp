@@ -1,6 +1,6 @@
 from functools import partial
 from robot.libraries.BuiltIn import BuiltIn
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -30,10 +30,16 @@ def page_contains_diagnostic(driver: WebDriver, selector, negate=False):
 def wait_until_page_contains_diagnostic(selector, timeout='3s'):
     sl: SeleniumLibrary = BuiltIn().get_library_instance("SeleniumLibrary")
     wait = WebDriverWait(sl.driver, timestr_to_secs(timeout))
-    return wait.until(
-      partial(page_contains_diagnostic, selector=selector),
-      f'Diagnostic with selector {selector} not found in {timeout}'
-    )
+    try:
+      return wait.until(
+        partial(page_contains_diagnostic, selector=selector)
+      )
+    except TimeoutException:
+      elements = sl.driver.find_elements(By.CSS_SELECTOR, f'.{DIAGNOSTIC_CLASS}')
+      titles = '\n - ' + '\n - '.join([el.get_attribute('title') for el in elements])
+      raise TimeoutException(
+        f'Diagnostic with selector {selector} not found in {timeout}.\nVisible diagnostics are: {titles}'
+      )
 
 
 def wait_until_page_does_not_contain_diagnostic(selector, timeout='3s'):
