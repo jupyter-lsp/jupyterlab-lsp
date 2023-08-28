@@ -434,12 +434,11 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
             return;
           }
         }
-
         if (
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore TODO
           document.virtualLines
-            .get(start.line)!
+            .get(start.line - 1)!
             .skipInspect.indexOf(document.idPath) !== -1
         ) {
           this.console.log(
