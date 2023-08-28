@@ -554,14 +554,9 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
     });
     featureManager.register(feature);
 
-    const assembler = new ContextAssembler({
-      app,
-      connectionManager
-    });
-
     app.commands.addCommand(CommandIDs.jumpToDefinition, {
       execute: async () => {
-        const context = assembler.getContext();
+        const context = contextAssembler.getContext();
         if (!context) {
           console.warn('Could not get context');
           return;
@@ -595,7 +590,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
       label: trans.__('Jump to definition'),
       icon: jumpToIcon,
       isEnabled: () => {
-        const context = assembler.getContext();
+        const context = contextAssembler.getContext();
         if (!context) {
           console.warn('Could not get context');
           return false;
@@ -607,7 +602,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
 
     app.commands.addCommand(CommandIDs.jumpToReference, {
       execute: async () => {
-        const context = assembler.getContext();
+        const context = contextAssembler.getContext();
         if (!context) {
           console.warn('Could not get context');
           return;
@@ -644,7 +639,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
       label: trans.__('Jump to references'),
       icon: jumpToIcon,
       isEnabled: () => {
-        const context = assembler.getContext();
+        const context = contextAssembler.getContext();
         if (!context) {
           console.warn('Could not get context');
           return false;
@@ -656,7 +651,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
 
     app.commands.addCommand(CommandIDs.jumpBack, {
       execute: async () => {
-        const context = assembler.getContext();
+        const context = contextAssembler.getContext();
         if (!context) {
           console.warn('Could not get context');
           return;
@@ -666,7 +661,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
       label: trans.__('Jump back'),
       icon: jumpBackIcon,
       isEnabled: () => {
-        const context = assembler.getContext();
+        const context = contextAssembler.getContext();
         if (!context) {
           console.warn('Could not get context');
           return false;
