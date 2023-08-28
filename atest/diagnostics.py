@@ -31,21 +31,29 @@ def wait_until_page_contains_diagnostic(selector, timeout='3s'):
     sl: SeleniumLibrary = BuiltIn().get_library_instance("SeleniumLibrary")
     wait = WebDriverWait(sl.driver, timestr_to_secs(timeout))
     try:
-      return wait.until(
-        partial(page_contains_diagnostic, selector=selector)
-      )
+        return wait.until(
+            partial(page_contains_diagnostic, selector=selector)
+        )
     except TimeoutException:
-      elements = sl.driver.find_elements(By.CSS_SELECTOR, f'.{DIAGNOSTIC_CLASS}')
-      titles = '\n - ' + '\n - '.join([el.get_attribute('title') for el in elements])
-      raise TimeoutException(
-        f'Diagnostic with selector {selector} not found in {timeout}.\nVisible diagnostics are: {titles}'
-      )
+        elements = sl.driver.find_elements(By.CSS_SELECTOR, f'.{DIAGNOSTIC_CLASS}')
+        if elements:
+            titles = (
+              '\n - '
+              + '\n - '.join([el.get_attribute('title') for el in elements])
+            )
+            hint = f'Visible diagnostics are: {titles}'
+        else:
+            hint = 'No diagnostics were visible.'
+        raise TimeoutException(
+            f'Diagnostic with selector {selector} not found in {timeout}.'
+            f'\n{hint}'
+        )
 
 
 def wait_until_page_does_not_contain_diagnostic(selector, timeout='3s'):
     sl: SeleniumLibrary = BuiltIn().get_library_instance("SeleniumLibrary")
     wait = WebDriverWait(sl.driver, timestr_to_secs(timeout))
     return wait.until(
-      partial(page_contains_diagnostic, selector=selector, negate=True),
-      f'Diagnostic with selector {selector} still present after {timeout}'
+        partial(page_contains_diagnostic, selector=selector, negate=True),
+        f'Diagnostic with selector {selector} still present after {timeout}'
     )
