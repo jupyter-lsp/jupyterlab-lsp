@@ -3,12 +3,6 @@
 @import url('./variables/jupyterlab-dark.css');
 @import url('./variables/jupyterlab-light.css');
 
-.cm-lsp-diagnostic {
-  text-decoration-line: underline;
-  /* For Chrome */
-  text-decoration-skip-ink: none;
-}
-
 .cm-lsp-diagnostic-tag-Unnecessary {
   /*
    * LSP: "Clients are allowed to render diagnostics with this tag faded out instead of having an error squiggle."
