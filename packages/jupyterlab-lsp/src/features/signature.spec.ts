@@ -1,13 +1,15 @@
 import { python } from '@codemirror/lang-python';
 import { Language } from '@codemirror/language';
+import { jupyterHighlightStyle } from '@jupyterlab/codemirror';
+import { tags } from '@lezer/highlight';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { BrowserConsole } from '../virtual/console';
 
-import { extractLead, signatureToMarkdown } from './signature';
+import { extractLead, signatureToMarkdown, highlightCode } from './signature';
 
 describe('Signature', () => {
-  describe('extractLead', () => {
+  describe('extractLead()', () => {
     it('Extracts standalone one-line paragraph', () => {
       const split = extractLead(
         ['This function does foo', '', 'But there are more details'],
@@ -56,7 +58,40 @@ describe('Signature', () => {
     });
   });
 
-  describe('SignatureToMarkdown', () => {
+  describe('highlightCode()', () => {
+    const pythonLanguage = python().language;
+    const arithmeticClass = jupyterHighlightStyle.style([
+      tags.arithmeticOperator
+    ]);
+    const numberClass = jupyterHighlightStyle.style([tags.number]);
+
+    it('marks first parameter', () => {
+      const result = highlightCode(
+        '(x: int = 1, y: int = 2) -> None',
+        { label: 'x: int = 1' },
+        pythonLanguage
+      );
+      expect(
+        result.includes(
+          `<mark>x: int </mark><mark class="${arithmeticClass}">=</mark><mark> </mark><mark class="${numberClass}">1</mark>`
+        )
+      ).toBe(true);
+    });
+    it('marks second parameter', () => {
+      const result = highlightCode(
+        '(x: int = 1, y: int = 2) -> None',
+        { label: 'y: int = 2' },
+        pythonLanguage
+      );
+      expect(
+        result.includes(
+          `<mark>y: int </mark><mark class="${arithmeticClass}">=</mark><mark> </mark><mark class="${numberClass}">2</mark>`
+        )
+      ).toBe(true);
+    });
+  });
+
+  describe('signatureToMarkdown()', () => {
     const MockHighlighter = (
       code: string,
       fragment: lsProtocol.ParameterInformation,

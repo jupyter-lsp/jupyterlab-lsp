@@ -168,6 +168,69 @@ export function signatureToMarkdown(
   return markdown;
 }
 
+export function highlightCode(
+  source: string,
+  parameter: lsProtocol.ParameterInformation,
+  language: Language | undefined
+) {
+  const pre = document.createElement('pre');
+  const code = document.createElement('code');
+  pre.appendChild(code);
+  code.className =
+    'cm-s-jupyter' + language ? `language-${language?.name}` : '';
+
+  const substring: string =
+    typeof parameter.label === 'string'
+      ? parameter.label
+      : source.slice(parameter.label[0], parameter.label[1]);
+  const start = source.indexOf(substring);
+  const end = start + substring.length;
+  if (!language) {
+    code.innerText = source;
+  } else {
+    runMode(
+      source,
+      language,
+      (token: string, className: string, from: number, to: number) => {
+        let populated = false;
+        // In CodeMirror6 variables are not necessairly tokenized,
+        // we need to split them manually
+        if (from <= end && start <= to) {
+          const a = Math.max(start, from);
+          const b = Math.min(to, end);
+          if (a != b) {
+            const prefix = source.slice(from, a);
+            const content = source.slice(a, b);
+            const suffix = source.slice(b, to);
+
+            const mark = document.createElement('mark');
+            if (className) {
+              mark.className = className;
+            }
+            mark.appendChild(document.createTextNode(content));
+            code.appendChild(document.createTextNode(prefix));
+            code.appendChild(mark);
+            code.appendChild(document.createTextNode(suffix));
+            populated = true;
+          }
+        }
+        if (!populated) {
+          if (className) {
+            const element = document.createElement('span');
+            element.classList.add(className);
+            element.textContent = token;
+            code.appendChild(element);
+          } else {
+            code.appendChild(document.createTextNode(token));
+          }
+        }
+      }
+    );
+  }
+
+  return pre.outerHTML;
+}
+
 function extractLastCharacter(changes: ChangeSet): string {
   // TODO test with pasting, maybe rewrite to retrieve based on cursor position.
   let last = '';
@@ -372,63 +435,6 @@ export class SignatureFeature extends Feature {
     };
   }
 
-  protected highlightCode(
-    source: string,
-    parameter: lsProtocol.ParameterInformation,
-    language: Language | undefined
-  ) {
-    const pre = document.createElement('pre');
-    const code = document.createElement('code');
-    pre.appendChild(code);
-    code.className =
-      'cm-s-jupyter' + language ? `language-${language?.name}` : '';
-
-    const substring: string =
-      typeof parameter.label === 'string'
-        ? parameter.label
-        : source.slice(parameter.label[0], parameter.label[1]);
-    const start = source.indexOf(substring);
-    const end = start + substring.length;
-
-    if (!language) {
-      code.innerText = source;
-    } else {
-      runMode(
-        source,
-        language,
-        (token: string, className: string, from: number, to: number) => {
-          let element: HTMLElement | Node;
-          if (className) {
-            element = document.createElement('span');
-            (element as HTMLElement).classList.add(className);
-            element.textContent = token;
-          } else {
-            element = document.createTextNode(token);
-          }
-          // In CodeMirror6 variables are not necessairly tokenized,
-          // we need to split them manually
-          if (from <= end && start <= to) {
-            const a = Math.max(start, from);
-            const b = Math.min(to, end);
-            const prefix = source.slice(from, a);
-            const content = source.slice(a, b);
-            const suffix = source.slice(b, to);
-
-            const mark = document.createElement('mark');
-            mark.appendChild(document.createTextNode(content));
-            code.appendChild(document.createTextNode(prefix));
-            code.appendChild(mark);
-            code.appendChild(document.createTextNode(suffix));
-          } else {
-            code.appendChild(element);
-          }
-        }
-      );
-    }
-
-    return pre.outerHTML;
-  }
-
   /**
    * Represent signature as a Markdown element.
    */
@@ -440,7 +446,7 @@ export class SignatureFeature extends Feature {
     return signatureToMarkdown(
       item,
       language,
-      this.highlightCode.bind(this),
+      highlightCode,
       this.console,
       activeParameterFallback,
       this.settings.composite.maxLines
