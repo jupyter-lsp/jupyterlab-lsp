@@ -149,8 +149,12 @@ export class HighlightsFeature extends Feature {
 
   protected onBlur(view: EditorView) {
     if (this.settings.composite.removeOnBlur) {
-      this.markManager.clearEditorMarks(view);
-      this._lastToken = null;
+      // Delayed evaluation to avoid error:
+      // `Error: Calls to EditorView.update are not allowed while an update is in progress`
+      setTimeout(() => {
+        this.markManager.clearEditorMarks(view);
+        this._lastToken = null;
+      }, 0);
     }
   }
 
