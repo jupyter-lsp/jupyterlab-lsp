@@ -1,4 +1,5 @@
 import { EditorView } from '@codemirror/view';
+import type { ViewUpdate } from '@codemirror/view';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
@@ -16,13 +17,15 @@ import {
 import {
   ILSPFeatureManager,
   ILSPDocumentConnectionManager,
-  WidgetLSPAdapter
+  WidgetLSPAdapter,
+  Document
 } from '@jupyterlab/lsp';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { LabIcon } from '@jupyterlab/ui-components';
 
 import syntaxSvg from '../../style/icons/syntax-highlight.svg';
 import { CodeSyntax as LSPSyntaxHighlightingSettings } from '../_syntax_highlighting';
+import { ContextAssembler } from '../context';
 import { FeatureSettings, Feature } from '../feature';
 import { PLUGIN_ID } from '../tokens';
 import { VirtualDocument } from '../virtual/document';
@@ -41,15 +44,17 @@ export class SyntaxHighlightingFeature extends Feature {
   constructor(protected options: SyntaxHighlightingFeature.IOptions) {
     super(options);
     const connectionManager = options.connectionManager;
+    const contextAssembler = options.contextAssembler;
 
     options.editorExtensionRegistry.addExtension({
       name: 'lsp:syntaxHighlighting',
       factory: options => {
-        const updateListener = EditorView.updateListener.of(viewUpdate => {
-          if (!viewUpdate.docChanged) {
-            return;
-          }
+        let intialized = false;
 
+        const updateHandler = async (
+          viewUpdate: ViewUpdate,
+          awaitUpdate = true
+        ) => {
           const adapter = [...connectionManager.adapters.values()].find(
             adapter => adapter.widget.node.contains(viewUpdate.view.contentDOM)
           );
@@ -58,9 +63,55 @@ export class SyntaxHighlightingFeature extends Feature {
           // const editor = adapter.editors.find(e => e.model === options.model);
 
           if (adapter) {
-            this.updateMode(adapter, viewUpdate.view).catch(console.warn);
+            await adapter.ready;
+            const accessorFromNode = contextAssembler.editorFromNode(
+              adapter,
+              viewUpdate.view.contentDOM
+            );
+            if (!accessorFromNode) {
+              console.warn(
+                'Editor accessor not found from node, falling back to activeEditor'
+              );
+            }
+            const editorAccessor = accessorFromNode
+              ? accessorFromNode
+              : adapter.activeEditor;
+
+            if (!editorAccessor) {
+              console.warn('No accessor');
+              return;
+            }
+            await this.updateMode(
+              adapter,
+              viewUpdate.view,
+              editorAccessor,
+              awaitUpdate
+            );
           }
-        });
+        };
+
+        const updateListener = EditorView.updateListener.of(
+          async viewUpdate => {
+            if (!viewUpdate.docChanged) {
+              if (intialized) {
+                return;
+              }
+              // TODO: replace this with a simple Promise.all([editorAccessor.ready, adapter.ready]).then(() => updateMode(options.editor))
+              // once JupyterLab 4.1 with improved factory API is out.
+              // For now we wait 2.5 seconds hoping the adapter will be connected
+              // and the document will be ready
+              setTimeout(async () => {
+                await updateHandler(viewUpdate, false);
+              }, 2500);
+              intialized = true;
+            }
+
+            await updateHandler(viewUpdate);
+          }
+        );
+
+        // update the mode at first update even if no changes to ensure the
+        // correct mode gets applied on load.
 
         return EditorExtensionRegistry.createImmutableExtension([
           updateListener
@@ -90,31 +141,31 @@ export class SyntaxHighlightingFeature extends Feature {
     return mimetype;
   }
 
-  async updateMode(adapter: WidgetLSPAdapter<any>, view: EditorView) {
+  async updateMode(
+    adapter: WidgetLSPAdapter<any>,
+    view: EditorView,
+    editorAccessor: Document.IEditor,
+    awaitUpdate = true
+  ) {
     const topDocument = adapter.virtualDocument as VirtualDocument;
-    const totalArea = view.state.doc.length;
 
-    // TODO no way to map from EditorView to Document.IEditor is blocking here.
-    // TODO: active editor is not necessairly the editor that triggered the update
-    const editorAccessor = adapter.activeEditor;
-    const editor = editorAccessor?.getEditor();
-    if (
-      !editorAccessor ||
-      !editor ||
-      (editor as CodeMirrorEditor).editor !== view
-    ) {
-      // TODO: ideally we would not have to do this (we would have view -> editor map)
-      return;
-    }
     if (!topDocument) {
       return;
     }
-    await topDocument.updateManager.updateDone;
+    if (awaitUpdate) {
+      await topDocument.updateManager.updateDone;
+    }
+
+    const editor = editorAccessor.getEditor()! as CodeMirrorEditor;
+    const totalArea = editor.state.doc.length;
 
     const overrides = new Map();
     for (const map of topDocument.getForeignDocuments(editorAccessor)) {
       for (const [range, block] of map.entries()) {
-        const editor = block.editor.getEditor()! as CodeMirrorEditor;
+        const blockEditor = block.editor.getEditor()! as CodeMirrorEditor;
+        if (blockEditor != editor) {
+          continue;
+        }
         const coveredArea =
           editor.getOffsetAt(range.end) - editor.getOffsetAt(range.start);
         const coverage = coveredArea / totalArea;
@@ -137,22 +188,15 @@ export class SyntaxHighlightingFeature extends Feature {
         }
       }
     }
-    const relevantEditors = new Set(
-      adapter.editors.map(e => e.ceEditor.getEditor())
-    );
-    // restore modes on editors which are no longer over the threshold
+    // restore mode on the editor if it no longer over the threshold
     // (but only those which belong to this adapter).
-    for (const [editor, originalMode] of this.originalModes) {
-      if (!relevantEditors.has(editor)) {
-        continue;
-      }
-      if (overrides.has(editor)) {
-        continue;
-      } else {
+    if (!overrides.has(editor)) {
+      const originalMode = this.originalModes.get(editor);
+      if (originalMode) {
         editor.model.mimeType = originalMode;
       }
     }
-    // add new ovverrides to remember the original mode
+    // add new overrides to remember the original mode
     for (const [editor, mode] of overrides) {
       if (!this.originalModes.has(editor)) {
         this.originalModes.set(editor, mode);
@@ -167,6 +211,7 @@ export namespace SyntaxHighlightingFeature {
     mimeTypeService: IEditorMimeTypeService;
     editorExtensionRegistry: IEditorExtensionRegistry;
     languageRegistry: IEditorLanguageRegistry;
+    contextAssembler: ContextAssembler;
   }
   export const id = PLUGIN_ID + ':syntax_highlighting';
 }
@@ -199,12 +244,17 @@ export const SYNTAX_HIGHLIGHTING_PLUGIN: JupyterFrontEndPlugin<void> = {
     if (settings.composite.disable) {
       return;
     }
+    const contextAssembler = new ContextAssembler({
+      app,
+      connectionManager
+    });
     const feature = new SyntaxHighlightingFeature({
       settings,
       connectionManager,
       editorExtensionRegistry,
       mimeTypeService: editorServices.mimeTypeService,
-      languageRegistry
+      languageRegistry,
+      contextAssembler
     });
     featureManager.register(feature);
     // return feature;
