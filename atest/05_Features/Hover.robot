@@ -84,7 +84,7 @@ Update hover after character deletion
 Last Occurrence
     [Arguments]    ${symbol}
     ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}
-    ...    xpath:(//div[@class="cm-line"][contains(., "${symbol}")])[last()]
+    ...    xpath:(//div[@class="cm-content"]//*[contains(., "${symbol}")])[last()]
     RETURN    ${sel}
 
 Trigger Automatically By Hover
