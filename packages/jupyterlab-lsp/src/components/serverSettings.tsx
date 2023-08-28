@@ -4,8 +4,9 @@ import {
   ISchemaValidator
 } from '@jupyterlab/settingregistry';
 import { TranslationBundle } from '@jupyterlab/translation';
+import { FormComponent } from '@jupyterlab/ui-components';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
-import Form, { IChangeEvent } from '@rjsf/core';
+import { IChangeEvent } from '@rjsf/core';
 import {
   FieldProps,
   ObjectFieldTemplateProps,
@@ -139,7 +140,7 @@ export class LanguageServerSettings extends React.Component<
             <ul>{validationErrors}</ul>
           </div>
         ) : null}
-        <Form
+        <FormComponent
           schema={this.props.schema}
           formData={this.state}
           validator={validatorAjv8}
