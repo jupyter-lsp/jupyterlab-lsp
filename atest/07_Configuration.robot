@@ -79,7 +79,7 @@ Settings Should Change Editor Diagnostics
     Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., 'Diagnostics Panel')]    600    -200
     Click Element    ${JLAB XP DOCK TAB}\[contains(., 'Launcher')]/${close icon}
     IF    "${before}"
-        Wait Until Page Contains Element    ${before diagnostic}    timeout=30s
+        Wait Until Page Contains Diagnostic    ${before diagnostic}    timeout=30s
     END
     Page Should Not Contain    ${after diagnostic}
     Capture Page Screenshot    01-default-diagnostics-and-settings.png
