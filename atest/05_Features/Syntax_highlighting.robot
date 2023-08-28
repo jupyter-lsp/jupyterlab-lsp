@@ -17,7 +17,7 @@ Syntax Highlighting Mode Changes In Cells Dominated By Foreign Documents
     ${mode} =    Get Mode Of A Cell    2
     should be equal    ${mode}    markdown
     ${mode} =    Get Mode Of A Cell    3
-    should be equal    ${mode}    xml
+    should be equal    ${mode}    html
     ${mode} =    Get Mode Of A Cell    4
     should be equal    ${mode}    javascript
 
@@ -33,7 +33,7 @@ Highlighting Mode Changes Back And Forth After Edits
     Enter Cell Editor    2    line=1
     Press Keys    None    BACKSPACE
     Capture Page Screenshot    backapse.png
-    wait until keyword succeeds    5x    2s    Mode Of A Cell Should Equal    2    ipython
+    wait until keyword succeeds    5x    2s    Mode Of A Cell Should Equal    2    python
     Enter Cell Editor    2    line=1
     Press Keys    None    n
     wait until keyword succeeds    5x    2s    Mode Of A Cell Should Equal    2    markdown
