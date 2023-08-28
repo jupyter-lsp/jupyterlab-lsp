@@ -152,8 +152,16 @@ export class LSPExtension {
     );
     // Store the initial server settings, to be sent asynchronously
     // when the servers are initialized.
-    const languageServerSettings = (options.language_servers ||
+    let languageServerSettings = (options.language_servers ||
       {}) as TLanguageServerConfigurations;
+
+    // Add `configuration` as a copy of `serverSettings` to work with changed name upstream
+    languageServerSettings = Object.fromEntries(
+      Object.entries(languageServerSettings).map(([key, value]) => {
+        value.configuration = value.serverSettings;
+        return [key, value];
+      })
+    );
 
     this._connectionManager.initialConfigurations = languageServerSettings;
     // TODO: if priorities changed reset connections
