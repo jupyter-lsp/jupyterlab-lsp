@@ -249,7 +249,10 @@ class DiagnosticsPanel {
           .writeText(message)
           .then(() => {
             Notification.info(
-              this.trans.__('Successfully copied "%1" to clipboard', message)
+              this.trans.__('Successfully copied "%1" to clipboard', message),
+              {
+                autoClose: 3 * 1000
+              }
             );
           })
           .catch(() => {

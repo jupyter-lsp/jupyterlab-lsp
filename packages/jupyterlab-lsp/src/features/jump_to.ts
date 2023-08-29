@@ -368,10 +368,9 @@ export class NavigationFeature extends Feature {
     const jumper = this.getJumper(adapter);
 
     if (!targetInfo) {
-      const notificationID = Notification.info(
-        this._trans.__('No jump targets found')
-      );
-      setTimeout(() => Notification.dismiss(notificationID), 2 * 1000);
+      Notification.info(this._trans.__('No jump targets found'), {
+        autoClose: 3 * 1000
+      });
       return JumpResult.NoTargetsFound;
     }
 
@@ -564,12 +563,9 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
         const { connection, virtualPosition, document, adapter } = context;
 
         if (!connection) {
-          const notificationId = Notification.info(
-            trans.__('Connection not found for jump')
-          );
-          setTimeout(() => {
-            Notification.dismiss(notificationId);
-          }, 2 * 1000);
+          Notification.warning(trans.__('Connection not found for jump'), {
+            autoClose: 4 * 1000
+          });
           return;
         }
 
@@ -610,12 +606,9 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
         const { connection, virtualPosition, document, adapter } = context;
 
         if (!connection) {
-          const notificationId = Notification.info(
-            trans.__('Connection not found for jump')
-          );
-          setTimeout(() => {
-            Notification.dismiss(notificationId);
-          }, 2 * 1000);
+          Notification.warning(trans.__('Connection not found for jump'), {
+            autoClose: 5 * 1000
+          });
           return;
         }
 
