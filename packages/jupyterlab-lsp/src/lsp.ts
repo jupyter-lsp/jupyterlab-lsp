@@ -18,6 +18,10 @@ export enum DiagnosticTag {
   Deprecated = 2
 }
 
+export enum SymbolTag {
+  Deprecated = 1
+}
+
 export enum CompletionItemTag {
   Deprecated = 1
 }
