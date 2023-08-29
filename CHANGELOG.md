@@ -1,5 +1,11 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 5.0.0-beta.0`
+
+- fix most regressions caught by tests in alpha
+- reopen diagnostics panel on reload
+- use toasts for notifications
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.0-alpha.0`
 
 - maintenance:
