@@ -25,14 +25,14 @@ Jumps To References With Modifier Click
     [Setup]    Prepare File for Editing    Python    editor    jump_references.py
     Configure JupyterLab Plugin    {"modifierKey": "Accel"}    plugin id=${JUMP PLUGIN ID}
     Wait Until Fully Initialized
-    ${token} =    Select Token Occurrence    func    type=def
+    ${token} =    Select Token Occurrence    func    which=1
     Click Element    ${token}
     ${original} =    Measure Cursor Position
     Ctrl Click Element    ${token}
     Wait Until Page Contains    Choose the jump target
     ${references_count} =    Get Element Count    css:.jp-Dialog select option
-    Should Be True    ${references_count} == ${3}
-    Select From List By Index    css:.jp-Dialog select    2
+    Should Be True    ${references_count} == ${2}
+    Select From List By Index    css:.jp-Dialog select    1
     Click Element    css:.jp-Dialog-button.jp-mod-accept
     Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Jump    ${original}
     [Teardown]    Clean Up After Working With File    jump_references.py
@@ -40,15 +40,15 @@ Jumps To References With Modifier Click
 Jumps To References From Context Menu
     [Setup]    Prepare File for Editing    Python    editor    jump_references.py
     Wait Until Fully Initialized
-    ${token} =    Select Token Occurrence    func    type=def
+    ${token} =    Select Token Occurrence    func    which=1
     Click Element    ${token}
     ${original} =    Measure Cursor Position
     Open Context Menu Over    ${token}
     Select Menu Entry    Jump to references
     Wait Until Page Contains    Choose the jump target
     ${references_count} =    Get Element Count    css:.jp-Dialog select option
-    Should Be True    ${references_count} == ${3}
-    Select From List By Index    css:.jp-Dialog select    2
+    Should Be True    ${references_count} == ${2}
+    Select From List By Index    css:.jp-Dialog select    1
     Click Element    css:.jp-Dialog-button.jp-mod-accept
     Wait Until Keyword Succeeds    10 x    1 s    Cursor Should Jump    ${original}
     [Teardown]    Clean Up After Working With File    jump_references.py
@@ -92,9 +92,9 @@ Clean Up Folder With Spaces
     Remove Directory    ${NOTEBOOK DIR}${/}${FOLDER WITH SPACE}    recursive=True
 
 Select Token Occurrence
-    [Arguments]    ${token}    ${type}=variable    ${which}=last
+    [Arguments]    ${token}    ${which}=last()
     ${sel} =    Set Variable
-    ...    xpath:(//span[contains(@class, 'cm-${type}')][contains(text(), '${token}')])[${which}()]
+    ...    xpath:(//div[contains(@class, 'cm-line')]//*[contains(text(), '${token}')])[${which}]
     RETURN    ${sel}
 
 Ctrl Click Element

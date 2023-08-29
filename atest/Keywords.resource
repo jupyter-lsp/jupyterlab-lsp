@@ -9,6 +9,7 @@ Library     ./logcheck.py
 Library     ./ports.py
 Library     ./config.py
 Library     ./paths.py
+Library     ./diagnostics.py
 
 
 *** Keywords ***
@@ -334,7 +335,7 @@ Place Cursor In Cell Editor At
     Enter Cell Editor    ${cell_nr}    ${line}
     Execute JavaScript
     ...    var view = document.querySelector('.jp-Cell:nth-child(${cell_nr}) .cm-content').cmView.view;
-    ...    var pos = view.doc.line(${line}).from + ${character};
+    ...    var pos = view.state.doc.line(${line}).from + ${character};
     ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
 Enter File Editor
@@ -346,7 +347,7 @@ Place Cursor In File Editor At
     Enter File Editor
     Execute JavaScript
     ...    var view = document.querySelector('.jp-FileEditor .cm-content').cmView.view;
-    ...    var pos = view.doc.line(${line}).from + ${character};
+    ...    var pos = view.state.doc.line(${line}).from + ${character};
     ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
 Wait Until Fully Initialized
@@ -404,13 +405,16 @@ Set Editor Content
     [Arguments]    ${text}    ${css}=${EMPTY}
     Wait Until Page Contains Element    css:${css} .cm-content
     Execute JavaScript
-    ...    var doc = document.querySelector('${css} .cm-content').cmView.view.doc;
-    ...    return doc.replace(0, doc.length, `${text}`);
+    ...    let view = document.querySelector('${css} .cm-content').cmView.view;
+    ...    view.dispatch({
+    ...        changes: {from: 0, to: view.state.doc.length, insert: `${text}`}
+    ...    });
 
 Get Editor Content
     [Arguments]    ${css}=${EMPTY}
     Wait Until Page Contains Element    css:${css} .cm-content
-    ${content} =    Execute JavaScript    return document.querySelector('${css} .cm-content').cmView.view.doc.toString()
+    ${content} =    Execute JavaScript
+    ...    return document.querySelector('${css} .cm-content').cmView.view.state.doc.toString()
     RETURN    ${content}
 
 Configure JupyterLab Plugin
@@ -431,8 +435,9 @@ Jump To Definition
     [Arguments]    ${symbol}
     ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}
     ...    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
-    Open Context Menu Over    ${sel}
+    Click Element    ${sel}
     ${cursor} =    Measure Cursor Position
+    Open Context Menu Over    ${sel}
     Capture Page Screenshot    02-jump-to-definition-0.png
     Wait Until Element Is Visible    ${MENU JUMP}    timeout=5s
     Mouse Over    ${MENU JUMP}
@@ -453,8 +458,11 @@ Cursor Should Jump
     Should Not Be Equal    ${original}    ${current}
 
 Measure Cursor Position
-    Wait Until Page Contains Element    ${CM CURSORS}
-    ${position} =    Wait Until Keyword Succeeds    20 x    0.05s    Get Vertical Position    ${CM CURSOR}
+    Wait Until Page Contains Element    ${ACTIVE CURSOR}
+    ${position} =    Wait Until Keyword Succeeds    20 x    0.05s    Get Vertical Position    ${ACTIVE CURSOR}
+    LOG     ${position}
+    # position = 0 indicates that the element was not active.
+    Should Not Be Equal    ${position}    0
     RETURN    ${position}
 
 Switch To Tab

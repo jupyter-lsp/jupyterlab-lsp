@@ -26,7 +26,7 @@ Diagnostics Panel Works After Rename
     [Documentation]    Test for #141 bug (diagnostics were not cleared after rename)
     Rename Jupyter File    Panel.ipynb    PanelRenamed.ipynb
     Close Diagnostics Panel
-    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="${DIAGNOSTIC}"]    timeout=20s
+    Wait Until Page Contains Diagnostic    [title*="${DIAGNOSTIC}"]    timeout=20s
     Capture Page Screenshot    00-panel-rename.png
     Open Diagnostics Panel
     Capture Page Screenshot    01-panel-rename.png
@@ -39,7 +39,7 @@ Diagnostics Panel Works After Kernel Restart
     Lab Command    Restart Kernel…
     Wait For Dialog
     Accept Default Dialog Option
-    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="${DIAGNOSTIC}"]    timeout=20s
+    Wait Until Page Contains Diagnostic    [title*="${DIAGNOSTIC}"]    timeout=20s
     Open Diagnostics Panel
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_COUNT}
 
@@ -135,7 +135,7 @@ Open Notebook And Panel
     [Arguments]    ${notebook}
     Setup Notebook    Python    ${notebook}
     Capture Page Screenshot    00-notebook-and-panel-openeing.png
-    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="${DIAGNOSTIC}"]    timeout=20s
+    Wait Until Page Contains Diagnostic    [title*="${DIAGNOSTIC}"]    timeout=20s
     Open Diagnostics Panel
     Capture Page Screenshot    00-notebook-and-panel-opened.png
 

@@ -46,6 +46,7 @@ import { ContextAssembler } from '../context';
 import {
   PositionConverter,
   documentAtRootPosition,
+  editorAtRootPosition,
   rootPositionToVirtualPosition,
   rootPositionToEditorPosition,
   virtualPositionToRootPosition
@@ -196,10 +197,24 @@ export class NavigationFeature extends Feature {
       return;
     }
 
+    const accessorFromNode = this.contextAssembler.editorFromNode(
+      adapter,
+      event.target as HTMLElement
+    );
+    if (!accessorFromNode) {
+      this.console.warn(
+        'Editor accessor not found from node, falling back to activeEditor'
+      );
+    }
+    const editorAccessor = accessorFromNode
+      ? accessorFromNode
+      : adapter.activeEditor;
+
     const rootPosition = this.contextAssembler.positionFromCoordinates(
       event.clientX,
       event.clientY,
-      adapter
+      adapter,
+      editorAccessor
     );
 
     if (rootPosition == null) {
@@ -367,7 +382,6 @@ export class NavigationFeature extends Feature {
     ) as IVirtualPosition;
 
     if (urisEqual(uri, positionParams.textDocument.uri)) {
-      let editorIndex = adapter.getEditorIndexAt(virtualPosition);
       // if in current file, transform from the position within virtual document to the editor position:
       const rootPosition = virtualPositionToRootPosition(
         adapter,
@@ -384,6 +398,19 @@ export class NavigationFeature extends Feature {
         adapter,
         rootPosition
       );
+
+      const editorAccessor = editorAtRootPosition(adapter, rootPosition);
+
+      // TODO: getEditorIndex should work, but does not
+      // adapter.getEditorIndex(editorAccessor)
+      await editorAccessor.reveal();
+      const editor = editorAccessor.getEditor();
+      const editorIndex = adapter.editors.findIndex(
+        e => e.ceEditor.getEditor() === editor
+      );
+      if (editorIndex === -1) {
+        return JumpResult.PositioningFailure;
+      }
 
       this.console.log(`Jumping to ${editorIndex}th editor of ${uri}`);
       this.console.log('Jump target within editor:', editorPosition);
@@ -527,14 +554,9 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
     });
     featureManager.register(feature);
 
-    const assembler = new ContextAssembler({
-      app,
-      connectionManager
-    });
-
     app.commands.addCommand(CommandIDs.jumpToDefinition, {
       execute: async () => {
-        const context = assembler.getContext();
+        const context = contextAssembler.getContext();
         if (!context) {
           console.warn('Could not get context');
           return;
@@ -568,7 +590,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
       label: trans.__('Jump to definition'),
       icon: jumpToIcon,
       isEnabled: () => {
-        const context = assembler.getContext();
+        const context = contextAssembler.getContext();
         if (!context) {
           console.warn('Could not get context');
           return false;
@@ -580,7 +602,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
 
     app.commands.addCommand(CommandIDs.jumpToReference, {
       execute: async () => {
-        const context = assembler.getContext();
+        const context = contextAssembler.getContext();
         if (!context) {
           console.warn('Could not get context');
           return;
@@ -617,7 +639,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
       label: trans.__('Jump to references'),
       icon: jumpToIcon,
       isEnabled: () => {
-        const context = assembler.getContext();
+        const context = contextAssembler.getContext();
         if (!context) {
           console.warn('Could not get context');
           return false;
@@ -629,7 +651,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
 
     app.commands.addCommand(CommandIDs.jumpBack, {
       execute: async () => {
-        const context = assembler.getContext();
+        const context = contextAssembler.getContext();
         if (!context) {
           console.warn('Could not get context');
           return;
@@ -639,7 +661,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
       label: trans.__('Jump back'),
       icon: jumpBackIcon,
       isEnabled: () => {
-        const context = assembler.getContext();
+        const context = contextAssembler.getContext();
         if (!context) {
           console.warn('Could not get context');
           return false;

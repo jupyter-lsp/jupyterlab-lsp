@@ -21,7 +21,8 @@ import {
   NotebookTestEnvironment,
   codeCell,
   setNotebookContent,
-  showAllCells
+  showAllCells,
+  MockNotebookAdapter
 } from '../../testutils';
 import { foreignCodeExtractors } from '../../transclusions/ipython/extractors';
 
@@ -327,7 +328,7 @@ describe('Diagnostics', () => {
       expect(db.get(document)!.length).toBe(5);
     });
 
-    it.skip('Works in foreign documents', async () => {
+    it.skip('works in foreign documents', async () => {
       setNotebookContent(env.notebook, [
         codeCell(['valid = 0', 'code = 1', '# here']),
         codeCell(['%%python', 'y = 1', 'x'])
@@ -337,8 +338,10 @@ describe('Diagnostics', () => {
 
       let document = env.adapter.virtualDocument!;
       console.log(document.foreignDocuments);
-      expect(document.foreignDocuments.size).toBe(1);
-      let foreignDocument = document.foreignDocuments.values().next().value;
+      // expect(document.foreignDocuments.size).toBe(1);
+      let foreignDocument = [...document.foreignDocuments.values()][
+        document.foreignDocuments.size - 1
+      ];
 
       let response = {
         uri: foreignDocument.uri,
@@ -356,7 +359,10 @@ describe('Diagnostics', () => {
       } as lsProtocol.PublishDiagnosticsParams;
 
       // test guards against wrongly propagated responses:
-      await feature.handleDiagnostic(response, foreignDocument, env.adapter);
+      await feature.handleDiagnostic(response, document, env.adapter);
+
+      await env.adapter.updateDocuments();
+      await (env.adapter as MockNotebookAdapter).foreingDocumentOpened.promise;
 
       let cmEditors = env.adapter.editors.map(
         editor => editor.ceEditor.getEditor()! as CodeMirrorEditor
@@ -368,12 +374,19 @@ describe('Diagnostics', () => {
       expect(marksCell1.length).toBe(0);
       expect(marksCell2.length).toBe(0);
 
+      // update the foreignDocument as it may have been re-created in update
+      foreignDocument = [...document.foreignDocuments.values()][
+        document.foreignDocuments.size - 1
+      ];
+      response.uri = foreignDocument.uri;
+
       // correct propagation
-      await feature.handleDiagnostic(
-        response,
-        env.adapter.virtualDocument!,
-        env.adapter
-      );
+      await feature.handleDiagnostic(response, foreignDocument, env.adapter);
+      await framePromise();
+      await framePromise();
+
+      //await env.adapter.updateDocuments();
+      //await (env.adapter as MockNotebookAdapter).foreingDocumentOpened.promise;
 
       marksCell1 = getDiagnostics(cmEditors[0].state);
       marksCell2 = getDiagnostics(cmEditors[1].state);

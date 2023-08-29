@@ -8,6 +8,9 @@ Test Teardown       Clean Up After Working With File    Highlights.ipynb
 Test Tags           feature:highlights
 
 
+*** Variables ***
+${HIGHLIGHT_XPATH_SELECTOR}    span[contains(@class, 'cm-lsp-highlight-Read') or contains(@class, 'cm-lsp-highlight-Write') or contains(@class, 'cm-lsp-highlight-Text')]
+
 *** Test Cases ***
 # cursor is symbolized by pipe (|), for example when
 # it is at the end of line, after `1` in `test = 1`
@@ -64,18 +67,18 @@ Highlights are removed when no cell is focused
 
 *** Keywords ***
 Should Not Highlight Any Tokens
-    Page Should Not Contain    css:.cm-lsp-highlight
+    Page Should Not Contain    xpath://${HIGHLIGHT_XPATH_SELECTOR}
 
 Should Highlight Token
     [Arguments]    ${token}    ${timeout}=15s
     ${token_element}    Set Variable
-    ...    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
+    ...    xpath://${HIGHLIGHT_XPATH_SELECTOR}\[contains(text(), '${token}')]
     Wait Until Page Contains Element    ${token_element}    timeout=${timeout}
 
 Should Not Highlight Token
     [Arguments]    ${token}    ${timeout}=15s
     ${token_element}    Set Variable
-    ...    xpath://span[contains(@class, 'cm-lsp-highlight')][contains(text(), '${token}')]
+    ...    xpath://${HIGHLIGHT_XPATH_SELECTOR}\[contains(text(), '${token}')]
     Wait Until Page Does Not Contain Element    ${token_element}    timeout=${timeout}
 
 Setup Highlights Test

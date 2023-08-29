@@ -1,5 +1,7 @@
+import type { EditorView } from '@codemirror/view';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeEditor } from '@jupyterlab/codeeditor';
+import type { CodeMirrorEditor } from '@jupyterlab/codemirror';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import {
   ILSPConnection,
@@ -16,6 +18,7 @@ import {
   documentAtRootPosition,
   rootPositionToVirtualPosition,
   editorPositionToRootPosition,
+  editorAtRootPosition,
   rootPositionToEditorPosition
 } from './converter';
 import { BrowserConsole } from './virtual/console';
@@ -29,22 +32,19 @@ export class ContextAssembler {
     // no-op
   }
 
-  get isContextMenuOpen(): boolean {
-    return this.options.app.contextMenu.menu.isAttached;
-  }
-
+  /**
+   * Get context from current context menu (or fallback to document context).
+   */
   getContext(): ICommandContext | null {
     let context: ICommandContext | null = null;
-    if (this.isContextMenuOpen) {
-      try {
-        context = this.getContextFromContextMenu();
-      } catch (e) {
-        this.console.warn(
-          'contextMenu is attached, but could not get the context',
-          e
-        );
-        context = null;
-      }
+    try {
+      context = this.getContextFromContextMenu();
+    } catch (e) {
+      this.console.warn(
+        'contextMenu is attached, but could not get the context',
+        e
+      );
+      context = null;
     }
     if (context == null) {
       try {
@@ -74,7 +74,8 @@ export class ContextAssembler {
       return this._wasOverToken;
     }
     const { rootPosition, adapter } = context;
-    const editor = adapter.activeEditor?.getEditor();
+    const editorAccessor = editorAtRootPosition(adapter, rootPosition);
+    const editor = editorAccessor.getEditor();
     if (!editor) {
       return;
     }
@@ -158,15 +159,9 @@ export class ContextAssembler {
   positionFromCoordinates(
     left: number,
     top: number,
-    adapter: WidgetLSPAdapter<any>
+    adapter: WidgetLSPAdapter<any>,
+    editorAccessor: Document.IEditor | undefined
   ): IRootPosition | null {
-    // TODO: this relies on the editor under the cursor being the active editor;
-    // this may not be the case. Instead we should find editor from DOM and then
-    // have a magic way of transforming editor instances into CodeEditor and Document.Editor
-    // a naive way is to iterate all the editors in adapter (=cells) and see which one matches
-    // but the predicate is expensive and fallible in windowed notebook.
-    const editorAccessor = adapter.activeEditor;
-
     if (!editorAccessor) {
       return null;
     }
@@ -220,6 +215,34 @@ export class ContextAssembler {
     return editorPosition;
   }
 
+  /*
+   * Attempt to find editor from DOM and then (naively) find `Document.Editor`
+   * from `CodeEditor` isntances. The naive approach iterates all the editors
+   * (=cells) in the adapter, which is expensive and prone to fail in windowed notebooks.
+   *
+   * This may not be needed once https://github.com/jupyterlab/jupyterlab/pull/14920
+   * is finalised an released.
+   */
+  editorFromNode(
+    adapter: WidgetLSPAdapter<any>,
+    node: HTMLElement
+  ): Document.IEditor | undefined {
+    const cmContent = (node as HTMLElement).closest('.cm-content');
+    if (!cmContent) {
+      return;
+    }
+    const cmView = (cmContent as any)?.cmView?.view as EditorView | undefined;
+
+    if (!cmView) {
+      return;
+    }
+
+    const editorAccessor = adapter.editors
+      .map(e => e.ceEditor)
+      .find(e => (e.getEditor() as CodeMirrorEditor | null)?.editor === cmView);
+    return editorAccessor;
+  }
+
   private getContextFromContextMenu(): ICommandContext | null {
     // Note: could also try using this.app.contextMenu.menu.contentNode position.
     // Note: could add a guard on this.app.contextMenu.menu.isAttached
@@ -250,7 +273,23 @@ export class ContextAssembler {
       return null;
     }
 
-    const rootPosition = this.positionFromCoordinates(left, top, adapter);
+    const accessorFromNode = this.editorFromNode(adapter, leafNode);
+    if (!accessorFromNode) {
+      // Using `activeEditor` can lead to suprising results in notebook
+      // as a cell can be opened over a cell diffferent than the active one.
+      this.console.warn(
+        'Editor accessor not found from node, falling back to activeEditor'
+      );
+    }
+    const editorAccessor = accessorFromNode
+      ? accessorFromNode
+      : adapter.activeEditor;
+    const rootPosition = this.positionFromCoordinates(
+      left,
+      top,
+      adapter,
+      editorAccessor
+    );
 
     if (!rootPosition) {
       return null;

@@ -434,13 +434,12 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
             return;
           }
         }
-
         if (
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore TODO
           document.virtualLines
             .get(start.line)!
-            .skipInspect.indexOf(document.idPath) !== -1
+            .skipInspect.includes(document.idPath)
         ) {
           this.console.log(
             'Ignoring inspections silenced for this document:',

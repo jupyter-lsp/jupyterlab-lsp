@@ -14,7 +14,7 @@ ${HELP_BUTTON}      css:.lsp-popover .lsp-help-button
 *** Test Cases ***
 Statusbar Popup Opens
     Setup Notebook    Python    Python.ipynb
-    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="${DIAGNOSTIC}"]    timeout=20s
+    Wait Until Page Contains Diagnostic    [title*="${DIAGNOSTIC}"]    timeout=20s
     Element Should Contain    ${STATUSBAR}    Fully initialized
     Click Element    ${STATUSBAR}
     Wait Until Page Contains Element    ${POPOVER}    timeout=10s

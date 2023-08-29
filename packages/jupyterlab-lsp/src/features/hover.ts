@@ -37,7 +37,6 @@ import {
   rootPositionToVirtualPosition,
   rootPositionToEditorPosition,
   editorPositionToRootPosition,
-  editorAtRootPosition,
   rangeToEditorRange,
   IEditorRange
 } from '../converter';
@@ -477,7 +476,6 @@ export class HoverFeature extends Feature {
     adapter: WidgetLSPAdapter<any>
   ): Promise<boolean> {
     const target = event.target;
-
     // if over an empty space in a line (and not over a token) then not worth checking
     if (
       target == null
@@ -502,20 +500,42 @@ export class HoverFeature extends Feature {
       return false;
     }
 
+    // We cannot just use:
+    // > const editorAccessor = adapter.activeEditor
+    // as it relies on the editor under the cursor being the active editor, which is not the case in notebook,
+    // especially for actions invoked using mouse (hover, rename from context menu).
+    const accessorFromNode = this.contextAssembler.editorFromNode(
+      adapter,
+      target as HTMLElement
+    );
+    if (!accessorFromNode) {
+      this.console.warn(
+        'Editor accessor not found from node, falling back to activeEditor'
+      );
+    }
+    const editorAccessor = accessorFromNode
+      ? accessorFromNode
+      : adapter.activeEditor;
+
+    if (!editorAccessor) {
+      this.removeRangeHighlight();
+      this.console.warn('Could not find editor accessor');
+      return false;
+    }
+
     const rootPosition = this.contextAssembler.positionFromCoordinates(
       event.clientX,
       event.clientY,
-      adapter
+      adapter,
+      editorAccessor
     );
 
-    // happens because mousemove is attached to panel, not individual code cells,
-    // and because some regions of the editor (between lines) have no characters
+    // happens because some regions of the editor (between lines) have no characters
     if (rootPosition == null) {
       this.removeRangeHighlight();
       return false;
     }
 
-    const editorAccessor = editorAtRootPosition(adapter, rootPosition);
     const editor = editorAccessor.getEditor();
     if (!editor) {
       this.console.warn('Editor not available from accessor');
