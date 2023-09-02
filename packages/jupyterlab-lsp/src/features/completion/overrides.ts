@@ -8,14 +8,25 @@ import {
   CompletionHandler,
   ICompletionContext
 } from '@jupyterlab/completer';
+import { IDocumentWidget } from '@jupyterlab/docregistry';
+import {
+  ILSPDocumentConnectionManager,
+  IEditorPosition
+} from '@jupyterlab/lsp';
 import { LabIcon } from '@jupyterlab/ui-components';
 
 import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
+import {
+  editorPositionToRootPosition,
+  PositionConverter,
+  documentAtRootPosition
+} from '../../converter';
 import { FeatureSettings } from '../../feature';
 
 interface IOptions {
   settings: FeatureSettings<LSPCompletionSettings>;
   iconsThemeManager: ILSPCompletionThemeManager;
+  connectionManager: ILSPDocumentConnectionManager;
 }
 
 export class EnhancedContextCompleterProvider extends ContextCompleterProvider {
@@ -73,6 +84,56 @@ export class EnhancedKernelCompleterProvider extends KernelCompleterProvider {
       };
     });
     return result;
+  }
+
+  async isApplicable(context: ICompletionContext): Promise<boolean> {
+    // Note: this method logs errors instead of throwing to ensure we do not ever
+    // break the upstream kernel completer, even if there is an error elsehwere.
+    const upstream = await super.isApplicable(context);
+
+    if (upstream === false) {
+      return false;
+    }
+
+    const manager = this.options.connectionManager;
+    const widget = context.widget as IDocumentWidget;
+    const adapter = manager.adapters.get(widget.context.path);
+
+    if (!adapter) {
+      return upstream;
+    }
+
+    if (!context.editor) {
+      // TODO: why is editor optional in the first place?
+      console.error('No editor');
+      return upstream;
+    }
+    const editor = context.editor;
+
+    const editorPosition = PositionConverter.ce_to_cm(
+      editor.getCursorPosition()
+    ) as IEditorPosition;
+
+    const block = adapter.editors.find(
+      value => value.ceEditor.getEditor() == editor
+    );
+
+    if (!block) {
+      console.error('Could not get block with editor');
+      return upstream;
+    }
+    const rootPosition = editorPositionToRootPosition(
+      adapter,
+      block.ceEditor,
+      editorPosition
+    );
+
+    if (!rootPosition) {
+      console.error('Could not get root position');
+      return upstream;
+    }
+    const virtualDocument = documentAtRootPosition(adapter, rootPosition);
+    return virtualDocument === adapter.virtualDocument;
   }
 
   protected iconFor(type: string): LabIcon | undefined {
