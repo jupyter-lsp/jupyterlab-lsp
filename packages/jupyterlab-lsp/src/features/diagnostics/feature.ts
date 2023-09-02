@@ -57,6 +57,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
   protected settings: IFeatureSettings<LSPDiagnosticsSettings>;
   protected console = new BrowserConsole().scope('Diagnostics');
   private _responseReceived: PromiseDelegate<void> = new PromiseDelegate();
+  private _firstResponseReceived: PromiseDelegate<void> = new PromiseDelegate();
   private _diagnosticsDatabases = new WeakMap<
     WidgetLSPAdapter<any>,
     DiagnosticsDatabase
@@ -96,6 +97,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
         return value;
       }
     });
+
     const connectionManager = options.connectionManager;
     // https://github.com/jupyterlab/jupyterlab/issues/14783
     options.shell.currentChanged.connect(shell => {
@@ -143,14 +145,30 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
           // few seconds to trigger timeout). Because `response.version` is
           // optional it would require further testing.
 
-          await adapter.updateFinished;
-          await this._responseReceived.promise;
+          if (view.state.field(this._invalidationCounter) == 0) {
+            // If we are displaying the editor for the first time,
+            // e.g. after scrolling down in windowed notebook,
+            // do not wait for next update, show what we already know.
+
+            // TODO: this still fails when scrolling down fast and then
+            // scrolling up to the skipped cells because the state invlidation
+            // counter kicks in but diagnostics does not get rendered yet before
+            // we leave..
+            await this._firstResponseReceived.promise;
+          } else {
+            await adapter.updateFinished;
+            await this._responseReceived.promise;
+          }
 
           const database = this.getDiagnosticsDB(adapter);
 
           for (const editorDiagnostics of database.values()) {
             for (const editorDiagnostic of editorDiagnostics) {
-              if (editorDiagnostic.editor.editor !== view) {
+              const editor = editorDiagnostic.editorAccessor.getEditor() as
+                | CodeMirrorEditor
+                | undefined;
+
+              if (editor?.editor !== view) {
                 continue;
               }
               const diagnostic = editorDiagnostic.diagnostic;
@@ -165,7 +183,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
                 editorDiagnostic.range.end
               );
 
-              const from = editorDiagnostic.editor.getOffsetAt(
+              const from = editor.getOffsetAt(
                 start.line >= lines
                   ? {
                       line: Math.min(start.line, lines),
@@ -174,7 +192,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
                   : start
               );
               // TODO: this is wrong; there is however an issue if this is not applied
-              const to = editorDiagnostic.editor.getOffsetAt(
+              const to = editor.getOffsetAt(
                 end.line >= lines
                   ? {
                       line: Math.min(end.line, lines),
@@ -451,7 +469,6 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
         }
 
         const editorAccessor = document.getEditorAtVirtualLine(start);
-        const editor = editorAccessor.getEditor()!;
 
         const startInEditor = document.transformVirtualToEditor(start);
         let endInEditor: IEditorPosition | null;
@@ -483,7 +500,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
         for (let diagnostic of diagnostics) {
           diagnosticsList.push({
             diagnostic,
-            editor: editor as CodeMirrorEditor,
+            editorAccessor: editorAccessor,
             range: {
               start: startInEditor,
               end: endInEditor
@@ -497,10 +514,12 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
 
     const previousList = diagnosticsDB.get(document);
     const editorsWhichHadDiagnostics = new Set(
-      previousList?.map(d => d.editor)
+      previousList?.map(d => d.editorAccessor.getEditor())
     );
 
-    const editorsWithDiagnostics = new Set(diagnosticsList?.map(d => d.editor));
+    const editorsWithDiagnostics = new Set(
+      diagnosticsList?.map(d => d.editorAccessor.getEditor())
+    );
     diagnosticsDB.set(document, diagnosticsList);
 
     // Refresh editors with diagnostics; this is needed because linter's
@@ -548,6 +567,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
       this.setDiagnostics(response, document, adapter);
       const done = new Promise<void>(resolve => {
         setTimeout(() => {
+          this._firstResponseReceived.resolve();
           this._responseReceived.resolve();
           this._responseReceived = new PromiseDelegate();
           resolve();

@@ -286,7 +286,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
           let cellNumber: number | null = null;
           if (adapter.hasMultipleEditors) {
             const cellIndex = adapter.editors.findIndex(
-              value => value.ceEditor.getEditor() == diagnosticData.editor
+              value => value.ceEditor == diagnosticData.editorAccessor
             );
             cellNumber = cellIndex + 1;
           }
@@ -330,7 +330,7 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
           key={row.key}
           data-key={row.key}
           onClick={() => {
-            this.jumpTo(row);
+            return this.jumpTo(row);
           }}
         >
           {cells}
@@ -360,12 +360,10 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
     return this._diagnostics.get(key);
   }
 
-  jumpTo(row: IDiagnosticsRow) {
-    const cmEditor = row.data.editor;
-    cmEditor.setCursorPosition(
-      PositionConverter.cm_to_ce(row.data.range.start)
-    );
-    cmEditor.focus();
+  async jumpTo(row: IDiagnosticsRow): Promise<void> {
+    const editor = await row.data.editorAccessor.reveal();
+    editor.setCursorPosition(PositionConverter.cm_to_ce(row.data.range.start));
+    editor.focus();
   }
 }
 

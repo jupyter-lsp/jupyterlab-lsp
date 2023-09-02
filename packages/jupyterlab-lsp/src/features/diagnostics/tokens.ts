@@ -1,5 +1,4 @@
-import { CodeMirrorEditor } from '@jupyterlab/codemirror';
-import { IEditorPosition, WidgetLSPAdapter } from '@jupyterlab/lsp';
+import { IEditorPosition, WidgetLSPAdapter, Document } from '@jupyterlab/lsp';
 import { Token } from '@lumino/coreutils';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
@@ -11,7 +10,7 @@ import { PLUGIN_ID } from '../../tokens';
  */
 export interface IEditorDiagnostic {
   diagnostic: lsProtocol.Diagnostic;
-  editor: CodeMirrorEditor;
+  editorAccessor: Document.IEditor;
   range: {
     start: IEditorPosition;
     end: IEditorPosition;

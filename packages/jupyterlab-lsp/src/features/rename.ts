@@ -170,7 +170,7 @@ function guessFailureReason(
         let start = diagnostic.range.start;
         if (adapter.hasMultipleEditors) {
           let editorIndex = adapter.editors.findIndex(
-            e => e.ceEditor.getEditor() === diagnostic.editor
+            e => e.ceEditor === diagnostic.editorAccessor
           );
           let cellNumber = editorIndex === -1 ? '(?)' : editorIndex + 1;
           return trans.__(
