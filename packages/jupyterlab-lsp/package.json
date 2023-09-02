@@ -151,7 +151,7 @@
       "@jupyterlab/lsp": {
         "bundled": false,
         "singleton": true,
-        "strictVersion": true
+        "strictVersion": false
       }
     },
     "schemaDir": "schema",
