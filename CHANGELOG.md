@@ -1,5 +1,11 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 5.0.0-beta.1`
+
+- fix highlights conflict with selection
+- fix scrolling to diagnostics and diagnostic rendering in windowed notebook
+- suppress kernel completer in transclusions
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.0-beta.0`
 
 - fix most regressions caught by tests in alpha

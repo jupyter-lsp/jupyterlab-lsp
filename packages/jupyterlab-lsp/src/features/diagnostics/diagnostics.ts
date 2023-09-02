@@ -231,7 +231,7 @@ class DiagnosticsPanel {
           console.warn('LPS: diagnostics row not found for jump execute()');
           return;
         }
-        this.widget.content.jumpTo(row);
+        return this.widget.content.jumpTo(row);
       },
       label: this.trans.__('Jump to location'),
       icon: jumpToIcon

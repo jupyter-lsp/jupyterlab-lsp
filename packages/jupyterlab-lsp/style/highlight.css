@@ -31,7 +31,7 @@
 .cm-lsp-highlight-Read {
   /* highlight on places where variable is accessed, e.g. `print(var)` */
   background-color: var(--jp-editor-mirror-lsp-highlight-background-color);
-  outline: 1px dashed var(--jp-editor-mirror-lsp-highlight-border-color);
+  outline: 1px solid var(--jp-editor-mirror-lsp-highlight-background-color);
 }
 
 .cm-lsp-highlight-Write {
