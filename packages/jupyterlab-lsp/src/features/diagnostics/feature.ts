@@ -1,4 +1,4 @@
-import { linter, Diagnostic, lintGutter } from '@codemirror/lint';
+import { linter, Diagnostic, Action, lintGutter } from '@codemirror/lint';
 import { StateField, StateEffect, StateEffectType } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { INotebookShell } from '@jupyter-notebook/application';
@@ -13,9 +13,9 @@ import {
   WidgetLSPAdapter,
   IEditorPosition,
   IVirtualPosition,
-  ILSPConnection,
-  VirtualDocument
+  ILSPConnection
 } from '@jupyterlab/lsp';
+import { LSPConnection } from '@jupyterlab/lsp/lib/connection';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { PromiseDelegate } from '@lumino/coreutils';
 import * as lsProtocol from 'vscode-languageserver-protocol';
@@ -27,6 +27,9 @@ import { DiagnosticSeverity, DiagnosticTag } from '../../lsp';
 import { PLUGIN_ID } from '../../tokens';
 import { urisEqual } from '../../utils';
 import { BrowserConsole } from '../../virtual/console';
+import { VirtualDocument } from '../../virtual/document';
+import { EditApplicator } from '../../edits';
+
 
 import { diagnosticsPanel } from './diagnostics';
 import { DiagnosticsDatabase } from './listing';
@@ -43,6 +46,49 @@ const SeverityMap: Record<
   4: 'hint'
 };
 
+
+class DiagnosticView implements Diagnostic {
+  constructor(
+     protected options: Diagnostic,
+     protected actionsPromise: Promise<(lsProtocol.Command | lsProtocol.CodeAction)[] | null>,
+     protected applicator: EditApplicator
+  ) {
+    // no-op
+    this.from = options.from;
+    this.to = options.to;
+    this.severity = options.severity;
+    this.markClass = options.markClass;
+    this.source = options.source;
+    this.message = options.message;
+    this._actions = [];
+    actionsPromise.then((response) => {
+      if (!response) {
+        return;
+      }
+      this._actions = response.filter(actionOrCommand => (actionOrCommand as lsProtocol.CodeAction).edit).map((action: lsProtocol.CodeAction) => {
+        return {
+          name: action.title,
+          apply: () => {
+            applicator.applyEdit(action.edit!);
+            console.log('applying');
+          }
+        }
+      });
+    });
+  }
+  private _actions: Action[]
+  from: number;
+  to: number;
+  severity: 'error' | 'warning' | 'info' | 'hint';
+  markClass?: string;
+  source?: string;
+  message: string;
+
+  get actions(): Action[] {
+    return this._actions;
+  }
+}
+
 export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
   readonly id = DiagnosticsFeature.id;
   readonly capabilities: lsProtocol.ClientCapabilities = {
@@ -51,6 +97,16 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
         tagSupport: {
           valueSet: [DiagnosticTag.Deprecated, DiagnosticTag.Unnecessary]
         }
+      },
+      codeAction: {
+        dynamicRegistration: true,
+        /*
+        codeActionLiteralSupport: {
+          codeActionKind: {
+            valueSet: ['quickfix']
+          }
+        }
+        */
       }
     }
   };
@@ -73,12 +129,12 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
       // TODO: unregister
       connection.serverNotifications['textDocument/publishDiagnostics'].connect(
         async (connection: ILSPConnection, diagnostics) => {
-          await this.handleDiagnostic(diagnostics, virtualDocument, adapter);
+          await this.handleDiagnostic(diagnostics, virtualDocument as VirtualDocument, adapter);
         }
       );
       virtualDocument.foreignDocumentClosed.connect((document, context) => {
         // TODO: check if we need to cast
-        this.clearDocumentDiagnostics(adapter, context.foreignDocument);
+        this.clearDocumentDiagnostics(adapter, context.foreignDocument as VirtualDocument);
       });
     });
 
@@ -206,15 +262,42 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
                 classNames.push('cm-lsp-diagnostic-tag-' + DiagnosticTag[tag]);
               }
 
-              diagnostics.push({
+              const virtualDocument = adapter.virtualDocument!;
+              const connection = this.connectionManager.connections.get(
+                virtualDocument.uri
+              )!;
+              let actionsPromise: Promise<(lsProtocol.Command | lsProtocol.CodeAction)[] | null>;
+              const applicator = new EditApplicator(editorDiagnostic.document, adapter);
+
+              if (connection.serverCapabilities.codeActionProvider) {
+                const params: lsProtocol.CodeActionParams = {
+                  textDocument: {
+                    uri: editorDiagnostic.document.documentInfo.uri
+                  },
+                  context: {
+                    diagnostics: [editorDiagnostic.diagnostic],
+                    //only: ['quickfix']
+                  },
+                  range: editorDiagnostic.diagnostic.range
+                };
+                // @ts-ignore
+                const messageConnection = (connection as LSPConnection).connection;
+                actionsPromise = messageConnection.sendRequest(
+                  'textDocument/codeAction',
+                  params
+                );
+              } else {
+                actionsPromise = Promise.resolve(null);
+              }
+
+              diagnostics.push(new DiagnosticView({
                 from: Math.min(from, view.state.doc.length),
                 to: Math.min(to, view.state.doc.length),
                 severity: severity,
                 message: diagnostic.message,
                 source: diagnostic.source,
                 markClass: classNames.join(' ')
-                // TODO: actions
-              });
+              }, actionsPromise, applicator));
             }
           }
           return diagnostics;
@@ -419,7 +502,8 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
   setDiagnostics(
     response: lsProtocol.PublishDiagnosticsParams,
     document: VirtualDocument,
-    adapter: WidgetLSPAdapter<any>
+    adapter: WidgetLSPAdapter<any>,
+    force = false
   ) {
     let diagnosticsList: IEditorDiagnostic[] = [];
     // TODO: test case for severity class always being set, even if diagnostic has no severity
@@ -504,7 +588,8 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
             range: {
               start: startInEditor,
               end: endInEditor
-            }
+            },
+            document
           });
         }
       }
@@ -535,7 +620,8 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
         !(
           editorsWithDiagnostics.has(editor) ||
           editorsWhichHadDiagnostics.has(editor)
-        )
+        ) &&
+        !force
       ) {
         continue;
       }
@@ -585,7 +671,8 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
       this.setDiagnostics(
         this._lastResponse,
         this._lastDocument,
-        this._lastAdapter
+        this._lastAdapter,
+        true
       );
     }
     diagnosticsPanel.update();
