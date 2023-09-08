@@ -56,7 +56,6 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
   };
   protected settings: IFeatureSettings<LSPDiagnosticsSettings>;
   protected console = new BrowserConsole().scope('Diagnostics');
-  private _responseReceived: PromiseDelegate<void> = new PromiseDelegate();
   private _firstResponseReceived: PromiseDelegate<void> = new PromiseDelegate();
   private _diagnosticsDatabases = new WeakMap<
     WidgetLSPAdapter<any>,
@@ -151,13 +150,12 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
             // do not wait for next update, show what we already know.
 
             // TODO: this still fails when scrolling down fast and then
-            // scrolling up to the skipped cells because the state invlidation
+            // scrolling up to the skipped cells because the state invalidation
             // counter kicks in but diagnostics does not get rendered yet before
             // we leave..
             await this._firstResponseReceived.promise;
           } else {
             await adapter.updateFinished;
-            await this._responseReceived.promise;
           }
 
           const database = this.getDiagnosticsDB(adapter);
@@ -568,8 +566,6 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
       const done = new Promise<void>(resolve => {
         setTimeout(() => {
           this._firstResponseReceived.resolve();
-          this._responseReceived.resolve();
-          this._responseReceived = new PromiseDelegate();
           resolve();
         }, 0);
       });
