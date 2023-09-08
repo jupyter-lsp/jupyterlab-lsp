@@ -156,9 +156,11 @@ export class LSPExtension {
       {}) as TLanguageServerConfigurations;
 
     // Add `configuration` as a copy of `serverSettings` to work with changed name upstream
+    // Add `rank` as a copy of priority fot the same reason.
     languageServerSettings = Object.fromEntries(
       Object.entries(languageServerSettings).map(([key, value]) => {
         value.configuration = value.serverSettings;
+        value.rank = value.priority;
         return [key, value];
       })
     );
