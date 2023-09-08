@@ -77,9 +77,9 @@ interface IValidationData {
 }
 
 /**
- * Conflicts encounteredn when dot-collapsing settings
+ * Conflicts encountered when dot-collapsing settings
  * organised by server ID, and then as a mapping between
- * (dotted) setting ID and list of encoutnered values.
+ * (dotted) setting ID and list of encountered values.
  * The last encountered values is preferred for use.
  */
 type SettingsMergeConflicts = Record<string, Record<string, any[]>>;
@@ -187,7 +187,7 @@ export class SettingsSchemaManager {
         // 1.8% spent on `deepCopy()`
         // 1.79% spend on other tasks in `populate()`
         // There is a limit on the transformation time, and failing to transform
-        // in the default 1 second means that no settigns whatsoever are available.
+        // in the default 1 second means that no settings whatsoever are available.
         // Therefore validation in `populate()` was moved into an async function;
         // this means that we need to trigger re-load of settings
         // if there validation errors.
@@ -333,7 +333,7 @@ export class SettingsSchemaManager {
           configSchema.properties[key].default = value;
         }
       }
-      // add server-speficic default overrides from overrides.json (and pre-defined in schema)
+      // add server-specific default overrides from overrides.json (and pre-defined in schema)
       const serverDefaultsOverrides =
         defaultsOverrides && defaultsOverrides.hasOwnProperty(serverKey)
           ? defaultsOverrides[serverKey]
@@ -449,7 +449,7 @@ export class SettingsSchemaManager {
   /**
    * Validate user settings from plugin against provided schema,
    * asynchronously to avoid blocking the main thread.
-   * Stores validation reult in `this._validationErrors`.
+   * Stores validation result in `this._validationErrors`.
    */
   private async _validateSchemaLater(
     plugin: ISettingRegistry.IPlugin,
