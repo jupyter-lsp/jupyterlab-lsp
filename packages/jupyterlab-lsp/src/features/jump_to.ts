@@ -312,7 +312,7 @@ export class NavigationFeature extends Feature {
         return path + ', line: ' + location.range.start.line;
       });
 
-      // TODO: use selector with preview, basically needes the ui-component
+      // TODO: use selector with preview, basically needs the ui-component
       // from jupyterlab-citation-manager; let's try to move it to JupyterLab core
       // (and re-implement command palette with it)
       // the preview should use this.jumper.document_manager.services.contents
