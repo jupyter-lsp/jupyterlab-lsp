@@ -193,7 +193,7 @@ export function highlightCode(
       language,
       (token: string, className: string, from: number, to: number) => {
         let populated = false;
-        // In CodeMirror6 variables are not necessairly tokenized,
+        // In CodeMirror6 variables are not necessarily tokenized,
         // we need to split them manually
         if (from <= end && start <= to) {
           const a = Math.max(start, from);
@@ -326,13 +326,16 @@ export class SignatureFeature extends Feature {
           // Delay handling by moving on top of the stack
           // so that virtual document is updated.
           setTimeout(() => {
+            // be careful: updateListener also fires after blur, so we
+            // need to carefully check what changed to avoid invalidating
+            // user clicking on the hover box.
             if (viewUpdate.docChanged) {
               this.afterChange(
                 viewUpdate.changes,
                 adapter,
                 editorPosition
               ).catch(this.console.warn);
-            } else {
+            } else if (viewUpdate.selectionSet) {
               this.onCursorActivity(adapter, editorPosition).catch(
                 this.console.warn
               );
@@ -564,7 +567,7 @@ export class SignatureFeature extends Feature {
       response
     );
     if (displayPosition === null) {
-      // try to find last occurrance of trigger character to position the tooltip
+      // try to find last occurrence of trigger character to position the tooltip
       const content = editor.model.sharedModel.getSource();
       const lines = content.split('\n');
       const offset = offsetAtPosition(
@@ -595,7 +598,7 @@ export class SignatureFeature extends Feature {
       tooltip: {
         privilege: 'forceAbove',
         // do not move the tooltip to match the token to avoid drift of the
-        // tooltip due the simplicty of token matching rules; instead we keep
+        // tooltip due the simplicity of token matching rules; instead we keep
         // the position constant manually via `displayPosition`.
         alignment: undefined,
         hideOnKeyPress: false
