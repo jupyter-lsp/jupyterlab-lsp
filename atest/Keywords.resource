@@ -329,7 +329,7 @@ Enter Cell Editor
     # clicking on line does not appear sufficient in CM6 (but still useful because it ensures we have it in view
     Execute JavaScript
     ...    var view = document.querySelector('.jp-Cell:nth-child(${cell_nr}) .cm-content').cmView.view;
-    ...    var pos = view.state.doc.line(${line}).from;
+    ...    var pos = view.state.doc.line(${line}).to;
     ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
 Open Context Menu Over Cell Editor
