@@ -18,6 +18,7 @@ import {
 } from '@jupyterlab/lsp';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { PromiseDelegate } from '@lumino/coreutils';
+import { StyleModule } from 'style-mod';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
@@ -240,29 +241,29 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
 
   private _reconfigureTheme() {
     const style = getComputedStyle(document.body);
-    const baseTheme = EditorView.baseTheme({
-      '.cm-lintRange-error': {
+    const lintTheme = new StyleModule({
+      '.cm-editor .cm-lintRange-error': {
         backgroundImage: underline(
           style.getPropertyValue(
             '--jp-editor-mirror-lsp-diagnostic-error-decoration-color'
           )
         )
       },
-      '.cm-lintRange-warning': {
+      '.cm-editor .cm-lintRange-warning': {
         backgroundImage: underline(
           style.getPropertyValue(
             '--jp-editor-mirror-lsp-diagnostic-warning-decoration-color'
           )
         )
       },
-      '.cm-lintRange-info': {
+      '.cm-editor .cm-lintRange-info': {
         backgroundImage: underline(
           style.getPropertyValue(
             '--jp-editor-mirror-lsp-diagnostic-information-decoration-color'
           )
         )
       },
-      '.cm-lintRange-hint': {
+      '.cm-editor .cm-lintRange-hint': {
         backgroundImage: underline(
           style.getPropertyValue(
             '--jp-editor-mirror-lsp-diagnostic-hint-decoration-color'
@@ -270,13 +271,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
         )
       }
     });
-    const tempEditor = new EditorView({ extensions: baseTheme });
-    const styleModules = tempEditor.state.facet(EditorView.styleModule);
-    const ourRules = styleModules.find(styleModule => {
-      const rules = styleModule.getRules().split('\n');
-      return rules.every(rule => rule.includes('cm-lintRange'));
-    })!;
-    this._styleElement.innerHTML = ourRules.getRules();
+    this._styleElement.innerHTML = lintTheme.getRules();
   }
 
   clearDocumentDiagnostics(
