@@ -12,10 +12,10 @@ dependencies:
   - pip
   - nodejs {nodejs}
   # for python language server (and development)
-  - python-lsp-server >=1.8.0
-  - flake8 >=6.1.0
-  - autopep8 >=1.6.0
-  - pyflakes >=3.1.0
+  - python-lsp-server >=1.7.4
+  - flake8
+  - autopep8
+  - pyflakes
   # robotframework for testing and language server
   - jupyterlab_robotmode
   - robotframework >=4
