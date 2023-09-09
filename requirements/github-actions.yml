@@ -12,9 +12,10 @@ dependencies:
   - pip
   - nodejs {nodejs}
   # for python language server (and development)
-  - python-lsp-server
-  - flake8 >=3.5
-  - autopep8 <1.6.0
+  - python-lsp-server >=1.8.0
+  - flake8 >=6.1.0
+  - autopep8 >=1.6.0
+  - pyflakes >=3.1.0
   # robotframework for testing and language server
   - jupyterlab_robotmode
   - robotframework >=4
@@ -36,12 +37,8 @@ dependencies:
   # test tools
   - pytest-asyncio
   - pytest-cov
-  # temporary pin added on 2022-12-28, if editing this file try to remove it:
-  # pytoolconfig 1.2.4 depends on packaging>=22.0 which breaks `pip check`
-  - pytoolconfig <1.2.4
-  # see https://github.com/conda-forge/pytest-flake8-feedstock/issues/20
-  # and https://github.com/tholo/pytest-flake8/issues/86
-  - pytest-flake8 <1.1.1
+  - pytoolconfig
+  - pytest-flake8
   - pytest-runner
   - ruamel_yaml
   - pytest-github-actions-annotate-failures
