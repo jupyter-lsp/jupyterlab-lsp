@@ -138,6 +138,12 @@ export class SyntaxHighlightingFeature extends Feature {
       return;
     }
 
+    if (Array.isArray(mimetype)) {
+      // Contrarily to what types say, mimetype can be an array.
+      // https://github.com/jupyterlab/jupyterlab/issues/15100
+      return mimetype[0];
+    }
+
     return mimetype;
   }
 
