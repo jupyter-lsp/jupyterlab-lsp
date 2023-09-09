@@ -9,7 +9,7 @@ Test Tags       ui:editor    aspect:ls:features
 
 *** Test Cases ***
 Bash
-    ${def} =    Set Variable    lastToken:HelloWorld
+    ${def} =    Set Variable    lastToken:fib
     Editor Shows Features for Language
     ...    Bash
     ...    example.sh
