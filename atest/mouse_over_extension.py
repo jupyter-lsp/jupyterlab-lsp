@@ -6,10 +6,8 @@ from SeleniumLibrary import SeleniumLibrary
 
 def wiggle(action, x_wiggle):
     if x_wiggle:
-        #action.pointer_action.move_by(xoffset=x_wiggle, yoffset=0)
-        action.key_action.pause()
-        #action.pointer_action.move_by(xoffset=-x_wiggle, yoffset=0)
-        action.key_action.pause()
+        action.pointer_action.move_by(x_wiggle, 0)
+        action.pointer_action.move_by(-x_wiggle, 0)
 
 
 def mouse_over_token_with_control(token_locator, x_wiggle=0):
@@ -18,7 +16,7 @@ def mouse_over_token_with_control(token_locator, x_wiggle=0):
     action = ActionBuilder(sl.driver)
 
     action.key_action.key_down(Keys.CONTROL)
-    #action.pointer_action.pause()
+
     action.pointer_action.move_to_location(location['x'], location['y'])
     wiggle(action, x_wiggle)
     action.key_action.key_up(Keys.CONTROL)
