@@ -398,11 +398,7 @@ Open File
 
 Open in Advanced Settings
     [Arguments]    ${plugin id}
-    IF    '${LAB VERSION}'.startswith('3.')
-        Lab Command    Advanced JSON Settings Editor
-    ELSE
-        Lab Command    Advanced Settings Editor
-    END
+    Lab Command    Advanced Settings Editor
     ${sel} =    Set Variable    css:[data-id="${plugin id}"]
     Wait Until Page Contains Element    ${sel}    timeout=10s
     Click Element    ${sel}
