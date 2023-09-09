@@ -101,7 +101,7 @@ Diagnostic Message Can Be Copied
     Open Context Menu Over    css:.lsp-diagnostics-listing tbody tr
     Select Menu Entry    Copy diagnostic
     Close Diagnostics Panel
-    Wait Until Element Contains    css:.lsp-statusbar-item    Successfully copied    timeout=10s
+    Wait Until Element Contains    css:.jp-toast-message    Successfully copied    timeout=10s
 
 Diagnostics Panel Works After Removing Foreign Document
     Enter Cell Editor    2
@@ -134,7 +134,7 @@ Open Context Menu Over W291
 Open Notebook And Panel
     [Arguments]    ${notebook}
     Setup Notebook    Python    ${notebook}
-    Capture Page Screenshot    00-notebook-and-panel-openeing.png
+    Capture Page Screenshot    00-notebook-and-panel-opening.png
     Wait Until Page Contains Diagnostic    [title*="${DIAGNOSTIC}"]    timeout=20s
     Open Diagnostics Panel
     Capture Page Screenshot    00-notebook-and-panel-opened.png
