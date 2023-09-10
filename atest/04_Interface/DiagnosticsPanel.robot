@@ -9,12 +9,11 @@ Test Tags           ui:notebook    aspect:ls:features
 
 
 *** Variables ***
-${DIAGNOSTIC MESSAGE R}     Trailing blank lines are superfluous.
+${DIAGNOSTIC MESSAGE R}     Closing curly-braces should always be on their own line
 ${DIAGNOSTIC MESSAGE}       trailing whitespace
 ${DIAGNOSTIC}               W291 trailing whitespace (pycodestyle)
 ${EXPECTED_COUNT}           4
 ${MENU COLUMNS}             xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "columns")]
-${R CELL}                   %%R\n{}
 
 
 *** Test Cases ***
@@ -107,7 +106,11 @@ Diagnostics Panel Works After Removing Foreign Document
     Enter Cell Editor    2
     Lab Command    Insert Cell Below
     Enter Cell Editor    3
-    Press Keys    None    ${R CELL}
+    Press Keys    None    %%R\n
+    # these two steps ideally would not be needed (they show that for slow-starting server
+    # update may not be triggered until user manually makes another action).
+    Wait Until Fully Initialized
+    Press Keys    None    {}
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE}
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
@@ -116,13 +119,20 @@ Diagnostics Panel Works After Removing Foreign Document
     # regain focus by entering cell
     Enter Cell Editor    2
     # trigger 7 document updates to trigger the garbage collector that removes unused documents
-    # (search for VirtualDocument.remainining_lifetime for more)
+    # (search for VirtualDocument.remainingLifetime for more)
     Press Keys    None    1234567
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE}
     Wait Until Keyword Succeeds    10 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE R}
-
+    # it should be possible to get the diagnostic back after re-creatign the cell
+    Lab Command    Insert Cell Below
+    Enter Cell Editor    3
+    Press Keys    None    %%R\n{}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    ...    ${DIAGNOSTIC MESSAGE}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    ...    ${DIAGNOSTIC MESSAGE R}
 
 *** Keywords ***
 Open Context Menu Over W291

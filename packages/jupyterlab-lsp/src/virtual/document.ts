@@ -142,6 +142,44 @@ export class VirtualDocument extends VirtualDocumentBase {
   }
 
   /**
+   * Close all expired documents.
+   */
+  closeExpiredDocuments(): void {
+    const usedDocuments = new Set<VirtualDocument>();
+    for (const line of this.sourceLines.values()) {
+      for (const block of line.foreignDocumentsMap.values()) {
+        usedDocuments.add(block.virtualDocument as VirtualDocument);
+      }
+    }
+
+    const documentIDs = new Map<VirtualDocument, string[]>();
+    for (const [id, document] of (
+      this.foreignDocuments as Map<string, VirtualDocument>
+    ).entries()) {
+      const ids = documentIDs.get(document);
+      if (typeof ids !== 'undefined') {
+        documentIDs.set(document, [...ids, id]);
+      }
+      documentIDs.set(document, [id]);
+    }
+    const allDocuments = new Set<VirtualDocument>(documentIDs.keys());
+    const unusedVirtualDocuments = new Set(
+      [...allDocuments].filter(x => !usedDocuments.has(x))
+    );
+
+    for (let document of unusedVirtualDocuments.values()) {
+      document.remainingLifetime -= 1;
+      if (document.remainingLifetime <= 0) {
+        document.dispose();
+        const ids = documentIDs.get(document)!;
+        for (const id of ids) {
+          this.foreignDocuments.delete(id);
+        }
+      }
+    }
+  }
+
+  /**
    * @experimental
    */
   transformVirtualToRoot(position: IVirtualPosition): IRootPosition | null {
