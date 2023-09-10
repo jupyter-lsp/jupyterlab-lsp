@@ -265,7 +265,10 @@ export class DiagnosticsListing extends VDomRenderer<DiagnosticsListing.Model> {
     if (diagnosticsDatabase == null || !adapter) {
       return (
         <div className={DIAGNOSTICS_PLACEHOLDER_CLASS}>
-          {this.trans.__('Diagnostics are not available')}
+          <h3>No diagnostics</h3>
+          {this.trans.__(
+            'Diagnostics panel shows linting results in notebooks and files connected to a language server.'
+          )}
         </div>
       );
     }
