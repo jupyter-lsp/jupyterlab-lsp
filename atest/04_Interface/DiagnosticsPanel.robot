@@ -112,7 +112,7 @@ Diagnostics Panel Works After Removing Foreign Document
     ...    ${DIAGNOSTIC MESSAGE}
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE R}
-    Lab Command    Delete Cells
+    Lab Command    Delete Cell
     # regain focus by entering cell
     Enter Cell Editor    2
     # trigger 7 document updates to trigger the garbage collector that removes unused documents
