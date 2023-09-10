@@ -79,8 +79,7 @@ Diagnostics Can Be Ignored By Code
     Expand Menu Entry    Ignore diagnostics
     Select Menu Entry    code
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_AFTER}
-    Open in Advanced Settings    ${DIAGNOSTICS PLUGIN ID}
-    Capture Page Screenshot    02-code-pressed.png
+    Configure JupyterLab Plugin    {}    plugin id=${DIAGNOSTICS PLUGIN ID}
 
 Diagnostics Can Be Ignored By Message
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_COUNT}
@@ -91,8 +90,7 @@ Diagnostics Can Be Ignored By Message
     Capture Page Screenshot    02-menu-visible.png
     Select Menu Entry    Ignore diagnostics with "W291 trailing whitespace" message
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_AFTER}
-    Open in Advanced Settings    ${DIAGNOSTICS PLUGIN ID}
-    Capture Page Screenshot    02-message-pressed.png
+    Configure JupyterLab Plugin    {}    plugin id=${DIAGNOSTICS PLUGIN ID}
 
 Diagnostic Message Can Be Copied
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
