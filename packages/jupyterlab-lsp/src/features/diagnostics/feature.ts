@@ -78,6 +78,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
       );
       virtualDocument.foreignDocumentClosed.connect((document, context) => {
         // TODO: check if we need to cast
+        console.log('foreing closed');
         this.clearDocumentDiagnostics(adapter, context.foreignDocument);
       });
     });
@@ -101,12 +102,38 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
     const connectionManager = options.connectionManager;
     // https://github.com/jupyterlab/jupyterlab/issues/14783
     options.shell.currentChanged.connect(shell => {
+      if (shell.currentWidget == diagnosticsPanel.widget) {
+        // allow focusing on the panel
+        return;
+      }
+
       const adapter = [...connectionManager.adapters.values()].find(
         adapter => adapter.widget == shell.currentWidget
       );
 
       if (!adapter) {
-        this.console.debug('No adapter');
+        this.switchDiagnosticsPanelSource(null);
+        // this dance should not be needed once https://github.com/jupyterlab/jupyterlab/pull/14920 is in,
+        // but we will need to continue listening to `currentChanged` signal anyways to make sure we show
+        // empty indicator in launcher or other widget which does not support linting.
+        let attemptsLeft = 3;
+        const retry = () => {
+          const adapter = [...connectionManager.adapters.values()].find(
+            adapter => adapter.widget == shell.currentWidget
+          );
+          attemptsLeft -= 1;
+          if (adapter) {
+            this.switchDiagnosticsPanelSource(adapter);
+            attemptsLeft = 0;
+          }
+          if (attemptsLeft == 0) {
+            connectionManager.connected.disconnect(retry);
+          }
+        };
+        connectionManager.connected.connect(retry);
+        this.console.debug(
+          'No adapter (yet?), will retry on next connected document'
+        );
       } else {
         this.switchDiagnosticsPanelSource(adapter);
       }
@@ -298,16 +325,20 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
     return this._diagnosticsDatabases.get(adapter)!;
   }
 
-  switchDiagnosticsPanelSource = (adapter: WidgetLSPAdapter<any>) => {
+  switchDiagnosticsPanelSource = (adapter: WidgetLSPAdapter<any> | null) => {
     diagnosticsPanel.trans = this._trans;
-    const diagnostics = this.getDiagnosticsDB(adapter);
-    if (diagnosticsPanel.content.model.diagnostics == diagnostics) {
-      return;
+    if (adapter !== null) {
+      const diagnostics = this.getDiagnosticsDB(adapter);
+      if (diagnosticsPanel.content.model.diagnostics == diagnostics) {
+        return;
+      }
+      diagnosticsPanel.content.model.diagnostics = diagnostics;
+      diagnosticsPanel.content.model.settings = this.settings;
+      diagnosticsPanel.feature = this;
+    } else {
+      diagnosticsPanel.content.model.diagnostics = null;
     }
-    diagnosticsPanel.content.model.diagnostics = diagnostics;
     diagnosticsPanel.content.model.adapter = adapter;
-    diagnosticsPanel.content.model.settings = this.settings;
-    diagnosticsPanel.feature = this;
     diagnosticsPanel.update();
   };
 
