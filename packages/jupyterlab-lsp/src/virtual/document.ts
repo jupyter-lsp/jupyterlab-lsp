@@ -145,6 +145,7 @@ export class VirtualDocument extends VirtualDocumentBase {
    * Close all expired documents.
    */
   closeExpiredDocuments(): void {
+    // TODO: remove once https://github.com/jupyterlab/jupyterlab/pull/15105 is in
     const usedDocuments = new Set<VirtualDocument>();
     for (const line of this.sourceLines.values()) {
       for (const block of line.foreignDocumentsMap.values()) {

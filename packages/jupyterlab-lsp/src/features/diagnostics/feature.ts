@@ -78,7 +78,6 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
       );
       virtualDocument.foreignDocumentClosed.connect((document, context) => {
         // TODO: check if we need to cast
-        console.log('foreing closed');
         this.clearDocumentDiagnostics(adapter, context.foreignDocument);
       });
     });
