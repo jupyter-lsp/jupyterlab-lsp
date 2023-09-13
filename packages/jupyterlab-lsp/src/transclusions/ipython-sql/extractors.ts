@@ -37,6 +37,20 @@ export let foreign_code_extractors: IForeignCodeExtractorsRegistry = {
       foreign_capture_groups: [1],
       is_standalone: false,
       file_extension: 'sql'
+    }),
+    new RegExpForeignCodeExtractor({
+      language: 'sql',
+      pattern: `^%%spark -c sql(?: (?:${SQL_URL_PATTERN}|${COMMAND_PATTERN}|(?:\\w+ << )|(?:\\w+@\\w+)))?\n?((?:.+\n)?(?:[^]*))`,
+      foreign_capture_groups: [1],
+      is_standalone: true,
+      file_extension: 'sql'
+    }),
+    new RegExpForeignCodeExtractor({
+      language: 'sql',
+      pattern: `(?:^|\n)%spark -c sql (?:${SQL_URL_PATTERN}|${COMMAND_PATTERN}|(.*))\n?`,
+      foreign_capture_groups: [1],
+      is_standalone: false,
+      file_extension: 'sql'
     })
   ]
 };
