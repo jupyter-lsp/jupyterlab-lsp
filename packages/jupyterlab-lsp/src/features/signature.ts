@@ -313,7 +313,13 @@ export class SignatureFeature extends Feature {
 
           // TODO: the assumption that updated editor = active editor will fail on RTC. How to get `CodeEditor.IEditor` and `Document.IEditor` from `EditorView`? we got `CodeEditor.IModel` from `options.model` but may need more context here.
           const editorAccessor = adapter.activeEditor;
-          const editor = editorAccessor!.getEditor()!;
+          const editor = editorAccessor!.getEditor();
+
+          if (!editor) {
+            // see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/984
+            // TODO: should not be needed once https://github.com/jupyterlab/jupyterlab/pull/14920 is in
+            return;
+          }
 
           // TODO: or should it come from viewUpdate instead?!
           // especially on copy paste this can be problematic.
