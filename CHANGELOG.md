@@ -1,5 +1,15 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 5.0.0-rc.0`
+
+- fixes diagnostics not showing up in text editor in certain circumstances
+- fixes signature hover box not being clickable
+- improves performance by not creating a temporary editor to setup linter underline style
+- JSON overrides work again
+- fixes issue with syntax highlighting breaking when pasting multiple cells
+
+Requires JupyterLab `>=4.0.6,<5.0.0a0`
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.0-beta.1`
 
 - fix highlights conflict with selection
