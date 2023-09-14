@@ -6,11 +6,13 @@ on:
       - master
       - 2.x
       - 3.x
+      - 4.x
   pull_request:
     branches:
       - master
       - 2.x
       - 3.x
+      - 4.x
   workflow_dispatch:
 
 # TODO: might need to tweak `group`
