@@ -470,4 +470,4 @@ Should Complete While Kernel Is Busy
     Page Should Contain Element    ${KERNEL_BUSY_INDICATOR}
 
 Wait For Our Completer To Initialize
-    Wait Until Page Contains Element    css:.body[data-lsp-completer-layout]
+    Wait Until Page Contains Element    css:body[data-lsp-completer-layout]
