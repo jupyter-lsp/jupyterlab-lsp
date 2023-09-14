@@ -61,7 +61,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         config=True
     )  # type: KeyedLanguageServerSpecs
 
-    autodetect: bool = Bool(
+    autodetect: bool = Bool(  # type:ignore[assignment]
         True, help=_("try to find known language servers in sys.prefix (and elsewhere)")
     ).tag(
         config=True
