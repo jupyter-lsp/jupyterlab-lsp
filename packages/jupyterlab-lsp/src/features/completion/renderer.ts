@@ -223,7 +223,7 @@ export class LSPCompletionRenderer
   }
 
   itemWidthHeuristic(item: CompletionItem): number {
-    const labelSize = item.label.replace(/<\?mark>/g, '').length;
+    const labelSize = item.label.replace(/<(\/)?mark>/g, '').length;
     const extraTextSize = this.getExtraInfo(item).length;
     if (this.options.settings.composite.layout === 'side-by-side') {
       // in 'side-by-side' take the sum
