@@ -1,4 +1,4 @@
-import { INotebookShell } from '@jupyter-notebook/application';
+import { INotebookShell, NotebookApp } from '@jupyter-notebook/application';
 import {
   ILayoutRestorer,
   JupyterFrontEnd,
@@ -99,20 +99,27 @@ export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<IDiagnosticsFeature> = {
           const panelWidget = diagnosticsPanel.widget;
           if (!panelWidget.isAttached) {
             void tracker.add(panelWidget);
-            app.shell.add(panelWidget, 'main', {
-              ref: ref,
-              mode: 'split-bottom'
-            });
+            if (
+              typeof NotebookApp !== 'undefined' &&
+              app instanceof NotebookApp
+            ) {
+              app.shell.add(panelWidget, 'right');
+              await app.commands.execute('application:toggle-panel', {
+                id: panelWidget.id,
+                side: 'right'
+              });
+            } else {
+              app.shell.add(panelWidget, 'main', {
+                ref: ref,
+                mode: 'split-bottom'
+              });
+            }
           }
           app.shell.activateById(panelWidget.id);
           void tracker.save(panelWidget);
         },
         label: trans.__('Show diagnostics panel'),
-        icon: diagnosticsIcon,
-        isEnabled: () => {
-          // TODO notebook
-          return app.name != 'JupyterLab Classic';
-        }
+        icon: diagnosticsIcon
       });
 
       // add to menus
