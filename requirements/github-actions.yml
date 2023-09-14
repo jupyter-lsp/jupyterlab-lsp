@@ -50,3 +50,5 @@ dependencies:
   - firefox
   - geckodriver
   - robotframework-seleniumlibrary
+  # temp pin see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/956
+  - selenium <4.10
