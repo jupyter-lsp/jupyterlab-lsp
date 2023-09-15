@@ -67,6 +67,13 @@ export class CompletionItem implements IExtendedCompletionItem {
     this.self = this;
     this.source = options.source;
     this.icon = options.icon ? options.icon : undefined;
+
+    // Upstream is sometimes using spread operator to copy the object (in reconciliator),
+    // which does not copy getters because these are not enumerable; we should use
+    // `Object.assign` upstream, but them, but for now marking relevant properties as enumerable is enough
+    // Ideally this would be fixed and tested e2e in JupyterLab 4.0.7.
+    // https://github.com/jupyterlab/jupyterlab/issues/15125
+    makeGetterEnumerable(this, 'insertText');
   }
 
   get type() {
@@ -184,4 +191,24 @@ export class CompletionItem implements IExtendedCompletionItem {
       )
     );
   }
+}
+
+function makeGetterEnumerable(instance: object, name: string) {
+  const generatedDescriptor = findDescriptor(instance, name);
+  Object.defineProperty(instance, name, {
+    enumerable: true,
+    get: generatedDescriptor.get,
+    set: generatedDescriptor.set
+  });
+}
+
+function findDescriptor(instance: object, name: string) {
+  while (instance) {
+    const desc = Object.getOwnPropertyDescriptor(instance, name);
+    if (desc) {
+      return desc;
+    }
+    instance = Object.getPrototypeOf(instance);
+  }
+  throw Error(`No ${name} descriptor found.`);
 }
