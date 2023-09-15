@@ -10,7 +10,7 @@ import type {
 } from '@jupyterlab/lsp';
 import type * as lsProtocol from 'vscode-languageserver-protocol';
 
-import type { VirtualDocument } from './virtual/document';
+import { VirtualDocument } from './virtual/document';
 
 export class PositionConverter {
   static lsp_to_cm(position: lsProtocol.Position): IPosition {
@@ -86,18 +86,6 @@ export function rootPositionToVirtualPosition(
   return adapter.virtualDocument!.virtualPositionAtDocument(rootAsSource);
 }
 
-export function virtualPositionToRootPosition(
-  adapter: WidgetLSPAdapter<any>,
-  position: IVirtualPosition
-): IRootPosition | null {
-  if (!adapter.virtualDocument) {
-    throw Error('Virtual document of adapter disposed!');
-  }
-  return (adapter.virtualDocument as VirtualDocument).transformVirtualToRoot(
-    position
-  );
-}
-
 export function rootPositionToEditorPosition(
   adapter: WidgetLSPAdapter<any>,
   position: IRootPosition
@@ -126,12 +114,20 @@ export function editorPositionToRootPosition(
 export function rangeToEditorRange(
   adapter: WidgetLSPAdapter<any>,
   range: lsProtocol.Range,
-  editor: CodeEditor.IEditor | null
+  editor: CodeEditor.IEditor | null,
+  virtualDocument: VirtualDocument
 ): IEditorRange {
   let start = PositionConverter.lsp_to_cm(range.start) as IVirtualPosition;
   let end = PositionConverter.lsp_to_cm(range.end) as IVirtualPosition;
 
-  let startInRoot = virtualPositionToRootPosition(adapter, start);
+  // because `openForeign()` does not use new this.constructor, we need to workaround it for now:
+  // const startInRoot = virtualDocument.transformVirtualToRoot(start);
+  // https://github.com/jupyterlab/jupyterlab/issues/15126
+  const startInRoot = VirtualDocument.prototype.transformVirtualToRoot.call(
+    virtualDocument,
+    start
+  );
+
   if (!startInRoot) {
     throw Error('Could not determine position in root');
   }

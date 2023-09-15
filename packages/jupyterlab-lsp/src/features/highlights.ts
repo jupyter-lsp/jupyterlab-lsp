@@ -14,8 +14,7 @@ import {
   ILSPFeatureManager,
   IEditorPosition,
   ILSPDocumentConnectionManager,
-  WidgetLSPAdapter,
-  VirtualDocument
+  WidgetLSPAdapter
 } from '@jupyterlab/lsp';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { LabIcon } from '@jupyterlab/ui-components';
@@ -37,6 +36,7 @@ import { DocumentHighlightKind } from '../lsp';
 import { createMarkManager, ISimpleMarkManager } from '../marks';
 import { PLUGIN_ID } from '../tokens';
 import { BrowserConsole } from '../virtual/console';
+import { VirtualDocument } from '../virtual/document';
 
 export const highlightIcon = new LabIcon({
   name: 'lsp:highlight',
@@ -160,7 +160,8 @@ export class HighlightsFeature extends Feature {
 
   protected handleHighlight(
     items: lsProtocol.DocumentHighlight[] | null,
-    adapter: WidgetLSPAdapter<any>
+    adapter: WidgetLSPAdapter<any>,
+    document: VirtualDocument
   ) {
     this.markManager.clearAllMarks();
 
@@ -174,7 +175,7 @@ export class HighlightsFeature extends Feature {
     >();
 
     for (let item of items) {
-      let range = rangeToEditorRange(adapter, item.range, null);
+      let range = rangeToEditorRange(adapter, item.range, null, document);
       const editor = range.editor;
 
       let optionsList = highlightsByEditor.get(editor);
@@ -350,7 +351,7 @@ export class HighlightsFeature extends Feature {
         return;
       }
 
-      this.handleHighlight(highlights, adapter);
+      this.handleHighlight(highlights, adapter, document);
       this._lastToken = token;
     } catch (e) {
       this.console.warn('Could not get highlights:', e);

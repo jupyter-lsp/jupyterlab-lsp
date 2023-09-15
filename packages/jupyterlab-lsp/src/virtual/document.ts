@@ -184,11 +184,10 @@ export class VirtualDocument extends VirtualDocumentBase {
    * @experimental
    */
   transformVirtualToRoot(position: IVirtualPosition): IRootPosition | null {
-    // a method which was previously implemented in CodeMirrorIntegration
-    // but probably should have been in VirtualDocument all along
     let editor = this.virtualLines.get(position.line)!.editor;
     let editorPosition = this.transformVirtualToEditor(position);
-    return this.transformFromEditorToRoot(editor, editorPosition!);
+    // only root holds the full editor mapping
+    return this.root.transformFromEditorToRoot(editor, editorPosition!);
   }
 
   /**

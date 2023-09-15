@@ -48,13 +48,13 @@ import {
   documentAtRootPosition,
   editorAtRootPosition,
   rootPositionToVirtualPosition,
-  rootPositionToEditorPosition,
-  virtualPositionToRootPosition
+  rootPositionToEditorPosition
 } from '../converter';
 import { FeatureSettings, Feature } from '../feature';
 import { PLUGIN_ID } from '../tokens';
 import { getModifierState, uriToContentsPath, urisEqual } from '../utils';
 import { BrowserConsole } from '../virtual/console';
+import { VirtualDocument } from '../virtual/document';
 
 export const jumpToIcon = new LabIcon({
   name: 'lsp:jump-to',
@@ -245,7 +245,7 @@ export class NavigationFeature extends Feature {
     connection.clientRequests['textDocument/definition']
       .request(positionParams)
       .then(targets => {
-        this.handleJump(targets, positionParams, adapter)
+        this.handleJump(targets, positionParams, adapter, document)
           .then((result: JumpResult | undefined) => {
             if (
               result === JumpResult.NoTargetsFound ||
@@ -259,7 +259,7 @@ export class NavigationFeature extends Feature {
                 })
                 .then(targets =>
                   // TODO: explain that we are now presenting references?
-                  this.handleJump(targets, positionParams, adapter)
+                  this.handleJump(targets, positionParams, adapter, document)
                 )
                 .catch(this.console.warn);
             }
@@ -361,7 +361,8 @@ export class NavigationFeature extends Feature {
   async handleJump(
     locationData: AnyLocation,
     positionParams: lsp.TextDocumentPositionParams,
-    adapter: WidgetLSPAdapter<any>
+    adapter: WidgetLSPAdapter<any>,
+    document: VirtualDocument
   ) {
     const locations = this._harmonizeLocations(locationData);
     const targetInfo = await this._chooseTarget(locations);
@@ -382,10 +383,16 @@ export class NavigationFeature extends Feature {
 
     if (urisEqual(uri, positionParams.textDocument.uri)) {
       // if in current file, transform from the position within virtual document to the editor position:
-      const rootPosition = virtualPositionToRootPosition(
-        adapter,
-        virtualPosition
-      );
+
+      // because `openForeign()` does not use new this.constructor, we need to workaround it for now:
+      // const rootPosition = document.transformVirtualToRoot(virtualPosition);
+      // https://github.com/jupyterlab/jupyterlab/issues/15126
+      const rootPosition =
+        VirtualDocument.prototype.transformVirtualToRoot.call(
+          document,
+          virtualPosition
+        );
+
       if (rootPosition === null) {
         this.console.warn(
           'Could not jump: conversion from virtual position to editor position failed',
@@ -581,7 +588,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
         const targets = await connection.clientRequests[
           'textDocument/definition'
         ].request(positionParams);
-        await feature.handleJump(targets, positionParams, adapter);
+        await feature.handleJump(targets, positionParams, adapter, document);
       },
       label: trans.__('Jump to definition'),
       icon: jumpToIcon,
@@ -627,7 +634,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
           ...positionParams,
           context: { includeDeclaration: false }
         });
-        await feature.handleJump(targets, positionParams, adapter);
+        await feature.handleJump(targets, positionParams, adapter, document);
       },
       label: trans.__('Jump to references'),
       icon: jumpToIcon,
