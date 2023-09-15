@@ -213,9 +213,9 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
       editor.getPositionAt(request.offset)!
     ) as IEditorPosition;
     const token = editor.getTokenAt(request.offset);
-    const positionInToken = token.offset - request.offset;
+    const positionInToken = request.offset - token.offset;
     // TODO: (typedCharacter can serve as a proxy for triggerCharacter)
-    const typedCharacter = token.value[positionInToken + 1];
+    const typedCharacter = token.value[positionInToken - 1];
 
     // TODO: direct mapping
     // because we need editorAccessor, not the editor itself we perform this rather sad dance:
@@ -296,17 +296,12 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
     if (this.options.settings.composite.disable) {
       return false;
     }
-    /*
-    // Disabled due to the result being effectively cached until user changes
-    // cells which can lead to bad UX; upstream issue:
-    // https://github.com/jupyterlab/jupyterlab/issues/15016
     const manager = this.options.connectionManager;
     const widget = context.widget as IDocumentWidget;
     const adapter = manager.adapters.get(widget.context.path);
     if (!adapter) {
       return false;
     }
-    */
     return true;
   }
 }
