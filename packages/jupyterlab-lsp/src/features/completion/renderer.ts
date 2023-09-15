@@ -213,6 +213,9 @@ export class LSPCompletionRenderer
         })
         .catch(this.options.console.warn);
       return this.options.markdownRenderer.node;
+    } else if (item.source != 'LSP') {
+      // fallback to default implementation for non-LSP completions
+      return super.createDocumentationNode(item);
     } else {
       let node = document.createElement('pre');
       if (item.documentation) {
