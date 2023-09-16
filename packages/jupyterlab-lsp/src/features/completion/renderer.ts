@@ -161,14 +161,14 @@ export class LSPCompletionRenderer
     const originalHTMLLabel = labelElement.childNodes;
     let hasMark = false;
     for (const node of originalHTMLLabel) {
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        const element = node as Element;
+      if (node instanceof HTMLElement) {
+        const element = node as HTMLElement;
         const text = element.textContent;
-        if (element.tagName === 'MARK' && text) {
+        if (element.tagName === 'MARK' && text && text.length > 3) {
           const elidableElement = document.createElement('bdo');
           elidableElement.setAttribute('dir', 'ltr');
           elidableElement.textContent = text;
-          elidableElement.title = text;
+          element.title = text;
           element.replaceChildren(elidableElement);
           element.classList.add('lsp-elide');
           hasMark = true;

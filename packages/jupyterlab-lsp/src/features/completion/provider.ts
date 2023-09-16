@@ -307,6 +307,13 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
     return true;
   }
 }
+
+function stripQuotes(path: string): string {
+  return path.slice(
+    path.startsWith("'") || path.startsWith('"') ? 1 : 0,
+    path.endsWith("'") || path.endsWith('"') ? -1 : path.length
+  );
+}
 export function transformLSPCompletions<T>(
   token: CodeEditor.IToken,
   positionInToken: number,
@@ -317,6 +324,7 @@ export function transformLSPCompletions<T>(
   let prefix = token.value.slice(0, positionInToken + 1);
   let allNonPrefixed = true;
   let items: T[] = [];
+  let prefixLength = prefix.length;
   lspCompletionItems.forEach(match => {
     let kind = match.kind ? CompletionItemKind[match.kind] : '';
 
@@ -338,22 +346,27 @@ export function transformLSPCompletions<T>(
       }
     }
     // add prefix if needed
-    else if (token.type === 'string' && prefix.includes('/')) {
+    else if (token.type === 'String' && prefix.includes('/')) {
       // special case for path completion in strings, ensuring that:
       //     '/Com<tab> → '/Completion.ipynb
       // when the returned insert text is `Completion.ipynb` (the token here is `'/Com`)
       // developed against pyls and pylsp server, may not work well in other cases
-      const parts = prefix.split('/');
+
+      const parts = stripQuotes(prefix).split('/');
       if (
         text.toLowerCase().startsWith(parts[parts.length - 1].toLowerCase())
       ) {
         let pathPrefix = parts.slice(0, -1).join('/') + '/';
-        match.insertText = pathPrefix + text;
-        // for label removing the prefix quote if present
-        if (pathPrefix.startsWith("'") || pathPrefix.startsWith('"')) {
-          pathPrefix = pathPrefix.substr(1);
-        }
+        const withStartingQuote =
+          (prefix.startsWith("'") || prefix.startsWith('"') ? prefix[0] : '') +
+          pathPrefix +
+          text;
+        match.insertText = withStartingQuote;
+        // for label without quotes
         match.label = pathPrefix + match.label;
+        if (prefix.endsWith("'") || prefix.endsWith('"')) {
+          prefixLength = prefix.length - 1;
+        }
         allNonPrefixed = false;
       }
     }
@@ -369,8 +382,8 @@ export function transformLSPCompletions<T>(
   // completion of dictionaries for Python with jedi-language-server was
   // causing an issue for dic['<tab>'] case; to avoid this let's make
   // sure that prefix.length >= prefix.offset
-  if (allNonPrefixed && prefixOffset > prefix.length) {
-    prefixOffset = prefix.length;
+  if (allNonPrefixed && prefixOffset > prefixLength) {
+    prefixOffset = prefixLength;
   }
 
   let response = {
@@ -384,7 +397,7 @@ export function transformLSPCompletions<T>(
     // text = token.value + text;
     // but it did not work for "from statistics <tab>" and lead to "from statisticsimport" (no space)
     start: token.offset + (allNonPrefixed ? prefixOffset : 0),
-    end: token.offset + prefix.length,
+    end: token.offset + prefixLength,
     items: items,
     source: 'LSP'
   };
