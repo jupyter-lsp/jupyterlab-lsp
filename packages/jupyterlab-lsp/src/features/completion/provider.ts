@@ -42,6 +42,7 @@ interface IOptions {
 export class CompletionProvider implements ICompletionProvider<CompletionItem> {
   readonly identifier = 'lsp';
   readonly label = 'LSP';
+  readonly rank = 1000;
   protected console = new BrowserConsole().scope('Completion provider');
 
   constructor(protected options: IOptions) {
