@@ -8,14 +8,15 @@ describe('LSPCompleterModel', () => {
 
   function createDummyItem(
     match: lsProtocol.CompletionItem,
-    type: string = 'dummy'
+    type: string = 'dummy',
+    source: string = 'lsp'
   ) {
     return new CompletionItem({
       type,
       icon: null as any,
       match,
       connection: null as any,
-      source: 'lsp'
+      source: source
     });
   }
 
@@ -77,6 +78,68 @@ describe('LSPCompleterModel', () => {
     model.query = 'test';
     let sortedItems = model.completionItems();
     expect(sortedItems.map(item => item.sortText)).toEqual(['a', 'b', 'c']);
+  });
+
+  describe('sorting by source', () => {
+    const testCompletionA = createDummyItem(
+      {
+        label: 'test'
+      },
+      'a',
+      'LSP'
+    );
+    const testCompletionB = createDummyItem(
+      {
+        label: 'test'
+      },
+      'b',
+      'kernel'
+    );
+    const testCompletionC = createDummyItem(
+      {
+        label: 'test'
+      },
+      'c',
+      'context'
+    );
+    const testCompletionD = createDummyItem(
+      {
+        label: 'test'
+      },
+      'd',
+      'unknown'
+    );
+    const completionsFromDifferentSources = [
+      testCompletionA,
+      testCompletionC,
+      testCompletionB
+    ];
+
+    it('completions are sorted by source', () => {
+      model.setCompletionItems(completionsFromDifferentSources);
+      model.query = 'test';
+      let sortedItems = model.completionItems();
+      expect(sortedItems.map(item => item.type)).toEqual(['a', 'b', 'c']);
+    });
+
+    it('kernel completions can be prioritised', () => {
+      model.setCompletionItems(completionsFromDifferentSources);
+      model.query = 'test';
+      model.settings.kernelCompletionsFirst = true;
+      let sortedItems = model.completionItems();
+      expect(sortedItems.map(item => item.type)).toEqual(['b', 'a', 'c']);
+    });
+
+    it('completions from unknown source land at the end', () => {
+      model.setCompletionItems([
+        testCompletionD,
+        ...completionsFromDifferentSources
+      ]);
+      model.query = 'test';
+      let sortedItems = model.completionItems();
+      const types = sortedItems.map(item => item.type);
+      expect(types[types.length - 1]).toEqual('d');
+    });
   });
 
   it('ignores perfect matches when asked', () => {

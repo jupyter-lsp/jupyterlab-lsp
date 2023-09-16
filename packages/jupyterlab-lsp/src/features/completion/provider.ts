@@ -65,13 +65,15 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
     const model = new LSPCompleterModel({
       caseSensitive: composite.caseSensitive,
       preFilterMatches: composite.preFilterMatches,
-      includePerfectMatches: composite.includePerfectMatches
+      includePerfectMatches: composite.includePerfectMatches,
+      kernelCompletionsFirst: composite.kernelCompletionsFirst
     });
     this.options.settings.changed.connect(() => {
       const composite = this.options.settings.composite;
       model.settings.caseSensitive = composite.caseSensitive;
       model.settings.preFilterMatches = composite.preFilterMatches;
       model.settings.includePerfectMatches = composite.includePerfectMatches;
+      model.settings.kernelCompletionsFirst = composite.kernelCompletionsFirst;
     });
     return model;
   };

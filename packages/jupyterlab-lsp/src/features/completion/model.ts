@@ -38,14 +38,16 @@ export class GenericCompleterModel<
 
   completionItems(): T[] {
     let query = this.query;
-    // TODO: make use of `processedItemsCache` when made available upstream,
-    // see https://github.com/jupyterlab/jupyterlab/pull/15025
     // (setting query is bad because it resets the cache; ideally we would
     // modify the sorting and filtering algorithm upstream).
+
+    // TODO processedItemsCache
     this.query = '';
+
     let unfilteredItems = (
       super.completionItems() as CompletionHandler.ICompletionItem[]
     ).map(this.harmoniseItem);
+
     this.query = query;
 
     // always want to sort
@@ -178,7 +180,7 @@ export class GenericCompleterModel<
       }
     }
 
-    results.sort(this.compareMatches);
+    results.sort(this.compareMatches.bind(this));
 
     return results.map(x => x.item);
   }
@@ -206,14 +208,19 @@ export namespace GenericCompleterModel {
      */
     includePerfectMatches?: boolean;
     /**
-     * Wheteher matches should be pre-filtered (default = true)
+     * Whether matches should be pre-filtered (default = true)
      */
     preFilterMatches?: boolean;
+    /**
+     * Whether kernel completions should be shown first.
+     */
+    kernelCompletionsFirst?: boolean;
   }
   export const defaultOptions: IOptions = {
     caseSensitive: true,
     includePerfectMatches: true,
-    preFilterMatches: true
+    preFilterMatches: true,
+    kernelCompletionsFirst: false
   };
 }
 
@@ -239,13 +246,22 @@ export class LSPCompleterModel extends GenericCompleterModel<MaybeCompletionItem
     a: ICompletionMatch<MaybeCompletionItem>,
     b: ICompletionMatch<MaybeCompletionItem>
   ): number {
-    const delta = a.score - b.score;
-    if (delta !== 0) {
-      return delta;
-    }
-    // solve ties using sortText
-
-    // note: locale compare is case-insensitive
-    return (a.item.sortText ?? 'z').localeCompare(b.item.sortText ?? 'z');
+    // TODO: take source order from provider ranks, upstream this code
+    const sourceOrder = {
+      LSP: 1,
+      kernel: this.settings.kernelCompletionsFirst ? 0 : 2,
+      context: 3
+    };
+    const aRank = a.item.source
+      ? sourceOrder[a.item.source as keyof typeof sourceOrder] ?? 4
+      : 4;
+    const bRank = b.item.source
+      ? sourceOrder[b.item.source as keyof typeof sourceOrder] ?? 4
+      : 4;
+    return (
+      aRank - bRank ||
+      (a.item.sortText ?? 'z').localeCompare(b.item.sortText ?? 'z') ||
+      a.score - b.score
+    );
   }
 }
