@@ -17,7 +17,7 @@ ${HOVER_SIGNAL}     css:.cm-lsp-hover-available
 *** Test Cases ***
 Hover Does Not Trigger Automatically
     Enter Cell Editor    1
-    ${sel} =    Last Occurrence    python_add
+    ${sel} =    Set Variable    lastToken:python_add
     Configure JupyterLab Plugin    {"autoActivate": false}
     ...    plugin id=${HOVER PLUGIN ID}
     Trigger Automatically By Hover    ${sel}
@@ -27,7 +27,7 @@ Hover Does Not Trigger Automatically
 
 Hover Triggers Automatically
     Enter Cell Editor    1
-    ${sel} =    Last Occurrence    python_add
+    ${sel} =    Set Variable    lastToken:python_add
     Configure JupyterLab Plugin    {"delay": 100, "autoActivate": true}
     ...    plugin id=${HOVER PLUGIN ID}
     Trigger Automatically By Hover    ${sel}
@@ -48,7 +48,7 @@ Hover works in notebooks
 
 Hover can be triggered via modifier key once cursor stopped moving
     Enter Cell Editor    1
-    ${element} =    Last Occurrence    python_add
+    ${element} =    Set Variable    lastToken:python_add
     Wait Until Keyword Succeeds    5x    0.1 s    Trigger Via Modifier Key Press    ${element}
 
 Hover works in foreign code (javascript)
@@ -70,60 +70,46 @@ Update hover after character deletion
     Enter Cell Editor    4
     Trigger Tooltip    atan2
     Element Text Should Be    ${HOVER_SIGNAL}    atan2
-    Capture Page Screenshot    01-hover-before-delection.png
+    Capture Page Screenshot    01-hover-before-deletion.png
     Element Should Contain    ${HOVER_BOX}    atan2(y: SupportsFloat, x: SupportsFloat, /)
     Place Cursor In Cell Editor At    4    line=2    character=13
     Press Keys    None    DELETE
     Trigger Tooltip    atan
     Element Text Should Be    ${HOVER_SIGNAL}    atan
-    Capture Page Screenshot    02-hover-after-delection.png
+    Capture Page Screenshot    02-hover-after-deletion.png
     Element Should Contain    ${HOVER_BOX}    atan(x: SupportsFloat, /)
 
 
 *** Keywords ***
-Last Occurrence
-    [Arguments]    ${symbol}
-    ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}
-    ...    xpath:(//div[@class="cm-content"]//text()[contains(., "${symbol}")])[last()]
-    RETURN    ${sel}
-
 Trigger Automatically By Hover
     [Arguments]    ${sel}
     # bring the cursor to the element
-    Wokraround Visibility Problem    ${sel}
-    Mouse Over    ${sel}
+    Mouse Over Token    ${sel}
     Wait Until Page Contains Element    ${HOVER_SIGNAL}    timeout=10s
-    Mouse Over And Wiggle    ${sel}    5
+    Mouse Over Token And Wiggle    ${sel}    5
 
 Trigger Via Hover With Modifier
     [Arguments]    ${sel}
     # bring the cursor to the element
-    Wokraround Visibility Problem    ${sel}
-    Mouse Over    ${sel}
-    # move it back and forth (wiggle) while hodling the ctrl modifier
-    Mouse Over With Control    ${sel}    x_wiggle=5
+    Mouse Over Token    ${sel}
+    # move it back and forth (wiggle) while holding the ctrl modifier
+    Mouse Over Token With Control    ${sel}    x_wiggle=5
     Wait Until Keyword Succeeds    4x    0.1s    Page Should Contain Element    ${HOVER_BOX}
 
 Trigger Via Modifier Key Press
     [Arguments]    ${sel}
     # bring the cursor to the element
-    Wokraround Visibility Problem    ${sel}
-    Mouse Over    ${sel}
+    Mouse Over Token    ${sel}
     Wait Until Page Contains Element    ${HOVER_SIGNAL}    timeout=10s
-    Mouse Over And Wiggle    ${sel}    5
-    Press Keys    ${sel}    CTRL
+    Mouse Over Token And Wiggle    ${sel}    5
+    Press Keys    None    CTRL
     Wait Until Keyword Succeeds    4x    0.1s    Page Should Contain Element    ${HOVER_BOX}
 
 Trigger Tooltip
     [Documentation]    The default way to trigger the hover tooltip
     [Arguments]    ${symbol}
-    ${sel} =    Last Occurrence    ${symbol}
+    ${sel} =    Set Variable    lastToken:${symbol}
     Wait Until Keyword Succeeds    4x    0.1 s    Trigger Via Hover With Modifier    ${sel}
 
 Setup Hover Test
     Setup Notebook    Python    Hover.ipynb
-
-Wokraround Visibility Problem
-    [Arguments]    ${sel}
-    ${width}    ${height} =    Get Element Size    ${sel}
-    IF    ${width} == 0    Cover Element    ${sel}

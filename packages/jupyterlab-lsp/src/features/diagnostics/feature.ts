@@ -18,6 +18,7 @@ import {
 } from '@jupyterlab/lsp';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { PromiseDelegate } from '@lumino/coreutils';
+import { StyleModule } from 'style-mod';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
@@ -56,7 +57,6 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
   };
   protected settings: IFeatureSettings<LSPDiagnosticsSettings>;
   protected console = new BrowserConsole().scope('Diagnostics');
-  private _responseReceived: PromiseDelegate<void> = new PromiseDelegate();
   private _firstResponseReceived: PromiseDelegate<void> = new PromiseDelegate();
   private _diagnosticsDatabases = new WeakMap<
     WidgetLSPAdapter<any>,
@@ -101,12 +101,38 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
     const connectionManager = options.connectionManager;
     // https://github.com/jupyterlab/jupyterlab/issues/14783
     options.shell.currentChanged.connect(shell => {
+      if (shell.currentWidget == diagnosticsPanel.widget) {
+        // allow focusing on the panel
+        return;
+      }
+
       const adapter = [...connectionManager.adapters.values()].find(
         adapter => adapter.widget == shell.currentWidget
       );
 
       if (!adapter) {
-        this.console.debug('No adapter');
+        this.switchDiagnosticsPanelSource(null);
+        // this dance should not be needed once https://github.com/jupyterlab/jupyterlab/pull/14920 is in,
+        // but we will need to continue listening to `currentChanged` signal anyways to make sure we show
+        // empty indicator in launcher or other widget which does not support linting.
+        let attemptsLeft = 3;
+        const retry = () => {
+          const adapter = [...connectionManager.adapters.values()].find(
+            adapter => adapter.widget == shell.currentWidget
+          );
+          attemptsLeft -= 1;
+          if (adapter) {
+            this.switchDiagnosticsPanelSource(adapter);
+            attemptsLeft = 0;
+          }
+          if (attemptsLeft == 0) {
+            connectionManager.connected.disconnect(retry);
+          }
+        };
+        connectionManager.connected.connect(retry);
+        this.console.debug(
+          'No adapter (yet?), will retry on next connected document'
+        );
       } else {
         this.switchDiagnosticsPanelSource(adapter);
       }
@@ -151,13 +177,12 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
             // do not wait for next update, show what we already know.
 
             // TODO: this still fails when scrolling down fast and then
-            // scrolling up to the skipped cells because the state invlidation
+            // scrolling up to the skipped cells because the state invalidation
             // counter kicks in but diagnostics does not get rendered yet before
             // we leave..
             await this._firstResponseReceived.promise;
           } else {
             await adapter.updateFinished;
-            await this._responseReceived.promise;
           }
 
           const database = this.getDiagnosticsDB(adapter);
@@ -242,29 +267,29 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
 
   private _reconfigureTheme() {
     const style = getComputedStyle(document.body);
-    const baseTheme = EditorView.baseTheme({
-      '.cm-lintRange-error': {
+    const lintTheme = new StyleModule({
+      '.cm-editor .cm-lintRange-error': {
         backgroundImage: underline(
           style.getPropertyValue(
             '--jp-editor-mirror-lsp-diagnostic-error-decoration-color'
           )
         )
       },
-      '.cm-lintRange-warning': {
+      '.cm-editor .cm-lintRange-warning': {
         backgroundImage: underline(
           style.getPropertyValue(
             '--jp-editor-mirror-lsp-diagnostic-warning-decoration-color'
           )
         )
       },
-      '.cm-lintRange-info': {
+      '.cm-editor .cm-lintRange-info': {
         backgroundImage: underline(
           style.getPropertyValue(
             '--jp-editor-mirror-lsp-diagnostic-information-decoration-color'
           )
         )
       },
-      '.cm-lintRange-hint': {
+      '.cm-editor .cm-lintRange-hint': {
         backgroundImage: underline(
           style.getPropertyValue(
             '--jp-editor-mirror-lsp-diagnostic-hint-decoration-color'
@@ -272,13 +297,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
         )
       }
     });
-    const tempEditor = new EditorView({ extensions: baseTheme });
-    const styleModules = tempEditor.state.facet(EditorView.styleModule);
-    const ourRules = styleModules.find(styleModule => {
-      const rules = styleModule.getRules().split('\n');
-      return rules.every(rule => rule.includes('cm-lintRange'));
-    })!;
-    this._styleElement.innerHTML = ourRules.getRules();
+    this._styleElement.innerHTML = lintTheme.getRules();
   }
 
   clearDocumentDiagnostics(
@@ -305,16 +324,20 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
     return this._diagnosticsDatabases.get(adapter)!;
   }
 
-  switchDiagnosticsPanelSource = (adapter: WidgetLSPAdapter<any>) => {
+  switchDiagnosticsPanelSource = (adapter: WidgetLSPAdapter<any> | null) => {
     diagnosticsPanel.trans = this._trans;
-    const diagnostics = this.getDiagnosticsDB(adapter);
-    if (diagnosticsPanel.content.model.diagnostics == diagnostics) {
-      return;
+    if (adapter !== null) {
+      const diagnostics = this.getDiagnosticsDB(adapter);
+      if (diagnosticsPanel.content.model.diagnostics == diagnostics) {
+        return;
+      }
+      diagnosticsPanel.content.model.diagnostics = diagnostics;
+      diagnosticsPanel.content.model.settings = this.settings;
+      diagnosticsPanel.feature = this;
+    } else {
+      diagnosticsPanel.content.model.diagnostics = null;
     }
-    diagnosticsPanel.content.model.diagnostics = diagnostics;
     diagnosticsPanel.content.model.adapter = adapter;
-    diagnosticsPanel.content.model.settings = this.settings;
-    diagnosticsPanel.feature = this;
     diagnosticsPanel.update();
   };
 
@@ -568,8 +591,6 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
       const done = new Promise<void>(resolve => {
         setTimeout(() => {
           this._firstResponseReceived.resolve();
-          this._responseReceived.resolve();
-          this._responseReceived = new PromiseDelegate();
           resolve();
         }, 0);
       });

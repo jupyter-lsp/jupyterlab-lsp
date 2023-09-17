@@ -36,21 +36,17 @@ export class EnhancedContextCompleterProvider extends ContextCompleterProvider {
     super();
   }
 
-  private get _kernelCompletionsFirst(): boolean {
-    return this.options.settings.composite.kernelCompletionsFirst;
-  }
-
   async fetch(
     request: CompletionHandler.IRequest,
     context: ICompletionContext
   ): Promise<CompletionHandler.ICompletionItemsReply> {
     const result = await super.fetch(request, context);
-    result.items = result.items.map(i => {
+    result.items = result.items.map((item, order) => {
       return {
-        ...i,
-        icon: this.iconFor(i.type ?? 'Text') ?? this.iconFor('Text'),
-        type: i.type === '<unknown>' ? undefined : (i.type as string),
-        sortText: this._kernelCompletionsFirst ? 'a' : 'z',
+        ...item,
+        icon: this.iconFor(item.type ?? 'Text') ?? this.iconFor('Text'),
+        type: item.type === '<unknown>' ? undefined : (item.type as string),
+        sortText: String.fromCharCode(order),
         source: this.label
       };
     });
@@ -75,11 +71,11 @@ export class EnhancedKernelCompleterProvider extends KernelCompleterProvider {
     context: ICompletionContext
   ): Promise<CompletionHandler.ICompletionItemsReply> {
     const result = await super.fetch(request, context);
-    result.items = result.items.map(i => {
+    result.items = result.items.map((item, order) => {
       return {
-        ...i,
-        icon: this.iconFor(i.type ?? KernelKind) ?? this.iconFor(KernelKind),
-        sortText: 'z',
+        ...item,
+        icon: this.iconFor(item.type ?? KernelKind) ?? this.iconFor(KernelKind),
+        sortText: String.fromCharCode(order),
         source: this.label
       };
     });
@@ -88,7 +84,7 @@ export class EnhancedKernelCompleterProvider extends KernelCompleterProvider {
 
   async isApplicable(context: ICompletionContext): Promise<boolean> {
     // Note: this method logs errors instead of throwing to ensure we do not ever
-    // break the upstream kernel completer, even if there is an error elsehwere.
+    // break the upstream kernel completer, even if there is an error elsewhere.
     const upstream = await super.isApplicable(context);
 
     if (upstream === false) {

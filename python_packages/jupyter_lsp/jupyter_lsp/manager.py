@@ -61,17 +61,17 @@ class LanguageServerManager(LanguageServerManagerAPI):
         config=True
     )  # type: KeyedLanguageServerSpecs
 
-    autodetect = Bool(
+    autodetect: bool = Bool(  # type:ignore[assignment]
         True, help=_("try to find known language servers in sys.prefix (and elsewhere)")
     ).tag(
         config=True
-    )  # type: bool
+    )
 
-    sessions = Dict_(  # type:ignore[assignment]
+    sessions: Dict[Tuple[Text], LanguageServerSession] = Dict_(  # type:ignore[assignment]
         trait=Instance(LanguageServerSession),
         default_value={},
         help="sessions keyed by language server name",
-    )  # type: Dict[Tuple[Text], LanguageServerSession]
+    )
 
     virtual_documents_dir = Unicode(
         help="""Path to virtual documents relative to the content manager root
@@ -99,8 +99,8 @@ class LanguageServerManager(LanguageServerManagerAPI):
         return os.getenv("JP_LSP_VIRTUAL_DIR", ".virtual_documents")
 
     @default("conf_d_language_servers")
-    def _default_conf_d_language_servers(self):
-        language_servers = {}  # type: KeyedLanguageServerSpecs
+    def _default_conf_d_language_servers(self) -> KeyedLanguageServerSpecs:
+        language_servers: KeyedLanguageServerSpecs = {}
 
         manager = ConfigManager(read_config_path=jupyter_config_path())
 
@@ -113,10 +113,10 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
         return language_servers
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Dict):
         """Before starting, perform all necessary configuration"""
         self.all_language_servers: KeyedLanguageServerSpecs = {}
-        self._language_servers_from_config = {}
+        self._language_servers_from_config: KeyedLanguageServerSpecs = {}
         super().__init__(**kwargs)
 
     def initialize(self, *args, **kwargs):
@@ -253,7 +253,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
         for ep in _entry_points or []:
             try:
-                spec_finder = ep.load()  # type: SpecMaker
+                spec_finder: SpecMaker = ep.load()
             except Exception as err:  # pragma: no cover
                 self.log.warning(
                     _("Failed to load language server spec finder `{}`: \n{}").format(

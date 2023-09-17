@@ -156,13 +156,16 @@ export class LSPExtension {
       {}) as TLanguageServerConfigurations;
 
     // Add `configuration` as a copy of `serverSettings` to work with changed name upstream
+    // Add `rank` as a copy of priority for the same reason.
     languageServerSettings = Object.fromEntries(
       Object.entries(languageServerSettings).map(([key, value]) => {
         value.configuration = value.serverSettings;
+        value.rank = value.priority;
         return [key, value];
       })
     );
 
+    const previousInitialConfig = this._connectionManager.initialConfigurations;
     this._connectionManager.initialConfigurations = languageServerSettings;
     // TODO: if priorities changed reset connections
 
@@ -170,6 +173,26 @@ export class LSPExtension {
     this.connectionManager.updateConfiguration(languageServerSettings);
     if (afterInitialization) {
       this.connectionManager.updateServerConfigurations(languageServerSettings);
+    } else {
+      // This would not be needed if we controlled the connection manager, but because
+      // it is now an independent plugin it may have started and finished initialization
+      // earlier, so it potentially sent wrong `initialConfigurations` and we have no way
+      // to avoid this, so we need to send a reconfiguration request instead.
+      //
+      // TODO: this is comparing objects which is always false,
+      // we should have a proper comparison to avoid redundant calls,
+      // but in practice because upstream never populates defaults and
+      // we always do, this means it would be false anyways,
+      // so for now the comparison serves more as a comment than logic.
+      if (previousInitialConfig != languageServerSettings) {
+        this.connectionManager.ready
+          .then(() => {
+            this.connectionManager.updateServerConfigurations(
+              languageServerSettings
+            );
+          })
+          .catch(console.error);
+      }
     }
     this._connectionManager.updateLogging(
       options.logAllCommunication,

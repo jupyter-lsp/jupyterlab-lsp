@@ -10,6 +10,7 @@ Library     ./ports.py
 Library     ./config.py
 Library     ./paths.py
 Library     ./diagnostics.py
+Library     ./mouse_over_extension.py
 
 
 *** Keywords ***
@@ -79,6 +80,7 @@ Read Page Config
     ${config} =    Evaluate    __import__("json").loads(r"""${script}""")
     Set Global Variable    ${PAGE CONFIG}    ${config}
     Set Global Variable    ${LAB VERSION}    ${config["appVersion"]}
+
 
 Setup Suite For Screenshots
     [Arguments]    ${folder}
@@ -324,6 +326,11 @@ Enter Cell Editor
     [Arguments]    ${cell_nr}    ${line}=1
     Click Element    css:.jp-Cell:nth-child(${cell_nr}) .cm-line:nth-child(${line})
     Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_nr}) .cm-focused
+    # clicking on line does not appear sufficient in CM6 (but still useful because it ensures we have it in view
+    Execute JavaScript
+    ...    var view = document.querySelector('.jp-Cell:nth-child(${cell_nr}) .cm-content').cmView.view;
+    ...    var pos = view.state.doc.line(${line}).to;
+    ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
 Open Context Menu Over Cell Editor
     [Arguments]    ${cell_nr}    ${line}=1
@@ -391,11 +398,7 @@ Open File
 
 Open in Advanced Settings
     [Arguments]    ${plugin id}
-    IF    '${LAB VERSION}'.startswith('3.')
-        Lab Command    Advanced JSON Settings Editor
-    ELSE
-        Lab Command    Advanced Settings Editor
-    END
+    Lab Command    Advanced Settings Editor
     ${sel} =    Set Variable    css:[data-id="${plugin id}"]
     Wait Until Page Contains Element    ${sel}    timeout=10s
     Click Element    ${sel}
@@ -433,11 +436,9 @@ Clean Up After Working with File and Settings
 
 Jump To Definition
     [Arguments]    ${symbol}
-    ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}
-    ...    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
-    Click Element    ${sel}
+    Click Token    ${symbol}
     ${cursor} =    Measure Cursor Position
-    Open Context Menu Over    ${sel}
+    Open Context Menu Over Token    ${symbol}
     Capture Page Screenshot    02-jump-to-definition-0.png
     Wait Until Element Is Visible    ${MENU JUMP}    timeout=5s
     Mouse Over    ${MENU JUMP}

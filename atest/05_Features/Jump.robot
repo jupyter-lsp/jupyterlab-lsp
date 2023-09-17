@@ -15,8 +15,7 @@ Python Jumps Between Files
     Copy Files to Folder With Spaces    jump_a.py    jump_b.py
     Open ${FOLDER WITH SPACE}/jump_b.py in ${MENU EDITOR}
     Wait Until Fully Initialized
-    ${sel} =    Select Token Occurrence    a_function_definition
-    Jump To Definition    ${sel}
+    Jump To Definition    lastToken:a_function_definition
     Wait Until Page Contains    ANOTHER_CONSTANT
     Capture Page Screenshot    10-jumped.png
     [Teardown]    Clean Up Folder With Spaces    jump_a.py    jump_b.py

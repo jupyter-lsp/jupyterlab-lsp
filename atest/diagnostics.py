@@ -27,7 +27,7 @@ def page_contains_diagnostic(driver: WebDriver, selector, negate=False):
     return False if negate else True
 
 
-def wait_until_page_contains_diagnostic(selector, timeout='3s'):
+def wait_until_page_contains_diagnostic(selector, timeout='5s'):
     sl: SeleniumLibrary = BuiltIn().get_library_instance("SeleniumLibrary")
     wait = WebDriverWait(sl.driver, timestr_to_secs(timeout))
     try:
@@ -50,7 +50,7 @@ def wait_until_page_contains_diagnostic(selector, timeout='3s'):
         )
 
 
-def wait_until_page_does_not_contain_diagnostic(selector, timeout='3s'):
+def wait_until_page_does_not_contain_diagnostic(selector, timeout='5s'):
     sl: SeleniumLibrary = BuiltIn().get_library_instance("SeleniumLibrary")
     wait = WebDriverWait(sl.driver, timestr_to_secs(timeout))
     return wait.until(

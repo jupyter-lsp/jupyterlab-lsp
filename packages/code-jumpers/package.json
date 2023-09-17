@@ -1,6 +1,6 @@
 {
   "name": "@jupyter-lsp/code-jumpers",
-  "version": "1.2.0",
+  "version": "2.0.0-rc.0",
   "description": "Implementation underlying the jump to definition functionality in JupyterLab-LSP",
   "keywords": [
     "jupyter",
@@ -41,16 +41,16 @@
     "@jupyterlab/translation": "^4.0.0"
   },
   "devDependencies": {
-    "@jupyterlab/apputils": "^4.1.5",
-    "@jupyterlab/codeeditor": "^4.0.5",
-    "@jupyterlab/coreutils": "^6.0.5",
-    "@jupyterlab/docmanager": "^4.0.5",
-    "@jupyterlab/docregistry": "^4.0.5",
-    "@jupyterlab/fileeditor": "^4.0.5",
-    "@jupyterlab/notebook": "^4.0.5",
-    "@jupyterlab/observables": "^5.0.5",
-    "@jupyterlab/testing": "^4.0.5",
-    "@jupyterlab/translation": "^4.0.5",
+    "@jupyterlab/apputils": "^4.1.6",
+    "@jupyterlab/codeeditor": "^4.0.6",
+    "@jupyterlab/coreutils": "^6.0.6",
+    "@jupyterlab/docmanager": "^4.0.6",
+    "@jupyterlab/docregistry": "^4.0.6",
+    "@jupyterlab/fileeditor": "^4.0.6",
+    "@jupyterlab/notebook": "^4.0.6",
+    "@jupyterlab/observables": "^5.0.6",
+    "@jupyterlab/testing": "^4.0.6",
+    "@jupyterlab/translation": "^4.0.6",
     "rimraf": "^3.0.0",
     "typescript": "~5.0.4"
   },

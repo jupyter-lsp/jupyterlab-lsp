@@ -3,7 +3,6 @@
 
 import { Completer } from '@jupyterlab/completer';
 import { IRenderMime } from '@jupyterlab/rendermime';
-import { Signal } from '@lumino/signaling';
 
 import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
 import { FeatureSettings } from '../../feature';
@@ -20,15 +19,10 @@ export class LSPCompletionRenderer
   extends Completer.Renderer
   implements Completer.IRenderer
 {
-  // signals
-  public activeChanged: Signal<LSPCompletionRenderer, ICompletionData>;
-  public itemShown: Signal<LSPCompletionRenderer, ICompletionData>;
   // observers
   private visibilityObserver: IntersectionObserver;
-  private activityObserver: MutationObserver;
   // element data maps (with weak references for better GC)
   private elementToItem: WeakMap<HTMLLIElement, CompletionItem>;
-  private wasActivated: WeakMap<HTMLLIElement, boolean>;
 
   protected ITEM_PLACEHOLDER_CLASS = 'lsp-detail-placeholder';
   protected EXTRA_INFO_CLASS = 'jp-Completer-typeExtended';
@@ -36,10 +30,7 @@ export class LSPCompletionRenderer
 
   constructor(protected options: LSPCompletionRenderer.IOptions) {
     super();
-    this.activeChanged = new Signal(this);
-    this.itemShown = new Signal(this);
     this.elementToItem = new WeakMap();
-    this.wasActivated = new WeakMap();
 
     this.visibilityObserver = new IntersectionObserver(
       entries => {
@@ -49,41 +40,13 @@ export class LSPCompletionRenderer
           }
           let li = entry.target as HTMLLIElement;
           let item = this.elementToItem.get(li)!;
-          this.itemShown.emit({
-            item: item,
-            element: li
-          });
+          item.resolve().catch(console.error);
         });
       },
       {
         threshold: 0.25
       }
     );
-
-    // note: there should be no need to unobserve deleted elements as per:
-    // https://stackoverflow.com/a/51106262/6646912
-    this.activityObserver = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        let li = mutation.target;
-        if (!(li instanceof HTMLLIElement)) {
-          return;
-        }
-        let inactive = !this.wasActivated.get(li);
-
-        if (li.classList.contains('jp-mod-active')) {
-          if (inactive) {
-            this.wasActivated.set(li, true);
-            let item = this.elementToItem.get(li)!;
-            this.activeChanged.emit({
-              item: item,
-              element: li
-            });
-          }
-        } else {
-          this.wasActivated.set(li, false);
-        }
-      });
-    });
   }
 
   protected getExtraInfo(item: CompletionItem): string {
@@ -132,10 +95,6 @@ export class LSPCompletionRenderer
     if (lspItem) {
       lspItem.element = li;
       this.elementToItem.set(li, lspItem);
-      this.activityObserver.observe(li, {
-        attributes: true,
-        attributeFilter: ['class']
-      });
       this.visibilityObserver.observe(li);
       // TODO: build custom li from ground up
       this.updateExtraInfo(lspItem, li);
@@ -161,14 +120,14 @@ export class LSPCompletionRenderer
     const originalHTMLLabel = labelElement.childNodes;
     let hasMark = false;
     for (const node of originalHTMLLabel) {
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        const element = node as Element;
+      if (node instanceof HTMLElement) {
+        const element = node as HTMLElement;
         const text = element.textContent;
-        if (element.tagName === 'MARK' && text) {
+        if (element.tagName === 'MARK' && text && text.length > 3) {
           const elidableElement = document.createElement('bdo');
           elidableElement.setAttribute('dir', 'ltr');
           elidableElement.textContent = text;
-          elidableElement.title = text;
+          element.title = text;
           element.replaceChildren(elidableElement);
           element.classList.add('lsp-elide');
           hasMark = true;
@@ -213,6 +172,9 @@ export class LSPCompletionRenderer
         })
         .catch(this.options.console.warn);
       return this.options.markdownRenderer.node;
+    } else if (item.source != 'LSP') {
+      // fallback to default implementation for non-LSP completions
+      return super.createDocumentationNode(item);
     } else {
       let node = document.createElement('pre');
       if (item.documentation) {
@@ -223,7 +185,7 @@ export class LSPCompletionRenderer
   }
 
   itemWidthHeuristic(item: CompletionItem): number {
-    const labelSize = item.label.replace(/<\?mark>/g, '').length;
+    const labelSize = item.label.replace(/<(\/)?mark>/g, '').length;
     const extraTextSize = this.getExtraInfo(item).length;
     if (this.options.settings.composite.layout === 'side-by-side') {
       // in 'side-by-side' take the sum

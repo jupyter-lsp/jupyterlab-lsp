@@ -23,7 +23,7 @@ class LanguageServerWebSocketHandler(  # type: ignore
 ):
     """Setup tornado websocket to route to language server sessions"""
 
-    language_server = None  # type: Optional[Text]
+    language_server: Optional[Text] = None
 
     async def open(self, language_server):
         await self.manager.ready()

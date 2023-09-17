@@ -8,7 +8,8 @@ import { TranslationBundle } from '@jupyterlab/translation';
 import {
   JSONExt,
   ReadonlyPartialJSONObject,
-  ReadonlyJSONObject
+  ReadonlyJSONObject,
+  PromiseDelegate
 } from '@lumino/coreutils';
 import { Signal, ISignal } from '@lumino/signaling';
 import { FieldProps } from '@rjsf/utils';
@@ -77,9 +78,9 @@ interface IValidationData {
 }
 
 /**
- * Conflicts encounteredn when dot-collapsing settings
+ * Conflicts encountered when dot-collapsing settings
  * organised by server ID, and then as a mapping between
- * (dotted) setting ID and list of encoutnered values.
+ * (dotted) setting ID and list of encountered values.
  * The last encountered values is preferred for use.
  */
 type SettingsMergeConflicts = Record<string, Record<string, any[]>>;
@@ -145,16 +146,7 @@ export class SettingsSchemaManager {
     this._lastValidation = null;
     this._lastUserServerSettings = null;
     this._lastUserServerSettingsDoted = null;
-    this._defaultsPopulated = this._createDefaultsPromise();
     this._validationErrors = [];
-  }
-
-  private _defaultsPopulated: Promise<void>;
-  private _populatedAccept: (value: unknown) => void;
-  private _createDefaultsPromise(): Promise<void> {
-    return new Promise(accept => {
-      this._populatedAccept = accept;
-    });
   }
 
   get schemaValidated(): ISignal<
@@ -175,6 +167,9 @@ export class SettingsSchemaManager {
    */
   async setupSchemaTransform(pluginId: string): Promise<void> {
     const languageServerManager = this.options.languageServerManager;
+    // To populate defaults we require specs to be available, so we need to
+    // wait for until after the `languageServerManager` is ready.
+    await languageServerManager.ready;
 
     // Transform the plugin object to return different schema than the default.
     this.options.settingRegistry.transform(pluginId, {
@@ -187,7 +182,7 @@ export class SettingsSchemaManager {
         // 1.8% spent on `deepCopy()`
         // 1.79% spend on other tasks in `populate()`
         // There is a limit on the transformation time, and failing to transform
-        // in the default 1 second means that no settigns whatsoever are available.
+        // in the default 1 second means that no settings whatsoever are available.
         // Therefore validation in `populate()` was moved into an async function;
         // this means that we need to trigger re-load of settings
         // if there validation errors.
@@ -200,7 +195,7 @@ export class SettingsSchemaManager {
         if (!this._canonical) {
           this._canonical = JSONExt.deepCopy(plugin.schema);
           this._populate(plugin, this._canonical);
-          this._populatedAccept(void 0);
+          this._defaultsPopulated.resolve(void 0);
         }
 
         return {
@@ -219,7 +214,7 @@ export class SettingsSchemaManager {
     // race condition, see https://github.com/jupyterlab/jupyterlab/issues/12978
     languageServerManager.sessionsChanged.connect(async () => {
       this._canonical = null;
-      this._defaultsPopulated = this._createDefaultsPromise();
+      this._defaultsPopulated = new PromiseDelegate();
       await this.options.settingRegistry.reload(pluginId);
     });
   }
@@ -272,7 +267,7 @@ export class SettingsSchemaManager {
       }
       if (!configSchema.properties) {
         this.console.warn(
-          'No properites in config schema - skipping transformation for',
+          'No properties in config schema - skipping transformation for',
           serverKey
         );
         continue;
@@ -333,7 +328,7 @@ export class SettingsSchemaManager {
           configSchema.properties[key].default = value;
         }
       }
-      // add server-speficic default overrides from overrides.json (and pre-defined in schema)
+      // add server-specific default overrides from overrides.json (and pre-defined in schema)
       const serverDefaultsOverrides =
         defaultsOverrides && defaultsOverrides.hasOwnProperty(serverKey)
           ? defaultsOverrides[serverKey]
@@ -373,10 +368,13 @@ export class SettingsSchemaManager {
     this._defaults = defaults;
   }
 
+  /**
+   * Normalize settings by dotted and nested specs, and merging with defaults.
+   */
   async normalizeSettings(
     composite: Required<LanguageServers>
   ): Promise<Required<LanguageServers>> {
-    await this._defaultsPopulated;
+    await this._defaultsPopulated.promise;
     // Cache collapsed settings for speed and to only show dialog once.
     // Note that JupyterLab attempts to transform in "preload" step (before splash screen end)
     // and then again for deferred extensions if the initial transform in preload timed out.
@@ -449,7 +447,7 @@ export class SettingsSchemaManager {
   /**
    * Validate user settings from plugin against provided schema,
    * asynchronously to avoid blocking the main thread.
-   * Stores validation reult in `this._validationErrors`.
+   * Stores validation result in `this._validationErrors`.
    */
   private async _validateSchemaLater(
     plugin: ISettingRegistry.IPlugin,
@@ -583,6 +581,7 @@ export class SettingsSchemaManager {
   }
 
   private _defaults: LanguageServerSettings;
+  private _defaultsPopulated = new PromiseDelegate();
   private _validationErrors: ISchemaValidator.IError[];
   private _schemaValidated: Signal<
     SettingsSchemaManager,

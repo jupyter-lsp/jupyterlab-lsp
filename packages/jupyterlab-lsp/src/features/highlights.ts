@@ -14,8 +14,7 @@ import {
   ILSPFeatureManager,
   IEditorPosition,
   ILSPDocumentConnectionManager,
-  WidgetLSPAdapter,
-  VirtualDocument
+  WidgetLSPAdapter
 } from '@jupyterlab/lsp';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { LabIcon } from '@jupyterlab/ui-components';
@@ -37,6 +36,7 @@ import { DocumentHighlightKind } from '../lsp';
 import { createMarkManager, ISimpleMarkManager } from '../marks';
 import { PLUGIN_ID } from '../tokens';
 import { BrowserConsole } from '../virtual/console';
+import { VirtualDocument } from '../virtual/document';
 
 export const highlightIcon = new LabIcon({
   name: 'lsp:highlight',
@@ -70,7 +70,10 @@ export class HighlightsFeature extends Feature {
   >;
   private _virtualPosition: IVirtualPosition;
   private _versionSent: number;
-  private _lastToken: CodeEditor.IToken | null = null;
+  private _lastToken: {
+    token: CodeEditor.IToken;
+    adapter: WidgetLSPAdapter<any>;
+  } | null = null;
 
   constructor(options: HighlightsFeature.IOptions) {
     super(options);
@@ -160,7 +163,8 @@ export class HighlightsFeature extends Feature {
 
   protected handleHighlight(
     items: lsProtocol.DocumentHighlight[] | null,
-    adapter: WidgetLSPAdapter<any>
+    adapter: WidgetLSPAdapter<any>,
+    document: VirtualDocument
   ) {
     this.markManager.clearAllMarks();
 
@@ -174,7 +178,7 @@ export class HighlightsFeature extends Feature {
     >();
 
     for (let item of items) {
-      let range = rangeToEditorRange(adapter, item.range, null);
+      let range = rangeToEditorRange(adapter, item.range, null, document);
       const editor = range.editor;
 
       let optionsList = highlightsByEditor.get(editor);
@@ -296,10 +300,12 @@ export class HighlightsFeature extends Feature {
     const token = editor.getTokenAt(offset);
 
     // if token has not changed, no need to update highlight, unless it is an empty token
-    // which would indicate that the cursor is at the first character
+    // which would indicate that the cursor is at the first character; we also need to check
+    // adapter in case if user switched between documents/notebooks.
     if (
       this._lastToken &&
-      token.value === this._lastToken.value &&
+      token.value === this._lastToken.token.value &&
+      adapter === this._lastToken.adapter &&
       token.value !== ''
     ) {
       this.console.log(
@@ -350,8 +356,11 @@ export class HighlightsFeature extends Feature {
         return;
       }
 
-      this.handleHighlight(highlights, adapter);
-      this._lastToken = token;
+      this.handleHighlight(highlights, adapter, document);
+      this._lastToken = {
+        token,
+        adapter
+      };
     } catch (e) {
       this.console.warn('Could not get highlights:', e);
     }

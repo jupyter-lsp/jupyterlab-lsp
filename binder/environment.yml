@@ -7,7 +7,7 @@ channels:
 dependencies:
   # runtime dependencies
   - python >=3.8,<3.11.0a0
-  - jupyterlab >=4.0.5,<5.0.0a0
+  - jupyterlab >=4.0.6,<5.0.0a0
   - jupyter_server >=1.1.2
   # TODO: uncomment once Notebook 7 is released
   #- notebook >= 7.0

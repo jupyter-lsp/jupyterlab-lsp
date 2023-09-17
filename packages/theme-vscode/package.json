@@ -1,6 +1,6 @@
 {
   "name": "@jupyter-lsp/theme-vscode",
-  "version": "2.1.1",
+  "version": "3.0.0-rc.0",
   "description": "VSCode theme for JupyterLab-LSP",
   "keywords": [
     "jupyter",
@@ -34,7 +34,7 @@
     "clean": "rimraf lib"
   },
   "dependencies": {
-    "@jupyter-lsp/completion-theme": "^3.0.0"
+    "@jupyter-lsp/completion-theme": "^4.0.0-rc.0"
   },
   "jupyterlab": {
     "extension": true,

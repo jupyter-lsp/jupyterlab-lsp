@@ -142,14 +142,52 @@ export class VirtualDocument extends VirtualDocumentBase {
   }
 
   /**
+   * Close all expired documents.
+   */
+  closeExpiredDocuments(): void {
+    // TODO: remove once https://github.com/jupyterlab/jupyterlab/pull/15105 is in
+    const usedDocuments = new Set<VirtualDocument>();
+    for (const line of this.sourceLines.values()) {
+      for (const block of line.foreignDocumentsMap.values()) {
+        usedDocuments.add(block.virtualDocument as VirtualDocument);
+      }
+    }
+
+    const documentIDs = new Map<VirtualDocument, string[]>();
+    for (const [id, document] of (
+      this.foreignDocuments as Map<string, VirtualDocument>
+    ).entries()) {
+      const ids = documentIDs.get(document);
+      if (typeof ids !== 'undefined') {
+        documentIDs.set(document, [...ids, id]);
+      }
+      documentIDs.set(document, [id]);
+    }
+    const allDocuments = new Set<VirtualDocument>(documentIDs.keys());
+    const unusedVirtualDocuments = new Set(
+      [...allDocuments].filter(x => !usedDocuments.has(x))
+    );
+
+    for (let document of unusedVirtualDocuments.values()) {
+      document.remainingLifetime -= 1;
+      if (document.remainingLifetime <= 0) {
+        document.dispose();
+        const ids = documentIDs.get(document)!;
+        for (const id of ids) {
+          this.foreignDocuments.delete(id);
+        }
+      }
+    }
+  }
+
+  /**
    * @experimental
    */
   transformVirtualToRoot(position: IVirtualPosition): IRootPosition | null {
-    // a method which was previously implemented in CodeMirrorIntegration
-    // but probably should have been in VirtualDocument all along
     let editor = this.virtualLines.get(position.line)!.editor;
     let editorPosition = this.transformVirtualToEditor(position);
-    return this.transformFromEditorToRoot(editor, editorPosition!);
+    // only root holds the full editor mapping
+    return this.root.transformFromEditorToRoot(editor, editorPosition!);
   }
 
   /**

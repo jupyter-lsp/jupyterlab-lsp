@@ -14,7 +14,6 @@ ${DIAGNOSTIC MESSAGE}       trailing whitespace
 ${DIAGNOSTIC}               W291 trailing whitespace (pycodestyle)
 ${EXPECTED_COUNT}           4
 ${MENU COLUMNS}             xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "columns")]
-${R CELL}                   %%R\n{}
 
 
 *** Test Cases ***
@@ -79,9 +78,8 @@ Diagnostics Can Be Ignored By Code
     Open Context Menu Over W291
     Expand Menu Entry    Ignore diagnostics
     Select Menu Entry    code
-    Open in Advanced Settings    ${DIAGNOSTICS PLUGIN ID}
-    Capture Page Screenshot    02-code-pressed.png
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_AFTER}
+    Configure JupyterLab Plugin    {}    plugin id=${DIAGNOSTICS PLUGIN ID}
 
 Diagnostics Can Be Ignored By Message
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_COUNT}
@@ -91,9 +89,8 @@ Diagnostics Can Be Ignored By Message
     Expand Menu Entry    Ignore diagnostics
     Capture Page Screenshot    02-menu-visible.png
     Select Menu Entry    Ignore diagnostics with "W291 trailing whitespace" message
-    Open in Advanced Settings    ${DIAGNOSTICS PLUGIN ID}
-    Capture Page Screenshot    02-message-pressed.png
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_AFTER}
+    Configure JupyterLab Plugin    {}    plugin id=${DIAGNOSTICS PLUGIN ID}
 
 Diagnostic Message Can Be Copied
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
@@ -101,28 +98,39 @@ Diagnostic Message Can Be Copied
     Open Context Menu Over    css:.lsp-diagnostics-listing tbody tr
     Select Menu Entry    Copy diagnostic
     Close Diagnostics Panel
-    Wait Until Element Contains    css:.lsp-statusbar-item    Successfully copied    timeout=10s
+    Wait Until Element Contains    css:.jp-toast-message    Successfully copied    timeout=10s
 
 Diagnostics Panel Works After Removing Foreign Document
     Enter Cell Editor    2
     Lab Command    Insert Cell Below
     Enter Cell Editor    3
-    Press Keys    None    ${R CELL}
+    Press Keys    None    %%R\n
+    # these two steps ideally would not be needed (they show that for slow-starting server
+    # update may not be triggered until user manually makes another action).
+    Wait Until Fully Initialized
+    Press Keys    None    {}
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE}
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE R}
-    Lab Command    Delete Cells
+    Lab Command    Delete Cell
     # regain focus by entering cell
     Enter Cell Editor    2
     # trigger 7 document updates to trigger the garbage collector that removes unused documents
-    # (search for VirtualDocument.remainining_lifetime for more)
+    # (search for VirtualDocument.remainingLifetime for more)
     Press Keys    None    1234567
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE}
     Wait Until Keyword Succeeds    10 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE R}
-
+    # it should be possible to get the diagnostic back after re-creatign the cell
+    Lab Command    Insert Cell Below
+    Enter Cell Editor    3
+    Press Keys    None    %%R\n{}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    ...    ${DIAGNOSTIC MESSAGE}
+    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    ...    ${DIAGNOSTIC MESSAGE R}
 
 *** Keywords ***
 Open Context Menu Over W291
@@ -134,7 +142,7 @@ Open Context Menu Over W291
 Open Notebook And Panel
     [Arguments]    ${notebook}
     Setup Notebook    Python    ${notebook}
-    Capture Page Screenshot    00-notebook-and-panel-openeing.png
+    Capture Page Screenshot    00-notebook-and-panel-opening.png
     Wait Until Page Contains Diagnostic    [title*="${DIAGNOSTIC}"]    timeout=20s
     Open Diagnostics Panel
     Capture Page Screenshot    00-notebook-and-panel-opened.png

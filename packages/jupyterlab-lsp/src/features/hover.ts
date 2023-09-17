@@ -18,7 +18,6 @@ import {
   isEqual,
   ILSPDocumentConnectionManager,
   WidgetLSPAdapter,
-  VirtualDocument,
   Document
 } from '@jupyterlab/lsp';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
@@ -45,6 +44,7 @@ import { createMarkManager, ISimpleMarkManager } from '../marks';
 import { PLUGIN_ID } from '../tokens';
 import { getModifierState } from '../utils';
 import { BrowserConsole } from '../virtual/console';
+import { VirtualDocument } from '../virtual/document';
 
 export const hoverIcon = new LabIcon({
   name: 'lsp:hover',
@@ -365,7 +365,8 @@ export class HoverFeature extends Feature {
       context.adapter,
       response,
       context.token,
-      context.editor
+      context.editor,
+      virtualDocument
     );
     return this._addRange(
       context.adapter,
@@ -619,7 +620,8 @@ export class HoverFeature extends Feature {
             adapter,
             response,
             token,
-            editor
+            editor,
+            document
           );
           responseData = {
             response: response,
@@ -689,10 +691,11 @@ export class HoverFeature extends Feature {
     adapter: WidgetLSPAdapter<any>,
     response: lsProtocol.Hover,
     token: CodeEditor.IToken,
-    editor: CodeEditor.IEditor
+    editor: CodeEditor.IEditor,
+    document: VirtualDocument
   ): IEditorRange {
     if (typeof response.range !== 'undefined') {
-      return rangeToEditorRange(adapter, response.range, editor);
+      return rangeToEditorRange(adapter, response.range, editor, document);
     }
 
     const startInEditor = editor.getPositionAt(token.offset);
