@@ -21,14 +21,11 @@ export class LSPCompletionRenderer
   implements Completer.IRenderer
 {
   // signals
-  public activeChanged: Signal<LSPCompletionRenderer, ICompletionData>;
   public itemShown: Signal<LSPCompletionRenderer, ICompletionData>;
   // observers
   private visibilityObserver: IntersectionObserver;
-  private activityObserver: MutationObserver;
   // element data maps (with weak references for better GC)
   private elementToItem: WeakMap<HTMLLIElement, CompletionItem>;
-  private wasActivated: WeakMap<HTMLLIElement, boolean>;
 
   protected ITEM_PLACEHOLDER_CLASS = 'lsp-detail-placeholder';
   protected EXTRA_INFO_CLASS = 'jp-Completer-typeExtended';
@@ -36,10 +33,8 @@ export class LSPCompletionRenderer
 
   constructor(protected options: LSPCompletionRenderer.IOptions) {
     super();
-    this.activeChanged = new Signal(this);
     this.itemShown = new Signal(this);
     this.elementToItem = new WeakMap();
-    this.wasActivated = new WeakMap();
 
     this.visibilityObserver = new IntersectionObserver(
       entries => {
@@ -49,41 +44,13 @@ export class LSPCompletionRenderer
           }
           let li = entry.target as HTMLLIElement;
           let item = this.elementToItem.get(li)!;
-          this.itemShown.emit({
-            item: item,
-            element: li
-          });
+          item.resolve().catch(console.error);
         });
       },
       {
         threshold: 0.25
       }
     );
-
-    // note: there should be no need to unobserve deleted elements as per:
-    // https://stackoverflow.com/a/51106262/6646912
-    this.activityObserver = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        let li = mutation.target;
-        if (!(li instanceof HTMLLIElement)) {
-          return;
-        }
-        let inactive = !this.wasActivated.get(li);
-
-        if (li.classList.contains('jp-mod-active')) {
-          if (inactive) {
-            this.wasActivated.set(li, true);
-            let item = this.elementToItem.get(li)!;
-            this.activeChanged.emit({
-              item: item,
-              element: li
-            });
-          }
-        } else {
-          this.wasActivated.set(li, false);
-        }
-      });
-    });
   }
 
   protected getExtraInfo(item: CompletionItem): string {
@@ -132,10 +99,6 @@ export class LSPCompletionRenderer
     if (lspItem) {
       lspItem.element = li;
       this.elementToItem.set(li, lspItem);
-      this.activityObserver.observe(li, {
-        attributes: true,
-        attributeFilter: ['class']
-      });
       this.visibilityObserver.observe(li);
       // TODO: build custom li from ground up
       this.updateExtraInfo(lspItem, li);
