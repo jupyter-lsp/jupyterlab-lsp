@@ -3,7 +3,6 @@
 
 import { Completer } from '@jupyterlab/completer';
 import { IRenderMime } from '@jupyterlab/rendermime';
-import { Signal } from '@lumino/signaling';
 
 import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
 import { FeatureSettings } from '../../feature';
@@ -20,8 +19,6 @@ export class LSPCompletionRenderer
   extends Completer.Renderer
   implements Completer.IRenderer
 {
-  // signals
-  public itemShown: Signal<LSPCompletionRenderer, ICompletionData>;
   // observers
   private visibilityObserver: IntersectionObserver;
   // element data maps (with weak references for better GC)
@@ -33,7 +30,6 @@ export class LSPCompletionRenderer
 
   constructor(protected options: LSPCompletionRenderer.IOptions) {
     super();
-    this.itemShown = new Signal(this);
     this.elementToItem = new WeakMap();
 
     this.visibilityObserver = new IntersectionObserver(
