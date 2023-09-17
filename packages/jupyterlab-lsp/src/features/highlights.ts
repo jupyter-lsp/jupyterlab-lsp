@@ -70,7 +70,10 @@ export class HighlightsFeature extends Feature {
   >;
   private _virtualPosition: IVirtualPosition;
   private _versionSent: number;
-  private _lastToken: CodeEditor.IToken | null = null;
+  private _lastToken: {
+    token: CodeEditor.IToken;
+    adapter: WidgetLSPAdapter<any>;
+  } | null = null;
 
   constructor(options: HighlightsFeature.IOptions) {
     super(options);
@@ -297,10 +300,12 @@ export class HighlightsFeature extends Feature {
     const token = editor.getTokenAt(offset);
 
     // if token has not changed, no need to update highlight, unless it is an empty token
-    // which would indicate that the cursor is at the first character
+    // which would indicate that the cursor is at the first character; we also need to check
+    // adapter in case if user switched between documents/notebooks.
     if (
       this._lastToken &&
-      token.value === this._lastToken.value &&
+      token.value === this._lastToken.token.value &&
+      adapter === this._lastToken.adapter &&
       token.value !== ''
     ) {
       this.console.log(
@@ -352,7 +357,10 @@ export class HighlightsFeature extends Feature {
       }
 
       this.handleHighlight(highlights, adapter, document);
-      this._lastToken = token;
+      this._lastToken = {
+        token,
+        adapter
+      };
     } catch (e) {
       this.console.warn('Could not get highlights:', e);
     }
