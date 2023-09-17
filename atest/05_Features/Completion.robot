@@ -85,7 +85,7 @@ Invalidates On Focus Loss
     Completer Should Not Suggest    test
     Enter Cell Editor    1    line=2
 
-Uses LSP Completions When Kernel Resoponse Times Out
+Uses LSP Completions When Kernel Response Times Out
     [Tags]    requires:busy-indicator
     Configure JupyterLab Plugin    {"kernelResponseTimeout": 1, "waitForBusyKernel": true}
     ...    plugin id=${COMPLETION PLUGIN ID}

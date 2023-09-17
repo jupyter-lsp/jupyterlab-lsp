@@ -256,7 +256,10 @@ export class LSPCompleterModel extends GenericCompleterModel<MaybeCompletionItem
 
   protected harmoniseItem(item: CompletionHandler.ICompletionItem) {
     if ((item as any).self) {
-      return (item as any).self;
+      const self = (item as any).self;
+      // reflect any changes made on copy
+      self.insertText = item.insertText;
+      return self;
     }
     return super.harmoniseItem(item);
   }
