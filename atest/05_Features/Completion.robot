@@ -150,7 +150,7 @@ Continuous Hinting Works
     [Setup]    Prepare File for Editing    Python    completion    completion.py
     Configure JupyterLab Plugin    {"continuousHinting": true}    plugin id=${COMPLETION PLUGIN ID}
     # TODO: remove once we resolve https://github.com/jupyterlab/jupyterlab/issues/15022
-    Configure JupyterLab Plugin    {"autoCompletion": true}    plugin id=${MANAGER PLUGIN ID}
+    Configure JupyterLab Plugin    {"autoCompletion": true, "providerTimeout": 2500}    plugin id=${MANAGER PLUGIN ID}
     Place Cursor In File Editor At    9    2
     Wait For Ready State
     Press Keys    None    d
@@ -373,6 +373,8 @@ Completes Paths In Strings
 *** Keywords ***
 Setup Completion Test
     Setup Notebook    Python    Completion.ipynb
+    # TODO: this should be per-provider (upstream issue)
+    Configure JupyterLab Plugin    {"providerTimeout": 2500}    plugin id=${MANAGER PLUGIN ID}
 
 Get Cell Editor Content
     [Arguments]    ${cell_nr}

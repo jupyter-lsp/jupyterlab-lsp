@@ -343,10 +343,10 @@ export function transformLSPCompletions<T>(
     }
 
     // Add overlap with token prefix
-    if (intendedText.toLowerCase().startsWith(token.value.toLowerCase())) {
+    if (intendedText.startsWith(token.value)) {
       anyPrefixed = true;
       // remove overlap with prefix before expanding it
-      if (intendedText.toLowerCase().startsWith(prefix.toLowerCase())) {
+      if (intendedText.startsWith(prefix)) {
         text = text.substring(prefix.length, text.length);
         match.insertText = text;
       }
@@ -364,7 +364,8 @@ export function transformLSPCompletions<T>(
         text =
           (prefix.startsWith("'") || prefix.startsWith('"') ? prefix[0] : '') +
           pathPrefix +
-          text;
+          text +
+          (suffix.startsWith("'") || suffix.startsWith('"') ? suffix[0] : '');
         match.insertText = text;
         // for label without quotes
         match.label = pathPrefix + match.label;

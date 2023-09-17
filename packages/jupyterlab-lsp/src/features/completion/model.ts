@@ -65,8 +65,28 @@ export class GenericCompleterModel<
     if (this.current && this.cursor) {
       // set initial query to pre-filter items; in future we should use:
       // https://github.com/jupyterlab/jupyterlab/issues/9763#issuecomment-1001603348
+
+      // note: start/end from cursor are not ideal because these get populated from fetch
+      // reply which will vary depending on what providers decide to return; we want the
+      // actual position in token, the same as passed in request to fetch. We can get it
+      // by searching for longest common prefix as seen below (or by counting characters).
+      // Maybe upstream should expose it directly?
       const { start, end } = this.cursor;
-      let query = this.current.text.substring(start, end).trim();
+      const { text, line, column } = this.original!;
+
+      const queryRange = text.substring(start, end).trim();
+      const linePrefix = text.split('\n')[line].substring(0, column).trim();
+      let query = '';
+      for (let i = queryRange.length; i > 0; i--) {
+        if (queryRange.slice(0, i) == linePrefix.slice(-i)) {
+          query = linePrefix.slice(-i);
+          break;
+        }
+      }
+      if (!query) {
+        return;
+      }
+
       let trimmedQuotes = false;
       // special case for "Completes Paths In Strings" test case
       if (query.startsWith('"') || query.startsWith("'")) {
