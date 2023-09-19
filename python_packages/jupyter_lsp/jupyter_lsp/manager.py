@@ -46,6 +46,9 @@ from .types import (
 )
 
 
+_SessionDict = Dict[Tuple[Text], LanguageServerSession]
+
+
 class LanguageServerManager(LanguageServerManagerAPI):
     """Manage language servers"""
 
@@ -67,7 +70,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         config=True
     )
 
-    sessions: Dict[Tuple[Text], LanguageServerSession] = Dict_(  # type:ignore[assignment]
+    sessions: _SessionDict = Dict_(  # type:ignore[assignment]
         trait=Instance(LanguageServerSession),
         default_value={},
         help="sessions keyed by language server name",
