@@ -141,15 +141,15 @@ export interface IClientResult {
 export type ServerNotifications<
   T extends keyof IServerNotifyParams = keyof IServerNotifyParams
 > = {
-  readonly // ISignal does not have emit, which is intended - client cannot emit server notifications.
-  [key in T]: ISignal<LSPConnection, IServerNotifyParams[key]>;
+  // ISignal does not have emit, which is intended - client cannot emit server notifications.
+  readonly [key in T]: ISignal<LSPConnection, IServerNotifyParams[key]>;
 };
 
 export type ClientNotifications<
   T extends keyof IClientNotifyParams = keyof IClientNotifyParams
 > = {
-  readonly // Signal has emit.
-  [key in T]: Signal<LSPConnection, IClientNotifyParams[key]>;
+  // Signal has emit.
+  readonly [key in T]: Signal<LSPConnection, IClientNotifyParams[key]>;
 };
 
 export interface IClientRequestHandler<
@@ -173,15 +173,15 @@ export interface IServerRequestHandler<
 export type ClientRequests<
   T extends keyof IClientRequestParams = keyof IClientRequestParams
 > = {
-  readonly // has async request(params) returning a promise with result.
-  [key in T]: IClientRequestHandler<key>;
+  // has async request(params) returning a promise with result.
+  readonly [key in T]: IClientRequestHandler<key>;
 };
 
 export type ServerRequests<
   T extends keyof IServerRequestParams = keyof IServerRequestParams
 > = {
-  readonly // has async request(params) returning a promise with result.
-  [key in T]: IServerRequestHandler<key>;
+  // has async request(params) returning a promise with result.
+  readonly [key in T]: IServerRequestHandler<key>;
 };
 
 class ClientRequestHandler<

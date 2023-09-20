@@ -68,7 +68,10 @@ export class FeatureSettings<T> implements IFeatureSettings<T> {
   public changed: Signal<FeatureSettings<T>, void>;
   private _ready = new PromiseDelegate<void>();
 
-  constructor(protected settingRegistry: ISettingRegistry, featureID: string) {
+  constructor(
+    protected settingRegistry: ISettingRegistry,
+    featureID: string
+  ) {
     this.changed = new Signal(this);
     if (!(featureID in settingRegistry.plugins)) {
       this._ready.reject(

@@ -414,9 +414,10 @@ const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
           character: virtual_position.ch
         }
       };
-      const targets = await connection.clientRequests[
-        'textDocument/definition'
-      ].request(positionParams);
+      const targets =
+        await connection.clientRequests['textDocument/definition'].request(
+          positionParams
+        );
       await jumpFeature.handleJump(targets, positionParams);
     },
     is_enabled: ({ connection }) =>
