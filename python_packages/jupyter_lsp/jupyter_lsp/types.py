@@ -72,9 +72,8 @@ class MessageScope(enum.Enum):
 class MessageListener(object):
     """A base listener implementation"""
 
-    listener = None  # type: HandlerListenerCallback
-    language_server = None  # type: Optional[Pattern[Text]]
-    method = None  # type: Optional[Pattern[Text]]
+    language_server: Optional[Pattern[Text]] = None
+    method: Optional[Pattern[Text]] = None
 
     def __init__(
         self,
