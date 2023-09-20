@@ -29,10 +29,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
   private icon_overrides: Map<string, CompletionItemKindStrings>;
   private trans: TranslationBundle;
 
-  constructor(
-    protected themeManager: IThemeManager,
-    trans: TranslationBundle
-  ) {
+  constructor(protected themeManager: IThemeManager, trans: TranslationBundle) {
     this.themes = new Map();
     this.icons_cache = new Map();
     this.icon_overrides = new Map();

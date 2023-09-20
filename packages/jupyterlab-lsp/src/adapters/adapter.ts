@@ -125,10 +125,7 @@ export abstract class WidgetAdapter<T extends IDocumentWidget> {
   // note: it could be using namespace/IOptions pattern,
   // but I do not know how to make it work with the generic type T
   // (other than using 'any' in the IOptions interface)
-  protected constructor(
-    protected extension: ILSPExtension,
-    public widget: T
-  ) {
+  protected constructor(protected extension: ILSPExtension, public widget: T) {
     this.app = extension.app;
     this.connection_manager = extension.connection_manager;
     this.adapterConnected = new Signal(this);
