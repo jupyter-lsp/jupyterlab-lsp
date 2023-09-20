@@ -4,10 +4,10 @@
 export * from './tokens';
 
 /** Export the required classes */
-export {FileEditorAdapter} from './adapters/file_editor/file_editor';
-export {FileEditorContextMenuEntryPoint} from './adapters/file_editor';
-export {PositionConverter} from './converter';
-export {VirtualDocument} from './virtual/document';
+export { FileEditorAdapter } from './adapters/file_editor/file_editor';
+export { FileEditorContextMenuEntryPoint } from './adapters/file_editor';
+export { PositionConverter } from './converter';
+export { VirtualDocument } from './virtual/document';
 
 /** Generated JSON Schema types for server responses and settings */
 export * as SCHEMA from './_schema';
