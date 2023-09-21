@@ -1,5 +1,14 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 4.3.0` (2023-09-21)
+
+- features:
+- extractor for spark SQL magic was added ([#980], thanks @skbitsp)
+- classes needed to register custom adapters are now exported ([#980], thanks @skbitsp)
+  - using these classes is not recommended for new code as registration mechanism was rewritten in JupyterLab 4.0 and moved to `@jupyterlab/lsp`
+
+[#980]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/980
+
 ### `@jupyter-lsp/jupyterlab-lsp 4.2.0` (2023-05-28)
 
 - features:
