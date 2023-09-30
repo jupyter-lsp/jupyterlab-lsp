@@ -1,6 +1,7 @@
 ## Changelog
 
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.0-rc.1`
+
 - restore re-use of unused standalone connections
 
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.0-rc.0`

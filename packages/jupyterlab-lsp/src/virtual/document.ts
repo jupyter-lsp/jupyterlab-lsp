@@ -220,15 +220,16 @@ export class VirtualDocument extends VirtualDocumentBase {
       foreignDocument = this.foreignDocuments.get(extractor.language)!;
     } else {
       // if standalone, try to re-use existing connection to the server
-       let unusedStandalone = this.unusedStandaloneDocuments.get(
-         extractor.language
-       );
-       if (extractor.standalone && unusedStandalone.length > 0) {
-         foreignDocument = unusedStandalone.pop()!;
-         this.unusedDocuments.delete(foreignDocument);
-       } else {
+      let unusedStandalone = this.unusedStandaloneDocuments.get(
+        extractor.language
+      );
+      if (extractor.standalone && unusedStandalone.length > 0) {
+        foreignDocument = unusedStandalone.pop()!;
+        this.unusedDocuments.delete(foreignDocument);
+      } else {
         // if (previous document does not exists) or (extractor produces standalone documents
         // and no old standalone document could be reused): create a new document
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         foreignDocument = this.openForeign(
           extractor.language,
