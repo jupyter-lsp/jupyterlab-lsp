@@ -4,7 +4,8 @@ import type {
   IVirtualPosition,
   IRootPosition,
   Document,
-  ForeignDocumentsMap
+  ForeignDocumentsMap,
+  IForeignCodeExtractor
 } from '@jupyterlab/lsp';
 import { VirtualDocument as VirtualDocumentBase } from '@jupyterlab/lsp';
 
@@ -33,6 +34,9 @@ export class VirtualDocument extends VirtualDocumentBase {
     this.lineMagicsOverrides = new ReversibleOverridesMap(
       overrides ? overrides.line : []
     );
+    // override private `chooseForeignDocument` as a workaround for
+    // https://github.com/jupyter-lsp/jupyterlab-lsp/issues/959
+    this['chooseForeignDocument'] = this._chooseForeignDocument;
   }
 
   // TODO: this could be moved out
@@ -201,5 +205,39 @@ export class VirtualDocument extends VirtualDocumentBase {
       }
     }
     return [...maps.values()];
+  }
+
+  /**
+   * Get the foreign document that can be opened with the input extractor.
+   */
+  private _chooseForeignDocument(
+    extractor: IForeignCodeExtractor
+  ): VirtualDocumentBase {
+    let foreignDocument: VirtualDocumentBase;
+    // if not standalone, try to append to existing document
+    let foreignExists = this.foreignDocuments.has(extractor.language);
+    if (!extractor.standalone && foreignExists) {
+      foreignDocument = this.foreignDocuments.get(extractor.language)!;
+    } else {
+      // if standalone, try to re-use existing connection to the server
+      let unusedStandalone = this.unusedStandaloneDocuments.get(
+        extractor.language
+      );
+      if (extractor.standalone && unusedStandalone.length > 0) {
+        foreignDocument = unusedStandalone.pop()!;
+        this.unusedDocuments.delete(foreignDocument);
+      } else {
+        // if (previous document does not exists) or (extractor produces standalone documents
+        // and no old standalone document could be reused): create a new document
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        foreignDocument = this.openForeign(
+          extractor.language,
+          extractor.standalone,
+          extractor.fileExtension
+        );
+      }
+    }
+    return foreignDocument;
   }
 }
