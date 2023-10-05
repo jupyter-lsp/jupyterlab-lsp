@@ -21,11 +21,11 @@ You can contribute to the project through:
 
 Thank you for all your contributions :heart:
 
-[license]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/LICENSE
+[license]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/main/LICENSE
 [extending]: ./docs/Extending.html
 [roadmap]: ./docs/Roadmap.html
 [jupyterlab-lsp]: https://github.com/jupyter-lsp/jupyterlab-lsp.git
-[code-of-conduct]: https://github.com/jupyter/governance/blob/master/conduct/code_of_conduct.md
+[code-of-conduct]: https://github.com/jupyter/governance/blob/main/conduct/code_of_conduct.md
 
 ### Set up the environment
 
@@ -52,7 +52,7 @@ pip install -r requirements/dev.txt  # in a virtualenv, probably
 sudo apt-get install nodejs          # ... e.g. on debian/ubuntu
 ```
 
-#### The Easy Way
+#### Single-step installation
 
 Once your environment is created and activated, on Linux/OSX you can run:
 
@@ -62,7 +62,10 @@ bash binder/postBuild
 
 This performs all the basic setup steps, and is used for the binder demo.
 
-#### The Hard Way
+This approach may not always work. Continue reading for a step-by-step
+instructions which also show all the underlying pieces.
+
+#### Manual installation
 
 Install `jupyter-lsp` from source in your virtual environment:
 
@@ -378,25 +381,25 @@ The spec should only be advertised if the command _could actually_ be run:
 
 otherwise an empty dictionary (`{}`) should be returned.
 
-[built-in specs]: https://github.com/jupyter-lsp/jupyterlab-lsp/tree/master/python_packages/jupyter_lsp/jupyter_lsp/specs
-[setup.cfg]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/setup.cfg
-[schema]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/schema/schema.json
-[utilities]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/utils.py
+[built-in specs]: https://github.com/jupyter-lsp/jupyterlab-lsp/tree/main/python_packages/jupyter_lsp/jupyter_lsp/specs
+[setup.cfg]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/main/python_packages/jupyter_lsp/setup.cfg
+[schema]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/main/python_packages/jupyter_lsp/jupyter_lsp/schema/schema.json
+[utilities]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/main/python_packages/jupyter_lsp/jupyter_lsp/specs/utils.py
 
 ##### Common Concerns
 
 - some language servers need to have their connection mode specified
   - the `stdio` interface is the only one supported by `jupyter_lsp`
     - PRs welcome to support other modes!
-- because of its VSCode heritage, many language servers use `nodejs`
+- many language servers use `nodejs`
   - `LanguageServerManager.nodejs` will provide the location of our best
     guess at where a user's `nodejs` might be found
 - some language servers are hard to start purely from the command line
   - use a helper script to encapsulate some complexity, or
-  - use a command argument of the interpreter is available (see the [r spec][] and [julia spec] for examples)
+  - use a `command` argument of the interpreter is available (see the [r spec][] and [julia spec] for examples)
 
-[r spec]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/r_languageserver.py
-[julia spec]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/master/python_packages/jupyter_lsp/jupyter_lsp/specs/julia_language_server.py
+[r spec]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/main/python_packages/jupyter_lsp/jupyter_lsp/specs/r_languageserver.py
+[julia spec]: https://github.com/jupyter-lsp/jupyterlab-lsp/blob/main/python_packages/jupyter_lsp/jupyter_lsp/specs/julia_language_server.py
 
 ##### Example: making a pip-installable `cool-language-server` spec
 
@@ -462,7 +465,11 @@ python setup.py sdist bdist_wheel
 
 ## Debugging
 
-Adjust `loggingLevel` in the `Advanced Settings Editor` -> `Language Server` to see more log messages.
+To see more see more log messages navigate to `Settings` ❯ `Settings Editor` ❯ `Language Servers` and adjust:
+
+- adjust `Logging console verbosity level`
+- switch `Ask servers to send trace notifications` to `verbose`
+- toggle `Log all LSP communication with the LSP servers`
 
 For robot tests set:
 
