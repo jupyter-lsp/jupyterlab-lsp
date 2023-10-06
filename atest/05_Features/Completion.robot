@@ -139,10 +139,12 @@ Completes In Strings Or Python Dictionaries
     Wait Until Fully Initialized
     Press Keys    None    test_dict['']
     Place Cursor In File Editor At    16    11
+    # Small delay to let CodeMirror/backend propagate the change above
+    Sleep    4
     Trigger Completer
     # note: in jedi-language-server this would be key_a without '
-    Completer Should Suggest    'key_a
-    Select Completer Suggestion    'key_a
+    Completer Should Suggest    'key_a'
+    Select Completer Suggestion    'key_a'
     Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    15    test_dict['key_a']
     [Teardown]    Clean Up After Working With File    completion.py
 
