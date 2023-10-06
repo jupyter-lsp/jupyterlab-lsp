@@ -11,6 +11,10 @@
   - use camelCase convention in TypeScript/JavaScript code
   - use `@codemirror/linter` to show diagnostics
     - this comes with a different style of underlines and custom tooltips
+- known issues/limitations:
+  - enabling auto-invoke of completer requires toggling checkbox in both native and LSP `Code Completion` settings
+  - robot mode does not support JupyterLab 4.0, hence robot LSP will not work either
+  - renaming in docker files may not work on certain variables due to upstream tokenizer issue
 
 Requires JupyterLab `>=4.0.6,<5.0.0a0`
 
