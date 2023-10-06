@@ -1,5 +1,19 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 5.0.0`
+
+- enhancements:
+  - uses toast notifications instead of messages on status bar
+  - diagnostics panel will be re-opened on reload
+- maintenance:
+  - support JupyterLab 4
+  - use upstream `@jupyterlab/lsp` package
+  - use camelCase convention in TypeScript/JavaScript code
+  - use `@codemirror/linter` to show diagnostics
+    - this comes with a different style of underlines and custom tooltips
+
+Requires JupyterLab `>=4.0.6,<5.0.0a0`
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.0-rc.1`
 
 - restore re-use of unused standalone connections
