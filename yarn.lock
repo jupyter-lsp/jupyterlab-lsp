@@ -12489,13 +12489,13 @@ __metadata:
   linkType: hard
 
 "postcss@npm:^8.3.11, postcss@npm:^8.4.21":
-  version: 8.4.24
-  resolution: "postcss@npm:8.4.24"
+  version: 8.4.31
+  resolution: "postcss@npm:8.4.31"
   dependencies:
     nanoid: ^3.3.6
     picocolors: ^1.0.0
     source-map-js: ^1.0.2
-  checksum: 814e2126dacfea313588eda09cc99a9b4c26ec55c059188aa7a916d20d26d483483106dc5ff9e560731b59f45c5bb91b945dfadc670aed875cc90ddbbf4e787d
+  checksum: 1d8611341b073143ad90486fcdfeab49edd243377b1f51834dc4f6d028e82ce5190e4f11bb2633276864503654fb7cab28e67abdc0fbf9d1f88cad4a0ff0beea
   languageName: node
   linkType: hard
 
@@ -15395,11 +15395,11 @@ __metadata:
 
 "typescript@patch:typescript@npm%3A~4.9.4#~builtin<compat/typescript>":
   version: 4.9.4
-  resolution: "typescript@patch:typescript@npm%3A4.9.4#~builtin<compat/typescript>::version=4.9.4&hash=23ec76"
+  resolution: "typescript@patch:typescript@npm%3A4.9.4#~builtin<compat/typescript>::version=4.9.4&hash=289587"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 3e2ab0772908676d9b9cb83398c70003a3b08e1c6b3b122409df9f4b520f2fdaefa20c3d7d57dce283fed760ac94b3ce94d4a7fa875127b67852904425a1f0dc
+  checksum: 2160f7ad975c59b2f5816817d3916be1d156c5688a7517602b3b640c5015e740f4ba933996ac85371d68f7bbdd41602150fb8b68334122ac637fdb5418085e7a
   languageName: node
   linkType: hard
 
