@@ -50,9 +50,10 @@ Diagnostics Panel Can Be Restored
 Columns Can Be Hidden
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE}
-    Open Context Menu Over    css:.lsp-diagnostics-listing th
+    Open Context Menu Over    css:.lsp-diagnostics-listing th:nth-child(1)
     Capture Page Screenshot    01-menu-visible.png
     Expand Menu Entry    columns
+    Capture Page Screenshot    03-message-column-on.png
     Select Menu Entry    Message
     Capture Page Screenshot    03-message-column-toggled.png
     Wait Until Keyword Succeeds    10 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}
