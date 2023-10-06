@@ -356,6 +356,10 @@ Completes In R Magics
     Wait For Our Completer To Initialize
     Trigger Completer
     Completer Should Suggest    library
+    # workaround to scroll down in the notebook
+    Press Keys    None   ESC
+    Press Keys    None   ARROW_DOWN
+    Press Keys    None   ARROW_DOWN
     # '%R lib<tab>'
     Enter Cell Editor    24    line=1
     Trigger Completer
