@@ -1,6 +1,6 @@
 {
   "name": "@jupyter-lsp/theme-vscode",
-  "version": "3.0.0-rc.0",
+  "version": "3.0.0",
   "description": "VSCode theme for JupyterLab-LSP",
   "keywords": [
     "jupyter",
