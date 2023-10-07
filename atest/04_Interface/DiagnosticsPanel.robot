@@ -113,6 +113,7 @@ Diagnostics Panel Works After Removing Foreign Document
     Press Keys    None    {}
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE}
+    Sleep    5
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE R}
     Lab Command    Delete Cell
