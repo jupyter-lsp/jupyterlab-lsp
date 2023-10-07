@@ -12,6 +12,10 @@
   - use `@codemirror/linter` to show diagnostics
     - this comes with a different style of underlines and custom tooltips
 - known issues/limitations:
+  - configuration of language servers via JSON Settings Editor may result in a spurious warning
+    due to a transitive clash with settings from the UI editor when using nested pattern (e.g.
+    `{pylsp: {flake8: {enabled: true}}}`); the dotted pattern (e.g. `{"pylsp.flake8.enabled": true}`)
+    does not lead to such problem.
   - enabling auto-invoke of completer requires toggling checkbox in both native and LSP `Code Completion` settings
   - robot mode does not support JupyterLab 4.0, hence robot LSP will not work either
   - renaming in docker files may not work on certain variables due to upstream tokenizer issue
