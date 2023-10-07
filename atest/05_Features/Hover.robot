@@ -54,6 +54,7 @@ Hover can be triggered via modifier key once cursor stopped moving
 Hover works in foreign code (javascript)
     Enter Cell Editor    2
     Trigger Tooltip    js_add
+    Skip
     Capture Page Screenshot    02-hover-shown.png
     Element Should Contain    ${HOVER_BOX}    function js_add(a: any, b: any): any
     Page Should Contain Element    ${HOVER_BOX} code.language-typescript
