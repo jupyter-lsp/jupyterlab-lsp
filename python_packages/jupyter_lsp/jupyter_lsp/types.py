@@ -236,10 +236,10 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
         )
 
     @lru_cache(maxsize=1)
-    def _npm_prefix(self):
+    def _npm_prefix(self, npm: Text):
         try:
             return (
-                subprocess.run(["npm", "prefix", "-g"], check=True, capture_output=True)
+                subprocess.run([npm, "prefix", "-g"], check=True, capture_output=True)
                 .stdout.decode("utf-8")
                 .strip()
             )
@@ -274,8 +274,9 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
         roots += [pathlib.Path(sys.prefix)]
 
         # check for custom npm prefix
-        if shutil.which("npm"):
-            prefix = self._npm_prefix()
+        npm = shutil.which("npm")
+        if npm:
+            prefix = self._npm_prefix(npm)
             if prefix:
                 roots += [  # pragma: no cover
                     pathlib.Path(prefix) / "lib",
