@@ -13,14 +13,14 @@ export class FileEditorJumper extends CodeJumper {
   widget: IDocumentWidget;
 
   constructor(
-    editor_widget: IDocumentWidget<FileEditor>,
-    document_manager: IDocumentManager
+    editorWidget: IDocumentWidget<FileEditor>,
+    documentManager: IDocumentManager
   ) {
     super();
-    this.widget = editor_widget;
-    this.document_manager = document_manager;
-    this.editor = editor_widget.content;
-    this.history = new JumpHistory(this.editor.model.modelDB);
+    this.widget = editorWidget;
+    this.documentManager = documentManager;
+    this.editor = editorWidget.content;
+    this.history = new JumpHistory();
   }
 
   get path() {
@@ -31,8 +31,8 @@ export class FileEditorJumper extends CodeJumper {
     return [this.editor.editor];
   }
 
-  jump(jump_position: ILocalPosition) {
-    let { token } = jump_position;
+  jump(jumpPosition: ILocalPosition) {
+    let { token } = jumpPosition;
 
     // TODO: this is common
     // place cursor in the line with the definition
@@ -58,11 +58,11 @@ export class FileEditorJumper extends CodeJumper {
   getCurrentPosition(): IGlobalPosition {
     let position = this.editor.editor.getCursorPosition();
     return {
-      editor_index: 0,
+      editorIndex: 0,
       line: position.line,
       column: position.column,
-      contents_path: this.editor.context.path,
-      is_symlink: false
+      contentsPath: this.editor.context.path,
+      isSymlink: false
     };
   }
 }

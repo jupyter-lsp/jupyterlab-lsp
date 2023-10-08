@@ -3,14 +3,14 @@ name: CI
 on:
   push:
     branches:
-      - master
-      - 2.x
+      - main
       - 3.x
+      - 4.x
   pull_request:
     branches:
-      - master
-      - 2.x
+      - main
       - 3.x
+      - 4.x
   workflow_dispatch:
 
 # TODO: might need to tweak `group`
@@ -30,7 +30,7 @@ env:
 
   ATEST_PROCESSES: 2
   ATEST_RETRIES: 3
-  JLPM_CMD: jlpm --ignore-optional --prefer-offline --frozen-lockfile
+  JLPM_CMD: jlpm install
 
   # Increase this value to reset all caches
   CACHE_EPOCH: 4
@@ -43,8 +43,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-        nodejs: ['>=14,<15.0.0a0']
-        lab: ['>=3.6.0,<4.0.0a0']
+        nodejs: ['>=16,<17.0.0a0']
+        lab: ['>=4.0.6,<5.0.0a0']
         r: ['>=4']
     steps:
       - uses: actions/checkout@v3
@@ -84,7 +84,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: actions/cache@v3
         with:
-          path: .yarn-packages
+          path: '.yarn/cache'
           key: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
@@ -99,7 +99,7 @@ jobs:
         run: jlpm build
 
       - name: Run frontend unit tests
-        run: jlpm test
+        run: jlpm test --no-bail
 
       - name: Lint backend
         run: python scripts/lint.py
@@ -123,8 +123,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-        nodejs: ['>=14,<15.0.0a0']
-        lab: ['>=3.6.0,<4.0.0a0']
+        nodejs: ['>=16,<17.0.0a0']
+        lab: ['>=4.0.0,<5.0.0a0']
         r: ['>=4']
     steps:
       - uses: actions/checkout@v3
@@ -160,7 +160,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: actions/cache@v3
         with:
-          path: .yarn-packages
+          path: '.yarn/cache'
           key: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
@@ -214,18 +214,18 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu', 'macos', 'windows']
-        python: ['3.8', '3.10']
+        python: ['3.8', '3.11']
         include:
           - python: '3.8'
-            # Node 16 end-of-life: April 2024
+            # Node 16 end-of-life: 2023-09-11
             nodejs: '>=16,<17.0.0.a0'
             r: '>=4'
-            lab: '>=3.6.0,<4'
-          - python: '3.10'
-            # Node 16 end-of-life: April 2024
-            nodejs: '>=16,<17.0.0.a0'
+            lab: '>=4,<5'
+          - python: '3.11'
+            # Node 18 end-of-life: 2025-04-30
+            nodejs: '>=18,<19.0.0.a0'
             r: '>=4'
-            lab: '>=3.6.0,<4'
+            lab: '>=4,<5'
 
     steps:
       - uses: actions/checkout@v3
@@ -264,7 +264,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: actions/cache@v3
         with:
-          path: .yarn-packages
+          path: '.yarn/cache'
           key: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
@@ -297,11 +297,6 @@ jobs:
         run: |
           jupyter server extension list
           jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
-
-      - name: List notebook server extensions
-        run: |
-          jupyter serverextension list
-          jupyter serverextension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
 
       - name: List frontend extensions
         run: |
@@ -351,23 +346,20 @@ jobs:
       max-parallel: 3
       matrix:
         os: ['ubuntu', 'macos', 'windows']
-        python: ['3.8', '3.9', '3.10', 'pypy-3.8']
-        exclude:
-          - os: windows
-            python: pypy-3.7
+        python: ['3.8', '3.11', 'pypy-3.8']
         include:
           - python: '3.8'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=3.6,<3.7'
-          - python: '3.9'
+            lab: '>=4,<5'
+          - python: '3.8'
             dist: 'jupyter*lsp*.tar.gz'
-            lab: '>=3.6,<4'
-          - python: '3.10'
+            lab: '>=4,<5'
+          - python: '3.11'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=3.6,<4'
+            lab: '>=4,<5'
           - python: 'pypy-3.8'
             dist: 'jupyter*lsp*.tar.gz'
-            lab: '>=3.6,<4'
+            lab: '>=4,<5'
           - os: 'windows'
             py_cmd: python
           - os: 'macos'
@@ -409,13 +401,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu]
-        python: ['3.8', '3.10']
-        nodejs: ['14']
+        python: ['3.8', '3.11']
+        nodejs: ['18']
         include:
           - python: '3.8'
-            lab: '>=3.6,<3.7'
-          - python: '3.10'
-            lab: '>=3.6,<4'
+            lab: '>=4,<5'
+          - python: '3.11'
+            lab: '>=4,<5'
     steps:
       - name: Install Python
         uses: actions/setup-python@v4
@@ -434,8 +426,6 @@ jobs:
         run: python -m pip install --upgrade pip wheel setuptools
       - name: Install JupyterLab
         run: python -m pip install 'jupyterlab${{ matrix.lab }}'
-      - name: Install Notebook (to test serverextension)
-        run: python -m pip install 'notebook'
       - name: Install the server package
         run: cd dist && python -m pip install -vv jupyter_lsp*.whl
       - name: install the source extension
@@ -445,7 +435,5 @@ jobs:
           set -eux
           jupyter labextension list
           jupyter server extension list
-          jupyter serverextension list
           jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
           jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
-          jupyter serverextension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -

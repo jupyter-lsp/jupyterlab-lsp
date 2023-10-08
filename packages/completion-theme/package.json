@@ -1,6 +1,6 @@
 {
   "name": "@jupyter-lsp/completion-theme",
-  "version": "3.3.0",
+  "version": "4.0.0",
   "description": "Completion theme manager for JupyterLab-LSP",
   "keywords": [
     "jupyter",
@@ -33,13 +33,12 @@
     "clean": "rimraf lib"
   },
   "devDependencies": {
-    "@jupyterlab/builder": "^3.5.0",
-    "@jupyterlab/ui-components": "^3.3.0",
-    "react": "^17.0.1",
-    "rimraf": "^3.0.2",
-    "typescript": "~4.9.4"
+    "@jupyterlab/builder": "^4.0.6",
+    "@jupyterlab/ui-components": "^4.0.6",
+    "react": "^18.2.0",
+    "rimraf": "^3.0.0",
+    "typescript": "~5.0.4"
   },
-  "peerDependencies": {},
   "jupyterlab": {
     "extension": true,
     "schemaDir": "schema",

@@ -193,7 +193,6 @@ def test_changelog_versions(pkg, version):
 @pytest.mark.parametrize(
     "pkg,sep,version,expected",
     [
-        [PY_SERVER_NAME, "=", PY_SERVER_VERSION, 1],  # TODO: update docker instructions
         [
             PY_SERVER_NAME,
             "==",
@@ -201,7 +200,6 @@ def test_changelog_versions(pkg, version):
             0,
         ],  # zero because jupyterlab-lsp is good enough
         [PY_SERVER_NAME + "-python", "=", PY_SERVER_VERSION, 1],
-        [JS_LSP_NAME, "@", JS_LSP_VERSION, 1],  # TODO: update docker instructions
         [PY_FRONT_NAME, "=", JS_LSP_VERSION, 2],  # conda install
         [PY_FRONT_NAME, "==", JS_LSP_VERSION, 1],  # pip install
     ],

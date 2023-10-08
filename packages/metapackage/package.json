@@ -1,6 +1,6 @@
 {
   "name": "@jupyter-lsp/jupyterlab-lsp-metapackage",
-  "version": "4.2.0",
+  "version": "5.0.0",
   "description": "JupyterLab LSP - Meta Package. All of the packages used by JupyterLab LSP",
   "homepage": "https://github.com/jupyter-lsp/jupyterlab-lsp",
   "bugs": {
@@ -27,20 +27,17 @@
     "watch": "tsc -b --watch --preserveWatchOutput"
   },
   "dependencies": {
-    "@jupyter-lsp/code-jumpers": "file:../code-jumpers",
-    "@jupyter-lsp/completion-theme": "file:../completion-theme",
-    "@jupyter-lsp/jupyterlab-lsp": "file:../jupyterlab-lsp",
-    "@jupyter-lsp/jupyterlab-lsp-example-extractor": "file:../_example-extractor",
-    "@jupyter-lsp/jupyterlab-lsp-klingon-integration": "file:../_klingon-integration",
-    "@jupyter-lsp/theme-material": "file:../theme-material",
-    "@jupyter-lsp/theme-vscode": "file:../theme-vscode",
-    "lsp-ws-connection": "file:../lsp-ws-connection"
+    "@jupyter-lsp/code-jumpers": "workspace:*",
+    "@jupyter-lsp/completion-theme": "workspace:*",
+    "@jupyter-lsp/jupyterlab-lsp": "workspace:*",
+    "@jupyter-lsp/jupyterlab-lsp-example-extractor": "workspace:*",
+    "@jupyter-lsp/jupyterlab-lsp-klingon-integration": "workspace:*",
+    "@jupyter-lsp/theme-material": "workspace:*",
+    "@jupyter-lsp/theme-vscode": "workspace:*"
   },
   "devDependencies": {
-    "fs-extra": "^8.0.1",
-    "rimraf": "^3.0.2",
-    "typedoc": "^0.22.13",
-    "typescript": "~4.9.4"
+    "rimraf": "^3.0.0",
+    "typescript": "~5.0.4"
   },
   "publishConfig": {
     "access": "public"

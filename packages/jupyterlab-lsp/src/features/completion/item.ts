@@ -1,28 +1,7 @@
 import { CompletionHandler } from '@jupyterlab/completer';
+import { ILSPConnection } from '@jupyterlab/lsp';
 import { LabIcon } from '@jupyterlab/ui-components';
 import * as lsProtocol from 'vscode-languageserver-types';
-
-import { until_ready } from '../../utils';
-
-import { LSPConnector } from './completion_handler';
-
-/**
- * To be upstreamed
- */
-export interface ICompletionsSource {
-  /**
-   * The name displayed in the GUI
-   */
-  name: string;
-  /**
-   * The higher the number the higher the priority
-   */
-  priority: number;
-  /**
-   * The icon to be displayed if no type icon is present
-   */
-  fallbackIcon?: LabIcon;
-}
 
 /**
  * To be upstreamed
@@ -31,26 +10,37 @@ export interface IExtendedCompletionItem
   extends CompletionHandler.ICompletionItem {
   insertText: string;
   sortText: string;
-  source?: ICompletionsSource;
+  source: string;
 }
 
-export class LazyCompletionItem implements IExtendedCompletionItem {
-  private _detail: string | undefined;
-  private _documentation: string | undefined;
-  private _is_documentation_markdown: boolean;
-  private _requested_resolution: boolean;
-  private _resolved: boolean;
+namespace CompletionItem {
+  export interface IOptions {
+    /**
+     * Type of this completion item.
+     */
+    type: string;
+    /**
+     * LabIcon object for icon to be rendered with completion type.
+     */
+    icon: LabIcon | null;
+    match: lsProtocol.CompletionItem;
+    connection: ILSPConnection;
+    source: string;
+  }
+}
+
+export class CompletionItem implements IExtendedCompletionItem {
   /**
    * Self-reference to make sure that the instance for will remain accessible
    * after any copy operation (whether via spread syntax or Object.assign)
    * performed by the JupyterLab completer internals.
    */
-  public self: LazyCompletionItem;
+  public self: CompletionItem;
   public element: HTMLLIElement;
-  private _currentInsertText: string;
+  public source: string;
 
   get isDocumentationMarkdown(): boolean {
-    return this._is_documentation_markdown;
+    return this._isDocumentationMarkdown;
   }
 
   /**
@@ -59,64 +49,57 @@ export class LazyCompletionItem implements IExtendedCompletionItem {
    */
   public label: string;
 
-  public source: ICompletionsSource;
+  icon: LabIcon | undefined;
 
-  constructor(
-    /**
-     * Type of this completion item.
-     */
-    public type: string,
-    /**
-     * LabIcon object for icon to be rendered with completion type.
-     */
-    public icon: LabIcon,
-    private match: lsProtocol.CompletionItem,
-    private connector: LSPConnector,
-    private uri: string
-  ) {
+  constructor(protected options: CompletionItem.IOptions) {
+    const match = options.match;
     this.label = match.label;
     this._setDocumentation(match.documentation);
-    this._requested_resolution = false;
     this._resolved = false;
     this._detail = match.detail;
+    this._match = match;
     this.self = this;
+    this.source = options.source;
+    this.icon = options.icon ? options.icon : undefined;
+
+    // Upstream is sometimes using spread operator to copy the object (in reconciliator),
+    // which does not copy getters because these are not enumerable; we should use
+    // `Object.assign` upstream, but them, but for now marking relevant properties as enumerable is enough
+    // Ideally this would be fixed and tested e2e in JupyterLab 4.0.7.
+    // https://github.com/jupyterlab/jupyterlab/issues/15125
+    makeGetterEnumerable(this, 'insertText');
+    makeGetterEnumerable(this, 'sortText');
+    makeGetterEnumerable(this, 'filterText');
   }
 
-  private _setDocumentation(
-    documentation: string | lsProtocol.MarkupContent | undefined
-  ) {
-    if (lsProtocol.MarkupContent.is(documentation)) {
-      this._documentation = documentation.value;
-      this._is_documentation_markdown = documentation.kind === 'markdown';
-    } else {
-      this._documentation = documentation;
-      this._is_documentation_markdown = false;
-    }
+  get type() {
+    return this.options.type;
   }
 
   /**
    * Completion to be inserted.
    */
   get insertText(): string {
-    return this._currentInsertText || this.match.insertText || this.match.label;
+    return (
+      this._currentInsertText || this._match.insertText || this._match.label
+    );
   }
-
   set insertText(text: string) {
     this._currentInsertText = text;
   }
 
   get sortText(): string {
-    return this.match.sortText || this.match.label;
+    return this._currentSortText || this._match.sortText || this._match.label;
+  }
+  set sortText(text: string) {
+    this._currentSortText = text;
   }
 
   get filterText(): string | undefined {
-    return this.match.filterText;
+    return this._match.filterText;
   }
-
-  public supportsResolution() {
-    const connection = this.connector.get_connection(this.uri);
-
-    return connection != null && connection.isCompletionResolveProvider();
+  set filterText(text: string | undefined) {
+    this._match.filterText = text;
   }
 
   get detail(): string | undefined {
@@ -132,11 +115,7 @@ export class LazyCompletionItem implements IExtendedCompletionItem {
       return false;
     }
 
-    if (this._requested_resolution) {
-      return false;
-    }
-
-    return this.supportsResolution();
+    return this._supportsResolution();
   }
 
   public isResolved() {
@@ -146,34 +125,29 @@ export class LazyCompletionItem implements IExtendedCompletionItem {
   /**
    * Resolve (fetch) details such as documentation.
    */
-  public resolve(): Promise<lsProtocol.CompletionItem> {
+  public async resolve(): Promise<CompletionItem> {
     if (this._resolved) {
-      return Promise.resolve(this);
+      return this;
     }
-    if (!this.supportsResolution()) {
-      return Promise.resolve(this);
-    }
-    if (this._requested_resolution) {
-      return until_ready(() => this._resolved, 100, 50).then(() => this);
+    if (!this._supportsResolution()) {
+      return this;
     }
 
-    const connection = this.connector.get_connection(this.uri)!;
+    const connection = this.options.connection;
 
-    this._requested_resolution = true;
+    const resolvedCompletionItem = await connection.clientRequests[
+      'completionItem/resolve'
+    ].request(this._match);
 
-    return connection
-      .getCompletionResolve(this.match)
-      .then(resolvedCompletionItem => {
-        if (resolvedCompletionItem === null) {
-          return resolvedCompletionItem;
-        }
-        this._setDocumentation(resolvedCompletionItem?.documentation);
-        this._detail = resolvedCompletionItem?.detail;
-        // TODO: implement in pyls and enable with proper LSP communication
-        // this.label = resolvedCompletionItem.label;
-        this._resolved = true;
-        return this;
-      });
+    if (resolvedCompletionItem === null) {
+      return this;
+    }
+    this._setDocumentation(resolvedCompletionItem?.documentation);
+    this._detail = resolvedCompletionItem?.detail;
+    // TODO: implement in pylsp and enable with proper LSP communication
+    // this.label = resolvedCompletionItem.label;
+    this._resolved = true;
+    return this;
   }
 
   /**
@@ -181,9 +155,6 @@ export class LazyCompletionItem implements IExtendedCompletionItem {
    * about this item, like type or symbol information.
    */
   get documentation(): string | undefined {
-    if (!this.connector.should_show_documentation) {
-      return undefined;
-    }
     if (this._documentation) {
       return this._documentation;
     }
@@ -194,14 +165,61 @@ export class LazyCompletionItem implements IExtendedCompletionItem {
    * Indicates if the item is deprecated.
    */
   get deprecated(): boolean {
-    if (this.match.deprecated) {
-      return this.match.deprecated;
+    if (this._match.deprecated) {
+      return this._match.deprecated;
     }
     return (
-      this.match.tags != null &&
-      this.match.tags.some(
+      this._match.tags != null &&
+      this._match.tags.some(
         tag => tag == lsProtocol.CompletionItemTag.Deprecated
       )
     );
   }
+
+  private _setDocumentation(
+    documentation: string | lsProtocol.MarkupContent | undefined
+  ) {
+    if (lsProtocol.MarkupContent.is(documentation)) {
+      this._documentation = documentation.value;
+      this._isDocumentationMarkdown = documentation.kind === 'markdown';
+    } else {
+      this._documentation = documentation;
+      this._isDocumentationMarkdown = false;
+    }
+  }
+
+  private _supportsResolution(): boolean {
+    const connection = this.options.connection;
+    return (
+      connection.serverCapabilities.completionProvider?.resolveProvider ?? false
+    );
+  }
+
+  private _detail: string | undefined;
+  private _documentation: string | undefined;
+  private _isDocumentationMarkdown: boolean;
+  private _resolved: boolean;
+  private _currentInsertText: string;
+  private _currentSortText: string;
+  private _match: lsProtocol.CompletionItem;
+}
+
+function makeGetterEnumerable(instance: object, name: string) {
+  const generatedDescriptor = findDescriptor(instance, name);
+  Object.defineProperty(instance, name, {
+    enumerable: true,
+    get: generatedDescriptor.get,
+    set: generatedDescriptor.set
+  });
+}
+
+function findDescriptor(instance: object, name: string) {
+  while (instance) {
+    const desc = Object.getOwnPropertyDescriptor(instance, name);
+    if (desc) {
+      return desc;
+    }
+    instance = Object.getPrototypeOf(instance);
+  }
+  throw Error(`No ${name} descriptor found.`);
 }

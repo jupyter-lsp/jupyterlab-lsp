@@ -1,43 +1,43 @@
-import { expect } from 'chai';
 import * as lsProtocol from 'vscode-languageserver-types';
 
-import { LazyCompletionItem } from './item';
+import { CompletionItem } from './item';
 import { LSPCompleterModel } from './model';
 
 describe('LSPCompleterModel', () => {
   let model: LSPCompleterModel;
 
-  function create_dummy_item(
+  function createDummyItem(
     match: lsProtocol.CompletionItem,
-    type: string = 'dummy'
+    type: string = 'dummy',
+    source: string = 'lsp'
   ) {
-    return new LazyCompletionItem(
+    return new CompletionItem({
       type,
-      null as any,
+      icon: null as any,
       match,
-      null as any,
-      'file://test.ipynb'
-    );
+      connection: null as any,
+      source: source
+    });
   }
 
-  const jupyter_icon_completion = create_dummy_item({
+  const jupyterIconCompletion = createDummyItem({
     label: '<i class="jp-icon-jupyter"></i> Jupyter',
     filterText: 'i font icon jupyter Jupyter',
     documentation: 'A Jupyter icon implemented with <i> tag'
   });
-  const test_a_completion = create_dummy_item({
+  const testCompletionA = createDummyItem({
     label: 'test',
     sortText: 'a'
   });
-  const test_b_completion = create_dummy_item({
+  const testCompletionB = createDummyItem({
     label: 'test',
     sortText: 'b'
   });
-  const test_c_completion = create_dummy_item({
+  const testCompletionC = createDummyItem({
     label: 'test',
     sortText: 'c'
   });
-  const test_test_completion = create_dummy_item({
+  const testCompletionTest = createDummyItem({
     label: 'test_test',
     sortText: 'test_test'
   });
@@ -50,38 +50,96 @@ describe('LSPCompleterModel', () => {
   });
 
   it('returns escaped when no query', () => {
-    model.setCompletionItems([jupyter_icon_completion]);
+    model.setCompletionItems([jupyterIconCompletion]);
     model.query = '';
 
     let markedItems = model.completionItems();
-    expect(markedItems[0].label).to.be.equal(
+    expect(markedItems[0].label).toBe(
       '&lt;i class="jp-icon-jupyter"&gt;&lt;/i&gt; Jupyter'
     );
   });
 
   it('marks html correctly', () => {
-    model.setCompletionItems([jupyter_icon_completion]);
+    model.setCompletionItems([jupyterIconCompletion]);
     model.query = 'Jup';
 
     let markedItems = model.completionItems();
-    expect(markedItems[0].label).to.be.equal(
+    expect(markedItems[0].label).toBe(
       '&lt;i class="jp-icon-jupyter"&gt;&lt;/i&gt; <mark>Jup</mark>yter'
     );
   });
 
   it('ties are solved with sortText', () => {
     model.setCompletionItems([
-      test_a_completion,
-      test_c_completion,
-      test_b_completion
+      testCompletionA,
+      testCompletionC,
+      testCompletionB
     ]);
     model.query = 'test';
     let sortedItems = model.completionItems();
-    expect(sortedItems.map(item => item.sortText)).to.deep.equal([
+    expect(sortedItems.map(item => item.sortText)).toEqual(['a', 'b', 'c']);
+  });
+
+  describe('sorting by source', () => {
+    const testCompletionA = createDummyItem(
+      {
+        label: 'test'
+      },
       'a',
+      'LSP'
+    );
+    const testCompletionB = createDummyItem(
+      {
+        label: 'test'
+      },
       'b',
-      'c'
-    ]);
+      'kernel'
+    );
+    const testCompletionC = createDummyItem(
+      {
+        label: 'test'
+      },
+      'c',
+      'context'
+    );
+    const testCompletionD = createDummyItem(
+      {
+        label: 'test'
+      },
+      'd',
+      'unknown'
+    );
+    const completionsFromDifferentSources = [
+      testCompletionA,
+      testCompletionC,
+      testCompletionB
+    ];
+
+    it('completions are sorted by source', () => {
+      model.setCompletionItems(completionsFromDifferentSources);
+      model.query = 'test';
+      let sortedItems = model.completionItems();
+      expect(sortedItems.map(item => item.type)).toEqual(['a', 'b', 'c']);
+    });
+
+    it('kernel completions can be prioritised', () => {
+      model.setCompletionItems(completionsFromDifferentSources);
+      model.query = 'test';
+      model.settings.kernelCompletionsFirst = true;
+      let sortedItems = model.completionItems();
+      expect(sortedItems.map(item => item.type)).toEqual(['b', 'a', 'c']);
+    });
+
+    it('completions from unknown source land at the end', () => {
+      model.setCompletionItems([
+        testCompletionD,
+        ...completionsFromDifferentSources
+      ]);
+      model.query = 'test';
+      let sortedItems = model.completionItems();
+      const types = sortedItems.map(item => item.type);
+      expect(types[types.length - 1]).toEqual('d');
+    });
   });
 
   it('ignores perfect matches when asked', () => {
@@ -89,57 +147,57 @@ describe('LSPCompleterModel', () => {
       includePerfectMatches: false
     });
 
-    model.setCompletionItems([test_a_completion, test_test_completion]);
+    model.setCompletionItems([testCompletionA, testCompletionTest]);
     model.query = 'test';
     let items = model.completionItems();
     // should not include the perfect match 'test'
-    expect(items.length).to.equal(1);
-    expect(items.map(item => item.sortText)).to.deep.equal(['test_test']);
+    expect(items.length).toBe(1);
+    expect(items.map(item => item.sortText)).toEqual(['test_test']);
   });
 
   it('case-sensitivity can be changed', () => {
     model = new LSPCompleterModel();
-    model.setCompletionItems([test_a_completion]);
+    model.setCompletionItems([testCompletionA]);
     model.query = 'Test';
 
     model.settings.caseSensitive = true;
     let items = model.completionItems();
-    expect(items.length).to.equal(0);
+    expect(items.length).toBe(0);
 
     model.settings.caseSensitive = false;
     items = model.completionItems();
-    expect(items.length).to.equal(1);
+    expect(items.length).toBe(1);
   });
 
   it('filters use filterText', () => {
-    model.setCompletionItems([jupyter_icon_completion]);
+    model.setCompletionItems([jupyterIconCompletion]);
     // font is in filterText but not in label
     model.query = 'font';
 
     let filteredItems = model.completionItems();
-    expect(filteredItems.length).to.equal(1);
+    expect(filteredItems.length).toBe(1);
 
     // class is in label but not in filterText
     model.query = 'class';
     filteredItems = model.completionItems();
-    expect(filteredItems.length).to.equal(0);
+    expect(filteredItems.length).toBe(0);
   });
 
   it('marks appropriate part of label when filterText matches', () => {
-    model.setCompletionItems([jupyter_icon_completion]);
+    model.setCompletionItems([jupyterIconCompletion]);
     // font is in filterText but not in label
     model.query = 'font';
 
     // nothing should get highlighted
     let markedItems = model.completionItems();
-    expect(markedItems[0].label).to.be.equal(
+    expect(markedItems[0].label).toBe(
       '&lt;i class="jp-icon-jupyter"&gt;&lt;/i&gt; Jupyter'
     );
 
     // i is in both label and filterText
     model.query = 'i';
     markedItems = model.completionItems();
-    expect(markedItems[0].label).to.be.equal(
+    expect(markedItems[0].label).toBe(
       '&lt;<mark>i</mark> class="jp-icon-jupyter"&gt;&lt;/i&gt; Jupyter'
     );
   });

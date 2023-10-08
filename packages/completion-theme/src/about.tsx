@@ -8,7 +8,7 @@ import {
   ILicenseInfo
 } from './types';
 
-function render_licence(licence: ILicenseInfo): ReactElement {
+function renderLicence(licence: ILicenseInfo): ReactElement {
   return (
     <div className={'lsp-licence'}>
       <a href={licence.link} title={licence.name}>
@@ -21,14 +21,14 @@ function render_licence(licence: ILicenseInfo): ReactElement {
 
 type IconSetGetter = (theme: ICompletionTheme) => Map<string, LabIcon>;
 
-function render_theme(
+function renderTheme(
   trans: TranslationBundle,
   theme: ICompletionTheme,
-  get_set: IconSetGetter,
-  is_current: boolean
+  getSet: IconSetGetter,
+  isCurrent: boolean
 ): ReactElement {
   let icons: ReactElement[] = [];
-  for (let [name, icon] of get_set(theme)) {
+  for (let [name, icon] of getSet(theme)) {
     icons.push(
       <div className={'lsp-completer-icon-row'}>
         <div>{name}</div>
@@ -44,7 +44,7 @@ function render_theme(
     >
       <h4>
         {theme.name}
-        {is_current ? trans.__(' (current)') : ''}
+        {isCurrent ? trans.__(' (current)') : ''}
       </h4>
       <ul>
         <li key={'id'}>
@@ -52,7 +52,7 @@ function render_theme(
         </li>
         <li key={'licence'}>
           {trans.__('Licence: ')}
-          {render_licence(theme.icons.licence)}
+          {renderLicence(theme.icons.licence)}
         </li>
         <li key={'dark'}>
           {typeof theme.icons.dark === 'undefined'
@@ -65,16 +65,16 @@ function render_theme(
   );
 }
 
-export function render_themes_list(
+export function renderThemesList(
   trans: TranslationBundle,
   props: {
     themes: ICompletionTheme[];
     current: ICompletionTheme | null;
-    get_set: IconSetGetter;
+    getSet: IconSetGetter;
   }
 ): React.ReactElement {
   let themes = props.themes.map(theme =>
-    render_theme(trans, theme, props.get_set, theme == props.current)
+    renderTheme(trans, theme, props.getSet, theme == props.current)
   );
   return <div>{themes}</div>;
 }

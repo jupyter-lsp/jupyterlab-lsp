@@ -4,7 +4,7 @@
 import { CompleterModel, CompletionHandler } from '@jupyterlab/completer';
 import { StringExt } from '@lumino/algorithm';
 
-import { LazyCompletionItem } from './item';
+import { CompletionItem } from './item';
 
 interface ICompletionMatch<T extends CompletionHandler.ICompletionItem> {
   /**
@@ -23,7 +23,7 @@ function escapeHTML(text: string) {
 }
 
 /**
- * This will be contributed upstream
+ * A lot of this was contributed upstream
  */
 export class GenericCompleterModel<
   T extends CompletionHandler.ICompletionItem
@@ -38,8 +38,16 @@ export class GenericCompleterModel<
 
   completionItems(): T[] {
     let query = this.query;
+    // (setting query is bad because it resets the cache; ideally we would
+    // modify the sorting and filtering algorithm upstream).
+
+    // TODO processedItemsCache
     this.query = '';
-    let unfilteredItems = super.completionItems!() as T[];
+
+    let unfilteredItems = (
+      super.completionItems() as CompletionHandler.ICompletionItem[]
+    ).map(this.harmoniseItem);
+
     this.query = query;
 
     // always want to sort
@@ -47,22 +55,51 @@ export class GenericCompleterModel<
     return this._sortAndFilter(query, unfilteredItems);
   }
 
-  setCompletionItems(newValue: T[]) {
-    super.setCompletionItems!(newValue);
+  protected harmoniseItem(item: CompletionHandler.ICompletionItem): T {
+    return item as T;
+  }
 
-    if (this.settings.preFilterMatches && this.current && this.cursor) {
+  setCompletionItems(newValue: T[]) {
+    super.setCompletionItems(newValue);
+
+    if (this.current && this.cursor) {
       // set initial query to pre-filter items; in future we should use:
       // https://github.com/jupyterlab/jupyterlab/issues/9763#issuecomment-1001603348
+
+      // note: start/end from cursor are not ideal because these get populated from fetch
+      // reply which will vary depending on what providers decide to return; we want the
+      // actual position in token, the same as passed in request to fetch. We can get it
+      // by searching for longest common prefix as seen below (or by counting characters).
+      // Maybe upstream should expose it directly?
       const { start, end } = this.cursor;
-      let query = this.current.text.substring(start, end).trim();
+      const { text, line, column } = this.original!;
+
+      const queryRange = text.substring(start, end).trim();
+      const linePrefix = text.split('\n')[line].substring(0, column).trim();
+      let query = '';
+      for (let i = queryRange.length; i > 0; i--) {
+        if (queryRange.slice(0, i) == linePrefix.slice(-i)) {
+          query = linePrefix.slice(-i);
+          break;
+        }
+      }
+      if (!query) {
+        return;
+      }
+
+      let trimmedQuotes = false;
       // special case for "Completes Paths In Strings" test case
       if (query.startsWith('"') || query.startsWith("'")) {
         query = query.substring(1);
+        trimmedQuotes = true;
       }
       if (query.endsWith('"') || query.endsWith("'")) {
         query = query.substring(0, -1);
+        trimmedQuotes = true;
       }
-      this.query = query;
+      if (this.settings.preFilterMatches || trimmedQuotes) {
+        this.query = query;
+      }
     }
   }
 
@@ -85,6 +122,20 @@ export class GenericCompleterModel<
     // don't count parameters, `b`, `a`, and `r` as matches.
     const index = item.label.indexOf('(');
     return index > -1 ? item.label.substring(0, index) : item.label;
+  }
+
+  createPatch(patch: string) {
+    if (this.subsetMatch) {
+      // Prevent insertion code path when auto-populating subset on tab, to avoid problems with
+      // prefix which is a subset of token incorrectly replacing a string with file system path.
+      // - Q: Which code path is being blocked?
+      //   A: The code path (b) discussed in https://github.com/jupyterlab/jupyterlab/issues/15130.
+      // - Q: Why are we short- circuiting here?
+      //   A: we want to prevent `onCompletionSelected()` from proceeding with text insertion,
+      //      but direct extension of Completer handler is difficult.
+      return undefined;
+    }
+    return super.createPatch(patch);
   }
 
   private _sortAndFilter(query: string, items: T[]): T[] {
@@ -168,7 +219,7 @@ export class GenericCompleterModel<
       }
     }
 
-    results.sort(this.compareMatches);
+    results.sort(this.compareMatches.bind(this));
 
     return results.map(x => x.item);
   }
@@ -196,36 +247,63 @@ export namespace GenericCompleterModel {
      */
     includePerfectMatches?: boolean;
     /**
-     * Wheteher matches should be pre-filtered (default = true)
+     * Whether matches should be pre-filtered (default = true)
      */
     preFilterMatches?: boolean;
+    /**
+     * Whether kernel completions should be shown first.
+     */
+    kernelCompletionsFirst?: boolean;
   }
   export const defaultOptions: IOptions = {
     caseSensitive: true,
     includePerfectMatches: true,
-    preFilterMatches: true
+    preFilterMatches: true,
+    kernelCompletionsFirst: false
   };
 }
 
-export class LSPCompleterModel extends GenericCompleterModel<LazyCompletionItem> {
-  protected getFilterText(item: LazyCompletionItem): string {
+type MaybeCompletionItem = Partial<CompletionItem> &
+  CompletionHandler.ICompletionItem;
+
+export class LSPCompleterModel extends GenericCompleterModel<MaybeCompletionItem> {
+  protected getFilterText(item: MaybeCompletionItem): string {
     if (item.filterText) {
       return item.filterText;
     }
     return super.getFilterText(item);
   }
 
-  protected compareMatches(
-    a: ICompletionMatch<LazyCompletionItem>,
-    b: ICompletionMatch<LazyCompletionItem>
-  ): number {
-    const delta = a.score - b.score;
-    if (delta !== 0) {
-      return delta;
+  protected harmoniseItem(item: CompletionHandler.ICompletionItem) {
+    if ((item as any).self) {
+      const self = (item as any).self;
+      // reflect any changes made on copy
+      self.insertText = item.insertText;
+      return self;
     }
-    // solve ties using sortText
+    return super.harmoniseItem(item);
+  }
 
-    // note: locale compare is case-insensitive
-    return a.item.sortText.localeCompare(b.item.sortText);
+  protected compareMatches(
+    a: ICompletionMatch<MaybeCompletionItem>,
+    b: ICompletionMatch<MaybeCompletionItem>
+  ): number {
+    // TODO: take source order from provider ranks, upstream this code
+    const sourceOrder = {
+      LSP: 1,
+      kernel: this.settings.kernelCompletionsFirst ? 0 : 2,
+      context: 3
+    };
+    const aRank = a.item.source
+      ? sourceOrder[a.item.source as keyof typeof sourceOrder] ?? 4
+      : 4;
+    const bRank = b.item.source
+      ? sourceOrder[b.item.source as keyof typeof sourceOrder] ?? 4
+      : 4;
+    return (
+      aRank - bRank ||
+      (a.item.sortText ?? 'z').localeCompare(b.item.sortText ?? 'z') ||
+      a.score - b.score
+    );
   }
 }

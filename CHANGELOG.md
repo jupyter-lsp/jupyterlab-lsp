@@ -1,5 +1,69 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 5.0.0`
+
+- enhancements:
+  - uses toast notifications instead of messages on status bar
+  - diagnostics panel will be re-opened on reload
+- maintenance:
+  - support JupyterLab 4
+  - use upstream `@jupyterlab/lsp` package
+  - use camelCase convention in TypeScript/JavaScript code
+  - use `@codemirror/linter` to show diagnostics
+    - this comes with a different style of underlines and custom tooltips
+- known issues/limitations:
+  - configuration of language servers via JSON Settings Editor may result in a spurious warning
+    due to a transitive clash with settings from the UI editor when using nested pattern (e.g.
+    `{pylsp: {flake8: {enabled: true}}}`); the dotted pattern (e.g. `{"pylsp.flake8.enabled": true}`)
+    does not lead to such problem.
+  - enabling auto-invoke of completer requires toggling checkbox in both native and LSP `Code Completion` settings
+  - robot mode does not support JupyterLab 4.0, hence robot LSP will not work either
+  - renaming in docker files may not work on certain variables due to upstream tokenizer issue
+
+Requires JupyterLab `>=4.0.6,<5.0.0a0`
+
+### `@jupyter-lsp/jupyterlab-lsp 5.0.0-rc.1`
+
+- restore re-use of unused standalone connections
+
+### `@jupyter-lsp/jupyterlab-lsp 5.0.0-rc.0`
+
+- fixes diagnostics not showing up in text editor in certain circumstances
+- fixes signature hover box not being clickable
+- improves performance by not creating a temporary editor to setup linter underline style
+- JSON overrides work again
+- fixes issue with syntax highlighting breaking when pasting multiple cells
+
+Requires JupyterLab `>=4.0.6,<5.0.0a0`
+
+### `@jupyter-lsp/jupyterlab-lsp 5.0.0-beta.1`
+
+- fix highlights conflict with selection
+- fix scrolling to diagnostics and diagnostic rendering in windowed notebook
+- suppress kernel completer in transclusions
+
+### `@jupyter-lsp/jupyterlab-lsp 5.0.0-beta.0`
+
+- fix most regressions caught by tests in alpha
+- reopen diagnostics panel on reload
+- use toasts for notifications
+
+### `@jupyter-lsp/jupyterlab-lsp 5.0.0-alpha.0`
+
+- maintenance:
+  - support JupyterLab 4
+
+Requires JupyterLab `>=4.0.5,<5.0.0a0`
+
+### `@jupyter-lsp/jupyterlab-lsp 4.3.0` (2023-09-21)
+
+- features:
+- extractor for spark SQL magic was added ([#980], thanks @skbitsp)
+- classes needed to register custom adapters are now exported ([#980], thanks @skbitsp)
+  - using these classes is not recommended for new code as registration mechanism was rewritten in JupyterLab 4.0 and moved to `@jupyterlab/lsp`
+
+[#980]: https://github.com/jupyter-lsp/jupyterlab-lsp/pull/980
+
 ### `@jupyter-lsp/jupyterlab-lsp 4.2.0` (2023-05-28)
 
 - features:

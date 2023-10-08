@@ -11,7 +11,7 @@ Test Tags           feature:diagnostics
 
 *** Test Cases ***
 Diagnostics with deprecated tag have strike-through decoration
-    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="is deprecated"]    timeout=25s
-    Wait Until Page Contains Element    css:.cm-lsp-diagnostic[title*="Unreachable code"]    timeout=5s
+    Wait Until Page Contains Diagnostic    [title*="is deprecated"]    timeout=25s
+    Wait Until Page Contains Diagnostic    [title*="Unreachable code"]    timeout=5s
     Page Should Contain Element    css:.cm-lsp-diagnostic-tag-Deprecated
     Page Should Contain Element    css:.cm-lsp-diagnostic-tag-Unnecessary

@@ -1,20 +1,18 @@
-import {
-  ILSPCodeExtractorsManager,
-  RegExpForeignCodeExtractor
-} from '@jupyter-lsp/jupyterlab-lsp';
+import { RegExpForeignCodeExtractor } from '@jupyter-lsp/jupyterlab-lsp';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { ILSPCodeExtractorsManager } from '@jupyterlab/lsp';
 
 const NS = '@jupyter-lsp/jupyterlab-lsp-example-extractor';
 
 export const extractor = new RegExpForeignCodeExtractor({
   language: 'foo',
   pattern: '^%%(foo)( .*?)?\n([^]*)',
-  foreign_capture_groups: [3],
-  is_standalone: true,
-  file_extension: 'foo'
+  foreignCaptureGroups: [3],
+  isStandalone: true,
+  fileExtension: 'foo'
 });
 
 const plugin: JupyterFrontEndPlugin<void> = {

@@ -1,14 +1,13 @@
 import { IDocumentWidget } from '@jupyterlab/docregistry';
+import { VirtualDocument, WidgetLSPAdapter, Document } from '@jupyterlab/lsp';
 import { nullTranslator, TranslationBundle } from '@jupyterlab/translation';
 import React from 'react';
 
-import { WidgetAdapter } from '../adapters/adapter';
 import { TLanguageServerSpec } from '../tokens';
-import { VirtualDocument } from '../virtual/document';
 
 export function getBreadcrumbs(
   document: VirtualDocument,
-  adapter: WidgetAdapter<IDocumentWidget>,
+  adapter: WidgetLSPAdapter<IDocumentWidget>,
   trans?: TranslationBundle,
   collapse = true
 ): JSX.Element[] {
@@ -19,13 +18,13 @@ export function getBreadcrumbs(
     if (!document.parent) {
       let path = document.path;
       if (
-        !document.has_lsp_supported_file &&
-        document.file_extension &&
-        path.endsWith(document.file_extension)
+        !document.hasLspSupportedFile &&
+        document.fileExtension &&
+        path.endsWith(document.fileExtension)
       ) {
-        path = path.slice(0, -document.file_extension.length - 1);
+        path = path.slice(0, -document.fileExtension.length - 1);
       }
-      const full_path = path;
+      const fullPath = path;
       if (collapse) {
         let parts = path.split('/');
         if (parts.length > 2) {
@@ -33,32 +32,34 @@ export function getBreadcrumbs(
         }
       }
       return (
-        <span key={document.uri} title={full_path}>
+        <span key={document.uri} title={fullPath}>
           {path}
         </span>
       );
     }
-    if (!document.virtual_lines.size) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const virtualLines = document.virtualLines;
+
+    if (!virtualLines.size) {
       return <span key={document.uri}>Empty document</span>;
     }
     try {
-      if (adapter.has_multiple_editors) {
-        let first_line = document.virtual_lines.get(0)!;
-        let last_line = document.virtual_lines.get(
-          document.last_virtual_line - 1
-        )!;
+      if (adapter.hasMultipleEditors) {
+        let firstLine = virtualLines.get(0)!;
+        let lastLine = virtualLines.get(document.lastVirtualLine - 1)!;
 
-        let first_cell = adapter.get_editor_index(first_line.editor);
-        let last_cell = adapter.get_editor_index(last_line.editor);
+        let firstCell = adapter.getEditorIndex(firstLine.editor);
+        let lastCell = adapter.getEditorIndex(lastLine.editor);
 
-        let cell_locator =
-          first_cell === last_cell
-            ? trans!.__('cell %1', first_cell + 1)
-            : trans!.__('cells: %1-%2', first_cell + 1, last_cell + 1);
+        let cellLocator =
+          firstCell === lastCell
+            ? trans!.__('cell %1', firstCell + 1)
+            : trans!.__('cells: %1-%2', firstCell + 1, lastCell + 1);
 
         return (
           <span key={document.uri}>
-            {document.language} ({cell_locator})
+            {document.language} ({cellLocator})
           </span>
         );
       }
@@ -69,36 +70,28 @@ export function getBreadcrumbs(
   });
 }
 
-/**
- * @deprecated please use getBreadcrumbs instead; `get_breadcrumbs` will be removed in 4.0
- */
-export function get_breadcrumbs(
-  document: VirtualDocument,
-  adapter: WidgetAdapter<IDocumentWidget>,
-  collapse = true
-) {
-  return getBreadcrumbs(document, adapter, undefined, collapse);
-}
-
-export function focus_on(node: HTMLElement) {
-  if (!node) {
+async function focusEditor(accessor: Document.IEditor) {
+  if (!accessor) {
     return;
   }
-  node.scrollIntoView();
-  node.focus();
+  await accessor.reveal();
+  const editor = accessor.getEditor();
+  editor!.focus();
 }
 
 export function DocumentLocator(props: {
   document: VirtualDocument;
-  adapter: WidgetAdapter<any>;
+  adapter: WidgetLSPAdapter<any>;
   trans?: TranslationBundle;
 }) {
   let { document, adapter } = props;
-  let target: HTMLElement | null = null;
-  if (adapter.has_multiple_editors) {
-    let first_line = document.virtual_lines.get(0);
-    if (first_line) {
-      target = adapter.get_editor_wrapper(first_line.editor);
+  let target: Document.IEditor | null = null;
+  if (adapter.hasMultipleEditors) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    let firstLine = document.virtualLines.get(0);
+    if (firstLine) {
+      target = firstLine.editor;
     } else {
       console.warn('Could not get first line of ', document);
     }
@@ -107,7 +100,7 @@ export function DocumentLocator(props: {
   return (
     <div
       className={'lsp-document-locator'}
-      onClick={() => (target ? focus_on(target) : null)}
+      onClick={() => (target ? focusEditor(target) : null)}
     >
       {breadcrumbs}
     </div>

@@ -3,15 +3,15 @@
 
 import { Completer } from '@jupyterlab/completer';
 import { IRenderMime } from '@jupyterlab/rendermime';
-import { Signal } from '@lumino/signaling';
 
+import { CodeCompletion as LSPCompletionSettings } from '../../_completion';
+import { FeatureSettings } from '../../feature';
 import { ILSPLogConsole } from '../../tokens';
 
-import { CompletionLabIntegration } from './completion';
-import { LazyCompletionItem, IExtendedCompletionItem } from './item';
+import { CompletionItem, IExtendedCompletionItem } from './item';
 
 export interface ICompletionData {
-  item: LazyCompletionItem;
+  item: CompletionItem;
   element: HTMLLIElement;
 }
 
@@ -19,15 +19,10 @@ export class LSPCompletionRenderer
   extends Completer.Renderer
   implements Completer.IRenderer
 {
-  // signals
-  public activeChanged: Signal<LSPCompletionRenderer, ICompletionData>;
-  public itemShown: Signal<LSPCompletionRenderer, ICompletionData>;
   // observers
   private visibilityObserver: IntersectionObserver;
-  private activityObserver: MutationObserver;
   // element data maps (with weak references for better GC)
-  private elementToItem: WeakMap<HTMLLIElement, LazyCompletionItem>;
-  private wasActivated: WeakMap<HTMLLIElement, boolean>;
+  private elementToItem: WeakMap<HTMLLIElement, CompletionItem>;
 
   protected ITEM_PLACEHOLDER_CLASS = 'lsp-detail-placeholder';
   protected EXTRA_INFO_CLASS = 'jp-Completer-typeExtended';
@@ -35,10 +30,7 @@ export class LSPCompletionRenderer
 
   constructor(protected options: LSPCompletionRenderer.IOptions) {
     super();
-    this.activeChanged = new Signal(this);
-    this.itemShown = new Signal(this);
     this.elementToItem = new WeakMap();
-    this.wasActivated = new WeakMap();
 
     this.visibilityObserver = new IntersectionObserver(
       entries => {
@@ -48,57 +40,29 @@ export class LSPCompletionRenderer
           }
           let li = entry.target as HTMLLIElement;
           let item = this.elementToItem.get(li)!;
-          this.itemShown.emit({
-            item: item,
-            element: li
-          });
+          item.resolve().catch(console.error);
         });
       },
       {
         threshold: 0.25
       }
     );
-
-    // note: there should be no need to unobserve deleted elements as per:
-    // https://stackoverflow.com/a/51106262/6646912
-    this.activityObserver = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        let li = mutation.target;
-        if (!(li instanceof HTMLLIElement)) {
-          return;
-        }
-        let inactive = !this.wasActivated.get(li);
-
-        if (li.classList.contains('jp-mod-active')) {
-          if (inactive) {
-            this.wasActivated.set(li, true);
-            let item = this.elementToItem.get(li)!;
-            this.activeChanged.emit({
-              item: item,
-              element: li
-            });
-          }
-        } else {
-          this.wasActivated.set(li, false);
-        }
-      });
-    });
   }
 
-  protected getExtraInfo(item: LazyCompletionItem): string {
-    const labelExtra = this.options.integrator.settings.composite.labelExtra;
+  protected getExtraInfo(item: CompletionItem): string {
+    const labelExtra = this.options.settings.composite.labelExtra;
     switch (labelExtra) {
       case 'detail':
         return item?.detail || '';
       case 'type':
         return item?.type?.toLowerCase?.();
       case 'source':
-        return item?.source?.name;
+        return item?.source;
       case 'auto':
         return [
           item?.detail || '',
           item?.type?.toLowerCase?.(),
-          item?.source?.name
+          item?.source
         ].filter(x => !!x)[0];
       default:
         this.options.console.warn(
@@ -109,7 +73,7 @@ export class LSPCompletionRenderer
     }
   }
 
-  public updateExtraInfo(item: LazyCompletionItem, li: HTMLLIElement) {
+  public updateExtraInfo(item: CompletionItem, li: HTMLLIElement) {
     const extraText = this.getExtraInfo(item);
     if (extraText) {
       const extraElement = li.getElementsByClassName(this.EXTRA_INFO_CLASS)[0];
@@ -119,29 +83,25 @@ export class LSPCompletionRenderer
   }
 
   createCompletionItemNode(
-    item: LazyCompletionItem,
+    item: CompletionItem,
     orderedTypes: string[]
   ): HTMLLIElement {
     const li = super.createCompletionItemNode(item, orderedTypes);
 
     // make sure that an instance reference, and not an object copy is being used;
-    const lsp_item = item.self;
+    const lspItem = item.self;
 
     // only monitor nodes that have item.self as others are not our completion items
-    if (lsp_item) {
-      lsp_item.element = li;
-      this.elementToItem.set(li, lsp_item);
-      this.activityObserver.observe(li, {
-        attributes: true,
-        attributeFilter: ['class']
-      });
+    if (lspItem) {
+      lspItem.element = li;
+      this.elementToItem.set(li, lspItem);
       this.visibilityObserver.observe(li);
       // TODO: build custom li from ground up
-      this.updateExtraInfo(lsp_item, li);
-      this._elideMark(lsp_item, li);
+      this.updateExtraInfo(lspItem, li);
+      this._elideMark(lspItem, li);
     } else {
       this.updateExtraInfo(item, li);
-      this._elideMark(lsp_item, li);
+      this._elideMark(lspItem, li);
     }
 
     return li;
@@ -160,14 +120,14 @@ export class LSPCompletionRenderer
     const originalHTMLLabel = labelElement.childNodes;
     let hasMark = false;
     for (const node of originalHTMLLabel) {
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        const element = node as Element;
+      if (node instanceof HTMLElement) {
+        const element = node as HTMLElement;
         const text = element.textContent;
-        if (element.tagName === 'MARK' && text) {
+        if (element.tagName === 'MARK' && text && text.length > 3) {
           const elidableElement = document.createElement('bdo');
           elidableElement.setAttribute('dir', 'ltr');
           elidableElement.textContent = text;
-          elidableElement.title = text;
+          element.title = text;
           element.replaceChildren(elidableElement);
           element.classList.add('lsp-elide');
           hasMark = true;
@@ -182,7 +142,7 @@ export class LSPCompletionRenderer
     }
   }
 
-  createDocumentationNode(item: LazyCompletionItem): HTMLElement {
+  createDocumentationNode(item: CompletionItem): HTMLElement {
     // note: not worth trying to `fetchDocumentation()` as this is not
     // invoked if documentation is empty (as of jlab 3.2)
     if (item.isDocumentationMarkdown && this.options.markdownRenderer) {
@@ -212,6 +172,9 @@ export class LSPCompletionRenderer
         })
         .catch(this.options.console.warn);
       return this.options.markdownRenderer.node;
+    } else if (item.source != 'LSP') {
+      // fallback to default implementation for non-LSP completions
+      return super.createDocumentationNode(item);
     } else {
       let node = document.createElement('pre');
       if (item.documentation) {
@@ -220,11 +183,22 @@ export class LSPCompletionRenderer
       return node;
     }
   }
+
+  itemWidthHeuristic(item: CompletionItem): number {
+    const labelSize = item.label.replace(/<(\/)?mark>/g, '').length;
+    const extraTextSize = this.getExtraInfo(item).length;
+    if (this.options.settings.composite.layout === 'side-by-side') {
+      // in 'side-by-side' take the sum
+      return labelSize + extraTextSize;
+    }
+    // 'detail-below' mode take whichever is longer
+    return Math.max(labelSize, extraTextSize);
+  }
 }
 
 export namespace LSPCompletionRenderer {
   export interface IOptions {
-    integrator: CompletionLabIntegration;
+    settings: FeatureSettings<LSPCompletionSettings>;
     markdownRenderer: IRenderMime.IRenderer | null;
     latexTypesetter?: IRenderMime.ILatexTypesetter | null;
     console: ILSPLogConsole;

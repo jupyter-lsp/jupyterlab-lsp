@@ -1,6 +1,6 @@
 import React from 'react';
 
-function external_link(url: string, label: string) {
+function externalLink(url: string, label: string) {
   return (
     <a
       href={url}
@@ -13,9 +13,9 @@ function external_link(url: string, label: string) {
   );
 }
 
-const migration_guide_url =
+const migrationGuideUrl =
   'https://jupyter-server.readthedocs.io/en/latest/operators/migrate-from-nbserver.html';
-const jupyter_hub_migration_url =
+const jupyterHubMigrationUrl =
   'https://github.com/jupyterhub/jupyterhub/pull/3329/files';
 
 export const SERVER_EXTENSION_404 = (
@@ -34,11 +34,11 @@ export const SERVER_EXTENSION_404 = (
       <li>
         Alternatively, you may be using an older <code>notebook</code> server
         instead of the new <code>jupyter_server</code>; please refer to the{' '}
-        {external_link(migration_guide_url, 'migration guide')} or if you are a
+        {externalLink(migrationGuideUrl, 'migration guide')} or if you are a
         JupyterHub user please ensure that you start the JupyterLab using{' '}
         <code>jupyter_server</code> and not the old <code>notebook</code>, as
         documented in{' '}
-        {external_link(jupyter_hub_migration_url, 'this pull request')}.
+        {externalLink(jupyterHubMigrationUrl, 'this pull request')}.
       </li>
       <li>
         There may be schema errors or language server errors preventing the

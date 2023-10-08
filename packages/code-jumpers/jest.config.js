@@ -1,4 +1,4 @@
-const func = require('@jupyterlab/testutils/lib/jest-config');
+const func = require('@jupyterlab/testing/lib/jest-config');
 const upstream = func('jupyterlab-lsp', __dirname);
 
 const reuseFromUpstream = [

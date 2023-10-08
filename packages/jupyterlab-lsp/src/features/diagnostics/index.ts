@@ -1,84 +1,147 @@
+import { INotebookShell } from '@jupyter-notebook/application';
 import {
+  ILayoutRestorer,
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
+  ILabShell
 } from '@jupyterlab/application';
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
-
-import { FeatureSettings, IFeatureCommand } from '../../feature';
-import { DiagnosticTag } from '../../lsp';
-import { ILSPFeatureManager, PLUGIN_ID } from '../../tokens';
-
 import {
-  DiagnosticsCM,
-  diagnosticsIcon,
-  diagnostics_panel
-} from './diagnostics';
+  ICommandPalette,
+  IThemeManager,
+  MainAreaWidget,
+  WidgetTracker
+} from '@jupyterlab/apputils';
+import { IEditorExtensionRegistry } from '@jupyterlab/codemirror';
+import {
+  ILSPFeatureManager,
+  ILSPDocumentConnectionManager
+} from '@jupyterlab/lsp';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 
-export const FEATURE_ID = PLUGIN_ID + ':diagnostics';
+import { CodeDiagnostics as LSPDiagnosticsSettings } from '../../_diagnostics';
+import { ContextAssembler } from '../../context';
+import { FeatureSettings } from '../../feature';
 
-const COMMANDS = (trans: TranslationBundle): IFeatureCommand[] => [
-  {
-    id: 'show-diagnostics-panel',
-    execute: ({ app, features, adapter }) => {
-      let diagnostics_feature = features.get(FEATURE_ID) as DiagnosticsCM;
-      diagnostics_feature.switchDiagnosticsPanelSource();
+import { diagnosticsIcon, diagnosticsPanel } from './diagnostics';
+import { DiagnosticsFeature } from './feature';
+import { DiagnosticsListing } from './listing';
+import { IDiagnosticsFeature } from './tokens';
 
-      if (!diagnostics_panel.is_registered) {
-        diagnostics_panel.trans = trans;
-        diagnostics_panel.register(app);
-      }
+export namespace CommandIDs {
+  export const showPanel = 'lsp:show-diagnostics-panel';
+}
 
-      const panel_widget = diagnostics_panel.widget;
-      if (!panel_widget.isAttached) {
-        app.shell.add(panel_widget, 'main', {
-          ref: adapter.widget_id,
-          mode: 'split-bottom'
-        });
-      }
-      app.shell.activateById(panel_widget.id);
-    },
-    is_enabled: context => {
-      return context.app.name != 'JupyterLab Classic';
-    },
-    label: trans.__('Show diagnostics panel'),
-    rank: 3,
-    icon: diagnosticsIcon
-  }
-];
-
-export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<void> = {
-  id: FEATURE_ID,
-  requires: [ILSPFeatureManager, ISettingRegistry, ITranslator],
+export const DIAGNOSTICS_PLUGIN: JupyterFrontEndPlugin<IDiagnosticsFeature> = {
+  id: DiagnosticsFeature.id,
+  requires: [
+    ILSPFeatureManager,
+    ISettingRegistry,
+    ILSPDocumentConnectionManager,
+    IEditorExtensionRegistry
+  ],
+  optional: [ILayoutRestorer, IThemeManager, ICommandPalette, ITranslator],
   autoStart: true,
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
-    translator: ITranslator
+    connectionManager: ILSPDocumentConnectionManager,
+    editorExtensionRegistry: IEditorExtensionRegistry,
+    restorer: ILayoutRestorer | null,
+    themeManager: IThemeManager | null,
+    palette: ICommandPalette | null,
+    translator: ITranslator | null
   ) => {
-    const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
-    const trans = translator.load('jupyterlab_lsp');
-
-    featureManager.register({
-      feature: {
-        editorIntegrationFactory: new Map([
-          ['CodeMirrorEditor', DiagnosticsCM]
-        ]),
-        id: FEATURE_ID,
-        capabilities: {
-          textDocument: {
-            publishDiagnostics: {
-              tagSupport: {
-                valueSet: [DiagnosticTag.Deprecated, DiagnosticTag.Unnecessary]
-              }
-            }
-          }
-        },
-        name: 'LSP Diagnostics',
-        settings: settings,
-        commands: COMMANDS(trans)
-      }
+    const trans = (translator || nullTranslator).load('jupyterlab_lsp');
+    const settings = new FeatureSettings<LSPDiagnosticsSettings>(
+      settingRegistry,
+      DiagnosticsFeature.id
+    );
+    await settings.ready;
+    const feature = new DiagnosticsFeature({
+      settings,
+      connectionManager,
+      shell: app.shell as ILabShell | INotebookShell,
+      editorExtensionRegistry,
+      themeManager,
+      trans
     });
+    if (!settings.composite.disable) {
+      featureManager.register(feature);
+
+      const assembler = new ContextAssembler({
+        app,
+        connectionManager
+      });
+
+      const namespace = 'lsp-diagnostics';
+      const tracker = new WidgetTracker<MainAreaWidget<DiagnosticsListing>>({
+        namespace: namespace
+      });
+
+      app.commands.addCommand(CommandIDs.showPanel, {
+        execute: async () => {
+          const context = assembler.getContext();
+          let ref = null;
+          if (context) {
+            feature.switchDiagnosticsPanelSource(context.adapter);
+            ref = context.adapter.widgetId;
+          } else {
+            console.warn('Could not get context');
+          }
+
+          if (!diagnosticsPanel.isRegistered) {
+            diagnosticsPanel.trans = trans;
+            diagnosticsPanel.register(app);
+          }
+
+          const panelWidget = diagnosticsPanel.widget;
+          if (!panelWidget.isAttached) {
+            void tracker.add(panelWidget);
+            app.shell.add(panelWidget, 'main', {
+              ref: ref,
+              mode: 'split-bottom'
+            });
+          }
+          app.shell.activateById(panelWidget.id);
+          void tracker.save(panelWidget);
+        },
+        label: trans.__('Show diagnostics panel'),
+        icon: diagnosticsIcon,
+        isEnabled: () => {
+          // TODO notebook
+          return app.name != 'JupyterLab Classic';
+        }
+      });
+
+      // add to menus
+      app.contextMenu.addItem({
+        selector: '.jp-Notebook .jp-CodeCell .jp-Editor',
+        command: CommandIDs.showPanel,
+        rank: 10
+      });
+
+      app.contextMenu.addItem({
+        selector: '.jp-FileEditor',
+        command: CommandIDs.showPanel,
+        rank: 0
+      });
+
+      if (palette) {
+        palette.addItem({
+          command: CommandIDs.showPanel,
+          category: trans.__('Language Server Protocol')
+        });
+      }
+
+      if (restorer) {
+        void restorer.restore(tracker, {
+          command: CommandIDs.showPanel,
+          name: _ => 'listing'
+        });
+      }
+    }
+    return feature;
   }
 };

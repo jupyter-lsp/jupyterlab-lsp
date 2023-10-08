@@ -9,10 +9,18 @@ Test Tags           feature:config
 
 
 *** Test Cases ***
-Python
+Python Nested
     [Documentation]    pyflakes is enabled by default, but flake8 is not
+    Skip
     Settings Should Change Editor Diagnostics    Python    style.py    pylsp
     ...    {"pylsp": {"plugins": {"flake8": {"enabled": true},"pyflakes": {"enabled": false}}}}
+    ...    undefined name 'foo' (pyflakes)
+    ...    undefined name 'foo' (flake8)
+
+Python Dotted
+    [Documentation]    pyflakes is enabled by default, but flake8 is not
+    Settings Should Change Editor Diagnostics    Python    style.py    pylsp
+    ...    {"pylsp.plugins.flake8.enabled": true, "pylsp.plugins.pyflakes.enabled": false}
     ...    undefined name 'foo' (pyflakes)
     ...    undefined name 'foo' (flake8)
 
@@ -66,8 +74,8 @@ LaTeX
 *** Keywords ***
 Settings Should Change Editor Diagnostics
     [Arguments]    ${language}    ${file}    ${server}    ${settings}    ${before}    ${after}    ${save command}=${EMPTY}    ${needs reload}=${False}    ${setting_key}=serverSettings
-    ${before diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title*="${before}"]
-    ${after diagnostic} =    Set Variable    ${CSS DIAGNOSTIC}\[title*="${after}"]
+    ${before diagnostic} =    Set Variable    [title*="${before}"]
+    ${after diagnostic} =    Set Variable    [title*="${after}"]
     ${tab} =    Set Variable    ${JLAB XP DOCK TAB}\[contains(., '${file}')]
     ${close icon} =    Set Variable    *[contains(@class, 'm-TabBar-tabCloseIcon')]
     ${save command} =    Set Variable If    "${save command}"    ${save command}    Save ${language} File
@@ -79,7 +87,7 @@ Settings Should Change Editor Diagnostics
     Drag and Drop By Offset    ${JLAB XP DOCK TAB}\[contains(., 'Diagnostics Panel')]    600    -200
     Click Element    ${JLAB XP DOCK TAB}\[contains(., 'Launcher')]/${close icon}
     IF    "${before}"
-        Wait Until Page Contains Element    ${before diagnostic}    timeout=30s
+        Wait Until Page Contains Diagnostic    ${before diagnostic}    timeout=30s
     END
     Page Should Not Contain    ${after diagnostic}
     Capture Page Screenshot    01-default-diagnostics-and-settings.png
@@ -95,9 +103,9 @@ Settings Should Change Editor Diagnostics
     IF    ${needs reload}
         Reload After Configuration    ${language}    ${file}
         # allow longer after reload
-        Wait Until Page Contains Element    ${after diagnostic}    timeout=60s
+        Wait Until Page Contains Diagnostic    ${after diagnostic}    timeout=60s
     ELSE
-        Wait Until Page Contains Element    ${after diagnostic}    timeout=30s
+        Wait Until Page Contains Diagnostic    ${after diagnostic}    timeout=30s
     END
     Capture Page Screenshot    04-configured-diagnostic-found.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}

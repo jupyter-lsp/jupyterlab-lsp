@@ -1,11 +1,27 @@
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { expect } from 'chai';
+import {
+  Document,
+  VirtualDocument,
+  CodeExtractorsManager
+} from '@jupyterlab/lsp';
 
-import { IVirtualDocumentBlock, VirtualDocument } from '../virtual/document';
+import { IForeignCodeExtractorsRegistry } from '../extractors/types';
 
-export function extract_code(document: VirtualDocument, code: string) {
-  return document.extract_foreign_code(
-    { value: code, ce_editor: null as any },
+export function mockExtractorsManager(
+  foreignCodeExtractors: IForeignCodeExtractorsRegistry
+): CodeExtractorsManager {
+  const extractorManager = new CodeExtractorsManager();
+  for (const [language, list] of Object.entries(foreignCodeExtractors)) {
+    for (const extractor of list) {
+      extractorManager.register(extractor, language);
+    }
+  }
+  return extractorManager;
+}
+
+export function extractCode(document: VirtualDocument, code: string) {
+  return document.extractForeignCode(
+    { value: code, ceEditor: null as any, type: 'code' },
     {
       line: 0,
       column: 0
@@ -15,27 +31,27 @@ export function extract_code(document: VirtualDocument, code: string) {
 
 interface IDocumentWithRange {
   range: CodeEditor.IRange;
-  virtual_document: VirtualDocument;
+  virtualDocument: VirtualDocument;
 }
 
-export function get_the_only_pair(
-  foreign_document_map: Map<CodeEditor.IRange, IVirtualDocumentBlock>
+export function getTheOnlyPair(
+  foreignDocumentMap: Map<CodeEditor.IRange, Document.IVirtualDocumentBlock>
 ): IDocumentWithRange {
-  expect(foreign_document_map.size).to.equal(1);
+  expect(foreignDocumentMap.size).toBe(1);
 
-  let range = foreign_document_map.keys().next().value;
-  let { virtual_document } = foreign_document_map.get(range)!;
+  let range = foreignDocumentMap.keys().next().value;
+  let { virtualDocument } = foreignDocumentMap.get(range)!;
 
-  return { range, virtual_document };
+  return { range, virtualDocument };
 }
 
-export function get_the_only_virtual(
-  foreign_document_map: Map<CodeEditor.IRange, IVirtualDocumentBlock>
+export function getTheOnlyVirtual(
+  foreignDocumentMap: Map<CodeEditor.IRange, Document.IVirtualDocumentBlock>
 ) {
-  let { virtual_document } = get_the_only_pair(foreign_document_map);
-  return virtual_document;
+  let { virtualDocument } = getTheOnlyPair(foreignDocumentMap);
+  return virtualDocument;
 }
 
-export function wrap_in_python_lines(line: string) {
+export function wrapInPythonLines(line: string) {
   return 'print("some code before")\n' + line + '\n' + 'print("and after")\n';
 }

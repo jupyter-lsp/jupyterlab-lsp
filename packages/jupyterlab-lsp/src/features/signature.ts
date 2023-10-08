@@ -1,27 +1,41 @@
+import { Language } from '@codemirror/language';
+import { ChangeSet, Text } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { ICodeMirror } from '@jupyterlab/codemirror';
+import {
+  IEditorExtensionRegistry,
+  EditorExtensionRegistry,
+  IEditorLanguageRegistry,
+  jupyterHighlightStyle
+} from '@jupyterlab/codemirror';
+import {
+  IEditorPosition,
+  IRootPosition,
+  offsetAtPosition,
+  positionAtOffset,
+  ILSPFeatureManager,
+  ILSPDocumentConnectionManager,
+  WidgetLSPAdapter
+} from '@jupyterlab/lsp';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { highlightTree } from '@lezer/highlight';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { CodeSignature as LSPSignatureSettings } from '../_signature';
 import { EditorTooltipManager } from '../components/free_tooltip';
-import { PositionConverter } from '../converter';
-import { CodeMirrorIntegration } from '../editor_integration/codemirror';
-import { FeatureSettings, IFeatureLabIntegration } from '../feature';
 import {
-  IEditorPosition,
-  IRootPosition,
-  offset_at_position,
-  position_at_offset
-} from '../positioning';
-import { ILogConsoleCore, ILSPFeatureManager, PLUGIN_ID } from '../tokens';
+  PositionConverter,
+  rootPositionToVirtualPosition,
+  editorPositionToRootPosition
+} from '../converter';
+import { FeatureSettings, Feature } from '../feature';
+import { ILogConsoleCore, PLUGIN_ID } from '../tokens';
 import { escapeMarkdown } from '../utils';
-import { CodeMirrorVirtualEditor } from '../virtual/codemirror_editor';
-import { IEditorChange } from '../virtual/editor';
+import { BrowserConsole } from '../virtual/console';
 
 const TOOLTIP_ID = 'signature';
 const CLASS_NAME = 'lsp-signature-help';
@@ -74,11 +88,11 @@ export function extractLead(lines: string[], size: number): ISplit | null {
  */
 export function signatureToMarkdown(
   item: lsProtocol.SignatureInformation,
-  language: string = '',
+  language: Language | undefined,
   codeHighlighter: (
     source: string,
-    variable: string,
-    language: string
+    variable: lsProtocol.ParameterInformation,
+    language: Language | undefined
   ) => string,
   logger: ILogConsoleCore,
   activeParameterFallback?: number | null,
@@ -96,17 +110,13 @@ export function signatureToMarkdown(
         'LSP server returned wrong number for activeSignature for: ',
         item
       );
-      markdown = '```' + language + '\n' + label + '\n```';
+      markdown = '```' + language?.name + '\n' + label + '\n```';
     } else {
       const parameter = item.parameters[activeParameter];
-      let substring: string =
-        typeof parameter.label === 'string'
-          ? parameter.label
-          : label.slice(parameter.label[0], parameter.label[1]);
-      markdown = codeHighlighter(label, substring, language);
+      markdown = codeHighlighter(label, parameter, language);
     }
   } else {
-    markdown = '```' + language + '\n' + label + '\n```';
+    markdown = '```' + language?.name + '\n' + label + '\n```';
   }
   let details = '';
   if (item.documentation) {
@@ -158,12 +168,203 @@ export function signatureToMarkdown(
   return markdown;
 }
 
-export class SignatureCM extends CodeMirrorIntegration {
+export function highlightCode(
+  source: string,
+  parameter: lsProtocol.ParameterInformation,
+  language: Language | undefined
+) {
+  const pre = document.createElement('pre');
+  const code = document.createElement('code');
+  pre.appendChild(code);
+  code.className =
+    'cm-s-jupyter' + language ? `language-${language?.name}` : '';
+
+  const substring: string =
+    typeof parameter.label === 'string'
+      ? parameter.label
+      : source.slice(parameter.label[0], parameter.label[1]);
+  const start = source.indexOf(substring);
+  const end = start + substring.length;
+  if (!language) {
+    code.innerText = source;
+  } else {
+    runMode(
+      source,
+      language,
+      (token: string, className: string, from: number, to: number) => {
+        let populated = false;
+        // In CodeMirror6 variables are not necessarily tokenized,
+        // we need to split them manually
+        if (from <= end && start <= to) {
+          const a = Math.max(start, from);
+          const b = Math.min(to, end);
+          if (a != b) {
+            const prefix = source.slice(from, a);
+            const content = source.slice(a, b);
+            const suffix = source.slice(b, to);
+
+            const mark = document.createElement('mark');
+            if (className) {
+              mark.className = className;
+            }
+            mark.appendChild(document.createTextNode(content));
+            code.appendChild(document.createTextNode(prefix));
+            code.appendChild(mark);
+            code.appendChild(document.createTextNode(suffix));
+            populated = true;
+          }
+        }
+        if (!populated) {
+          if (className) {
+            const element = document.createElement('span');
+            element.classList.add(className);
+            element.textContent = token;
+            code.appendChild(element);
+          } else {
+            code.appendChild(document.createTextNode(token));
+          }
+        }
+      }
+    );
+  }
+
+  return pre.outerHTML;
+}
+
+function extractLastCharacter(changes: ChangeSet): string {
+  // TODO test with pasting, maybe rewrite to retrieve based on cursor position.
+  let last = '';
+  changes.iterChanges(
+    (
+      fromA: number,
+      toA: number,
+      fromB: number,
+      toB: number,
+      inserted: Text
+    ) => {
+      last = inserted.sliceString(-1);
+    }
+  );
+  return last ? last[0] : '';
+}
+
+function runMode(
+  source: string,
+  language: Language,
+  callback: (
+    text: string,
+    style: string | null,
+    from: number,
+    to: number
+  ) => void
+): void {
+  const tree = language.parser.parse(source);
+  let pos = 0;
+  highlightTree(tree, jupyterHighlightStyle, (from, to, token) => {
+    if (from > pos) {
+      callback(source.slice(pos, from), null, pos, from);
+    }
+    callback(source.slice(from, to), token, from, to);
+    pos = to;
+  });
+  if (pos != tree.length) {
+    callback(source.slice(pos, tree.length), null, pos, tree.length);
+  }
+}
+
+export class SignatureFeature extends Feature {
+  readonly id = SignatureFeature.id;
+  readonly capabilities: lsProtocol.ClientCapabilities = {
+    textDocument: {
+      signatureHelp: {
+        dynamicRegistration: true,
+        signatureInformation: {
+          documentationFormat: ['markdown', 'plaintext']
+        }
+      }
+    }
+  };
+  tooltip: EditorTooltipManager;
+
   protected signatureCharacter: IRootPosition;
   protected _signatureCharacters: string[];
+  protected console = new BrowserConsole().scope('Signature');
+  protected settings: FeatureSettings<LSPSignatureSettings>;
+  protected languageRegistry: IEditorLanguageRegistry;
 
-  get settings() {
-    return super.settings as FeatureSettings<LSPSignatureSettings>;
+  constructor(options: SignatureFeature.IOptions) {
+    super(options);
+    this.settings = options.settings;
+    this.tooltip = new EditorTooltipManager(options.renderMimeRegistry);
+    this.languageRegistry = options.languageRegistry;
+    const connectionManager = options.connectionManager;
+    options.editorExtensionRegistry.addExtension({
+      name: 'lsp:codeSignature',
+      factory: options => {
+        const updateListener = EditorView.updateListener.of(viewUpdate => {
+          const adapter = [...connectionManager.adapters.values()].find(
+            adapter => adapter.widget.node.contains(viewUpdate.view.contentDOM)
+          );
+
+          if (!adapter) {
+            this.console.log('No adapter, will not show signature');
+            return;
+          }
+
+          // TODO: the assumption that updated editor = active editor will fail on RTC. How to get `CodeEditor.IEditor` and `Document.IEditor` from `EditorView`? we got `CodeEditor.IModel` from `options.model` but may need more context here.
+          const editorAccessor = adapter.activeEditor;
+          const editor = editorAccessor!.getEditor();
+
+          if (!editor) {
+            // see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/984
+            // TODO: should not be needed once https://github.com/jupyterlab/jupyterlab/pull/14920 is in
+            return;
+          }
+
+          // TODO: or should it come from viewUpdate instead?!
+          // especially on copy paste this can be problematic.
+          const position = editor.getCursorPosition();
+
+          const editorPosition = PositionConverter.ce_to_cm(
+            position
+          ) as IEditorPosition;
+
+          // Delay handling by moving on top of the stack
+          // so that virtual document is updated.
+          setTimeout(() => {
+            // be careful: updateListener also fires after blur, so we
+            // need to carefully check what changed to avoid invalidating
+            // user clicking on the hover box.
+            if (viewUpdate.docChanged) {
+              this.afterChange(
+                viewUpdate.changes,
+                adapter,
+                editorPosition
+              ).catch(this.console.warn);
+            } else if (viewUpdate.selectionSet) {
+              this.onCursorActivity(adapter, editorPosition).catch(
+                this.console.warn
+              );
+            }
+          }, 0);
+        });
+
+        const focusListener = EditorView.domEventHandlers({
+          focus: () => {
+            // TODO
+            // this.onCursorActivity()
+          },
+          blur: event => {
+            this.onBlur(event);
+          }
+        });
+
+        return EditorExtensionRegistry.createImmutableExtension([
+          updateListener,
+          focusListener
+        ]);
+      }
+    });
   }
 
   get _closeCharacters(): string[] {
@@ -173,35 +374,27 @@ export class SignatureCM extends CodeMirrorIntegration {
     return this.settings.composite.closeCharacters;
   }
 
-  register(): void {
-    this.editor_handlers.set(
-      'cursorActivity',
-      this.onCursorActivity.bind(this)
-    );
-    this.editor_handlers.set('blur', this.onBlur.bind(this));
-    this.editor_handlers.set('focus', this.onCursorActivity.bind(this));
-    super.register();
-  }
-
-  onBlur(virtualEditor: CodeMirrorVirtualEditor, event: FocusEvent) {
+  onBlur(event: FocusEvent) {
     // hide unless the focus moved to the signature itself
     // (allowing user to select/copy from signature)
+    const target = event.relatedTarget as Element | null;
     if (
       this.isSignatureShown() &&
-      (event.relatedTarget as Element).closest('.' + CLASS_NAME) === null
+      (target ? target.closest('.' + CLASS_NAME) === null : true)
     ) {
       this._removeTooltip();
     }
   }
 
-  onCursorActivity() {
+  async onCursorActivity(
+    adapter: WidgetLSPAdapter<any>,
+    newEditorPosition: IEditorPosition
+  ) {
     if (!this.isSignatureShown()) {
       return;
     }
-    const newRootPosition = this.virtual_editor.get_cursor_position();
-    const initialPosition = this.lab_integration.tooltip.position;
-    let newEditorPosition =
-      this.virtual_editor.root_position_to_editor(newRootPosition);
+
+    const initialPosition = this.tooltip.position;
     if (
       newEditorPosition.line === initialPosition.line &&
       newEditorPosition.ch < initialPosition.ch
@@ -211,19 +404,13 @@ export class SignatureCM extends CodeMirrorIntegration {
     } else {
       // otherwise, update the signature as the active parameter could have changed,
       // or the server may want us to close the tooltip
-      this.requestSignature(newRootPosition, initialPosition)?.catch(
-        this.console.warn
-      );
+      await this._requestSignature(adapter, newEditorPosition, initialPosition);
     }
   }
 
-  get lab_integration() {
-    return super.lab_integration as SignatureLabIntegration;
-  }
-
-  protected get_markup_for_signature_help(
+  protected getMarkupForSignatureHelp(
     response: lsProtocol.SignatureHelp,
-    language: string = ''
+    language: Language | undefined
   ): lsProtocol.MarkupContent {
     let signatures = new Array<string>();
 
@@ -257,46 +444,18 @@ export class SignatureCM extends CodeMirrorIntegration {
     };
   }
 
-  protected highlightCode(source: string, variable: string, language: string) {
-    const pre = document.createElement('pre');
-    const code = document.createElement('code');
-    pre.appendChild(code);
-    code.className = `cm-s-jupyter language-${language}`;
-    this.lab_integration.codeMirror.CodeMirror.runMode(
-      source,
-      language,
-      (token: string, className: string) => {
-        let element: HTMLElement | Node;
-        if (className) {
-          element = document.createElement('span');
-          (element as HTMLElement).classList.add('cm-' + className);
-          element.textContent = token;
-        } else {
-          element = document.createTextNode(token);
-        }
-        if (className === 'variable' && token === variable) {
-          const mark = document.createElement('mark');
-          mark.appendChild(element);
-          element = mark;
-        }
-        code.appendChild(element);
-      }
-    );
-    return pre.outerHTML;
-  }
-
   /**
    * Represent signature as a Markdown element.
    */
   protected signatureToMarkdown(
     item: lsProtocol.SignatureInformation,
-    language: string,
+    language: Language | undefined,
     activeParameterFallback?: number | null
   ): string {
     return signatureToMarkdown(
       item,
       language,
-      this.highlightCode.bind(this),
+      highlightCode,
       this.console,
       activeParameterFallback,
       this.settings.composite.maxLines
@@ -304,19 +463,32 @@ export class SignatureCM extends CodeMirrorIntegration {
   }
 
   private _removeTooltip() {
-    this.lab_integration.tooltip.remove();
+    this.tooltip.remove();
   }
 
   private _hideTooltip() {
-    this.lab_integration.tooltip.hide();
+    this.tooltip.hide();
   }
 
   private handleSignature(
     response: lsProtocol.SignatureHelp,
-    position_at_request: IRootPosition,
-    display_position: IEditorPosition | null = null
+    adapter: WidgetLSPAdapter<any>,
+    positionAtRequest: IRootPosition,
+    displayPosition: IEditorPosition | null = null
   ) {
-    this.console.log('Signature received', response);
+    this.console.debug('Signature received', response);
+
+    // TODO: this might wrong connection!
+    // we need to find the correct documentAtRootPosition
+    const virtualDocument = adapter.virtualDocument!;
+    const connection = this.connectionManager.connections.get(
+      virtualDocument.uri
+    )!;
+
+    const signatureCharacters: string[] =
+      connection.serverCapabilities.signatureHelpProvider?.triggerCharacters ??
+      [];
+
     if (response === null) {
       // do not hide on undefined as it simply indicates that no new info is available
       // (null means close, undefined means no update, response means update)
@@ -335,13 +507,32 @@ export class SignatureCM extends CodeMirrorIntegration {
       return;
     }
 
-    let root_position = this.virtual_editor.get_cursor_position();
+    // TODO: helper?
+    const editorAccessor = adapter.activeEditor!;
+    const editor = editorAccessor.getEditor()!;
+    const pos = editor.getCursorPosition();
+    const editorPosition = PositionConverter.ce_to_cm(pos) as IEditorPosition;
+
+    // TODO should I just shove it into Feature class and have an adapter getter in there?
+    const rootPosition = editorPositionToRootPosition(
+      adapter,
+      editorAccessor,
+      editorPosition
+    );
+
+    if (!rootPosition) {
+      this.console.warn(
+        'Signature failed: could not map editor position to root position.'
+      );
+      this._removeTooltip();
+      return;
+    }
 
     // if the cursor advanced in the same line, the previously retrieved signature may still be useful
     // if the line changed or cursor moved backwards then no reason to keep the suggestions
     if (
-      position_at_request.line != root_position.line ||
-      root_position.ch < position_at_request.ch
+      positionAtRequest.line != rootPosition.line ||
+      rootPosition.ch < positionAtRequest.ch
     ) {
       this.console.debug(
         'Ignoring signature response: cursor has receded or changed line'
@@ -350,59 +541,70 @@ export class SignatureCM extends CodeMirrorIntegration {
       return;
     }
 
-    let cm_editor = this.get_cm_editor(root_position);
-    if (!cm_editor.hasFocus()) {
+    //const virtualPosition = rootPositionToVirtualPosition(adapter, rootPosition);
+
+    //let editorAccessor = adapter.editors[adapter.getEditorIndexAt(virtualPosition)].ceEditor;
+    //const editor = editorAccessor.getEditor();
+    if (!editor) {
+      this.console.debug(
+        'Ignoring signature response: the corresponding editor is not loaded'
+      );
+      return;
+    }
+    if (!editor.hasFocus()) {
       this.console.debug(
         'Ignoring signature response: the corresponding editor lost focus'
       );
       this._removeTooltip();
       return;
     }
-    let editor_position =
-      this.virtual_editor.root_position_to_editor(root_position);
-    let language = this.get_language_at(editor_position, cm_editor);
-    let markup = this.get_markup_for_signature_help(response, language);
 
-    this.console.log(
+    const editorLanguage = this.languageRegistry.findByMIME(
+      editor.model.mimeType
+    );
+    const language = editorLanguage?.support?.language;
+    let markup = this.getMarkupForSignatureHelp(response, language);
+
+    this.console.debug(
       'Signature will be shown',
       language,
       markup,
-      root_position,
+      rootPosition,
       response
     );
-    if (display_position === null) {
-      // try to find last occurrance of trigger character to position the tooltip
-      const content = cm_editor.getValue();
+    if (displayPosition === null) {
+      // try to find last occurrence of trigger character to position the tooltip
+      const content = editor.model.sharedModel.getSource();
       const lines = content.split('\n');
-      const offset = offset_at_position(
-        PositionConverter.cm_to_ce(editor_position),
+      const offset = offsetAtPosition(
+        PositionConverter.cm_to_ce(editorPosition!),
         lines
       );
+      // maybe?
+      // const offset = cm_editor.getOffsetAt(PositionConverter.cm_to_ce(editorPosition));
       const subset = content.substring(0, offset);
       const lastTriggerCharacterOffset = Math.max(
-        ...this.signatureCharacters.map(character =>
-          subset.lastIndexOf(character)
-        )
+        ...signatureCharacters.map(character => subset.lastIndexOf(character))
       );
       if (lastTriggerCharacterOffset !== -1) {
-        display_position = PositionConverter.ce_to_cm(
-          position_at_offset(lastTriggerCharacterOffset, lines)
+        displayPosition = PositionConverter.ce_to_cm(
+          positionAtOffset(lastTriggerCharacterOffset, lines)
         ) as IEditorPosition;
       } else {
-        display_position = editor_position;
+        displayPosition = editorPosition;
       }
     }
-    this.lab_integration.tooltip.showOrCreate({
+    this.tooltip.showOrCreate({
       markup,
-      position: display_position,
+      position: displayPosition!,
       id: TOOLTIP_ID,
-      ce_editor: this.virtual_editor.find_ce_editor(cm_editor),
-      adapter: this.adapter,
+      ceEditor: editor,
+      adapter: adapter,
       className: CLASS_NAME,
       tooltip: {
         privilege: 'forceAbove',
         // do not move the tooltip to match the token to avoid drift of the
-        // tooltip due the simplicty of token matching rules; instead we keep
+        // tooltip due the simplicity of token matching rules; instead we keep
         // the position constant manually via `displayPosition`.
         alignment: undefined,
         hideOnKeyPress: false
@@ -410,138 +612,148 @@ export class SignatureCM extends CodeMirrorIntegration {
     });
   }
 
-  get signatureCharacters() {
-    if (!this._signatureCharacters?.length) {
-      this._signatureCharacters =
-        this.connection.getLanguageSignatureCharacters();
-    }
-    return this._signatureCharacters;
-  }
-
   protected isSignatureShown() {
-    return this.lab_integration.tooltip.isShown(TOOLTIP_ID);
+    return this.tooltip.isShown(TOOLTIP_ID);
   }
 
-  afterChange(change: IEditorChange, root_position: IRootPosition) {
-    const last_character = this.extract_last_character(change);
+  async afterChange(
+    change: ChangeSet,
+    adapter: WidgetLSPAdapter<any>,
+    editorPosition: IEditorPosition
+  ) {
+    const lastCharacter = extractLastCharacter(change);
 
     const isSignatureShown = this.isSignatureShown();
     let previousPosition: IEditorPosition | null = null;
+    await adapter.updateFinished;
 
     if (isSignatureShown) {
-      previousPosition = this.lab_integration.tooltip.position;
-      if (this._closeCharacters.includes(last_character)) {
+      previousPosition = this.tooltip.position;
+      if (this._closeCharacters.includes(lastCharacter)) {
         // remove just in case but do not short-circuit in case if we need to re-trigger
         this._removeTooltip();
       }
     }
 
-    // only proceed if: trigger character was used or the signature is/was visible immediately before
-    if (
-      !(this.signatureCharacters.includes(last_character) || isSignatureShown)
-    ) {
+    // TODO: use connection for virtual document from root position!
+    const virtualDocument = adapter.virtualDocument;
+    if (!virtualDocument) {
+      this.console.warn('Could not access virtual document');
+      return;
+    }
+    const connection = this.connectionManager.connections.get(
+      virtualDocument.uri
+    )!;
+    if (!connection.isReady) {
       return;
     }
 
-    this.requestSignature(root_position, previousPosition)?.catch(
-      this.console.warn
-    );
+    const signatureCharacters =
+      connection.serverCapabilities.signatureHelpProvider?.triggerCharacters ??
+      [];
+
+    // only proceed if: trigger character was used or the signature is/was visible immediately before
+    if (!(signatureCharacters.includes(lastCharacter) || isSignatureShown)) {
+      return;
+    }
+
+    await this._requestSignature(adapter, editorPosition, previousPosition);
   }
 
-  private requestSignature(
-    root_position: IRootPosition,
+  private async _requestSignature(
+    adapter: WidgetLSPAdapter<any>,
+    newEditorPosition: IEditorPosition,
     previousPosition: IEditorPosition | null
   ) {
+    // TODO: why would virtual document be missing?
+    const virtualDocument = adapter.virtualDocument!;
+    const connection = this.connectionManager.connections.get(
+      virtualDocument.uri
+    )!;
+
     if (
       !(
-        this.connection.isReady &&
-        this.connection.serverCapabilities?.signatureHelpProvider
+        connection.isReady &&
+        connection.serverCapabilities.signatureHelpProvider
       )
     ) {
       return;
     }
-    this.signatureCharacter = root_position;
 
-    let virtual_position =
-      this.virtual_editor.root_position_to_virtual_position(root_position);
+    // TODO: why missing
+    const rootPosition = virtualDocument.transformFromEditorToRoot(
+      adapter.activeEditor!,
+      newEditorPosition
+    )!;
 
-    return this.connection.clientRequests['textDocument/signatureHelp']
-      .request({
-        position: {
-          line: virtual_position.line,
-          character: virtual_position.ch
-        },
-        textDocument: {
-          uri: this.virtual_document.document_info.uri
-        }
-      })
-      .then(help =>
-        this.handleSignature(help, root_position, previousPosition)
-      );
+    this.signatureCharacter = rootPosition;
+
+    const virtualPosition = rootPositionToVirtualPosition(
+      adapter,
+      rootPosition
+    );
+
+    const help = await connection.clientRequests[
+      'textDocument/signatureHelp'
+    ].request({
+      position: {
+        line: virtualPosition.line,
+        character: virtualPosition.ch
+      },
+      textDocument: {
+        uri: virtualDocument.documentInfo.uri
+      }
+    });
+    return this.handleSignature(help, adapter, rootPosition, previousPosition);
   }
 }
 
-class SignatureLabIntegration implements IFeatureLabIntegration {
-  tooltip: EditorTooltipManager;
-  settings: FeatureSettings<LSPSignatureSettings>;
-
-  constructor(
-    app: JupyterFrontEnd,
-    settings: FeatureSettings<LSPSignatureSettings>,
-    renderMimeRegistry: IRenderMimeRegistry,
-    public codeMirror: ICodeMirror
-  ) {
-    this.tooltip = new EditorTooltipManager(renderMimeRegistry);
+export namespace SignatureFeature {
+  export interface IOptions extends Feature.IOptions {
+    settings: FeatureSettings<LSPSignatureSettings>;
+    renderMimeRegistry: IRenderMimeRegistry;
+    editorExtensionRegistry: IEditorExtensionRegistry;
+    languageRegistry: IEditorLanguageRegistry;
   }
+  export const id = PLUGIN_ID + ':signature';
 }
-
-const FEATURE_ID = PLUGIN_ID + ':signature';
 
 export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
-  id: FEATURE_ID,
+  id: SignatureFeature.id,
   requires: [
     ILSPFeatureManager,
     ISettingRegistry,
     IRenderMimeRegistry,
-    ICodeMirror
+    IEditorExtensionRegistry,
+    ILSPDocumentConnectionManager,
+    IEditorLanguageRegistry
   ],
   autoStart: true,
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
     renderMimeRegistry: IRenderMimeRegistry,
-    codeMirror: ICodeMirror
+    editorExtensionRegistry: IEditorExtensionRegistry,
+    connectionManager: ILSPDocumentConnectionManager,
+    languageRegistry: IEditorLanguageRegistry
   ) => {
     const settings = new FeatureSettings<LSPSignatureSettings>(
       settingRegistry,
-      FEATURE_ID
+      SignatureFeature.id
     );
-    const labIntegration = new SignatureLabIntegration(
-      app,
+    await settings.ready;
+    if (settings.composite.disable) {
+      return;
+    }
+    const feature = new SignatureFeature({
       settings,
+      connectionManager,
       renderMimeRegistry,
-      codeMirror
-    );
-
-    featureManager.register({
-      feature: {
-        editorIntegrationFactory: new Map([['CodeMirrorEditor', SignatureCM]]),
-        id: FEATURE_ID,
-        name: 'LSP Function signature',
-        labIntegration: labIntegration,
-        settings: settings,
-        capabilities: {
-          textDocument: {
-            signatureHelp: {
-              dynamicRegistration: true,
-              signatureInformation: {
-                documentationFormat: ['markdown', 'plaintext']
-              }
-            }
-          }
-        }
-      }
+      editorExtensionRegistry,
+      languageRegistry
     });
+    featureManager.register(feature);
+    // return feature;
   }
 };

@@ -9,6 +9,8 @@ Library     ./logcheck.py
 Library     ./ports.py
 Library     ./config.py
 Library     ./paths.py
+Library     ./diagnostics.py
+Library     ./mouse_over_extension.py
 
 
 *** Keywords ***
@@ -78,6 +80,7 @@ Read Page Config
     ${config} =    Evaluate    __import__("json").loads(r"""${script}""")
     Set Global Variable    ${PAGE CONFIG}    ${config}
     Set Global Variable    ${LAB VERSION}    ${config["appVersion"]}
+
 
 Setup Suite For Screenshots
     [Arguments]    ${folder}
@@ -321,29 +324,38 @@ Gently Reset Workspace
 
 Enter Cell Editor
     [Arguments]    ${cell_nr}    ${line}=1
-    Click Element    css:.jp-Cell:nth-child(${cell_nr}) .CodeMirror-line:nth-child(${line})
-    Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_nr}) .CodeMirror-focused
+    Click Element    css:.jp-Cell:nth-child(${cell_nr}) .cm-line:nth-child(${line})
+    Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_nr}) .cm-focused
+    # clicking on line does not appear sufficient in CM6 (but still useful because it ensures we have it in view
+    Execute JavaScript
+    ...    var view = document.querySelector('.jp-Cell:nth-child(${cell_nr}) .cm-content').cmView.view;
+    ...    var pos = view.state.doc.line(${line}).to;
+    ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
 Open Context Menu Over Cell Editor
     [Arguments]    ${cell_nr}    ${line}=1
     Enter Cell Editor    ${cell_nr}    line=${line}
-    Open Context Menu Over    css:.jp-Cell:nth-child(${cell_nr}) .CodeMirror-line:nth-child(${line})
+    Open Context Menu Over    css:.jp-Cell:nth-child(${cell_nr}) .cm-line:nth-child(${line})
 
 Place Cursor In Cell Editor At
     [Arguments]    ${cell_nr}    ${line}    ${character}
     Enter Cell Editor    ${cell_nr}    ${line}
     Execute JavaScript
-    ...    return document.querySelector('.jp-Cell:nth-child(${cell_nr}) .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
+    ...    var view = document.querySelector('.jp-Cell:nth-child(${cell_nr}) .cm-content').cmView.view;
+    ...    var pos = view.state.doc.line(${line}).from + ${character};
+    ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
 Enter File Editor
-    Click Element    css:.jp-FileEditor .CodeMirror
-    Wait Until Page Contains Element    css:.jp-FileEditor .CodeMirror-focused
+    Click Element    css:.jp-FileEditor .cm-editor
+    Wait Until Page Contains Element    css:.jp-FileEditor .cm-focused
 
 Place Cursor In File Editor At
     [Arguments]    ${line}    ${character}
     Enter File Editor
     Execute JavaScript
-    ...    return document.querySelector('.jp-FileEditor .CodeMirror').CodeMirror.setCursor({line: ${line} - 1, ch: ${character}})
+    ...    var view = document.querySelector('.jp-FileEditor .cm-content').cmView.view;
+    ...    var pos = view.state.doc.line(${line}).from + ${character};
+    ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
 Wait Until Fully Initialized
     Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=60s
@@ -386,11 +398,7 @@ Open File
 
 Open in Advanced Settings
     [Arguments]    ${plugin id}
-    IF    '${LAB VERSION}'.startswith('3.')
-        Lab Command    Advanced JSON Settings Editor
-    ELSE
-        Lab Command    Advanced Settings Editor
-    END
+    Lab Command    Advanced Settings Editor
     ${sel} =    Set Variable    css:[data-id="${plugin id}"]
     Wait Until Page Contains Element    ${sel}    timeout=10s
     Click Element    ${sel}
@@ -398,11 +406,18 @@ Open in Advanced Settings
 
 Set Editor Content
     [Arguments]    ${text}    ${css}=${EMPTY}
-    Execute JavaScript    return document.querySelector('${css} .CodeMirror').CodeMirror.setValue(`${text}`)
+    Wait Until Page Contains Element    css:${css} .cm-content
+    Execute JavaScript
+    ...    let view = document.querySelector('${css} .cm-content').cmView.view;
+    ...    view.dispatch({
+    ...        changes: {from: 0, to: view.state.doc.length, insert: `${text}`}
+    ...    });
 
 Get Editor Content
     [Arguments]    ${css}=${EMPTY}
-    ${content} =    Execute JavaScript    return document.querySelector('${css} .CodeMirror').CodeMirror.getValue()
+    Wait Until Page Contains Element    css:${css} .cm-content
+    ${content} =    Execute JavaScript
+    ...    return document.querySelector('${css} .cm-content').cmView.view.state.doc.toString()
     RETURN    ${content}
 
 Configure JupyterLab Plugin
@@ -421,10 +436,9 @@ Clean Up After Working with File and Settings
 
 Jump To Definition
     [Arguments]    ${symbol}
-    ${sel} =    Set Variable If    "${symbol}".startswith(("xpath", "css"))    ${symbol}
-    ...    xpath:(//span[@role="presentation"][contains(., "${symbol}")])[last()]
-    Open Context Menu Over    ${sel}
+    Click Token    ${symbol}
     ${cursor} =    Measure Cursor Position
+    Open Context Menu Over Token    ${symbol}
     Capture Page Screenshot    02-jump-to-definition-0.png
     Wait Until Element Is Visible    ${MENU JUMP}    timeout=5s
     Mouse Over    ${MENU JUMP}
@@ -445,8 +459,11 @@ Cursor Should Jump
     Should Not Be Equal    ${original}    ${current}
 
 Measure Cursor Position
-    Wait Until Page Contains Element    ${CM CURSORS}
-    ${position} =    Wait Until Keyword Succeeds    20 x    0.05s    Get Vertical Position    ${CM CURSOR}
+    Wait Until Page Contains Element    ${ACTIVE CURSOR}
+    ${position} =    Wait Until Keyword Succeeds    20 x    0.05s    Get Vertical Position    ${ACTIVE CURSOR}
+    LOG     ${position}
+    # position = 0 indicates that the element was not active.
+    Should Not Be Equal    ${position}    0
     RETURN    ${position}
 
 Switch To Tab

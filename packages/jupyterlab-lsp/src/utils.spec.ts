@@ -1,14 +1,12 @@
-import { expect } from 'chai';
-
-import { collapseToDotted, escapeMarkdown, uris_equal } from './utils';
+import { collapseToDotted, escapeMarkdown, urisEqual } from './utils';
 
 describe('uris_equal', () => {
   it('should workaround Windows paths/Pyright issues', () => {
-    const result = uris_equal(
+    const result = urisEqual(
       'file:///d%3A/a/jupyterlab-lsp/jupyterlab-lsp/atest/output/windows_39_4/home/n%C3%B6te%20b%C3%B2%C3%B3ks/example.py',
       'file:///d:/a/jupyterlab-lsp/jupyterlab-lsp/atest/output/windows_39_4/home/n%C3%B6te%20b%C3%B2%C3%B3ks/example.py'
     );
-    expect(result).to.equal(true);
+    expect(result).toBe(true);
   });
 });
 
@@ -22,7 +20,7 @@ describe('collapseToDotted', () => {
           explainshellEndpoint: ''
         }
       }).result
-    ).to.deep.equal({
+    ).toEqual({
       'bashIde.globPattern': '**/*@(.sh|.inc|.bash|.command)',
       'bashIde.highlightParsingErrors': true,
       'bashIde.explainshellEndpoint': ''
@@ -38,7 +36,7 @@ describe('collapseToDotted', () => {
         },
         'bashIde.explainshellEndpoint': ''
       }).result
-    ).to.deep.equal({
+    ).toEqual({
       'bashIde.globPattern': '**/*@(.sh|.inc|.bash|.command)',
       'bashIde.highlightParsingErrors': true,
       'bashIde.explainshellEndpoint': ''
@@ -54,7 +52,7 @@ describe('collapseToDotted', () => {
           'jedi.env_vars': {}
         }
       }).result
-    ).to.deep.equal({
+    ).toEqual({
       'pylsp.plugins.jedi.env_vars': {}
     });
   });
@@ -66,7 +64,7 @@ describe('collapseToDotted', () => {
       collapseToDotted({
         'pylsp.configurationSources': ['pycodestyle']
       }).result
-    ).to.deep.equal({
+    ).toEqual({
       'pylsp.configurationSources': ['pycodestyle']
     });
   });
@@ -78,7 +76,7 @@ describe('collapseToDotted', () => {
       collapseToDotted({
         'pylsp.plugins.flake8.config': null
       }).result
-    ).to.deep.equal({
+    ).toEqual({
       'pylsp.plugins.flake8.config': null
     });
   });
@@ -93,7 +91,7 @@ describe('collapseToDotted', () => {
         },
         'bashIde.explainshellEndpoint': 'b'
       }).conflicts
-    ).to.deep.equal({
+    ).toEqual({
       'bashIde.explainshellEndpoint': ['a', 'b']
     });
   });
@@ -108,7 +106,7 @@ describe('collapseToDotted', () => {
         },
         'pylsp.configurationSources': ['pycodestyle']
       }).conflicts
-    ).to.deep.equal({
+    ).toEqual({
       'pylsp.configurationSources': [['flake8'], ['pycodestyle']]
     });
   });
@@ -116,35 +114,31 @@ describe('collapseToDotted', () => {
 
 describe('escapeMarkdown', () => {
   it('escapes italics', () => {
-    expect(escapeMarkdown('pre *italic* post')).to.equal(
-      'pre \\*italic\\* post'
-    );
+    expect(escapeMarkdown('pre *italic* post')).toBe('pre \\*italic\\* post');
   });
   it('escapes underscore italics', () => {
-    expect(escapeMarkdown('pre _italic_ post')).to.equal(
-      'pre \\_italic\\_ post'
-    );
+    expect(escapeMarkdown('pre _italic_ post')).toBe('pre \\_italic\\_ post');
   });
   it('escapes escaped italics', () => {
-    expect(escapeMarkdown('pre \\*non-italic\\* post')).to.equal(
+    expect(escapeMarkdown('pre \\*non-italic\\* post')).toBe(
       'pre \\\\\\*non-italic\\\\\\* post'
     );
   });
   it('escapes bold', () => {
-    expect(escapeMarkdown('pre **bold** post')).to.equal(
+    expect(escapeMarkdown('pre **bold** post')).toBe(
       'pre \\*\\*bold\\*\\* post'
     );
   });
   it('escapes headers', () => {
-    expect(escapeMarkdown('pre #heading post')).to.equal('pre \\#heading post');
+    expect(escapeMarkdown('pre #heading post')).toBe('pre \\#heading post');
   });
   it('escapes URLs', () => {
-    expect(escapeMarkdown('pre [link](https://example.com) post')).to.equal(
+    expect(escapeMarkdown('pre [link](https://example.com) post')).toBe(
       'pre \\[link\\](https://example.com) post'
     );
   });
   it('replaces indents with non-breaking spaces', () => {
-    expect(escapeMarkdown('    indented')).to.equal(
+    expect(escapeMarkdown('    indented')).toBe(
       '\u00A0\u00A0\u00A0\u00A0indented'
     );
   });

@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "lib",
     "rootDir": "src",
-    "types": ["jest"],
+    "skipLibCheck": true,
     "tsBuildInfoFile": "lib/.tsbuildinfo"
   },
   "include": ["src/**/*"],
@@ -19,9 +19,6 @@
     },
     {
       "path": "../theme-vscode"
-    },
-    {
-      "path": "../lsp-ws-connection"
     },
     {
       "path": "../code-jumpers"

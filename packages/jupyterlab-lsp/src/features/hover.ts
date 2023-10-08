@@ -1,38 +1,50 @@
+import { EditorView } from '@codemirror/view';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { CodeEditor } from '@jupyterlab/codeeditor';
+import {
+  CodeMirrorEditor,
+  IEditorExtensionRegistry,
+  EditorExtensionRegistry
+} from '@jupyterlab/codemirror';
+import {
+  IRootPosition,
+  IVirtualPosition,
+  IEditorPosition,
+  ProtocolCoordinates,
+  ILSPFeatureManager,
+  isEqual,
+  ILSPDocumentConnectionManager,
+  WidgetLSPAdapter,
+  Document
+} from '@jupyterlab/lsp';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { LabIcon } from '@jupyterlab/ui-components';
 import { Throttler } from '@lumino/polling';
-import type * as CodeMirror from 'codemirror';
 import type * as lsProtocol from 'vscode-languageserver-protocol';
 
 import hoverSvg from '../../style/icons/hover.svg';
 import { CodeHover as LSPHoverSettings, ModifierKey } from '../_hover';
 import { EditorTooltipManager, FreeTooltip } from '../components/free_tooltip';
-import { PositionConverter } from '../converter';
+import { ContextAssembler } from '../context';
 import {
-  CodeMirrorIntegration,
+  PositionConverter,
+  documentAtRootPosition,
+  rootPositionToVirtualPosition,
+  rootPositionToEditorPosition,
+  editorPositionToRootPosition,
+  rangeToEditorRange,
   IEditorRange
-} from '../editor_integration/codemirror';
-import {
-  FeatureSettings,
-  IEditorIntegrationOptions,
-  IFeatureLabIntegration
-} from '../feature';
-import {
-  IRootPosition,
-  IVirtualPosition,
-  ProtocolCoordinates,
-  is_equal
-} from '../positioning';
-import { ILSPFeatureManager, PLUGIN_ID } from '../tokens';
+} from '../converter';
+import { FeatureSettings, Feature } from '../feature';
+import { createMarkManager, ISimpleMarkManager } from '../marks';
+import { PLUGIN_ID } from '../tokens';
 import { getModifierState } from '../utils';
+import { BrowserConsole } from '../virtual/console';
 import { VirtualDocument } from '../virtual/document';
-import { IEditorChange } from '../virtual/editor';
 
 export const hoverIcon = new LabIcon({
   name: 'lsp:hover',
@@ -42,8 +54,8 @@ export const hoverIcon = new LabIcon({
 interface IResponseData {
   response: lsProtocol.Hover;
   document: VirtualDocument;
-  editor_range: IEditorRange;
-  ce_editor: CodeEditor.IEditor;
+  editorRange: IEditorRange;
+  ceEditor: CodeEditor.IEditor;
 }
 
 /**
@@ -81,9 +93,9 @@ class ResponseCache {
     const previousIndex = this._data.findIndex(
       previous =>
         previous.document === item.document &&
-        is_equal(previous.editor_range.start, item.editor_range.start) &&
-        is_equal(previous.editor_range.end, item.editor_range.end) &&
-        previous.editor_range.editor === item.editor_range.editor
+        isEqual(previous.editorRange.start, item.editorRange.start) &&
+        isEqual(previous.editorRange.end, item.editorRange.end) &&
+        previous.editorRange.editor === item.editorRange.editor
     );
     if (previousIndex !== -1) {
       this._data[previousIndex] = item;
@@ -101,7 +113,7 @@ class ResponseCache {
   }
 }
 
-function to_markup(
+function toMarkup(
   content: string | lsProtocol.MarkedString
 ): lsProtocol.MarkupContent {
   if (typeof content === 'string') {
@@ -120,21 +132,129 @@ function to_markup(
   }
 }
 
-export class HoverCM extends CodeMirrorIntegration {
-  protected last_hover_character: IRootPosition | null = null;
-  private last_hover_response: lsProtocol.Hover | null;
-  protected hover_marker: CodeMirror.TextMarker | null = null;
-  private virtual_position: IVirtualPosition;
-  protected cache: ResponseCache;
+interface IContext {
+  adapter: WidgetLSPAdapter<any>;
+  token: CodeEditor.IToken;
+  editor: CodeEditor.IEditor;
+  editorAccessor: Document.IEditor;
+}
 
-  private debounced_get_hover: Throttler<Promise<lsProtocol.Hover | null>>;
+export class HoverFeature extends Feature {
+  readonly capabilities: lsProtocol.ClientCapabilities = {
+    textDocument: {
+      hover: {
+        dynamicRegistration: true,
+        contentFormat: ['markdown', 'plaintext']
+      }
+    }
+  };
+  readonly id = HoverFeature.id;
+  tooltipManager: EditorTooltipManager;
+
+  protected console = new BrowserConsole().scope('Hover');
+  protected settings: FeatureSettings<LSPHoverSettings>;
+  protected lastHoverCharacter: IRootPosition | null = null;
+  private lastHoverResponse: lsProtocol.Hover | null;
+  protected hasMarker: boolean = false;
+  protected markManager: ISimpleMarkManager<'hover'>;
+  private virtualPosition: IVirtualPosition;
+  protected cache: ResponseCache;
+  protected contextAssembler: ContextAssembler;
+
+  private debouncedGetHover: Throttler<
+    Promise<lsProtocol.Hover | null>,
+    void,
+    [VirtualDocument, IVirtualPosition, IContext]
+  >;
   private tooltip: FreeTooltip;
   private _previousHoverRequest: Promise<
     Promise<lsProtocol.Hover | null>
   > | null = null;
 
-  constructor(options: IEditorIntegrationOptions) {
+  constructor(options: HoverFeature.IOptions) {
     super(options);
+    this.settings = options.settings;
+    this.tooltipManager = new EditorTooltipManager(options.renderMimeRegistry);
+    this.contextAssembler = options.contextAssembler;
+
+    this.cache = new ResponseCache(10);
+    const connectionManager = options.connectionManager;
+
+    this.markManager = createMarkManager({
+      hover: { class: 'cm-lsp-hover-available' }
+    });
+
+    options.editorExtensionRegistry.addExtension({
+      name: 'lsp:hover',
+      factory: options => {
+        const updateListener = EditorView.updateListener.of(viewUpdate => {
+          if (viewUpdate.docChanged) {
+            this.afterChange();
+          }
+        });
+        const eventListeners = EditorView.domEventHandlers({
+          mousemove: event => {
+            const adapter = [...connectionManager.adapters.values()].find(
+              adapter =>
+                adapter.widget.node.contains(event.target as HTMLElement)
+            );
+
+            if (!adapter) {
+              this.console.warn('Adapter not found');
+              return;
+            }
+
+            // this is used to hide the tooltip on leaving cells in notebook
+            this.updateUnderlineAndTooltip(event, adapter)
+              ?.then(keepTooltip => {
+                if (!keepTooltip) {
+                  this.maybeHideTooltip(event);
+                }
+              })
+              .catch(this.console.warn);
+          },
+          mouseleave: event => {
+            this.onMouseLeave(event);
+          },
+          // show hover after pressing the modifier key
+          keydown: event => {
+            const adapter = [...connectionManager.adapters.values()].find(
+              adapter =>
+                adapter.widget.node.contains(
+                  event.currentTarget! as HTMLElement
+                )
+            );
+            if (!adapter) {
+              this.console.warn('Adapter not found');
+              return;
+            }
+            this.onKeyDown(event, adapter);
+          }
+        });
+        return EditorExtensionRegistry.createImmutableExtension([
+          eventListeners,
+          updateListener
+        ]);
+      }
+    });
+
+    this.debouncedGetHover = this.createThrottler();
+
+    this.settings.changed.connect(() => {
+      this.cache.maxSize = this.settings.composite.cacheSize;
+      this.debouncedGetHover = this.createThrottler();
+    });
+  }
+
+  protected createThrottler() {
+    return new Throttler<
+      Promise<lsProtocol.Hover | null>,
+      void,
+      [VirtualDocument, IVirtualPosition, IContext]
+    >(this.getHover, {
+      limit: this.settings.composite.throttlerDelay || 0,
+      edge: 'trailing'
+    });
   }
 
   protected get modifierKey(): ModifierKey {
@@ -145,101 +265,52 @@ export class HoverCM extends CodeMirrorIntegration {
     return this.settings.composite.autoActivate;
   }
 
-  get lab_integration() {
-    return super.lab_integration as HoverLabIntegration;
-  }
-
-  get settings() {
-    return super.settings as FeatureSettings<LSPHoverSettings>;
-  }
-
-  protected restore_from_cache(
+  protected restoreFromCache(
     document: VirtualDocument,
-    virtual_position: IVirtualPosition
+    virtualPosition: IVirtualPosition
   ): IResponseData | null {
-    const { line, ch } = virtual_position;
-    const matching_items = this.cache.data.filter(cache_item => {
-      if (cache_item.document !== document) {
+    const { line, ch } = virtualPosition;
+    const matchingItems = this.cache.data.filter(cacheItem => {
+      if (cacheItem.document !== document) {
         return false;
       }
-      let range = cache_item.response.range!;
+      let range = cacheItem.response.range!;
       return ProtocolCoordinates.isWithinRange({ line, character: ch }, range);
     });
-    if (matching_items.length > 1) {
+    if (matchingItems.length > 1) {
       this.console.warn(
         'Potential hover cache malfunction: ',
-        virtual_position,
-        matching_items
+        virtualPosition,
+        matchingItems
       );
     }
-    return matching_items.length != 0 ? matching_items[0] : null;
+    return matchingItems.length != 0 ? matchingItems[0] : null;
   }
 
-  register(): void {
-    this.cache = new ResponseCache(this.settings.composite.cacheSize);
-
-    this.wrapper_handlers.set('mousemove', event => {
-      // as CodeMirror.Editor does not support mouseleave nor mousemove,
-      // we simulate the mouseleave for the editor in wrapper's mousemove;
-      // this is used to hide the tooltip on leaving cells in notebook
-      this.updateUnderlineAndTooltip(event)
-        ?.then(keep_tooltip => {
-          if (!keep_tooltip) {
-            this.maybeHideTooltip(event);
-          }
-        })
-        .catch(this.console.warn);
-    });
-    this.wrapper_handlers.set('mouseleave', this.onMouseLeave);
-
-    // show hover after pressing the modifier key
-    // TODO: when the editor (notebook or file editor) is not focused, the keydown event is not getting to us
-    //  (probably getting captured by lab); this gives subpar experience when using hover in two editors open
-    //  side-by-side, BUT this does not happen for mousemove which properly reads keyModifier from the event
-    //  (so this is no too bad as most of the time the user will get the desired outcome - they just need to
-    //  budge the mice when holding ctrl if looking at a document which is not active).
-    // whether the editor is focused
-    this.wrapper_handlers.set('keydown', this.onKeyDown);
-    // or just the wrapper (e.g. the notebook but no cell active)
-    this.editor_handlers.set('keydown', (instance, event: KeyboardEvent) =>
-      this.onKeyDown(event)
-    );
-
-    this.debounced_get_hover = this.create_throttler();
-
-    this.settings.changed.connect(() => {
-      this.cache.maxSize = this.settings.composite.cacheSize;
-      this.debounced_get_hover = this.create_throttler();
-    });
-    super.register();
-  }
-
-  protected onKeyDown = (event: KeyboardEvent) => {
+  protected onKeyDown = (
+    event: KeyboardEvent,
+    adapter: WidgetLSPAdapter<any>
+  ) => {
     if (
       getModifierState(event, this.modifierKey) &&
-      this.last_hover_character !== null
+      this.lastHoverCharacter !== null
     ) {
       // does not need to be shown if it is already visible (otherwise we would be creating an identical tooltip again!)
       if (this.tooltip && this.tooltip.isVisible && !this.tooltip.isDisposed) {
         return;
       }
-      const document = this.virtual_editor.document_at_root_position(
-        this.last_hover_character
-      );
-      let response_data = this.restore_from_cache(
-        document,
-        this.virtual_position
-      );
-      if (response_data == null) {
+      const document = documentAtRootPosition(adapter, this.lastHoverCharacter);
+      let responseData = this.restoreFromCache(document, this.virtualPosition);
+      if (responseData == null) {
         return;
       }
       event.stopPropagation();
-      this.handleResponse(response_data, this.last_hover_character, true);
+      this.handleResponse(adapter, responseData, this.lastHoverCharacter, true);
     }
   };
 
   protected onMouseLeave = (event: MouseEvent) => {
-    this.remove_range_highlight();
+    this.removeRangeHighlight();
     this.maybeHideTooltip(event);
   };
 
@@ -252,54 +323,60 @@ export class HoverCM extends CodeMirrorIntegration {
     }
   }
 
-  protected create_throttler() {
-    return new Throttler<Promise<lsProtocol.Hover | null>>(this.on_hover, {
-      limit: this.settings.composite.throttlerDelay,
-      edge: 'trailing'
-    });
-  }
-
-  afterChange(change: IEditorChange, root_position: IRootPosition) {
-    super.afterChange(change, root_position);
+  afterChange() {
     // reset cache on any change in the document
     this.cache.clean();
-    this.last_hover_character = null;
-    this.remove_range_highlight();
+    this.lastHoverCharacter = null;
+    this.removeRangeHighlight();
   }
 
-  protected on_hover = async (
-    virtual_position: IVirtualPosition,
-    add_range_fn: (hover: lsProtocol.Hover) => lsProtocol.Hover
+  protected getHover = async (
+    virtualDocument: VirtualDocument,
+    virtualPosition: IVirtualPosition,
+    context: IContext
   ): Promise<lsProtocol.Hover | null> => {
-    if (
-      !(
-        this.connection.isReady &&
-        this.connection.serverCapabilities?.hoverProvider
-      )
-    ) {
+    const connection = this.connectionManager.connections.get(
+      virtualDocument.uri
+    )!;
+    if (!(connection.isReady && connection.serverCapabilities.hoverProvider)) {
       return null;
     }
-    let hover = await this.connection.clientRequests[
+    let response = await connection.clientRequests[
       'textDocument/hover'
     ].request({
       textDocument: {
-        // this might be wrong - should not it be using the specific virtual document?
-        uri: this.virtual_document.document_info.uri
+        uri: virtualDocument.documentInfo.uri
       },
       position: {
-        line: virtual_position.line,
-        character: virtual_position.ch
+        line: virtualPosition.line,
+        character: virtualPosition.ch
       }
     });
 
-    if (hover == null) {
+    if (response == null) {
       return null;
     }
 
-    return add_range_fn(hover);
+    if (typeof response.range !== 'undefined') {
+      return response;
+    }
+    // Harmonise response by adding range
+    const editorRange = this._getEditorRange(
+      context.adapter,
+      response,
+      context.token,
+      context.editor,
+      virtualDocument
+    );
+    return this._addRange(
+      context.adapter,
+      response,
+      editorRange,
+      context.editorAccessor
+    );
   };
 
-  protected static get_markup_for_hover(
+  protected static getMarkupForHover(
     response: lsProtocol.Hover
   ): lsProtocol.MarkupContent {
     let contents = response.contents;
@@ -312,7 +389,7 @@ export class HoverCM extends CodeMirrorIntegration {
       return contents as lsProtocol.MarkupContent;
     }
 
-    let markups = contents.map(to_markup);
+    let markups = contents.map(toMarkup);
     if (markups.every(markup => markup.kind == 'plaintext')) {
       return {
         kind: 'plaintext',
@@ -327,39 +404,46 @@ export class HoverCM extends CodeMirrorIntegration {
   }
 
   /**
-   * Underlines the word if a tooltip is available.
+   * marks the word if a tooltip is available.
    * Displays tooltip if asked to do so.
    *
    * Returns true is the tooltip was shown.
    */
   public handleResponse = (
-    response_data: IResponseData,
-    root_position: IRootPosition,
-    show_tooltip: boolean
+    adapter: WidgetLSPAdapter<any>,
+    responseData: IResponseData,
+    rootPosition: IRootPosition,
+    showTooltip: boolean
   ): boolean => {
-    let response = response_data.response;
+    let response = responseData.response;
 
     // testing for object equality because the response will likely be reused from cache
-    if (this.last_hover_response != response) {
-      this.remove_range_highlight();
-      this.hover_marker = this.highlight_range(
-        response_data.editor_range,
-        'cm-lsp-hover-available'
+    if (this.lastHoverResponse != response) {
+      this.removeRangeHighlight();
+
+      const range = responseData.editorRange;
+      const editorView = (range.editor as CodeMirrorEditor).editor;
+      const from = range.editor.getOffsetAt(
+        PositionConverter.cm_to_ce(range.start)
       );
+      const to = range.editor.getOffsetAt(
+        PositionConverter.cm_to_ce(range.end)
+      );
+      this.markManager.putMarks(editorView, [{ from, to, kind: 'hover' }]);
+      this.hasMarker = true;
     }
 
-    this.last_hover_response = response;
+    this.lastHoverResponse = response;
 
-    if (show_tooltip) {
-      const markup = HoverCM.get_markup_for_hover(response);
-      let editor_position =
-        this.virtual_editor.root_position_to_editor(root_position);
+    if (showTooltip) {
+      const markup = HoverFeature.getMarkupForHover(response);
+      let editorPosition = rootPositionToEditorPosition(adapter, rootPosition);
 
-      this.tooltip = this.lab_integration.tooltip.showOrCreate({
+      this.tooltip = this.tooltipManager.showOrCreate({
         markup,
-        position: editor_position,
-        ce_editor: response_data.ce_editor,
-        adapter: this.adapter,
+        position: editorPosition,
+        ceEditor: responseData.ceEditor,
+        adapter: adapter,
         className: 'lsp-hover'
       });
       return true;
@@ -367,17 +451,17 @@ export class HoverCM extends CodeMirrorIntegration {
     return false;
   };
 
-  protected is_token_empty(token: CodeMirror.Token) {
-    return token.string.length === 0;
+  protected isTokenEmpty(token: CodeEditor.IToken) {
+    return token.value.length === 0;
     // TODO  || token.type.length === 0? (sometimes the underline is shown on meaningless tokens)
   }
 
-  protected is_event_inside_visible(event: MouseEvent) {
+  protected isEventInsideVisible(event: MouseEvent) {
     let target = event.target as HTMLElement;
-    return target.closest('.CodeMirror-sizer') != null;
+    return target.closest('.cm-scroller') != null;
   }
 
-  protected is_useful_response(response: lsProtocol.Hover) {
+  protected isResponseUseful(response: lsProtocol.Hover) {
     return (
       response &&
       response.contents &&
@@ -389,56 +473,105 @@ export class HoverCM extends CodeMirrorIntegration {
    * Returns true if the tooltip should stay.
    */
   protected async _updateUnderlineAndTooltip(
-    event: MouseEvent
+    event: MouseEvent,
+    adapter: WidgetLSPAdapter<any>
   ): Promise<boolean> {
     const target = event.target;
-
     // if over an empty space in a line (and not over a token) then not worth checking
     if (
-      target == null ||
-      (target as HTMLElement).classList.contains('CodeMirror-line')
+      target == null
+      // TODO this no longer works in CodeMirror6 as it tires to avoid wrapping
+      // html elements as much as possible.
+      // || (target as HTMLElement).classList.contains('cm-line')
     ) {
-      this.remove_range_highlight();
+      this.removeRangeHighlight();
       return false;
     }
 
-    const show_tooltip =
+    const showTooltip =
       this.isHoverAutomatic || getModifierState(event, this.modifierKey);
 
-    // currently the events are coming from notebook panel; ideally these would be connected to individual cells,
-    // (only cells with code) instead, but this is more complex to implement right. In any case filtering
-    // is needed to determine in hovered character belongs to this virtual document
+    // Filtering is needed to determine in hovered character belongs to this virtual document
 
-    const root_position = this.position_from_mouse(event);
+    // TODO: or should the adapter be derived from model and passed as an argument? Or maybe we should try both?
+    // const adapter = this.contextAssembler.adapterFromNode(target as HTMLElement);
 
-    // happens because mousemove is attached to panel, not individual code cells,
-    // and because some regions of the editor (between lines) have no characters
-    if (root_position == null) {
-      this.remove_range_highlight();
+    if (!adapter) {
+      this.removeRangeHighlight();
       return false;
     }
 
-    let token = this.virtual_editor.getTokenAt(root_position);
+    // We cannot just use:
+    // > const editorAccessor = adapter.activeEditor
+    // as it relies on the editor under the cursor being the active editor, which is not the case in notebook,
+    // especially for actions invoked using mouse (hover, rename from context menu).
+    const accessorFromNode = this.contextAssembler.editorFromNode(
+      adapter,
+      target as HTMLElement
+    );
+    if (!accessorFromNode) {
+      this.console.warn(
+        'Editor accessor not found from node, falling back to activeEditor'
+      );
+    }
+    const editorAccessor = accessorFromNode
+      ? accessorFromNode
+      : adapter.activeEditor;
 
-    let document = this.virtual_editor.document_at_root_position(root_position);
+    if (!editorAccessor) {
+      this.removeRangeHighlight();
+      this.console.warn('Could not find editor accessor');
+      return false;
+    }
+
+    const rootPosition = this.contextAssembler.positionFromCoordinates(
+      event.clientX,
+      event.clientY,
+      adapter,
+      editorAccessor
+    );
+
+    // happens because some regions of the editor (between lines) have no characters
+    if (rootPosition == null) {
+      this.removeRangeHighlight();
+      return false;
+    }
+
+    const editor = editorAccessor.getEditor();
+    if (!editor) {
+      this.console.warn('Editor not available from accessor');
+      this.removeRangeHighlight();
+      return false;
+    }
+
+    const editorPosition = rootPositionToEditorPosition(adapter, rootPosition);
+
+    const offset = editor.getOffsetAt(
+      PositionConverter.cm_to_ce(editorPosition)
+    );
+    const token = editor.getTokenAt(offset);
+
+    const document = documentAtRootPosition(adapter, rootPosition);
 
     if (
-      this.is_token_empty(token) ||
-      document !== this.virtual_document ||
-      !this.is_event_inside_visible(event)
+      this.isTokenEmpty(token) ||
+      //document !== this.virtualDocument ||
+      !this.isEventInsideVisible(event)
     ) {
-      this.remove_range_highlight();
+      this.removeRangeHighlight();
       return false;
     }
 
     if (
-      !this.last_hover_character ||
-      !is_equal(root_position, this.last_hover_character)
+      !this.lastHoverCharacter ||
+      !isEqual(rootPosition, this.lastHoverCharacter)
     ) {
-      let virtual_position =
-        this.virtual_editor.root_position_to_virtual_position(root_position);
-      this.virtual_position = virtual_position;
-      this.last_hover_character = root_position;
+      let virtualPosition = rootPositionToVirtualPosition(
+        adapter,
+        rootPosition
+      );
+      this.virtualPosition = virtualPosition;
+      this.lastHoverCharacter = rootPosition;
 
       // if we already sent a request, maybe it already covers the are of interest?
       // not harm waiting as the server won't be able to help us anyways
@@ -452,27 +585,21 @@ export class HoverCM extends CodeMirrorIntegration {
           })
         ]);
       }
-      let response_data = this.restore_from_cache(document, virtual_position);
-      let delay_ms = this.settings.composite.delay;
+      let responseData = this.restoreFromCache(document, virtualPosition);
+      let delayMilliseconds = this.settings.composite.delay;
 
-      if (response_data == null) {
-        const ce_editor =
-          this.virtual_editor.get_editor_at_root_position(root_position);
-        const cm_editor =
-          this.virtual_editor.ce_editor_to_cm_editor.get(ce_editor)!;
-        const add_range_fn = (hover: lsProtocol.Hover): lsProtocol.Hover => {
-          const editor_range = this.get_editor_range(
-            hover,
-            root_position,
+      if (responseData == null) {
+        //const ceEditor =
+        //  editorAtRootPosition(adapter, rootPosition).getEditor()!;
+        const promise = this.debouncedGetHover.invoke(
+          document,
+          virtualPosition,
+          {
+            adapter,
             token,
-            cm_editor
-          );
-          return this.add_range_if_needed(hover, editor_range, ce_editor);
-        };
-
-        const promise = this.debounced_get_hover.invoke(
-          virtual_position,
-          add_range_fn
+            editor,
+            editorAccessor
+          }
         );
         this._previousHoverRequest = promise;
         let response = await promise;
@@ -483,129 +610,136 @@ export class HoverCM extends CodeMirrorIntegration {
           response &&
           response.range &&
           ProtocolCoordinates.isWithinRange(
-            { line: virtual_position.line, character: virtual_position.ch },
+            { line: virtualPosition.line, character: virtualPosition.ch },
             response.range
           ) &&
-          this.is_useful_response(response)
+          this.isResponseUseful(response)
         ) {
-          const editor_range = this.get_editor_range(
+          // TODO: I am reconstructing the range anyways - do I really want to ensure it in getHover?
+          const editorRange = this._getEditorRange(
+            adapter,
             response,
-            root_position,
             token,
-            cm_editor
+            editor,
+            document
           );
-          response_data = {
+          responseData = {
             response: response,
             document: document,
-            editor_range: editor_range,
-            ce_editor: ce_editor
+            editorRange: editorRange,
+            ceEditor: editor
           };
 
-          this.cache.store(response_data);
-          delay_ms = Math.max(
+          this.cache.store(responseData);
+          delayMilliseconds = Math.max(
             0,
             this.settings.composite.delay -
               this.settings.composite.throttlerDelay
           );
         } else {
-          this.remove_range_highlight();
+          this.removeRangeHighlight();
           return false;
         }
       }
 
       if (this.isHoverAutomatic) {
-        await new Promise(resolve => setTimeout(resolve, delay_ms));
+        await new Promise(resolve => setTimeout(resolve, delayMilliseconds));
       }
 
-      return this.handleResponse(response_data, root_position, show_tooltip);
+      return this.handleResponse(
+        adapter,
+        responseData,
+        rootPosition,
+        showTooltip
+      );
     } else {
       return true;
     }
   }
 
-  protected updateUnderlineAndTooltip = (event: MouseEvent) => {
+  protected updateUnderlineAndTooltip = (
+    event: MouseEvent,
+    adapter: WidgetLSPAdapter<any>
+  ) => {
     try {
-      return this._updateUnderlineAndTooltip(event);
+      return this._updateUnderlineAndTooltip(event, adapter);
     } catch (e) {
-      if (
-        !(
-          e.message === 'Cell not found in cell_line_map' ||
-          e.message === "Cannot read property 'string' of undefined"
-        )
-      ) {
-        this.console.warn(e);
-      }
+      this.console.warn(e);
       return undefined;
     }
   };
 
-  protected remove_range_highlight = () => {
-    if (this.hover_marker) {
-      this.hover_marker.clear();
-      this.hover_marker = null;
-      this.last_hover_response = null;
-      this.last_hover_character = null;
+  protected removeRangeHighlight = () => {
+    if (this.hasMarker) {
+      this.markManager.clearAllMarks();
+      this.hasMarker = false;
+      this.lastHoverResponse = null;
+      this.lastHoverCharacter = null;
     }
   };
 
   remove(): void {
     this.cache.clean();
-    this.remove_range_highlight();
-    this.debounced_get_hover.dispose();
-    super.remove();
+    this.removeRangeHighlight();
+    this.debouncedGetHover.dispose();
   }
 
-  private get_editor_range(
+  /**
+   * Construct the range to underline manually using the token information.
+   */
+  private _getEditorRange(
+    adapter: WidgetLSPAdapter<any>,
     response: lsProtocol.Hover,
-    position: IRootPosition,
-    token: CodeMirror.Token,
-    cm_editor: CodeMirror.Editor
+    token: CodeEditor.IToken,
+    editor: CodeEditor.IEditor,
+    document: VirtualDocument
   ): IEditorRange {
     if (typeof response.range !== 'undefined') {
-      return this.range_to_editor_range(response.range, cm_editor);
+      return rangeToEditorRange(adapter, response.range, editor, document);
     }
 
-    // construct the range manually using the token information
-    let start_in_root = {
-      line: position.line,
-      ch: token.start
-    } as IRootPosition;
-    let end_in_root = {
-      line: position.line,
-      ch: token.end
-    } as IRootPosition;
+    const startInEditor = editor.getPositionAt(token.offset);
+    const endInEditor = editor.getPositionAt(token.offset + token.value.length);
+
+    if (!startInEditor || !endInEditor) {
+      throw Error(
+        'Could not reconstruct editor range: start or end of token in editor do not resolve to a position'
+      );
+    }
 
     return {
-      start: this.virtual_editor.root_position_to_editor(start_in_root),
-      end: this.virtual_editor.root_position_to_editor(end_in_root),
-      editor: cm_editor
+      start: PositionConverter.ce_to_cm(startInEditor) as IEditorPosition,
+      end: PositionConverter.ce_to_cm(endInEditor) as IEditorPosition,
+      editor
     };
   }
 
-  private add_range_if_needed(
+  private _addRange(
+    adapter: WidgetLSPAdapter<any>,
     response: lsProtocol.Hover,
-    editor_range: IEditorRange,
-    ce_editor: CodeEditor.IEditor
+    editorEange: IEditorRange,
+    editorAccessor: Document.IEditor
   ): lsProtocol.Hover {
-    if (typeof response.range !== 'undefined') {
-      return response;
-    }
     return {
       ...response,
       range: {
         start: PositionConverter.cm_to_lsp(
-          this.virtual_editor.root_position_to_virtual_position(
-            this.virtual_editor.transform_from_editor_to_root(
-              ce_editor,
-              editor_range.start
+          rootPositionToVirtualPosition(
+            adapter,
+            editorPositionToRootPosition(
+              adapter,
+              editorAccessor,
+              editorEange.start
             )!
           )
         ),
         end: PositionConverter.cm_to_lsp(
-          this.virtual_editor.root_position_to_virtual_position(
-            this.virtual_editor.transform_from_editor_to_root(
-              ce_editor,
-              editor_range.end
+          rootPositionToVirtualPosition(
+            adapter,
+            editorPositionToRootPosition(
+              adapter,
+              editorAccessor,
+              editorEange.end
             )!
           )
         )
@@ -614,54 +748,50 @@ export class HoverCM extends CodeMirrorIntegration {
   }
 }
 
-class HoverLabIntegration implements IFeatureLabIntegration {
-  tooltip: EditorTooltipManager;
-  settings: FeatureSettings<any>;
-
-  constructor(
-    app: JupyterFrontEnd,
-    settings: FeatureSettings<any>,
-    renderMimeRegistry: IRenderMimeRegistry
-  ) {
-    this.tooltip = new EditorTooltipManager(renderMimeRegistry);
+export namespace HoverFeature {
+  export interface IOptions extends Feature.IOptions {
+    settings: FeatureSettings<LSPHoverSettings>;
+    renderMimeRegistry: IRenderMimeRegistry;
+    editorExtensionRegistry: IEditorExtensionRegistry;
+    contextAssembler: ContextAssembler;
   }
+  export const id = PLUGIN_ID + ':hover';
 }
 
-const FEATURE_ID = PLUGIN_ID + ':hover';
-
 export const HOVER_PLUGIN: JupyterFrontEndPlugin<void> = {
-  id: FEATURE_ID,
-  requires: [ILSPFeatureManager, ISettingRegistry, IRenderMimeRegistry],
+  id: HoverFeature.id,
+  requires: [
+    ILSPFeatureManager,
+    ISettingRegistry,
+    IRenderMimeRegistry,
+    IEditorExtensionRegistry,
+    ILSPDocumentConnectionManager
+  ],
   autoStart: true,
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
-    renderMimeRegistry: IRenderMimeRegistry
+    renderMimeRegistry: IRenderMimeRegistry,
+    editorExtensionRegistry: IEditorExtensionRegistry,
+    connectionManager: ILSPDocumentConnectionManager
   ) => {
-    const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
-    const labIntegration = new HoverLabIntegration(
-      app,
-      settings,
-      renderMimeRegistry
+    const contextAssembler = new ContextAssembler({ app, connectionManager });
+    const settings = new FeatureSettings<LSPHoverSettings>(
+      settingRegistry,
+      HoverFeature.id
     );
-
-    featureManager.register({
-      feature: {
-        editorIntegrationFactory: new Map([['CodeMirrorEditor', HoverCM]]),
-        id: FEATURE_ID,
-        name: 'LSP Hover tooltip',
-        labIntegration: labIntegration,
-        settings: settings,
-        capabilities: {
-          textDocument: {
-            hover: {
-              dynamicRegistration: true,
-              contentFormat: ['markdown', 'plaintext']
-            }
-          }
-        }
-      }
+    await settings.ready;
+    if (settings.composite.disable) {
+      return;
+    }
+    const feature = new HoverFeature({
+      settings,
+      renderMimeRegistry,
+      editorExtensionRegistry,
+      connectionManager,
+      contextAssembler
     });
+    featureManager.register(feature);
   }
 };

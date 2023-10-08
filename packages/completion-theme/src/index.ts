@@ -9,7 +9,7 @@ import {
 import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon, kernelIcon } from '@jupyterlab/ui-components';
 
-import { render_themes_list } from './about';
+import { renderThemesList } from './about';
 import {
   COMPLETER_THEME_PREFIX,
   CompletionItemKindStrings,
@@ -22,22 +22,22 @@ import {
 export * from './types';
 
 export class CompletionThemeManager implements ILSPCompletionThemeManager {
-  protected current_icons: Map<string, LabIcon>;
+  protected currentIcons: Map<string, LabIcon>;
   protected themes: Map<string, ICompletionTheme>;
-  private current_theme_id: string | null = null;
-  private icons_cache: Map<string, LabIcon>;
-  private icon_overrides: Map<string, CompletionItemKindStrings>;
-  private trans: TranslationBundle;
+  private _currentThemeId: string | null = null;
+  private _iconsCache: Map<string, LabIcon>;
+  private _iconOverrides: Map<string, CompletionItemKindStrings>;
+  private _trans: TranslationBundle;
 
   constructor(protected themeManager: IThemeManager, trans: TranslationBundle) {
     this.themes = new Map();
-    this.icons_cache = new Map();
-    this.icon_overrides = new Map();
-    themeManager.themeChanged.connect(this.update_icons_set, this);
-    this.trans = trans;
+    this._iconsCache = new Map();
+    this._iconOverrides = new Map();
+    themeManager.themeChanged.connect(this.updateIconsSet, this);
+    this._trans = trans;
   }
 
-  protected is_theme_light() {
+  protected isThemeLight() {
     const current = this.themeManager.theme;
     if (!current) {
       // assume true by default
@@ -46,57 +46,57 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     return this.themeManager.isLight(current);
   }
 
-  get_iconset(theme: ICompletionTheme): Map<keyof ICompletionIconSet, LabIcon> {
-    const icons_sets = theme.icons;
-    const dark_mode_and_dark_supported =
-      !this.is_theme_light() && typeof icons_sets.dark !== 'undefined';
-    const set: ICompletionIconSet = dark_mode_and_dark_supported
-      ? icons_sets.dark!
-      : icons_sets.light;
+  getIconSet(theme: ICompletionTheme): Map<keyof ICompletionIconSet, LabIcon> {
+    const iconsSets = theme.icons;
+    const darkModeOnAndDarkSupported =
+      !this.isThemeLight() && typeof iconsSets.dark !== 'undefined';
+    const set: ICompletionIconSet = darkModeOnAndDarkSupported
+      ? iconsSets.dark!
+      : iconsSets.light;
     const icons: Map<keyof ICompletionIconSet, LabIcon> = new Map();
-    let options = this.current_theme?.icons?.options || {};
-    const mode = this.is_theme_light() ? 'light' : 'dark';
-    for (let [completion_kind, svg] of Object.entries(set)) {
+    let options = this.currentTheme?.icons?.options || {};
+    const mode = this.isThemeLight() ? 'light' : 'dark';
+    for (let [completionKind, svg] of Object.entries(set)) {
       let name =
-        'lsp:' + theme.id + '-' + completion_kind.toLowerCase() + '-' + mode;
+        'lsp:' + theme.id + '-' + completionKind.toLowerCase() + '-' + mode;
       let icon: LabIcon;
-      if (this.icons_cache.has(name)) {
-        icon = this.icons_cache.get(name)!;
+      if (this._iconsCache.has(name)) {
+        icon = this._iconsCache.get(name)!;
       } else {
         icon = new LabIcon({
           name: name,
           svgstr: svg
         });
-        this.icons_cache.set(name, icon);
+        this._iconsCache.set(name, icon);
       }
       icons.set(
-        completion_kind as keyof ICompletionIconSet,
+        completionKind as keyof ICompletionIconSet,
         icon.bindprops(options)
       );
     }
     return icons;
   }
 
-  protected update_icons_set() {
-    if (this.current_theme === null) {
+  protected updateIconsSet() {
+    if (this.currentTheme === null) {
       return;
     }
-    this.current_icons = this.get_iconset(this.current_theme);
+    this.currentIcons = this.getIconSet(this.currentTheme);
   }
 
-  get_icon(type: string): LabIcon | null {
-    if (this.current_theme === null) {
+  getIcon(type: string): LabIcon | null {
+    if (this.currentTheme === null) {
       return null;
     }
     if (type) {
-      if (this.icon_overrides.has(type.toLowerCase())) {
-        type = this.icon_overrides.get(type.toLowerCase())!;
+      if (this._iconOverrides.has(type.toLowerCase())) {
+        type = this._iconOverrides.get(type.toLowerCase())!;
       }
       type =
         type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
     }
-    if (this.current_icons.has(type)) {
-      return this.current_icons.get(type)!;
+    if (this.currentIcons.has(type)) {
+      return this.currentIcons.get(type)!;
     }
 
     if (type === KernelKind) {
@@ -105,34 +105,34 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
     return null;
   }
 
-  protected get current_theme_class() {
-    return COMPLETER_THEME_PREFIX + this.current_theme_id;
+  protected get currentThemeClass() {
+    return COMPLETER_THEME_PREFIX + this._currentThemeId;
   }
 
-  set_theme(id: string | null) {
-    if (this.current_theme_id) {
-      document.body.classList.remove(this.current_theme_class);
+  setTheme(id: string | null) {
+    if (this._currentThemeId) {
+      document.body.classList.remove(this.currentThemeClass);
     }
     if (id && !this.themes.has(id)) {
       console.warn(
         `[LSP][Completer] Icons theme ${id} cannot be set yet (it may be loaded later).`
       );
     }
-    this.current_theme_id = id;
+    this._currentThemeId = id;
     if (id !== null) {
-      document.body.classList.add(this.current_theme_class);
+      document.body.classList.add(this.currentThemeClass);
     }
-    this.update_icons_set();
+    this.updateIconsSet();
   }
 
-  protected get current_theme(): ICompletionTheme | null {
-    if (this.current_theme_id && this.themes.has(this.current_theme_id)) {
-      return this.themes.get(this.current_theme_id)!;
+  protected get currentTheme(): ICompletionTheme | null {
+    if (this._currentThemeId && this.themes.has(this._currentThemeId)) {
+      return this.themes.get(this._currentThemeId)!;
     }
     return null;
   }
 
-  register_theme(theme: ICompletionTheme) {
+  registerTheme(theme: ICompletionTheme) {
     if (this.themes.has(theme.id)) {
       console.warn(
         'Theme with name',
@@ -141,7 +141,7 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
       );
     }
     this.themes.set(theme.id, theme);
-    this.update_icons_set();
+    this.updateIconsSet();
   }
 
   /**
@@ -150,22 +150,20 @@ export class CompletionThemeManager implements ILSPCompletionThemeManager {
    * and for the developer to quickly check how the icons
    * from each theme would look rendered.
    */
-  display_themes() {
+  displayThemes() {
     showDialog({
-      title: this.trans.__('LSP Completer Themes'),
-      body: render_themes_list(this.trans, {
+      title: this._trans.__('LSP Completer Themes'),
+      body: renderThemesList(this._trans, {
         themes: [...this.themes.values()],
-        current: this.current_theme,
-        get_set: this.get_iconset.bind(this)
+        current: this.currentTheme,
+        getSet: this.getIconSet.bind(this)
       }),
-      buttons: [Dialog.okButton({ label: this.trans.__('OK') })]
+      buttons: [Dialog.okButton({ label: this._trans.__('OK') })]
     }).catch(console.warn);
   }
 
-  set_icons_overrides(
-    iconOverrides: Record<string, CompletionItemKindStrings>
-  ) {
-    this.icon_overrides = new Map(
+  setIconsOverrides(iconOverrides: Record<string, CompletionItemKindStrings>) {
+    this._iconOverrides = new Map(
       Object.keys(iconOverrides).map(kernelType => [
         kernelType.toLowerCase(),
         iconOverrides[kernelType]
@@ -186,16 +184,16 @@ export const COMPLETION_THEME_MANAGER: JupyterFrontEndPlugin<ILSPCompletionTheme
     ) => {
       const trans = translator.load('jupyterlab_lsp');
       let manager = new CompletionThemeManager(themeManager, trans);
-      const command_id = 'lsp:completer-about-themes';
-      app.commands.addCommand(command_id, {
+      const commandId = 'lsp:completer-about-themes';
+      app.commands.addCommand(commandId, {
         label: trans.__('Display the completer themes'),
         execute: () => {
-          manager.display_themes();
+          manager.displayThemes();
         }
       });
       commandPalette.addItem({
         category: trans.__('Language server protocol'),
-        command: command_id
+        command: commandId
       });
       return manager;
     },

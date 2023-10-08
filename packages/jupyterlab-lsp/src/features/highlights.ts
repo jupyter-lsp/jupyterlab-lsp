@@ -1,25 +1,41 @@
+import { EditorView } from '@codemirror/view';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { CodeEditor } from '@jupyterlab/codeeditor';
+import {
+  CodeMirrorEditor,
+  IEditorExtensionRegistry,
+  EditorExtensionRegistry
+} from '@jupyterlab/codemirror';
+import {
+  IVirtualPosition,
+  ILSPFeatureManager,
+  IEditorPosition,
+  ILSPDocumentConnectionManager,
+  WidgetLSPAdapter
+} from '@jupyterlab/lsp';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { LabIcon } from '@jupyterlab/ui-components';
 import { Debouncer } from '@lumino/polling';
-import type * as CodeMirror from 'codemirror';
 import type * as lsProtocol from 'vscode-languageserver-protocol';
 
 import highlightSvg from '../../style/icons/highlight.svg';
 import { CodeHighlights as LSPHighlightsSettings } from '../_highlights';
-import { CodeMirrorIntegration } from '../editor_integration/codemirror';
-import { FeatureSettings } from '../feature';
-import { DocumentHighlightKind } from '../lsp';
+import { ContextAssembler } from '../context';
 import {
-  IEditorPosition,
-  IRootPosition,
-  IVirtualPosition
-} from '../positioning';
-import { ILSPFeatureManager, PLUGIN_ID } from '../tokens';
+  PositionConverter,
+  rootPositionToVirtualPosition,
+  editorPositionToRootPosition,
+  documentAtRootPosition,
+  rangeToEditorRange
+} from '../converter';
+import { FeatureSettings, Feature } from '../feature';
+import { DocumentHighlightKind } from '../lsp';
+import { createMarkManager, ISimpleMarkManager } from '../marks';
+import { PLUGIN_ID } from '../tokens';
+import { BrowserConsole } from '../virtual/console';
 import { VirtualDocument } from '../virtual/document';
 
 export const highlightIcon = new LabIcon({
@@ -27,193 +43,269 @@ export const highlightIcon = new LabIcon({
   svgstr: highlightSvg
 });
 
-interface IHighlightDefinition {
-  options: CodeMirror.TextMarkerOptions;
-  start: IEditorPosition;
-  end: IEditorPosition;
+interface IEditorHighlight {
+  kind: DocumentHighlightKind;
+  from: number;
+  to: number;
 }
 
-export class HighlightsCM extends CodeMirrorIntegration {
-  protected highlightMarkers: Map<CodeMirror.Editor, CodeMirror.TextMarker[]> =
-    new Map();
-  /*
-   * @deprecated
-   */
-  protected highlight_markers: CodeMirror.TextMarker[];
-  private debounced_get_highlight: Debouncer<
-    lsProtocol.DocumentHighlight[] | undefined
-  >;
-  private virtual_position: IVirtualPosition;
-  private sent_version: number;
-  private last_token: CodeEditor.IToken | null = null;
-
-  get settings() {
-    return super.settings as FeatureSettings<LSPHighlightsSettings>;
-  }
-
-  register(): void {
-    this.debounced_get_highlight = this.create_debouncer();
-
-    this.settings.changed.connect(() => {
-      this.debounced_get_highlight = this.create_debouncer();
-    });
-    this.editor_handlers.set('cursorActivity', this.onCursorActivity);
-    this.editor_handlers.set('blur', this.onBlur);
-    this.editor_handlers.set('focus', this.onCursorActivity);
-    super.register();
-  }
-
-  protected onBlur = () => {
-    if (this.settings.composite.removeOnBlur) {
-      this.clear_markers();
-      this.last_token = null;
-    } else {
-      this.onCursorActivity().catch(console.warn);
+export class HighlightsFeature extends Feature {
+  readonly capabilities: lsProtocol.ClientCapabilities = {
+    textDocument: {
+      documentHighlight: {
+        dynamicRegistration: true
+      }
     }
   };
+  readonly id = HighlightsFeature.id;
 
-  remove(): void {
-    this.clear_markers();
-    super.remove();
+  protected settings: FeatureSettings<LSPHighlightsSettings>;
+  protected markManager: ISimpleMarkManager<DocumentHighlightKind>;
+  protected console = new BrowserConsole().scope('Highlights');
+
+  private _debouncedGetHighlight: Debouncer<
+    lsProtocol.DocumentHighlight[] | null,
+    void,
+    [VirtualDocument, IVirtualPosition]
+  >;
+  private _virtualPosition: IVirtualPosition;
+  private _versionSent: number;
+  private _lastToken: {
+    token: CodeEditor.IToken;
+    adapter: WidgetLSPAdapter<any>;
+  } | null = null;
+
+  constructor(options: HighlightsFeature.IOptions) {
+    super(options);
+    this.settings = options.settings;
+    const connectionManager = options.connectionManager;
+    this.markManager = createMarkManager({
+      [DocumentHighlightKind.Text]: { class: 'cm-lsp-highlight-Text' },
+      [DocumentHighlightKind.Read]: { class: 'cm-lsp-highlight-Read' },
+      [DocumentHighlightKind.Write]: { class: 'cm-lsp-highlight-Write' }
+    });
+
+    this._debouncedGetHighlight = this.createDebouncer();
+
+    this.settings.changed.connect(() => {
+      this._debouncedGetHighlight = this.createDebouncer();
+    });
+
+    options.editorExtensionRegistry.addExtension({
+      name: 'lsp:highlights',
+      factory: options => {
+        const updateListener = EditorView.updateListener.of(viewUpdate => {
+          if (
+            viewUpdate.docChanged ||
+            viewUpdate.selectionSet ||
+            viewUpdate.focusChanged
+          ) {
+            // TODO a better way to get the adapter here?
+            const adapter = [...connectionManager.adapters.values()].find(
+              adapter => adapter.widget.node.contains(viewUpdate.view.dom)
+            );
+            if (!adapter) {
+              this.console.warn('Adapter not found');
+              return;
+            }
+            this.onCursorActivity(adapter).catch(this.console.warn);
+          }
+        });
+        const eventListeners = EditorView.domEventHandlers({
+          blur: (e, view) => {
+            this.onBlur(view);
+          },
+          focus: event => {
+            const adapter = [...connectionManager.adapters.values()].find(
+              adapter =>
+                adapter.widget.node.contains(
+                  event.currentTarget! as HTMLElement
+                )
+            );
+            if (!adapter) {
+              this.console.warn('Adapter not found');
+              return;
+            }
+            this.onCursorActivity(adapter).catch(this.console.warn);
+          },
+          keydown: event => {
+            const adapter = [...connectionManager.adapters.values()].find(
+              adapter =>
+                adapter.widget.node.contains(
+                  event.currentTarget! as HTMLElement
+                )
+            );
+            if (!adapter) {
+              this.console.warn('Adapter not found');
+              return;
+            }
+            this.onCursorActivity(adapter).catch(this.console.warn);
+          }
+        });
+        return EditorExtensionRegistry.createImmutableExtension([
+          updateListener,
+          eventListeners
+        ]);
+      }
+    });
   }
 
-  protected clear_markers() {
-    for (const [cmEditor, markers] of this.highlightMarkers.entries()) {
-      cmEditor.operation(() => {
-        for (const marker of markers) {
-          marker.clear();
-        }
-      });
+  protected onBlur(view: EditorView) {
+    if (this.settings.composite.removeOnBlur) {
+      // Delayed evaluation to avoid error:
+      // `Error: Calls to EditorView.update are not allowed while an update is in progress`
+      setTimeout(() => {
+        this.markManager.clearEditorMarks(view);
+        this._lastToken = null;
+      }, 0);
     }
-    this.highlightMarkers = new Map();
-    this.highlight_markers = [];
   }
 
-  protected handleHighlight = (
-    items: lsProtocol.DocumentHighlight[] | undefined
-  ) => {
-    this.clear_markers();
+  protected handleHighlight(
+    items: lsProtocol.DocumentHighlight[] | null,
+    adapter: WidgetLSPAdapter<any>,
+    document: VirtualDocument
+  ) {
+    this.markManager.clearAllMarks();
 
     if (!items) {
       return;
     }
 
-    const highlightOptionsByEditor = new Map<
-      CodeMirror.Editor,
-      IHighlightDefinition[]
+    const highlightsByEditor = new Map<
+      CodeEditor.IEditor,
+      IEditorHighlight[]
     >();
 
     for (let item of items) {
-      let range = this.range_to_editor_range(item.range);
-      let kind_class = item.kind
-        ? 'cm-lsp-highlight-' + DocumentHighlightKind[item.kind]
-        : '';
+      let range = rangeToEditorRange(adapter, item.range, null, document);
+      const editor = range.editor;
 
-      let optionsList = highlightOptionsByEditor.get(range.editor);
+      let optionsList = highlightsByEditor.get(editor);
 
       if (!optionsList) {
         optionsList = [];
-        highlightOptionsByEditor.set(range.editor, optionsList);
+        highlightsByEditor.set(editor, optionsList);
       }
+
       optionsList.push({
-        options: {
-          className: 'cm-lsp-highlight ' + kind_class
-        },
-        start: range.start,
-        end: range.end
+        kind: item.kind || DocumentHighlightKind.Text,
+        from: editor.getOffsetAt(PositionConverter.cm_to_ce(range.start)),
+        to: editor.getOffsetAt(PositionConverter.cm_to_ce(range.end))
       });
     }
 
-    for (const [
-      cmEditor,
-      markerDefinitions
-    ] of highlightOptionsByEditor.entries()) {
-      // note: using `operation()` significantly improves performance.
-      // test cases:
+    for (const [editor, markerDefinitions] of highlightsByEditor.entries()) {
+      // CodeMirror5 performance test cases:
       //   - one cell with 1000 `math.pi` and `import math`; move cursor to `math`,
       //     wait for 1000 highlights, then move to `pi`:
-      //     - before:
+      //     - step-by-step:
       //        - highlight `math`: 13.1s
       //        - then highlight `pi`: 16.6s
-      //     - after:
+      //     - operation():
       //        - highlight `math`: 160ms
       //        - then highlight `pi`: 227ms
+      //     - CodeMirror6, measuring `markManager.putMarks`:
+      //        - highlight `math`: 181ms
+      //        - then highlight `pi`: 334ms
       //   - 100 cells with `math.pi` and one with `import math`; move cursor to `math`,
       //     wait for 1000 highlights, then move to `pi` (this is overhead control,
       //     no gains expected):
-      //     - before:
+      //     - step-by-step:
       //        - highlight `math`: 385ms
       //        - then highlight `pi`: 683 ms
-      //     - after:
+      //     - operation():
       //        - highlight `math`: 390ms
       //        - then highlight `pi`: 870ms
-      cmEditor.operation(() => {
-        const doc = cmEditor.getDoc();
-        const markersList: CodeMirror.TextMarker[] = [];
-        for (const definition of markerDefinitions) {
-          let marker;
-          try {
-            marker = doc.markText(
-              definition.start,
-              definition.end,
-              definition.options
-            );
-          } catch (e) {
-            this.console.warn('Marking highlight failed:', definition, e);
-            return;
-          }
-          markersList.push(marker);
-          this.highlight_markers.push(marker);
-        }
-        this.highlightMarkers.set(cmEditor, markersList);
-      });
-    }
-  };
 
-  protected create_debouncer() {
-    return new Debouncer<lsProtocol.DocumentHighlight[] | undefined>(
-      this.on_cursor_activity,
-      this.settings.composite.debouncerDelay
-    );
+      const editorView = (editor as CodeMirrorEditor).editor;
+      this.markManager.putMarks(editorView, markerDefinitions);
+    }
   }
 
-  protected on_cursor_activity = async () => {
-    this.sent_version = this.virtual_document.document_info.version;
-    return await this.connection.getDocumentHighlights(
-      this.virtual_position,
-      this.virtual_document.document_info,
-      false
-    );
+  protected createDebouncer() {
+    return new Debouncer<
+      lsProtocol.DocumentHighlight[] | null,
+      void,
+      [VirtualDocument, IVirtualPosition]
+    >(this.requestHighlights, this.settings.composite.debouncerDelay);
+  }
+
+  protected requestHighlights = async (
+    virtualDocument: VirtualDocument,
+    virtualPosition: IVirtualPosition
+  ) => {
+    const connection = this.connectionManager.connections.get(
+      virtualDocument.uri
+    )!;
+    if (
+      !(
+        connection.isReady &&
+        connection.serverCapabilities.documentHighlightProvider
+      )
+    ) {
+      return null;
+    }
+    this._versionSent = virtualDocument.documentInfo.version;
+    return await connection.clientRequests[
+      'textDocument/documentHighlight'
+    ].request({
+      textDocument: {
+        uri: virtualDocument.documentInfo.uri
+      },
+      position: {
+        line: virtualPosition.line,
+        character: virtualPosition.ch
+      }
+    });
   };
 
-  protected onCursorActivity = async () => {
-    if (!this.virtual_editor?.virtual_document?.document_info) {
+  protected async onCursorActivity(adapter: WidgetLSPAdapter<any>) {
+    if (!adapter.virtualDocument) {
+      this.console.log('virtualDocument not ready on adapter');
       return;
     }
-    let root_position: IRootPosition;
+    await adapter.virtualDocument!.updateManager.updateDone;
 
-    await this.virtual_editor.virtual_document.update_manager.update_done;
-    try {
-      root_position = this.virtual_editor
-        .getDoc()
-        .getCursor('start') as IRootPosition;
-    } catch (err) {
-      this.console.warn('no root position available');
+    // TODO: this is the same problem as in signature
+    // TODO: the assumption that updated editor = active editor will fail on RTC. How to get `CodeEditor.IEditor` and `Document.IEditor` from `EditorView`? we got `CodeEditor.IModel` from `options.model` but may need more context here.
+    const editorAccessor = adapter.activeEditor;
+    const editor = editorAccessor!.getEditor()!;
+    const position = editor.getCursorPosition();
+    const editorPosition = PositionConverter.ce_to_cm(
+      position
+    ) as IEditorPosition;
+
+    const rootPosition = editorPositionToRootPosition(
+      adapter,
+      editorAccessor!,
+      editorPosition
+    );
+
+    if (!rootPosition) {
+      this.console.debug('Root position not available');
       return;
     }
 
-    if (root_position == null) {
-      this.console.warn('no root position available');
+    const document = documentAtRootPosition(adapter, rootPosition);
+
+    if (!document.documentInfo) {
+      this.console.debug('Root document lacks document info');
       return;
     }
 
-    const token = this.virtual_editor.get_token_at(root_position);
+    const offset = editor.getOffsetAt(
+      PositionConverter.cm_to_ce(editorPosition)
+    );
+    const token = editor.getTokenAt(offset);
 
     // if token has not changed, no need to update highlight, unless it is an empty token
-    // which would indicate that the cursor is at the first character
+    // which would indicate that the cursor is at the first character; we also need to check
+    // adapter in case if user switched between documents/notebooks.
     if (
-      this.last_token &&
-      token.value === this.last_token.value &&
+      this._lastToken &&
+      token.value === this._lastToken.token.value &&
+      adapter === this._lastToken.adapter &&
       token.value !== ''
     ) {
       this.console.log(
@@ -223,90 +315,98 @@ export class HighlightsCM extends CodeMirrorIntegration {
       return;
     }
 
-    let document: VirtualDocument;
     try {
-      document = this.virtual_editor.document_at_root_position(root_position);
-    } catch (e) {
-      this.console.warn(
-        'Could not obtain virtual document from position',
-        root_position
+      const virtualPosition = rootPositionToVirtualPosition(
+        adapter,
+        rootPosition
       );
-      return;
-    }
-    if (document !== this.virtual_document) {
-      return;
-    }
+      this._virtualPosition = virtualPosition;
 
-    try {
-      let virtual_position =
-        this.virtual_editor.root_position_to_virtual_position(root_position);
-
-      this.virtual_position = virtual_position;
-
-      Promise.all([
+      const [highlights] = await Promise.all([
         // request the highlights as soon as possible
-        this.debounced_get_highlight.invoke(),
+        this._debouncedGetHighlight.invoke(document, virtualPosition),
         // and in the meantime remove the old markers
         async () => {
-          this.clear_markers();
-          this.last_token = null;
+          this.markManager.clearAllMarks();
+          this._lastToken = null;
         }
-      ])
-        .then(([highlights]) => {
-          // in the time the response returned the document might have been closed - check that
-          if (this.virtual_document.isDisposed) {
-            return;
-          }
+      ]);
 
-          let version_after = this.virtual_document.document_info.version;
+      // in the time the response returned the document might have been closed - check that
+      if (document.isDisposed) {
+        return;
+      }
 
-          /// if document was updated since (e.g. user pressed delete - token change, but position did not)
-          if (version_after !== this.sent_version) {
-            this.console.log(
-              'skipping highlights response delayed by ' +
-                (version_after - this.sent_version) +
-                ' document versions'
-            );
-            return;
-          }
-          // if cursor position changed (e.g. user moved cursor up - position has changed, but document version did not)
-          if (virtual_position !== this.virtual_position) {
-            this.console.log(
-              'skipping highlights response: cursor moved since it was requested'
-            );
-            return;
-          }
+      let versionAfter = document.documentInfo.version;
 
-          this.handleHighlight(highlights);
-          this.last_token = token;
-        })
-        .catch(this.console.warn);
+      /// if document was updated since (e.g. user pressed delete - token change, but position did not)
+      if (versionAfter !== this._versionSent) {
+        this.console.log(
+          'skipping highlights response delayed by ' +
+            (versionAfter - this._versionSent) +
+            ' document versions'
+        );
+        return;
+      }
+      // if cursor position changed (e.g. user moved cursor up - position has changed, but document version did not)
+      if (virtualPosition !== this._virtualPosition) {
+        this.console.log(
+          'skipping highlights response: cursor moved since it was requested'
+        );
+        return;
+      }
+
+      this.handleHighlight(highlights, adapter, document);
+      this._lastToken = {
+        token,
+        adapter
+      };
     } catch (e) {
       this.console.warn('Could not get highlights:', e);
     }
-  };
+  }
 }
 
-const FEATURE_ID = PLUGIN_ID + ':highlights';
+export namespace HighlightsFeature {
+  export interface IOptions extends Feature.IOptions {
+    settings: FeatureSettings<LSPHighlightsSettings>;
+    editorExtensionRegistry: IEditorExtensionRegistry;
+    contextAssembler: ContextAssembler;
+  }
+  export const id = PLUGIN_ID + ':highlights';
+}
 
 export const HIGHLIGHTS_PLUGIN: JupyterFrontEndPlugin<void> = {
-  id: FEATURE_ID,
-  requires: [ILSPFeatureManager, ISettingRegistry],
+  id: HighlightsFeature.id,
+  requires: [
+    ILSPFeatureManager,
+    ISettingRegistry,
+    IEditorExtensionRegistry,
+    ILSPDocumentConnectionManager
+  ],
   autoStart: true,
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
-    settingRegistry: ISettingRegistry
+    settingRegistry: ISettingRegistry,
+    editorExtensionRegistry: IEditorExtensionRegistry,
+    connectionManager: ILSPDocumentConnectionManager
   ) => {
-    const settings = new FeatureSettings(settingRegistry, FEATURE_ID);
-
-    featureManager.register({
-      feature: {
-        editorIntegrationFactory: new Map([['CodeMirrorEditor', HighlightsCM]]),
-        id: FEATURE_ID,
-        name: 'LSP Highlights',
-        settings: settings
-      }
+    const contextAssembler = new ContextAssembler({ app, connectionManager });
+    const settings = new FeatureSettings<LSPHighlightsSettings>(
+      settingRegistry,
+      HighlightsFeature.id
+    );
+    await settings.ready;
+    if (settings.composite.disable) {
+      return;
+    }
+    const feature = new HighlightsFeature({
+      settings,
+      editorExtensionRegistry,
+      connectionManager,
+      contextAssembler
     });
+    featureManager.register(feature);
   }
 };

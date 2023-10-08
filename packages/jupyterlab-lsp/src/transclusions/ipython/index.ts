@@ -1,9 +1,10 @@
 import { JupyterFrontEndPlugin } from '@jupyterlab/application';
+import { ILSPCodeExtractorsManager } from '@jupyterlab/lsp';
 
 import { ILSPCodeOverridesManager } from '../../overrides/tokens';
-import { ILSPCodeExtractorsManager, PLUGIN_ID } from '../../tokens';
+import { PLUGIN_ID } from '../../tokens';
 
-import { foreign_code_extractors } from './extractors';
+import { foreignCodeExtractors } from './extractors';
 import { overrides } from './overrides';
 
 export const IPYTHON_TRANSCLUSIONS: JupyterFrontEndPlugin<void> = {
@@ -11,16 +12,16 @@ export const IPYTHON_TRANSCLUSIONS: JupyterFrontEndPlugin<void> = {
   requires: [ILSPCodeExtractorsManager, ILSPCodeOverridesManager],
   activate: (
     app,
-    extractors_manager: ILSPCodeExtractorsManager,
-    overrides_manager: ILSPCodeOverridesManager
+    extractorsManager: ILSPCodeExtractorsManager,
+    overrideManager: ILSPCodeOverridesManager
   ) => {
-    for (let language of Object.keys(foreign_code_extractors)) {
-      for (let extractor of foreign_code_extractors[language]) {
-        extractors_manager.register(extractor, language);
+    for (let language of Object.keys(foreignCodeExtractors)) {
+      for (let extractor of foreignCodeExtractors[language]) {
+        extractorsManager.register(extractor, language);
       }
     }
     for (let override of overrides) {
-      overrides_manager.register(override, 'python');
+      overrideManager.register(override, 'python');
     }
   },
   autoStart: true

@@ -49,9 +49,8 @@ ${MENU SETTINGS}                xpath://div[contains(@class, 'lm-MenuBar-itemLab
 ${MENU EDITOR THEME}
 ...                             xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Text Editor Theme")]
 ${LAB MENU}                     css:.lm-Menu
-${CM CURSOR}                    css:.CodeMirror-cursor
-${CM CURSORS}
-...                             css:.jp-MainAreaWidget:not(.lm-mod-hidden) .CodeMirror-cursors:not([style='visibility: hidden'])
+${ACTIVE CURSOR}
+...                             css:.jp-MainAreaWidget:not(.lm-mod-hidden) .cm-cursorLayer:not([style='visibility: hidden']) .cm-cursor-primary
 # settings
 ${LSP PLUGIN ID}                @jupyter-lsp/jupyterlab-lsp:plugin
 ${COMPLETION PLUGIN ID}         @jupyter-lsp/jupyterlab-lsp:completion
@@ -62,8 +61,6 @@ ${HOVER PLUGIN ID}              @jupyter-lsp/jupyterlab-lsp:hover
 ${CSS USER SETTINGS}            .jp-SettingsRawEditor-user
 ${JLAB XP CLOSE SETTINGS}
 ...                             ${JLAB XP DOCK TAB}\[contains(., 'Settings')]/*[contains(@class, 'm-TabBar-tabCloseIcon')]
-# diagnostics
-${CSS DIAGNOSTIC}               css:.cm-lsp-diagnostic
 # log messages
 @{KNOWN BAD ERRORS}
 ...                             pylsp_jsonrpc.endpoint - Failed to handle notification
