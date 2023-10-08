@@ -1,5 +1,6 @@
 import asyncio
 import subprocess
+import sys
 
 import pytest
 from tornado.queues import Queue
@@ -42,7 +43,7 @@ class CommunicatorSpawner:
             )
         )
         return subprocess.Popen(
-            ["python", "-u", str(commands_file)], stdout=subprocess.PIPE, bufsize=0
+            [sys.executable, "-u", str(commands_file)], stdout=subprocess.PIPE, bufsize=0
         )
 
 
