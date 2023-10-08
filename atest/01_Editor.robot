@@ -25,7 +25,9 @@ Docker
     ${def} =    Set Variable    lastToken:PLANET
     Wait Until Keyword Succeeds    3x    100ms    Editor Shows Features for Language    Docker    Dockerfile
     ...    Diagnostics=Instructions should be written in uppercase letters    Jump to Definition=${def}
-    ...    Rename=${def}
+    # skipping rename part because of https://github.com/jupyterlab/jupyterlab/issues/15104
+    skip
+    # ...    Rename=${def}
 
 JS
     ${def} =    Set Variable    lastToken:fib
@@ -78,6 +80,8 @@ R
 
 Robot Framework
     [Tags]    gh:332
+    # skipping as no support for JupyterLab 4.0 to https://github.com/MarketSquare/jupyterlab_robotmode/issues/14
+    skip
     ${def} =    Set Variable    lastToken:Special Log
     Editor Shows Features for Language    Robot Framework    example.robot    Diagnostics=Undefined keyword
     ...    Jump to Definition=${def}

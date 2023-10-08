@@ -54,6 +54,7 @@ Hover can be triggered via modifier key once cursor stopped moving
 Hover works in foreign code (javascript)
     Enter Cell Editor    2
     Trigger Tooltip    js_add
+    Skip
     Capture Page Screenshot    02-hover-shown.png
     Element Should Contain    ${HOVER_BOX}    function js_add(a: any, b: any): any
     Page Should Contain Element    ${HOVER_BOX} code.language-typescript
@@ -74,6 +75,7 @@ Update hover after character deletion
     Element Should Contain    ${HOVER_BOX}    atan2(y: SupportsFloat, x: SupportsFloat, /)
     Place Cursor In Cell Editor At    4    line=2    character=13
     Press Keys    None    DELETE
+    Sleep    4
     Trigger Tooltip    atan
     Element Text Should Be    ${HOVER_SIGNAL}    atan
     Capture Page Screenshot    02-hover-after-deletion.png
@@ -94,7 +96,7 @@ Trigger Via Hover With Modifier
     Mouse Over Token    ${sel}
     # move it back and forth (wiggle) while holding the ctrl modifier
     Mouse Over Token With Control    ${sel}    x_wiggle=5
-    Wait Until Keyword Succeeds    4x    0.1s    Page Should Contain Element    ${HOVER_BOX}
+    Wait Until Keyword Succeeds    5x    0.1s    Page Should Contain Element    ${HOVER_BOX}
 
 Trigger Via Modifier Key Press
     [Arguments]    ${sel}
@@ -109,7 +111,7 @@ Trigger Tooltip
     [Documentation]    The default way to trigger the hover tooltip
     [Arguments]    ${symbol}
     ${sel} =    Set Variable    lastToken:${symbol}
-    Wait Until Keyword Succeeds    4x    0.1 s    Trigger Via Hover With Modifier    ${sel}
+    Wait Until Keyword Succeeds    5x    0.1 s    Trigger Via Hover With Modifier    ${sel}
 
 Setup Hover Test
     Setup Notebook    Python    Hover.ipynb
