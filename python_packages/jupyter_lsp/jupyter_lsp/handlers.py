@@ -2,7 +2,7 @@
 """
 from typing import Optional, Text
 
-from jupyter_server.base.handlers import JupyterHandler
+from jupyter_server.base.handlers import APIHandler
 from jupyter_server.base.zmqhandlers import WebSocketHandler, WebSocketMixin
 from jupyter_server.utils import url_path_join as ujoin
 
@@ -11,7 +11,7 @@ from .schema import SERVERS_RESPONSE
 from .specs.utils import censored_spec
 
 
-class BaseHandler(JupyterHandler):
+class BaseHandler(APIHandler):
     manager = None  # type: LanguageServerManager
 
     def initialize(self, manager: LanguageServerManager):
