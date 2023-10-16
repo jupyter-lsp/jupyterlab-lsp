@@ -13,7 +13,7 @@
       "description": "Default level of the severity for diagnostics without severity provided by the language server."
     },
     "gutter": {
-      "title": "Show guttter (experimental, requires restart)",
+      "title": "Show gutter (experimental, requires restart)",
       "type": "boolean",
       "default": false
     },
