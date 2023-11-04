@@ -70,7 +70,7 @@ describe('Default IPython overrides', () => {
     });
 
     it('some cell magic commands are unwrapped', () => {
-      const cellMagicToUnwrap = "%%capture --no-display\ntext";
+      const cellMagicToUnwrap = '%%capture --no-display\ntext';
       let override = cellMagicsMap.overrideFor(cellMagicToUnwrap)!;
       expect(override).toBe(
         '# START_CELL_MAGIC("capture", " --no-display")\ntext\n# END_CELL_MAGIC'

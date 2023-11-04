@@ -16,7 +16,7 @@ function emptyOrEscaped(x: string) {
   }
 }
 
-const MAGICS_TO_UNWRAP = ["time", "capture"]
+const MAGICS_TO_UNWRAP = ['time', 'capture'];
 
 function unwrapCellMagic(name: string, firstLine: string, content: string) {
   return `# START_CELL_MAGIC("${name}", "${firstLine}")
@@ -140,22 +140,26 @@ export let overrides: IScopedCodeOverride[] = [
       }
       content = content.replace(/"""/g, '\\"\\"\\"');
 
-      let replaced: string
+      let replaced: string;
       if (MAGICS_TO_UNWRAP.includes(name)) {
-        replaced = unwrapCellMagic(name, firstLine, content)
-      }else{
+        replaced = unwrapCellMagic(name, firstLine, content);
+      } else {
         replaced = `get_ipython().run_cell_magic("${name}", "${firstLine}", """${content}""")`;
       }
-      return replaced
+      return replaced;
     },
     scope: 'cell',
     reverse: {
-      pattern:"^get_ipython[\\s\\S]*|^# START_CELL_MAGIC[\\s\\S]*",
-      replacement: (code) => {
-        const regCellMagic = RegExp('^get_ipython\\(\\).run_cell_magic\\("(.*?)", "(.*?)", """([\\s\\S]*)"""\\)');
-        const regUnwrapped = RegExp('^# START_CELL_MAGIC\\("(.*?)", "(.*?)"\\)\n([\\s\\S]*)\n# END_CELL_MAGIC$');
+      pattern: '^get_ipython[\\s\\S]*|^# START_CELL_MAGIC[\\s\\S]*',
+      replacement: code => {
+        const regCellMagic = RegExp(
+          '^get_ipython\\(\\).run_cell_magic\\("(.*?)", "(.*?)", """([\\s\\S]*)"""\\)'
+        );
+        const regUnwrapped = RegExp(
+          '^# START_CELL_MAGIC\\("(.*?)", "(.*?)"\\)\n([\\s\\S]*)\n# END_CELL_MAGIC$'
+        );
         let m = code.match(regCellMagic) || code.match(regUnwrapped);
-        let [name, line, content] = m?.slice(1, 4) || ["", "", ""]
+        let [name, line, content] = m?.slice(1, 4) || ['', '', ''];
         content = content.replace(/\\"\\"\\"/g, '"""');
         line = unescape(line);
         return `%%${name}${line}\n${content}`;
