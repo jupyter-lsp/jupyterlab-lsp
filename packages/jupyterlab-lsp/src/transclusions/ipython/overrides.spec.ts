@@ -69,6 +69,17 @@ describe('Default IPython overrides', () => {
       expect(reverse).toBe(cellMagicWithArgs);
     });
 
+    it('some cell magic commands are unwrapped', () => {
+      const cellMagicToUnwrap = "%%capture --no-display\ntext";
+      let override = cellMagicsMap.overrideFor(cellMagicToUnwrap)!;
+      expect(override).toBe(
+        '# START_CELL_MAGIC("capture", " --no-display")\ntext\n# END_CELL_MAGIC'
+      );
+
+      let reverse = cellMagicsMap.reverse.overrideFor(override);
+      expect(reverse).toBe(cellMagicToUnwrap);
+    });
+
     it('escapes docstrings properly', () => {
       let override = cellMagicsMap.overrideFor(CELL_MAGIC_WITH_DOCSTRINGS)!;
       expect(override).toBe(
