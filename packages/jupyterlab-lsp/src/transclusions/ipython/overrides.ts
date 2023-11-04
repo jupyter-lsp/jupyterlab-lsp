@@ -156,7 +156,7 @@ export let overrides: IScopedCodeOverride[] = [
           '^get_ipython\\(\\).run_cell_magic\\("(.*?)", "(.*?)", """([\\s\\S]*)"""\\)'
         );
         const regUnwrapped = RegExp(
-          '^# START_CELL_MAGIC\\("(.*?)", "(.*?)"\\)\n([\\s\\S]*)\n# END_CELL_MAGIC$'
+          '^# START_CELL_MAGIC\\("(.*?)", "(.*?)"\\)\\n([\\s\\S]*)\\n# END_CELL_MAGIC$'
         );
         let m = code.match(regCellMagic) || code.match(regUnwrapped);
         let [name, line, content] = m?.slice(1, 4) || ['', '', ''];
