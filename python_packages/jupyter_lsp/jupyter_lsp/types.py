@@ -200,12 +200,12 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
 
     nodejs = Unicode(help=_("path to nodejs executable")).tag(config=True)
 
-    node_roots = List_([], help=_("absolute paths in which to seek node_modules")).tag(
-        config=True
-    )
+    node_roots = List_(
+        Unicode(), help=_("absolute paths in which to seek node_modules")
+    ).tag(config=True)
 
     extra_node_roots = List_(
-        [], help=_("additional absolute paths to seek node_modules first")
+        Unicode(), help=_("additional absolute paths to seek node_modules first")
     ).tag(config=True)
 
     def find_node_module(self, *path_frag):
