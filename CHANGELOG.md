@@ -1101,8 +1101,14 @@ Requires JupyterLab `>=3.6.0,<4.0.0a0` and Python 3.8 or newer.
 ### `jupyter-lsp 0.6.0b0`
 
 - features
+
   - starts language servers on demand
   - accepts configuration via Jupyter config system (traitlets) and python
     `entry_point`s
   - autodetects language servers for bash, CSS, LESS, SASS, Dockerfile, YAML, JS,
     TypeScript, JSX, TSX, JSON, YAML
+
+- bugfixes
+  - fix issue that variables declared in cell magics(%%time, %%capture) are masked(
+    [#635](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/635)
+    )
