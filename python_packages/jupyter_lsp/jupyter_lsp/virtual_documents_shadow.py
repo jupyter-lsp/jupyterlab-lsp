@@ -104,7 +104,6 @@ class ShadowFilesystemError(ValueError):
 
 
 def setup_shadow_filesystem(virtual_documents_uri: str):
-
     if not virtual_documents_uri.startswith("file:/"):
         raise ShadowFilesystemError(  # pragma: no cover
             'Virtual documents URI has to start with "file:/", got '

@@ -43,7 +43,9 @@ class CommunicatorSpawner:
             )
         )
         return subprocess.Popen(
-            [sys.executable, "-u", str(commands_file)], stdout=subprocess.PIPE, bufsize=0
+            [sys.executable, "-u", str(commands_file)],
+            stdout=subprocess.PIPE,
+            bufsize=0,
         )
 
 
