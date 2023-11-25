@@ -94,7 +94,7 @@ export class GenericCompleterModel<
     return super.createPatch(patch);
   }
 
-  resolveQuery(userQuery: string, _item: T) {
+  protected resolveQuery(userQuery: string, _item: T) {
     return userQuery;
   }
 
@@ -283,7 +283,7 @@ export class LSPCompleterModel extends GenericCompleterModel<MaybeCompletionItem
     }
   }
 
-  resolveQuery(userQuery: string, item: MaybeCompletionItem) {
+  protected resolveQuery(userQuery: string, item: MaybeCompletionItem) {
     return userQuery
       ? userQuery
       : item.source === 'LSP'
