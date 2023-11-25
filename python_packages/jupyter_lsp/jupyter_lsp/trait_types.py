@@ -1,4 +1,3 @@
-import six
 import traitlets
 
 
@@ -34,7 +33,7 @@ class LoadableCallable(traitlets.TraitType):
             except Exception:
                 self.error(obj, value)
 
-        if six.callable(value):
+        if callable(value):
             return value
         else:
             self.error(obj, value)

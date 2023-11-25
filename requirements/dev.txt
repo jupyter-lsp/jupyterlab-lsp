@@ -7,4 +7,3 @@ pyls-isort
 pyls-mypy
 pytest-cov
 ruamel.yaml
-types-six

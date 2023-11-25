@@ -12,4 +12,3 @@ dependencies:
   - pytest-tornasync
   - robotframework-robocop
   - robotframework-tidy
-  - types-six

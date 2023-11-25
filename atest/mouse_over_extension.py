@@ -17,7 +17,7 @@ def mouse_over_token_with_control(token_locator, x_wiggle=0):
 
     action.key_action.key_down(Keys.CONTROL)
 
-    action.pointer_action.move_to_location(location['x'], location['y'])
+    action.pointer_action.move_to_location(location["x"], location["y"])
     wiggle(action, x_wiggle)
     action.key_action.key_up(Keys.CONTROL)
 
@@ -28,14 +28,14 @@ def mouse_over_token_and_wiggle(token_locator, x_wiggle=5):
     sl: SeleniumLibrary = BuiltIn().get_library_instance("SeleniumLibrary")
     action = ActionBuilder(sl.driver)
     location = _find_text_in_line(token_locator)
-    action.pointer_action.move_to_location(location['x'], location['y'])
+    action.pointer_action.move_to_location(location["x"], location["y"])
     wiggle(action, x_wiggle)
     return action.perform()
 
 
 def _find_text_in_line(token_locator: str):
-    which, text = token_locator.split(':', maxsplit=1)
-    assert which == 'lastToken'
+    which, text = token_locator.split(":", maxsplit=1)
+    assert which == "lastToken"
     sl: SeleniumLibrary = BuiltIn().get_library_instance("SeleniumLibrary")
     sl.driver.execute_script(
         """
@@ -83,8 +83,9 @@ def _find_text_in_line(token_locator: str):
             y: (rect.top + rect.bottom) / 2
         }
         """,
-        text
+        text,
     )
+
 
 def _emit_over_text_in_line(token_locator: str, event: str):
     sl: SeleniumLibrary = BuiltIn().get_library_instance("SeleniumLibrary")
@@ -101,7 +102,7 @@ def _emit_over_text_in_line(token_locator: str, event: str):
         location.parentElement.dispatchEvent(e);
         """,
         location,
-        event
+        event,
     )
 
 
@@ -109,13 +110,13 @@ def mouse_over_token(token_locator: str):
     sl: SeleniumLibrary = BuiltIn().get_library_instance("SeleniumLibrary")
     action = ActionBuilder(sl.driver)
     location = _find_text_in_line(token_locator)
-    action.pointer_action.move_to_location(location['x'], location['y'])
+    action.pointer_action.move_to_location(location["x"], location["y"])
     return action.perform()
 
 
 def click_token(token_locator: str):
-    return _emit_over_text_in_line(token_locator, event='click')
+    return _emit_over_text_in_line(token_locator, event="click")
 
 
 def open_context_menu_over_token(token_locator: str):
-    return _emit_over_text_in_line(token_locator, event='contextmenu')
+    return _emit_over_text_in_line(token_locator, event="contextmenu")
