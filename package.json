@@ -26,8 +26,7 @@
     "vscode-html-languageserver-bin": "^1.4.0",
     "vscode-json-languageserver-bin": "^1.0.1",
     "vscode-json-languageservice": "^4.1.8",
-    "yaml-language-server": "^1.0.0",
-    "yarn-deduplicate": "^6.0.2"
+    "yaml-language-server": "^1.0.0"
   },
   "husky": {
     "hooks": {}
@@ -46,7 +45,7 @@
   },
   "scripts": {
     "bootstrap": "jlpm & jlpm deduplicate && lerna bootstrap && jlpm clean && jlpm build && jlpm lint",
-    "deduplicate": "yarn-deduplicate -s fewer --fail",
+    "deduplicate": "jlpm dedupe --strategy highest",
     "build": "jlpm build:schema && jlpm build:meta && jlpm build:labextension",
     "build:schema": "lerna run build:schema --stream",
     "build:meta": "lerna run build --stream --scope @jupyter-lsp/jupyterlab-lsp-metapackage",
