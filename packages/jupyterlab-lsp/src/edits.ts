@@ -189,6 +189,14 @@ export class EditApplicator {
     if (!editor) {
       throw Error('Editor is not accessible');
     }
+    if (editor.host.closest('.jp-MarkdownCell')) {
+      // Workaround for https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1008
+      // briefly, the rewrite for JupyterLab 4.0 added Markdown cell support, but they
+      // are extracted without trace in the top-level document. Here we avoid editing
+      // any markdown cell. Instead the clean solution would be to add an anchor marker
+      // to the top-level document.
+      return 0;
+    }
     // TODO: should accessor present the model even if editor is not created yet?
     const model = editor.model;
 
