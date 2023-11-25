@@ -9,7 +9,7 @@ describe('LSPCompleterModel', () => {
   function createDummyItem(
     match: lsProtocol.CompletionItem,
     type: string = 'dummy',
-    source: string = 'lsp'
+    source: string = 'LSP'
   ) {
     return new CompletionItem({
       type,
@@ -78,6 +78,51 @@ describe('LSPCompleterModel', () => {
     model.query = 'test';
     let sortedItems = model.completionItems();
     expect(sortedItems.map(item => item.sortText)).toEqual(['a', 'b', 'c']);
+  });
+
+  describe('pre-filtering', () => {
+    beforeEach(() => {
+      // order of cursor/current matters
+      model.current = model.original = {
+        text: 'a',
+        line: 0,
+        column: 1
+      };
+      model.cursor = { start: 0, end: 1 };
+    });
+
+    const prefixA = createDummyItem({
+      label: 'a'
+    });
+    const prefixB = createDummyItem({
+      label: 'b'
+    });
+    const prefixBButNotLSP = createDummyItem(
+      {
+        label: 'b'
+      },
+      'dummy',
+      'not LSP'
+    );
+
+    it('filters out non-matching LSP completions', () => {
+      model.setCompletionItems([prefixA, prefixB]);
+      let items = model.completionItems();
+      expect(items.map(item => item.insertText)).toEqual(['a']);
+    });
+
+    it('does not filter out non LSP completions', () => {
+      model.setCompletionItems([prefixA, prefixBButNotLSP]);
+      let items = model.completionItems();
+      expect(items.map(item => item.insertText)).toEqual(['a', 'b']);
+    });
+
+    it('does not filter out when turned off', () => {
+      model.setCompletionItems([prefixA, prefixB]);
+      model.settings.preFilterMatches = false;
+      let items = model.completionItems();
+      expect(items.map(item => item.insertText)).toEqual(['a']);
+    });
   });
 
   describe('sorting by source', () => {

@@ -59,50 +59,6 @@ export class GenericCompleterModel<
     return item as T;
   }
 
-  setCompletionItems(newValue: T[]) {
-    super.setCompletionItems(newValue);
-
-    if (this.current && this.cursor) {
-      // set initial query to pre-filter items; in future we should use:
-      // https://github.com/jupyterlab/jupyterlab/issues/9763#issuecomment-1001603348
-
-      // note: start/end from cursor are not ideal because these get populated from fetch
-      // reply which will vary depending on what providers decide to return; we want the
-      // actual position in token, the same as passed in request to fetch. We can get it
-      // by searching for longest common prefix as seen below (or by counting characters).
-      // Maybe upstream should expose it directly?
-      const { start, end } = this.cursor;
-      const { text, line, column } = this.original!;
-
-      const queryRange = text.substring(start, end).trim();
-      const linePrefix = text.split('\n')[line].substring(0, column).trim();
-      let query = '';
-      for (let i = queryRange.length; i > 0; i--) {
-        if (queryRange.slice(0, i) == linePrefix.slice(-i)) {
-          query = linePrefix.slice(-i);
-          break;
-        }
-      }
-      if (!query) {
-        return;
-      }
-
-      let trimmedQuotes = false;
-      // special case for "Completes Paths In Strings" test case
-      if (query.startsWith('"') || query.startsWith("'")) {
-        query = query.substring(1);
-        trimmedQuotes = true;
-      }
-      if (query.endsWith('"') || query.endsWith("'")) {
-        query = query.substring(0, -1);
-        trimmedQuotes = true;
-      }
-      if (this.settings.preFilterMatches || trimmedQuotes) {
-        this.query = query;
-      }
-    }
-  }
-
   private _markFragment(value: string): string {
     return `<mark>${value}</mark>`;
   }
@@ -138,7 +94,11 @@ export class GenericCompleterModel<
     return super.createPatch(patch);
   }
 
-  private _sortAndFilter(query: string, items: T[]): T[] {
+  resolveQuery(userQuery: string, _item: T) {
+    return userQuery;
+  }
+
+  private _sortAndFilter(userQuery: string, items: T[]): T[] {
     let results: ICompletionMatch<T>[] = [];
 
     for (let item of items) {
@@ -148,6 +108,8 @@ export class GenericCompleterModel<
 
       let filterText: string | null = null;
       let filterMatch: StringExt.IMatchResult | null = null;
+
+      const query = this.resolveQuery(userQuery, item);
 
       let lowerCaseQuery = query.toLowerCase();
 
@@ -247,10 +209,6 @@ export namespace GenericCompleterModel {
      */
     includePerfectMatches?: boolean;
     /**
-     * Whether matches should be pre-filtered (default = true)
-     */
-    preFilterMatches?: boolean;
-    /**
      * Whether kernel completions should be shown first.
      */
     kernelCompletionsFirst?: boolean;
@@ -258,7 +216,6 @@ export namespace GenericCompleterModel {
   export const defaultOptions: IOptions = {
     caseSensitive: true,
     includePerfectMatches: true,
-    preFilterMatches: true,
     kernelCompletionsFirst: false
   };
 }
@@ -267,11 +224,71 @@ type MaybeCompletionItem = Partial<CompletionItem> &
   CompletionHandler.ICompletionItem;
 
 export class LSPCompleterModel extends GenericCompleterModel<MaybeCompletionItem> {
+  public settings: LSPCompleterModel.IOptions;
+
+  constructor(settings: LSPCompleterModel.IOptions = {}) {
+    super();
+    this.settings = { ...LSPCompleterModel.defaultOptions, ...settings };
+  }
+
   protected getFilterText(item: MaybeCompletionItem): string {
     if (item.filterText) {
       return item.filterText;
     }
     return super.getFilterText(item);
+  }
+
+  setCompletionItems(newValue: MaybeCompletionItem[]) {
+    super.setCompletionItems(newValue);
+    this._preFilterQuery = '';
+
+    if (this.current && this.cursor) {
+      // set initial query to pre-filter items; in future we should use:
+      // https://github.com/jupyterlab/jupyterlab/issues/9763#issuecomment-1001603348
+
+      // note: start/end from cursor are not ideal because these get populated from fetch
+      // reply which will vary depending on what providers decide to return; we want the
+      // actual position in token, the same as passed in request to fetch. We can get it
+      // by searching for longest common prefix as seen below (or by counting characters).
+      // Maybe upstream should expose it directly?
+      const { start, end } = this.cursor;
+      const { text, line, column } = this.original!;
+
+      const queryRange = text.substring(start, end).trim();
+      const linePrefix = text.split('\n')[line].substring(0, column).trim();
+      let query = '';
+      for (let i = queryRange.length; i > 0; i--) {
+        if (queryRange.slice(0, i) == linePrefix.slice(-i)) {
+          query = linePrefix.slice(-i);
+          break;
+        }
+      }
+      if (!query) {
+        return;
+      }
+
+      let trimmedQuotes = false;
+      // special case for "Completes Paths In Strings" test case
+      if (query.startsWith('"') || query.startsWith("'")) {
+        query = query.substring(1);
+        trimmedQuotes = true;
+      }
+      if (query.endsWith('"') || query.endsWith("'")) {
+        query = query.substring(0, -1);
+        trimmedQuotes = true;
+      }
+      if (this.settings.preFilterMatches || trimmedQuotes) {
+        this._preFilterQuery = query;
+      }
+    }
+  }
+
+  resolveQuery(userQuery: string, item: MaybeCompletionItem) {
+    return userQuery
+      ? userQuery
+      : item.source === 'LSP'
+      ? this._preFilterQuery
+      : '';
   }
 
   protected harmoniseItem(item: CompletionHandler.ICompletionItem) {
@@ -306,4 +323,19 @@ export class LSPCompleterModel extends GenericCompleterModel<MaybeCompletionItem
       a.score - b.score
     );
   }
+
+  private _preFilterQuery: string = '';
+}
+
+export namespace LSPCompleterModel {
+  export interface IOptions extends GenericCompleterModel.IOptions {
+    /**
+     * Whether matches should be pre-filtered (default = true)
+     */
+    preFilterMatches?: boolean;
+  }
+  export const defaultOptions: IOptions = {
+    ...GenericCompleterModel.defaultOptions,
+    preFilterMatches: true
+  };
 }
