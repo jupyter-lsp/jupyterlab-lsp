@@ -44,7 +44,7 @@
     "jest": "^29.0.0"
   },
   "scripts": {
-    "bootstrap": "jlpm & jlpm deduplicate && lerna bootstrap && jlpm clean && jlpm build && jlpm lint",
+    "bootstrap": "jlpm & jlpm deduplicate && jlpm clean && jlpm build && jlpm lint",
     "deduplicate": "jlpm dedupe --strategy highest",
     "build": "jlpm build:schema && jlpm build:meta && jlpm build:labextension",
     "build:schema": "lerna run build:schema --stream",
