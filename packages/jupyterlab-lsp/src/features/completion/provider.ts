@@ -301,6 +301,10 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
     }
     const manager = this.options.connectionManager;
     const widget = context.widget as IDocumentWidget;
+    if (typeof widget.context === 'undefined') {
+      // there is no path for Console as it is not a DocumentWidget
+      return false;
+    }
     const adapter = manager.adapters.get(widget.context.path);
     if (!adapter) {
       return false;
