@@ -42,7 +42,6 @@ def test_normalize_posix_path_home_subdir(
     ],
 )
 def test_normalize_windows_path_case(root_dir, expected_root_uri):  # pragma: no cover
-
     try:
         normalized = normalized_uri(root_dir)
     except FileNotFoundError as err:

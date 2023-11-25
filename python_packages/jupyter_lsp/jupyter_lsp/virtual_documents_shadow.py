@@ -104,7 +104,6 @@ class ShadowFilesystemError(ValueError):
 
 
 def setup_shadow_filesystem(virtual_documents_uri: str):
-
     if not virtual_documents_uri.startswith("file:/"):
         raise ShadowFilesystemError(  # pragma: no cover
             'Virtual documents URI has to start with "file:/", got '
@@ -164,7 +163,7 @@ def setup_shadow_filesystem(virtual_documents_uri: str):
                         "[lsp] initialization of shadow filesystem failed three times"
                         " check if the path set by `LanguageServerManager.virtual_documents_dir`"
                         " or `JP_LSP_VIRTUAL_DIR` is correct; if this is happening with a server"
-                        " for which which you control (or wish to override) jupyter-lsp specification"
+                        " for which you control (or wish to override) jupyter-lsp specification"
                         " you can try switching `requires_documents_on_disk` off. The errors were: %s",
                         failures,
                     )

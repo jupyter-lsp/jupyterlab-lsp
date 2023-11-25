@@ -63,11 +63,11 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
     autodetect: bool = Bool(  # type:ignore[assignment]
         True, help=_("try to find known language servers in sys.prefix (and elsewhere)")
-    ).tag(
-        config=True
-    )
+    ).tag(config=True)
 
-    sessions: Dict[Tuple[Text], LanguageServerSession] = Dict_(  # type:ignore[assignment]
+    sessions: Dict[
+        Tuple[Text], LanguageServerSession
+    ] = Dict_(  # type:ignore[assignment]
         trait=Instance(LanguageServerSession),
         default_value={},
         help="sessions keyed by language server name",
@@ -86,9 +86,15 @@ class LanguageServerManager(LanguageServerManagerAPI):
         help="""Whether the manager has been initialized""", default_value=False
     )
 
-    all_listeners = List_(trait=LoadableCallable).tag(config=True)
-    server_listeners = List_(trait=LoadableCallable).tag(config=True)
-    client_listeners = List_(trait=LoadableCallable).tag(config=True)
+    all_listeners = List_(  # type:ignore[var-annotated]
+        trait=LoadableCallable  # type:ignore[arg-type]
+    ).tag(config=True)
+    server_listeners = List_(  # type:ignore[var-annotated]
+        trait=LoadableCallable  # type:ignore[arg-type]
+    ).tag(config=True)
+    client_listeners = List_(  # type:ignore[var-annotated]
+        trait=LoadableCallable  # type:ignore[arg-type]
+    ).tag(config=True)
 
     @default("language_servers")
     def _default_language_servers(self):
