@@ -1,12 +1,48 @@
-import { collapseToDotted, escapeMarkdown, urisEqual } from './utils';
+import {
+  collapseToDotted,
+  escapeMarkdown,
+  uriToContentsPath,
+  urisEqual
+} from './utils';
 
-describe('uris_equal', () => {
+describe('urisEqual', () => {
   it('should workaround Windows paths/Pyright issues', () => {
     const result = urisEqual(
       'file:///d%3A/a/jupyterlab-lsp/jupyterlab-lsp/atest/output/windows_39_4/home/n%C3%B6te%20b%C3%B2%C3%B3ks/example.py',
       'file:///d:/a/jupyterlab-lsp/jupyterlab-lsp/atest/output/windows_39_4/home/n%C3%B6te%20b%C3%B2%C3%B3ks/example.py'
     );
     expect(result).toBe(true);
+  });
+});
+
+describe('uriToContentsPath', () => {
+  it('should decode special characters', () => {
+    const result = uriToContentsPath(
+      '/node_modules/%40organization/package/lib/file.d.ts',
+      ''
+    );
+    expect(result).toBe('/node_modules/@organization/package/lib/file.d.ts');
+  });
+
+  it('should remove shared prefix', () => {
+    const result = uriToContentsPath(
+      'file:///home/user/project/.virtual_documents/test.ipynb',
+      'file:///home/user/project'
+    );
+    expect(result).toBe('/.virtual_documents/test.ipynb');
+  });
+
+  it('should workaround Windows paths/Pyright issues', () => {
+    let result = uriToContentsPath(
+      'file:///d%3A/user/project/.virtual_documents/test.ipynb',
+      'file:///d:/user/project'
+    );
+    expect(result).toBe('/.virtual_documents/test.ipynb');
+    result = uriToContentsPath(
+      'file:///d%3A/user/project/.virtual_documents/test.ipynb',
+      'file:///d%3A/user/project'
+    );
+    expect(result).toBe('/.virtual_documents/test.ipynb');
   });
 });
 
