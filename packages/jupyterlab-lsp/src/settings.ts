@@ -49,6 +49,11 @@ function isJSONProperty(obj: unknown): obj is IJSONProperty {
 type LanguageServerSettings = Record<string, ServerSchemaWrapper>;
 
 /**
+ * Default server priority; this should match the value defined in `plugin.json` schema.
+ */
+const DEAULT_SERVER_PRIORITY = 50;
+
+/**
  * Get default values from JSON Schema properties field.
  */
 function getDefaults(
@@ -396,7 +401,7 @@ export class SettingsSchemaManager {
         composite.language_servers
       );
 
-      composite.language_servers = this._mergeByServer(
+      composite.language_servers = SettingsSchemaManager.mergeByServer(
         collapsedDefaults.settings,
         collapsedUser.settings
       );
@@ -552,7 +557,7 @@ export class SettingsSchemaManager {
     };
   }
 
-  private _mergeByServer(
+  static mergeByServer(
     defaults: LanguageServerSettings,
     userSettings: LanguageServerSettings
   ): LanguageServerSettings {
@@ -565,9 +570,19 @@ export class SettingsSchemaManager {
         // nothing to merge with
         result[serverKey] = JSONExt.deepCopy(serverSettingsGroup);
       } else {
+        // priority should come from (a) user (b) overrides (c) fallback default;
+        // unfortunately the user and default values get merged in the form so we
+        // cannot distinguish (a) from (c); as a workaround we can compare its value
+        // with the default value.
+        const userOrDefaultPriority = serverSettingsGroup.priority;
+        const isPriorityUserSet =
+          typeof userOrDefaultPriority !== 'undefined' &&
+          userOrDefaultPriority !== DEAULT_SERVER_PRIORITY;
+        const priority = isPriorityUserSet
+          ? userOrDefaultPriority
+          : result[serverKey].priority ?? DEAULT_SERVER_PRIORITY;
         const merged: Required<ServerSchemaWrapper> = {
-          priority: (result[serverKey].priority ||
-            serverSettingsGroup.priority) as any,
+          priority,
           // `serverSettings` entries are expected to be flattened to dot notation here.
           serverSettings: {
             ...(result[serverKey].serverSettings || {}),
