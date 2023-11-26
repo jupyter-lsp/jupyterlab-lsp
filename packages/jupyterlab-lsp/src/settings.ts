@@ -401,7 +401,7 @@ export class SettingsSchemaManager {
         composite.language_servers
       );
 
-      composite.language_servers = this._mergeByServer(
+      composite.language_servers = SettingsSchemaManager.mergeByServer(
         collapsedDefaults.settings,
         collapsedUser.settings
       );
@@ -557,7 +557,7 @@ export class SettingsSchemaManager {
     };
   }
 
-  private _mergeByServer(
+  static mergeByServer(
     defaults: LanguageServerSettings,
     userSettings: LanguageServerSettings
   ): LanguageServerSettings {
