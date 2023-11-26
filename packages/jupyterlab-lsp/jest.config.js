@@ -23,12 +23,11 @@ const esModules = [
 ].join('|');
 
 let local = {
-  globals: { 'ts-jest': { tsconfig: 'tsconfig.json' } },
   testRegex: `.*\.spec\.tsx?$`,
   transformIgnorePatterns: [`/node_modules/(?!${esModules}).*`],
   testLocationInResults: true,
   transform: {
-    '\\.(ts|tsx)?$': 'ts-jest',
+    '\\.(ts|tsx)?$': ['ts-jest', { tsconfig: 'tsconfig.json' }],
     '\\.(js|jsx)?$': './transform.js',
     '\\.svg$': '@jupyterlab/testing/lib/jest-raw-loader.js'
   },
