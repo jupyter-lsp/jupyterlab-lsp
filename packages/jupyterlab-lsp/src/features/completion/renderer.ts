@@ -185,8 +185,18 @@ export class LSPCompletionRenderer
   }
 
   itemWidthHeuristic(item: CompletionItem): number {
-    const labelSize = item.label.replace(/<(\/)?mark>/g, '').length;
+    let labelSize = item.label.replace(/<(\/)?mark>/g, '').length;
     const extraTextSize = this.getExtraInfo(item).length;
+    const type = item.type.toLowerCase();
+    if (type === 'file' || type === 'path') {
+      // account for elision
+      const parts = item.label.split(/<\/mark>/g);
+      const lastPart = parts[parts.length - 1];
+      const proposedElipsed = lastPart.length + 3;
+      if (proposedElipsed < labelSize) {
+        labelSize = proposedElipsed;
+      }
+    }
     if (this.options.settings.composite.layout === 'side-by-side') {
       // in 'side-by-side' take the sum
       return labelSize + extraTextSize;

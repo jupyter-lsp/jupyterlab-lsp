@@ -23,13 +23,17 @@ body[data-lsp-completer-layout] .jp-Completer-docpanel {
   flex-shrink: 0;
 }
 
-body[data-lsp-completer-layout] .jp-Completer {
-  --lsp-completer-max-label-width: 350px;
+body[data-lsp-completer-layout] {
+  /* Important to use selectors which work on body so that size estimation
+  works when the list items get temporarily attached to the body */
+  --lsp-completer-max-label-width: 400px;
   --lsp-completer-max-detail-width: 200px;
 }
 
 body[data-lsp-completer-layout] .jp-Completer-match {
-  max-width: var(--lsp-completer-max-label-width);
+  max-width: calc(
+    var(--lsp-completer-max-label-width) + var(--lsp-completer-max-detail-width)
+  );
   overflow-x: hidden;
   white-space: nowrap;
   display: block;
@@ -80,7 +84,7 @@ body[data-lsp-completer-layout='detail-below'] .jp-Completer-match {
   height: var(--lsp-completer-label-height);
 }
 
-.lsp-completer .jp-Completer-item .jp-Completer-typeExtended {
+body[data-lsp-completer-layout] .jp-Completer-item .jp-Completer-typeExtended {
   max-width: var(--lsp-completer-max-detail-width);
   min-height: 50px;
   overflow-x: hidden;
@@ -102,6 +106,8 @@ body[data-lsp-completer-layout] mark.lsp-elide:first-child {
   flex-shrink: 1;
   /* always reserve small space to fit the ellipsis */
   min-width: 20px;
+  /* a reasonably long limit on the space taken by the elipsis */
+  max-width: calc(var(--lsp-completer-max-label-width) / 2);
 }
 
 body[data-lsp-completer-layout] .lsp-elide-wrapper {
@@ -118,16 +124,12 @@ body[data-lsp-completer-layout='detail-below'] .jp-Completer-typeExtended {
   position: relative;
   top: -2px;
   overflow: hidden;
-  max-width: calc(
-    var(--lsp-completer-max-label-width) + var(--lsp-completer-max-detail-width)
-  );
+  max-width: var(--lsp-completer-max-label-width);
 }
 
 body[data-lsp-completer-layout='detail-below'] .jp-Completer-match {
   overflow: hidden;
-  max-width: calc(
-    var(--lsp-completer-max-label-width) + var(--lsp-completer-max-detail-width)
-  );
+  max-width: var(--lsp-completer-max-label-width);
 }
 
 body[data-lsp-completer-layout='detail-below']
