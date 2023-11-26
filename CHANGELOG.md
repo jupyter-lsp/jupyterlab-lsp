@@ -1,5 +1,30 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 5.0.1`
+
+- bug fixes:
+  - fix false “undefined name” in `%%time` and `%%capture` magics #1007 (thanks @i-aki-y!)
+  - fix completion items for paths and other long items being cut off #1025
+  - workaround issue with markdown lost on edit #1016
+  - fix latex/Greek letters insertion and other completions which do not match prefix (do not pre-filter completions from kernel) #1022
+  - fix completions in Console #1023
+  - fix customising `priority` after pre-setting it with `overrides.json` #1027
+  - fix jump to definitions in a file inside root in Pyright on Windows #1024
+  - fix typos in setting title and help message #999 and #1010
+- maintenance:
+  - fix bootstrap script #1021
+  - bump axios from 1.2.1 to 1.6.2 #1019
+  - bump @babel/traverse from 7.22.5 to 7.23.4 #1020
+
+### `jupyter-lsp 2.2.1`
+
+- bug fixes:
+  - use `APIHandler` over `JupyterHandler` to get CORS OPTIONS #952 (thanks @zhanba!)
+  - use `shutil.which` to discover `npm` executable on Windows (thanks @jameshurst!)
+- maintenance:
+  - resolve traitlets type warnings, lint, remove six #1015
+  - use `sys.executable` in stdio tests #998
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.0`
 
 - enhancements:

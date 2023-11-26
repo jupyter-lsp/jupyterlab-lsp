@@ -1,6 +1,6 @@
 {
   "name": "@jupyter-lsp/jupyterlab-lsp",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Language Server Protocol integration for JupyterLab",
   "keywords": [
     "jupyter",
@@ -61,7 +61,7 @@
   },
   "dependencies": {
     "@jupyter-lsp/code-jumpers": "~2.0.0",
-    "@jupyter-lsp/completion-theme": "~4.0.0",
+    "@jupyter-lsp/completion-theme": "~4.0.1",
     "@jupyter-lsp/theme-material": "~3.0.0",
     "@jupyter-lsp/theme-vscode": "~3.0.0",
     "@jupyterlab/lsp": "^4.0.6",
