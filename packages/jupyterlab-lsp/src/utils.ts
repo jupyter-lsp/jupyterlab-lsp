@@ -132,6 +132,11 @@ export function uriToContentsPath(child: string, parent?: string) {
   if (parent == null) {
     return null;
   }
+  const winPaths = isWinPath(parent) && isWinPath(child);
+  if (winPaths) {
+    parent = normalizeWinPath(parent);
+    child = normalizeWinPath(child);
+  }
   if (child.startsWith(parent)) {
     // 'decodeURIComponent' is needed over 'decodeURI' for '@' in TS/JS paths
     return decodeURIComponent(child.replace(parent, ''));
