@@ -34,6 +34,13 @@ Works When Kernel Is Idle
     ${content} =    Get Cell Editor Content    1
     Should Contain    ${content}    TabError
 
+Does Not Break Native Completions When Disabled
+    Configure JupyterLab Plugin    {"disabled": true}    plugin id=${COMPLETION PLUGIN ID}
+    Enter Cell Editor    1    line=2
+    Trigger Completer
+    Completer Should Suggest    try
+    Completer Should Not Suggest    test
+
 Filters Completions In Case Sensitive Mode
     [Documentation]    Completions filtering is case-sensitive when caseSensitive is true
     Configure JupyterLab Plugin    {"caseSensitive": true}    plugin id=${COMPLETION PLUGIN ID}
