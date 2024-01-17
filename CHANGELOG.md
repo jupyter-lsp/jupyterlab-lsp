@@ -1,5 +1,16 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 5.0.2`
+
+- bug fixes:
+  - fix native JupyterLab completion not working when LSP completion plugin is disabled (#1036)
+
+### `jupyter-lsp 2.2.2`
+
+- bug fixes:
+  - address warning about renamed `extension_points` (#1035)
+  - fix compatibility with jupyter server 1.x
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.1`
 
 - bug fixes:
