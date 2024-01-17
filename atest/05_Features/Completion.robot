@@ -35,7 +35,7 @@ Works When Kernel Is Idle
     Should Contain    ${content}    TabError
 
 Does Not Break Native Completions When Disabled
-    Configure JupyterLab Plugin    {"disabled": true}    plugin id=${COMPLETION PLUGIN ID}
+    Configure JupyterLab Plugin    {"disable": true}    plugin id=${COMPLETION PLUGIN ID}
     Enter Cell Editor    1    line=2
     Trigger Completer
     Completer Should Suggest    try
