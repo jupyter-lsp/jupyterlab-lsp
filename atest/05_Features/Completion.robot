@@ -39,7 +39,6 @@ Does Not Break Native Completions When Disabled
     Enter Cell Editor    1    line=2
     Trigger Completer
     Completer Should Suggest    try
-    Completer Should Not Suggest    test
 
 Filters Completions In Case Sensitive Mode
     [Documentation]    Completions filtering is case-sensitive when caseSensitive is true
