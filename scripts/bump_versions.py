@@ -47,7 +47,6 @@ class PackageVersionInfo:
             self.change_version(new_version=version, dry=dry)
 
     def change_version(self, new_version: str, dry: bool):
-
         changelog = CHANGELOG.read_text(encoding="utf-8")
         if new_version not in changelog:
             raise Exception(

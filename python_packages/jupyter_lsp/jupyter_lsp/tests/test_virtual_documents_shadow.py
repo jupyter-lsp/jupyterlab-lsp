@@ -210,6 +210,21 @@ async def test_shadow_failures(shadow_path, manager):
         )
 
 
+@pytest.mark.asyncio
+async def test_shadow_traversal(shadow_path, manager):
+    file_beyond_shadow_root_uri = (Path(shadow_path) / ".." / "test.py").as_uri()
+
+    shadow = setup_shadow_filesystem(Path(shadow_path).as_uri())
+
+    def run_shadow(message):
+        return shadow("client", message, "python-lsp-server", manager)
+
+    with pytest.raises(
+        ShadowFilesystemError, match="is not relative to shadow filesystem root"
+    ):
+        await run_shadow(did_open(file_beyond_shadow_root_uri, "content"))
+
+
 @pytest.fixture
 def forbidden_shadow_path(tmpdir):
     path = Path(tmpdir) / "no_permission_dir"
@@ -238,7 +253,7 @@ async def test_io_failure(forbidden_shadow_path, manager, caplog):
     # no message should be emitted during the first two attempts
     assert caplog.text == ""
 
-    # a wargning should be emitted on third failure
+    # a warning should be emitted on third failure
     with caplog.at_level(logging.WARNING):
         assert await send_change() is None
     assert "initialization of shadow filesystem failed three times" in caplog.text

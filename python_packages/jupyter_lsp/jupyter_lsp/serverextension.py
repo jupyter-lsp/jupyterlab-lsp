@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import traitlets
+from tornado import ioloop
 
 from .handlers import add_handlers
 from .manager import LanguageServerManager
@@ -73,4 +74,11 @@ def load_jupyter_server_extension(nbapp):
     page_config.update(rootUri=root_uri, virtualDocumentsUri=virtual_documents_uri)
 
     add_handlers(nbapp)
-    nbapp.io_loop.call_later(0, initialize, nbapp, virtual_documents_uri)
+
+    if hasattr(nbapp, "io_loop"):
+        io_loop = nbapp.io_loop
+    else:
+        # handle jupyter_server 1.x
+        io_loop = ioloop.IOLoop.current()
+
+    io_loop.call_later(0, initialize, nbapp, virtual_documents_uri)

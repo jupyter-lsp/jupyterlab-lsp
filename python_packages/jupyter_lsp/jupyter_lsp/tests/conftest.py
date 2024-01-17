@@ -5,6 +5,7 @@ from typing import Text
 
 from jupyter_server.serverapp import ServerApp
 from pytest import fixture
+from tornado.httpserver import HTTPRequest
 from tornado.httputil import HTTPServerRequest
 from tornado.queues import Queue
 from tornado.web import Application
@@ -141,9 +142,11 @@ class MockWebsocketHandler(LanguageServerWebSocketHandler):
 
 class MockHandler(LanguageServersHandler):
     _payload = None
+    _jupyter_current_user = "foo"  # type:ignore[assignment]
 
     def __init__(self):
-        pass
+        self.request = HTTPRequest("GET")
+        self.application = Application()
 
     def finish(self, payload):
         self._payload = payload

@@ -1,6 +1,7 @@
 import os
-import pathlib
 import re
+from pathlib import Path
+from typing import Union
 from urllib.parse import unquote, urlparse
 
 RE_PATH_ANCHOR = r"^file://([^/]+|/[A-Z]:)"
@@ -12,7 +13,7 @@ def normalized_uri(root_dir):
     Special care must be taken around windows paths: the canonical form of
     windows drives and UNC paths is lower case
     """
-    root_uri = pathlib.Path(root_dir).expanduser().resolve().as_uri()
+    root_uri = Path(root_dir).expanduser().resolve().as_uri()
     root_uri = re.sub(
         RE_PATH_ANCHOR, lambda m: "file://{}".format(m.group(1).lower()), root_uri
     )
@@ -33,3 +34,12 @@ def file_uri_to_path(file_uri):
     else:
         result = file_uri_path_unquoted  # pragma: no cover
     return result
+
+
+def is_relative(root: Union[str, Path], path: Union[str, Path]) -> bool:
+    """Return if path is relative to root"""
+    try:
+        Path(path).resolve().relative_to(Path(root).resolve())
+        return True
+    except ValueError:
+        return False

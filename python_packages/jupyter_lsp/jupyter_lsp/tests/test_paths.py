@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from ..paths import file_uri_to_path, normalized_uri
+from ..paths import file_uri_to_path, is_relative, normalized_uri
 
 WIN = platform.system() == "Windows"
 HOME = pathlib.Path("~").expanduser()
@@ -15,6 +15,45 @@ PY35 = sys.version_info[:2] == (3, 5)
 @pytest.mark.parametrize("root_dir, expected_root_uri", [["~", HOME.as_uri()]])
 def test_normalize_posix_path_home(root_dir, expected_root_uri):  # pragma: no cover
     assert normalized_uri(root_dir) == expected_root_uri
+
+
+@pytest.mark.skipif(WIN, reason="can't test POSIX paths on Windows")
+@pytest.mark.parametrize(
+    "root, path",
+    [["~", "~/a"], ["~", "~/a/../b/"], ["/", "/"], ["/a", "/a/b"], ["/a", "/a/b/../c"]],
+)
+def test_is_relative_ok(root, path):
+    assert is_relative(root, path)
+
+
+@pytest.mark.skipif(WIN, reason="can't test POSIX paths on Windows")
+@pytest.mark.parametrize(
+    "root, path",
+    [
+        ["~", "~/.."],
+        ["~", "/"],
+        ["/a", "/"],
+        ["/a/b", "/a"],
+        ["/a/b", "/a/b/.."],
+        ["/a", "/a/../b"],
+        ["/a", "a//"],
+    ],
+)
+def test_is_relative_not_ok(root, path):
+    assert not is_relative(root, path)
+
+
+@pytest.mark.skipif(not WIN, reason="can't test Windows paths on POSIX")
+@pytest.mark.parametrize(
+    "root, path",
+    [
+        ["c:\\Users\\user1", "c:\\Users\\"],
+        ["c:\\Users\\user1", "d:\\"],
+        ["c:\\Users", "c:\\Users\\.."],
+    ],
+)
+def test_is_relative_not_ok_win(root, path):
+    assert not is_relative(root, path)
 
 
 @pytest.mark.skipif(PY35, reason="can't test non-existent paths on py35")

@@ -6,4 +6,3 @@ pytest-cov
 pytest-flake8
 pytest-runner
 python-lsp-server
-pluggy<1.0,>=0.12  # Python 3.5 CI Travis, may need update with new pytest releases, see issue 259
