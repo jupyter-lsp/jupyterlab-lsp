@@ -12,3 +12,6 @@ from .types import (
 
 def _jupyter_server_extension_paths():
     return [{"module": "jupyter_lsp"}]
+
+
+_jupyter_server_extension_points = _jupyter_server_extension_paths
