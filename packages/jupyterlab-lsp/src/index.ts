@@ -33,7 +33,10 @@ import { LanguageServers } from './_plugin';
 import { FILEEDITOR_ADAPTER_PLUGIN } from './adapters/fileeditor';
 import { NOTEBOOK_ADAPTER_PLUGIN } from './adapters/notebook';
 import { StatusButtonExtension } from './components/statusbar';
-import { COMPLETION_PLUGIN } from './features/completion';
+import {
+  COMPLETION_PLUGIN,
+  COMPLETION_FALLBACK_PLUGIN
+} from './features/completion';
 import { DIAGNOSTICS_PLUGIN } from './features/diagnostics';
 import { HIGHLIGHTS_PLUGIN } from './features/highlights';
 import { HOVER_PLUGIN } from './features/hover';
@@ -250,7 +253,8 @@ const plugins: JupyterFrontEndPlugin<any>[] = [
   FILEEDITOR_ADAPTER_PLUGIN,
   plugin,
   ...DEFAULT_TRANSCLUSIONS,
-  ...DEFAULT_FEATURES
+  ...DEFAULT_FEATURES,
+  COMPLETION_FALLBACK_PLUGIN
 ];
 
 /**
