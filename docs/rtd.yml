@@ -9,13 +9,14 @@ dependencies:
   - importlib_metadata
   - jupyterlab >=4.0.6,<5.0.0a0
   - myst-nb
-  - nodejs >=16,!=17,<19
+  - nodejs >=18,!=19,!=21,<23
   - pandas
   - pip
   - pytest-check-links
-  - python >=3.8,<3.11.0a0
+  - python >=3.8,<3.13.0a0
   - python-graphviz
   - python-lsp-server
+  - robotframework >=7
   - robotframework-lsp
   - sphinx
   - sphinx-autodoc-typehints

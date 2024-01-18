@@ -24,7 +24,7 @@ Python Dotted
     ...    undefined name 'foo' (pyflakes)
     ...    undefined name 'foo' (flake8)
 
-Python (server-side via overrides.json)
+Python (server-side via overrides JSON)
     [Documentation]    same as "Python" but changing the defaults in server specification via `overrides.json`
     Settings Should Change Editor Diagnostics    Python    style.py    pylsp-with-override-json
     ...    settings=100
@@ -73,7 +73,16 @@ LaTeX
 
 *** Keywords ***
 Settings Should Change Editor Diagnostics
-    [Arguments]    ${language}    ${file}    ${server}    ${settings}    ${before}    ${after}    ${save command}=${EMPTY}    ${needs reload}=${False}    ${setting_key}=serverSettings
+    [Arguments]
+    ...    ${language}
+    ...    ${file}
+    ...    ${server}
+    ...    ${settings}
+    ...    ${before}
+    ...    ${after}
+    ...    ${save command}=${EMPTY}
+    ...    ${needs reload}=${False}
+    ...    ${setting_key}=serverSettings
     ${before diagnostic} =    Set Variable    [title*="${before}"]
     ${after diagnostic} =    Set Variable    [title*="${after}"]
     ${tab} =    Set Variable    ${JLAB XP DOCK TAB}\[contains(., '${file}')]

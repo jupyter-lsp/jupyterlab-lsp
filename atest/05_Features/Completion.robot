@@ -86,7 +86,7 @@ Invalidates On Focus Loss
     Enter Cell Editor    1    line=2
     Press Keys    None    TAB
     Click JupyterLab Menu    File
-    Skip   # usptream issue https://github.com/jupyterlab/jupyterlab/issues/14496
+    Skip    # upstream issue https://github.com/jupyterlab/jupyterlab/issues/14496
     # just to increase chances of catching this on CI (which is slow)
     Sleep    4s
     Completer Should Not Suggest    test
@@ -367,9 +367,9 @@ Completes In R Magics
     Trigger Completer
     Completer Should Suggest    library
     # workaround to scroll down in the notebook
-    Press Keys    None   ESC
-    Press Keys    None   ARROW_DOWN
-    Press Keys    None   ARROW_DOWN
+    Press Keys    None    ESC
+    Press Keys    None    ARROW_DOWN
+    Press Keys    None    ARROW_DOWN
     # '%R lib<tab>'
     Enter Cell Editor    24    line=1
     Trigger Completer

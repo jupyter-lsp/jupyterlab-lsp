@@ -201,7 +201,7 @@ describe('EditApplicator', () => {
         });
         await environment.init();
         applicator = new EditApplicator(
-          // TODO usptream, adatper should be parameterizable by virtual documentation class to allow overriding it more easily??
+          // TODO upstream, adatper should be parameterizable by virtual documentation class to allow overriding it more easily??
           environment.adapter.virtualDocument as any,
           environment.adapter
         );

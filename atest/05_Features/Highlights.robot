@@ -9,7 +9,8 @@ Test Tags           feature:highlights
 
 
 *** Variables ***
-${HIGHLIGHT_XPATH_SELECTOR}    span[contains(@class, 'cm-lsp-highlight-Read') or contains(@class, 'cm-lsp-highlight-Write') or contains(@class, 'cm-lsp-highlight-Text')]
+${HIGHLIGHT_XPATH_SELECTOR}     span[contains(@class, 'cm-lsp-highlight-Read') or contains(@class, 'cm-lsp-highlight-Write') or contains(@class, 'cm-lsp-highlight-Text')]
+
 
 *** Test Cases ***
 # cursor is symbolized by pipe (|), for example when

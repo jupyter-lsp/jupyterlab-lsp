@@ -135,6 +135,7 @@ Diagnostics Panel Works After Removing Foreign Document
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE R}
 
+
 *** Keywords ***
 Open Context Menu Over W291
     Click Element    css:.lsp-diagnostics-listing th[data-id="Code"]

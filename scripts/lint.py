@@ -5,8 +5,19 @@ import sys
 from pathlib import Path
 from subprocess import call
 
+HAS_ROBOT = False
+
+try:
+    import robot
+
+    HAS_ROBOT = True
+except ImportError:
+    pass
+
+
 OK = 0
 FAIL = 1
+
 
 ROOT = Path(__file__).parent.parent
 PYTHON_PACKAGES_PATH = ROOT / "python_packages"
@@ -39,15 +50,21 @@ ALL_ROBOT = [
 # TODO: explore adopting these conventions
 ROBOCOP_EXCLUDES = [
     "empty-lines-between-sections",
+    "expression-can-be-simplified",
     "file-too-long",
     "missing-doc-keyword",
     "missing-doc-suite",
     "missing-doc-test-case",
+    "missing-doc-resource-file",
+    "replace-create-with-var",
+    "replace-set-variable-with-var",
     "todo-in-comment",
+    "too-long-keyword",
     "too-long-test-case",
     "too-many-arguments",
     "too-many-calls-in-keyword",
     "too-many-calls-in-test-case",
+    "unused-variable",
     "wrong-case-in-keyword-name",
 ]
 
@@ -74,27 +91,22 @@ def lint():
             print("\n...", f"ERROR {return_code}", *str_args, "\n")
         return return_code
 
-    return max(
-        map(
-            call_with_print,
-            [
-                ["isort", *ALL_PY],
-                ["black", "--quiet", *ALL_PY],
-                ["flake8", *ALL_PY],
-                *[
-                    # see https://github.com/python/mypy/issues/4008
-                    ["mypy", *paths]
-                    for paths in PY_SRC_PACKAGES.values()
-                ],
-                # ["pylint", *ALL_PY],
-                ["robotidy", *ALL_ROBOT],
-                # see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/911
-                # ["robocop", *ROBOCOP, *ALL_ROBOT],
-                ["python", "scripts/atest.py", "--dryrun", "--console", "dotted"],
-                ["python", "scripts/nblint.py"],
-            ],
-        )
-    )
+    linters = [
+        ["isort", *ALL_PY],
+        ["black", "--quiet", *ALL_PY],
+        ["flake8", *ALL_PY],
+        *[["mypy", *paths] for paths in PY_SRC_PACKAGES.values()],
+        ["python", "scripts/nblint.py"],
+    ]
+
+    if HAS_ROBOT:
+        linters += [
+            ["python", "scripts/atest.py", "--dryrun", "--console", "dotted"],
+            ["robotidy", *ALL_ROBOT],
+            ["robocop", *ROBOCOP, *ALL_ROBOT],
+        ]
+
+    return max(map(call_with_print, linters))
 
 
 if __name__ == "__main__":

@@ -47,7 +47,7 @@ jobs:
         lab: ['>=4.0.6,<5.0.0a0']
         r: ['>=4']
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: cschleiden/replace-tokens@v1
         with:
@@ -59,7 +59,7 @@ jobs:
           nodejs: '${{ matrix.nodejs }}'
 
       - name: Set up Python and mamba
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: requirements/github-actions.yml
           miniforge-variant: Mambaforge
@@ -73,7 +73,7 @@ jobs:
 
       - name: Cache node_modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '**/node_modules'
           key: |
@@ -82,7 +82,7 @@ jobs:
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '.yarn/cache'
           key: |
@@ -127,7 +127,7 @@ jobs:
         lab: ['>=4.0.0,<5.0.0a0']
         r: ['>=4']
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: cschleiden/replace-tokens@v1
         with:
@@ -139,7 +139,7 @@ jobs:
           nodejs: '${{ matrix.nodejs }}'
 
       - name: Set up Python and mamba
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-variant: Mambaforge
           use-mamba: true
@@ -149,7 +149,7 @@ jobs:
 
       - name: Cache node_modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '**/node_modules'
           key: |
@@ -158,7 +158,7 @@ jobs:
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '.yarn/cache'
           key: |
@@ -228,7 +228,7 @@ jobs:
             lab: '>=4,<5'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set JupyterLab and Node versions
         uses: cschleiden/replace-tokens@v1
@@ -241,7 +241,7 @@ jobs:
           nodejs: '${{ matrix.nodejs }}'
 
       - name: Set up Python and mamba
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python }}
           environment-file: requirements/github-actions.yml
@@ -253,7 +253,7 @@ jobs:
 
       - name: Cache node_modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '**/node_modules'
           key: |
@@ -262,7 +262,7 @@ jobs:
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '.yarn/cache'
           key: |
@@ -271,13 +271,13 @@ jobs:
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.julia/artifacts
           key: |
             ${{ env.CACHE_EPOCH }}-julia-test-${{ runner.os }}-${{ env.JULIA_LANGSERVER }}
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
@@ -372,7 +372,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: 'x64'
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
@@ -418,7 +418,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.nodejs }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist

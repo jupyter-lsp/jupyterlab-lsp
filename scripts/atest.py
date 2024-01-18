@@ -67,7 +67,8 @@ def atest(attempt, extra_args):
 
     print("Will use firefox at", os.environ["FIREFOX_BINARY"])
 
-    assert os.path.exists(os.environ["FIREFOX_BINARY"])
+    if "--dryrun" not in extra_args:
+        assert os.path.exists(os.environ["FIREFOX_BINARY"])
 
     extra_args += OS_PY_ARGS.get((OS, PY), [])
 

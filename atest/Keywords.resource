@@ -81,7 +81,6 @@ Read Page Config
     Set Global Variable    ${PAGE CONFIG}    ${config}
     Set Global Variable    ${LAB VERSION}    ${config["appVersion"]}
 
-
 Setup Suite For Screenshots
     [Arguments]    ${folder}
     Set Screenshot Directory    ${SCREENSHOTS DIR}${/}${folder}
@@ -410,7 +409,7 @@ Set Editor Content
     Execute JavaScript
     ...    let view = document.querySelector('${css} .cm-content').cmView.view;
     ...    view.dispatch({
-    ...        changes: {from: 0, to: view.state.doc.length, insert: `${text}`}
+    ...    changes: {from: 0, to: view.state.doc.length, insert: `${text}`}
     ...    });
 
 Get Editor Content
@@ -461,7 +460,7 @@ Cursor Should Jump
 Measure Cursor Position
     Wait Until Page Contains Element    ${ACTIVE CURSOR}
     ${position} =    Wait Until Keyword Succeeds    20 x    0.05s    Get Vertical Position    ${ACTIVE CURSOR}
-    LOG     ${position}
+    LOG    ${position}
     # position = 0 indicates that the element was not active.
     Should Not Be Equal    ${position}    0
     RETURN    ${position}

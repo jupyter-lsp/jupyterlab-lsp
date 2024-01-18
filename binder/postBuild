@@ -1,30 +1,51 @@
-#!/usr/bin/env bash
-set -eux
+#!/usr/bin/env python3
 
-# Build labextensions
-jlpm bootstrap
+import sys
+from pathlib import Path
+from subprocess import call
+import os
+import shutil
+
+# paths
+SERVER_PKG = "python_packages/jupyter_lsp"
+LAB_PKG = "python_packages/jupyterlab_lsp"
+
+# commands
+PY = [sys.executable]
+PIP = [*PY, "-m", "pip"]
+PIP_E = [*PIP, "install", "-vv", "--no-deps", "--ignore-installed", "--no-build-isolation", "-e"]
+JP = [*PY, "-m", "jupyter"]
+SERVER_EXT = [*JP, "server", "extension"]
+LAB_EXT = [*JP, "labextension"]
+
+def do(*args, cwd=None, fail_hard=True):
+    print(">>>", "  ".join(args))
+    rc = call(args, cwd=cwd)
+    if rc and fail_hard:
+        sys.exit(rc)
 
 # Do a dev install of the server side
-pushd python_packages/jupyter_lsp
-    python setup.py sdist bdist_wheel
-    python -m pip install -e . --ignore-installed --no-deps -vv
-    jupyter serverextension enable --sys-prefix --py jupyter_lsp
-    jupyter server extension enable --sys-prefix --py jupyter_lsp
-popd
+do(*PIP_E, SERVER_PKG)
+do(*SERVER_EXT, "enable", "--sys-prefix", "--py", "jupyter_lsp")
+
+# Build labextensions
+do("jlpm")
+do("jlpm", "bootstrap")
 
 # Install the labextension
-pushd python_packages/jupyterlab_lsp
-    python setup.py sdist bdist_wheel
-    python -m pip install -e . --ignore-installed --no-deps -vv
-    jupyter labextension develop . --overwrite
-popd
+do(*PIP_E, LAB_PKG)
+do(*LAB_EXT, "develop", "--overwrite", LAB_PKG)
+
+# deploy default settings
+if os.environ.get("NB_USER") == "jovyan":
+    prefix = Path(sys.prefix)
+    overrides = prefix / "share/jupyter/lab/settings/overrides.json"
+    overrides.parent.mkdir(parents=True, exist_ok=True)
+    if overrides.exists():
+        overrides.unlink()
+    shutil.copy2("binder/overrides.json", overrides)
 
 # List extensions
-jupyter serverextension list
-jupyter server extension list
-jupyter labextension list
-
-if [ "$NB_USER" = "jovyan" ]; then
-    mkdir -p $NB_PYTHON_PREFIX/share/jupyter/lab/settings/
-    cp binder/overrides.json $NB_PYTHON_PREFIX/share/jupyter/lab/settings/
-fi
+do(*SERVER_EXT, "list")
+do(*LAB_EXT, "list")
+do(*PIP, "check", fail_hard=False)
