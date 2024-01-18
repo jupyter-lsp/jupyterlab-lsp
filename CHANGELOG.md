@@ -10,6 +10,9 @@
 - bug fixes:
   - address warning about renamed `extension_points` (#1035)
   - fix compatibility with jupyter server 1.x
+  - fix an authentication-related security vulnerability (see [the advisory](https://github.com/jupyter-lsp/jupyterlab-lsp/security/advisories/GHSA-4qhp-652w-c22x) for details)
+- enhancements:
+  - add authorization support (`lsp` resource, jupyter-server v2+ only) - this is an additional options for server operators allowing for more fine grained control, e.g. in case if specific users (such as guest or read-only users) should not be allowed to access LSP; this is in addition to authentication fixes
 
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.1`
 
