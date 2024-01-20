@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation       Configuration of language servers
 
-Resource            ./Keywords.resource
+Resource            ../_resources/Keywords.resource
 
 Suite Setup         Setup Suite For Screenshots    config
 

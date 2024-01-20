@@ -1,5 +1,5 @@
 *** Settings ***
-Resource            Keywords.resource
+Resource            ../_resources/Keywords.resource
 
 Suite Setup         Setup Server and Browser
 Suite Teardown      Tear Down Everything

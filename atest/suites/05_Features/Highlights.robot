@@ -1,5 +1,5 @@
 *** Settings ***
-Resource            ../Keywords.resource
+Resource            ../../_resources/Keywords.resource
 
 Suite Setup         Setup Suite For Screenshots    highlights
 Test Setup          Setup Highlights Test

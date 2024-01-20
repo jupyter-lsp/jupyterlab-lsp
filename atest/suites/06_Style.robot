@@ -1,6 +1,6 @@
 *** Settings ***
-Resource        Keywords.resource
-Resource        Variables.resource
+Resource        ../_resources/Keywords.resource
+Resource        ../_resources/Variables.resource
 Library         Collections
 
 Suite Setup     Setup Suite For Screenshots    style

@@ -1,6 +1,6 @@
 *** Settings ***
-Resource            ../Keywords.resource
-Library             ../mouse_over_extension.py
+Resource            ../../_resources/Keywords.resource
+Library             ../../_libraries/mouse_over_extension.py
 
 Suite Setup         Setup Suite For Screenshots    hover
 Test Setup          Setup Hover Test

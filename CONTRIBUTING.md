@@ -209,14 +209,14 @@ First, ensure you've prepared JupyterLab for `jupyterlab-lsp`
 Prepare the environment:
 
 ```bash
-conda env update -n jupyterlab-lsp --file requirements/atest.yml
+mamba env update -n jupyterlab-lsp --file requirements/atest.yml
 ```
 
 or with `pip`
 
 ```
-pip install -r requirements/atest.txt  # ... and install geckodriver, somehow
-sudo apt-get install firefox-geckodriver    # ... e.g. on debian/ubuntu
+pip install -r requirements/atest.txt    # ... and install geckodriver, somehow
+sudo apt-get install firefox-geckodriver # ... e.g. on debian/ubuntu
 ```
 
 Run the tests:

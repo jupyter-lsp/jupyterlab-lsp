@@ -2,6 +2,7 @@
 """
 import os
 import platform
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -11,7 +12,9 @@ PY = "".join(map(str, sys.version_info[:2]))
 
 SCRIPTS = Path(__file__).parent
 ROOT = SCRIPTS.parent
-JLSP = ROOT / "python_packages/jupyter_lsp"
+BUILD = ROOT / "build"
+REPORTS = BUILD / "reports" / f"{OS}_{PY}".lower()
+CACHE = BUILD / "_cache/.pytest_cache"
 
 OS_PY_ARGS = {
     # notebook and ipykernel releases do not yet support python 3.8 on windows
@@ -23,18 +26,41 @@ os.environ.update(
 )
 
 
-def run_tests():
+def run_tests(*extra_args):
     """actually run the tests"""
+
+    pytest_reports = REPORTS / "utest"
+
+    if pytest_reports.exists():
+        shutil.rmtree(pytest_reports)
+
+    pytest_reports.mkdir(parents=True)
+
     args = [
         sys.executable,
         "-m",
         "pytest",
+        "-vv",
+        "--color=yes",
+        "--tb=long",
+        "--pyargs",
+        "jupyter_lsp",
+        "-o",
+        f"cache_dir={CACHE}",
+        "--cov=jupyter_lsp",
+        "--cov-report=term-missing:skip-covered",
+        "--cov-report=html:htmlcov",
+        "--cov-context=test",
+        "--cov-branch",
+        "--html=pytest.html",
+        "--self-contained-html",
+        "-n=auto",
         *OS_PY_ARGS.get((OS, PY), []),
-        *sys.argv[1:],
+        *extra_args,
     ]
     print(">>>", "  ".join(args))
-    return subprocess.call(args, cwd=str(JLSP))
+    return subprocess.call(args, cwd=pytest_reports)
 
 
 if __name__ == "__main__":
-    sys.exit(run_tests())
+    sys.exit(run_tests(*sys.argv[1:]))

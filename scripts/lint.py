@@ -79,35 +79,65 @@ ROBOCOP = sum(
 )
 
 
-def lint():
+def _call_with_print(name, args):
+    str_args = [a for a in args if isinstance(a, str)]
+    paths = [a for a in args if isinstance(a, Path)]
+    print(name, len(paths), "paths... ", flush=True)
+    return_code = call(list(map(str, args)))
+    if return_code:
+        print("\t>>> ", *str_args)
+        print("\t!!!", name, "failed:", return_code)
+    else:
+        print("\t...", "OK", name)
+    return return_code
+
+
+def lint(*args):
     """get that linty fresh feeling"""
 
-    def call_with_print(args):
-        str_args = [a for a in args if isinstance(a, str)]
-        paths = [a for a in args if isinstance(a, Path)]
-        print(f"{len(paths)} paths:", " ".join(str_args))
-        return_code = call(list(map(str, args)))
-        if return_code:
-            print("\n...", f"ERROR {return_code}", *str_args, "\n")
-        return return_code
+    fail_fast = "--fail-fast" in args
+    filters = [arg for arg in args if arg != "--fail-fast"]
 
-    linters = [
-        ["isort", *ALL_PY],
-        ["black", "--quiet", *ALL_PY],
-        ["flake8", *ALL_PY],
-        *[["mypy", *paths] for paths in PY_SRC_PACKAGES.values()],
-        ["python", "scripts/nblint.py"],
-    ]
+    linters = {
+        "py_isort": ["isort", *ALL_PY],
+        "py_black": ["black", "--quiet", *ALL_PY],
+        "py_flake8": ["flake8", *ALL_PY],
+        "nb_lint": ["python", "scripts/nblint.py"],
+        **{
+            "py_mypy_" + paths[0].parent.name: ["mypy", *paths]
+            for paths in PY_SRC_PACKAGES.values()
+        },
+    }
 
     if HAS_ROBOT:
-        linters += [
-            ["python", "scripts/atest.py", "--dryrun", "--console", "dotted"],
-            ["robotidy", *ALL_ROBOT],
-            ["robocop", *ROBOCOP, *ALL_ROBOT],
-        ]
+        linters.update(
+            robot_dryrun=[
+                "python",
+                "scripts/atest.py",
+                "--dryrun",
+                "--console",
+                "dotted",
+            ],
+            robot_tidy=["robotidy", *ALL_ROBOT],
+            robot_cop=["robocop", *ROBOCOP, *ALL_ROBOT],
+        )
 
-    return max(map(call_with_print, linters))
+    if filters:
+        linters = {
+            name: args
+            for name, args in linters.items()
+            if not filters or any(f in name for f in filters)
+        }
+
+    max_rc = 0
+
+    for name, args in linters.items():
+        max_rc = max(max_rc, _call_with_print(name, args))
+        if fail_fast and max_rc:
+            break
+
+    return max_rc
 
 
 if __name__ == "__main__":
-    sys.exit(lint())
+    sys.exit(lint(*sys.argv[1:]))

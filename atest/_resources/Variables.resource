@@ -1,5 +1,5 @@
 *** Variables ***
-${FIXTURES}                     ${CURDIR}${/}fixtures
+${FIXTURES}                     ${CURDIR}${/}..${/}_fixtures
 ${JPSERVER CONF JSON}           jupyter_server_config.json
 ${JPSERVER CONF PY}             jupyter_server_config.py
 ${SPLASH}                       id:jupyterlab-splash

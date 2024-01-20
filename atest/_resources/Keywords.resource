@@ -4,13 +4,13 @@ Library     Process
 Library     String
 Library     Collections
 Library     SeleniumLibrary
+Library     ../_libraries/logcheck.py
+Library     ../_libraries/ports.py
+Library     ../_libraries/config.py
+Library     ../_libraries/paths.py
+Library     ../_libraries/diagnostics.py
+Library     ../_libraries/mouse_over_extension.py
 Resource    Variables.resource
-Library     ./logcheck.py
-Library     ./ports.py
-Library     ./config.py
-Library     ./paths.py
-Library     ./diagnostics.py
-Library     ./mouse_over_extension.py
 
 
 *** Keywords ***
@@ -128,11 +128,10 @@ Open JupyterLab
     ${geckodriver} =    Which    geckodriver
     Should Not Be Equal As Strings    ${geckodriver}    None
     ...    geckodriver not found, do you need to install firefox-geckodriver?
-    ${service args} =    Create List    --log    debug
-    Create WebDriver    Firefox
+    Open Browser    ${URL}lab?reset&token=${TOKEN}
+    ...    browser=firefox
     ...    executable_path=${geckodriver}
     ...    service_log_path=${GECKODRIVER LOG}
-    ...    service_args=${service args}
     Wait Until Keyword Succeeds    3x    5s    Wait For Splash
 
 Close JupyterLab
@@ -296,7 +295,7 @@ Setup Notebook
     IF    ${isolated}
         Set Screenshot Directory    ${SCREENSHOTS DIR}${/}notebook${/}${TEST NAME.replace(' ', '_')}
     END
-    Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
+    Copy File    ${CURDIR}${/}..${/}_examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
     IF    ${isolated}    Try to Close All Tabs
     Open ${file} in ${MENU NOTEBOOK}
     Capture Page Screenshot    00-notebook-opened.png
@@ -391,7 +390,7 @@ Prepare File for Editing
 
 Open File
     [Arguments]    ${file}
-    Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
+    Copy File    ${CURDIR}${/}..${/}_examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
     Open ${file} in ${MENU EDITOR}
     Capture Page Screenshot    00-opened.png
 
