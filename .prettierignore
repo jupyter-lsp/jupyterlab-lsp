@@ -1,6 +1,4 @@
-.eggs
-.mypy_cache/
-.pytest_cache/
+.eggs/
 .venv/
 **/_*.d.ts
 **/.ipynb_checkpoints
@@ -10,16 +8,13 @@
 **/labextensions
 **/lib
 **/node_modules
-**/package.json
 **/static
-atest
+atest/
 build/
 coverage
 dist/
 docs/_build
 docs/_templates
 docs/api
-envs
-htmlcov
-node_modules
-tests/**/coverage
+envs/
+lib/
