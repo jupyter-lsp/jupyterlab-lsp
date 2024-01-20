@@ -101,7 +101,7 @@ html_theme_options = {
 
 # MyST-{NB}
 
-jupyter_execute_notebooks = "force"
+nb_execution_mode = "force"
 nb_output_stderr = "remove-warn"
 myst_enable_extensions = [
     "amsmath",
