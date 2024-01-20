@@ -2,18 +2,13 @@
 """
 # pylint: disable=invalid-name,redefined-builtin,import-error
 
-import pathlib
 import subprocess
-import sys
 
-sys.path.insert(
-    0,
-    str(
-        (
-            pathlib.Path.cwd().parent / "python_packages" / "jupyter_lsp" / "src"
-        ).resolve()
-    ),
-)
+from pathlib import Path
+
+DOCS = Path(__file__).parent
+ROOT = DOCS.parent
+YARN_STATE = ROOT / "node_modules/.yarn-state.yml"
 
 project = "Jupyter[Lab] Language Server"
 copyright = "2021, Jupyter[Lab] Language Server Contributors"
@@ -44,7 +39,7 @@ source_suffix = [".rst", ".md"]
 
 master_doc = "index"
 
-language = None
+language = "en"
 
 exclude_patterns = [
     ".ipynb_checkpoints/**",
@@ -121,4 +116,5 @@ myst_enable_extensions = [
 def setup(app):
     """Runs before the "normal business" of sphinx. Don't go too crazy here."""
     app.add_css_file("css/custom.css")
-    subprocess.check_call(["jlpm"])
+    if not YARN_STATE.exists():
+        subprocess.check_call(["jlpm"])

@@ -14,7 +14,7 @@ SCRIPTS = Path(__file__).parent
 ROOT = SCRIPTS.parent
 BUILD = ROOT / "build"
 REPORTS = BUILD / "reports" / f"{OS}_{PY}".lower()
-CACHE = BUILD / "_cache/.pytest_cache"
+CACHE = BUILD / ".cache/.pytest_cache"
 
 OS_PY_ARGS = {
     # notebook and ipykernel releases do not yet support python 3.8 on windows
