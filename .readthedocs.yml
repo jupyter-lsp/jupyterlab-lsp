@@ -1,12 +1,17 @@
 version: 2
 
-sphinx:
-  configuration: docs/conf.py
-
 build:
-  os: ubuntu-20.04
+  os: ubuntu-22.04
   tools:
-    python: mambaforge-4.10
+    python: mambaforge-22.9
+  jobs:
+    pre_build:
+      - python -m pip install -e python_packages/jupyter_lsp/ --no-deps --no-build-isolation
+      - jlpm
+
+sphinx:
+  builder: html
+  configuration: docs/conf.py
 
 conda:
   environment: docs/rtd.yml

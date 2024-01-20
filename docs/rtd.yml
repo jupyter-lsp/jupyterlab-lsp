@@ -30,5 +30,3 @@ dependencies:
   # are resolved
   - pydata-sphinx-theme>=0.7.2 # https://github.com/executablebooks/jupyter-book/issues/1569
   - sphinx-copybutton
-  - pip:
-      - -e ../python_packages/jupyter_lsp/
