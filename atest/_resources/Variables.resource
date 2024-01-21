@@ -1,5 +1,6 @@
 *** Variables ***
 ${FIXTURES}                     ${CURDIR}${/}..${/}_fixtures
+${EXAMPLES}                     ${CURDIR}${/}..${/}_examples
 ${JPSERVER CONF JSON}           jupyter_server_config.json
 ${JPSERVER CONF PY}             jupyter_server_config.py
 ${SPLASH}                       id:jupyterlab-splash
@@ -8,8 +9,8 @@ ${BASE URL}                     /@est/
 ${NOTEBOOK DIR NAME}            nöte bòóks
 # core paths
 ${HOME}                         ${OUTPUT DIR}${/}home
-${LAB LOG}                      ${OUTPUT DIR}${/}lab.log
-${GECKODRIVER LOG}              ${OUTPUT DIR}${/}geckodriver.log
+${LAB LOG}                      ${OUTPUT DIR}${/}lab.log.txt
+${GECKODRIVER LOG}              ${OUTPUT DIR}${/}geckodriver.log.txt
 ${SETTINGS DIR}                 ${OUTPUT DIR}${/}user-settings
 ${WORKSPACES DIR}               ${OUTPUT DIR}${/}workspaces
 ${NOTEBOOK DIR}                 ${HOME}${/}${NOTEBOOK DIR NAME}

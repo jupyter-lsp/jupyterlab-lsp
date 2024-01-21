@@ -41,7 +41,10 @@ for development.
 #### conda
 
 To use the same environment as the binder demo (recommended), start with a
-[Mambaforge](https://conda-forge.org/miniforge/) `base` environment:
+[Mambaforge](https://conda-forge.org/miniforge/) `base` environment.
+
+> While the `conda` commands can be used below, `mamba` provides both faster
+> solves and better error messages.
 
 ```bash
 mamba env update -p ./.venv --file binder/environment.yml  # build, lint, unit test deps
@@ -247,6 +250,12 @@ support wildcards (`*` and `?`) and boolean operators (`NOT`, `OR`). For more,
 start with
 [simple patterns](https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#simple-patterns).
 
+##### Find robot options
+
+```bash
+robot --help
+```
+
 ##### Run a suite
 
 ```bash
@@ -341,14 +350,17 @@ python scripts/combine.py
 
 ### Formatting
 
-Minimal code style is enforced with `pytest-flake8` during unit testing. If installed,
-`pytest-black` and `pytest-isort` can help find potential problems, and lead to
-cleaner commits, but are not enforced during CI tests (but are checked during lint).
-
 You can clean up your code, and check for using the project's style guide with:
 
 ```bash
 python scripts/lint.py
+```
+
+Optionally, to fail on the first linter failure, provide `--fail-fast`. Additional
+arguments are treated as filters for the linters to run.
+
+```bash
+python scripts/lint.py --fail-fast py  # or "js", "robot"
 ```
 
 ### Specs
@@ -481,7 +493,7 @@ Build it!
 python setup.py sdist bdist_wheel
 ```
 
-## Debugging
+### Debugging
 
 To see more see more log messages navigate to `Settings` ❯ `Settings Editor` ❯ `Language Servers` and adjust:
 
@@ -493,4 +505,14 @@ For robot tests set:
 
 ```robot
 Configure JupyterLab Plugin  {"loggingConsole": "floating", "loggingLevel": "debug"}
+```
+
+### Reporting
+
+The human- and machine-readable outputs of many of the above tasks can be combined
+into a single output. This is used by CI to check overall code coverage across
+all of the jobs, collecting and linking everything in `build/reports/index.html`.
+
+```bash
+python scripts/report.py
 ```

@@ -13,6 +13,7 @@ import robot
 OS = platform.system()
 PY = "".join(map(str, sys.version_info[:2]))
 RETRIES = int(os.environ.get("ATEST_RETRIES") or "0")
+ATTEMPT = int(os.environ.get("ATEST_ATTEMPT") or "0")
 
 SCRIPTS = Path(__file__).parent
 ROOT = SCRIPTS.parent.resolve()
@@ -23,10 +24,9 @@ BUILD = ROOT / "build"
 OUT = BUILD / "reports" / f"{OS}_{PY}".lower() / "atest"
 
 OS_PY_ARGS = {
-    # notebook and ipykernel releases do not yet support python 3.8 on windows
+    # example:
+    # notebook and ipykernel releases did not yet support python 3.8 on windows
     # ("Windows", "38"): ["--include", "not-supported", "--runemptysuite"]
-    # TODO: restore when we figure out win36 vs jedi on windows
-    # ("Windows", "36"): ["--exclude", "feature:completion", "--runemptysuite"]
 }
 
 NON_CRITICAL = [
@@ -43,7 +43,7 @@ NON_CRITICAL_ARGS = sum(
 
 DEFAULT_ARGS = [
     # page title, etc: useful information instead of `suites`
-    f"--name={OS}{PY}",
+    f"--name={OS}_{PY}",
     # random ensures there's no inter-test coupling
     "--randomize=all",
     # use wide, colorful output for more readable console logs
@@ -88,8 +88,6 @@ def build_args(out_dir: Path, attempt: int, extra_args):
         f"--outputdir={out_dir}",
         *build_variable_args(OS=OS, PY=PY),
         *extra_args,
-        # the tests to run _must_ come last
-        str(SUITES),
     ]
 
     if attempt != 1:
@@ -97,7 +95,10 @@ def build_args(out_dir: Path, attempt: int, extra_args):
         if previous.exists():
             print("Robot rerun failed:", previous.parent.name)
             args += ["--rerunfailed", str(previous)]
-        args += ["--loglevel", "TRACE"]
+        args += ["--loglevel=TRACE"]
+
+    # the tests to run _must_ come last
+    args += [f"{SUITES}"]
 
     print("Robot CLI Arguments:\n", "  ".join(["robot", *args]))
 
@@ -113,7 +114,7 @@ def build_variable_args(**variables):
 
 def attempt_atest_with_retries(*extra_args):
     """retry the robot tests a number of times"""
-    attempt = 0
+    attempt = ATTEMPT
     error_count = -1
 
     while error_count != 0 and attempt <= RETRIES:
@@ -132,7 +133,7 @@ def get_stem(attempt, extra_args):
     if "--dryrun" in extra_args:
         return "dry_run"
 
-    return "_".join([OS, PY, str(attempt)]).replace(".", "_").lower()
+    return str(attempt)
 
 
 def ensure_out_dir(stem: str):

@@ -78,7 +78,8 @@ Ctrl Click And Jumping Back Works
 Copy Files to Folder With Spaces
     [Arguments]    @{files}
     FOR    ${file}    IN    @{files}
-        Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${FOLDER WITH SPACE}${/}${file}
+        Copy File    ${EXAMPLES}${/}${file}
+        ...    ${NOTEBOOK DIR}${/}${FOLDER WITH SPACE}${/}${file}
     END
 
 Clean Up Folder With Spaces

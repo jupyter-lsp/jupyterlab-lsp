@@ -10,6 +10,7 @@ Library     ../_libraries/config.py
 Library     ../_libraries/paths.py
 Library     ../_libraries/diagnostics.py
 Library     ../_libraries/mouse_over_extension.py
+Library     ../_libraries/firefox.py
 Resource    Variables.resource
 
 
@@ -18,7 +19,16 @@ Setup Server and Browser
     Initialize Global Variables
     Create Notebok Server Config
     Initialize User Settings
-    ${server} =    Start Process    jupyter-lab
+    ${context} =    Set Variable    atest-${OS.lower()}-${PY.lower()}
+    ${cov_data} =    Set Variable    ${OUTPUT_DIR}${/}.coverage-${context}
+    @{cov_args} =    Set Variable
+    ...    coverage    run
+    ...    --branch    --parallel-mode
+    ...    --source    jupyter_lsp
+    ...    --data-file    ${cov_data}
+    ...    --context    ${context}
+    ...    -m
+    ${server} =    Start Process    @{cov_args}    jupyterlab
     ...    cwd=${NOTEBOOK DIR}
     ...    stdout=${LAB LOG}
     ...    stderr=STDOUT
@@ -29,7 +39,7 @@ Setup Server and Browser
     Read Page Config
 
 Initialize Global Variables
-    ${root} =    Normalize Path    ${OUTPUT DIR}${/}..${/}..${/}..
+    ${root} =    Normalize Path    ${CURDIR}${/}..${/}..
     Set Global Variable    ${ROOT}    ${root}
     ${accel} =    Evaluate    "COMMAND" if "${OS}" == "Darwin" else "CTRL"
     Set Global Variable    ${ACCEL}    ${accel}
@@ -55,6 +65,7 @@ Create Notebok Server Config
     Update Jupyter Config    ${conf}    ServerApp
     ...    base_url=${BASE URL}
     ...    port=${PORT}
+    Update Jupyter Config    ${conf}    IdentityProvider
     ...    token=${TOKEN}
     Update Jupyter Config    ${conf}    LabApp
     ...    user_settings_dir=${SETTINGS DIR}
@@ -128,10 +139,12 @@ Open JupyterLab
     ${geckodriver} =    Which    geckodriver
     Should Not Be Equal As Strings    ${geckodriver}    None
     ...    geckodriver not found, do you need to install firefox-geckodriver?
+    ${options} =    Make Firefox Options
     Open Browser    ${URL}lab?reset&token=${TOKEN}
     ...    browser=firefox
     ...    executable_path=${geckodriver}
     ...    service_log_path=${GECKODRIVER LOG}
+    ...    options=${options}
     Wait Until Keyword Succeeds    3x    5s    Wait For Splash
 
 Close JupyterLab
@@ -295,7 +308,7 @@ Setup Notebook
     IF    ${isolated}
         Set Screenshot Directory    ${SCREENSHOTS DIR}${/}notebook${/}${TEST NAME.replace(' ', '_')}
     END
-    Copy File    ${CURDIR}${/}..${/}_examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
+    Copy File    ${EXAMPLES}${/}${file}    ${NOTEBOOK DIR}${/}${file}
     IF    ${isolated}    Try to Close All Tabs
     Open ${file} in ${MENU NOTEBOOK}
     Capture Page Screenshot    00-notebook-opened.png
@@ -390,7 +403,7 @@ Prepare File for Editing
 
 Open File
     [Arguments]    ${file}
-    Copy File    ${CURDIR}${/}..${/}_examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
+    Copy File    ${EXAMPLES}${/}${file}    ${NOTEBOOK DIR}${/}${file}
     Open ${file} in ${MENU EDITOR}
     Capture Page Screenshot    00-opened.png
 

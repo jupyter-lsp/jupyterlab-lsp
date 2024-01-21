@@ -26,7 +26,7 @@ Screenshot Editor Themes with Lab Theme
     ${norm lab theme} =    Set Variable    ${lab theme.lower().replace(" ", "-")}
     Set Tags    theme:lab:${norm lab theme}
     Set Screenshot Directory    ${SCREENSHOTS DIR}${/}style${/}${norm lab theme}
-    Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
+    Copy File    ${EXAMPLES}${/}${file}    ${NOTEBOOK DIR}${/}${file}
     IF    "${THEME NAMES}" == ""
         Wait Until Keyword Succeeds    3x    1s    Get Theme Names
     END

@@ -52,9 +52,8 @@ def run_tests(*extra_args):
         "--cov-report=html:htmlcov",
         "--cov-context=test",
         "--cov-branch",
-        "--html=pytest.html",
+        "--html=pytest/index.html",
         "--self-contained-html",
-        "-n=auto",
         *OS_PY_ARGS.get((OS, PY), []),
         *extra_args,
     ]

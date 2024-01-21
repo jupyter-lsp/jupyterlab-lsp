@@ -3,7 +3,6 @@
 # pylint: disable=invalid-name,redefined-builtin,import-error
 
 import subprocess
-
 from pathlib import Path
 
 DOCS = Path(__file__).parent
