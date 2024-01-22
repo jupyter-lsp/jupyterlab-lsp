@@ -19,12 +19,12 @@ Setup Server and Browser
     Initialize Global Variables
     Create Notebok Server Config
     Initialize User Settings
+    Create Directory    ${LOGS}
     ${context} =    Set Variable    atest-${OS.lower()}-${PY.lower()}
-    ${cov_data} =    Set Variable    ${OUTPUT_DIR}${/}.coverage-${context}
+    ${cov_data} =    Set Variable    ${LOGS}${/}.coverage-${context}
     @{cov_args} =    Set Variable
     ...    coverage    run
-    ...    --branch    --parallel-mode
-    ...    --source    jupyter_lsp
+    ...    --rcfile    ${ROOT}${/}setup.cfg
     ...    --data-file    ${cov_data}
     ...    --context    ${context}
     ...    -m

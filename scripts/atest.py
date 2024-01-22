@@ -17,6 +17,7 @@ ATTEMPT = int(os.environ.get("ATEST_ATTEMPT") or "0")
 
 SCRIPTS = Path(__file__).parent
 ROOT = SCRIPTS.parent.resolve()
+SETUP_CFG = ROOT / "setup.cfg"
 
 ATEST = ROOT / "atest"
 SUITES = ATEST / "suites"
@@ -53,9 +54,13 @@ DEFAULT_ARGS = [
 ]
 
 
-# because we use diagnostics as a litmus for "working", revert to behavior
-# from before https://github.com/bash-lsp/bash-language-server/pull/269
-os.environ["HIGHLIGHT_PARSING_ERRORS"] = "true"
+os.environ.update(
+    # because we use diagnostics as a litmus for "working", revert to behavior
+    # from before https://github.com/bash-lsp/bash-language-server/pull/269
+    HIGHLIGHT_PARSING_ERRORS="true",
+    # use the top-level coverage config to get consistent paths, etc.
+    COVERAGE_RCFILE=str(SETUP_CFG),
+)
 
 
 def atest(attempt, extra_args):

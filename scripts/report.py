@@ -27,101 +27,115 @@ MD_ARGS = [*REPORT_ARGS, "--format=markdown"]
 
 INDEX = REPORTS / "index.html"
 INDEX_CSS = """
+:root {
+    --tiger-bg: rgba(0, 0, 128, 0.125);
+    --bg: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: dark;
+        --tiger-bg: rgba(128, 128, 255, 0.125);
+        --bg: #000;
+    }
+}
 * {
-  font-family: sans-serif;
+    font-family: sans-serif;
 }
 body {
-    display: flex;
     padding: 0;
     margin: 0;
+    background-color: var(--bg);
+}
+.main {
+    display: flex;
 }
 code {
   font-family: monospace;
 }
-td, th {
-  text-align: left;
-  padding: 0.5em;
-}
-tbody tr:nth-child(odd) {
-  background-color: rgba(0, 0, 128, 0.125);
-}
-header {
-    padding: 0 1em;
-    position: absolute;
-    z-index: -1;
-}
-table {
+.main > .files {
     padding: 1em;
-    max-height: 100%;
+    max-height: 100vh;
     overflow-y: auto;
 }
-iframe {
+.main > iframe {
     flex: 1;
     width: 100%;
-    background-color: #fff;
+    background-color: var(--bg);
     max-height: 100vh;
     border: 0;
+    height: 100vh;
+}
+ul {
+    margin: 0;
+    padding: 0;
+}
+li {
+    margin: 0;
+    padding: 0;
+    padding-left: 0.5em;
 }
 """
 INDEX_TMPL = """
+{% macro get_type(path, name) %}
+    {% if "htmlcov" in path %}
+        <code>coverage.py</code>
+    {% elif "utest" in path %}
+        <code>pytest</code>
+    {% elif "atest" in path %}
+        {% if name == "log.html" %}
+            <code>robot</code> log
+        {% elif name == "report.html" %}
+            <code>robot</code> summary
+        {% elif "geckodriver" in name %}
+            <code>geckodriver</code> browser log
+        {% elif "lab.log" in name %}
+            <code>jupyterlab</code> log
+        {% endif %}
+    {% elif "coverage" in path and name == "index.html" %}
+        <code>coverage.py</code> summary
+    {% endif %}
+{% endmacro %}
+
+{% macro make_tree(name, tree) %}
+<li>
+    <label><code>{{ name }}/</code></label>
+    <ul>
+    {% for child_name, child in tree["children"].items() %}
+        {% if child.href %}
+            {{ make_leaf(child_name, child.href) }}
+        {% else %}
+            {% if child.children["index.html"] and (child.children | count) == 1 %}
+                {{ make_leaf(child_name, child.children["index.html"].href) }}
+            {% else %}
+                {{ make_tree(child_name, child) }}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    </ul>
+</li>
+{% endmacro %}
+
+{% macro make_leaf(name, href) %}
+<li>
+    <a href="./{{ href }}" target="report">
+        <strong>
+            <code>{{ name }}</code>
+        </strong>
+    </a>
+</li>
+{% endmacro %}
+
 <html>
   <head>
     <title>{{ title }}</title>
     <style>{{ css }}</style>
   </head>
   <body>
-    <header>
-        <h1>{{ title }}</h1>
-        <p>
-            Click a report to the left to view it.
-        </p>
-    </header>
-    <iframe name="report" id="report"></iframe>
-    <table>
-        <thead>
-            <tr>
-                <th>folder</>
-                <th>name</>
-                <th>type</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for file in files %}
-            {% set path = file.parent.relative_to(reports).as_posix() %}
-            {% set stat = file.stat() %}
-            {% set name = file.name %}
-            <tr>
-                <th>
-                    <code>{{ path }}</code>
-                </th>
-                <th>
-                    <a href="./{{ path }}/{{ name }}" target="report">
-                        <code>{{ name }}</code></a>
-                        ({{ (stat.st_size / 1024) | round(0) | int }}kb)
-                </th>
-                <td>
-                    {% if "htmlcov" in path %}
-                        <code>coverage.py</code>
-                    {% elif "utest" in path %}
-                        <code>pytest</code>
-                    {% elif "atest" in path %}
-                        {% if name == "log.html" %}
-                            <code>robot</code> log
-                        {% elif name == "report.html" %}
-                            <code>robot</code> summary
-                        {% elif "geckodriver" in name %}
-                            <code>geckodriver</code> browser log
-                        {% elif "lab.log" in name %}
-                            <code>jupyterlab</code> log
-                        {% endif %}
-                    {% elif "coverage" in path and name == "index.html" %}
-                        <code>coverage.py</code> summary
-                    {% endif %}
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <div class="main">
+        <ul class="files">{{ make_tree(".", file_tree) }}</ul>
+        <iframe name="report" id="report"></iframe>
+    </div>
   </body>
 </html>
 """
@@ -158,21 +172,37 @@ def report_python_coverage(*extra_args):
     return final_rc
 
 
+def find_files():
+    files = sorted(
+        [
+            *REPORTS.rglob("index.html"),
+            *REPORTS.rglob("log.html"),
+            *REPORTS.rglob("*.log.txt"),
+        ]
+    )
+    file_tree = {"children": {}}
+
+    for file in files:
+        rel = file.relative_to(REPORTS).as_posix()
+        bits = rel.split("/")
+        current = file_tree["children"]
+        for bit in bits[:-1]:
+            current = current.setdefault(bit, {"children": {}})["children"]
+        current[file.name] = {"href": rel}
+    return file_tree
+
+
 def report_index():
     if INDEX.exists():
         INDEX.unlink()
+
+    file_tree = find_files()
+
     context = dict(
         title="jupyter-lsp reports",
         css=INDEX_CSS,
         reports=REPORTS,
-        files=sorted(
-            [
-                *REPORTS.rglob("index.html"),
-                *REPORTS.rglob("log.html"),
-                *REPORTS.rglob("report.html"),
-                *REPORTS.rglob("*.log.txt"),
-            ]
-        ),
+        file_tree=file_tree,
     )
     INDEX.write_text(jinja2.Template(INDEX_TMPL).render(context))
     print("Wrote HTML index to", INDEX.as_uri())

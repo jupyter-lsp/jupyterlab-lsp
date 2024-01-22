@@ -9,8 +9,9 @@ ${BASE URL}                     /@est/
 ${NOTEBOOK DIR NAME}            nöte bòóks
 # core paths
 ${HOME}                         ${OUTPUT DIR}${/}home
-${LAB LOG}                      ${OUTPUT DIR}${/}lab.log.txt
-${GECKODRIVER LOG}              ${OUTPUT DIR}${/}geckodriver.log.txt
+${LOGS}                         ${OUTPUT DIR}${/}logs
+${LAB LOG}                      ${LOGS}${/}lab.log.txt
+${GECKODRIVER LOG}              ${LOGS}${/}geckodriver.log.txt
 ${SETTINGS DIR}                 ${OUTPUT DIR}${/}user-settings
 ${WORKSPACES DIR}               ${OUTPUT DIR}${/}workspaces
 ${NOTEBOOK DIR}                 ${HOME}${/}${NOTEBOOK DIR NAME}
