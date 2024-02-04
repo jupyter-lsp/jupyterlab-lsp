@@ -225,7 +225,6 @@ export class VirtualDocument extends VirtualDocumentBase {
       );
       if (extractor.standalone && unusedStandalone.length > 0) {
         foreignDocument = unusedStandalone.pop()!;
-        this.unusedDocuments.delete(foreignDocument);
       } else {
         // if (previous document does not exists) or (extractor produces standalone documents
         // and no old standalone document could be reused): create a new document
