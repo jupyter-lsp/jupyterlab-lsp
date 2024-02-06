@@ -4,7 +4,7 @@ import {
   ISettingRegistry,
   ISchemaValidator
 } from '@jupyterlab/settingregistry';
-import { TranslationBundle } from '@jupyterlab/translation';
+import { TranslationBundle, nullTranslator } from '@jupyterlab/translation';
 import {
   JSONExt,
   ReadonlyPartialJSONObject,
@@ -21,7 +21,7 @@ import {
   renderCollapseConflicts
 } from './components/serverSettings';
 import { ILSPLogConsole } from './tokens';
-import { collapseToDotted } from './utils';
+import { collapseToDotted, expandDottedPaths } from './utils';
 
 type ValueOf<T> = T[keyof T];
 type ServerSchemaWrapper = ValueOf<
@@ -76,7 +76,7 @@ function getDefaults(
 }
 
 /**
- * Get a mutable property matching a dotted key.
+ * Get a mutable property matching a dotted key and a properly nested value.
  *
  * Most LSP server schema properties are flattened using dotted convention,
  * e.g. a key for {pylsp: {plugins: {flake8: {enabled: true}}}}` is stored
@@ -86,12 +86,13 @@ function getDefaults(
  * properties like `reportGeneralTypeIssues` or `reportPropertyTypeMismatch`.
  * Only one level of nesting (on the finale level) is supported.
  */
-function findSchemaProperty(
+function nestInSchema(
   properties: PartialJSONObject,
-  key: string
-): PartialJSONObject | null {
+  key: string,
+  value: PartialJSONObject
+): { property: PartialJSONObject; value: PartialJSONObject } | null {
   if (properties.hasOwnProperty(key)) {
-    return properties[key] as PartialJSONObject;
+    return { property: properties[key] as PartialJSONObject, value };
   }
   const parts = key.split('.');
   const prefix = parts.slice(0, -1).join('.');
@@ -103,10 +104,31 @@ function findSchemaProperty(
     }
     const parentProperties = parent.properties as PartialJSONObject;
     if (parentProperties.hasOwnProperty(suffix)) {
-      return parentProperties[suffix] as PartialJSONObject;
+      return {
+        property: parent,
+        value: { [suffix]: value }
+      };
     }
   }
   return null;
+}
+
+function mergePropertyDefault(
+  property: PartialJSONObject,
+  value: PartialJSONObject
+) {
+  if (
+    property.type === 'object' &&
+    typeof property.default === 'object' &&
+    typeof value === 'object'
+  ) {
+    property.default = {
+      ...property.default,
+      ...value
+    };
+  } else {
+    property.default = value;
+  }
 }
 
 /**
@@ -267,6 +289,36 @@ export class SettingsSchemaManager {
     schema: ISettingRegistry.ISchema
   ) {
     const languageServerManager = this.options.languageServerManager;
+
+    const { properties, defaults } = SettingsSchemaManager.transformSchemas({
+      schema,
+      // TODO: expose `specs` upstream and use `ILanguageServerManager` instead
+      specs: (languageServerManager as LanguageServerManager).specs,
+      sessions: languageServerManager.sessions,
+      console: this.console,
+      trans: this.options.trans
+    });
+
+    schema.properties!.language_servers.properties = properties;
+    schema.properties!.language_servers.default = defaults;
+
+    this._validateSchemaLater(plugin, schema).catch(this.console.warn);
+    this._defaults = defaults;
+  }
+
+  /**
+   * Transform the plugin schema defaults, properties and descriptions
+   */
+  static transformSchemas(options: {
+    schema: ISettingRegistry.ISchema;
+    specs: LanguageServerManager['specs'];
+    sessions: ILanguageServerManager['sessions'];
+    console?: ILSPLogConsole;
+    trans?: TranslationBundle;
+  }) {
+    const { schema, sessions, specs } = options;
+    const trans = options.trans ?? nullTranslator.load('jupyterlab-lsp');
+    const console = options.console ?? window.console;
     const baseServerSchema = (schema.definitions as any)['language-server'] as {
       description: string;
       title: string;
@@ -285,47 +337,41 @@ export class SettingsSchemaManager {
       | Record<string, any>
       | undefined;
 
-    // TODO: expose `specs` upstream
-    for (let [serverKey, serverSpec] of (
-      languageServerManager as LanguageServerManager
-    ).specs.entries()) {
+    for (let [serverKey, serverSpec] of specs.entries()) {
       if ((serverKey as string) === '') {
-        this.console.warn(
-          'Empty server key - skipping transformation for',
-          serverSpec
+        console.warn(
+          `Empty server key - skipping transformation for ${serverSpec}`
         );
         continue;
       }
 
       const configSchema = serverSpec.config_schema;
       if (!configSchema) {
-        this.console.warn(
-          'No config schema - skipping transformation for',
-          serverKey
+        console.warn(
+          `No config schema - skipping transformation for ${serverKey}`
         );
         continue;
       }
       if (!configSchema.properties) {
-        this.console.warn(
-          'No properties in config schema - skipping transformation for',
-          serverKey
+        console.warn(
+          `No properties in config schema - skipping transformation for ${serverKey}`
         );
         continue;
       }
 
       // let user know if server not available (installed, etc)
-      if (!languageServerManager.sessions.has(serverKey)) {
-        configSchema.description = this.options.trans.__(
+      if (!sessions.has(serverKey)) {
+        configSchema.description = trans.__(
           'Settings that would be passed to `%1` server (this server was not detected as installed during startup) in `workspace/didChangeConfiguration` notification.',
           serverSpec.display_name
         );
       } else {
-        configSchema.description = this.options.trans.__(
+        configSchema.description = trans.__(
           'Settings to be passed to %1 in `workspace/didChangeConfiguration` notification.',
           serverSpec.display_name
         );
       }
-      configSchema.title = this.options.trans.__('Workspace Configuration');
+      configSchema.title = trans.__('Workspace Configuration');
 
       // resolve refs
       for (let [key, value] of Object.entries(configSchema.properties)) {
@@ -339,14 +385,14 @@ export class SettingsSchemaManager {
           const definitionID = value['$ref'].substring(14);
           const definition = configSchema.definitions[definitionID];
           if (definition == null) {
-            this.console.warn('Definition not found');
+            console.warn('Definition not found');
           }
           for (let [defKey, defValue] of Object.entries(definition)) {
             configSchema.properties[key][defKey] = defValue;
           }
           delete value.$ref;
         } else {
-          this.console.warn('Unsupported $ref', value['$ref']);
+          console.warn('Unsupported $ref', value['$ref']);
         }
       }
 
@@ -357,14 +403,14 @@ export class SettingsSchemaManager {
         for (const [key, value] of Object.entries(
           workspaceConfigurationDefaults
         )) {
-          const property = findSchemaProperty(configSchema.properties, key);
-          if (!property) {
-            this.console.warn(
+          const nested = nestInSchema(configSchema.properties, key, value);
+          if (!nested) {
+            console.warn(
               `"workspace_configuration" includes an override for "${key}" key which was not found in ${serverKey} schema'`
             );
             continue;
           }
-          property.default = value;
+          mergePropertyDefault(nested.property, nested.value);
         }
       }
       // add server-specific default overrides from `overrides.json` (and pre-defined in schema)
@@ -376,14 +422,18 @@ export class SettingsSchemaManager {
         for (const [key, value] of Object.entries(
           serverDefaultsOverrides.serverSettings
         )) {
-          const property = findSchemaProperty(configSchema.properties, key);
-          if (!property) {
-            this.console.warn(
+          const nested = nestInSchema(
+            configSchema.properties,
+            key,
+            value as any
+          );
+          if (!nested) {
+            console.warn(
               `"overrides.json" includes an override for "${key}" key which was not found in ${serverKey} schema`
             );
             continue;
           }
-          property.default = value as any;
+          mergePropertyDefault(nested.property, nested.value);
         }
       }
 
@@ -399,11 +449,67 @@ export class SettingsSchemaManager {
       };
     }
 
-    schema.properties!.language_servers.properties = knownServersConfig;
-    schema.properties!.language_servers.default = defaults;
+    return {
+      properties: knownServersConfig,
+      defaults
+    };
+  }
 
-    this._validateSchemaLater(plugin, schema).catch(this.console.warn);
-    this._defaults = defaults;
+  /**
+   * Expands dotted values into nested properties when the server config schema
+   * indicates that this is needed. The schema is passed within the specs.
+   *
+   * This is needed because some settings, specifically pright's
+   * `python.analysis.diagnosticSeverityOverrides` are defined as nested.
+   */
+  static expandDottedAsNeeded(options: {
+    dottedSettings: LanguageServerSettings;
+    specs: LanguageServerManager['specs'];
+  }): LanguageServerSettings {
+    const specs = options.specs;
+    const partiallyUncollapsed = JSONExt.deepCopy(options.dottedSettings);
+
+    for (let [serverKey, serverSpec] of specs.entries()) {
+      const configSchema = serverSpec.config_schema;
+      if (!partiallyUncollapsed.hasOwnProperty(serverKey)) {
+        continue;
+      }
+      const settings = partiallyUncollapsed[serverKey].serverSettings;
+      if (!configSchema || !settings) {
+        continue;
+      }
+      const expanded = expandDottedPaths(settings);
+
+      for (const [path, property] of Object.entries<PartialJSONObject>(
+        configSchema.properties
+      )) {
+        if (property.type === 'object') {
+          let value = expanded;
+          for (const part of path.split('.')) {
+            value = value[part] as ReadonlyJSONObject;
+            if (typeof value === 'undefined') {
+              break;
+            }
+          }
+          if (typeof value === 'undefined') {
+            continue;
+          }
+          // Add the uncollapsed value
+          settings[path] = value;
+          // Remove the collapsed values
+          for (const k of Object.keys(value)) {
+            const key = path + '.' + k;
+            if (!settings.hasOwnProperty(key)) {
+              throw Error(
+                'Internal inconsistency: collapsed settings state does not match expanded object'
+              );
+            }
+            delete settings[key];
+          }
+        }
+      }
+    }
+    return partiallyUncollapsed;
   }
 
   /**
@@ -434,11 +540,20 @@ export class SettingsSchemaManager {
         composite.language_servers
       );
 
-      composite.language_servers = SettingsSchemaManager.mergeByServer(
+      const merged = SettingsSchemaManager.mergeByServer(
         collapsedDefaults.settings,
         collapsedUser.settings
       );
-      this._lastUserServerSettingsDoted = composite.language_servers;
+
+      // Uncollapse settings which need to be in the expanded form
+      const languageServerManager = this.options.languageServerManager;
+      const uncollapsed = SettingsSchemaManager.expandDottedAsNeeded({
+        dottedSettings: merged,
+        specs: (languageServerManager as LanguageServerManager).specs
+      });
+
+      composite.language_servers = uncollapsed;
+      this._lastUserServerSettingsDoted = uncollapsed;
 
       if (Object.keys(collapsedUser.conflicts).length > 0) {
         this._warnConflicts(
