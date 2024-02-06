@@ -9,6 +9,7 @@ export * as SCHEMA from './_schema';
 /** Component- and feature-specific APIs */
 export * from './api';
 
+import { JSONExt } from '@lumino/coreutils';
 import { COMPLETION_THEME_MANAGER } from '@jupyter-lsp/completion-theme';
 import { plugin as THEME_MATERIAL } from '@jupyter-lsp/theme-material';
 import { plugin as THEME_VSCODE } from '@jupyter-lsp/theme-vscode';
@@ -158,13 +159,16 @@ export class LSPExtension {
     let languageServerSettings = (options.language_servers ||
       {}) as TLanguageServerConfigurations;
 
-    // Add `configuration` as a copy of `serverSettings` to work with changed name upstream
-    // Add `rank` as a copy of priority for the same reason.
+    // Rename `serverSettings` to `configuration` to work with changed name upstream,
+    // rename `priority` to `rank` for the same reason.
     languageServerSettings = Object.fromEntries(
       Object.entries(languageServerSettings).map(([key, value]) => {
-        value.configuration = value.serverSettings;
-        value.rank = value.priority;
-        return [key, value];
+        const copy = JSONExt.deepCopy(value);
+        copy.configuration = copy.serverSettings;
+        copy.rank = copy.priority;
+        delete copy.priority;
+        delete copy.serverSettings;
+        return [key, copy];
       })
     );
 
