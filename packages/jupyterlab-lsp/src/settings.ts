@@ -9,6 +9,7 @@ import {
   JSONExt,
   ReadonlyPartialJSONObject,
   ReadonlyJSONObject,
+  PartialJSONObject,
   PromiseDelegate
 } from '@lumino/coreutils';
 import { Signal, ISignal } from '@lumino/signaling';
@@ -72,6 +73,40 @@ function getDefaults(
     defaults[key] = value;
   }
   return defaults;
+}
+
+/**
+ * Get a mutable property matching a dotted key.
+ *
+ * Most LSP server schema properties are flattened using dotted convention,
+ * e.g. a key for {pylsp: {plugins: {flake8: {enabled: true}}}}` is stored
+ * as `pylsp.plugins.flake8.enabled`. However, some servers (e.g. pyright)
+ * define specific properties as only partially doted, for example
+ * `python.analysis.diagnosticSeverityOverrides` is an object with
+ * properties like `reportGeneralTypeIssues` or `reportPropertyTypeMismatch`.
+ * Only one level of nesting (on the finale level) is supported.
+ */
+function findSchemaProperty(
+  properties: PartialJSONObject,
+  key: string
+): PartialJSONObject | null {
+  if (properties.hasOwnProperty(key)) {
+    return properties[key] as PartialJSONObject;
+  }
+  const parts = key.split('.');
+  const prefix = parts.slice(0, -1).join('.');
+  const suffix = parts[parts.length - 1];
+  if (properties.hasOwnProperty(prefix)) {
+    const parent = properties[prefix] as PartialJSONObject;
+    if (parent.type !== 'object') {
+      return null;
+    }
+    const parentProperties = parent.properties as PartialJSONObject;
+    if (parentProperties.hasOwnProperty(suffix)) {
+      return parentProperties[suffix] as PartialJSONObject;
+    }
+  }
+  return null;
 }
 
 /**
@@ -315,25 +350,24 @@ export class SettingsSchemaManager {
         }
       }
 
-      // add default overrides from spec
+      // add default overrides from server-side spec (such as defined in `jupyter_server_config.py`)
       const workspaceConfigurationDefaults =
         serverSpec.workspace_configuration as Record<string, any> | undefined;
       if (workspaceConfigurationDefaults) {
         for (const [key, value] of Object.entries(
           workspaceConfigurationDefaults
         )) {
-          if (!configSchema.properties.hasOwnProperty(key)) {
+          const property = findSchemaProperty(configSchema.properties, key);
+          if (!property) {
             this.console.warn(
-              '`workspace_configuration` includes an override for key not in schema',
-              key,
-              serverKey
+              `"workspace_configuration" includes an override for "${key}" key which was not found in ${serverKey} schema'`
             );
             continue;
           }
-          configSchema.properties[key].default = value;
+          property.default = value;
         }
       }
-      // add server-specific default overrides from overrides.json (and pre-defined in schema)
+      // add server-specific default overrides from `overrides.json` (and pre-defined in schema)
       const serverDefaultsOverrides =
         defaultsOverrides && defaultsOverrides.hasOwnProperty(serverKey)
           ? defaultsOverrides[serverKey]
@@ -342,15 +376,14 @@ export class SettingsSchemaManager {
         for (const [key, value] of Object.entries(
           serverDefaultsOverrides.serverSettings
         )) {
-          if (!configSchema.properties.hasOwnProperty(key)) {
+          const property = findSchemaProperty(configSchema.properties, key);
+          if (!property) {
             this.console.warn(
-              '`overrides.json` includes an override for key not in schema',
-              key,
-              serverKey
+              `"overrides.json" includes an override for "${key}" key which was not found in ${serverKey} schema`
             );
             continue;
           }
-          configSchema.properties[key].default = value;
+          property.default = value as any;
         }
       }
 
