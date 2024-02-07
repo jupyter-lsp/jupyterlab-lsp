@@ -9,7 +9,6 @@ export * as SCHEMA from './_schema';
 /** Component- and feature-specific APIs */
 export * from './api';
 
-import { JSONExt } from '@lumino/coreutils';
 import { COMPLETION_THEME_MANAGER } from '@jupyter-lsp/completion-theme';
 import { plugin as THEME_MATERIAL } from '@jupyter-lsp/theme-material';
 import { plugin as THEME_VSCODE } from '@jupyter-lsp/theme-vscode';
@@ -27,6 +26,7 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStatusBar } from '@jupyterlab/statusbar';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { IFormRendererRegistry } from '@jupyterlab/ui-components';
+import { JSONExt } from '@lumino/coreutils';
 
 import '../style/index.css';
 

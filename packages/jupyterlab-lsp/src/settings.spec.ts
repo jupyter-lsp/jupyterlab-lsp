@@ -1,7 +1,8 @@
-import { SettingsSchemaManager } from './settings';
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { LanguageServerManager } from '@jupyterlab/lsp';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { JSONExt } from '@lumino/coreutils';
+
+import { SettingsSchemaManager } from './settings';
 
 const DEAULT_SERVER_PRIORITY = 50;
 
@@ -152,7 +153,7 @@ const COLLAPSED_PYRIGHT_SETTINGS = {
   }
 };
 
-function map(object: Object) {
+function map(object: Record<string, any>) {
   return new Map(Object.entries(object));
 }
 
