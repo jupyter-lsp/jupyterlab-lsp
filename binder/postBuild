@@ -25,6 +25,7 @@ def do(*args, cwd=None, fail_hard=True):
         sys.exit(rc)
 
 # Do a dev install of the server side
+do(*PIP, "uninstall", "jupyter-lsp", "-y", fail_hard=False)
 do(*PIP_E, SERVER_PKG)
 do(*SERVER_EXT, "enable", "--sys-prefix", "--py", "jupyter_lsp")
 
