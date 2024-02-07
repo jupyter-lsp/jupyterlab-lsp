@@ -1,5 +1,6 @@
 """ Run acceptance tests with robot framework
 """
+
 # pylint: disable=broad-except
 import os
 import platform

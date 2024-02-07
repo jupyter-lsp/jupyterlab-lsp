@@ -1,4 +1,5 @@
 """Integration tests of authorization running under jupyter-server."""
+
 import json
 import os
 import socket

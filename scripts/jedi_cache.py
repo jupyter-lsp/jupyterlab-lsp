@@ -36,6 +36,7 @@ see more:
 - https://github.com/jupyter-lsp/jupyterlab-lsp/pull/284
 
 """
+
 import os
 import pathlib
 import pprint

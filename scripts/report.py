@@ -1,4 +1,5 @@
 """Post-processing for generated reports."""
+
 import os
 import sys
 from pathlib import Path

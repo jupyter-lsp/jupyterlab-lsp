@@ -1,5 +1,6 @@
 """ code quality countermeasures
 """
+
 # flake8: noqa: W503
 import sys
 from pathlib import Path
