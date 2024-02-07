@@ -1,5 +1,11 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 5.0.3`
+
+- bug fixes:
+  - fix nested transclusions in JupyterLab 4.0.7+ (#1045)
+  - fix completions when `type` is not defined (#1044)
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.2`
 
 - bug fixes:
