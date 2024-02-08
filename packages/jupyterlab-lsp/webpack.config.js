@@ -10,5 +10,10 @@ module.exports = {
         use: ['source-map-loader']
       }
     ]
+  },
+  resolve: {
+    fallback: {
+      util: false
+    }
   }
 };

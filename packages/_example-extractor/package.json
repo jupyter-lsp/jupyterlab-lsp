@@ -14,11 +14,11 @@
     "@jupyter-lsp/jupyterlab-lsp": "^5.0.0-alpha.0"
   },
   "devDependencies": {
-    "@jupyterlab/application": "^4.0.6",
-    "@jupyterlab/testing": "^4.0.6",
+    "@jupyterlab/application": " ~4.0.12",
+    "@jupyterlab/testing": " ~4.0.12",
     "@types/jest": "^29.5.4",
     "jest": "^29.2.0",
-    "rimraf": "^3.0.0",
+    "rimraf": "^5.0.5",
     "typescript": "~5.0.4"
   },
   "jupyterlab": {

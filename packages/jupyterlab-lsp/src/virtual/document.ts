@@ -36,7 +36,9 @@ export class VirtualDocument extends VirtualDocumentBase {
     );
     // override private `chooseForeignDocument` as a workaround for
     // https://github.com/jupyter-lsp/jupyterlab-lsp/issues/959
-    this['chooseForeignDocument'] = this._chooseForeignDocument;
+    const anyThis = this as any;
+    anyThis._chooseForeignDocument = anyThis.chooseForeignDocument =
+      this.__chooseForeignDocument;
   }
 
   // TODO: this could be moved out
@@ -153,14 +155,13 @@ export class VirtualDocument extends VirtualDocumentBase {
     const usedDocuments = new Set<VirtualDocument>();
     for (const line of this.sourceLines.values()) {
       for (const block of line.foreignDocumentsMap.values()) {
-        usedDocuments.add(block.virtualDocument as VirtualDocument);
+        usedDocuments.add(block.virtualDocument as any as VirtualDocument);
       }
     }
 
     const documentIDs = new Map<VirtualDocument, string[]>();
-    for (const [id, document] of (
-      this.foreignDocuments as Map<string, VirtualDocument>
-    ).entries()) {
+    const vDocs: Map<string, VirtualDocument> = this.foreignDocuments as any;
+    for (const [id, document] of vDocs.entries()) {
       const ids = documentIDs.get(document);
       if (typeof ids !== 'undefined') {
         documentIDs.set(document, [...ids, id]);
@@ -210,7 +211,7 @@ export class VirtualDocument extends VirtualDocumentBase {
   /**
    * Get the foreign document that can be opened with the input extractor.
    */
-  private _chooseForeignDocument(
+  private __chooseForeignDocument(
     extractor: IForeignCodeExtractor
   ): VirtualDocumentBase {
     let foreignDocument: VirtualDocumentBase;
