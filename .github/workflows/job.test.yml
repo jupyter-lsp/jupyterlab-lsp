@@ -43,8 +43,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-        nodejs: ['>=16,<17.0.0a0']
-        lab: ['>=4.0.6,<5.0.0a0']
+        nodejs: ['>=20,<21']
+        lab: ['>=4.0.12,<4.1.0a0']
         r: ['>=4']
     steps:
       - uses: actions/checkout@v4
@@ -123,7 +123,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-        nodejs: ['>=16,<17.0.0a0']
+        nodejs: ['>=20,<21']
         lab: ['>=4.0.0,<5.0.0a0']
         r: ['>=4']
     steps:
@@ -220,12 +220,12 @@ jobs:
             # Node 16 end-of-life: 2023-09-11
             nodejs: '>=16,<17.0.0.a0'
             r: '>=4'
-            lab: '>=4,<5'
+            lab: '>=4.0.12,<5'
           - python: '3.11'
             # Node 18 end-of-life: 2025-04-30
             nodejs: '>=18,<19.0.0.a0'
             r: '>=4'
-            lab: '>=4,<5'
+            lab: '>=4.0.12,<5'
 
     steps:
       - uses: actions/checkout@v4
@@ -322,15 +322,15 @@ jobs:
 
       - name: Find and remove empty files
         # https://github.com/actions/upload-artifact/issues/150
-        run: find ./atest/output -empty -delete
+        run: find ./build/reports -empty -delete
         if: always()
         shell: bash
 
       - name: Publish browser test output
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ job.status }} Robot ${{ matrix.os }} Python ${{ matrix.python }} ${{ github.run_number }}
-          path: ./atest/output
+          name: Robot ${{ matrix.os }} Python ${{ matrix.python }} ${{ github.run_number }}
+          path: ./build/reports
         if: always()
 
       - name: Rename uncached conda packages
@@ -350,16 +350,16 @@ jobs:
         include:
           - python: '3.8'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=4,<5'
+            lab: '>=4.0.12,<5'
           - python: '3.8'
             dist: 'jupyter*lsp*.tar.gz'
-            lab: '>=4,<5'
+            lab: '>=4.0.12,<5'
           - python: '3.11'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=4,<5'
+            lab: '>=4.0.12,<5'
           - python: 'pypy-3.8'
             dist: 'jupyter*lsp*.tar.gz'
-            lab: '>=4,<5'
+            lab: '>=4.0.12,<5'
           - os: 'windows'
             py_cmd: python
           - os: 'macos'
@@ -402,12 +402,12 @@ jobs:
       matrix:
         os: [ubuntu]
         python: ['3.8', '3.11']
-        nodejs: ['18']
+        nodejs: ['20.x']
         include:
           - python: '3.8'
-            lab: '>=4,<5'
+            lab: '>=4.0.12,<5'
           - python: '3.11'
-            lab: '>=4,<5'
+            lab: '>=4.0.12,<5'
     steps:
       - name: Install Python
         uses: actions/setup-python@v4

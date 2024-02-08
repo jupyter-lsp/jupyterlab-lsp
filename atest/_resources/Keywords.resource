@@ -35,6 +35,8 @@ Setup Server and Browser
     ...    env:HOME=${HOME}
     ...    env:JUPYTER_NO_CONFIG=${EMPTY}
     Set Global Variable    ${SERVER}    ${server}
+    Wait Until File Contains   ${LAB LOG}
+    ...  The following Language Servers will be available
     Open JupyterLab
     Read Page Config
 

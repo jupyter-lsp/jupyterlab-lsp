@@ -32,7 +32,7 @@ Thank you for all your contributions :heart:
 A development environment requires, at a minimum:
 
 - `python >=3.8,<3.13.0a0`
-- `jupyterlab >=4.0.10,<5.0.0a0`
+- `jupyterlab >=4.0.10,<4.1.0a0`
 - `nodejs >=18,!=19,!=21,<23`
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
@@ -228,17 +228,19 @@ Run the tests:
 python scripts/atest.py
 ```
 
-The Robot Framework reports and screenshots will be in `atest/output`, with
-`<operating system>_<python version>_<attempt>.<log|report>.html` and subsequent `screenshots` being the most interesting
-artifact, e.g.
+The Robot Framework reports and screenshots will be in
+`build/reports/{os}_{py}/atest/{attempt}`, with `(log|report).html` and subsequent
+captured `screenshots` being the most interesting artifact, e.g.
 
 ```
-atest/
-  output/
-    linux_37_1.log.html
-    linux_37_1.report.html
-    linux_37_1/
-      screenshots/
+build/
+  reports/
+    linux_310/
+      atest/
+        1/
+          log.html
+          report.html
+          screenshots/
 ```
 
 #### Customizing the Acceptance Test Run
