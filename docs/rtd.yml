@@ -7,7 +7,7 @@ channels:
 
 dependencies:
   - importlib_metadata
-  - jupyterlab >=4.1.0,<5.0.0a
+  - jupyterlab >=4.1.0,<5.0.0a0
   - myst-nb
   - nodejs >=18,!=19,!=21,<23
   - pandas

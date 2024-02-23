@@ -44,7 +44,7 @@ jobs:
       matrix:
         os: [ubuntu]
         nodejs: ['>=20,<21']
-        lab: ['>=4.1.0,<5.0.0a']
+        lab: ['>=4.1.0,<5.0.0a0']
         r: ['>=4']
     steps:
       - uses: actions/checkout@v4
@@ -124,7 +124,7 @@ jobs:
       matrix:
         os: [ubuntu]
         nodejs: ['>=20,<21']
-        lab: ['>=4.1.0,<5.0.0a']
+        lab: ['>=4.1.0,<5.0.0a0']
         r: ['>=4']
     steps:
       - uses: actions/checkout@v4
