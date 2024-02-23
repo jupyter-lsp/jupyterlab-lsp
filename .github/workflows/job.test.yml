@@ -196,7 +196,7 @@ jobs:
           sha256sum * | tee SHA256SUMS
 
       - name: Publish builds
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
@@ -327,7 +327,7 @@ jobs:
         shell: bash
 
       - name: Publish browser test output
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Robot ${{ matrix.os }} Python ${{ matrix.python }} ${{ github.run_number }}
           path: ./build/reports
