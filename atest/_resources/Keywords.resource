@@ -16,6 +16,7 @@ Resource    Variables.resource
 
 *** Keywords ***
 Setup Server and Browser
+    [Arguments]    ${wait_for_server_log}=${True}
     Initialize Global Variables
     Create Notebok Server Config
     Initialize User Settings
@@ -35,8 +36,10 @@ Setup Server and Browser
     ...    env:HOME=${HOME}
     ...    env:JUPYTER_NO_CONFIG=${EMPTY}
     Set Global Variable    ${SERVER}    ${server}
-    Wait Until File Contains   ${LAB LOG}
-    ...  The following Language Servers will be available
+    IF    ${wait_for_server_log}
+        Wait Until File Contains   ${LAB LOG}
+        ...  The following Language Servers will be available
+    END
     Open JupyterLab
     Read Page Config
 
