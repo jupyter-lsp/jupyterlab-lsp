@@ -334,6 +334,9 @@ Gently Reset Workspace
 Enter Cell Editor
     [Arguments]    ${cell_nr}    ${line}=1
     Click Element    css:.jp-Cell:nth-child(${cell_nr}) .cm-line:nth-child(${line})
+    # So it should be focused after click right? Well, not when using this driver
+    # in JupyterLab 4.1 - we still need to press enter apparently.
+    Press Keys    None    ENTER
     Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_nr}) .cm-focused
     # clicking on line does not appear sufficient in CM6 (but still useful because it ensures we have it in view
     Execute JavaScript
