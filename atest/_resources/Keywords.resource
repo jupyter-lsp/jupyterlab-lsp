@@ -239,11 +239,7 @@ Ensure Sidebar Is Closed
 
 Refresh File List
     Ensure File Browser is Open
-    IF    [int(part) for part in "${LAB VERSION}".split(".")] >= [3, 4, 0]
-        Click Element    ${JLAB CSS REFRESH FILES}
-    ELSE
-        Click Element    ${JLAB CSS REFRESH F_OLD}
-    END
+    Click Element    ${JLAB CSS REFRESH FILES}
 
 Open Context Menu for File
     [Arguments]    ${file}
@@ -438,7 +434,7 @@ Configure JupyterLab Plugin
     Open in Advanced Settings    ${plugin id}
     Set Editor Content    ${settings json}    ${CSS USER SETTINGS}
     Wait Until Page Contains    No errors found
-    Click Element    css:button[title^\='Save User Settings']
+    Click Element    css:jp-button[title^\='Save User Settings']
     Wait Until Page Contains    No errors found
     Click Element    ${JLAB XP CLOSE SETTINGS}
 
