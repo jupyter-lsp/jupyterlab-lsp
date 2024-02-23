@@ -1,4 +1,6 @@
 .eggs/
+.mypy_cache
+.pytest_cache
 .venv/
 **/_*.d.ts
 **/.ipynb_checkpoints

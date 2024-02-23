@@ -1,3 +1,4 @@
+import { LabShell } from '@jupyterlab/application';
 import { ICellModel } from '@jupyterlab/cells';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import {
@@ -17,6 +18,7 @@ import {
 import { FileEditor, FileEditorFactory } from '@jupyterlab/fileeditor';
 import {
   WidgetLSPAdapter,
+  WidgetLSPAdapterTracker,
   LanguageServerManager,
   CodeExtractorsManager,
   DocumentConnectionManager,
@@ -107,9 +109,6 @@ class MockConnection extends LSPConnection {
     super(options);
   }
 
-  //get isReady(): boolean {
-  //  return true;
-  //}
   connect(ws: any): void {
     this.connection = new MockMessageConnection() as MessageConnection;
     this.onServerInitialized({
@@ -211,6 +210,8 @@ export abstract class TestEnvironment implements ITestEnvironment {
           ybinding({ ytext: (model.sharedModel as any).ysource })
         )
     });
+    const shell = new LabShell({ waitForRestore: false });
+    const adapterTracker = new WidgetLSPAdapterTracker({ shell });
     const languages = new EditorLanguageRegistry();
     this.editorServices = {
       factoryService: new CodeMirrorEditorFactory({
@@ -222,7 +223,8 @@ export abstract class TestEnvironment implements ITestEnvironment {
     this._languageServerManager = new MockLanguageServerManager({});
     this.connectionManager = new MockDocumentConnectionManager({
       languageServerManager: this._languageServerManager,
-      connection: this.options?.connection
+      connection: this.options?.connection,
+      adapterTracker
     });
     this.documentOptions = {
       ...this.getDefaults(),
@@ -441,8 +443,9 @@ export function setNotebookContent(
     metadata: metadata
   } as nbformat.INotebookContent;
 
-  notebook.model = new NotebookModel();
-  notebook.model.fromJSON(testNotebook);
+  const model = new NotebookModel();
+  model.fromJSON(testNotebook);
+  notebook.model = model;
 }
 
 export const pythonNotebookMetadata = {

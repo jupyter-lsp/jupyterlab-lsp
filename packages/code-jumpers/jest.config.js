@@ -10,6 +10,10 @@ const reuseFromUpstream = [
 ];
 
 const esModules = [
+  '@microsoft',
+  '@jupyter/react-components',
+  '@jupyter/web-components',
+  'exenv-es6',
   '@jupyterlab/',
   'lib0',
   'y\\-protocols',
