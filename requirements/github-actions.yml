@@ -37,6 +37,7 @@ dependencies:
   - texlab
   - chktex
   # test tools
+  - pytest <8
   - pytest-asyncio
   - pytest-cov
   - pytest-github-actions-annotate-failures
