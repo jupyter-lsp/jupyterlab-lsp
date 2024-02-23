@@ -8,7 +8,7 @@
 
 > TBD
 
-Requires JupyterLab `>=4.0.12,<4.1.0`
+Requires JupyterLab `>=4.1.0,<5.0.0a`
 
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.3`
 

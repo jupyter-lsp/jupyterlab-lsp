@@ -72,7 +72,7 @@
   "devDependencies": {
     "@codemirror/lint": "^6.4.0",
     "@jupyter-notebook/application": "^7.0.3",
-    "@jupyterlab/application": "~4.0.12",
+    "@jupyterlab/application": "~4.1.0",
     "@jupyterlab/apputils": "~4.1.12",
     "@jupyterlab/builder": "~4.0.12",
     "@jupyterlab/cells": "~4.0.12",
