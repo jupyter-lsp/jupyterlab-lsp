@@ -46,19 +46,17 @@ export class SyntaxHighlightingFeature extends Feature {
       factory: factoryOptions => {
         const { editor: editorAccessor, widgetAdapter: adapter } =
           factoryOptions;
+        const allReady = Promise.all([editorAccessor.ready, adapter.ready]);
 
         const updateHandler = async (awaitUpdate = true) => {
-          await adapter.ready;
-
+          await allReady;
           await this.updateMode(adapter, editorAccessor, awaitUpdate);
         };
 
         const updateListener = EditorView.updateListener.of(async () => {
           await updateHandler();
         });
-        Promise.all([editorAccessor.ready, adapter.ready])
-          .then(() => updateHandler(false))
-          .catch(console.warn);
+        allReady.then(() => updateHandler(false)).catch(console.warn);
 
         // update the mode at first update even if no changes to ensure the
         // correct mode gets applied on load.
@@ -110,7 +108,10 @@ export class SyntaxHighlightingFeature extends Feature {
       await topDocument.updateManager.updateDone;
     }
 
-    const editor = editorAccessor.getEditor()! as CodeMirrorEditor;
+    const editor = editorAccessor.getEditor() as CodeMirrorEditor | null;
+    if (!editor) {
+      return;
+    }
     const totalArea = editor.state.doc.length;
 
     const overrides = new Map();
