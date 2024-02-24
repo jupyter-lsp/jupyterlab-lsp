@@ -1,4 +1,3 @@
-from bs4 import UnicodeDammit
 import time
 
 def file_should_not_contain_phrases(filename, offset=0, *phrases):
@@ -9,14 +8,10 @@ def file_should_not_contain_phrases(filename, offset=0, *phrases):
     text = None
 
     try:
-        text = raw.decode("utf-8")
+        text = raw.decode("utf-8", errors='replace')
     except Exception as err:
-        print("Failed to read", filename, "forcing unicode...\n", err)
-        try:
-            text = UnicodeDammit.detwingle(raw).decode("utf-8")
-        except Exception as err:
-            print("Failed to read", filename, "giving up...\n", err)
-            text = None
+        print("Failed to read", filename, "giving up...\n", err)
+        text = None
 
     matches = {}
 
