@@ -4,8 +4,7 @@ import type {
   IVirtualPosition,
   IRootPosition,
   Document,
-  ForeignDocumentsMap,
-  IForeignCodeExtractor
+  ForeignDocumentsMap
 } from '@jupyterlab/lsp';
 import { VirtualDocument as VirtualDocumentBase } from '@jupyterlab/lsp';
 
@@ -34,11 +33,6 @@ export class VirtualDocument extends VirtualDocumentBase {
     this.lineMagicsOverrides = new ReversibleOverridesMap(
       overrides ? overrides.line : []
     );
-    // override private `chooseForeignDocument` as a workaround for
-    // https://github.com/jupyter-lsp/jupyterlab-lsp/issues/959
-    const anyThis = this as any;
-    anyThis._chooseForeignDocument = anyThis.chooseForeignDocument =
-      this.__chooseForeignDocument;
   }
 
   // TODO: this could be moved out
@@ -148,44 +142,6 @@ export class VirtualDocument extends VirtualDocumentBase {
   }
 
   /**
-   * Close all expired documents.
-   */
-  closeExpiredDocuments(): void {
-    // TODO: remove once https://github.com/jupyterlab/jupyterlab/pull/15105 is in
-    const usedDocuments = new Set<VirtualDocument>();
-    for (const line of this.sourceLines.values()) {
-      for (const block of line.foreignDocumentsMap.values()) {
-        usedDocuments.add(block.virtualDocument as any as VirtualDocument);
-      }
-    }
-
-    const documentIDs = new Map<VirtualDocument, string[]>();
-    const vDocs: Map<string, VirtualDocument> = this.foreignDocuments as any;
-    for (const [id, document] of vDocs.entries()) {
-      const ids = documentIDs.get(document);
-      if (typeof ids !== 'undefined') {
-        documentIDs.set(document, [...ids, id]);
-      }
-      documentIDs.set(document, [id]);
-    }
-    const allDocuments = new Set<VirtualDocument>(documentIDs.keys());
-    const unusedVirtualDocuments = new Set(
-      [...allDocuments].filter(x => !usedDocuments.has(x))
-    );
-
-    for (let document of unusedVirtualDocuments.values()) {
-      document.remainingLifetime -= 1;
-      if (document.remainingLifetime <= 0) {
-        document.dispose();
-        const ids = documentIDs.get(document)!;
-        for (const id of ids) {
-          this.foreignDocuments.delete(id);
-        }
-      }
-    }
-  }
-
-  /**
    * @experimental
    */
   transformVirtualToRoot(position: IVirtualPosition): IRootPosition | null {
@@ -206,38 +162,5 @@ export class VirtualDocument extends VirtualDocumentBase {
       }
     }
     return [...maps.values()];
-  }
-
-  /**
-   * Get the foreign document that can be opened with the input extractor.
-   */
-  private __chooseForeignDocument(
-    extractor: IForeignCodeExtractor
-  ): VirtualDocumentBase {
-    let foreignDocument: VirtualDocumentBase;
-    // if not standalone, try to append to existing document
-    let foreignExists = this.foreignDocuments.has(extractor.language);
-    if (!extractor.standalone && foreignExists) {
-      foreignDocument = this.foreignDocuments.get(extractor.language)!;
-    } else {
-      // if standalone, try to re-use existing connection to the server
-      let unusedStandalone = this.unusedStandaloneDocuments.get(
-        extractor.language
-      );
-      if (extractor.standalone && unusedStandalone.length > 0) {
-        foreignDocument = unusedStandalone.pop()!;
-      } else {
-        // if (previous document does not exists) or (extractor produces standalone documents
-        // and no old standalone document could be reused): create a new document
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        foreignDocument = this.openForeign(
-          extractor.language,
-          extractor.standalone,
-          extractor.fileExtension
-        );
-      }
-    }
-    return foreignDocument;
   }
 }
