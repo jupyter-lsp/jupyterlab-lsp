@@ -35,9 +35,7 @@ Diagnostics Panel Works After Rename
 Diagnostics Panel Works After Kernel Restart
     [Documentation]    Test for #475 bug
     Close Diagnostics Panel
-    Lab Command    Restart Kernel…
-    Wait For Dialog
-    Accept Default Dialog Option
+    Restart Kernel
     Wait Until Page Contains Diagnostic    [title*="${DIAGNOSTIC}"]    timeout=20s
     Open Diagnostics Panel
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_COUNT}
