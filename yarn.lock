@@ -2223,7 +2223,7 @@ __metadata:
     "@jupyterlab/ui-components": ^4.1.0
     "@lumino/algorithm": "*"
     "@lumino/widgets": ^2.3.1
-    "@rjsf/utils": ^5.1.0
+    "@rjsf/utils": ^5.17.1
     "@rjsf/validator-ajv8": ^5.12.1
     "@types/jest": ^29.5.4
     "@types/lodash.mergewith": ^4.6.1
@@ -3930,9 +3930,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rjsf/utils@npm:^5.1.0, @rjsf/utils@npm:^5.13.4":
-  version: 5.17.0
-  resolution: "@rjsf/utils@npm:5.17.0"
+"@rjsf/utils@npm:^5.13.4, @rjsf/utils@npm:^5.17.1":
+  version: 5.17.1
+  resolution: "@rjsf/utils@npm:5.17.1"
   dependencies:
     json-schema-merge-allof: ^0.8.1
     jsonpointer: ^5.0.1
@@ -3941,7 +3941,7 @@ __metadata:
     react-is: ^18.2.0
   peerDependencies:
     react: ^16.14.0 || >=17
-  checksum: 01d0001f83083764a8552e009aa7df084621df9d1fc6ccdfad9d534513084421b1ad7494cab77b9b8205d680fd915f612d87800e20ab242e7066f33184c73d4f
+  checksum: 83010de66b06f1046b023a0b7d0bf30b5f47b152893c3b12f1f42faa89e7c7d18b2f04fe2e9035e5f63454317f09e6d5753fc014d43b933c8023b71fc50c3acf
   languageName: node
   linkType: hard
 

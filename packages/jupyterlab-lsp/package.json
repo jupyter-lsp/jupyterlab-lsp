@@ -65,7 +65,7 @@
     "@jupyter-lsp/theme-material": "~3.0.0",
     "@jupyter-lsp/theme-vscode": "~3.0.0",
     "@jupyterlab/lsp": "^4.1.0",
-    "@rjsf/utils": "^5.1.0",
+    "@rjsf/utils": "^5.17.1",
     "@rjsf/validator-ajv8": "^5.12.1",
     "lodash.mergewith": "^4.6.1"
   },
