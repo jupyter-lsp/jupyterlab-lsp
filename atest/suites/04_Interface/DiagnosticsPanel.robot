@@ -9,7 +9,7 @@ Test Tags           ui:notebook    aspect:ls:features
 
 
 *** Variables ***
-${DIAGNOSTIC MESSAGE R}     Closing curly-braces should always be on their own line
+${DIAGNOSTIC MESSAGE R}     Opening curly braces should never go on their own line
 ${DIAGNOSTIC MESSAGE}       trailing whitespace
 ${DIAGNOSTIC}               W291 trailing whitespace (pycodestyle)
 ${EXPECTED_COUNT}           4
