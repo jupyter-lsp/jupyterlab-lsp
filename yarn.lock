@@ -2187,7 +2187,7 @@ __metadata:
     "@jupyter-lsp/theme-material": "workspace:*"
     "@jupyter-lsp/theme-vscode": "workspace:*"
     rimraf: ^5.0.5
-    typescript: ~5.0.4
+    typescript: ~5.1.6
   languageName: unknown
   linkType: soft
 
