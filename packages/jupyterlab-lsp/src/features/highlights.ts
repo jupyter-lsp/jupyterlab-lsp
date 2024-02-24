@@ -95,11 +95,7 @@ export class HighlightsFeature extends Feature {
         const { editor: editorAccessor, widgetAdapter: adapter } =
           factoryOptions;
         const updateListener = EditorView.updateListener.of(viewUpdate => {
-          if (
-            viewUpdate.docChanged ||
-            viewUpdate.selectionSet ||
-            viewUpdate.focusChanged
-          ) {
+          if (viewUpdate.docChanged || viewUpdate.selectionSet) {
             this.onCursorActivity(editorAccessor, adapter).catch(
               this.console.warn
             );
