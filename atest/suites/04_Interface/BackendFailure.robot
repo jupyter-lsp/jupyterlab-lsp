@@ -24,8 +24,8 @@ Handles Server Extension Failure
 *** Keywords ***
 Setup Missing Extension Test
     Set Server Extension State    enabled=${False}
-    Setup Server and Browser    wait_for_server_log=${False}
+    Setup Server and Browser    wait_for_lsp_log=${False}
 
 Teardown Missing Extension Test
     Set Server Extension State    enabled=${True}
-    Setup Server and Browser    wait_for_server_log=${True}
+    Setup Server and Browser    wait_for_lsp_log=${True}

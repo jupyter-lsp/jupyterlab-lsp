@@ -16,7 +16,7 @@ Resource    Variables.resource
 
 *** Keywords ***
 Setup Server and Browser
-    [Arguments]    ${wait_for_server_log}=${True}
+    [Arguments]    ${wait_for_lsp_log}=${True}
     Initialize Global Variables
     Create Notebok Server Config
     Initialize User Settings
@@ -36,9 +36,13 @@ Setup Server and Browser
     ...    env:HOME=${HOME}
     ...    env:JUPYTER_NO_CONFIG=${EMPTY}
     Set Global Variable    ${SERVER}    ${server}
-    IF    ${wait_for_server_log}
+    IF    ${wait_for_lsp_log}
         Wait Until File Contains   ${LAB LOG}
         ...  The following Language Servers will be available
+    ELSE
+        # Jupyter Server X.X.X is running at:
+        Wait Until File Contains   ${LAB LOG}
+        ...  is running at:
     END
     Open JupyterLab
     Read Page Config
