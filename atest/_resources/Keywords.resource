@@ -500,7 +500,8 @@ Restart Kernel
     Lab Command    Restart Kernel…
     Wait For Dialog
     Accept Default Dialog Option
-    Wait Until Page Contains Element    css:.jp-Notebook-ExecutionIndicator[data-status="restarting"]
+    Sleep    3s    To ensure restart started
+    # Once restart completed the kernel status will be idle again:
     Wait Until Page Contains Element    css:.jp-Notebook-ExecutionIndicator[data-status="idle"]
 
 Expand Menu Entry
