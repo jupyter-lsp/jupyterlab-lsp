@@ -24,7 +24,8 @@ import {
   DocumentConnectionManager,
   FeatureManager,
   ISocketConnectionOptions,
-  ILSPOptions
+  ILSPOptions,
+  ILSPFeatureManager
 } from '@jupyterlab/lsp';
 import { LSPConnection } from '@jupyterlab/lsp/lib/connection';
 import * as nbformat from '@jupyterlab/nbformat';
@@ -200,6 +201,7 @@ export abstract class TestEnvironment implements ITestEnvironment {
   documentOptions: VirtualDocument.IOptions;
   editorExtensionRegistry: EditorExtensionRegistry;
   editorServices: IEditorServices;
+  featureManager: ILSPFeatureManager;
 
   constructor(protected options?: TestEnvironment.IOptions) {
     this.editorExtensionRegistry = new EditorExtensionRegistry();
@@ -230,6 +232,7 @@ export abstract class TestEnvironment implements ITestEnvironment {
       ...this.getDefaults(),
       ...(options?.document || {})
     };
+    this.featureManager = new FeatureManager();
   }
 
   protected abstract createWidget(): IDocumentWidget;
@@ -280,7 +283,7 @@ export abstract class TestEnvironment implements ITestEnvironment {
       docRegistry,
       connectionManager: this.connectionManager,
       codeOverridesManager: overridesManager,
-      featureManager: new FeatureManager(),
+      featureManager: this.featureManager,
       foreignCodeExtractorsManager: foreignCodeExtractors,
       translator: nullTranslator
     });

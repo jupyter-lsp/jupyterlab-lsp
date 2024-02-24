@@ -70,6 +70,7 @@ describe('Diagnostics', () => {
         editorExtensionRegistry: env.editorExtensionRegistry,
         themeManager: null
       });
+      env.featureManager.register(feature);
       await env.init();
     });
     afterEach(() => {
@@ -222,6 +223,7 @@ describe('Diagnostics', () => {
         editorExtensionRegistry: env.editorExtensionRegistry,
         themeManager: null
       });
+      env.featureManager.register(feature);
       await env.init();
     });
     afterEach(() => {
