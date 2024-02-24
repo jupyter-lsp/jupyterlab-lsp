@@ -1,4 +1,8 @@
-import { IFeature, ILSPDocumentConnectionManager } from '@jupyterlab/lsp';
+import {
+  IFeature,
+  ILSPDocumentConnectionManager,
+  EditorAdapter
+} from '@jupyterlab/lsp';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
@@ -19,17 +23,25 @@ export namespace Feature {
 }
 
 export abstract class Feature implements IFeature {
+  /**
+   * The feature identifier. It must be the same as the feature plugin id.
+   */
   abstract readonly id: string;
+  /**
+   * LSP capabilities implemented by the feature.
+   */
   abstract readonly capabilities?: lsProtocol.ClientCapabilities;
+
+  /**
+   * Editor extension factory linked to the LSP feature.
+   */
+  extensionFactory?: EditorAdapter.ILSPEditorExtensionFactory = undefined;
+
   protected connectionManager: ILSPDocumentConnectionManager;
 
   constructor(options: Feature.IOptions) {
     this.connectionManager = options.connectionManager;
   }
-
-  //getConnection(): ILSPConnection {
-
-  //}
 }
 
 export class FeatureSettings<T> implements IFeatureSettings<T> {
