@@ -191,16 +191,14 @@ Use of a python `virtualenv` or a conda env is also recommended.
 
 Server configurations can be edited using the Advanced Settings editor in JupyterLab (_Settings > Advanced Settings Editor_). For settings specific to each server, please see the [table of language servers][language-servers]. Example settings might include:
 
-> Note: for the new (currently recommended) python-lsp-server replace `pyls` occurrences with `pylsp`
-
 ```json
 {
   "language_servers": {
-    "pyls": {
+    "pylsp": {
       "serverSettings": {
-        "pyls.plugins.pydocstyle.enabled": true,
-        "pyls.plugins.pyflakes.enabled": false,
-        "pyls.plugins.flake8.enabled": true
+        "pylsp.plugins.pydocstyle.enabled": true,
+        "pylsp.plugins.pyflakes.enabled": false,
+        "pylsp.plugins.flake8.enabled": true
       }
     },
     "r-languageserver": {
@@ -218,9 +216,9 @@ The `serverSettings` key specifies the configurations sent to the language serve
 ```json
 {
   "language_servers": {
-    "pyls": {
+    "pylsp": {
       "serverSettings": {
-        "pyls": {
+        "pylsp": {
           "plugins": {
             "pydocstyle": {
               "enabled": true
@@ -241,7 +239,7 @@ The `serverSettings` key specifies the configurations sent to the language serve
 
 #### Other configuration methods
 
-Some language servers, such as `pyls`, provide other configuration methods _in addition_ to language-server configuration messages (accessed using the Advanced Settings Editor). For example, `pyls` allows users to configure the server using a local configuration file. You can change the inspection/diagnostics for server plugins like `pycodestyle` there.
+Some language servers, such as `pylsp`, provide other configuration methods _in addition_ to language-server configuration messages (accessed using the Advanced Settings Editor). For example, `pylsp` allows users to configure the server using a local configuration file. You can change the inspection/diagnostics for server plugins like `pycodestyle` there.
 
 The exact configuration details will vary between operating systems (please see the [configuration section of pycodestyle documentation](https://pycodestyle.readthedocs.io/en/latest/intro.html#configuration)), but as an example, on Linux you would simply need to create a file called `~/.config/pycodestyle`, which may look like that:
 
