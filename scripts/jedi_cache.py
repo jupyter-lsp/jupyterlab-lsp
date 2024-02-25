@@ -36,8 +36,10 @@ see more:
 - https://github.com/jupyter-lsp/jupyterlab-lsp/pull/284
 
 """
+
 import os
 import pathlib
+import pprint
 import sys
 import time
 
@@ -46,7 +48,6 @@ import jedi
 import jupyter_server
 import jupyterlab
 import parso
-import pyls
 
 SOURCE_TEMPLATE = """
 import {module}
@@ -58,7 +59,12 @@ MODULES_TO_CACHE = [
     *sys.modules,
 ]
 
+
 ENV = jedi.InterpreterEnvironment()
+
+
+def print_line():
+    print("-" * 80)
 
 
 def warm_up_one(module):
@@ -71,46 +77,54 @@ def warm_up_one(module):
 
 
 def print_versions():
-    print(".".join(map(str, sys.version_info[:3])), "\t", "python")
-    print(IPython.__version__, "\t", "ipython")
-    print(jedi.__version__, "\t", "jedi")
-    print(jupyterlab.__version__, "\t", "jupyterlab")
-    print(jupyter_server.__version__, "\t", "notebook")
-    print(parso.__version__, "\t", "parso")
-    print(pyls.__version__, "\t", "pyls")
+    print("Relevant versions:")
+    pprint.pprint(
+        dict(
+            python=".".join(map(str, sys.version_info[:3])),
+            ipython=IPython.__version__,
+            jedi=jedi.__version__,
+            jupyterlab=jupyterlab.__version__,
+            jupyter_serer=jupyter_server.__version__,
+            parso=parso.__version__,
+        )
+    )
 
 
 def print_env():
-    [
-        print(key, "\t", value)
-        for key, value in sorted(os.environ.items())
-        if "CONDA" in key
-    ]
+    print("CONDA and XDG environment variables:")
+    pprint.pprint(
+        {
+            key: value
+            for key, value in sorted(os.environ.items())
+            if value and "CONDA" in key or "XDG" in key
+        }
+    )
 
 
 def setup_jedi():
     print("default jedi environment", jedi.api.environment.get_default_environment())
     print("jedi environment", ENV)
     jedi_cache = pathlib.Path(jedi.settings.cache_directory)
+    print("jedi cache", str(jedi_cache))
     return jedi_cache.exists()
 
 
 def warm_up(modules):
     print_env()
-    print("-" * 80)
+    print_line()
     print_versions()
-    print("-" * 80)
+    print_line()
     cache_exists = setup_jedi()
     if cache_exists:
         print("jedi cache already exists, aborting warm up!")
         return
     else:
         print("no jedi cache was found, warming up!")
-    print("-" * 80)
+    print_line()
     start = time.time()
     [warm_up_one(module) for module in modules]
     end = time.time()
-    print("-" * 80)
+    print_line()
     print(len(modules), "modules in", jedi.settings.cache_directory, end - start)
 
 

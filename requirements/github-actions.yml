@@ -7,7 +7,7 @@ channels:
 dependencies:
   - jupyterlab {lab}
   # to test serverextension
-  - notebook
+  - notebook >=7
   # build dependencies
   - pip
   - nodejs {nodejs}
@@ -17,11 +17,13 @@ dependencies:
   - autopep8
   - pyflakes
   # robotframework for testing and language server
-  - jupyterlab_robotmode
-  - robotframework >=4
+  - robotframework >=7
   - robotframework-lsp
   - robotframework-robocop
-  - robotkernel
+  - robotframework-tidy
+  # TODO: handle upstream
+  # - robotkernel
+  # - jupyterlab_robotmode
   # for R language server and kernel
   - r {r}
   - r-irkernel
@@ -35,17 +37,16 @@ dependencies:
   - texlab
   - chktex
   # test tools
+  - pytest <8
   - pytest-asyncio
   - pytest-cov
-  - pytoolconfig
-  - pytest-flake8
-  - pytest-runner
-  - ruamel_yaml
   - pytest-github-actions-annotate-failures
+  - pytest-html
+  - pytest-xdist
+  - pytoolconfig
+  - ruamel_yaml
   # browser testing
   - bs4
   - firefox
   - geckodriver
   - robotframework-seleniumlibrary
-  # temp pin see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/956
-  - selenium <4.10

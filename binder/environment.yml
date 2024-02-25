@@ -6,13 +6,12 @@ channels:
 
 dependencies:
   # runtime dependencies
-  - python >=3.8,<3.11.0a0
-  - jupyterlab >=4.0.6,<5.0.0a0
+  - python >=3.8,<3.13.0a0
+  - jupyterlab >=4.1.0,<5.0.0a0
   - jupyter_server >=1.1.2
-  # TODO: uncomment once Notebook 7 is released
-  #- notebook >= 7.0
+  - notebook >=7
   # build dependencies
-  - nodejs >=16,!=17,<19
+  - nodejs >=18,!=19,!=21,<23
   # for python language server (and development)
   - flake8 >=3.5
   - pip
@@ -37,7 +36,25 @@ dependencies:
   - texlab
   - chktex
   # robotframework
-  - jupyterlab_robotmode
+  - robotframework >=7
   - robotframework-lsp
   - robotframework-robocop
-  - robotkernel
+  - robotframework-tidy
+  # TODO: handle upstream
+  # - robotkernel
+  # - jupyterlab_robotmode
+  # test tools
+  - pytest-asyncio
+  - pytest-cov
+  - pytest-github-actions-annotate-failures
+  - pytest-html
+  - pytest-xdist
+  - pytoolconfig
+  - ruamel_yaml
+  # lint tools
+  - black
+  - isort
+  - mypy
+  - pip
+  - robotframework-robocop
+  - robotframework-tidy

@@ -5,6 +5,7 @@ Derived from
 > MIT License  https://github.com/rudolfwalter/pygdbmi/blob/master/LICENSE
 > Copyright (c) 2016 Chad Smith <grassfedcode <at> gmail.com>
 """
+
 import os
 
 if os.name == "nt":  # pragma: no cover

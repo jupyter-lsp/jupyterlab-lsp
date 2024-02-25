@@ -1,12 +1,24 @@
 """ code quality countermeasures
 """
+
 # flake8: noqa: W503
 import sys
 from pathlib import Path
 from subprocess import call
 
+HAS_ROBOT = False
+
+try:
+    import robot
+
+    HAS_ROBOT = True
+except ImportError:
+    pass
+
+
 OK = 0
 FAIL = 1
+
 
 ROOT = Path(__file__).parent.parent
 PYTHON_PACKAGES_PATH = ROOT / "python_packages"
@@ -39,15 +51,21 @@ ALL_ROBOT = [
 # TODO: explore adopting these conventions
 ROBOCOP_EXCLUDES = [
     "empty-lines-between-sections",
+    "expression-can-be-simplified",
     "file-too-long",
     "missing-doc-keyword",
     "missing-doc-suite",
     "missing-doc-test-case",
+    "missing-doc-resource-file",
+    "replace-create-with-var",
+    "replace-set-variable-with-var",
     "todo-in-comment",
+    "too-long-keyword",
     "too-long-test-case",
     "too-many-arguments",
     "too-many-calls-in-keyword",
     "too-many-calls-in-test-case",
+    "unused-variable",
     "wrong-case-in-keyword-name",
 ]
 
@@ -62,40 +80,65 @@ ROBOCOP = sum(
 )
 
 
-def lint():
+def _call_with_print(name, args):
+    str_args = [a for a in args if isinstance(a, str)]
+    paths = [a for a in args if isinstance(a, Path)]
+    print(name, len(paths), "paths... ", flush=True)
+    return_code = call(list(map(str, args)))
+    if return_code:
+        print("\t>>> ", *str_args)
+        print("\t!!!", name, "failed:", return_code)
+    else:
+        print("\t...", "OK", name)
+    return return_code
+
+
+def lint(*args):
     """get that linty fresh feeling"""
 
-    def call_with_print(args):
-        str_args = [a for a in args if isinstance(a, str)]
-        paths = [a for a in args if isinstance(a, Path)]
-        print(f"{len(paths)} paths:", " ".join(str_args))
-        return_code = call(list(map(str, args)))
-        if return_code:
-            print("\n...", f"ERROR {return_code}", *str_args, "\n")
-        return return_code
+    fail_fast = "--fail-fast" in args
+    filters = [arg for arg in args if arg != "--fail-fast"]
 
-    return max(
-        map(
-            call_with_print,
-            [
-                ["isort", *ALL_PY],
-                ["black", "--quiet", *ALL_PY],
-                ["flake8", *ALL_PY],
-                *[
-                    # see https://github.com/python/mypy/issues/4008
-                    ["mypy", *paths]
-                    for paths in PY_SRC_PACKAGES.values()
-                ],
-                # ["pylint", *ALL_PY],
-                ["robotidy", *ALL_ROBOT],
-                # see https://github.com/jupyter-lsp/jupyterlab-lsp/issues/911
-                # ["robocop", *ROBOCOP, *ALL_ROBOT],
-                ["python", "scripts/atest.py", "--dryrun", "--console", "dotted"],
-                ["python", "scripts/nblint.py"],
+    linters = {
+        "py_isort": ["isort", *ALL_PY],
+        "py_black": ["black", "--quiet", *ALL_PY],
+        "py_flake8": ["flake8", *ALL_PY],
+        "nb_lint": ["python", "scripts/nblint.py"],
+        **{
+            "py_mypy_" + paths[0].parent.name: ["mypy", *paths]
+            for paths in PY_SRC_PACKAGES.values()
+        },
+    }
+
+    if HAS_ROBOT:
+        linters.update(
+            robot_dryrun=[
+                "python",
+                "scripts/atest.py",
+                "--dryrun",
+                "--console",
+                "dotted",
             ],
+            robot_tidy=["robotidy", *ALL_ROBOT],
+            robot_cop=["robocop", *ROBOCOP, *ALL_ROBOT],
         )
-    )
+
+    if filters:
+        linters = {
+            name: args
+            for name, args in linters.items()
+            if not filters or any(f in name for f in filters)
+        }
+
+    max_rc = 0
+
+    for name, args in linters.items():
+        max_rc = max(max_rc, _call_with_print(name, args))
+        if fail_fast and max_rc:
+            break
+
+    return max_rc
 
 
 if __name__ == "__main__":
-    sys.exit(lint())
+    sys.exit(lint(*sys.argv[1:]))

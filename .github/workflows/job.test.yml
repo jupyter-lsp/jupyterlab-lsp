@@ -43,11 +43,11 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-        nodejs: ['>=16,<17.0.0a0']
-        lab: ['>=4.0.6,<5.0.0a0']
+        nodejs: ['>=20,<21']
+        lab: ['>=4.1.0,<5.0.0a0']
         r: ['>=4']
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: cschleiden/replace-tokens@v1
         with:
@@ -59,7 +59,7 @@ jobs:
           nodejs: '${{ matrix.nodejs }}'
 
       - name: Set up Python and mamba
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: requirements/github-actions.yml
           miniforge-variant: Mambaforge
@@ -73,7 +73,7 @@ jobs:
 
       - name: Cache node_modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '**/node_modules'
           key: |
@@ -82,7 +82,7 @@ jobs:
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '.yarn/cache'
           key: |
@@ -123,11 +123,11 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-        nodejs: ['>=16,<17.0.0a0']
-        lab: ['>=4.0.0,<5.0.0a0']
+        nodejs: ['>=20,<21']
+        lab: ['>=4.1.0,<5.0.0a0']
         r: ['>=4']
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: cschleiden/replace-tokens@v1
         with:
@@ -139,7 +139,7 @@ jobs:
           nodejs: '${{ matrix.nodejs }}'
 
       - name: Set up Python and mamba
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-variant: Mambaforge
           use-mamba: true
@@ -149,7 +149,7 @@ jobs:
 
       - name: Cache node_modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '**/node_modules'
           key: |
@@ -158,7 +158,7 @@ jobs:
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '.yarn/cache'
           key: |
@@ -196,7 +196,7 @@ jobs:
           sha256sum * | tee SHA256SUMS
 
       - name: Publish builds
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
@@ -220,15 +220,15 @@ jobs:
             # Node 16 end-of-life: 2023-09-11
             nodejs: '>=16,<17.0.0.a0'
             r: '>=4'
-            lab: '>=4,<5'
+            lab: '>=4.1.0,<5'
           - python: '3.11'
             # Node 18 end-of-life: 2025-04-30
             nodejs: '>=18,<19.0.0.a0'
             r: '>=4'
-            lab: '>=4,<5'
+            lab: '>=4.1.0,<5'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set JupyterLab and Node versions
         uses: cschleiden/replace-tokens@v1
@@ -241,7 +241,7 @@ jobs:
           nodejs: '${{ matrix.nodejs }}'
 
       - name: Set up Python and mamba
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python }}
           environment-file: requirements/github-actions.yml
@@ -253,7 +253,7 @@ jobs:
 
       - name: Cache node_modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '**/node_modules'
           key: |
@@ -262,7 +262,7 @@ jobs:
       - name: Cache yarn packages
         id: cache-yarn-packages
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: '.yarn/cache'
           key: |
@@ -271,13 +271,13 @@ jobs:
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.julia/artifacts
           key: |
             ${{ env.CACHE_EPOCH }}-julia-test-${{ runner.os }}-${{ env.JULIA_LANGSERVER }}
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
@@ -322,15 +322,15 @@ jobs:
 
       - name: Find and remove empty files
         # https://github.com/actions/upload-artifact/issues/150
-        run: find ./atest/output -empty -delete
+        run: find ./build/reports -empty -delete
         if: always()
         shell: bash
 
       - name: Publish browser test output
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ job.status }} Robot ${{ matrix.os }} Python ${{ matrix.python }} ${{ github.run_number }}
-          path: ./atest/output
+          name: Robot ${{ matrix.os }} Python ${{ matrix.python }} ${{ github.run_number }}
+          path: ./build/reports
         if: always()
 
       - name: Rename uncached conda packages
@@ -350,16 +350,16 @@ jobs:
         include:
           - python: '3.8'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=4,<5'
+            lab: '>=4.1.0,<5'
           - python: '3.8'
             dist: 'jupyter*lsp*.tar.gz'
-            lab: '>=4,<5'
+            lab: '>=4.1.0,<5'
           - python: '3.11'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=4,<5'
+            lab: '>=4.1.0,<5'
           - python: 'pypy-3.8'
             dist: 'jupyter*lsp*.tar.gz'
-            lab: '>=4,<5'
+            lab: '>=4.1.0,<5'
           - os: 'windows'
             py_cmd: python
           - os: 'macos'
@@ -368,11 +368,11 @@ jobs:
             py_cmd: python
     steps:
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
           architecture: 'x64'
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
@@ -402,15 +402,15 @@ jobs:
       matrix:
         os: [ubuntu]
         python: ['3.8', '3.11']
-        nodejs: ['18']
+        nodejs: ['20.x']
         include:
           - python: '3.8'
-            lab: '>=4,<5'
+            lab: '>=4.1.0,<5'
           - python: '3.11'
-            lab: '>=4,<5'
+            lab: '>=4.1.0,<5'
     steps:
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
           architecture: 'x64'
@@ -418,7 +418,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.nodejs }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist

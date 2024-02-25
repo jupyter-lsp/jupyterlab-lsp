@@ -7,7 +7,8 @@ channels:
 dependencies:
   - firefox
   - geckodriver
-  - jupyterlab_robotmode
-  - robotframework >=5
+  - robotframework >=7
   - robotframework-seleniumlibrary
-  - robotkernel
+  # TODO: handle upstream
+  # - robotkernel
+  # - jupyterlab_robotmode

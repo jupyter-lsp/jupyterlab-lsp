@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation       Configuration of language servers
 
-Resource            ./Keywords.resource
+Resource            ../_resources/Keywords.resource
 
 Suite Setup         Setup Suite For Screenshots    config
 
@@ -24,7 +24,7 @@ Python Dotted
     ...    undefined name 'foo' (pyflakes)
     ...    undefined name 'foo' (flake8)
 
-Python (server-side via overrides.json)
+Python (server-side via overrides JSON)
     [Documentation]    same as "Python" but changing the defaults in server specification via `overrides.json`
     Settings Should Change Editor Diagnostics    Python    style.py    pylsp-with-override-json
     ...    settings=100
@@ -73,7 +73,16 @@ LaTeX
 
 *** Keywords ***
 Settings Should Change Editor Diagnostics
-    [Arguments]    ${language}    ${file}    ${server}    ${settings}    ${before}    ${after}    ${save command}=${EMPTY}    ${needs reload}=${False}    ${setting_key}=serverSettings
+    [Arguments]
+    ...    ${language}
+    ...    ${file}
+    ...    ${server}
+    ...    ${settings}
+    ...    ${before}
+    ...    ${after}
+    ...    ${save command}=${EMPTY}
+    ...    ${needs reload}=${False}
+    ...    ${setting_key}=serverSettings
     ${before diagnostic} =    Set Variable    [title*="${before}"]
     ${after diagnostic} =    Set Variable    [title*="${after}"]
     ${tab} =    Set Variable    ${JLAB XP DOCK TAB}\[contains(., '${file}')]
@@ -94,7 +103,7 @@ Settings Should Change Editor Diagnostics
     Set Editor Content    {"language_servers": {"${server}": {"${setting_key}": ${settings}}}}    ${CSS USER SETTINGS}
     Wait Until Page Contains    No errors found
     Capture Page Screenshot    02-default-diagnostics-and-unsaved-settings.png
-    Click Element    css:button[title^\='Save User Settings']
+    Click Element    css:jp-button[title^\='Save User Settings']
     Click Element    ${JLAB XP CLOSE SETTINGS}
     Drag and Drop By Offset    ${tab}    0    100
     Lab Command    ${save command}

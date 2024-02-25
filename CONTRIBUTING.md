@@ -27,37 +27,60 @@ Thank you for all your contributions :heart:
 [jupyterlab-lsp]: https://github.com/jupyter-lsp/jupyterlab-lsp.git
 [code-of-conduct]: https://github.com/jupyter/governance/blob/main/conduct/code_of_conduct.md
 
-### Set up the environment
+### Provision the environment
 
-Development requires, at a minimum:
+A development environment requires, at a minimum:
 
-- `nodejs >=16,!=17,<19`
-- `python >=3.8,<3.11.0a0`
-- `jupyterlab >=4.0.6,<5.0.0a0`
+- `python >=3.8,<3.13.0a0`
+- `jupyterlab >=4.1.0,<5.0.0a0`
+- `nodejs >=18,!=19,!=21,<23`
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
 for development.
 
-To use the same environment as the binder demo (recommended):
+#### conda
+
+To use the same environment as the binder demo (recommended), start with a
+[Mambaforge](https://conda-forge.org/miniforge/) `base` environment.
+
+> While the `conda` commands can be used below, `mamba` provides both faster
+> solves and better error messages.
 
 ```bash
-conda env update -n jupyterlab-lsp --file binder/environment.yml # create a conda env
-conda activate jupyterlab-lsp                                    # activate it
+mamba env update -p ./.venv --file binder/environment.yml  # build, lint, unit test deps
+source activate ./.venv                                    # activate on POSIX
+activate ./.venv                                           # activate on Windows
 ```
 
-Or with `pip`:
+Optionally extend your environment further for browser testing, and/or docs:
+
+```bash
+mamba env update -p ./.venv --file requirements/atest.yml  # browser test deps
+mamba env update -p ./.venv --file requirements/docs.yml   # docs deps
+```
+
+#### pip
+
+`pip` can be used to install most of the basic Python build and test dependencies:
 
 ```bash
 pip install -r requirements/dev.txt  # in a virtualenv, probably
-sudo apt-get install nodejs          # ... e.g. on debian/ubuntu
 ```
 
-#### Single-step installation
-
-Once your environment is created and activated, on Linux/OSX you can run:
+[`nodejs`](https://nodejs.org/en/download/current) must be installed by other means,
+with a Long Term Support version (even numbered) version recommended:
 
 ```bash
-bash binder/postBuild
+sudo apt-get install nodejs  # ... on debian/ubuntu
+sudo dnf install nodejs      # ... on fedora/redhat
+```
+
+#### Single-step setup
+
+Once your environment is created and activated, you can run:
+
+```bash
+python3 binder/postBuild
 ```
 
 This performs all the basic setup steps, and is used for the binder demo.
@@ -85,9 +108,9 @@ to JupyterLab for development:
 ```bash
 jlpm bootstrap
 # if you installed `jupyterlab_lsp` before uninstall it before running the next line
-jupyter labextension develop python_packages/jupyterlab_lsp/ --overwrite
+jupyter labextension develop python_packages/jupyterlab_lsp --overwrite
 # optional, only needed for running a few tests for behaviour with missing language servers
-jupyter labextension develop python_packages/klingon_ls_specification/ --overwrite
+jupyter labextension develop python_packages/klingon_ls_specification --overwrite
 ```
 
 > Note: on Windows you may need to enable Developer Mode first, as discussed in [jupyterlab#9564](https://github.com/jupyterlab/jupyterlab/issues/9564)
@@ -98,18 +121,16 @@ To rebuild the schemas, packages, and the JupyterLab app:
 
 ```bash
 jlpm build
-jupyter lab build
 ```
 
 To watch the files and build continuously:
 
 ```bash
-jlpm watch   # leave this running...
-jupyter lab --watch  # ...in another terminal
+jlpm watch           # leave this running...
 ```
 
-Now after each change to TypesScript files wait until both watchers finish compilation,
-and then refresh the JupyterLab in your browser.
+Now after a change to TypesScript files, wait until both watchers finish compilation,
+and refresh JupyterLab in your browser.
 
 > Note: the backend schema is not included in `watch`, and is only refreshed by `build`
 
@@ -191,14 +212,14 @@ First, ensure you've prepared JupyterLab for `jupyterlab-lsp`
 Prepare the environment:
 
 ```bash
-conda env update -n jupyterlab-lsp --file requirements/atest.yml
+mamba env update -n jupyterlab-lsp --file requirements/atest.yml
 ```
 
 or with `pip`
 
 ```
-pip install -r requirements/atest.txt  # ... and install geckodriver, somehow
-sudo apt-get install firefox-geckodriver    # ... e.g. on debian/ubuntu
+pip install -r requirements/atest.txt    # ... and install geckodriver, somehow
+sudo apt-get install firefox-geckodriver # ... e.g. on debian/ubuntu
 ```
 
 Run the tests:
@@ -207,17 +228,19 @@ Run the tests:
 python scripts/atest.py
 ```
 
-The Robot Framework reports and screenshots will be in `atest/output`, with
-`<operating system>_<python version>_<attempt>.<log|report>.html` and subsequent `screenshots` being the most interesting
-artifact, e.g.
+The Robot Framework reports and screenshots will be in
+`build/reports/{os}_{py}/atest/{attempt}`, with `(log|report).html` and subsequent
+captured `screenshots` being the most interesting artifact, e.g.
 
 ```
-atest/
-  output/
-    linux_37_1.log.html
-    linux_37_1.report.html
-    linux_37_1/
-      screenshots/
+build/
+  reports/
+    linux_310/
+      atest/
+        1/
+          log.html
+          report.html
+          screenshots/
 ```
 
 #### Customizing the Acceptance Test Run
@@ -228,6 +251,12 @@ The underlying `robot` command supports a vast number of options and many
 support wildcards (`*` and `?`) and boolean operators (`NOT`, `OR`). For more,
 start with
 [simple patterns](https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#simple-patterns).
+
+##### Find robot options
+
+```bash
+robot --help
+```
 
 ##### Run a suite
 
@@ -323,14 +352,17 @@ python scripts/combine.py
 
 ### Formatting
 
-Minimal code style is enforced with `pytest-flake8` during unit testing. If installed,
-`pytest-black` and `pytest-isort` can help find potential problems, and lead to
-cleaner commits, but are not enforced during CI tests (but are checked during lint).
-
 You can clean up your code, and check for using the project's style guide with:
 
 ```bash
 python scripts/lint.py
+```
+
+Optionally, to fail on the first linter failure, provide `--fail-fast`. Additional
+arguments are treated as filters for the linters to run.
+
+```bash
+python scripts/lint.py --fail-fast py  # or "js", "robot"
 ```
 
 ### Specs
@@ -463,7 +495,7 @@ Build it!
 python setup.py sdist bdist_wheel
 ```
 
-## Debugging
+### Debugging
 
 To see more see more log messages navigate to `Settings` ❯ `Settings Editor` ❯ `Language Servers` and adjust:
 
@@ -475,4 +507,14 @@ For robot tests set:
 
 ```robot
 Configure JupyterLab Plugin  {"loggingConsole": "floating", "loggingLevel": "debug"}
+```
+
+### Reporting
+
+The human- and machine-readable outputs of many of the above tasks can be combined
+into a single output. This is used by CI to check overall code coverage across
+all of the jobs, collecting and linking everything in `build/reports/index.html`.
+
+```bash
+python scripts/report.py
 ```

@@ -1,19 +1,14 @@
 """ Documentation configuration and workflow for jupyter-starters
 """
+
 # pylint: disable=invalid-name,redefined-builtin,import-error
 
-import pathlib
 import subprocess
-import sys
+from pathlib import Path
 
-sys.path.insert(
-    0,
-    str(
-        (
-            pathlib.Path.cwd().parent / "python_packages" / "jupyter_lsp" / "src"
-        ).resolve()
-    ),
-)
+DOCS = Path(__file__).parent
+ROOT = DOCS.parent
+YARN_STATE = ROOT / "node_modules/.yarn-state.yml"
 
 project = "Jupyter[Lab] Language Server"
 copyright = "2021, Jupyter[Lab] Language Server Contributors"
@@ -44,7 +39,7 @@ source_suffix = [".rst", ".md"]
 
 master_doc = "index"
 
-language = None
+language = "en"
 
 exclude_patterns = [
     ".ipynb_checkpoints/**",
@@ -106,7 +101,7 @@ html_theme_options = {
 
 # MyST-{NB}
 
-jupyter_execute_notebooks = "force"
+nb_execution_mode = "force"
 nb_output_stderr = "remove-warn"
 myst_enable_extensions = [
     "amsmath",
@@ -121,4 +116,5 @@ myst_enable_extensions = [
 def setup(app):
     """Runs before the "normal business" of sphinx. Don't go too crazy here."""
     app.add_css_file("css/custom.css")
-    subprocess.check_call(["jlpm"])
+    if not YARN_STATE.exists():
+        subprocess.check_call(["jlpm"])

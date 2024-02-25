@@ -1,5 +1,6 @@
 """ API used by spec finders and manager
 """
+
 import asyncio
 import enum
 import json
@@ -48,8 +49,7 @@ if TYPE_CHECKING:  # pragma: no cover
             message: LanguageServerMessage,
             language_server: Text,
             manager: "LanguageServerManagerAPI",
-        ) -> Awaitable[None]:
-            ...
+        ) -> Awaitable[None]: ...
 
 
 class SessionStatus(enum.Enum):

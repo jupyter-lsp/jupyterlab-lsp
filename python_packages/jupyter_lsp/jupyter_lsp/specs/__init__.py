@@ -1,5 +1,6 @@
 """ default specs
 """
+
 # flake8: noqa: F401
 
 from .bash_language_server import BashLanguageServer

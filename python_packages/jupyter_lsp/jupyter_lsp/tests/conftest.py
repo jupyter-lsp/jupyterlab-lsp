@@ -1,6 +1,8 @@
 import json
+import os
 import pathlib
 import shutil
+from pathlib import Path
 from typing import Text
 
 from jupyter_server.serverapp import ServerApp
@@ -43,9 +45,14 @@ KNOWN_SERVERS += sum(
 KNOWN_UNKNOWN_SERVERS = ["foo-language-server"]
 
 
+def extra_node_roots():
+    root = Path(os.environ.get("JLSP_TEST_ROOT") or Path.cwd())
+    return dict(extra_node_roots=[str(root)] if root else [])
+
+
 @fixture
 def manager() -> LanguageServerManager:
-    return LanguageServerManager()
+    return LanguageServerManager(**extra_node_roots())
 
 
 @fixture

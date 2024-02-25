@@ -1,21 +1,26 @@
 """Integration tests of authorization running under jupyter-server."""
+
 import json
 import os
 import socket
 import subprocess
+import sys
 import time
 import uuid
-from typing import Generator, Tuple
+from typing import Generator, Optional, Tuple
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
 import pytest
 
-from .conftest import KNOWN_SERVERS
+from .conftest import KNOWN_SERVERS, extra_node_roots
 
 LOCALHOST = "127.0.0.1"
 REST_ROUTES = ["/lsp/status"]
 WS_ROUTES = [f"/lsp/ws/{ls}" for ls in KNOWN_SERVERS]
+SUBPROCESS_PREFIX = json.loads(
+    os.environ.get("JLSP_TEST_SUBPROCESS_PREFIX", f"""["{sys.executable}", "-m"]""")
+)
 
 
 @pytest.mark.parametrize("route", REST_ROUTES)
@@ -25,18 +30,17 @@ def test_auth_rest(route: str, a_server_url_and_token: Tuple[str, str]) -> None:
 
     verify_response(base_url, route)
 
-    url = f"{base_url}{route}"
+    raw_body = verify_response(base_url, f"{route}?token={token}", 200)
 
-    with urlopen(f"{url}?token={token}") as response:
-        raw_body = response.read().decode("utf-8")
+    assert raw_body is not None, f"no response received from {route}"
 
     decode_error = None
 
     try:
-        json.loads(raw_body)
-    except json.decoder.JSONDecodeError as err:
+        json.loads(raw_body.decode("utf-8"))
+    except json.decoder.JSONDecodeError as err:  # pragma: no cover
         decode_error = err
-    assert not decode_error, f"the response for {url} was not JSON"
+    assert not decode_error, f"the response for {route} was not JSON: {decode_error}"
 
 
 @pytest.mark.parametrize("route", WS_ROUTES)
@@ -60,10 +64,16 @@ def a_server_url_and_token(
     server_conf.parent.mkdir(parents=True)
     extensions = {"jupyter_lsp": True, "jupyterlab": False, "nbclassic": False}
     app = {"jpserver_extensions": extensions, "token": token}
-    config_data = {"ServerApp": app, "IdentityProvider": {"token": token}}
+    lsm = {**extra_node_roots()}
+    config_data = {
+        "ServerApp": app,
+        "IdentityProvider": {"token": token},
+        "LanguageServerManager": lsm,
+    }
 
     server_conf.write_text(json.dumps(config_data), encoding="utf-8")
-    args = ["jupyter-server", f"--port={port}", "--no-browser"]
+    args = [*SUBPROCESS_PREFIX, "jupyter_server", f"--port={port}", "--no-browser"]
+    print("server args", args)
     env = dict(os.environ)
     env.update(
         HOME=str(home),
@@ -73,18 +83,26 @@ def a_server_url_and_token(
     proc = subprocess.Popen(args, cwd=str(root_dir), env=env, stdin=subprocess.PIPE)
     url = f"http://{LOCALHOST}:{port}"
     retries = 20
-    while retries:
-        time.sleep(1)
+    ok = False
+    while not ok and retries:
         try:
-            urlopen(f"{url}/favicon.ico")
-            break
+            ok = urlopen(f"{url}/favicon.ico")
         except URLError:
             print(f"[{retries} / 20] ...", flush=True)
             retries -= 1
-            continue
+            time.sleep(1)
+    if not ok:  # pragma: no cover
+        raise RuntimeError("the server did not start")
     yield url, token
-    proc.terminate()
-    proc.communicate(b"y\n")
+    try:
+        print("shutting down with API...")
+        urlopen(f"{url}/api/shutdown?token={token}", data=[])
+    except URLError:  # pragma: no cover
+        print("shutting down the hard way...")
+        proc.terminate()
+        proc.communicate(b"y\n")
+        proc.wait()
+        proc.kill()
     proc.wait()
     assert proc.returncode is not None, "jupyter-server probably still running"
 
@@ -102,16 +120,18 @@ def get_unused_port():
     return port
 
 
-def verify_response(base_url: str, route: str, expect: int = 403):
+def verify_response(
+    base_url: str, route: str, expect_code: int = 403
+) -> Optional[bytes]:
     """Verify that a response returns the expected error."""
-    error = None
     body = None
+    code = None
     url = f"{base_url}{route}"
     try:
-        with urlopen(url) as res:
-            body = res.read()
+        res = urlopen(url)
+        code = res.getcode()
+        body = res.read()
     except HTTPError as err:
-        error = err
-    assert error, f"no HTTP error for {url}: {body}"
-    http_code = error.getcode()
-    assert http_code == expect, f"{url} HTTP code was unexpected: {body}"
+        code = err.getcode()
+    assert code == expect_code, f"HTTP {code} (not expected {expect_code}) for {url}"
+    return body
