@@ -1,28 +1,34 @@
 """ Run acceptance tests with robot framework
 """
+
 # pylint: disable=broad-except
 import os
 import platform
 import shutil
 import sys
 import time
-from os.path import join
 from pathlib import Path
 
 import robot
 
-ROOT = Path(__file__).parent.parent.resolve()
-ATEST = ROOT / "atest"
-OUT = ATEST / "output"
-
 OS = platform.system()
 PY = "".join(map(str, sys.version_info[:2]))
+RETRIES = int(os.environ.get("ATEST_RETRIES") or "0")
+ATTEMPT = int(os.environ.get("ATEST_ATTEMPT") or "0")
+
+SCRIPTS = Path(__file__).parent
+ROOT = SCRIPTS.parent.resolve()
+SETUP_CFG = ROOT / "setup.cfg"
+
+ATEST = ROOT / "atest"
+SUITES = ATEST / "suites"
+BUILD = ROOT / "build"
+OUT = BUILD / "reports" / f"{OS}_{PY}".lower() / "atest"
 
 OS_PY_ARGS = {
-    # notebook and ipykernel releases do not yet support python 3.8 on windows
+    # example:
+    # notebook and ipykernel releases did not yet support python 3.8 on windows
     # ("Windows", "38"): ["--include", "not-supported", "--runemptysuite"]
-    # TODO: restore when we figure out win36 vs jedi on windows
-    # ("Windows", "36"): ["--exclude", "feature:completion", "--runemptysuite"]
 }
 
 NON_CRITICAL = [
@@ -33,86 +39,117 @@ NON_CRITICAL = [
     # ["language:python", "py:36", "os:windows"],
 ]
 
+NON_CRITICAL_ARGS = sum(
+    [["--skiponfailure", "AND".join(nc)] for nc in NON_CRITICAL], []
+)
 
-# because we use diagnostics as a litmus for "working", revert to behavior
-# from before https://github.com/bash-lsp/bash-language-server/pull/269
-os.environ["HIGHLIGHT_PARSING_ERRORS"] = "true"
+DEFAULT_ARGS = [
+    # page title, etc: useful information instead of `suites`
+    f"--name={OS}_{PY}",
+    # random ensures there's no inter-test coupling
+    "--randomize=all",
+    # use wide, colorful output for more readable console logs
+    "--consolewidth=120",
+    "--consolecolors=on",
+    *NON_CRITICAL_ARGS,
+]
 
 
-def get_stem(attempt, extra_args):
-    stem = "_".join([OS, PY, str(attempt)]).replace(".", "_").lower()
-
-    if "--dryrun" in extra_args:
-        stem = f"dry_run_{stem}"
-
-    return stem
+os.environ.update(
+    # because we use diagnostics as a litmus for "working", revert to behavior
+    # from before https://github.com/bash-lsp/bash-language-server/pull/269
+    HIGHLIGHT_PARSING_ERRORS="true",
+    # use the top-level coverage config to get consistent paths, etc.
+    COVERAGE_RCFILE=str(SETUP_CFG),
+)
 
 
 def atest(attempt, extra_args):
     """perform a single attempt of the acceptance tests"""
-
-    # TODO: investigate whether this is still required vs geckodriver 0.28
-    if "FIREFOX_BINARY" not in os.environ:
-        os.environ["FIREFOX_BINARY"] = shutil.which("firefox")
-
-        prefix = os.environ.get("CONDA_PREFIX")
-
-        if prefix:
-            app_dir = join(prefix, "bin", "FirefoxApp")
-            os.environ["FIREFOX_BINARY"] = {
-                "Windows": join(prefix, "Library", "bin", "firefox.exe"),
-                "Linux": join(app_dir, "firefox"),
-                "Darwin": join(app_dir, "Contents", "MacOS", "firefox"),
-            }[OS]
-
-    print("Will use firefox at", os.environ["FIREFOX_BINARY"])
-
-    assert os.path.exists(os.environ["FIREFOX_BINARY"])
-
-    extra_args += OS_PY_ARGS.get((OS, PY), [])
-
+    extra_args = [*(extra_args or []), *OS_PY_ARGS.get((OS, PY), [])]
     stem = get_stem(attempt, extra_args)
+    out_dir = ensure_out_dir(stem)
+    args = build_args(out_dir, attempt, extra_args)
 
-    for non_critical in NON_CRITICAL:
-        extra_args += ["--skiponfailure", "AND".join(non_critical)]
+    # remember the original working directory
+    old_cwd = Path.cwd()
 
-    if attempt != 1:
-        previous = OUT / f"{get_stem(attempt - 1, extra_args)}.robot.xml"
-        if previous.exists():
-            extra_args += ["--rerunfailed", str(previous)]
+    rc = 1
 
-    out_dir = OUT / stem
+    try:
+        # run in a "clean" directory
+        os.chdir(str(out_dir))
+        rc = robot.run_cli(args, exit=False)
+    finally:
+        os.chdir(str(old_cwd))
 
+    return rc
+
+
+def build_args(out_dir: Path, attempt: int, extra_args):
+    """Build full ``robot`` CLI arguments."""
     args = [
-        "--name",
-        f"{OS}{PY}",
-        "--outputdir",
-        out_dir,
-        "--output",
-        OUT / f"{stem}.robot.xml",
-        "--log",
-        OUT / f"{stem}.log.html",
-        "--report",
-        OUT / f"{stem}.report.html",
-        "--xunit",
-        OUT / f"{stem}.xunit.xml",
-        "--variable",
-        f"OS:{OS}",
-        "--variable",
-        f"PY:{PY}",
-        # don't ever test our examples
-        "--exclude",
-        "atest:example",
-        # random ensures there's not inter-test coupling
-        "--randomize",
-        "all",
-        *(extra_args or []),
-        ATEST,
+        *DEFAULT_ARGS,
+        # use the standard output layout
+        f"--outputdir={out_dir}",
+        *build_variable_args(OS=OS, PY=PY),
+        *extra_args,
     ]
 
-    print("Robot Arguments\n", " ".join(["robot"] + list(map(str, args))))
+    if attempt != 1:
+        previous = OUT / get_stem(attempt - 1, extra_args) / "output.xml"
+        if previous.exists():
+            print("Robot rerun failed:", previous.parent.name)
+            args += ["--rerunfailed", str(previous)]
+        args += ["--loglevel=TRACE"]
 
-    os.chdir(ATEST)
+    # the tests to run _must_ come last
+    args += [f"{SUITES}"]
+
+    print("Robot CLI Arguments:\n", "  ".join(["robot", *args]))
+
+    return args
+
+
+def build_variable_args(**variables):
+    """build arguments for variables"""
+    return sum(
+        [["--variable", f"{key}:{value}"] for key, value in variables.items()], []
+    )
+
+
+def attempt_atest_with_retries(*extra_args):
+    """retry the robot tests a number of times"""
+    attempt = ATTEMPT
+    error_count = -1
+
+    while error_count != 0 and attempt <= RETRIES:
+        attempt += 1
+        print("attempt {} of {}...".format(attempt, RETRIES + 1))
+        start_time = time.time()
+        error_count = atest(attempt=attempt, extra_args=list(extra_args))
+        print(error_count, "errors in", int(time.time() - start_time), "seconds")
+
+    return error_count
+
+
+def get_stem(attempt, extra_args):
+    """Build the stem, used in the output directory name"""
+
+    if "--dryrun" in extra_args:
+        return "dry_run"
+
+    return str(attempt)
+
+
+def ensure_out_dir(stem: str):
+    """Make a clean output folder, also used as the working directory."""
+    out_dir = OUT / stem
+
+    print("Robot Output Folder:\t", out_dir)
+
+    if out_dir.exists():
+        shutil.rmtree(out_dir)
 
     if out_dir.exists():
         print("trying to clean out {}".format(out_dir))
@@ -121,28 +158,9 @@ def atest(attempt, extra_args):
         except Exception as err:
             print("Error deleting {}, hopefully harmless: {}".format(out_dir, err))
 
-    try:
-        robot.run_cli(list(map(str, args)))
-        return 0
-    except SystemExit as err:
-        return err.code
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-
-def attempt_atest_with_retries(*extra_args):
-    """retry the robot tests a number of times"""
-    attempt = 0
-    error_count = -1
-
-    retries = int(os.environ.get("ATEST_RETRIES") or "0")
-
-    while error_count != 0 and attempt <= retries:
-        attempt += 1
-        print("attempt {} of {}...".format(attempt, retries + 1))
-        start_time = time.time()
-        error_count = atest(attempt=attempt, extra_args=list(extra_args))
-        print(error_count, "errors in", int(time.time() - start_time), "seconds")
-
-    return error_count
+    return out_dir
 
 
 if __name__ == "__main__":

@@ -4,32 +4,51 @@ Library     Process
 Library     String
 Library     Collections
 Library     SeleniumLibrary
+Library     ../_libraries/logcheck.py
+Library     ../_libraries/ports.py
+Library     ../_libraries/config.py
+Library     ../_libraries/paths.py
+Library     ../_libraries/diagnostics.py
+Library     ../_libraries/mouse_over_extension.py
+Library     ../_libraries/firefox.py
 Resource    Variables.resource
-Library     ./logcheck.py
-Library     ./ports.py
-Library     ./config.py
-Library     ./paths.py
-Library     ./diagnostics.py
-Library     ./mouse_over_extension.py
 
 
 *** Keywords ***
 Setup Server and Browser
+    [Arguments]    ${wait_for_lsp_log}=${True}
     Initialize Global Variables
     Create Notebok Server Config
     Initialize User Settings
-    ${server} =    Start Process    jupyter-lab
+    Create Directory    ${LOGS}
+    ${context} =    Set Variable    atest-${OS.lower()}-${PY.lower()}
+    ${cov_data} =    Set Variable    ${LOGS}${/}.coverage-${context}
+    @{cov_args} =    Set Variable
+    ...    coverage    run
+    ...    --rcfile    ${ROOT}${/}setup.cfg
+    ...    --data-file    ${cov_data}
+    ...    --context    ${context}
+    ...    -m
+    ${server} =    Start Process    @{cov_args}    jupyterlab
     ...    cwd=${NOTEBOOK DIR}
     ...    stdout=${LAB LOG}
     ...    stderr=STDOUT
     ...    env:HOME=${HOME}
     ...    env:JUPYTER_NO_CONFIG=${EMPTY}
     Set Global Variable    ${SERVER}    ${server}
+    IF    ${wait_for_lsp_log}
+        Wait Until File Contains   ${LAB LOG}
+        ...  The following Language Servers will be available
+    ELSE
+        # Jupyter Server X.X.X is running at:
+        Wait Until File Contains   ${LAB LOG}
+        ...  is running at:
+    END
     Open JupyterLab
     Read Page Config
 
 Initialize Global Variables
-    ${root} =    Normalize Path    ${OUTPUT DIR}${/}..${/}..${/}..
+    ${root} =    Normalize Path    ${CURDIR}${/}..${/}..
     Set Global Variable    ${ROOT}    ${root}
     ${accel} =    Evaluate    "COMMAND" if "${OS}" == "Darwin" else "CTRL"
     Set Global Variable    ${ACCEL}    ${accel}
@@ -55,6 +74,7 @@ Create Notebok Server Config
     Update Jupyter Config    ${conf}    ServerApp
     ...    base_url=${BASE URL}
     ...    port=${PORT}
+    Update Jupyter Config    ${conf}    IdentityProvider
     ...    token=${TOKEN}
     Update Jupyter Config    ${conf}    LabApp
     ...    user_settings_dir=${SETTINGS DIR}
@@ -80,7 +100,6 @@ Read Page Config
     ${config} =    Evaluate    __import__("json").loads(r"""${script}""")
     Set Global Variable    ${PAGE CONFIG}    ${config}
     Set Global Variable    ${LAB VERSION}    ${config["appVersion"]}
-
 
 Setup Suite For Screenshots
     [Arguments]    ${folder}
@@ -129,11 +148,12 @@ Open JupyterLab
     ${geckodriver} =    Which    geckodriver
     Should Not Be Equal As Strings    ${geckodriver}    None
     ...    geckodriver not found, do you need to install firefox-geckodriver?
-    ${service args} =    Create List    --log    debug
-    Create WebDriver    Firefox
+    ${options} =    Make Firefox Options
+    Open Browser    ${URL}lab?reset&token=${TOKEN}
+    ...    browser=firefox
     ...    executable_path=${geckodriver}
     ...    service_log_path=${GECKODRIVER LOG}
-    ...    service_args=${service args}
+    ...    options=${options}
     Wait Until Keyword Succeeds    3x    5s    Wait For Splash
 
 Close JupyterLab
@@ -226,11 +246,7 @@ Ensure Sidebar Is Closed
 
 Refresh File List
     Ensure File Browser is Open
-    IF    [int(part) for part in "${LAB VERSION}".split(".")] >= [3, 4, 0]
-        Click Element    ${JLAB CSS REFRESH FILES}
-    ELSE
-        Click Element    ${JLAB CSS REFRESH F_OLD}
-    END
+    Click Element    ${JLAB CSS REFRESH FILES}
 
 Open Context Menu for File
     [Arguments]    ${file}
@@ -297,7 +313,7 @@ Setup Notebook
     IF    ${isolated}
         Set Screenshot Directory    ${SCREENSHOTS DIR}${/}notebook${/}${TEST NAME.replace(' ', '_')}
     END
-    Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
+    Copy File    ${EXAMPLES}${/}${file}    ${NOTEBOOK DIR}${/}${file}
     IF    ${isolated}    Try to Close All Tabs
     Open ${file} in ${MENU NOTEBOOK}
     Capture Page Screenshot    00-notebook-opened.png
@@ -325,6 +341,10 @@ Gently Reset Workspace
 Enter Cell Editor
     [Arguments]    ${cell_nr}    ${line}=1
     Click Element    css:.jp-Cell:nth-child(${cell_nr}) .cm-line:nth-child(${line})
+    # So it should be focused after click right? Well, not when using this driver
+    # in JupyterLab 4.1 - we still need to press enter apparently.
+    ${focused}    Get Element Count    css:.jp-Cell:nth-child(${cell_nr}) .cm-focused
+    Run Keyword If    ${focused} == 0    Press Keys    None    ENTER
     Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_nr}) .cm-focused
     # clicking on line does not appear sufficient in CM6 (but still useful because it ensures we have it in view
     Execute JavaScript
@@ -392,7 +412,7 @@ Prepare File for Editing
 
 Open File
     [Arguments]    ${file}
-    Copy File    examples${/}${file}    ${NOTEBOOK DIR}${/}${file}
+    Copy File    ${EXAMPLES}${/}${file}    ${NOTEBOOK DIR}${/}${file}
     Open ${file} in ${MENU EDITOR}
     Capture Page Screenshot    00-opened.png
 
@@ -410,7 +430,7 @@ Set Editor Content
     Execute JavaScript
     ...    let view = document.querySelector('${css} .cm-content').cmView.view;
     ...    view.dispatch({
-    ...        changes: {from: 0, to: view.state.doc.length, insert: `${text}`}
+    ...    changes: {from: 0, to: view.state.doc.length, insert: `${text}`}
     ...    });
 
 Get Editor Content
@@ -425,7 +445,7 @@ Configure JupyterLab Plugin
     Open in Advanced Settings    ${plugin id}
     Set Editor Content    ${settings json}    ${CSS USER SETTINGS}
     Wait Until Page Contains    No errors found
-    Click Element    css:button[title^\='Save User Settings']
+    Click Element    css:jp-button[title^\='Save User Settings']
     Wait Until Page Contains    No errors found
     Click Element    ${JLAB XP CLOSE SETTINGS}
 
@@ -461,7 +481,7 @@ Cursor Should Jump
 Measure Cursor Position
     Wait Until Page Contains Element    ${ACTIVE CURSOR}
     ${position} =    Wait Until Keyword Succeeds    20 x    0.05s    Get Vertical Position    ${ACTIVE CURSOR}
-    LOG     ${position}
+    LOG    ${position}
     # position = 0 indicates that the element was not active.
     Should Not Be Equal    ${position}    0
     RETURN    ${position}
@@ -480,6 +500,9 @@ Restart Kernel
     Lab Command    Restart Kernel…
     Wait For Dialog
     Accept Default Dialog Option
+    Sleep    3s    To ensure restart started
+    # Once restart completed the kernel status will be idle again:
+    Wait Until Page Contains Element    css:.jp-Notebook-ExecutionIndicator[data-status="idle"]
 
 Expand Menu Entry
     [Arguments]    ${label}

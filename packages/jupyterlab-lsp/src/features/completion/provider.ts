@@ -1,5 +1,5 @@
-import { ILSPCompletionThemeManager } from '@jupyter-lsp/completion-theme';
 import { SourceChange } from '@jupyter/ydoc';
+import { ILSPCompletionThemeManager } from '@jupyter-lsp/completion-theme';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import {
   ICompletionProvider,

@@ -1,5 +1,6 @@
 *** Variables ***
-${FIXTURES}                     ${CURDIR}${/}fixtures
+${FIXTURES}                     ${CURDIR}${/}..${/}_fixtures
+${EXAMPLES}                     ${CURDIR}${/}..${/}_examples
 ${JPSERVER CONF JSON}           jupyter_server_config.json
 ${JPSERVER CONF PY}             jupyter_server_config.py
 ${SPLASH}                       id:jupyterlab-splash
@@ -8,8 +9,9 @@ ${BASE URL}                     /@est/
 ${NOTEBOOK DIR NAME}            nöte bòóks
 # core paths
 ${HOME}                         ${OUTPUT DIR}${/}home
-${LAB LOG}                      ${OUTPUT DIR}${/}lab.log
-${GECKODRIVER LOG}              ${OUTPUT DIR}${/}geckodriver.log
+${LOGS}                         ${OUTPUT DIR}${/}logs
+${LAB LOG}                      ${LOGS}${/}lab.log.txt
+${GECKODRIVER LOG}              ${LOGS}${/}geckodriver.log.txt
 ${SETTINGS DIR}                 ${OUTPUT DIR}${/}user-settings
 ${WORKSPACES DIR}               ${OUTPUT DIR}${/}workspaces
 ${NOTEBOOK DIR}                 ${HOME}${/}${NOTEBOOK DIR NAME}
@@ -25,8 +27,7 @@ ${JLAB XP MENU LABEL}           //div[contains(@class, 'lm-MenuBar-itemLabel')]
 ${JLAB XP DOCK TAB}
 ...                             xpath://div[contains(@class, 'lm-DockPanel-tabBar')]//li[contains(@class, 'lm-TabBar-tab')]
 ${JLAB CSS VERSION}             css:.jp-About-version
-${JLAB CSS REFRESH F_OLD}       css:button[title="Refresh File List"]
-${JLAB CSS REFRESH FILES}       css:button[data-command="filebrowser:refresh"]
+${JLAB CSS REFRESH FILES}       css:jp-button[data-command="filebrowser:refresh"]
 ${CSS DIALOG OK}                css:.jp-Dialog .jp-mod-accept
 ${MENU OPEN WITH}               xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(text(), "Open With")]
 # R is missing on purpose (may need to use .)

@@ -34,7 +34,7 @@
     "clean": "rimraf lib"
   },
   "dependencies": {
-    "@jupyter-lsp/completion-theme": "^4.0.0-rc.0"
+    "@jupyter-lsp/completion-theme": "^4.0.0"
   },
   "jupyterlab": {
     "extension": true,

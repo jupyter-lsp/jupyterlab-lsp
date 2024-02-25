@@ -4,6 +4,7 @@
     "open_browser": false
   },
   "ServerApp": {
+    "log_level": "DEBUG",
     "tornado_settings": {
       "page_config_data": {
         "buildCheck": false,

@@ -7,6 +7,7 @@ Parts of this code are derived from:
 > > MIT License   https://github.com/palantir/python-jsonrpc-server/blob/0.2.0/LICENSE
 > > Copyright 2018 Palantir Technologies, Inc.
 """
+
 # pylint: disable=broad-except
 import asyncio
 import io

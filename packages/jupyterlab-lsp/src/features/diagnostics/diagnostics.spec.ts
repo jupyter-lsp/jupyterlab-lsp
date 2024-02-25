@@ -70,6 +70,7 @@ describe('Diagnostics', () => {
         editorExtensionRegistry: env.editorExtensionRegistry,
         themeManager: null
       });
+      env.featureManager.register(feature);
       await env.init();
     });
     afterEach(() => {
@@ -222,6 +223,7 @@ describe('Diagnostics', () => {
         editorExtensionRegistry: env.editorExtensionRegistry,
         themeManager: null
       });
+      env.featureManager.register(feature);
       await env.init();
     });
     afterEach(() => {
@@ -230,7 +232,7 @@ describe('Diagnostics', () => {
 
     it('renders inspections across cells', async () => {
       setNotebookContent(env.notebook, [
-        codeCell(['x =1', 'test']),
+        codeCell(['x =1\n', 'test']),
         codeCell(['    '])
       ]);
       showAllCells(env.notebook);
@@ -330,8 +332,8 @@ describe('Diagnostics', () => {
 
     it.skip('works in foreign documents', async () => {
       setNotebookContent(env.notebook, [
-        codeCell(['valid = 0', 'code = 1', '# here']),
-        codeCell(['%%python', 'y = 1', 'x'])
+        codeCell(['valid = 0\n', 'code = 1\n', '# here']),
+        codeCell(['%%python\n', 'y = 1\n', 'x'])
       ]);
       showAllCells(env.notebook);
       await env.adapter.updateDocuments();

@@ -1,5 +1,6 @@
 """ A configurable frontend for stdio-based Language Servers
 """
+
 import asyncio
 import os
 import sys
@@ -65,12 +66,12 @@ class LanguageServerManager(LanguageServerManagerAPI):
         True, help=_("try to find known language servers in sys.prefix (and elsewhere)")
     ).tag(config=True)
 
-    sessions: Dict[
-        Tuple[Text], LanguageServerSession
-    ] = Dict_(  # type:ignore[assignment]
-        trait=Instance(LanguageServerSession),
-        default_value={},
-        help="sessions keyed by language server name",
+    sessions: Dict[Tuple[Text], LanguageServerSession] = (
+        Dict_(  # type:ignore[assignment]
+            trait=Instance(LanguageServerSession),
+            default_value={},
+            help="sessions keyed by language server name",
+        )
     )
 
     virtual_documents_dir = Unicode(

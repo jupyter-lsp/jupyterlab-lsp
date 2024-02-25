@@ -1,4 +1,5 @@
 """sanity checks for webpack vs python packaging"""
+
 import subprocess
 import sys
 from pathlib import Path

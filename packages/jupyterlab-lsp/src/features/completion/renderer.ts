@@ -49,21 +49,22 @@ export class LSPCompletionRenderer
     );
   }
 
-  protected getExtraInfo(item: CompletionItem): string {
+  protected getExtraInfo(
+    item: CompletionItem | IExtendedCompletionItem
+  ): string | undefined {
     const labelExtra = this.options.settings.composite.labelExtra;
+    const detail = 'detail' in item ? item?.detail ?? '' : '';
     switch (labelExtra) {
       case 'detail':
-        return item?.detail || '';
+        return detail;
       case 'type':
         return item?.type?.toLowerCase?.();
       case 'source':
         return item?.source;
       case 'auto':
-        return [
-          item?.detail || '',
-          item?.type?.toLowerCase?.(),
-          item?.source
-        ].filter(x => !!x)[0];
+        return [detail, item?.type?.toLowerCase?.(), item?.source].filter(
+          x => !!x
+        )[0];
       default:
         this.options.console.warn(
           'labelExtra does not match any of the expected values',
@@ -73,7 +74,10 @@ export class LSPCompletionRenderer
     }
   }
 
-  public updateExtraInfo(item: CompletionItem, li: HTMLLIElement) {
+  public updateExtraInfo(
+    item: CompletionItem | IExtendedCompletionItem,
+    li: HTMLLIElement
+  ) {
     const extraText = this.getExtraInfo(item);
     if (extraText) {
       const extraElement = li.getElementsByClassName(this.EXTRA_INFO_CLASS)[0];
@@ -184,10 +188,11 @@ export class LSPCompletionRenderer
     }
   }
 
-  itemWidthHeuristic(item: CompletionItem): number {
+  itemWidthHeuristic(item: CompletionItem | IExtendedCompletionItem): number {
     let labelSize = item.label.replace(/<(\/)?mark>/g, '').length;
-    const extraTextSize = this.getExtraInfo(item).length;
-    const type = item.type.toLowerCase();
+    const extra = this.getExtraInfo(item);
+    const extraTextSize = extra?.length ?? 0;
+    const type = item.type?.toLowerCase();
     if (type === 'file' || type === 'path') {
       // account for elision
       const parts = item.label.split(/<\/mark>/g);

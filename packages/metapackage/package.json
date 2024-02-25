@@ -1,6 +1,6 @@
 {
   "name": "@jupyter-lsp/jupyterlab-lsp-metapackage",
-  "version": "5.0.1",
+  "version": "5.0.3",
   "description": "JupyterLab LSP - Meta Package. All of the packages used by JupyterLab LSP",
   "homepage": "https://github.com/jupyter-lsp/jupyterlab-lsp",
   "bugs": {
@@ -36,8 +36,8 @@
     "@jupyter-lsp/theme-vscode": "workspace:*"
   },
   "devDependencies": {
-    "rimraf": "^3.0.0",
-    "typescript": "~5.0.4"
+    "rimraf": "^5.0.5",
+    "typescript": "~5.1.6"
   },
   "publishConfig": {
     "access": "public"

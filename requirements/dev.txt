@@ -5,5 +5,4 @@ packaging
 pyls-black
 pyls-isort
 pyls-mypy
-pytest-cov
 ruamel.yaml

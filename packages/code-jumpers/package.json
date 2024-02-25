@@ -29,30 +29,19 @@
     "bundle": "npm pack .",
     "clean": "rimraf lib"
   },
-  "peerDependencies": {
-    "@jupyterlab/apputils": "^4.0.0",
-    "@jupyterlab/codeeditor": "^4.0.0",
-    "@jupyterlab/coreutils": "^6.0.0",
-    "@jupyterlab/docmanager": "^4.0.0",
-    "@jupyterlab/docregistry": "^4.0.0",
-    "@jupyterlab/fileeditor": "^4.0.0",
-    "@jupyterlab/notebook": "^4.0.0",
-    "@jupyterlab/observables": "^5.0.0",
-    "@jupyterlab/translation": "^4.0.0"
-  },
   "devDependencies": {
-    "@jupyterlab/apputils": "^4.1.6",
-    "@jupyterlab/codeeditor": "^4.0.6",
-    "@jupyterlab/coreutils": "^6.0.6",
-    "@jupyterlab/docmanager": "^4.0.6",
-    "@jupyterlab/docregistry": "^4.0.6",
-    "@jupyterlab/fileeditor": "^4.0.6",
-    "@jupyterlab/notebook": "^4.0.6",
-    "@jupyterlab/observables": "^5.0.6",
-    "@jupyterlab/testing": "^4.0.6",
-    "@jupyterlab/translation": "^4.0.6",
-    "rimraf": "^3.0.0",
-    "typescript": "~5.0.4"
+    "@jupyterlab/apputils": "^4.2.0",
+    "@jupyterlab/codeeditor": "^4.1.0",
+    "@jupyterlab/coreutils": "^6.1.0",
+    "@jupyterlab/docmanager": "^4.1.0",
+    "@jupyterlab/docregistry": "^4.1.0",
+    "@jupyterlab/fileeditor": "^4.1.0",
+    "@jupyterlab/notebook": "^4.1.0",
+    "@jupyterlab/observables": "^5.1.0",
+    "@jupyterlab/testing": "^4.1.0",
+    "@jupyterlab/translation": "^4.1.0",
+    "rimraf": "^5.0.5",
+    "typescript": "~5.1.6"
   },
   "jupyterlab": {
     "extension": false,

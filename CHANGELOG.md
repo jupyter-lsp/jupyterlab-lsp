@@ -1,5 +1,35 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 5.1.0`
+
+> TBD
+
+### `jupyter-lsp 2.2.2`
+
+> TBD
+
+Requires JupyterLab `>=4.1.0,<5.0.0a0`
+
+### `@jupyter-lsp/jupyterlab-lsp 5.0.3`
+
+- bug fixes:
+  - fix nested transclusions in JupyterLab 4.0.7+ (#1045)
+  - fix completions when `type` is not defined (#1044)
+
+### `@jupyter-lsp/jupyterlab-lsp 5.0.2`
+
+- bug fixes:
+  - fix native JupyterLab completion not working when LSP completion plugin is disabled (#1036)
+
+### `jupyter-lsp 2.2.2`
+
+- bug fixes:
+  - address warning about renamed `extension_points` (#1035)
+  - fix compatibility with jupyter server 1.x
+  - fix an authentication-related security vulnerability (see [the advisory](https://github.com/jupyter-lsp/jupyterlab-lsp/security/advisories/GHSA-4qhp-652w-c22x) for details)
+- enhancements:
+  - add authorization support (`lsp` resource, jupyter-server v2+ only) - this allows server operators for fine grained access control, e.g. in case if specific users (such as guest or read-only users) should not be allowed to access LSP; this is in addition to authentication fixes
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.1`
 
 - bug fixes:

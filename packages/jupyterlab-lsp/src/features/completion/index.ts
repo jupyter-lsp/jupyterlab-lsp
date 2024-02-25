@@ -3,7 +3,11 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { ICompletionProviderManager } from '@jupyterlab/completer';
+import {
+  ICompletionProviderManager,
+  ContextCompleterProvider,
+  KernelCompleterProvider
+} from '@jupyterlab/completer';
 import {
   ILSPFeatureManager,
   ILSPDocumentConnectionManager
@@ -24,6 +28,7 @@ import {
   EnhancedKernelCompleterProvider
 } from './overrides';
 import { CompletionProvider } from './provider';
+import { ICompletionFeature } from './tokens';
 
 export const completionIcon = new LabIcon({
   name: 'lsp:completion',
@@ -94,42 +99,66 @@ export namespace CompletionFeature {
   export const id = PLUGIN_ID + ':completion';
 }
 
-export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<void> = {
-  id: CompletionFeature.id,
-  requires: [
-    ILSPFeatureManager,
-    ISettingRegistry,
-    ICompletionProviderManager,
-    ILSPCompletionThemeManager,
-    IRenderMimeRegistry,
-    ILSPDocumentConnectionManager
-  ],
+export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<ICompletionFeature | null> =
+  {
+    id: CompletionFeature.id,
+    requires: [
+      ILSPFeatureManager,
+      ISettingRegistry,
+      ICompletionProviderManager,
+      ILSPCompletionThemeManager,
+      IRenderMimeRegistry,
+      ILSPDocumentConnectionManager
+    ],
+    provides: ICompletionFeature,
+    autoStart: true,
+    activate: async (
+      app: JupyterFrontEnd,
+      featureManager: ILSPFeatureManager,
+      settingRegistry: ISettingRegistry,
+      completionProviderManager: ICompletionProviderManager,
+      iconsThemeManager: ILSPCompletionThemeManager,
+      renderMimeRegistry: IRenderMimeRegistry,
+      connectionManager: ILSPDocumentConnectionManager
+    ): Promise<ICompletionFeature | null> => {
+      const settings = new FeatureSettings<LSPCompletionSettings>(
+        settingRegistry,
+        CompletionFeature.id
+      );
+      await settings.ready;
+      if (settings.composite.disable) {
+        return null;
+      }
+      const feature = new CompletionFeature({
+        settings,
+        connectionManager,
+        renderMimeRegistry,
+        iconsThemeManager,
+        completionProviderManager
+      });
+
+      featureManager.register(feature);
+      return { id: CompletionFeature.id };
+    }
+  };
+
+export const COMPLETION_FALLBACK_PLUGIN: JupyterFrontEndPlugin<void> = {
+  id: CompletionFeature.id + '-fallback',
+  description:
+    'Plugin which restores the default completion provider when the LSP completion plugin is disabled',
+  requires: [ICompletionProviderManager],
+  optional: [ICompletionFeature],
   autoStart: true,
   activate: async (
     app: JupyterFrontEnd,
-    featureManager: ILSPFeatureManager,
-    settingRegistry: ISettingRegistry,
     completionProviderManager: ICompletionProviderManager,
-    iconsThemeManager: ILSPCompletionThemeManager,
-    renderMimeRegistry: IRenderMimeRegistry,
-    connectionManager: ILSPDocumentConnectionManager
+    completionFeature: ICompletionFeature | null
   ) => {
-    const settings = new FeatureSettings<LSPCompletionSettings>(
-      settingRegistry,
-      CompletionFeature.id
-    );
-    await settings.ready;
-    if (settings.composite.disable) {
-      return;
+    if (completionFeature == null) {
+      completionProviderManager.registerProvider(
+        new ContextCompleterProvider()
+      );
+      completionProviderManager.registerProvider(new KernelCompleterProvider());
     }
-    const feature = new CompletionFeature({
-      settings,
-      connectionManager,
-      renderMimeRegistry,
-      iconsThemeManager,
-      completionProviderManager
-    });
-
-    featureManager.register(feature);
   }
 };

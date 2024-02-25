@@ -40,6 +40,7 @@ module.exports = {
         ignoreGlobals: true,
         allow: [
           'cell_type',
+          'config_schema',
           'execution_count',
           'language_info',
           'nbconvert_exporter',
@@ -52,7 +53,8 @@ module.exports = {
           'lsp_to_ce',
           'ce_to_cm',
           'cm_to_lsp',
-          'lsp_to_cm'
+          'lsp_to_cm',
+          'workspace_configuration'
         ]
       }
     ],
@@ -92,10 +94,10 @@ module.exports = {
           'unknown'
         ],
         pathGroups: [
-          { pattern: 'react/**', group: 'builtin', order: 'after' },
-          { pattern: 'codemirror/**', group: 'external', order: 'before' },
-          { pattern: '@lumino/**', group: 'external', order: 'before' },
-          { pattern: '@jupyterlab/**', group: 'external', order: 'after' }
+          { pattern: 'react/**', group: 'builtin', position: 'after' },
+          { pattern: 'codemirror/**', group: 'external', position: 'before' },
+          { pattern: '@lumino/**', group: 'external', position: 'before' },
+          { pattern: '@jupyterlab/**', group: 'external', position: 'after' }
         ],
         'newlines-between': 'always',
         alphabetize: { order: 'asc' }

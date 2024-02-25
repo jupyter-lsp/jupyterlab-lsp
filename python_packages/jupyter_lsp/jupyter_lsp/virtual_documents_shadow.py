@@ -8,7 +8,7 @@ from tornado.concurrent import run_on_executor
 from tornado.gen import convert_yielded
 
 from .manager import lsp_message_listener
-from .paths import file_uri_to_path
+from .paths import file_uri_to_path, is_relative
 from .types import LanguageServerManagerAPI
 
 # TODO: make configurable
@@ -171,6 +171,11 @@ def setup_shadow_filesystem(virtual_documents_uri: str):
             initialized = True
 
         path = file_uri_to_path(uri)
+        if not is_relative(shadow_filesystem, path):
+            raise ShadowFilesystemError(
+                f"Path {path} is not relative to shadow filesystem root"
+            )
+
         editable_file = EditableFile(path)
 
         await editable_file.read()

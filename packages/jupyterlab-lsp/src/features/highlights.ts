@@ -6,7 +6,6 @@ import {
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import {
   CodeMirrorEditor,
-  IEditorExtensionRegistry,
   EditorExtensionRegistry
 } from '@jupyterlab/codemirror';
 import {
@@ -14,7 +13,8 @@ import {
   ILSPFeatureManager,
   IEditorPosition,
   ILSPDocumentConnectionManager,
-  WidgetLSPAdapter
+  WidgetLSPAdapter,
+  Document
 } from '@jupyterlab/lsp';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { LabIcon } from '@jupyterlab/ui-components';
@@ -23,7 +23,6 @@ import type * as lsProtocol from 'vscode-languageserver-protocol';
 
 import highlightSvg from '../../style/icons/highlight.svg';
 import { CodeHighlights as LSPHighlightsSettings } from '../_highlights';
-import { ContextAssembler } from '../context';
 import {
   PositionConverter,
   rootPositionToVirtualPosition,
@@ -78,7 +77,6 @@ export class HighlightsFeature extends Feature {
   constructor(options: HighlightsFeature.IOptions) {
     super(options);
     this.settings = options.settings;
-    const connectionManager = options.connectionManager;
     this.markManager = createMarkManager({
       [DocumentHighlightKind.Text]: { class: 'cm-lsp-highlight-Text' },
       [DocumentHighlightKind.Read]: { class: 'cm-lsp-highlight-Read' },
@@ -91,55 +89,31 @@ export class HighlightsFeature extends Feature {
       this._debouncedGetHighlight = this.createDebouncer();
     });
 
-    options.editorExtensionRegistry.addExtension({
+    this.extensionFactory = {
       name: 'lsp:highlights',
-      factory: options => {
+      factory: factoryOptions => {
+        const { editor: editorAccessor, widgetAdapter: adapter } =
+          factoryOptions;
         const updateListener = EditorView.updateListener.of(viewUpdate => {
-          if (
-            viewUpdate.docChanged ||
-            viewUpdate.selectionSet ||
-            viewUpdate.focusChanged
-          ) {
-            // TODO a better way to get the adapter here?
-            const adapter = [...connectionManager.adapters.values()].find(
-              adapter => adapter.widget.node.contains(viewUpdate.view.dom)
+          if (viewUpdate.docChanged || viewUpdate.selectionSet) {
+            this.onCursorActivity(editorAccessor, adapter).catch(
+              this.console.warn
             );
-            if (!adapter) {
-              this.console.warn('Adapter not found');
-              return;
-            }
-            this.onCursorActivity(adapter).catch(this.console.warn);
           }
         });
         const eventListeners = EditorView.domEventHandlers({
-          blur: (e, view) => {
+          blur: (_, view) => {
             this.onBlur(view);
           },
-          focus: event => {
-            const adapter = [...connectionManager.adapters.values()].find(
-              adapter =>
-                adapter.widget.node.contains(
-                  event.currentTarget! as HTMLElement
-                )
+          focus: () => {
+            this.onCursorActivity(editorAccessor, adapter).catch(
+              this.console.warn
             );
-            if (!adapter) {
-              this.console.warn('Adapter not found');
-              return;
-            }
-            this.onCursorActivity(adapter).catch(this.console.warn);
           },
-          keydown: event => {
-            const adapter = [...connectionManager.adapters.values()].find(
-              adapter =>
-                adapter.widget.node.contains(
-                  event.currentTarget! as HTMLElement
-                )
+          keydown: () => {
+            this.onCursorActivity(editorAccessor, adapter).catch(
+              this.console.warn
             );
-            if (!adapter) {
-              this.console.warn('Adapter not found');
-              return;
-            }
-            this.onCursorActivity(adapter).catch(this.console.warn);
           }
         });
         return EditorExtensionRegistry.createImmutableExtension([
@@ -147,7 +121,7 @@ export class HighlightsFeature extends Feature {
           eventListeners
         ]);
       }
-    });
+    };
   }
 
   protected onBlur(view: EditorView) {
@@ -260,17 +234,21 @@ export class HighlightsFeature extends Feature {
     });
   };
 
-  protected async onCursorActivity(adapter: WidgetLSPAdapter<any>) {
+  protected async onCursorActivity(
+    editorAccessor: Document.IEditor,
+    adapter: WidgetLSPAdapter<any>
+  ) {
     if (!adapter.virtualDocument) {
       this.console.log('virtualDocument not ready on adapter');
       return;
     }
     await adapter.virtualDocument!.updateManager.updateDone;
 
-    // TODO: this is the same problem as in signature
-    // TODO: the assumption that updated editor = active editor will fail on RTC. How to get `CodeEditor.IEditor` and `Document.IEditor` from `EditorView`? we got `CodeEditor.IModel` from `options.model` but may need more context here.
-    const editorAccessor = adapter.activeEditor;
-    const editor = editorAccessor!.getEditor()!;
+    const editor = editorAccessor.getEditor();
+    if (!editor) {
+      this.console.log('editor not found ready');
+      return;
+    }
     const position = editor.getCursorPosition();
     const editorPosition = PositionConverter.ce_to_cm(
       position
@@ -370,8 +348,6 @@ export class HighlightsFeature extends Feature {
 export namespace HighlightsFeature {
   export interface IOptions extends Feature.IOptions {
     settings: FeatureSettings<LSPHighlightsSettings>;
-    editorExtensionRegistry: IEditorExtensionRegistry;
-    contextAssembler: ContextAssembler;
   }
   export const id = PLUGIN_ID + ':highlights';
 }
@@ -381,7 +357,6 @@ export const HIGHLIGHTS_PLUGIN: JupyterFrontEndPlugin<void> = {
   requires: [
     ILSPFeatureManager,
     ISettingRegistry,
-    IEditorExtensionRegistry,
     ILSPDocumentConnectionManager
   ],
   autoStart: true,
@@ -389,10 +364,8 @@ export const HIGHLIGHTS_PLUGIN: JupyterFrontEndPlugin<void> = {
     app: JupyterFrontEnd,
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
-    editorExtensionRegistry: IEditorExtensionRegistry,
     connectionManager: ILSPDocumentConnectionManager
   ) => {
-    const contextAssembler = new ContextAssembler({ app, connectionManager });
     const settings = new FeatureSettings<LSPHighlightsSettings>(
       settingRegistry,
       HighlightsFeature.id
@@ -403,9 +376,7 @@ export const HIGHLIGHTS_PLUGIN: JupyterFrontEndPlugin<void> = {
     }
     const feature = new HighlightsFeature({
       settings,
-      editorExtensionRegistry,
-      connectionManager,
-      contextAssembler
+      connectionManager
     });
     featureManager.register(feature);
   }

@@ -1,5 +1,5 @@
 *** Settings ***
-Resource            ../Keywords.resource
+Resource            ../../_resources/Keywords.resource
 
 Suite Setup         Setup Missing Extension Test
 Suite Teardown      Teardown Missing Extension Test
@@ -24,8 +24,8 @@ Handles Server Extension Failure
 *** Keywords ***
 Setup Missing Extension Test
     Set Server Extension State    enabled=${False}
-    Setup Server and Browser
+    Setup Server and Browser    wait_for_lsp_log=${False}
 
 Teardown Missing Extension Test
     Set Server Extension State    enabled=${True}
-    Setup Server and Browser
+    Setup Server and Browser    wait_for_lsp_log=${True}

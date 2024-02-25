@@ -201,7 +201,7 @@ describe('EditApplicator', () => {
         });
         await environment.init();
         applicator = new EditApplicator(
-          // TODO usptream, adatper should be parameterizable by virtual documentation class to allow overriding it more easily??
+          // TODO upstream, adatper should be parameterizable by virtual documentation class to allow overriding it more easily??
           environment.adapter.virtualDocument as any,
           environment.adapter
         );
@@ -218,7 +218,7 @@ describe('EditApplicator', () => {
       it('applies edit across cells', async () => {
         let testNotebook = {
           cells: [
-            codeCell(['def a_function():', '    pass']),
+            codeCell(['def a_function():\n', '    pass']),
             codeCell(['x = a_function()'])
           ],
           metadata: pythonNotebookMetadata
@@ -274,8 +274,8 @@ describe('EditApplicator', () => {
       it('handles IPython magics', async () => {
         let testNotebook = {
           cells: [
-            codeCell(['x = %ls', 'print(x)']),
-            codeCell(['%%python', 'y = x', 'print(x)'])
+            codeCell(['x = %ls\n', 'print(x)']),
+            codeCell(['%%python\n', 'y = x\n', 'print(x)'])
           ],
           metadata: pythonNotebookMetadata
         } as nbformat.INotebookContent;
