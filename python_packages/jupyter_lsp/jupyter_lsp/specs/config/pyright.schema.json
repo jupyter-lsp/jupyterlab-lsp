@@ -78,6 +78,12 @@
           "default": "warning",
           "enum": ["none", "information", "warning", "error"]
         },
+        "reportInvalidTypeForm": {
+          "type": "string",
+          "description": "Diagnostics for type expression that uses an invalid form.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
         "reportMissingTypeStubs": {
           "type": "string",
           "description": "Diagnostics for imports that have no corresponding type stub file (either a typeshed file or a custom type stub). The type checker requires type stubs to do its best job at analysis.",
@@ -126,6 +132,72 @@
           "default": "warning",
           "enum": ["none", "information", "warning", "error"]
         },
+        "reportAbstractUsage": {
+          "type": "string",
+          "description": "Diagnostics for an attempt to instantiate an abstract or protocol class or use an abstract method.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
+        "reportArgumentType": {
+          "type": "string",
+          "description": "Diagnostics for a type incompatibility for an argument to a call.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
+        "reportAssertTypeFailure": {
+          "type": "string",
+          "description": "Diagnostics for a type incompatibility detected by a typing.assert_type call.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
+        "reportAssignmentType": {
+          "type": "string",
+          "description": "Diagnostics for type incompatibilities for assignments.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
+        "reportAttributeAccessIssue": {
+          "type": "string",
+          "description": "Diagnostics for issues involving attribute accesses.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
+        "reportCallIssue": {
+          "type": "string",
+          "description": "Diagnostics for issues involving call expressions and arguments.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
+        "reportInconsistentOverload": {
+          "type": "string",
+          "description": "Diagnostics for inconsistencies between function overload signatures and implementation.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
+        "reportIndexIssue": {
+          "type": "string",
+          "description": "Diagnostics related to index operations and expressions.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
+        "reportInvalidTypeArguments": {
+          "type": "string",
+          "description": "Diagnostics for invalid type argument usage.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
+        "reportNoOverloadImplementation": {
+          "type": "string",
+          "description": "Diagnostics for an overloaded function or method with a missing implementation.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
+        "reportOperatorIssue": {
+          "type": "string",
+          "description": "Diagnostics for related to unary or binary operators.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
         "reportOptionalSubscript": {
           "type": "string",
           "description": "Diagnostics for an attempt to subscript (index) a variable with an Optional type.",
@@ -159,6 +231,18 @@
         "reportOptionalOperand": {
           "type": "string",
           "description": "Diagnostics for an attempt to use an Optional type as an operand to a binary or unary operator (like '+', '==', 'or', 'not').",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
+        "reportRedeclaration": {
+          "type": "string",
+          "description": "Diagnostics for an attempt to declare the type of a symbol multiple times.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
+        "reportReturnType": {
+          "type": "string",
+          "description": "Diagnostics related to function return type compatibility.",
           "default": "error",
           "enum": ["none", "information", "warning", "error"]
         },
@@ -244,6 +328,12 @@
           "type": "string",
           "description": "Diagnostics for function overloads that overlap in signature and obscure each other or have incompatible return types.",
           "default": "none",
+          "enum": ["none", "information", "warning", "error"]
+        },
+        "reportPossiblyUnboundVariable": {
+          "type": "string",
+          "description": "Diagnostics for the use of variables that may be unbound on some code paths.",
+          "default": "error",
           "enum": ["none", "information", "warning", "error"]
         },
         "reportMissingSuperCall": {
@@ -402,6 +492,12 @@
           "default": "error",
           "enum": ["none", "information", "warning", "error"]
         },
+        "reportUnusedExcept": {
+          "type": "string",
+          "description": "Diagnostics for unreachable except clause.",
+          "default": "error",
+          "enum": ["none", "information", "warning", "error"]
+        },
         "reportUnusedExpression": {
           "type": "string",
           "description": "Diagnostics for simple expressions whose value is not used in any way.",
@@ -466,6 +562,12 @@
       "type": "boolean",
       "default": false,
       "description": "Disables type completion, definitions, and references.",
+      "scope": "resource"
+    },
+    "pyright.disableTaggedHints": {
+      "type": "boolean",
+      "default": false,
+      "description": "Disable hint diagnostics with special hints for grayed-out or strike-through text.",
       "scope": "resource"
     },
     "pyright.disableOrganizeImports": {

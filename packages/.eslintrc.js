@@ -40,6 +40,7 @@ module.exports = {
         ignoreGlobals: true,
         allow: [
           'cell_type',
+          'config_schema',
           'execution_count',
           'language_info',
           'nbconvert_exporter',
@@ -52,7 +53,8 @@ module.exports = {
           'lsp_to_ce',
           'ce_to_cm',
           'cm_to_lsp',
-          'lsp_to_cm'
+          'lsp_to_cm',
+          'workspace_configuration'
         ]
       }
     ],
