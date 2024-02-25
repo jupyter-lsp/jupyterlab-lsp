@@ -94,10 +94,10 @@ module.exports = {
           'unknown'
         ],
         pathGroups: [
-          { pattern: 'react/**', group: 'builtin', order: 'after' },
-          { pattern: 'codemirror/**', group: 'external', order: 'before' },
-          { pattern: '@lumino/**', group: 'external', order: 'before' },
-          { pattern: '@jupyterlab/**', group: 'external', order: 'after' }
+          { pattern: 'react/**', group: 'builtin', position: 'after' },
+          { pattern: 'codemirror/**', group: 'external', position: 'before' },
+          { pattern: '@lumino/**', group: 'external', position: 'before' },
+          { pattern: '@jupyterlab/**', group: 'external', position: 'after' }
         ],
         'newlines-between': 'always',
         alphabetize: { order: 'asc' }

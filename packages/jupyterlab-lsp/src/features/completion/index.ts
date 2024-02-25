@@ -110,6 +110,7 @@ export const COMPLETION_PLUGIN: JupyterFrontEndPlugin<ICompletionFeature | null>
       IRenderMimeRegistry,
       ILSPDocumentConnectionManager
     ],
+    provides: ICompletionFeature,
     autoStart: true,
     activate: async (
       app: JupyterFrontEnd,

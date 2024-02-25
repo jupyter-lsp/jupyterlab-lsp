@@ -9,6 +9,5 @@ dependencies:
   - isort
   - mypy
   - pip
-  - pytest-tornasync
   - robotframework-robocop
   - robotframework-tidy

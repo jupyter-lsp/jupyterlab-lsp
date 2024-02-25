@@ -1,5 +1,5 @@
 *** Settings ***
-Resource            ../Keywords.resource
+Resource            ../../_resources/Keywords.resource
 
 Suite Setup         Setup Suite For Screenshots    diagnostics_panel
 Test Setup          Set Up
@@ -9,7 +9,7 @@ Test Tags           ui:notebook    aspect:ls:features
 
 
 *** Variables ***
-${DIAGNOSTIC MESSAGE R}     Closing curly-braces should always be on their own line
+${DIAGNOSTIC MESSAGE R}     Opening curly braces should never go on their own line
 ${DIAGNOSTIC MESSAGE}       trailing whitespace
 ${DIAGNOSTIC}               W291 trailing whitespace (pycodestyle)
 ${EXPECTED_COUNT}           4
@@ -35,9 +35,7 @@ Diagnostics Panel Works After Rename
 Diagnostics Panel Works After Kernel Restart
     [Documentation]    Test for #475 bug
     Close Diagnostics Panel
-    Lab Command    Restart Kernel…
-    Wait For Dialog
-    Accept Default Dialog Option
+    Restart Kernel
     Wait Until Page Contains Diagnostic    [title*="${DIAGNOSTIC}"]    timeout=20s
     Open Diagnostics Panel
     Wait Until Keyword Succeeds    10 x    1s    Should Have Expected Rows Count    ${EXPECTED_COUNT}
@@ -134,6 +132,7 @@ Diagnostics Panel Works After Removing Foreign Document
     ...    ${DIAGNOSTIC MESSAGE}
     Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE R}
+
 
 *** Keywords ***
 Open Context Menu Over W291

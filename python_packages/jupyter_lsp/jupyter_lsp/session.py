@@ -1,5 +1,6 @@
 """ A session for managing a language server process
 """
+
 import asyncio
 import atexit
 import os
@@ -66,12 +67,16 @@ class LanguageServerSession(LoggingConfigurable):
         return dict(
             handler_count=len(self.handlers),
             status=self.status.value,
-            last_server_message_at=self.last_server_message_at.isoformat()
-            if self.last_server_message_at
-            else None,
-            last_handler_message_at=self.last_handler_message_at.isoformat()
-            if self.last_handler_message_at
-            else None,
+            last_server_message_at=(
+                self.last_server_message_at.isoformat()
+                if self.last_server_message_at
+                else None
+            ),
+            last_handler_message_at=(
+                self.last_handler_message_at.isoformat()
+                if self.last_handler_message_at
+                else None
+            ),
             spec=censored_spec(self.spec),
         )
 

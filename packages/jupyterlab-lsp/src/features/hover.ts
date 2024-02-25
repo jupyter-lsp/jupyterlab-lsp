@@ -6,7 +6,6 @@ import {
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import {
   CodeMirrorEditor,
-  IEditorExtensionRegistry,
   EditorExtensionRegistry
 } from '@jupyterlab/codemirror';
 import {
@@ -178,15 +177,16 @@ export class HoverFeature extends Feature {
     this.contextAssembler = options.contextAssembler;
 
     this.cache = new ResponseCache(10);
-    const connectionManager = options.connectionManager;
 
     this.markManager = createMarkManager({
       hover: { class: 'cm-lsp-hover-available' }
     });
 
-    options.editorExtensionRegistry.addExtension({
+    this.extensionFactory = {
       name: 'lsp:hover',
-      factory: options => {
+      factory: factoryOptions => {
+        const { widgetAdapter: adapter } = factoryOptions;
+
         const updateListener = EditorView.updateListener.of(viewUpdate => {
           if (viewUpdate.docChanged) {
             this.afterChange();
@@ -194,16 +194,6 @@ export class HoverFeature extends Feature {
         });
         const eventListeners = EditorView.domEventHandlers({
           mousemove: event => {
-            const adapter = [...connectionManager.adapters.values()].find(
-              adapter =>
-                adapter.widget.node.contains(event.target as HTMLElement)
-            );
-
-            if (!adapter) {
-              this.console.warn('Adapter not found');
-              return;
-            }
-
             // this is used to hide the tooltip on leaving cells in notebook
             this.updateUnderlineAndTooltip(event, adapter)
               ?.then(keepTooltip => {
@@ -218,16 +208,6 @@ export class HoverFeature extends Feature {
           },
           // show hover after pressing the modifier key
           keydown: event => {
-            const adapter = [...connectionManager.adapters.values()].find(
-              adapter =>
-                adapter.widget.node.contains(
-                  event.currentTarget! as HTMLElement
-                )
-            );
-            if (!adapter) {
-              this.console.warn('Adapter not found');
-              return;
-            }
             this.onKeyDown(event, adapter);
           }
         });
@@ -236,7 +216,7 @@ export class HoverFeature extends Feature {
           updateListener
         ]);
       }
-    });
+    };
 
     this.debouncedGetHover = this.createThrottler();
 
@@ -752,7 +732,6 @@ export namespace HoverFeature {
   export interface IOptions extends Feature.IOptions {
     settings: FeatureSettings<LSPHoverSettings>;
     renderMimeRegistry: IRenderMimeRegistry;
-    editorExtensionRegistry: IEditorExtensionRegistry;
     contextAssembler: ContextAssembler;
   }
   export const id = PLUGIN_ID + ':hover';
@@ -764,7 +743,6 @@ export const HOVER_PLUGIN: JupyterFrontEndPlugin<void> = {
     ILSPFeatureManager,
     ISettingRegistry,
     IRenderMimeRegistry,
-    IEditorExtensionRegistry,
     ILSPDocumentConnectionManager
   ],
   autoStart: true,
@@ -773,7 +751,6 @@ export const HOVER_PLUGIN: JupyterFrontEndPlugin<void> = {
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
     renderMimeRegistry: IRenderMimeRegistry,
-    editorExtensionRegistry: IEditorExtensionRegistry,
     connectionManager: ILSPDocumentConnectionManager
   ) => {
     const contextAssembler = new ContextAssembler({ app, connectionManager });
@@ -788,7 +765,6 @@ export const HOVER_PLUGIN: JupyterFrontEndPlugin<void> = {
     const feature = new HoverFeature({
       settings,
       renderMimeRegistry,
-      editorExtensionRegistry,
       connectionManager,
       contextAssembler
     });

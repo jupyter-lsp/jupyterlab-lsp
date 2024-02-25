@@ -15,7 +15,6 @@ import {
 } from '@jupyterlab/apputils';
 import {
   CodeMirrorEditor,
-  IEditorExtensionRegistry,
   EditorExtensionRegistry
 } from '@jupyterlab/codemirror';
 import { URLExt } from '@jupyterlab/coreutils';
@@ -106,22 +105,13 @@ export class NavigationFeature extends Feature {
     this.settings = options.settings;
     this._trans = options.trans;
     this.contextAssembler = options.contextAssembler;
-    const connectionManager = options.connectionManager;
 
-    options.editorExtensionRegistry.addExtension({
+    this.extensionFactory = {
       name: 'lsp:jump',
-      factory: options => {
+      factory: factoryOptions => {
+        const { widgetAdapter: adapter } = factoryOptions;
         const clickListener = EditorView.domEventHandlers({
           mouseup: event => {
-            const adapter = [...connectionManager.adapters.values()].find(
-              adapter =>
-                adapter.widget.node.contains(event.target as HTMLElement)
-            );
-
-            if (!adapter) {
-              this.console.warn('Adapter not found');
-              return;
-            }
             this._jumpOnMouseUp(event, adapter);
           }
         });
@@ -130,7 +120,7 @@ export class NavigationFeature extends Feature {
           clickListener
         ]);
       }
-    });
+    };
 
     this._jumpers = new Map();
     const { fileEditorTracker, notebookTracker, documentManager } = options;
@@ -500,7 +490,6 @@ export namespace NavigationFeature {
     notebookTracker: INotebookTracker;
     documentManager: IDocumentManager;
     contextAssembler: ContextAssembler;
-    editorExtensionRegistry: IEditorExtensionRegistry;
     fileEditorTracker: IEditorTracker | null;
   }
   export const id = PLUGIN_ID + ':jump_to';
@@ -519,8 +508,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
     ISettingRegistry,
     ILSPDocumentConnectionManager,
     INotebookTracker,
-    IDocumentManager,
-    IEditorExtensionRegistry
+    IDocumentManager
   ],
   optional: [IEditorTracker, ICommandPalette, ITranslator],
   autoStart: true,
@@ -531,7 +519,6 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
     connectionManager: ILSPDocumentConnectionManager,
     notebookTracker: INotebookTracker,
     documentManager: IDocumentManager,
-    editorExtensionRegistry: IEditorExtensionRegistry,
     fileEditorTracker: IEditorTracker | null,
     palette: ICommandPalette | null,
     translator: ITranslator | null
@@ -555,7 +542,6 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
       documentManager,
       fileEditorTracker,
       contextAssembler,
-      editorExtensionRegistry,
       trans
     });
     featureManager.register(feature);
@@ -595,7 +581,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
       isEnabled: () => {
         const context = contextAssembler.getContext();
         if (!context) {
-          console.warn('Could not get context');
+          console.debug('Could not get context');
           return false;
         }
         const { connection } = context;
@@ -641,7 +627,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
       isEnabled: () => {
         const context = contextAssembler.getContext();
         if (!context) {
-          console.warn('Could not get context');
+          console.debug('Could not get context');
           return false;
         }
         const { connection } = context;
@@ -663,7 +649,7 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
       isEnabled: () => {
         const context = contextAssembler.getContext();
         if (!context) {
-          console.warn('Could not get context');
+          console.debug('Could not get context');
           return false;
         }
         const { connection } = context;

@@ -6,7 +6,6 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import {
-  IEditorExtensionRegistry,
   EditorExtensionRegistry,
   IEditorLanguageRegistry,
   jupyterHighlightStyle
@@ -297,22 +296,13 @@ export class SignatureFeature extends Feature {
     this.settings = options.settings;
     this.tooltip = new EditorTooltipManager(options.renderMimeRegistry);
     this.languageRegistry = options.languageRegistry;
-    const connectionManager = options.connectionManager;
-    options.editorExtensionRegistry.addExtension({
+    this.extensionFactory = {
       name: 'lsp:codeSignature',
-      factory: options => {
+      factory: factoryOptions => {
+        const { editor: editorAccessor, widgetAdapter: adapter } =
+          factoryOptions;
+
         const updateListener = EditorView.updateListener.of(viewUpdate => {
-          const adapter = [...connectionManager.adapters.values()].find(
-            adapter => adapter.widget.node.contains(viewUpdate.view.contentDOM)
-          );
-
-          if (!adapter) {
-            this.console.log('No adapter, will not show signature');
-            return;
-          }
-
-          // TODO: the assumption that updated editor = active editor will fail on RTC. How to get `CodeEditor.IEditor` and `Document.IEditor` from `EditorView`? we got `CodeEditor.IModel` from `options.model` but may need more context here.
-          const editorAccessor = adapter.activeEditor;
           const editor = editorAccessor!.getEditor();
 
           if (!editor) {
@@ -364,7 +354,7 @@ export class SignatureFeature extends Feature {
           focusListener
         ]);
       }
-    });
+    };
   }
 
   get _closeCharacters(): string[] {
@@ -712,7 +702,6 @@ export namespace SignatureFeature {
   export interface IOptions extends Feature.IOptions {
     settings: FeatureSettings<LSPSignatureSettings>;
     renderMimeRegistry: IRenderMimeRegistry;
-    editorExtensionRegistry: IEditorExtensionRegistry;
     languageRegistry: IEditorLanguageRegistry;
   }
   export const id = PLUGIN_ID + ':signature';
@@ -724,7 +713,6 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
     ILSPFeatureManager,
     ISettingRegistry,
     IRenderMimeRegistry,
-    IEditorExtensionRegistry,
     ILSPDocumentConnectionManager,
     IEditorLanguageRegistry
   ],
@@ -734,7 +722,6 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
     featureManager: ILSPFeatureManager,
     settingRegistry: ISettingRegistry,
     renderMimeRegistry: IRenderMimeRegistry,
-    editorExtensionRegistry: IEditorExtensionRegistry,
     connectionManager: ILSPDocumentConnectionManager,
     languageRegistry: IEditorLanguageRegistry
   ) => {
@@ -750,7 +737,6 @@ export const SIGNATURE_PLUGIN: JupyterFrontEndPlugin<void> = {
       settings,
       connectionManager,
       renderMimeRegistry,
-      editorExtensionRegistry,
       languageRegistry
     });
     featureManager.register(feature);

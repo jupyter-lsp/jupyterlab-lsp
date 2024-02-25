@@ -1,5 +1,15 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 5.1.0`
+
+> TBD
+
+### `jupyter-lsp 2.2.2`
+
+> TBD
+
+Requires JupyterLab `>=4.1.0,<5.0.0a0`
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.3`
 
 - bug fixes:

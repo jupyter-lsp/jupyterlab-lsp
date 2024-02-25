@@ -30,6 +30,16 @@ export class FileEditorAdapter extends UpstreamFileEditorAdapter {
     super(editorWidget, options);
   }
 
+  protected async initOnceReady(): Promise<void> {
+    await super.initOnceReady();
+    // Workaround for
+    // https://github.com/jupyterlab/jupyterlab/issues/15868
+    // remove once fixed upstream
+    this._editorAdded.emit({
+      editor: this.activeEditor
+    });
+  }
+
   /**
    * Generate the virtual document associated with the document.
    */

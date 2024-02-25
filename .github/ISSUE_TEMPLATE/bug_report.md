@@ -41,8 +41,7 @@ https://jupyterlab.readthedocs.io/en/latest/getting_started/issue.html
 
 <details><summary>Required: installed server extensions</summary>
 <pre>
-Paste the output from running `jupyter server extension list` (JupyterLab >= 3)
-or `jupyter serverextension list` (JupyterLab < 3) from the command line here.
+Paste the output from running `jupyter server extension list` from the command line here.
 You may want to sanitize the paths in the output.
 </pre>
 </details>

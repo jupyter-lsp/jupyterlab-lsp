@@ -150,22 +150,12 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
       });
     }
 
-    options.editorExtensionRegistry.addExtension({
+    this.extensionFactory = {
       name: 'lsp:diagnostics',
-      factory: options => {
+      factory: factoryOptions => {
+        const { widgetAdapter: adapter } = factoryOptions;
         const source = async (view: EditorView) => {
           let diagnostics: Diagnostic[] = [];
-
-          const adapter = [...connectionManager.adapters.values()].find(
-            adapter => adapter.widget.node.contains(view.contentDOM) // this is going to be problematic with the windowed notebook. Another solution is needed.
-          );
-
-          if (!adapter) {
-            this.console.debug(
-              'No adapter found for editor by model. Maybe not registered yet?'
-            );
-            return [];
-          }
           // NHT: `response.version` could be checked against document versions
           // and if non matches we could yield (raise an error or hang for a
           // few seconds to trigger timeout). Because `response.version` is
@@ -262,7 +252,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
 
         return EditorExtensionRegistry.createImmutableExtension(extensions);
       }
-    });
+    };
   }
 
   private _reconfigureTheme() {
@@ -482,7 +472,7 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
             .get(start.line)!
             .skipInspect.includes(document.idPath)
         ) {
-          this.console.log(
+          this.console.debug(
             'Ignoring inspections silenced for this document:',
             diagnostics,
             document.idPath,

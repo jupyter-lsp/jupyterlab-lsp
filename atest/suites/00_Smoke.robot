@@ -1,5 +1,5 @@
 *** Settings ***
-Resource        Keywords.resource
+Resource        ../_resources/Keywords.resource
 
 Suite Setup     Set Screenshot Directory    ${SCREENSHOTS DIR}${/}smoke
 
