@@ -274,10 +274,11 @@ export class SymbolFeature extends Feature {
     }
     const connection = this.connectionManager.connections.get(
       adapter.virtualDocument.uri
-    )!;
+    );
 
     if (
       !(
+        connection &&
         connection.isReady &&
         connection.serverCapabilities.documentSymbolProvider
       )
