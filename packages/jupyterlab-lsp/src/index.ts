@@ -44,6 +44,7 @@ import { HOVER_PLUGIN } from './features/hover';
 import { JUMP_PLUGIN } from './features/jump_to';
 import { RENAME_PLUGIN } from './features/rename';
 import { SIGNATURE_PLUGIN } from './features/signature';
+import { SYMBOL_PLUGIN } from './features/symbol';
 import { SYNTAX_HIGHLIGHTING_PLUGIN } from './features/syntax_highlighting';
 import { CODE_OVERRIDES_MANAGER } from './overrides';
 import { SettingsUIManager, SettingsSchemaManager } from './settings';
@@ -245,7 +246,8 @@ const DEFAULT_FEATURES: JupyterFrontEndPlugin<any>[] = [
   RENAME_PLUGIN,
   HIGHLIGHTS_PLUGIN,
   DIAGNOSTICS_PLUGIN,
-  SYNTAX_HIGHLIGHTING_PLUGIN
+  SYNTAX_HIGHLIGHTING_PLUGIN,
+  SYMBOL_PLUGIN
 ];
 const plugins: JupyterFrontEndPlugin<any>[] = [
   LOG_CONSOLE,
