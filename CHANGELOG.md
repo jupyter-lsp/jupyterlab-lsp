@@ -2,13 +2,30 @@
 
 ### `@jupyter-lsp/jupyterlab-lsp 5.1.0`
 
-> TBD
-
-### `jupyter-lsp 2.2.2`
-
-> TBD
-
 Requires JupyterLab `>=4.1.0,<5.0.0a0`
+
+- new features:
+  - populate table of contents with code symbols outline (experimental, file editor only)
+- bug fixes:
+  - fix settings reconciliation for nested properties (#1051)
+  - fix a regression introduced in v5.0.2 which meant that overrides for native kernel and context completion providers were never active (#1057)
+  - reduces some warnings in places known to have false positives to debug statements (#1057)
+  - highlights no longer get instantly removed when navigating to a beginning of cell from another cell (#1057)
+  - with the use of the new `extensionFactory` API (#1057):
+    - LSP features work more reliably as the correct virtual document and editor is known rather than found from heuristics
+    - LSP CodeMirror extensions are not added to editors which do not have an LSP-enabled editor reducing spurious warnings and improving performance
+    - LSP CodeMirror extensions are only added once the LSP server was connected
+- maintenance:
+  - use new `extensionFactory` API allowing to remove workarounds that were needed to make the extension work in JupyterLab 4.0 (#1057)
+  - remove no-longer needed patches for `VirtualDocument` as these were merged upstream and released in JupyterLab 4.1 (#1057)
+  - update coverage, robot version and reporting approaches (#1052)
+  - build against JupyterLab 4.1, fix tests (#1057)
+  - bump ip from 2.0.0 to 2.0.1 (#1055)
+
+### `jupyter-lsp 2.2.3`
+
+- maintenance:
+  - updates pyright config schema to v1.1.350
 
 ### `@jupyter-lsp/jupyterlab-lsp 5.0.3`
 

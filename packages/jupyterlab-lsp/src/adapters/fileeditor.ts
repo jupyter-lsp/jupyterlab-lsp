@@ -12,7 +12,8 @@ import {
 import {
   ILSPCodeExtractorsManager,
   ILSPFeatureManager,
-  ILSPDocumentConnectionManager
+  ILSPDocumentConnectionManager,
+  IEditorChangedData
 } from '@jupyterlab/lsp';
 
 import { ILSPCodeOverridesManager } from '../overrides/tokens';
@@ -28,6 +29,18 @@ export class FileEditorAdapter extends UpstreamFileEditorAdapter {
     protected options: IAdapterOptions
   ) {
     super(editorWidget, options);
+    // Workaround to ensure `_editorAdded` is not called twice once upstream
+    // adopts patch https://github.com/jupyterlab/jupyterlab/pull/15873
+    let emitted = false;
+    const emit = this._editorAdded.emit;
+    this._editorAdded.emit = (args: IEditorChangedData) => {
+      if (emitted) {
+        return;
+      }
+      emitted = true;
+      console.log('call');
+      emit.call(this._editorAdded, args);
+    };
   }
 
   protected async initOnceReady(): Promise<void> {
