@@ -38,7 +38,6 @@ export class FileEditorAdapter extends UpstreamFileEditorAdapter {
         return;
       }
       emitted = true;
-      console.log('call');
       emit.call(this._editorAdded, args);
     };
   }
