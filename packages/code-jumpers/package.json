@@ -1,6 +1,6 @@
 {
   "name": "@jupyter-lsp/code-jumpers",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Implementation underlying the jump to definition functionality in JupyterLab-LSP",
   "keywords": [
     "jupyter",

@@ -1,6 +1,6 @@
 {
   "name": "@jupyter-lsp/completion-theme",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "Completion theme manager for JupyterLab-LSP",
   "keywords": [
     "jupyter",
