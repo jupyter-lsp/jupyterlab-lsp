@@ -2120,7 +2120,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyter-lsp/code-jumpers@workspace:*, @jupyter-lsp/code-jumpers@workspace:packages/code-jumpers, @jupyter-lsp/code-jumpers@~2.0.0":
+"@jupyter-lsp/code-jumpers@workspace:*, @jupyter-lsp/code-jumpers@workspace:packages/code-jumpers, @jupyter-lsp/code-jumpers@~2.1.0":
   version: 0.0.0-use.local
   resolution: "@jupyter-lsp/code-jumpers@workspace:packages/code-jumpers"
   dependencies:
@@ -2139,7 +2139,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jupyter-lsp/completion-theme@^4.0.0, @jupyter-lsp/completion-theme@workspace:*, @jupyter-lsp/completion-theme@workspace:packages/completion-theme, @jupyter-lsp/completion-theme@~4.0.1":
+"@jupyter-lsp/completion-theme@^4.0.0, @jupyter-lsp/completion-theme@workspace:*, @jupyter-lsp/completion-theme@workspace:packages/completion-theme, @jupyter-lsp/completion-theme@~4.1.0":
   version: 0.0.0-use.local
   resolution: "@jupyter-lsp/completion-theme@workspace:packages/completion-theme"
   dependencies:
@@ -2196,8 +2196,8 @@ __metadata:
   resolution: "@jupyter-lsp/jupyterlab-lsp@workspace:packages/jupyterlab-lsp"
   dependencies:
     "@codemirror/lint": ^6.4.0
-    "@jupyter-lsp/code-jumpers": ~2.0.0
-    "@jupyter-lsp/completion-theme": ~4.0.1
+    "@jupyter-lsp/code-jumpers": ~2.1.0
+    "@jupyter-lsp/completion-theme": ~4.1.0
     "@jupyter-lsp/theme-material": ~3.0.0
     "@jupyter-lsp/theme-vscode": ~3.0.0
     "@jupyter-notebook/application": ^7.1.0

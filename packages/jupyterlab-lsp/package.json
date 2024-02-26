@@ -61,8 +61,8 @@
     "watch:src": "tsc -w"
   },
   "dependencies": {
-    "@jupyter-lsp/code-jumpers": "~2.0.0",
-    "@jupyter-lsp/completion-theme": "~4.0.1",
+    "@jupyter-lsp/code-jumpers": "~2.1.0",
+    "@jupyter-lsp/completion-theme": "~4.1.0",
     "@jupyter-lsp/theme-material": "~3.0.0",
     "@jupyter-lsp/theme-vscode": "~3.0.0",
     "@jupyterlab/lsp": "^4.1.0",
