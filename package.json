@@ -20,7 +20,7 @@
     "source-map-loader": "^4.0.1",
     "sql-language-server": "^1.2.1",
     "typescript": "~5.0.3",
-    "typescript-language-server": "^0.6.4",
+    "typescript-language-server": "^4.3.3",
     "unified-language-server": "^0.3.0",
     "vscode-css-languageserver-bin": "^1.4.0",
     "vscode-html-languageserver-bin": "^1.4.0",
