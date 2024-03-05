@@ -1,5 +1,12 @@
 ## Changelog
 
+### `jupyter-lsp 2.2.4`
+
+- bug fixes:
+  - fix websocket handler incorrectly inheriting from `APIHandler` rather than `JupyterHandler` (#1069)
+  - remove unused notebook config entry point (#1069)
+  - support latest version of `typescript-language-server` (#1064)
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.1.0`
 
 Requires JupyterLab `>=4.1.0,<5.0.0a0`
