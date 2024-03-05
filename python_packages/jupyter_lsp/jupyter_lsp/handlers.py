@@ -4,7 +4,7 @@
 from typing import Optional, Text
 
 from jupyter_core.utils import ensure_async
-from jupyter_server.base.handlers import APIHandler
+from jupyter_server.base.handlers import APIHandler, JupyterHandler
 from jupyter_server.utils import url_path_join as ujoin
 from tornado import web
 from tornado.websocket import WebSocketHandler
@@ -37,8 +37,15 @@ class BaseHandler(APIHandler):
         self.manager = manager
 
 
+class BaseJupyterHandler(JupyterHandler):
+    manager = None  # type: LanguageServerManager
+
+    def initialize(self, manager: LanguageServerManager):
+        self.manager = manager
+
+
 class LanguageServerWebSocketHandler(  # type: ignore
-    WebSocketMixin, WebSocketHandler, BaseHandler
+    WebSocketMixin, WebSocketHandler, BaseJupyterHandler
 ):
     """Setup tornado websocket to route to language server sessions.
 
