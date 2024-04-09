@@ -104,8 +104,10 @@ async def test_ping(handlers):
 
 
 @pytest.mark.asyncio
-async def test_substitute_env(known_server, handlers, jsonrpc_init_msg):
+async def test_substitute_env(handlers):
     """should not leak environment variables"""
+    a_server = "pylsp"
+
     handler, ws_handler = handlers
     manager = handler.manager
 
@@ -113,7 +115,7 @@ async def test_substitute_env(known_server, handlers, jsonrpc_init_msg):
 
     await assert_status_set(handler, {"not_started"})
 
-    await ws_handler.open(known_server)
+    await ws_handler.open(a_server)
     session = manager.sessions[ws_handler.language_server]
     new_env = session.substitute_env({"test-variable": "value"}, os.environ)
 
