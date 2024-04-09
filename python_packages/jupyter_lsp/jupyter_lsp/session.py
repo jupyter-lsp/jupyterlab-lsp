@@ -6,7 +6,6 @@ import atexit
 import os
 import string
 import subprocess
-from copy import copy
 from datetime import datetime, timezone
 
 from tornado.ioloop import IOLoop
@@ -161,7 +160,7 @@ class LanguageServerSession(LoggingConfigurable):
         )
 
     def substitute_env(self, env, base):
-        final_env = copy(os.environ)
+        final_env = base.copy()
 
         for key, value in env.items():
             final_env.update({key: string.Template(value).safe_substitute(base)})

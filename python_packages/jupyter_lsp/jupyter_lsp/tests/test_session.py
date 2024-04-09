@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 import pytest
 
@@ -98,5 +99,27 @@ async def test_ping(handlers):
     await asyncio.sleep(ws_handler.ping_interval * 3)
 
     assert ws_handler._ping_sent is True
+
+    ws_handler.on_close()
+
+
+@pytest.mark.asyncio
+async def test_substitute_env(handlers):
+    """should not leak environment variables"""
+    a_server = "pylsp"
+
+    handler, ws_handler = handlers
+    manager = handler.manager
+
+    manager.initialize()
+
+    await assert_status_set(handler, {"not_started"})
+
+    await ws_handler.open(a_server)
+    session = manager.sessions[ws_handler.language_server]
+    new_env = session.substitute_env({"test-variable": "value"}, os.environ)
+
+    assert "test-variable" in new_env
+    assert "test-variable" not in os.environ
 
     ws_handler.on_close()

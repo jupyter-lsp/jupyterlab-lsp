@@ -1,5 +1,10 @@
 ## Changelog
 
+### `jupyter-lsp 2.2.5`
+
+- bug fixes:
+  - fix for environment variables leaking into the parent environment (#1078)
+
 ### `jupyter-lsp 2.2.4`
 
 - bug fixes:
