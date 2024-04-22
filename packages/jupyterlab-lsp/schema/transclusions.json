@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "jupyter.lab.setting-icon": "lsp:transclusions",
+  "jupyter.lab.setting-icon-label": "Language integration",
+  "title": "Code Extractors",
+  "description": "Simple declarative patterns for describing \"foreign languages\" embedded within a host language document",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "title": "Enable Custom Code Extractors",
+      "type": "boolean",
+      "description": "Whether settings-based extractors will be used to find embedded 'foreign' language fragments within a 'host' language.",
+      "default": true
+    },
+    "codeExtractors": {
+      "title": "Code Extractors",
+      "description": "A named set of patterns that find language fragments embedded in other languages",
+      "additionalProperties": {
+        "$ref": "#/definitions/a-code-extractor"
+      }
+    }
+  },
+  "definitions": {
+    "a-language-name": {
+      "anyOf": [
+        {
+          "title": "Well-known language",
+          "$ref": "#/definitions/a-well-known-language"
+        },
+        {
+          "title": "Custom Language",
+          "type": "string"
+        }
+      ]
+    },
+    "a-well-known-language": {
+      "type": "string",
+      "enum": ["javascript", "ipythongfm"]
+    },
+    "a-code-extractor": {
+      "type": "object",
+      "required": [
+        "pattern",
+        "fileExtension",
+        "isStandalone",
+        "hostLanguage",
+        "foreignLanguage",
+        "foreignCaptureGroups",
+        "cellTypes"
+      ],
+      "properties": {
+        "pattern": {
+          "title": "Pattern",
+          "type": "string",
+          "description": "Regular expression to test cells for the foreign language presence."
+        },
+        "hostLanguage": {
+          "title": "Host Language",
+          "description": "Name of the language in which to look for foreign language fragments.",
+          "type": "string",
+          "$ref": "#/definitions/a-language-name"
+        },
+        "foreignLanguage": {
+          "title": "Foreign Language",
+          "description": "Name of the language for an embedded fragment",
+          "type": "string",
+          "$ref": "#/definitions/a-language-name"
+        },
+        "foreignCaptureGroups": {
+          "type": "array",
+          "description": "Array of numbers specifying match groups to be extracted from the regular expression match, for the use in virtual document of the foreign language",
+          "items": {
+            "type": "number",
+            "minimum": 0
+          },
+          "minItems": 1
+        },
+        "isStandalone": {
+          "type": "boolean",
+          "description": "Should the foreign code be appended (False) to the previously established virtual document of the same language, or is it standalone snippet which requires separate connection?",
+          "default": false
+        },
+        "cellTypes": {
+          "type": "array",
+          "description": "Types of Notebook cells in which to look for guest language fragments",
+          "uniqueItems": true,
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": ["code", "markdown", "raw"]
+          }
+        },
+        "fileExtension": {
+          "type": "string",
+          "description": "The extension (without a leading period)",
+          "pattern": "^[^\\.].+"
+        }
+      }
+    }
+  }
+}
