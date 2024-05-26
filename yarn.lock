@@ -16799,10 +16799,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-jsonrpc@npm:8.0.2":
+"vscode-jsonrpc@npm:8.0.2, vscode-jsonrpc@npm:^8.0.2":
   version: 8.0.2
   resolution: "vscode-jsonrpc@npm:8.0.2"
   checksum: 9d055fd4c87ef1093b0eecb5370bfaf3402179b6639149b6d0f7e0bde60cf580091c7e07b0caff868f10f90331b17e7383c087217c077fdd1b5ae7bc23b72f77
+  languageName: node
+  linkType: hard
+
+"vscode-jsonrpc@npm:8.2.0":
+  version: 8.2.0
+  resolution: "vscode-jsonrpc@npm:8.2.0"
+  checksum: f302a01e59272adc1ae6494581fa31c15499f9278df76366e3b97b2236c7c53ebfc71efbace9041cfd2caa7f91675b9e56f2407871a1b3c7f760a2e2ee61484a
   languageName: node
   linkType: hard
 
@@ -16817,13 +16824,6 @@ __metadata:
   version: 5.0.1
   resolution: "vscode-jsonrpc@npm:5.0.1"
   checksum: a9188774d8d9ceb4e0d2215aa71bd85bb9f4e1129d5decfda74587e791c6a2b532b2e0026931b45c52087c328429be6510ef841e203293ede7ed4114bb596cd0
-  languageName: node
-  linkType: hard
-
-"vscode-jsonrpc@npm:^8.0.2, vscode-jsonrpc@npm:8.2.0":
-  version: 8.2.0
-  resolution: "vscode-jsonrpc@npm:8.2.0"
-  checksum: f302a01e59272adc1ae6494581fa31c15499f9278df76366e3b97b2236c7c53ebfc71efbace9041cfd2caa7f91675b9e56f2407871a1b3c7f760a2e2ee61484a
   languageName: node
   linkType: hard
 
@@ -16887,7 +16887,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-languageserver-protocol@npm:3.17.2, vscode-languageserver-protocol@npm:^3.10.3, vscode-languageserver-protocol@npm:^3.15.3, vscode-languageserver-protocol@npm:^3.17.0, vscode-languageserver-protocol@npm:^3.7.2, vscode-languageserver-protocol@npm:^3.15.0":
+"vscode-languageserver-protocol@npm:3.17.2, vscode-languageserver-protocol@npm:^3.10.3, vscode-languageserver-protocol@npm:^3.15.3, vscode-languageserver-protocol@npm:^3.17.0, vscode-languageserver-protocol@npm:^3.7.2":
   version: 3.17.2
   resolution: "vscode-languageserver-protocol@npm:3.17.2"
   dependencies:
@@ -16904,6 +16904,16 @@ __metadata:
     vscode-jsonrpc: 3.5.0
     vscode-languageserver-types: 3.5.0
   checksum: b0659122b320de9d3d11ab09c5f381034b9775a56fb0e14cbfa0d7e3d44527454b1a101831505978a5a461c8c2f260f889e98574096538dc5a7ca0b0b8d529d1
+  languageName: node
+  linkType: hard
+
+"vscode-languageserver-protocol@npm:^3.15.0":
+  version: 3.17.5
+  resolution: "vscode-languageserver-protocol@npm:3.17.5"
+  dependencies:
+    vscode-jsonrpc: 8.2.0
+    vscode-languageserver-types: 3.17.5
+  checksum: dfb42d276df5dfea728267885b99872ecff62f6c20448b8539fae71bb196b420f5351c5aca7c1047bf8fb1f89fa94a961dce2bc5bf7e726198f4be0bb86a1e71
   languageName: node
   linkType: hard
 
@@ -16956,10 +16966,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-languageserver-types@npm:3.17.2":
+"vscode-languageserver-types@npm:3.17.2, vscode-languageserver-types@npm:^3.13.0, vscode-languageserver-types@npm:^3.16.0, vscode-languageserver-types@npm:^3.17.0-next.3, vscode-languageserver-types@npm:^3.7.2":
   version: 3.17.2
   resolution: "vscode-languageserver-types@npm:3.17.2"
   checksum: ef2d862d22f622b64de0f428773d50a5928ec6cdd485960a7564ebe4fd4a3c8bcd956f29eb15bc45a0f353846e62f39f6c764d2ab85ce774b8724411ba84342f
+  languageName: node
+  linkType: hard
+
+"vscode-languageserver-types@npm:3.17.5":
+  version: 3.17.5
+  resolution: "vscode-languageserver-types@npm:3.17.5"
+  checksum: 79b420e7576398d396579ca3a461c9ed70e78db4403cd28bbdf4d3ed2b66a2b4114031172e51fad49f0baa60a2180132d7cb2ea35aa3157d7af3c325528210ac
   languageName: node
   linkType: hard
 
@@ -16967,13 +16984,6 @@ __metadata:
   version: 3.5.0
   resolution: "vscode-languageserver-types@npm:3.5.0"
   checksum: 44c859700cfda71b5d3ff1224b5a1df093b39ec6755c8beb12fc76d1fbdb1a4948f55c3a97768356a1cbfb4e3ce66c5e4380e25f66bafcbd2db50277f68ee989
-  languageName: node
-  linkType: hard
-
-"vscode-languageserver-types@npm:^3.13.0, vscode-languageserver-types@npm:^3.16.0, vscode-languageserver-types@npm:^3.17.0-next.3, vscode-languageserver-types@npm:^3.7.2, vscode-languageserver-types@npm:3.17.5":
-  version: 3.17.5
-  resolution: "vscode-languageserver-types@npm:3.17.5"
-  checksum: 79b420e7576398d396579ca3a461c9ed70e78db4403cd28bbdf4d3ed2b66a2b4114031172e51fad49f0baa60a2180132d7cb2ea35aa3157d7af3c325528210ac
   languageName: node
   linkType: hard
 
