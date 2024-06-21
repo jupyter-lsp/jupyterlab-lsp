@@ -189,8 +189,12 @@ export class EditApplicator {
     if (!editor) {
       throw Error('Editor is not accessible');
     }
-    if (editor.host.closest('.jp-MarkdownCell')) {
+    if (
+      editor.host.closest('.jp-MarkdownCell') ||
+      editor.host.closest('.jp-RawCell')
+    ) {
       // Workaround for https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1008
+      // and for https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1084
       // briefly, the rewrite for JupyterLab 4.0 added Markdown cell support, but they
       // are extracted without trace in the top-level document. Here we avoid editing
       // any markdown cell. Instead the clean solution would be to add an anchor marker
