@@ -3,7 +3,10 @@ from .utils import NodeModuleSpec
 
 class UnifiedLanguageServer(NodeModuleSpec):
     node_module = key = "unified-language-server"
-    script = ["src", "server.js"]
+    script = [
+        ["node_modules", "vscode-languageserver","lib","common","server.js"],
+        ["src", "server.js"]
+    ]
     args = ["--parser=remark-parse", "--stdio"]
     languages = ["markdown", "ipythongfm", "gfm"]
     spec = dict(

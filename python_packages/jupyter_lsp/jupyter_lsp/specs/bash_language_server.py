@@ -5,7 +5,7 @@ from .utils import NodeModuleSpec
 
 class BashLanguageServer(NodeModuleSpec):
     node_module = key = "bash-language-server"
-    script = ["out", "cli.js"]
+    script = [["out", "cli.js"]]
     fallback_script = ["bin", "main.js"]
     args = ["start"]
     languages = ["bash", "sh"]
@@ -25,7 +25,7 @@ class BashLanguageServer(NodeModuleSpec):
     )
 
     def solve(self, mgr: LanguageServerManagerAPI):
-        new_path = mgr.find_node_module(self.node_module, *self.script)
+        new_path = mgr.find_node_module(self.node_module, self.script)
         if new_path:
             return new_path
         return mgr.find_node_module(
