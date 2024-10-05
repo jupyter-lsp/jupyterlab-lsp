@@ -13,6 +13,7 @@ class JuliaLanguageServer(ShellSpec):
         ".",
     ]
     is_installed_args = [
+        "--project=.",
         "-e",
         'print(if (Base.find_package("LanguageServer") === nothing) "" else "yes" end)',
     ]
