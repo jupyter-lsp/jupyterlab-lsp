@@ -15,7 +15,7 @@ export type TLanguageServerId =
   | 'bash-language-server'
   | 'dockerfile-language-server-nodejs'
   | 'javascript-typescript-langserver'
-  | 'unified-language-server'
+  | 'vscode-markdown-languageserver'
   | 'vscode-css-languageserver-bin'
   | 'vscode-html-languageserver-bin'
   | 'vscode-json-languageserver-bin'

@@ -21,11 +21,11 @@
     "sql-language-server": "^1.2.1",
     "typescript": "~5.0.3",
     "typescript-language-server": "^4.3.3",
-    "unified-language-server": "^0.3.0",
     "vscode-css-languageserver-bin": "^1.4.0",
     "vscode-html-languageserver-bin": "^1.4.0",
     "vscode-json-languageserver-bin": "^1.0.1",
     "vscode-json-languageservice": "^4.1.8",
+    "vscode-markdown-languageserver": "^0.5.0-alpha.8",
     "yaml-language-server": "^1.0.0",
     "yarn-berry-deduplicate": "^6.1.1"
   },
