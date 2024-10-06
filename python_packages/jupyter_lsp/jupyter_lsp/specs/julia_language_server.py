@@ -1,6 +1,6 @@
 from .config import load_config_schema
 from .utils import ShellSpec
-
+import os
 
 class JuliaLanguageServer(ShellSpec):
     key = "julia-language-server"
@@ -10,7 +10,7 @@ class JuliaLanguageServer(ShellSpec):
         "--project=.",
         "-e",
         "using LanguageServer, LanguageServer.SymbolServer; runserver()",
-        ".",
+        os.getcwd()
     ]
     is_installed_args = [
         "--project=.",
