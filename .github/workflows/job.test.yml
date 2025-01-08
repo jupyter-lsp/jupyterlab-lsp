@@ -62,7 +62,6 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: requirements/github-actions.yml
-          miniforge-variant: Mambaforge
           use-mamba: true
 
       - name: Install linting dependencies
@@ -141,7 +140,6 @@ jobs:
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v3
         with:
-          miniforge-variant: Mambaforge
           use-mamba: true
 
       - name: Install minimal build deps
@@ -245,7 +243,6 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           environment-file: requirements/github-actions.yml
-          miniforge-variant: Mambaforge
           use-mamba: true
 
       - name: List all packages
