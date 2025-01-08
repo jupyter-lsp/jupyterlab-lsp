@@ -63,6 +63,8 @@ jobs:
         with:
           environment-file: requirements/github-actions.yml
           mamba-version: "*"
+          channels: conda-forge,nodefaults
+          channel-priority: true
 
       - name: Install linting dependencies
         run: mamba env update -n test --file requirements/lint.yml
@@ -238,6 +240,8 @@ jobs:
           python-version: ${{ matrix.python }}
           environment-file: requirements/github-actions.yml
           mamba-version: "*"
+          channels: conda-forge,nodefaults
+          channel-priority: true
 
       - name: List all packages
         run: conda list
