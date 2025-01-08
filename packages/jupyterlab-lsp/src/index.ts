@@ -20,7 +20,8 @@ import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import {
   ILSPDocumentConnectionManager,
   DocumentConnectionManager,
-  ILanguageServerManager
+  ILanguageServerManager,
+  TLanguageServerId
 } from '@jupyterlab/lsp';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStatusBar } from '@jupyterlab/statusbar';
@@ -175,7 +176,22 @@ export class LSPExtension {
 
     const previousInitialConfig = this._connectionManager.initialConfigurations;
     this._connectionManager.initialConfigurations = languageServerSettings;
-    // TODO: if priorities changed reset connections
+
+    const prioritiesChanged = Object.keys(languageServerSettings).some(
+      (key: TLanguageServerId) => {
+        const prevConfig = previousInitialConfig?.[key];
+        const newConfig = languageServerSettings[key];
+        return prevConfig && newConfig && prevConfig.rank !== newConfig.rank;
+      }
+    );
+
+    if (prioritiesChanged) {
+      this.connectionManager.adapters.forEach(adapter => {
+        if (adapter.virtualDocument) {
+          adapter['reloadConnection']();
+        }
+      });
+    }
 
     // update the server-independent part of configuration immediately
     this.connectionManager.updateConfiguration(languageServerSettings);
