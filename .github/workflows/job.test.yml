@@ -112,10 +112,6 @@ jobs:
       - name: Check distributions
         run: python scripts/distcheck.py
 
-      - name: Rename uncached conda packages
-        shell: bash
-        run: mv "${CONDA_PKGS_DIR}" "${CONDA_PKGS_DIR}_do_not_cache"
-
   build:
     name: build
     runs-on: ${{ matrix.os }}-latest
@@ -200,10 +196,6 @@ jobs:
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
-
-      - name: Rename uncached conda packages
-        shell: bash
-        run: mv "${CONDA_PKGS_DIR}" "${CONDA_PKGS_DIR}_do_not_cache"
 
   acceptance:
     runs-on: ${{ matrix.os }}-latest
@@ -331,10 +323,6 @@ jobs:
           name: Robot ${{ matrix.os }} Python ${{ matrix.python }} ${{ github.run_number }}
           path: ./build/reports
         if: always()
-
-      - name: Rename uncached conda packages
-        shell: bash
-        run: mv "${CONDA_PKGS_DIR}" "${CONDA_PKGS_DIR}_do_not_cache"
 
   smoke:
     name: smoke ${{ matrix.os }} py${{ matrix.python }}
