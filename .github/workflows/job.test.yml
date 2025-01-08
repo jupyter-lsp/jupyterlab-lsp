@@ -62,7 +62,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: requirements/github-actions.yml
-          use-mamba: true
+          mamba-version: "*"
 
       - name: Install linting dependencies
         run: mamba env update -n test --file requirements/lint.yml
@@ -140,7 +140,7 @@ jobs:
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v3
         with:
-          use-mamba: true
+          mamba-version: "*"
 
       - name: Install minimal build deps
         run: mamba install -n test -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
@@ -243,7 +243,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           environment-file: requirements/github-actions.yml
-          use-mamba: true
+          mamba-version: "*"
 
       - name: List all packages
         run: conda list
