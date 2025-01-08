@@ -141,6 +141,8 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           mamba-version: "*"
+          channels: conda-forge,nodefaults
+          channel-priority: true
 
       - name: Install minimal build deps
         run: mamba install -n test -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
