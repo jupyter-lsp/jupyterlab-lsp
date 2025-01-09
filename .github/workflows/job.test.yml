@@ -62,8 +62,9 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: requirements/github-actions.yml
-          miniforge-variant: Mambaforge
-          use-mamba: true
+          mamba-version: "*"
+          channels: conda-forge,nodefaults
+          channel-priority: true
 
       - name: Install linting dependencies
         run: mamba env update -n test --file requirements/lint.yml
@@ -113,10 +114,6 @@ jobs:
       - name: Check distributions
         run: python scripts/distcheck.py
 
-      - name: Rename uncached conda packages
-        shell: bash
-        run: mv "${CONDA_PKGS_DIR}" "${CONDA_PKGS_DIR}_do_not_cache"
-
   build:
     name: build
     runs-on: ${{ matrix.os }}-latest
@@ -141,8 +138,9 @@ jobs:
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v3
         with:
-          miniforge-variant: Mambaforge
-          use-mamba: true
+          mamba-version: "*"
+          channels: conda-forge,nodefaults
+          channel-priority: true
 
       - name: Install minimal build deps
         run: mamba install -n test -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
@@ -201,10 +199,6 @@ jobs:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
 
-      - name: Rename uncached conda packages
-        shell: bash
-        run: mv "${CONDA_PKGS_DIR}" "${CONDA_PKGS_DIR}_do_not_cache"
-
   acceptance:
     runs-on: ${{ matrix.os }}-latest
     name: atest ${{ matrix.os }} py${{ matrix.python }} r${{ matrix.r }}
@@ -245,8 +239,9 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           environment-file: requirements/github-actions.yml
-          miniforge-variant: Mambaforge
-          use-mamba: true
+          mamba-version: "*"
+          channels: conda-forge,nodefaults
+          channel-priority: true
 
       - name: List all packages
         run: conda list
@@ -332,10 +327,6 @@ jobs:
           name: Robot ${{ matrix.os }} Python ${{ matrix.python }} ${{ github.run_number }}
           path: ./build/reports
         if: always()
-
-      - name: Rename uncached conda packages
-        shell: bash
-        run: mv "${CONDA_PKGS_DIR}" "${CONDA_PKGS_DIR}_do_not_cache"
 
   smoke:
     name: smoke ${{ matrix.os }} py${{ matrix.python }}
