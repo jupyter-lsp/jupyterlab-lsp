@@ -129,7 +129,7 @@ class NodeModuleSpec(SpecBase):
         return bool(node_module)
 
     def solve(self, mgr: LanguageServerManagerAPI):
-        return mgr.find_node_module(self.node_module, *self.script)
+        return mgr.find_node_module(self.node_module, self.script)
 
     def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
         node_module = self.solve(mgr)

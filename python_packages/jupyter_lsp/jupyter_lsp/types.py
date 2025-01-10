@@ -213,17 +213,18 @@ class LanguageServerManagerAPI(LoggingConfigurable, HasListeners):
         help=_("additional absolute paths to seek node_modules first"),
     ).tag(config=True)
 
-    def find_node_module(self, *path_frag):
+    def find_node_module(self, node_module, alternatives):
         """look through the node_module roots to find the given node module"""
         all_roots = self.extra_node_roots + self.node_roots
         found = None
 
-        for candidate_root in all_roots:
-            candidate = pathlib.Path(candidate_root, "node_modules", *path_frag)
-            self.log.debug("Checking for %s", candidate)
-            if candidate.exists():
-                found = str(candidate)
-                break
+        for path_frag in alternatives:
+            for candidate_root in all_roots:
+                candidate = pathlib.Path(candidate_root, "node_modules", node_module, *path_frag)
+                self.log.debug("Checking for %s", candidate)
+                if candidate.exists():
+                    found = str(candidate)
+                    break
 
         if found is None:  # pragma: no cover
             self.log.debug(

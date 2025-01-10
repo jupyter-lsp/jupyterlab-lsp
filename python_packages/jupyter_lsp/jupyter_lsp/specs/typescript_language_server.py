@@ -4,7 +4,7 @@ from .utils import NodeModuleSpec
 
 class TypescriptLanguageServer(NodeModuleSpec):
     node_module = key = "typescript-language-server"
-    script = ["lib", "cli.mjs"]
+    script = [["lib", "cli.mjs"]]
     args = ["--stdio"]
     languages = [
         "javascript",

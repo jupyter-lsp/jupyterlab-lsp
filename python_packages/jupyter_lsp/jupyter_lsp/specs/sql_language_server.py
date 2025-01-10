@@ -6,7 +6,7 @@ class SQLLanguageServer(NodeModuleSpec):
     """Supports mysql, postgres and sqlite3"""
 
     node_module = key = "sql-language-server"
-    script = ["dist", "bin", "cli.js"]
+    script = [["dist", "bin", "cli.js"]]
     languages = [
         "sql",
     ]

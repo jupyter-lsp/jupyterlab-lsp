@@ -54,8 +54,8 @@ Markdown
     Settings Should Change Editor Diagnostics
     ...    Markdown
     ...    example.md
-    ...    unified-language-server
-    ...    {"unified-language-server":{"remark-parse":{"plugins":[["#remark-retext","#parse-latin"],["#retext-spell","#dictionary-en"]]}}}
+    ...    vscode-markdown-languageserver
+    ...    {"vscode-markdown-languageserver":{}}
     ...    `Color` is misspelt
     ...    `Colour` is misspelt
 

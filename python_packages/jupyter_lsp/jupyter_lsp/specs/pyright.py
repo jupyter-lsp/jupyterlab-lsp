@@ -4,7 +4,7 @@ from .utils import NodeModuleSpec
 
 class PyrightLanguageServer(NodeModuleSpec):
     node_module = key = "pyright"
-    script = ["langserver.index.js"]
+    script = [["langserver.index.js"]]
     args = ["--stdio"]
     languages = ["python"]
     spec = dict(
