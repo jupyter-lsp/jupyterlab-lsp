@@ -1,5 +1,10 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp (next)`
+
+- bug fixes:
+  - Don't look at editor under the mouse on mouse motion when the widget adapter is not connected ([#1113](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1113))
+
 ### `jupyter-lsp 2.2.5`
 
 - bug fixes:
