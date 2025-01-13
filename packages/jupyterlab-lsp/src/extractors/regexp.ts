@@ -67,6 +67,7 @@ export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
     this.expression = new RegExp(options.pattern);
     this.standalone = this.options.isStandalone;
     this.fileExtension = this.options.fileExtension;
+    this.cellType = this.options.cellTypes || ['code'];
   }
 
   hasForeignCode(code: string): boolean {
@@ -186,7 +187,7 @@ export class RegExpForeignCodeExtractor implements IForeignCodeExtractor {
   }
 }
 
-namespace RegExpForeignCodeExtractor {
+export namespace RegExpForeignCodeExtractor {
   export interface IOptions {
     /**
      * The foreign language.
@@ -249,6 +250,13 @@ namespace RegExpForeignCodeExtractor {
      * or is it standalone snippet which requires separate connection?
      */
     isStandalone: boolean;
+    /**
+     * The file extension (without a leading `.`) to create for extracted virtual documents
+     */
     fileExtension: string;
+    /**
+     * Cell types in which this extractor should be checked for presence.
+     */
+    cellTypes?: ('code' | 'markdown' | 'raw')[];
   }
 }
