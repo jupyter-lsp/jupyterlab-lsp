@@ -194,6 +194,10 @@ export class HoverFeature extends Feature {
         });
         const eventListeners = EditorView.domEventHandlers({
           mousemove: event => {
+            // Bail early if the adapter is not connected - and therefore no tooltip can be displayed
+            if (!adapter.isConnected) {
+              return;
+            }
             // this is used to hide the tooltip on leaving cells in notebook
             this.updateUnderlineAndTooltip(event, adapter)
               ?.then(keepTooltip => {
