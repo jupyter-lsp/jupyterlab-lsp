@@ -62,7 +62,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: requirements/github-actions.yml
-          mamba-version: "*"
+          mamba-version: '*'
           channels: conda-forge,nodefaults
           channel-priority: true
 
@@ -138,7 +138,7 @@ jobs:
       - name: Set up Python and mamba
         uses: conda-incubator/setup-miniconda@v3
         with:
-          mamba-version: "*"
+          mamba-version: '*'
           channels: conda-forge,nodefaults
           channel-priority: true
 
@@ -239,7 +239,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           environment-file: requirements/github-actions.yml
-          mamba-version: "*"
+          mamba-version: '*'
           channels: conda-forge,nodefaults
           channel-priority: true
 
