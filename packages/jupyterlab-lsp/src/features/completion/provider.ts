@@ -178,9 +178,10 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
           token.type
         ) &&
         sourceChange.some(
-        delta =>
-          delta.insert != null &&
-            !completerIsVisible && delta.insert.trim().length > 0
+          delta =>
+            delta.insert != null &&
+            !completerIsVisible &&
+            delta.insert.trim().length > 0
         )
       ) {
         return true;
@@ -198,9 +199,7 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
 
     // show completer if the trigger character was inserted
     return sourceChange.some(
-      delta =>
-        delta.insert != null &&
-        triggerCharacters.includes(delta.insert)
+      delta => delta.insert != null && triggerCharacters.includes(delta.insert)
     );
   }
 
