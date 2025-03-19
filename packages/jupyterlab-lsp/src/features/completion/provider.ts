@@ -161,23 +161,32 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
       return false;
     }
 
+    // do not show completer on deletions
     if (sourceChange.some(delta => delta.delete != null)) {
       return false;
     }
     const token = editor.getTokenAtCursor();
 
     if (this.options.settings.composite.continuousHinting) {
-      // if token type is known and not ignored token type is ignored - show completer
+      // show completer if:
+      //  - token type is known, and
+      //  - is not an ignored token type, and
+      //  - the source change includes a non-whitespace insertion
       if (
         token.type &&
         !this.options.settings.composite.suppressContinuousHintingIn.includes(
           token.type
+        ) &&
+        sourceChange.some(
+        delta =>
+          delta.insert != null &&
+            !completerIsVisible && delta.insert.trim().length > 0
         )
       ) {
         return true;
       }
-      // otherwise show it may still be shown due to trigger character
     }
+    // completer may still be shown due to trigger character
     if (
       !token.type ||
       this.options.settings.composite.suppressTriggerCharacterIn.includes(
@@ -187,11 +196,11 @@ export class CompletionProvider implements ICompletionProvider<CompletionItem> {
       return false;
     }
 
+    // show completer if the trigger character was inserted
     return sourceChange.some(
       delta =>
         delta.insert != null &&
-        (triggerCharacters.includes(delta.insert) ||
-          (!completerIsVisible && delta.insert.trim().length > 0))
+        triggerCharacters.includes(delta.insert)
     );
   }
 
