@@ -216,7 +216,7 @@ jobs:
             r: '>=4'
             lab: '>=4.1.0,<5'
           - python: '3.11'
-            # Node 16 end-of-life: 2026-04-30
+            # Node 20 end-of-life: 2026-04-30
             nodejs: '>=20,<21.0.0.a0'
             r: '>=4'
             lab: '>=4.1.0,<5'
@@ -239,9 +239,9 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           environment-file: requirements/github-actions.yml
-          mamba-version: '2.0.6'
           channels: conda-forge,nodefaults
           channel-priority: true
+          miniforge-version: latest
 
       - name: List all packages
         run: conda list
