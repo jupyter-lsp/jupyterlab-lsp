@@ -31,9 +31,9 @@ Thank you for all your contributions :heart:
 
 A development environment requires, at a minimum:
 
-- `python >=3.8,<3.13.0a0`
+- `python >=3.9,<3.13.0a0`
 - `jupyterlab >=4.1.0,<5.0.0a0`
-- `nodejs >=18,!=19,!=21,<23`
+- `nodejs >=20,!=21,!=23,<25`
 
 It is recommended to use a virtual environment (e.g. `virtualenv` or `conda env`)
 for development.
