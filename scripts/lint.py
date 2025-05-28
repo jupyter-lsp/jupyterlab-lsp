@@ -119,7 +119,7 @@ def lint(*args):
                 "--console",
                 "dotted",
             ],
-            robot_tidy=["robotidy", "format", *ALL_ROBOT],
+            robot_tidy=["robocop", "format", *ALL_ROBOT],
             robot_cop=["robocop" "check", *ROBOCOP, *ALL_ROBOT],
         )
 
