@@ -3,6 +3,7 @@
 ### `@jupyter-lsp/jupyterlab-lsp 5.1.1`
 
 - bug fixes:
+
   - don't look at editor under the mouse on mouse motion when the widget adapter is not connected ([#1113](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1113))
   - fix auto-completer to trigger only on trigger characters, not on every character ([#1117](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1117))
 
