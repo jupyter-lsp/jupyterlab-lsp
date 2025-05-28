@@ -1,9 +1,13 @@
 ## Changelog
 
-### `@jupyter-lsp/jupyterlab-lsp (next)`
+### `@jupyter-lsp/jupyterlab-lsp 5.1.1`
 
 - bug fixes:
-  - Don't look at editor under the mouse on mouse motion when the widget adapter is not connected ([#1113](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1113))
+  - don't look at editor under the mouse on mouse motion when the widget adapter is not connected ([#1113](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1113))
+  - fix auto-completer to trigger only on trigger characters, not on every character ([#1117](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1117))
+
+- maintenance:
+  - dropped Python 3.8 and Node 18, added newer version to testing matrix
 
 ### `jupyter-lsp 2.2.5`
 
