@@ -11,5 +11,8 @@
         }
       }
     }
+  },
+  "@jupyterlab/notebook-extension:tracker": {
+    "windowingMode": "none"
   }
 }

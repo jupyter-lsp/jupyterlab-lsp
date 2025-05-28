@@ -215,7 +215,7 @@ jobs:
             nodejs: '>=18,<19.0.0.a0'
             r: '>=4'
             lab: '>=4.1.0,<5'
-          - python: '3.11'
+          - python: '3.12'
             # Node 20 end-of-life: 2026-04-30
             nodejs: '>=20,<21.0.0.a0'
             r: '>=4'
@@ -345,7 +345,7 @@ jobs:
           - python: '3.9'
             dist: 'jupyter*lsp*.tar.gz'
             lab: '>=4.1.0,<5'
-          - python: '3.11'
+          - python: '3.12'
             dist: 'jupyter*lsp*.whl'
             lab: '>=4.1.0,<5'
           - python: 'pypy-3.9'
@@ -357,6 +357,13 @@ jobs:
             py_cmd: python3
           - os: 'ubuntu'
             py_cmd: python
+        exclude:
+          # Exclude macOS with Python versions older than 3.11 as setup-python does not support it
+          # see https://github.com/actions/setup-python/issues/906
+          - os: macos
+            python: '3.9'
+          - os: macos
+            python: 'pypy-3.9'
     steps:
       - name: Install Python
         uses: actions/setup-python@v5

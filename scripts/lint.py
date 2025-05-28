@@ -57,6 +57,8 @@ ROBOCOP_EXCLUDES = [
     "missing-doc-suite",
     "missing-doc-test-case",
     "missing-doc-resource-file",
+    "no-global-variable",
+    "no-suite-variable",
     "replace-create-with-var",
     "replace-set-variable-with-var",
     "todo-in-comment",
@@ -69,11 +71,11 @@ ROBOCOP_EXCLUDES = [
     "wrong-case-in-keyword-name",
 ]
 
-ROBOCOP_CONFIGS = ["line-too-long:line_length:200"]
+ROBOCOP_CONFIGS = ["line-too-long.line_length=200"]
 
 ROBOCOP = sum(
     [
-        *[["--exclude", e] for e in ROBOCOP_EXCLUDES],
+        *[["--ignore", e] for e in ROBOCOP_EXCLUDES],
         *[["--configure", c] for c in ROBOCOP_CONFIGS],
     ],
     [],
@@ -119,8 +121,8 @@ def lint(*args):
                 "--console",
                 "dotted",
             ],
-            robot_tidy=["robotidy", *ALL_ROBOT],
-            robot_cop=["robocop", *ROBOCOP, *ALL_ROBOT],
+            robot_tidy=["robocop", "format", *ALL_ROBOT],
+            robot_cop=["robocop", "check", *ROBOCOP, *ALL_ROBOT],
         )
 
     if filters:
