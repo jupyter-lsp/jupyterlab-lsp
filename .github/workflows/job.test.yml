@@ -358,12 +358,12 @@ jobs:
           - os: 'ubuntu'
             py_cmd: python
         exclude:
-        # Exclude macOS with Python versions older than 3.11 as setup-python does not support it
-        # see https://github.com/actions/setup-python/issues/906
-        - os: macos
-          python: '3.9'
-        - os: macos
-          python: 'pypy-3.9'
+          # Exclude macOS with Python versions older than 3.11 as setup-python does not support it
+          # see https://github.com/actions/setup-python/issues/906
+          - os: macos
+            python: '3.9'
+          - os: macos
+            python: 'pypy-3.9'
     steps:
       - name: Install Python
         uses: actions/setup-python@v5
