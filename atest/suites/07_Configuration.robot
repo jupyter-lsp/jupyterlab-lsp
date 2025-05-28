@@ -73,8 +73,7 @@ LaTeX
 
 *** Keywords ***
 Settings Should Change Editor Diagnostics
-    [Arguments]
-    ...    ${language}
+    [Arguments]    ${language}
     ...    ${file}
     ...    ${server}
     ...    ${settings}

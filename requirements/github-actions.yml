@@ -20,7 +20,6 @@ dependencies:
   - robotframework >=7
   - robotframework-lsp
   - robotframework-robocop
-  - robotframework-tidy
   # TODO: handle upstream
   # - robotkernel
   # - jupyterlab_robotmode
