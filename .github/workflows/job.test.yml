@@ -208,16 +208,16 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu', 'macos', 'windows']
-        python: ['3.8', '3.11']
+        python: ['3.9', '3.12']
         include:
-          - python: '3.8'
-            # Node 16 end-of-life: 2023-09-11
-            nodejs: '>=16,<17.0.0.a0'
+          - python: '3.9'
+            # Node 18 end-of-life: 2025-04-30
+            nodejs: '>=18,<19.0.0.a0'
             r: '>=4'
             lab: '>=4.1.0,<5'
           - python: '3.11'
-            # Node 18 end-of-life: 2025-04-30
-            nodejs: '>=18,<19.0.0.a0'
+            # Node 20 end-of-life: 2026-04-30
+            nodejs: '>=20,<21.0.0.a0'
             r: '>=4'
             lab: '>=4.1.0,<5'
 
@@ -239,9 +239,9 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           environment-file: requirements/github-actions.yml
-          mamba-version: '*'
           channels: conda-forge,nodefaults
           channel-priority: true
+          miniforge-version: latest
 
       - name: List all packages
         run: conda list
@@ -337,18 +337,18 @@ jobs:
       max-parallel: 3
       matrix:
         os: ['ubuntu', 'macos', 'windows']
-        python: ['3.8', '3.11', 'pypy-3.8']
+        python: ['3.9', '3.12', 'pypy-3.9']
         include:
-          - python: '3.8'
+          - python: '3.9'
             dist: 'jupyter*lsp*.whl'
             lab: '>=4.1.0,<5'
-          - python: '3.8'
+          - python: '3.9'
             dist: 'jupyter*lsp*.tar.gz'
             lab: '>=4.1.0,<5'
           - python: '3.11'
             dist: 'jupyter*lsp*.whl'
             lab: '>=4.1.0,<5'
-          - python: 'pypy-3.8'
+          - python: 'pypy-3.9'
             dist: 'jupyter*lsp*.tar.gz'
             lab: '>=4.1.0,<5'
           - os: 'windows'
@@ -392,12 +392,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu]
-        python: ['3.8', '3.11']
+        python: ['3.9', '3.12']
         nodejs: ['20.x']
         include:
-          - python: '3.8'
+          - python: '3.9'
             lab: '>=4.1.0,<5'
-          - python: '3.11'
+          - python: '3.12'
             lab: '>=4.1.0,<5'
     steps:
       - name: Install Python
