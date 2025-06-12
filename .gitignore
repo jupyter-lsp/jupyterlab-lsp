@@ -36,4 +36,3 @@ node_modules/
 # generated files
 _*.d.ts
 _*.ts
-python_packages/*/*/labextensions/
