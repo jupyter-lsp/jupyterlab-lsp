@@ -27,7 +27,7 @@ dependencies:
   # for R language server and kernel
   - r
   # workaround for https://github.com/jupyterhub/repo2docker/issues/1140
-  - r-base
+  - r-base=4.0
   - r-irkernel
   - r-languageserver
   - rpy2
