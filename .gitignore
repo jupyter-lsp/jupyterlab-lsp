@@ -37,4 +37,3 @@ node_modules/
 _*.d.ts
 _*.ts
 python_packages/*/*/labextensions/
-.lsp_symlink
