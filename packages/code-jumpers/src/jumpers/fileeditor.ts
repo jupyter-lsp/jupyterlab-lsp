@@ -37,6 +37,7 @@ export class FileEditorJumper extends CodeJumper {
     // TODO: this is common
     // place cursor in the line with the definition
     let position = this.editor.editor.getPositionAt(token.offset)!;
+    this.editor.editor.setCursorPosition(position);
     this.editor.editor.setSelection({ start: position, end: position });
     this.editor.editor.focus();
   }
