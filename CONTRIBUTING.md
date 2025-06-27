@@ -7,14 +7,14 @@ by the contributors, time-permitting.
 
 You can contribute to the project through:
 
-- creating language server [specs](#Specs)
+- creating language server [specs](#specs)
   - you can publish them yourself (it might be a single file)...
   - or advocate for adding your spec to the [github repository][jupyterlab-lsp]
     and its various distributions
     - these are great first issues, as you might not need to know any python or
       javascript
 - proposing parts of the architecture that can be [extended][extending]
-- improving [documentation](#Documentation)
+- improving [documentation](#documentation)
 - tackling Big Issues from the [future roadmap][roadmap]
 - improving testing
 - reviewing pull requests
