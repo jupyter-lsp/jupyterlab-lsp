@@ -107,8 +107,7 @@ export function urisEqual(a: string, b: string) {
     b = normalizeWinPath(b);
   }
   return (
-    a === b ||
-    decodeURIComponent(a) === decodeURIComponent(b)  
+    a === b || decodeURIComponent(a) === decodeURIComponent(b)
     // decodeURIComponent is needed to handle special characters like ','
   );
 }
