@@ -46,7 +46,7 @@ LICENSE = ROOT / "LICENSE"
 # docs
 MAIN_README = ROOT / "README.md"
 CHANGELOG = ROOT / "CHANGELOG.md"
-CONTRIBUTING = ROOT / "CONTRIBUTING.md"
+CONTRIBUTING = ROOT / "docs" / "Contributing.ipynb"
 
 # TS stuff
 NPM_NS = "@jupyter-lsp"
