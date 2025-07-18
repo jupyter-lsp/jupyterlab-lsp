@@ -377,24 +377,28 @@ jobs:
       - name: Create testing environment
         run: |
           set -eux
-          python3 -m venv .venv
-          source .venv/bin/activate
+          ${{ matrix.py_cmd }} -m venv .venv
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "VENV_PYTHON=.venv/Scripts/python.exe" >> $GITHUB_ENV
+          else
+            echo "VENV_PYTHON=.venv/bin/python" >> $GITHUB_ENV
+          fi
       - name: Install the prerequisites
-        run: ${{ matrix.py_cmd }} -m pip install pip wheel
+        run: $VENV_PYTHON -m pip install pip wheel
       - name: Install the package
-        run: cd dist && ${{ matrix.py_cmd }} -m pip install -vv ${{ matrix.dist }} 'jupyterlab${{ matrix.lab }}'
+        run: cd dist && $VENV_PYTHON -m pip install -vv ${{ matrix.dist }} 'jupyterlab${{ matrix.lab }}'
       - name: Validate environment
         run: |
           set -eux
-          ${{ matrix.py_cmd }} -m pip freeze
-          ${{ matrix.py_cmd }} -m pip check
+          $VENV_PYTHON -m pip freeze
+          $VENV_PYTHON -m pip check
       - name: Validate the install
         run: |
           set -eux
-          ${{ matrix.py_cmd }} -m jupyter labextension list
-          ${{ matrix.py_cmd }} -m jupyter server extension list
-          ${{ matrix.py_cmd }} -m jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
-          ${{ matrix.py_cmd }} -m jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
+          $VENV_PYTHON -m jupyter labextension list
+          $VENV_PYTHON -m jupyter server extension list
+          $VENV_PYTHON -m jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
+           -m jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
 
   source:
     name: smoke source install ${{ matrix.os }} py${{ matrix.python }} lab${{ matrix.lab }}
