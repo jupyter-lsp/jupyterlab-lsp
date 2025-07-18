@@ -63,15 +63,20 @@ def load_jupyter_server_extension(nbapp):
     if hasattr(contents, "root_dir"):
         root_uri = normalized_uri(contents.root_dir)
         nbapp.log.debug("[lsp] rootUri will be %s", root_uri)
-        virtual_documents_uri = normalized_uri(
-            Path(contents.root_dir) / manager.virtual_documents_dir
-        )
+        root_path = Path(contents.root_dir)
+        virtual_documents_path = root_path / manager.virtual_documents_dir
+        if virtual_documents_path == root_path:
+            nbapp.log.warn("virtual documents path must differ from the root path")
+            manager.virtual_documents_dir = ".virtual_documents"
+            virtual_documents_path = root_path / manager.virtual_documents_dir
+        virtual_documents_uri = normalized_uri(virtual_documents_path)
         nbapp.log.debug("[lsp] virtualDocumentsUri will be %s", virtual_documents_uri)
     else:  # pragma: no cover
         nbapp.log.warn(
             "[lsp] %s did not appear to have a root_dir, could not set rootUri",
             contents,
         )
+        virtual_documents_uri = normalized_uri(".virtual_documents")
     page_config.update(rootUri=root_uri, virtualDocumentsUri=virtual_documents_uri)
 
     add_handlers(nbapp)
