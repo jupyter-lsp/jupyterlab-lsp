@@ -481,6 +481,16 @@ export class StatusButtonExtension
   /**
    * For registration on notebook panels.
    */
+  createNewToolbarItem(): LSPStatus {
+    const item = this.createItem(false);
+    item.addClass('jp-ToolbarButton');
+    return item;
+  }
+
+  /**
+   * For registration on notebook panels.
+   * @deprecated use createNewToolbarItem() instead.
+   */
   createNew(
     panel: NotebookPanel,
     context: DocumentRegistry.IContext<INotebookModel>

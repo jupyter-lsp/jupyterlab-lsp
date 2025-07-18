@@ -82,5 +82,13 @@
       "description": "Whether to ask server to send logs with execution trace (for debugging). To see these messages, set loggingLevel to debug or log. Accepted values are: \"off\", \"messages\", \"verbose\". Servers are allowed to ignore this request."
     }
   },
+  "jupyter.lab.toolbars": {
+    "Notebook": [
+      {
+        "name": "lsp-status",
+        "rank": 900
+      }
+    ]
+  },
   "jupyter.lab.shortcuts": []
 }
