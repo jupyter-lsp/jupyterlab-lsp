@@ -337,7 +337,7 @@ jobs:
       max-parallel: 3
       matrix:
         os: ['ubuntu', 'macos', 'windows']
-        python: ['3.9', '3.12', 'pypy-3.9']
+        python: ['3.9', '3.12']
         include:
           - python: '3.9'
             dist: 'jupyter*lsp*.whl'
@@ -347,9 +347,6 @@ jobs:
             lab: '>=4.1.0,<5'
           - python: '3.12'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=4.1.0,<5'
-          - python: 'pypy-3.9'
-            dist: 'jupyter*lsp*.tar.gz'
             lab: '>=4.1.0,<5'
           - os: 'windows'
             py_cmd: python
@@ -362,8 +359,6 @@ jobs:
           # see https://github.com/actions/setup-python/issues/906
           - os: macos
             python: '3.9'
-          - os: macos
-            python: 'pypy-3.9'
     steps:
       - name: Install Python
         uses: actions/setup-python@v5
