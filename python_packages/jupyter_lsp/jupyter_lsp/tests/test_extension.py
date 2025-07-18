@@ -55,3 +55,11 @@ def test_virtual_documents_dir_env_empty(app):
         ["--ServerApp.jpserver_extensions={'jupyter_lsp.serverextension': True}"]
     )
     assert app.language_server_manager.virtual_documents_dir == ".virtual_documents"
+
+
+def test_virtual_documents_dir_env_root(app):
+    os.environ["JP_LSP_VIRTUAL_DIR"] = "."
+    app.initialize(
+        ["--ServerApp.jpserver_extensions={'jupyter_lsp.serverextension': True}"]
+    )
+    assert app.language_server_manager.virtual_documents_dir == ".virtual_documents"
