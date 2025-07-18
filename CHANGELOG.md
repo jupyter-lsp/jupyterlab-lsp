@@ -7,6 +7,7 @@
   - allow to disable LSP toolbar item in Notebook view ([#1139](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1139))
 
 - bug fixes:
+
   - fixed jump to definition for notebooks that have special characters in filename and position for external jumps ([#1128](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1128))
 
 - maintenance:
