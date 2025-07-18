@@ -1,5 +1,24 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 5.2.0`
+
+- enhancements:
+
+  - allow to disable LSP toolbar item in Notebook view ([#1139](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1139))
+
+- bug fixes:
+
+  - fixed jump to definition for notebooks that have special characters in filename and position for external jumps ([#1128](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1128))
+
+- maintenance:
+  - fixed tests, all green now!
+  - we are no longer testing against `pypy` - contributions to restore it welcome!
+
+### `jupyter-lsp 2.2.6`
+
+- bug fixes:
+  - fix for potential data loss on invalid `JP_LSP_VIRTUAL_DIR` ([#1140](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1140))
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.1.1`
 
 - bug fixes:
