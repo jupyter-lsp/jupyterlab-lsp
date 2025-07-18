@@ -10,6 +10,7 @@ from .jedi_language_server import JediLanguageServer
 from .julia_language_server import JuliaLanguageServer
 from .pyls import PalantirPythonLanguageServer
 from .pyright import PyrightLanguageServer
+from .pyrefly import PyreflyLanguageServer
 from .python_lsp_server import PythonLSPServer
 from .r_languageserver import RLanguageServer
 from .sql_language_server import SQLLanguageServer
@@ -31,6 +32,7 @@ julia = JuliaLanguageServer()
 md = UnifiedLanguageServer()
 py_palantir = PalantirPythonLanguageServer()
 py_lsp_server = PythonLSPServer()
+pyrefly = PyreflyLanguageServer()
 pyright = PyrightLanguageServer()
 r = RLanguageServer()
 tex = Texlab()
