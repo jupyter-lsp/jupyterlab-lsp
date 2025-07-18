@@ -15,14 +15,14 @@ Python Nested
     Settings Should Change Editor Diagnostics    Python    style.py    pylsp
     ...    {"pylsp": {"plugins": {"flake8": {"enabled": true},"pyflakes": {"enabled": false}}}}
     ...    undefined name 'foo' (pyflakes)
-    ...    undefined name 'foo' (flake8)
+    ...    W291 trailing whitespace (flake8)
 
 Python Dotted
     [Documentation]    pyflakes is enabled by default, but flake8 is not
     Settings Should Change Editor Diagnostics    Python    style.py    pylsp
     ...    {"pylsp.plugins.flake8.enabled": true, "pylsp.plugins.pyflakes.enabled": false}
     ...    undefined name 'foo' (pyflakes)
-    ...    undefined name 'foo' (flake8)
+    ...    W291 trailing whitespace (flake8)
 
 Python (server-side via overrides JSON)
     [Documentation]    same as "Python" but changing the defaults in server specification via `overrides.json`
