@@ -399,7 +399,7 @@ jobs:
           "$VENV_PYTHON" -m jupyter labextension list
           "$VENV_PYTHON" -m jupyter server extension list
           "$VENV_PYTHON" -m jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
-           -m jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
+          "$VENV_PYTHON" -m jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
 
   source:
     name: smoke source install ${{ matrix.os }} py${{ matrix.python }} lab${{ matrix.lab }}
