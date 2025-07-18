@@ -56,7 +56,7 @@ Foreign Extractors
     @{diagnostics} =    Create List
     ...    Double quote to prevent globbing and word splitting    # bash, configured by spec.env
     ...    ame 'valid'    # python, mypy and pyflakes will fight over `(N|n)ame 'valid'`, just hope for the best
-    ...    (lintr).    # r
+    ...    (lintr)    # r
     ...    `frob` is misspelt    # markdown
     ...    Command terminated with space    # latex
     FOR    ${diagnostic}    IN    @{diagnostics}
