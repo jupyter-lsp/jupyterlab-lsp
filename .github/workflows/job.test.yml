@@ -374,6 +374,11 @@ jobs:
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
+      - name: Create testing environment
+        run: |
+          set -eux
+          python3 -m venv .venv
+          source .venv/bin/activate
       - name: Install the prerequisites
         run: ${{ matrix.py_cmd }} -m pip install pip wheel
       - name: Install the package
