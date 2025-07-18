@@ -16,6 +16,7 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { IToolbarWidgetRegistry } from '@jupyterlab/apputils';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import {
   ILSPDocumentConnectionManager,
@@ -82,7 +83,8 @@ export class LSPExtension {
     public translator: ITranslator,
     public userConsole: ILoggerRegistry | null,
     statusBar: IStatusBar | null,
-    formRegistry: IFormRendererRegistry | null
+    formRegistry: IFormRendererRegistry | null,
+    toolbarRegistry: IToolbarWidgetRegistry | null
   ) {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
     this.languageServerManager = connectionManager.languageServerManager;
@@ -102,8 +104,10 @@ export class LSPExtension {
         rank: 1,
         isActive: () => this._isAnyActive()
       });
-    } else {
-      app.docRegistry.addWidgetExtension('Notebook', statusButtonExtension);
+    } else if (toolbarRegistry) {
+      toolbarRegistry.addFactory('Notebook', 'lsp-status', () =>
+        statusButtonExtension.createNewToolbarItem()
+      );
     }
 
     this._settingsSchemaManager = new SettingsSchemaManager({
@@ -220,7 +224,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
     ILSPLogConsole,
     ITranslator
   ],
-  optional: [ILoggerRegistry, IStatusBar, IFormRendererRegistry],
+  optional: [
+    ILoggerRegistry,
+    IStatusBar,
+    IFormRendererRegistry,
+    IToolbarWidgetRegistry
+  ],
   activate: (app, ...args) => {
     new LSPExtension(
       app,
@@ -231,7 +240,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
         ITranslator,
         ILoggerRegistry | null,
         IStatusBar | null,
-        IFormRendererRegistry | null
+        IFormRendererRegistry | null,
+        IToolbarWidgetRegistry | null
       ])
     );
   },

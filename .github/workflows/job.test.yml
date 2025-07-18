@@ -337,7 +337,7 @@ jobs:
       max-parallel: 3
       matrix:
         os: ['ubuntu', 'macos', 'windows']
-        python: ['3.9', '3.12', 'pypy-3.9']
+        python: ['3.9', '3.12']
         include:
           - python: '3.9'
             dist: 'jupyter*lsp*.whl'
@@ -347,9 +347,6 @@ jobs:
             lab: '>=4.1.0,<5'
           - python: '3.12'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=4.1.0,<5'
-          - python: 'pypy-3.9'
-            dist: 'jupyter*lsp*.tar.gz'
             lab: '>=4.1.0,<5'
           - os: 'windows'
             py_cmd: python
@@ -362,8 +359,6 @@ jobs:
           # see https://github.com/actions/setup-python/issues/906
           - os: macos
             python: '3.9'
-          - os: macos
-            python: 'pypy-3.9'
     steps:
       - name: Install Python
         uses: actions/setup-python@v5
@@ -374,22 +369,32 @@ jobs:
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
           path: ./dist
+      - name: Create testing environment
+        run: |
+          set -eux
+          ${{ matrix.py_cmd }} -m venv .venv
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            VENV_PYTHON="$(pwd -W)\\\.venv\\Scripts\\python.exe"
+          else
+            VENV_PYTHON="$(pwd)/.venv/bin/python"
+          fi
+          echo "VENV_PYTHON=$VENV_PYTHON" >> "$GITHUB_ENV"
       - name: Install the prerequisites
-        run: ${{ matrix.py_cmd }} -m pip install pip wheel
+        run: $VENV_PYTHON -m pip install pip wheel
       - name: Install the package
-        run: cd dist && ${{ matrix.py_cmd }} -m pip install -vv ${{ matrix.dist }} 'jupyterlab${{ matrix.lab }}'
+        run: cd dist && "$VENV_PYTHON" -m pip install -vv ${{ matrix.dist }} 'jupyterlab${{ matrix.lab }}'
       - name: Validate environment
         run: |
           set -eux
-          ${{ matrix.py_cmd }} -m pip freeze
-          ${{ matrix.py_cmd }} -m pip check
+          "$VENV_PYTHON" -m pip freeze
+          "$VENV_PYTHON" -m pip check
       - name: Validate the install
         run: |
           set -eux
-          ${{ matrix.py_cmd }} -m jupyter labextension list
-          ${{ matrix.py_cmd }} -m jupyter server extension list
-          ${{ matrix.py_cmd }} -m jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
-          ${{ matrix.py_cmd }} -m jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
+          "$VENV_PYTHON" -m jupyter labextension list
+          "$VENV_PYTHON" -m jupyter server extension list
+          "$VENV_PYTHON" -m jupyter labextension list 2>&1 | grep -ie "jupyterlab-lsp.*enabled.*ok" -
+          "$VENV_PYTHON" -m jupyter server extension list 2>&1 | grep -ie "jupyter_lsp.*enabled" -
 
   source:
     name: smoke source install ${{ matrix.os }} py${{ matrix.python }} lab${{ matrix.lab }}

@@ -40,6 +40,7 @@ Highlights are changed when moving cursor between cells
     Press Keys    None    DOWN    # cursor to next cell, which is empty
     Should Not Highlight Any Tokens
     Press Keys    None    DOWN    # cursor to third cell (`|gist = 1`)
+    Press Keys    None    RIGHT    # (`g|ist = 1`)
     Should Highlight Token    gist
     Press Keys    None    DOWN    # cursor to third cell, second line (`|test `)
     Should Highlight Token    test

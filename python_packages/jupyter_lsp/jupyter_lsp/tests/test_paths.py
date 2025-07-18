@@ -84,8 +84,8 @@ def test_normalize_windows_path_case(root_dir, expected_root_uri):  # pragma: no
     try:
         normalized = normalized_uri(root_dir)
     except FileNotFoundError as err:
-        if sys.version_info >= (3, 10):
-            # apparently, this triggers resolving the path on win/py3.10
+        if sys.version_info < (3, 12) and root_dir == "//VBOXSVR/shared-folder":
+            # see https://github.com/python/cpython/issues/136755
             return
         raise err
 
