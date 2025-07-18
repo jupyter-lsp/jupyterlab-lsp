@@ -103,7 +103,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
     @default("virtual_documents_dir")
     def _default_virtual_documents_dir(self):
-        return os.getenv("JP_LSP_VIRTUAL_DIR", ".virtual_documents")
+        return os.getenv("JP_LSP_VIRTUAL_DIR", None) or ".virtual_documents"
 
     @default("conf_d_language_servers")
     def _default_conf_d_language_servers(self) -> KeyedLanguageServerSpecs:

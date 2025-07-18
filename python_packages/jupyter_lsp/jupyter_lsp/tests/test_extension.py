@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 
 def test_serverextension_path(app):
     import jupyter_lsp
@@ -47,3 +49,15 @@ def test_virtual_documents_dir_env(app):
         ["--ServerApp.jpserver_extensions={'jupyter_lsp.serverextension': True}"]
     )
     assert app.language_server_manager.virtual_documents_dir == custom_dir
+    page_config = app.web_app.settings["page_config_data"]
+    assert page_config["virtualDocumentsUri"].endswith(custom_dir)
+
+
+@pytest.mark.parametrize("invalid_path", ["", "."])
+def test_virtual_documents_dir_env_empty(app, invalid_path):
+    os.environ["JP_LSP_VIRTUAL_DIR"] = invalid_path
+    app.initialize(
+        ["--ServerApp.jpserver_extensions={'jupyter_lsp.serverextension': True}"]
+    )
+    page_config = app.web_app.settings["page_config_data"]
+    assert page_config["virtualDocumentsUri"].endswith("/.virtual_documents")
