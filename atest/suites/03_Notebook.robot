@@ -54,11 +54,11 @@ Foreign Extractors
     Reset Application State
     Setup Notebook    Python    ${file}
     @{diagnostics} =    Create List
-    ...    (shellcheck)    # bash, configured by spec.env
-    ...    (pyflakes)'    # Python
-    ...    (lintr)    # r
-    ...    (retext-spell)    # markdown
-    ...    (ChkTeX)    # latex
+    ...    Double quote to prevent globbing and word splitting    # bash, configured by spec.env
+    ...    ame 'valid'    # python, mypy and pyflakes will fight over `(N|n)ame 'valid'`, just hope for the best
+    ...    (lintr).    # r
+    ...    `frob` is misspelt    # markdown
+    ...    Command terminated with space    # latex
     FOR    ${diagnostic}    IN    @{diagnostics}
         Wait Until Page Contains Diagnostic    [title*\="${diagnostic}"]    timeout=35s
     END
