@@ -55,6 +55,7 @@ import {
   TLanguageServerConfigurations
 } from './tokens';
 import { DEFAULT_TRANSCLUSIONS } from './transclusions/defaults';
+import { SETTINGS_TRANSCLUSIONS } from './transclusions/settings';
 import { LOG_CONSOLE } from './virtual/console';
 
 const PLUGIN_ID = PLUGIN_ID_BASE + ':plugin';
@@ -268,6 +269,7 @@ const plugins: JupyterFrontEndPlugin<any>[] = [
   NOTEBOOK_ADAPTER_PLUGIN,
   FILEEDITOR_ADAPTER_PLUGIN,
   plugin,
+  SETTINGS_TRANSCLUSIONS,
   ...DEFAULT_TRANSCLUSIONS,
   ...DEFAULT_FEATURES,
   COMPLETION_FALLBACK_PLUGIN
