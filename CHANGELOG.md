@@ -1,5 +1,10 @@
 ## Changelog
 
+### `jupyter-lsp (next)`
+
+- features:
+  - add auto-detection of Pyrefly language server ([#1136](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1136))
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.2.0`
 
 - enhancements:
