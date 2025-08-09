@@ -39,6 +39,7 @@ Setup Server and Browser
     IF    ${wait_for_lsp_log}
         Wait Until File Contains    ${LAB LOG}
         ...    The following Language Servers will be available
+        ...    retries=40
     ELSE
         # Jupyter Server X.X.X is running at:
         Wait Until File Contains    ${LAB LOG}
