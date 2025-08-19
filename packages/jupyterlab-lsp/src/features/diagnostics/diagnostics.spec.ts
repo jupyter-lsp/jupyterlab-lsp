@@ -25,6 +25,7 @@ import {
   MockNotebookAdapter
 } from '../../testutils';
 import { foreignCodeExtractors } from '../../transclusions/ipython/extractors';
+import { VirtualDocument } from '../../virtual/document';
 
 import { diagnosticsPanel } from './diagnostics';
 import { DiagnosticsFeature } from './feature';
@@ -115,7 +116,7 @@ describe('Diagnostics', () => {
           uri: env.documentOptions.path,
           diagnostics: diagnostics
         },
-        env.adapter.virtualDocument!,
+        env.adapter.virtualDocument as VirtualDocument,
         env.adapter
       );
       await framePromise();
@@ -139,7 +140,7 @@ describe('Diagnostics', () => {
           uri: env.documentOptions.path,
           diagnostics: diagnostics
         },
-        env.adapter.virtualDocument!,
+        env.adapter.virtualDocument as VirtualDocument,
         env.adapter
       );
       await framePromise();
@@ -164,7 +165,7 @@ describe('Diagnostics', () => {
           uri: env.documentOptions.path,
           diagnostics: diagnostics
         },
-        env.adapter.virtualDocument!,
+        env.adapter.virtualDocument as VirtualDocument,
         env.adapter
       );
       await framePromise();
@@ -189,7 +190,7 @@ describe('Diagnostics', () => {
           uri: env.documentOptions.path,
           diagnostics: diagnostics
         },
-        env.adapter.virtualDocument!,
+        env.adapter.virtualDocument as VirtualDocument,
         env.adapter
       );
       await framePromise();
@@ -299,7 +300,7 @@ describe('Diagnostics', () => {
             }
           ]
         },
-        env.adapter.virtualDocument!,
+        env.adapter.virtualDocument as VirtualDocument,
         env.adapter
       );
       await framePromise();
@@ -361,7 +362,7 @@ describe('Diagnostics', () => {
       } as lsProtocol.PublishDiagnosticsParams;
 
       // test guards against wrongly propagated responses:
-      await feature.handleDiagnostic(response, document, env.adapter);
+      await feature.handleDiagnostic(response, document as VirtualDocument, env.adapter);
 
       await env.adapter.updateDocuments();
       await (env.adapter as MockNotebookAdapter).foreingDocumentOpened.promise;
@@ -383,7 +384,7 @@ describe('Diagnostics', () => {
       response.uri = foreignDocument.uri;
 
       // correct propagation
-      await feature.handleDiagnostic(response, foreignDocument, env.adapter);
+      await feature.handleDiagnostic(response, foreignDocument as VirtualDocument, env.adapter);
       await framePromise();
       await framePromise();
 
@@ -425,7 +426,7 @@ describe('Diagnostics', () => {
             }
           ]
         },
-        document!,
+        document as VirtualDocument,
         env.adapter
       );
 
