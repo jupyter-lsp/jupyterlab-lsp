@@ -13,6 +13,7 @@ dependencies:
   - nodejs {nodejs}
   # for python language server (and development)
   - python-lsp-server >=1.7.4
+  - basedpyright
   - flake8
   - autopep8
   - pyflakes

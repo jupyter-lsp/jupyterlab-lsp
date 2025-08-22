@@ -73,6 +73,11 @@ Python (pyright)
     Editor Shows Features for Server    pyright    Python    example.py    Diagnostics=is not defined (Pyright)
     ...    Jump to Definition=${def}
 
+Python (basedpyright)
+    ${def} =    Set Variable    lastToken:fib
+    Editor Shows Features for Server    basedpyright    Python    example.py    Diagnostics=is not defined (basedpyright)
+    ...    Jump to Definition=${def}
+
 R
     ${def} =    Set Variable    lastToken:fib
     Editor Shows Features for Language    R    example.R    Diagnostics=Put spaces around all infix operators

@@ -3,6 +3,7 @@
 
 # flake8: noqa: F401
 
+from .basedpyright import BasedPyrightLanguageServer
 from .bash_language_server import BashLanguageServer
 from .dockerfile_language_server_nodejs import DockerfileLanguageServerNodeJS
 from .javascript_typescript_langserver import JavascriptTypescriptLanguageServer
@@ -22,6 +23,7 @@ from .vscode_html_languageserver import VSCodeHTMLLanguageServer
 from .vscode_json_languageserver import VSCodeJSONLanguageServer
 from .yaml_language_server import YAMLLanguageServer
 
+basedpyright = BasedPyrightLanguageServer()
 bash = BashLanguageServer()
 css = VSCodeCSSLanguageServer()
 dockerfile = DockerfileLanguageServerNodeJS()
