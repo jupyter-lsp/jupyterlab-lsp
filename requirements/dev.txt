@@ -2,7 +2,7 @@
 -r ./utest.txt
 -r ./atest.txt
 packaging
-pyls-black
-pyls-isort
-pyls-mypy
+python-lsp-server
+python-lsp-black
+pylsp-mypy
 ruamel.yaml
