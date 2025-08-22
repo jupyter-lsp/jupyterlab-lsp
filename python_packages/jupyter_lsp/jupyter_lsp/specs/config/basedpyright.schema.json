@@ -34,10 +34,10 @@
       "scope": "resource"
     },
     "basedpyright.analysis.baselineFile": {
-        "type": "string",
-        "default": "",
-        "description": "Path to the baseline file. Defaults to `./.basedpyright/baseline.json`",
-        "scope": "resource"
+      "type": "string",
+      "default": "",
+      "description": "Path to the baseline file. Defaults to `./.basedpyright/baseline.json`",
+      "scope": "resource"
     },
     "basedpyright.analysis.diagnosticMode": {
       "type": "string",
@@ -691,56 +691,53 @@
       "scope": "resource"
     },
     "basedpyright.importStrategy": {
-        "type": "string",
-        "default": "fromEnvironment",
-        "enum": [
-            "fromEnvironment",
-            "useBundled"
-        ],
-        "description": "Whether to use the version of pyright installed in the project (recommended) or the one bundled with the extension (not recommended).",
-        "scope": "resource"
+      "type": "string",
+      "default": "fromEnvironment",
+      "enum": ["fromEnvironment", "useBundled"],
+      "description": "Whether to use the version of pyright installed in the project (recommended) or the one bundled with the extension (not recommended).",
+      "scope": "resource"
     },
     "basedpyright.analysis.inlayHints.variableTypes": {
-        "type": "boolean",
-        "default": true,
-        "description": "Whether to show inlay hints on assignments to variables.",
-        "scope": "resource"
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to show inlay hints on assignments to variables.",
+      "scope": "resource"
     },
     "basedpyright.analysis.inlayHints.callArgumentNames": {
-        "type": "boolean",
-        "default": true,
-        "description": "Whether to show inlay hints on function arguments.",
-        "scope": "resource"
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to show inlay hints on function arguments.",
+      "scope": "resource"
     },
     "basedpyright.analysis.inlayHints.callArgumentNamesMatching": {
-        "type": "boolean",
-        "default": false,
-        "description": "Whether to show inlay hints on function arguments when the input expression is a variable with the same name as the parameter.",
-        "scope": "resource"
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to show inlay hints on function arguments when the input expression is a variable with the same name as the parameter.",
+      "scope": "resource"
     },
     "basedpyright.analysis.inlayHints.functionReturnTypes": {
-        "type": "boolean",
-        "default": true,
-        "description": "Whether to show inlay hints on function return types.",
-        "scope": "resource"
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to show inlay hints on function return types.",
+      "scope": "resource"
     },
     "basedpyright.analysis.inlayHints.genericTypes": {
-        "type": "boolean",
-        "default": false,
-        "description": "Whether to show inlay hints on inferred generic types.",
-        "scope": "resource"
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to show inlay hints on inferred generic types.",
+      "scope": "resource"
     },
     "basedpyright.analysis.useTypingExtensions": {
-        "type": "boolean",
-        "default": false,
-        "description": "Whether to rely on imports from the `typing_extensions` module when targeting older versions of python that do not include certain typing features such as the `@override` decorator.",
-        "scope": "resource"
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to rely on imports from the `typing_extensions` module when targeting older versions of python that do not include certain typing features such as the `@override` decorator.",
+      "scope": "resource"
     },
     "basedpyright.analysis.autoFormatStrings": {
-        "type": "boolean",
-        "default": true,
-        "description": "Whether to automatically insert an `f` in front of a string when typing a `{` inside it.",
-        "scope": "resource"
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to automatically insert an `f` in front of a string when typing a `{` inside it.",
+      "scope": "resource"
     }
   }
 }
