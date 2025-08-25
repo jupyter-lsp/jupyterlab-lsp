@@ -33,7 +33,7 @@ env:
   JLPM_CMD: jlpm install
 
   # Increase this value to reset all caches
-  CACHE_EPOCH: 4
+  CACHE_EPOCH: 5
   JULIA_LANGSERVER: 4.1.0
 
 jobs:

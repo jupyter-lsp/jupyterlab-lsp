@@ -1,9 +1,10 @@
 ## Changelog
 
-### `jupyter-lsp (next)`
+### `jupyter-lsp 2.3.0`
 
 - features:
   - add auto-detection of Pyrefly language server ([#1136](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1136))
+  - add auto-detection of basedpyright language server ([#1152](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1152))
 
 ### `@jupyter-lsp/jupyterlab-lsp 5.2.0`
 
