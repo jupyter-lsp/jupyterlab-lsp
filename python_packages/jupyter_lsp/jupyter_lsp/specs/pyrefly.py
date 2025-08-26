@@ -19,5 +19,5 @@ class PyreflyLanguageServer(ShellSpec):
             conda="conda install -c conda-forge pyrefly",
         ),
         config_schema=load_config_schema(key),
-        requires_documents_on_disk=False
+        requires_documents_on_disk=False,
     )

@@ -84,6 +84,7 @@ class PythonModuleSpec(SpecBase):
     """
 
     python_module = ""
+    python_command: Union[str, None] = None
 
     def is_installed(self, mgr: LanguageServerManagerAPI) -> bool:
         spec = self.solve()
@@ -101,14 +102,15 @@ class PythonModuleSpec(SpecBase):
 
     def __call__(self, mgr: LanguageServerManagerAPI) -> KeyedLanguageServerSpecs:
         is_installed = self.is_installed(mgr)
+        cmd = (
+            ["-c", self.python_command]
+            if self.python_command
+            else ["-m", self.python_module]
+        )
 
         return {
             self.key: {
-                "argv": (
-                    [sys.executable, "-m", self.python_module, *self.args]
-                    if is_installed
-                    else []
-                ),
+                "argv": ([sys.executable, *cmd, *self.args] if is_installed else []),
                 "languages": self.languages,
                 "version": SPEC_VERSION,
                 **self.spec,
