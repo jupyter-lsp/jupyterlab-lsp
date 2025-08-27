@@ -279,7 +279,7 @@ jobs:
 
       - name: Install python packages
         run: |
-          python -m pip uninstall jupyter_lsp
+          python -m pip uninstall jupyter_lsp -y
           python -m pip install --find-links=dist --no-index --ignore-installed --no-deps jupyter_lsp jupyterlab_lsp
 
       - name: Install Klingon file type extension and server specification (for testing languages without language servers)
