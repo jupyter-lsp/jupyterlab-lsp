@@ -75,7 +75,11 @@ Python (pyright)
 
 Python (basedpyright)
     ${def} =    Set Variable    lastToken:fib
-    Editor Shows Features for Server    basedpyright    Python    example.py    Diagnostics=is not defined (basedpyright)
+    Editor Shows Features for Server
+    ...    basedpyright
+    ...    Python
+    ...    example.py
+    ...    Diagnostics=is not defined (basedpyright)
     ...    Jump to Definition=${def}
 
 R
