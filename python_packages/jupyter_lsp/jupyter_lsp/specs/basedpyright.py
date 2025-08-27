@@ -1,10 +1,10 @@
 from .config import load_config_schema
-from .utils import PythonModuleSpec
+from .utils import ShellSpec
 
 
-class BasedPyrightLanguageServer(PythonModuleSpec):
-    python_module = key = "basedpyright"
-    python_command = "from basedpyright.langserver import main; main()"
+class BasedPyrightLanguageServer(ShellSpec):
+    key = "basedpyright"
+    cmd = "basedpyright-langserver"
     args = ["--stdio"]
     languages = ["python"]
     spec = dict(
