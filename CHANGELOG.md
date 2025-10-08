@@ -1,5 +1,10 @@
 ## Changelog
 
+### `jupyter-lsp 2.3.1`
+
+- maintenance:
+  - updated config schema for pylsp to match latest upstream schema ([#1156](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1156))
+
 ### `jupyter-lsp 2.3.0`
 
 - features:
