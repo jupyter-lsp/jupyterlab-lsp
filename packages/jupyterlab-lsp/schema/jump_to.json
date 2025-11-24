@@ -17,6 +17,12 @@
       "type": "boolean",
       "default": false,
       "description": "Disable this feature. Requires reloading JupyterLab to apply changes."
+    },
+    "enableKernelFallback": {
+      "title": "Enable kernel fallback",
+      "type": "boolean",
+      "default": true,
+      "description": "When LSP returns no jump targets, use Jedi in the kernel environment as a fallback. This enables jump-to-definition for packages installed in the kernel but not in JupyterLab's environment. Requires Jedi to be installed in the kernel."
     }
   },
   "jupyter.lab.shortcuts": [
