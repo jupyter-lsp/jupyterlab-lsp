@@ -275,10 +275,21 @@ export class NavigationFeature extends Feature {
                   ...positionParams,
                   context: { includeDeclaration: false }
                 })
-                .then(targets =>
+                .then(async targets => {
                   // TODO: explain that we are now presenting references?
-                  this.handleJump(targets, positionParams, adapter, document)
-                )
+                  const refResult = await this.handleJump(
+                    targets,
+                    positionParams,
+                    adapter,
+                    document
+                  );
+                  if (refResult === JumpResult.NoTargetsFound) {
+                    Notification.info(
+                      this._trans.__('No jump targets found'),
+                      { autoClose: 3 * 1000 }
+                    );
+                  }
+                })
                 .catch(this.console.warn);
             }
           })
@@ -387,9 +398,7 @@ export class NavigationFeature extends Feature {
     const jumper = this.getJumper(adapter);
 
     if (!targetInfo) {
-      Notification.info(this._trans.__('No jump targets found'), {
-        autoClose: 3 * 1000
-      });
+      // Don't show notification here - let caller handle it after fallbacks are tried
       return JumpResult.NoTargetsFound;
     }
 
@@ -911,8 +920,18 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
             console.log(
               '[LSP] LSP returned no targets, trying kernel Jedi fallback'
             );
-            await feature.jumpWithKernelJedi(notebook, documentManager);
+            const kernelResult = await feature.jumpWithKernelJedi(
+              notebook,
+              documentManager
+            );
+            if (kernelResult === JumpResult.AssumeSuccess) {
+              return; // Kernel fallback succeeded, don't show notification
+            }
           }
+          // Show notification only after all fallbacks have been tried
+          Notification.info(trans.__('No jump targets found'), {
+            autoClose: 3 * 1000
+          });
         }
       },
       label: trans.__('Jump to definition'),
