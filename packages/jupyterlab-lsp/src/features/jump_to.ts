@@ -284,10 +284,9 @@ export class NavigationFeature extends Feature {
                     document
                   );
                   if (refResult === JumpResult.NoTargetsFound) {
-                    Notification.info(
-                      this._trans.__('No jump targets found'),
-                      { autoClose: 3 * 1000 }
-                    );
+                    Notification.info(this._trans.__('No jump targets found'), {
+                      autoClose: 3 * 1000
+                    });
                   }
                 })
                 .catch(this.console.warn);
@@ -774,9 +773,7 @@ export class NavigationFeature extends Feature {
 
     // Try with symlink fallback
     const symlinkPath = URLExt.join('.lsp_symlink', filePath);
-    this.console.log(
-      `[KernelJedi] Trying symlink fallback: ${symlinkPath}`
-    );
+    this.console.log(`[KernelJedi] Trying symlink fallback: ${symlinkPath}`);
     try {
       const widget = await documentManager.openOrReveal(symlinkPath);
       this.console.log('[KernelJedi] File opened via symlink');

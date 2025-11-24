@@ -1,5 +1,4 @@
-""" tornado handler for managing and communicating with language servers
-"""
+"""tornado handler for managing and communicating with language servers"""
 
 import json
 from typing import Optional, Text
@@ -151,7 +150,7 @@ class IntrospectionCodeHandler(BaseHandler):
     @authorized
     def get(self):
         """Return the Jedi introspection code template."""
-        introspection_code = '''
+        introspection_code = """
 import sys
 import json
 
@@ -162,7 +161,7 @@ try:
     try:
         import jedi
     except ImportError:
-        _result['error'] = 'Jedi not installed in kernel environment. Install with: pip install jedi'
+        _result['error'] = 'Jedi not installed in kernel. Install: pip install jedi'
         print(json.dumps(_result))
         raise SystemExit
 
@@ -172,8 +171,8 @@ try:
     _cursor_column = __CURSOR_COLUMN__
     _notebook_path = __NOTEBOOK_PATH__
 
-    print(f'[Jedi] Analyzing at line {_cursor_line}, column {_cursor_column}', file=sys.stderr)
-    print(f'[Jedi] Notebook source length: {len(_notebook_source)} chars', file=sys.stderr)
+    print(f'[Jedi] line {_cursor_line}, col {_cursor_column}', file=sys.stderr)
+    print(f'[Jedi] Source length: {len(_notebook_source)} chars', file=sys.stderr)
     print(f'[Jedi] Kernel sys.path has {len(sys.path)} entries', file=sys.stderr)
 
     # Create Jedi project with kernel's sys.path
@@ -194,13 +193,14 @@ try:
 
     if _definitions:
         _defn = _definitions[0]
-        print(f'[Jedi] Definition: {_defn.name} at {_defn.module_path}:{_defn.line}', file=sys.stderr)
+        _path, _ln = _defn.module_path, _defn.line
+        print(f'[Jedi] Found: {_defn.name} at {_path}:{_ln}', file=sys.stderr)
 
         if _defn.module_path:
             _result['file'] = str(_defn.module_path)
             _result['line'] = _defn.line if _defn.line else 1
         else:
-            _result['error'] = 'Definition found but no source file available (builtin or compiled module)'
+            _result['error'] = 'Definition found but no source file (builtin/compiled)'
     else:
         _result['error'] = 'No definition found'
 
@@ -212,7 +212,7 @@ except Exception as _e:
     print(f'[Jedi] Exception: {traceback.format_exc()}', file=sys.stderr)
 
 print(json.dumps(_result))
-'''
+"""
         self.finish(json.dumps({"code": introspection_code}))
 
 
