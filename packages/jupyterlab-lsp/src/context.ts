@@ -231,7 +231,7 @@ export class ContextAssembler {
     if (!cmContent) {
       return;
     }
-    const cmView = (cmContent as any)?.cmView?.view as EditorView | undefined;
+    const cmView = EditorView.findFromDOM(cmContent);
 
     if (!cmView) {
       return;
