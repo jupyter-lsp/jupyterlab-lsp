@@ -13,7 +13,7 @@ ${FOLDER WITH SPACE}    a föl@der
 *** Test Cases ***
 Python Jumps Between Files
     Copy Files to Folder With Spaces    jump_a.py    jump_b.py
-    Open ${FOLDER WITH SPACE}/jump_b.py in ${MENU EDITOR}
+    Open ${FOLDER WITH SPACE}/jump_b.py in ${MENU EDITOR}    # robocop: disable=NAME04
     Wait Until Fully Initialized
     Jump To Definition    lastToken:a_function_definition
     Wait Until Page Contains    ANOTHER_CONSTANT
