@@ -18,7 +18,7 @@ def page_contains_diagnostic(driver: WebDriver, selector, negate=False):
     driver.execute_script(
         """
     arguments[0].map(el => {
-      let view = el.cmView | el.cmTile;
+      let view = el.cmView || el.cmTile;
       let diagnostic = view.mark.spec.diagnostic;
       el.title = diagnostic.message + " (" + diagnostic.source + ")";
     });
