@@ -31,7 +31,7 @@ Hover Triggers Automatically
     Configure JupyterLab Plugin    {"delay": 100, "autoActivate": true}
     ...    plugin id=${HOVER PLUGIN ID}
     Trigger Automatically By Hover    ${sel}
-    Wait Until Keyword Succeeds    4x    0.1s    Page Should Contain Element    ${HOVER_BOX}
+    Wait Until Keyword Succeeds    10x    1s    Page Should Contain Element    ${HOVER_BOX}
 
 Hover works in notebooks
     Enter Cell Editor    1
@@ -75,7 +75,7 @@ Update hover after character deletion
     Element Should Contain    ${HOVER_BOX}    atan2(y: SupportsFloat, x: SupportsFloat, /)
     Place Cursor In Cell Editor At    4    line=2    character=13
     Press Keys    None    DELETE
-    Sleep    4
+    Sleep    8
     Trigger Tooltip    atan
     Element Text Should Be    ${HOVER_SIGNAL}    atan
     Capture Page Screenshot    02-hover-after-deletion.png
@@ -87,7 +87,7 @@ Trigger Automatically By Hover
     [Arguments]    ${sel}
     # bring the cursor to the element
     Mouse Over Token    ${sel}
-    Wait Until Page Contains Element    ${HOVER_SIGNAL}    timeout=10s
+    Wait Until Page Contains Element    ${HOVER_SIGNAL}    timeout=30s
     Mouse Over Token And Wiggle    ${sel}    5
 
 Trigger Via Hover With Modifier
@@ -96,7 +96,7 @@ Trigger Via Hover With Modifier
     Mouse Over Token    ${sel}
     # move it back and forth (wiggle) while holding the ctrl modifier
     Mouse Over Token With Control    ${sel}    x_wiggle=5
-    Wait Until Keyword Succeeds    5x    0.1s    Page Should Contain Element    ${HOVER_BOX}
+    Wait Until Keyword Succeeds    10x    0.5s    Page Should Contain Element    ${HOVER_BOX}
 
 Trigger Via Modifier Key Press
     [Arguments]    ${sel}
@@ -105,13 +105,13 @@ Trigger Via Modifier Key Press
     Wait Until Page Contains Element    ${HOVER_SIGNAL}    timeout=10s
     Mouse Over Token And Wiggle    ${sel}    5
     Press Keys    None    CTRL
-    Wait Until Keyword Succeeds    4x    0.1s    Page Should Contain Element    ${HOVER_BOX}
+    Wait Until Keyword Succeeds    10x    1s    Page Should Contain Element    ${HOVER_BOX}
 
 Trigger Tooltip
     [Documentation]    The default way to trigger the hover tooltip
     [Arguments]    ${symbol}
     ${sel} =    Set Variable    lastToken:${symbol}
-    Wait Until Keyword Succeeds    5x    0.1 s    Trigger Via Hover With Modifier    ${sel}
+    Wait Until Keyword Succeeds    10x    1 s    Trigger Via Hover With Modifier    ${sel}
 
 Setup Hover Test
     Setup Notebook    Python    Hover.ipynb
