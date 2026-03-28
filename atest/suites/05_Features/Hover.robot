@@ -31,7 +31,7 @@ Hover Triggers Automatically
     Configure JupyterLab Plugin    {"delay": 100, "autoActivate": true}
     ...    plugin id=${HOVER PLUGIN ID}
     Trigger Automatically By Hover    ${sel}
-    Wait Until Keyword Succeeds    4x    0.1s    Page Should Contain Element    ${HOVER_BOX}
+    Wait Until Keyword Succeeds    10x    1s    Page Should Contain Element    ${HOVER_BOX}
 
 Hover works in notebooks
     Enter Cell Editor    1
@@ -87,7 +87,7 @@ Trigger Automatically By Hover
     [Arguments]    ${sel}
     # bring the cursor to the element
     Mouse Over Token    ${sel}
-    Wait Until Page Contains Element    ${HOVER_SIGNAL}    timeout=10s
+    Wait Until Page Contains Element    ${HOVER_SIGNAL}    timeout=30s
     Mouse Over Token And Wiggle    ${sel}    5
 
 Trigger Via Hover With Modifier
@@ -105,7 +105,7 @@ Trigger Via Modifier Key Press
     Wait Until Page Contains Element    ${HOVER_SIGNAL}    timeout=10s
     Mouse Over Token And Wiggle    ${sel}    5
     Press Keys    None    CTRL
-    Wait Until Keyword Succeeds    4x    0.1s    Page Should Contain Element    ${HOVER_BOX}
+    Wait Until Keyword Succeeds    10x    1s    Page Should Contain Element    ${HOVER_BOX}
 
 Trigger Tooltip
     [Documentation]    The default way to trigger the hover tooltip

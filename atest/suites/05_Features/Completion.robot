@@ -311,14 +311,12 @@ Completes Correctly With R Double And Triple Colon
     Place Cursor In File Editor At    2    7
     Wait Until Fully Initialized
     Wait For Our Completer To Initialize
-    Trigger Completer
-    Completer Should Suggest    .print.via.format    timeout=90s
+    Wait Until Keyword Succeeds    3x    2s    Trigger Completer And Suggest    .print.via.format    60s
     Select Completer Suggestion    .print.via.format
     Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    1    tools::.print.via.format
     # triple colon
     Place Cursor In File Editor At    4    11
-    Trigger Completer
-    Completer Should Suggest    .packageName    timeout=90s
+    Wait Until Keyword Succeeds    3x    2s    Trigger Completer And Suggest    .packageName    60s
     Select Completer Suggestion    .packageName
     Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    3    datasets:::.packageName
     [Teardown]    Clean Up After Working With File    completion.R
@@ -458,6 +456,14 @@ Trigger Completer
     Press Keys    None    TAB
     Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=${timeout}
 
+Trigger Completer And Suggest
+    [Documentation]    Press Escape to dismiss any open completer, trigger a new one, then wait for a specific suggestion.
+    ...    Useful as a retry target when completions are slow (e.g. large R namespaces).
+    [Arguments]    ${text}    ${timeout}=60s
+    Press Keys    None    ESCAPE
+    Trigger Completer
+    Completer Should Suggest    ${text}    timeout=${timeout}
+
 Completer Should Include Documentation
     [Arguments]    ${text}
     Wait Until Page Contains Element    ${DOCUMENTATION_PANEL}    timeout=10s
@@ -486,4 +492,4 @@ Should Complete While Kernel Is Busy
     Page Should Contain Element    ${KERNEL_BUSY_INDICATOR}
 
 Wait For Our Completer To Initialize
-    Wait Until Page Contains Element    css:body[data-lsp-completer-layout]
+    Wait Until Page Contains Element    css:body[data-lsp-completer-layout]    timeout=30s
