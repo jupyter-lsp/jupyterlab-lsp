@@ -1,4 +1,4 @@
-import type { EditorView } from '@codemirror/view';
+import { EditorView } from '@codemirror/view';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import type { CodeMirrorEditor } from '@jupyterlab/codemirror';
@@ -231,7 +231,7 @@ export class ContextAssembler {
     if (!cmContent) {
       return;
     }
-    const cmView = (cmContent as any)?.cmView?.view as EditorView | undefined;
+    const cmView = EditorView.findFromDOM(cmContent as HTMLElement);
 
     if (!cmView) {
       return;

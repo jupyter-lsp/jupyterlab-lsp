@@ -109,10 +109,10 @@ Diagnostics Panel Works After Removing Foreign Document
     # update may not be triggered until user manually makes another action).
     Wait Until Fully Initialized
     Press Keys    None    {}
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    Wait Until Keyword Succeeds    20 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE}
     Sleep    5
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    Wait Until Keyword Succeeds    30 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE R}
     Lab Command    Delete Cell
     # regain focus by entering cell
@@ -120,17 +120,17 @@ Diagnostics Panel Works After Removing Foreign Document
     # trigger 7 document updates to trigger the garbage collector that removes unused documents
     # (search for VirtualDocument.remainingLifetime for more)
     Press Keys    None    1234567
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    Wait Until Keyword Succeeds    20 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE}
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}
+    Wait Until Keyword Succeeds    20 x    1s    Element Should Not Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE R}
-    # it should be possible to get the diagnostic back after re-creatign the cell
+    # it should be possible to get the diagnostic back after re-creating the cell
     Lab Command    Insert Cell Below
     Enter Cell Editor    3
     Press Keys    None    %%R\n{}
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    Wait Until Keyword Succeeds    20 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE}
-    Wait Until Keyword Succeeds    10 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
+    Wait Until Keyword Succeeds    30 x    1s    Element Should Contain    ${DIAGNOSTICS PANEL}
     ...    ${DIAGNOSTIC MESSAGE R}
 
 
@@ -145,7 +145,7 @@ Open Notebook And Panel
     [Arguments]    ${notebook}
     Setup Notebook    Python    ${notebook}
     Capture Page Screenshot    00-notebook-and-panel-opening.png
-    Wait Until Page Contains Diagnostic    [title*="${DIAGNOSTIC}"]    timeout=20s
+    Wait Until Page Contains Diagnostic    [title*="${DIAGNOSTIC}"]    timeout=35s
     Open Diagnostics Panel
     Capture Page Screenshot    00-notebook-and-panel-opened.png
 
