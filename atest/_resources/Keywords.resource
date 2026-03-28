@@ -299,10 +299,10 @@ Open ${file} in ${editor}
 
 Clean Up After Working With Files
     [Arguments]    @{files}
+    Reset Application State
     FOR    ${file}    IN    @{files}
         Remove File    ${NOTEBOOK DIR}${/}${file}
     END
-    Reset Application State
     Lab Log Should Not Contain Known Error Messages
 
 Clean Up After Working With File
