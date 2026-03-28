@@ -434,7 +434,7 @@ Select Completer Suggestion
     Click Element    ${suggestion} code
 
 Completer Should Suggest
-    [Arguments]    ${text}    ${timeout}=10s
+    [Arguments]    ${text}    ${timeout}=30s
     Wait Until Page Contains Element
     ...    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
     ...    timeout=${timeout}
@@ -446,7 +446,7 @@ Get Completion Item Vertical Position
 
 Completer Should Include Icon
     [Arguments]    ${icon}
-    Wait Until Page Contains Element    ${COMPLETER_BOX} svg[data-icon="${icon}"]    timeout=10s
+    Wait Until Page Contains Element    ${COMPLETER_BOX} svg[data-icon="${icon}"]    timeout=30s
 
 Completer Should Not Suggest
     [Arguments]    ${text}

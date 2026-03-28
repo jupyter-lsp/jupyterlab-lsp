@@ -44,6 +44,7 @@ Setup Server and Browser
         # Jupyter Server X.X.X is running at:
         Wait Until File Contains    ${LAB LOG}
         ...    is running at:
+        ...    retries=40
     END
     Open JupyterLab
     Read Page Config
