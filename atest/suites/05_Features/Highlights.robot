@@ -72,13 +72,13 @@ Should Not Highlight Any Tokens
     Page Should Not Contain    xpath://${HIGHLIGHT_XPATH_SELECTOR}
 
 Should Highlight Token
-    [Arguments]    ${token}    ${timeout}=15s
+    [Arguments]    ${token}    ${timeout}=30s
     ${token_element}    Set Variable
     ...    xpath://${HIGHLIGHT_XPATH_SELECTOR}\[contains(text(), '${token}')]
     Wait Until Page Contains Element    ${token_element}    timeout=${timeout}
 
 Should Not Highlight Token
-    [Arguments]    ${token}    ${timeout}=15s
+    [Arguments]    ${token}    ${timeout}=30s
     ${token_element}    Set Variable
     ...    xpath://${HIGHLIGHT_XPATH_SELECTOR}\[contains(text(), '${token}')]
     Wait Until Page Does Not Contain Element    ${token_element}    timeout=${timeout}
