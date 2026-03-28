@@ -68,6 +68,7 @@ ROBOCOP_EXCLUDES = [
     "too-many-calls-in-keyword",
     "too-many-calls-in-test-case",
     "unused-variable",
+    "wrong-case-in-keyword-call",
     "wrong-case-in-keyword-name",
 ]
 

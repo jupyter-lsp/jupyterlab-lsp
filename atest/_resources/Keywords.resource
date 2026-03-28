@@ -349,7 +349,8 @@ Enter Cell Editor
     Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_nr}) .cm-focused
     # clicking on line does not appear sufficient in CM6 (but still useful because it ensures we have it in view
     Execute JavaScript
-    ...    var view = document.querySelector('.jp-Cell:nth-child(${cell_nr}) .cm-content').cmView.view;
+    ...    var cell = document.querySelector('.jp-Cell:nth-child(${cell_nr}) .cm-content');
+    ...    var view = (cell.cmView || cell.cmTile).view;
     ...    var pos = view.state.doc.line(${line}).to;
     ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
@@ -362,7 +363,8 @@ Place Cursor In Cell Editor At
     [Arguments]    ${cell_nr}    ${line}    ${character}
     Enter Cell Editor    ${cell_nr}    ${line}
     Execute JavaScript
-    ...    var view = document.querySelector('.jp-Cell:nth-child(${cell_nr}) .cm-content').cmView.view;
+    ...    var cell = document.querySelector('.jp-Cell:nth-child(${cell_nr}) .cm-content');
+    ...    var view = (cell.cmView || cell.cmTile).view;
     ...    var pos = view.state.doc.line(${line}).from + ${character};
     ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
@@ -374,7 +376,8 @@ Place Cursor In File Editor At
     [Arguments]    ${line}    ${character}
     Enter File Editor
     Execute JavaScript
-    ...    var view = document.querySelector('.jp-FileEditor .cm-content').cmView.view;
+    ...    var editor = document.querySelector('.jp-FileEditor .cm-content');
+    ...    var view = (editor.cmView || editor.cmTile).view;
     ...    var pos = view.state.doc.line(${line}).from + ${character};
     ...    return view.dispatch({selection: {anchor: pos, head: pos}});
 
@@ -429,7 +432,8 @@ Set Editor Content
     [Arguments]    ${text}    ${css}=${EMPTY}
     Wait Until Page Contains Element    css:${css} .cm-content
     Execute JavaScript
-    ...    let view = document.querySelector('${css} .cm-content').cmView.view;
+    ...    var editor = document.querySelector('${css} .cm-content');
+    ...    var view = (editor.cmView || editor.cmTile).view;
     ...    view.dispatch({
     ...    changes: {from: 0, to: view.state.doc.length, insert: `${text}`}
     ...    });
@@ -438,7 +442,9 @@ Get Editor Content
     [Arguments]    ${css}=${EMPTY}
     Wait Until Page Contains Element    css:${css} .cm-content
     ${content} =    Execute JavaScript
-    ...    return document.querySelector('${css} .cm-content').cmView.view.state.doc.toString()
+    ...    var editor = document.querySelector('${css} .cm-content');
+    ...    var view = (editor.cmView || editor.cmTile).view;
+    ...    return view.state.doc.toString()
     RETURN    ${content}
 
 Configure JupyterLab Plugin
