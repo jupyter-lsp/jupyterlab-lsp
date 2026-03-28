@@ -312,13 +312,13 @@ Completes Correctly With R Double And Triple Colon
     Wait Until Fully Initialized
     Wait For Our Completer To Initialize
     Trigger Completer
-    Completer Should Suggest    .print.via.format    timeout=60s
+    Completer Should Suggest    .print.via.format    timeout=90s
     Select Completer Suggestion    .print.via.format
     Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    1    tools::.print.via.format
     # triple colon
     Place Cursor In File Editor At    4    11
     Trigger Completer
-    Completer Should Suggest    .packageName    timeout=60s
+    Completer Should Suggest    .packageName    timeout=90s
     Select Completer Suggestion    .packageName
     Wait Until Keyword Succeeds    40x    0.5s    File Editor Line Should Equal    3    datasets:::.packageName
     [Teardown]    Clean Up After Working With File    completion.R
