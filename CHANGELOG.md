@@ -1,5 +1,13 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 5.2.1` (unreleased)
+
+- new features:
+  - add kernel-based Jedi fallback for jump-to-definition when LSP returns no targets ([#1096](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1096))
+    - enables jump-to-definition for packages installed only in kernel environment
+    - new `enableKernelFallback` setting (default: `true`)
+    - requires `jedi` package in kernel environment
+
 ### `jupyter-lsp 2.3.0`
 
 - features:

@@ -37,3 +37,8 @@ node_modules/
 _*.d.ts
 _*.ts
 python_packages/*/*/labextensions/
+
+# local development
+Makefile
+.claude/
+PULL_REQUEST.md

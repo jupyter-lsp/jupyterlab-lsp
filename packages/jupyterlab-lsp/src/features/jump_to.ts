@@ -11,7 +11,8 @@ import {
 import {
   InputDialog,
   ICommandPalette,
-  Notification
+  Notification,
+  showErrorMessage
 } from '@jupyterlab/apputils';
 import {
   CodeMirrorEditor,
@@ -28,7 +29,8 @@ import {
   ILSPDocumentConnectionManager
 } from '@jupyterlab/lsp';
 import { AnyLocation } from '@jupyterlab/lsp/lib/lsp';
-import { INotebookTracker } from '@jupyterlab/notebook';
+import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
+import { KernelMessage, ServerConnection } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import {
   ITranslator,
@@ -105,6 +107,8 @@ export class NavigationFeature extends Feature {
     this.settings = options.settings;
     this._trans = options.trans;
     this.contextAssembler = options.contextAssembler;
+    this._notebookTracker = options.notebookTracker;
+    this._documentManager = options.documentManager;
 
     this.extensionFactory = {
       name: 'lsp:jump',
@@ -236,7 +240,31 @@ export class NavigationFeature extends Feature {
       .request(positionParams)
       .then(targets => {
         this.handleJump(targets, positionParams, adapter, document)
-          .then((result: JumpResult | undefined) => {
+          .then(async (result: JumpResult | undefined) => {
+            if (result === JumpResult.NoTargetsFound) {
+              // Try kernel Jedi fallback for Python notebooks before references
+              const enableKernelFallback =
+                this.settings.composite.enableKernelFallback !== false;
+              const notebook = this._notebookTracker.currentWidget;
+              if (
+                enableKernelFallback &&
+                notebook &&
+                notebook.sessionContext.session?.kernel &&
+                this.isPythonNotebook(notebook)
+              ) {
+                this.console.log(
+                  '[LSP] LSP returned no targets, trying kernel Jedi fallback'
+                );
+                const kernelResult = await this.jumpWithKernelJedi(
+                  notebook,
+                  this._documentManager
+                );
+                if (kernelResult === JumpResult.AssumeSuccess) {
+                  return; // Kernel fallback succeeded
+                }
+              }
+              // Fall through to references if kernel fallback didn't work
+            }
             if (
               result === JumpResult.NoTargetsFound ||
               result === JumpResult.AlreadyAtTarget
@@ -247,10 +275,20 @@ export class NavigationFeature extends Feature {
                   ...positionParams,
                   context: { includeDeclaration: false }
                 })
-                .then(targets =>
+                .then(async targets => {
                   // TODO: explain that we are now presenting references?
-                  this.handleJump(targets, positionParams, adapter, document)
-                )
+                  const refResult = await this.handleJump(
+                    targets,
+                    positionParams,
+                    adapter,
+                    document
+                  );
+                  if (refResult === JumpResult.NoTargetsFound) {
+                    Notification.info(this._trans.__('No jump targets found'), {
+                      autoClose: 3 * 1000
+                    });
+                  }
+                })
                 .catch(this.console.warn);
             }
           })
@@ -359,9 +397,7 @@ export class NavigationFeature extends Feature {
     const jumper = this.getJumper(adapter);
 
     if (!targetInfo) {
-      Notification.info(this._trans.__('No jump targets found'), {
-        autoClose: 3 * 1000
-      });
+      // Don't show notification here - let caller handle it after fallbacks are tried
       return JumpResult.NoTargetsFound;
     }
 
@@ -479,8 +515,294 @@ export class NavigationFeature extends Feature {
     }
   }
 
+  /**
+   * Check if the current notebook is running a Python kernel.
+   */
+  isPythonNotebook(notebook: NotebookPanel): boolean {
+    const kernelName = notebook.sessionContext.kernelDisplayName || '';
+    const isPython =
+      kernelName === 'Python 3 (ipykernel)' ||
+      kernelName.toLowerCase().includes('python');
+    this.console.log(
+      `[KernelJedi] isPythonNotebook check: kernelName="${kernelName}", isPython=${isPython}`
+    );
+    return isPython;
+  }
+
+  /**
+   * Fetch introspection code template from the server.
+   */
+  private async _fetchIntrospectionCode(): Promise<string | null> {
+    try {
+      const settings = ServerConnection.makeSettings();
+      const url = URLExt.join(settings.baseUrl, 'lsp', 'introspection-code');
+      const response = await ServerConnection.makeRequest(url, {}, settings);
+      if (!response.ok) {
+        this.console.warn(
+          'Failed to fetch introspection code:',
+          response.status
+        );
+        return null;
+      }
+      const data = await response.json();
+      return data.code;
+    } catch (err) {
+      this.console.warn('Error fetching introspection code:', err);
+      return null;
+    }
+  }
+
+  /**
+   * Execute Jedi-based jump-to-definition in the kernel environment.
+   * This is used as a fallback when LSP returns no results, enabling
+   * jump-to-definition for packages installed in the kernel environment.
+   */
+  async jumpWithKernelJedi(
+    notebook: NotebookPanel,
+    documentManager: IDocumentManager
+  ): Promise<JumpResult> {
+    this.console.log('[KernelJedi] Starting kernel-based jump-to-definition');
+    const kernel = notebook.sessionContext.session?.kernel;
+    if (!kernel) {
+      this.console.warn('[KernelJedi] No kernel available');
+      return JumpResult.UnspecifiedFailure;
+    }
+    this.console.log(`[KernelJedi] Kernel found: ${kernel.name}`);
+
+    // Get active cell and cursor position
+    const activeCell = notebook.content.activeCell;
+    if (!activeCell || activeCell.model.type !== 'code') {
+      this.console.warn('[KernelJedi] No active code cell');
+      await showErrorMessage(
+        this._trans.__('Jump to Definition'),
+        this._trans.__('No active code cell')
+      );
+      return JumpResult.UnspecifiedFailure;
+    }
+    this.console.log(`[KernelJedi] Active cell type: ${activeCell.model.type}`);
+
+    const editor = activeCell.editor;
+    if (!editor) {
+      return JumpResult.UnspecifiedFailure;
+    }
+
+    const cursor = editor.getCursorPosition();
+
+    // Collect all code cell sources and calculate absolute position
+    const cells = notebook.content.widgets;
+    const cellSources: string[] = [];
+    let activeCellIndex = -1;
+
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i];
+      if (cell === activeCell) {
+        activeCellIndex = i;
+      }
+      if (cell.model.type === 'code') {
+        cellSources.push(cell.model.sharedModel.getSource());
+      }
+    }
+
+    // Concatenate all cell sources with newlines
+    const notebookSource = cellSources.join('\n');
+
+    // Calculate absolute line number (Jedi uses 1-based line numbers)
+    let absoluteLine = cursor.line + 1;
+    for (let i = 0; i < activeCellIndex; i++) {
+      const cell = cells[i];
+      if (cell.model.type === 'code') {
+        const source = cell.model.sharedModel.getSource();
+        absoluteLine += source.split('\n').length;
+      }
+    }
+
+    const absoluteColumn = cursor.column;
+    const notebookPath = notebook.context.path;
+
+    this.console.log(
+      `[KernelJedi] Cursor position: line=${cursor.line}, column=${cursor.column}`
+    );
+    this.console.log(
+      `[KernelJedi] Absolute position: line=${absoluteLine}, column=${absoluteColumn}`
+    );
+    this.console.log(`[KernelJedi] Notebook path: ${notebookPath}`);
+    this.console.log(
+      `[KernelJedi] Total notebook source length: ${notebookSource.length} chars`
+    );
+
+    // Get introspection code from server
+    this.console.log('[KernelJedi] Fetching introspection code from server...');
+    const introspectionCode = await this._fetchIntrospectionCode();
+    if (!introspectionCode) {
+      this.console.warn('[KernelJedi] Could not fetch introspection code');
+      return JumpResult.UnspecifiedFailure;
+    }
+    this.console.log('[KernelJedi] Introspection code fetched successfully');
+
+    // Replace placeholders in the introspection code
+    const jediCode = introspectionCode
+      .replace('__NOTEBOOK_SOURCE__', JSON.stringify(notebookSource))
+      .replace('__CURSOR_LINE__', String(absoluteLine))
+      .replace('__CURSOR_COLUMN__', String(absoluteColumn))
+      .replace('__NOTEBOOK_PATH__', JSON.stringify(notebookPath));
+
+    this.console.log('[KernelJedi] Executing Jedi code in kernel...');
+    // Execute in kernel
+    const future = kernel.requestExecute({ code: jediCode });
+    let output = '';
+
+    future.onIOPub = (msg: KernelMessage.IIOPubMessage) => {
+      if (msg.header.msg_type === 'stream') {
+        const content = msg.content as KernelMessage.IStreamMsg['content'];
+        // Only capture stdout (JSON result), not stderr (debug logs)
+        if (content.name === 'stdout') {
+          output += content.text;
+        }
+      }
+    };
+
+    await future.done;
+    this.console.log('[KernelJedi] Kernel execution completed');
+    this.console.log(`[KernelJedi] Raw output: ${output}`);
+
+    // Parse result
+    let result: {
+      file: string | null;
+      line: number | null;
+      error: string | null;
+    };
+    try {
+      result = JSON.parse(output.trim());
+      this.console.log('[KernelJedi] Parsed result:', result);
+    } catch (e) {
+      this.console.warn('[KernelJedi] Failed to parse result:', output);
+      return JumpResult.UnspecifiedFailure;
+    }
+
+    if (result.error) {
+      this.console.log('[KernelJedi] Error:', result.error);
+      // Don't show notification for "No definition found" - just fall through silently
+      if (result.error !== 'No definition found') {
+        Notification.warning(result.error, { autoClose: 4 * 1000 });
+      }
+      return JumpResult.NoTargetsFound;
+    }
+
+    if (!result.file) {
+      return JumpResult.NoTargetsFound;
+    }
+
+    this.console.log(
+      '[KernelJedi] Opening:',
+      result.file,
+      'at line',
+      result.line
+    );
+
+    // Convert absolute path to path relative to JupyterLab server root
+    let filePath = result.file;
+    this.console.log(`[KernelJedi] Original file path: ${filePath}`);
+
+    // Get kernel's current working directory
+    this.console.log('[KernelJedi] Getting kernel working directory...');
+    const cwdCode = 'import os; print(os.getcwd())';
+    const cwdFuture = kernel.requestExecute({ code: cwdCode });
+    let kernelCwd = '';
+
+    cwdFuture.onIOPub = (msg: KernelMessage.IIOPubMessage) => {
+      if (msg.header.msg_type === 'stream') {
+        const content = msg.content as KernelMessage.IStreamMsg['content'];
+        if (content.name === 'stdout') {
+          kernelCwd += content.text;
+        }
+      }
+    };
+
+    await cwdFuture.done;
+    kernelCwd = kernelCwd.trim();
+    this.console.log(`[KernelJedi] Kernel cwd: ${kernelCwd}`);
+
+    // Calculate server root from notebook path
+    const notebookDir = notebookPath.substring(
+      0,
+      notebookPath.lastIndexOf('/')
+    );
+    this.console.log(`[KernelJedi] Notebook dir: ${notebookDir}`);
+    let serverRoot = kernelCwd;
+    if (kernelCwd.endsWith(notebookDir)) {
+      serverRoot = kernelCwd.substring(
+        0,
+        kernelCwd.length - notebookDir.length
+      );
+    }
+    this.console.log(`[KernelJedi] Calculated server root: ${serverRoot}`);
+
+    // Strip server root from definition file path
+    if (filePath.startsWith(serverRoot)) {
+      filePath = filePath.substring(serverRoot.length);
+      if (filePath.startsWith('/')) {
+        filePath = filePath.substring(1);
+      }
+    }
+    this.console.log(`[KernelJedi] Resolved file path: ${filePath}`);
+
+    // Try to open the file directly
+    this.console.log(`[KernelJedi] Attempting to open file: ${filePath}`);
+    try {
+      const widget = await documentManager.openOrReveal(filePath);
+      this.console.log('[KernelJedi] File opened successfully');
+      if (widget && result.line) {
+        setTimeout(() => {
+          const content = widget.content as any;
+          if (content && content.editor) {
+            this.console.log(
+              `[KernelJedi] Setting cursor to line ${result.line! - 1}`
+            );
+            content.editor.setCursorPosition({
+              line: result.line! - 1,
+              column: 0
+            });
+            content.editor.focus();
+          }
+        }, 100);
+      }
+      return JumpResult.AssumeSuccess;
+    } catch (err) {
+      this.console.warn('[KernelJedi] Could not open file directly:', err);
+    }
+
+    // Try with symlink fallback
+    const symlinkPath = URLExt.join('.lsp_symlink', filePath);
+    this.console.log(`[KernelJedi] Trying symlink fallback: ${symlinkPath}`);
+    try {
+      const widget = await documentManager.openOrReveal(symlinkPath);
+      this.console.log('[KernelJedi] File opened via symlink');
+      if (widget && result.line) {
+        setTimeout(() => {
+          const content = widget.content as any;
+          if (content && content.editor) {
+            this.console.log(
+              `[KernelJedi] Setting cursor to line ${result.line! - 1}`
+            );
+            content.editor.setCursorPosition({
+              line: result.line! - 1,
+              column: 0
+            });
+            content.editor.focus();
+          }
+        }, 100);
+      }
+      return JumpResult.AssumeSuccess;
+    } catch (err) {
+      this.console.warn('[KernelJedi] Could not open via symlink:', err);
+      return JumpResult.PathResolutionFailure;
+    }
+  }
+
   private _trans: TranslationBundle;
   private _jumpers: Map<string, CodeJumper>;
+  private _notebookTracker: INotebookTracker;
+  private _documentManager: IDocumentManager;
 }
 
 export namespace NavigationFeature {
@@ -574,7 +896,40 @@ export const JUMP_PLUGIN: JupyterFrontEndPlugin<void> = {
         const targets = await connection.clientRequests[
           'textDocument/definition'
         ].request(positionParams);
-        await feature.handleJump(targets, positionParams, adapter, document);
+        const result = await feature.handleJump(
+          targets,
+          positionParams,
+          adapter,
+          document
+        );
+
+        // If LSP found no targets, try kernel-based Jedi fallback for Python notebooks
+        if (result === JumpResult.NoTargetsFound) {
+          const enableKernelFallback =
+            settings.composite.enableKernelFallback !== false;
+          const notebook = notebookTracker.currentWidget;
+          if (
+            enableKernelFallback &&
+            notebook &&
+            notebook.sessionContext.session?.kernel &&
+            feature.isPythonNotebook(notebook)
+          ) {
+            console.log(
+              '[LSP] LSP returned no targets, trying kernel Jedi fallback'
+            );
+            const kernelResult = await feature.jumpWithKernelJedi(
+              notebook,
+              documentManager
+            );
+            if (kernelResult === JumpResult.AssumeSuccess) {
+              return; // Kernel fallback succeeded, don't show notification
+            }
+          }
+          // Show notification only after all fallbacks have been tried
+          Notification.info(trans.__('No jump targets found'), {
+            autoClose: 3 * 1000
+          });
+        }
       },
       label: trans.__('Jump to definition'),
       icon: jumpToIcon,
