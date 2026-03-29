@@ -1,7 +1,6 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Python Language Server Configuration",
-  "description": "This server can be configured using the `workspace/didChangeConfiguration` method. Each configuration option is described below. Note, a value of `null` means that we do not set a value and thus use the plugin's default value.",
+  "description": "Note, a value of `null` means that we do not set a value and thus use the plugin's default value.",
   "type": "object",
   "properties": {
     "pylsp.configurationSources": {
