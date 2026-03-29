@@ -76,7 +76,7 @@
       "description": "List of errors and warnings to ignore (or skip)."
     },
     "pylsp.plugins.flake8.maxComplexity": {
-      "type": "integer",
+      "type": ["integer", "null"],
       "default": null,
       "description": "Maximum allowed complexity threshold."
     },
@@ -559,7 +559,7 @@
       "description": "Formatter to use for reformatting signatures in docstrings."
     },
     "pylsp.signature.line_length": {
-      "type": "number",
+      "type": "integer",
       "default": 88,
       "description": "Maximum line length in signatures."
     }
