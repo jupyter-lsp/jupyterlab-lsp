@@ -481,7 +481,7 @@
       "type": "boolean",
       "default": false,
       "description": "Make the autoimport database memory only. Drastically increases startup time."
-    },
+
     "pylsp.plugins.rope_completion.enabled": {
       "type": "boolean",
       "default": false,
@@ -516,6 +516,112 @@
       },
       "uniqueItems": true,
       "description": "The name of the folder in which rope stores project configurations and data.  Pass `null` for not using such a folder at all."
+    },
+    "pylsp.plugins.ruff.enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable or disable the plugin (python-lsp-ruff)."
+    },
+    "pylsp.plugins.ruff.executable": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "Custom path to the ruff executable."
+    },
+    "pylsp.plugins.ruff.config": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "Path to a ruff configuration file."
+    },
+    "pylsp.plugins.ruff.exclude": {
+      "type": ["array", "null"],
+      "default": null,
+      "items": {
+        "type": "string"
+      },
+      "description": "List of file patterns to exclude."
+    },
+    "pylsp.plugins.ruff.extendIgnore": {
+      "type": ["array", "null"],
+      "default": null,
+      "items": {
+        "type": "string"
+      },
+      "description": "List of additional rule codes to ignore."
+    },
+    "pylsp.plugins.ruff.extendSelect": {
+      "type": ["array", "null"],
+      "default": null,
+      "items": {
+        "type": "string"
+      },
+      "description": "List of additional rule codes to enable."
+    },
+    "pylsp.plugins.ruff.format": {
+      "type": ["array", "null"],
+      "default": null,
+      "items": {
+        "type": "string"
+      },
+      "description": "List of rule codes to apply when formatting."
+    },
+    "pylsp.plugins.ruff.formatEnabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable ruff formatting."
+    },
+    "pylsp.plugins.ruff.ignore": {
+      "type": ["array", "null"],
+      "default": null,
+      "items": {
+        "type": "string"
+      },
+      "description": "List of rule codes to ignore."
+    },
+    "pylsp.plugins.ruff.lineLength": {
+      "type": ["integer", "null"],
+      "default": null,
+      "description": "Set the line-length for length-associated rules and formatting."
+    },
+    "pylsp.plugins.ruff.perFileIgnores": {
+      "type": ["object", "null"],
+      "default": null,
+      "description": "Map of file pattern to rule codes to ignore."
+    },
+    "pylsp.plugins.ruff.preview": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable ruff preview mode."
+    },
+    "pylsp.plugins.ruff.select": {
+      "type": ["array", "null"],
+      "default": null,
+      "items": {
+        "type": "string"
+      },
+      "description": "List of rule codes to enable."
+    },
+    "pylsp.plugins.ruff.severities": {
+      "type": ["object", "null"],
+      "default": null,
+      "description": "Map of rule codes to LSP diagnostic severities."
+    },
+    "pylsp.plugins.ruff.targetVersion": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "The minimum Python version to target (e.g. 'py310')."
+    },
+    "pylsp.plugins.ruff.unfixable": {
+      "type": ["array", "null"],
+      "default": null,
+      "items": {
+        "type": "string"
+      },
+      "description": "List of rule codes to consider unfixable."
+    },
+    "pylsp.plugins.ruff.unsafeFixes": {
+      "type": "boolean",
+      "default": false,
+      "description": "Allow ruff to apply unsafe fixes."
     },
     "pylsp.signature.formatter": {
       "type": [
