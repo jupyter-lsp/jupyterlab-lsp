@@ -462,61 +462,6 @@
       "default": null,
       "description": "Executable to run pylint with. Enabling this will run pylint on unsaved files via stdin. Can slow down workflow. Only works with python3."
     },
-    "pylsp.plugins.rope_autoimport.enabled": {
-      "type": "boolean",
-      "default": false,
-      "description": "Enable or disable autoimport. If false, neither completions nor code actions are enabled. If true, the respective features can be enabled or disabled individually."
-    },
-    "pylsp.plugins.rope_autoimport.completions.enabled": {
-      "type": "boolean",
-      "default": true,
-      "description": "Enable or disable autoimport completions."
-    },
-    "pylsp.plugins.rope_autoimport.code_actions.enabled": {
-      "type": "boolean",
-      "default": true,
-      "description": "Enable or disable autoimport code actions (e.g. for quick fixes)."
-    },
-    "pylsp.plugins.rope_autoimport.memory": {
-      "type": "boolean",
-      "default": false,
-      "description": "Make the autoimport database memory only. Drastically increases startup time."
-
-    "pylsp.plugins.rope_completion.enabled": {
-      "type": "boolean",
-      "default": false,
-      "description": "Enable or disable the plugin."
-    },
-    "pylsp.plugins.rope_completion.eager": {
-      "type": "boolean",
-      "default": false,
-      "description": "Resolve documentation and detail eagerly."
-    },
-    "pylsp.plugins.yapf.enabled": {
-      "type": "boolean",
-      "default": true,
-      "description": "Enable or disable the plugin."
-    },
-    "pylsp.rope.extensionModules": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "default": null,
-      "description": "Builtin and c-extension modules that are allowed to be imported and inspected by rope."
-    },
-    "pylsp.rope.ropeFolder": {
-      "type": [
-        "array",
-        "null"
-      ],
-      "default": null,
-      "items": {
-        "type": "string"
-      },
-      "uniqueItems": true,
-      "description": "The name of the folder in which rope stores project configurations and data.  Pass `null` for not using such a folder at all."
-    },
     "pylsp.plugins.ruff.enabled": {
       "type": "boolean",
       "default": true,
@@ -622,6 +567,60 @@
       "type": "boolean",
       "default": false,
       "description": "Allow ruff to apply unsafe fixes."
+    },    "pylsp.plugins.rope_autoimport.enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable or disable autoimport. If false, neither completions nor code actions are enabled. If true, the respective features can be enabled or disabled individually."
+    },
+    "pylsp.plugins.rope_autoimport.completions.enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable or disable autoimport completions."
+    },
+    "pylsp.plugins.rope_autoimport.code_actions.enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable or disable autoimport code actions (e.g. for quick fixes)."
+    },
+    "pylsp.plugins.rope_autoimport.memory": {
+      "type": "boolean",
+      "default": false,
+      "description": "Make the autoimport database memory only. Drastically increases startup time."
+    },
+    "pylsp.plugins.rope_completion.enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable or disable the plugin."
+    },
+    "pylsp.plugins.rope_completion.eager": {
+      "type": "boolean",
+      "default": false,
+      "description": "Resolve documentation and detail eagerly."
+    },
+    "pylsp.plugins.yapf.enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable or disable the plugin."
+    },
+    "pylsp.rope.extensionModules": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": null,
+      "description": "Builtin and c-extension modules that are allowed to be imported and inspected by rope."
+    },
+    "pylsp.rope.ropeFolder": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "default": null,
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "description": "The name of the folder in which rope stores project configurations and data.  Pass `null` for not using such a folder at all."
     },
     "pylsp.signature.formatter": {
       "type": [
