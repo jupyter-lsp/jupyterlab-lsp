@@ -1,5 +1,11 @@
 ## Changelog
 
+### `jupyter-lsp 2.3.1` (unreleased)
+
+- maintenance:
+  - updated config schema for pylsp to include latest upstream changes ([#1156](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1156))
+  - updated config schema for pylsp to include ruff plugin (python-lsp-ruff) ([#1168](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1168))
+
 ### `jupyter-lsp 2.3.0`
 
 - features:
