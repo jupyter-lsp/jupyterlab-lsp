@@ -34,7 +34,10 @@ import '../style/index.css';
 import { LanguageServers } from './_plugin';
 import { FILEEDITOR_ADAPTER_PLUGIN } from './adapters/fileeditor';
 import { NOTEBOOK_ADAPTER_PLUGIN } from './adapters/notebook';
-import { StatusButtonExtension } from './components/statusbar';
+import {
+  DEFAULT_IGNORED_LANGUAGES,
+  StatusButtonExtension
+} from './components/statusbar';
 import {
   COMPLETION_PLUGIN,
   COMPLETION_FALLBACK_PLUGIN
@@ -217,7 +220,7 @@ export class LSPExtension {
     );
 
     this._statusButtonExtension.setIgnoredLanguages(
-      (options.ignoredLanguages || ['markdown']) as string[]
+      (options.ignoredLanguages || DEFAULT_IGNORED_LANGUAGES) as string[]
     );
   }
 
@@ -228,7 +231,7 @@ export class LSPExtension {
     const lowerCaseLanguage = language.toLocaleLowerCase();
     const ignoredLanguages = (
       (this._settings.composite.ignoredLanguages as string[] | undefined) || [
-        'markdown'
+        ...DEFAULT_IGNORED_LANGUAGES
       ]
     )
       .map(item => item.toLocaleLowerCase())

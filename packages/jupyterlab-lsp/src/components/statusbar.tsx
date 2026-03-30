@@ -41,6 +41,8 @@ import { DocumentLocator, ServerLinksList } from './utils';
 
 import okButton = Dialog.okButton;
 
+export const DEFAULT_IGNORED_LANGUAGES = ['markdown'];
+
 interface IServerStatusProps {
   server: SCHEMA.LanguageServerSession;
 }
@@ -498,7 +500,7 @@ export class StatusButtonExtension
       connectionManager: ILSPDocumentConnectionManager;
       shell: JupyterFrontEnd.IShell;
       translatorBundle: TranslationBundle;
-      onIgnoreLanguage?: (language: string) => void;
+      onIgnoreLanguage: (language: string) => void;
     }
   ) {}
 
@@ -515,8 +517,7 @@ export class StatusButtonExtension
       this.options.languageServerManager;
     statusBarItem.model.connectionManager = this.options.connectionManager;
     statusBarItem.model.ignoredLanguages = this._ignoredLanguages;
-    statusBarItem.model.onIgnoreLanguage =
-      this.options.onIgnoreLanguage ?? null;
+    statusBarItem.model.onIgnoreLanguage = this.options.onIgnoreLanguage;
     this._items.add(statusBarItem);
     statusBarItem.disposed.connect(() => {
       this._items.delete(statusBarItem);
@@ -556,7 +557,7 @@ export class StatusButtonExtension
   }
 
   private _items = new Set<LSPStatus>();
-  private _ignoredLanguages: string[] = ['markdown'];
+  private _ignoredLanguages: string[] = [...DEFAULT_IGNORED_LANGUAGES];
 }
 
 type StatusCode =
@@ -610,7 +611,7 @@ export namespace LSPStatus {
   export class Model extends VDomModel {
     languageServerManager: ILanguageServerManager;
     trans: TranslationBundle;
-    onIgnoreLanguage: ((language: string) => void) | null;
+    onIgnoreLanguage: (language: string) => void;
     private _connectionManager: ILSPDocumentConnectionManager;
     private _ignoredLanguages: Set<string>;
     private _shortMessageByStatus: StatusMap;
@@ -621,8 +622,8 @@ export namespace LSPStatus {
     ) {
       super();
       this.trans = trans;
-      this.onIgnoreLanguage = null;
-      this._ignoredLanguages = new Set(['markdown']);
+      this.onIgnoreLanguage = () => undefined;
+      this._ignoredLanguages = new Set(DEFAULT_IGNORED_LANGUAGES);
       this._shortMessageByStatus = {
         noServerExtension: trans.__('Server extension missing'),
         waiting: trans.__('Waiting…'),
@@ -740,18 +741,12 @@ export namespace LSPStatus {
       );
     }
 
-    get missingLanguagesNotIgnored(): Array<string> {
-      return this.missingLanguages.filter(
-        language => !this.isIgnoredLanguage(language)
-      );
-    }
-
     isIgnoredLanguage(language: string): boolean {
       return this._ignoredLanguages.has(language.toLocaleLowerCase());
     }
 
     ignoreLanguage(language: string): void {
-      this.onIgnoreLanguage?.(language.toLocaleLowerCase());
+      this.onIgnoreLanguage(language.toLocaleLowerCase());
     }
 
     get status(): IStatus {
@@ -812,6 +807,9 @@ export namespace LSPStatus {
       });
 
       let status: StatusCode;
+      const missingLanguagesNotIgnored = this.missingLanguages.filter(
+        language => !this.isIgnoredLanguage(language)
+      );
       if (this.languageServerManager.statusCode === 404) {
         status = 'noServerExtension';
       } else if (detectedDocuments.size === 0) {
@@ -820,14 +818,14 @@ export namespace LSPStatus {
         status = 'initialized';
       } else if (
         initializedDocuments.size === documentsWithAvailableServers.size &&
-        this.missingLanguagesNotIgnored.length === 0
+        missingLanguagesNotIgnored.length === 0
       ) {
         // Ignore languages configured by user when deciding readiness.
         status = 'initialized';
       } else if (
         initializedDocuments.size === documentsWithAvailableServers.size &&
         detectedDocuments.size > documentsWithKnownServers.size &&
-        this.missingLanguagesNotIgnored.length > 0
+        missingLanguagesNotIgnored.length > 0
       ) {
         status = 'initializedButSomeMissing';
       } else if (
