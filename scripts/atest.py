@@ -109,7 +109,7 @@ def build_args(out_dir: Path, attempt: int, extra_args):
     ]
 
     if _use_pabot(attempt, extra_args):
-        args += [f"--processes={PROCESSES}"]
+        args += ["--processes", str(PROCESSES)]
 
     if attempt != 1:
         previous = OUT / get_stem(attempt - 1, extra_args) / "output.xml"
