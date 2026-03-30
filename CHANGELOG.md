@@ -4,7 +4,7 @@
 
 - enhancements:
 
-  - allow to ignore missing LSP servers for purpose of status notification, ignore markdown by default ([#1176](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1176))
+  - allow ignoring missing LSP servers in the status indicator; ignore markdown by default ([#1176](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1176))
 
 ### `jupyter-lsp 2.3.1` (unreleased)
 
