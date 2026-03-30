@@ -112,7 +112,8 @@ def _ensure_jupyterlab_settings_dir() -> None:
     except Exception as err:
         print(
             f"Warning: could not pre-create JupyterLab settings dir: {err}\n"
-            f"Parallel workers may race to create it, causing FileExistsError on Windows."
+            "Parallel workers may race to create it, "
+            "causing FileExistsError on Windows."
         )
 
 
