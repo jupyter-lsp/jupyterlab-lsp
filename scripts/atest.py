@@ -83,6 +83,7 @@ def atest(attempt, extra_args):
         if _use_pabot(attempt, extra_args):
             from pabot.pabot import main_program
 
+            _ensure_jupyterlab_settings_dir()
             # main_program returns an integer exit code without calling sys.exit
             rc = main_program(args)
         else:
@@ -91,6 +92,28 @@ def atest(attempt, extra_args):
         os.chdir(str(old_cwd))
 
     return rc
+
+
+def _ensure_jupyterlab_settings_dir() -> None:
+    """Pre-create the global JupyterLab settings directory before pabot starts workers.
+
+    When PROCESSES > 1, parallel workers all try to copy overrides.json into
+    ``${jupyterlab_dir}/settings/``.  If that directory does not yet exist,
+    Robot Framework's ``Copy File`` keyword calls ``os.makedirs`` without
+    ``exist_ok=True``, so whichever worker loses the race gets
+    ``FileExistsError: [WinError 183]`` on Windows, causing the entire suite
+    setup to fail.  Creating the directory exactly once — before any worker
+    starts — eliminates the race entirely.
+    """
+    try:
+        from jupyterlab.commands import get_app_dir
+
+        (Path(get_app_dir()) / "settings").mkdir(parents=True, exist_ok=True)
+    except Exception as err:
+        print(
+            f"Warning: could not pre-create JupyterLab settings dir: {err}\n"
+            f"Parallel workers may race to create it, causing FileExistsError on Windows."
+        )
 
 
 def _use_pabot(attempt: int, extra_args: list) -> bool:
