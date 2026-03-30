@@ -64,6 +64,8 @@ export class LSPExtension {
     return this._connectionManager;
   }
   private _connectionManager: DocumentConnectionManager;
+  private _statusButtonExtension: StatusButtonExtension;
+  private _settings: ISettingRegistry.ISettings | null;
   languageServerManager: ILanguageServerManager;
   private _settingsSchemaManager: SettingsSchemaManager;
 
@@ -89,24 +91,26 @@ export class LSPExtension {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
     this.languageServerManager = connectionManager.languageServerManager;
     this._connectionManager = connectionManager;
+    this._settings = null;
 
-    const statusButtonExtension = new StatusButtonExtension({
+    this._statusButtonExtension = new StatusButtonExtension({
       languageServerManager: this.languageServerManager,
       connectionManager: this.connectionManager,
       translatorBundle: trans,
-      shell: app.shell
+      shell: app.shell,
+      onIgnoreLanguage: this._ignoreLanguage.bind(this)
     });
 
     if (statusBar !== null) {
       statusBar.registerStatusItem(PLUGIN_ID_BASE + ':language-server-status', {
-        item: statusButtonExtension.createItem(),
+        item: this._statusButtonExtension.createItem(),
         align: 'left',
         rank: 1,
         isActive: () => this._isAnyActive()
       });
     } else if (toolbarRegistry) {
       toolbarRegistry.addFactory('Notebook', 'lsp-status', () =>
-        statusButtonExtension.createNewToolbarItem()
+        this._statusButtonExtension.createNewToolbarItem()
       );
     }
 
@@ -142,6 +146,7 @@ export class LSPExtension {
     this.settingRegistry
       .load(plugin.id)
       .then(async settings => {
+        this._settings = settings;
         await this._updateOptions(settings, false);
         settings.changed.connect(async () => {
           await this._updateOptions(settings, true);
@@ -210,6 +215,31 @@ export class LSPExtension {
       options.logAllCommunication,
       options.setTrace!
     );
+
+    this._statusButtonExtension.setIgnoredLanguages(
+      (options.ignoredLanguages || ['markdown']) as string[]
+    );
+  }
+
+  private async _ignoreLanguage(language: string): Promise<void> {
+    if (!this._settings) {
+      return;
+    }
+    const lowerCaseLanguage = language.toLocaleLowerCase();
+    const ignoredLanguages =
+      ((this._settings.composite.ignoredLanguages as string[] | undefined) ||
+        ['markdown'])
+        .map(item => item.toLocaleLowerCase())
+        .filter((item, index, all) => all.indexOf(item) === index);
+
+    if (ignoredLanguages.includes(lowerCaseLanguage)) {
+      return;
+    }
+
+    await this._settings.set('ignoredLanguages', [
+      ...ignoredLanguages,
+      lowerCaseLanguage
+    ]);
   }
 }
 

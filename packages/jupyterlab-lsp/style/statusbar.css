@@ -28,6 +28,28 @@
   margin-left: 20px;
 }
 
+.lsp-missing-server {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.lsp-missing-server-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lsp-missing-server-ignored {
+  color: var(--jp-ui-font-color2);
+}
+
+.lsp-ignored-language {
+  font-style: italic;
+  color: var(--jp-ui-font-color2);
+}
+
 h5 .lsp-language-server-name {
   color: var(--jp-ui-font-color2);
 }
@@ -133,11 +155,19 @@ body[data-jp-theme-light='false'] .lsp-status-icon.ready svg g {
 .lsp-help-button {
   background: var(--jp-layout-color2);
   border: 1px solid var(--jp-brand-color0);
-  float: right;
 }
 
 .lsp-help-button:hover {
   background: var(--jp-layout-color3);
+}
+
+.lsp-ignore-button {
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color2);
+}
+
+.lsp-ignore-button:hover {
+  background: var(--jp-layout-color2);
 }
 
 .lsp-server-links-list a {

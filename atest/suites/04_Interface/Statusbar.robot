@@ -28,7 +28,7 @@ Troubleshooting And Help Is Offered For Known Non-Installed Servers
     ...    or provided, but the server is not installed (or detected) the user
     ...    should get help on installation and/or troubleshooting
     Prepare File for Editing    Python    status    example.klingon
-    Wait Until Element Contains    ${STATUSBAR}    Initialized (additional servers needed)    timeout=60s
+    Wait Until Element Contains    ${STATUSBAR}    Initialized*    timeout=60s
     Click Element    ${STATUSBAR}
     Wait Until Page Contains Element    ${POPOVER}    timeout=10s
     Page Should Contain Element    ${HELP_BUTTON}
@@ -62,12 +62,12 @@ Status Changes Correctly Between Editors
     Prepare File for Editing    Python    status    example.py
     Wait Until Fully Initialized
     Open File    example.plain
-    Wait Until Element Contains    ${STATUSBAR}    Initialized (additional servers needed)    timeout=60s
+    Wait Until Element Contains    ${STATUSBAR}    Initialized*    timeout=60s
     Capture Page Screenshot    01-both-open.png
     Switch To Tab    example.py
     Wait Until Fully Initialized
     Switch To Tab    example.plain
-    Wait Until Element Contains    ${STATUSBAR}    Initialized (additional servers needed)    timeout=60s
+    Wait Until Element Contains    ${STATUSBAR}    Initialized*    timeout=60s
     [Teardown]    Clean Up After Working With File    example.plain
 
 

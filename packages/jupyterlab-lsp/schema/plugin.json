@@ -80,6 +80,15 @@
       "enum": ["off", "messages", "verbose", null],
       "default": null,
       "description": "Whether to ask server to send logs with execution trace (for debugging). To see these messages, set loggingLevel to debug or log. Accepted values are: \"off\", \"messages\", \"verbose\". Servers are allowed to ignore this request."
+    },
+    "ignoredLanguages": {
+      "title": "Ignored missing languages",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": ["markdown"],
+      "description": "Languages for which missing servers should be ignored in the status indicator."
     }
   },
   "jupyter.lab.toolbars": {
