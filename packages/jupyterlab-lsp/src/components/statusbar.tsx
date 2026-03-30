@@ -331,7 +331,8 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
         <div
           key={i}
           className={
-            'lsp-missing-server ' + (isIgnored ? 'lsp-missing-server-ignored' : '')
+            'lsp-missing-server ' +
+            (isIgnored ? 'lsp-missing-server-ignored' : '')
           }
         >
           <span>{language}</span>

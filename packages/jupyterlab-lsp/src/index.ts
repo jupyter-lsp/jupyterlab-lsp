@@ -226,11 +226,13 @@ export class LSPExtension {
       return;
     }
     const lowerCaseLanguage = language.toLocaleLowerCase();
-    const ignoredLanguages =
-      ((this._settings.composite.ignoredLanguages as string[] | undefined) ||
-        ['markdown'])
-        .map(item => item.toLocaleLowerCase())
-        .filter((item, index, all) => all.indexOf(item) === index);
+    const ignoredLanguages = (
+      (this._settings.composite.ignoredLanguages as string[] | undefined) || [
+        'markdown'
+      ]
+    )
+      .map(item => item.toLocaleLowerCase())
+      .filter((item, index, all) => all.indexOf(item) === index);
 
     if (ignoredLanguages.includes(lowerCaseLanguage)) {
       return;
