@@ -1,5 +1,11 @@
 ## Changelog
 
+### `@jupyter-lsp/jupyterlab-lsp 5.3.0` (unreleased)
+
+- enhancements:
+
+  - allow to ignore missing LSP servers for purpose of status notification, ignore markdown by default ([#1176](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1176))
+
 ### `jupyter-lsp 2.3.1` (unreleased)
 
 - maintenance:
