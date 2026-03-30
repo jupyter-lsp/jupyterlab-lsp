@@ -95,7 +95,7 @@ def atest(attempt, extra_args):
 
 def _use_pabot(attempt: int, extra_args: list) -> bool:
     """Return True if pabot should be used for this attempt."""
-    return PROCESSES > 1 and attempt == 1 and "--dryrun" not in extra_args
+    return PROCESSES > 1 and "--dryrun" not in extra_args
 
 
 def build_args(out_dir: Path, attempt: int, extra_args):
