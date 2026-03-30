@@ -3,5 +3,6 @@
 bs4
 robotframework >=5
 robotframework-lsp
+robotframework-pabot >=2
 robotframework-seleniumlibrary
 robotkernel

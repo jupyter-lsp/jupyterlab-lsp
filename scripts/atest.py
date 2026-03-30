@@ -15,6 +15,7 @@ OS = platform.system()
 PY = "".join(map(str, sys.version_info[:2]))
 RETRIES = int(os.environ.get("ATEST_RETRIES") or "0")
 ATTEMPT = int(os.environ.get("ATEST_ATTEMPT") or "0")
+PROCESSES = int(os.environ.get("ATEST_PROCESSES") or "1")
 
 SCRIPTS = Path(__file__).parent
 ROOT = SCRIPTS.parent.resolve()
@@ -79,11 +80,22 @@ def atest(attempt, extra_args):
     try:
         # run in a "clean" directory
         os.chdir(str(out_dir))
-        rc = robot.run_cli(args, exit=False)
+        if _use_pabot(attempt):
+            from pabot.pabot import main_program
+
+            # main_program returns an integer exit code without calling sys.exit
+            rc = main_program(args)
+        else:
+            rc = robot.run_cli(args, exit=False)
     finally:
         os.chdir(str(old_cwd))
 
     return rc
+
+
+def _use_pabot(attempt: int) -> bool:
+    """Return True if pabot should be used for this attempt."""
+    return PROCESSES > 1 and attempt == 1
 
 
 def build_args(out_dir: Path, attempt: int, extra_args):
@@ -96,6 +108,9 @@ def build_args(out_dir: Path, attempt: int, extra_args):
         *extra_args,
     ]
 
+    if _use_pabot(attempt):
+        args += [f"--processes={PROCESSES}"]
+
     if attempt != 1:
         previous = OUT / get_stem(attempt - 1, extra_args) / "output.xml"
         if previous.exists():
@@ -106,7 +121,8 @@ def build_args(out_dir: Path, attempt: int, extra_args):
     # the tests to run _must_ come last
     args += [f"{SUITES}"]
 
-    print("Robot CLI Arguments:\n", "  ".join(["robot", *args]))
+    runner = "pabot" if _use_pabot(attempt) else "robot"
+    print("Robot CLI Arguments:\n", "  ".join([runner, *args]))
 
     return args
 
