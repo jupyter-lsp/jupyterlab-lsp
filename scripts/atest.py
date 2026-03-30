@@ -80,7 +80,7 @@ def atest(attempt, extra_args):
     try:
         # run in a "clean" directory
         os.chdir(str(out_dir))
-        if _use_pabot(attempt):
+        if _use_pabot(attempt, extra_args):
             from pabot.pabot import main_program
 
             # main_program returns an integer exit code without calling sys.exit
@@ -93,9 +93,9 @@ def atest(attempt, extra_args):
     return rc
 
 
-def _use_pabot(attempt: int) -> bool:
+def _use_pabot(attempt: int, extra_args: list) -> bool:
     """Return True if pabot should be used for this attempt."""
-    return PROCESSES > 1 and attempt == 1
+    return PROCESSES > 1 and attempt == 1 and "--dryrun" not in extra_args
 
 
 def build_args(out_dir: Path, attempt: int, extra_args):
@@ -108,7 +108,7 @@ def build_args(out_dir: Path, attempt: int, extra_args):
         *extra_args,
     ]
 
-    if _use_pabot(attempt):
+    if _use_pabot(attempt, extra_args):
         args += [f"--processes={PROCESSES}"]
 
     if attempt != 1:
@@ -121,7 +121,7 @@ def build_args(out_dir: Path, attempt: int, extra_args):
     # the tests to run _must_ come last
     args += [f"{SUITES}"]
 
-    runner = "pabot" if _use_pabot(attempt) else "robot"
+    runner = "pabot" if _use_pabot(attempt, extra_args) else "robot"
     print("Robot CLI Arguments:\n", "  ".join([runner, *args]))
 
     return args
