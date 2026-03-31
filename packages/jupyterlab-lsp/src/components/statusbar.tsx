@@ -506,7 +506,7 @@ export class StatusButtonExtension
       connectionManager: ILSPDocumentConnectionManager;
       shell: JupyterFrontEnd.IShell;
       translatorBundle: TranslationBundle;
-      onIgnoreLanguage: (language: string) => void;
+      onIgnoreLanguage: (language: string) => void | Promise<void>;
     }
   ) {}
 
@@ -617,7 +617,7 @@ export namespace LSPStatus {
   export class Model extends VDomModel {
     languageServerManager: ILanguageServerManager;
     trans: TranslationBundle;
-    onIgnoreLanguage: (language: string) => void;
+    onIgnoreLanguage: (language: string) => void | Promise<void>;
     private _connectionManager: ILSPDocumentConnectionManager;
     private _ignoredLanguages: Set<string>;
     private _shortMessageByStatus: StatusMap;
