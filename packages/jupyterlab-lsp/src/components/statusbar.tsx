@@ -506,7 +506,7 @@ export class StatusButtonExtension
       connectionManager: ILSPDocumentConnectionManager;
       shell: JupyterFrontEnd.IShell;
       translatorBundle: TranslationBundle;
-      onIgnoreLanguage: (language: string) => void | Promise<void>;
+      onIgnoreLanguage: (language: string) => Promise<void>;
     }
   ) {}
 
@@ -617,7 +617,7 @@ export namespace LSPStatus {
   export class Model extends VDomModel {
     languageServerManager: ILanguageServerManager;
     trans: TranslationBundle;
-    onIgnoreLanguage: (language: string) => void | Promise<void>;
+    onIgnoreLanguage: (language: string) => Promise<void>;
     private _connectionManager: ILSPDocumentConnectionManager;
     private _ignoredLanguages: Set<string>;
     private _shortMessageByStatus: StatusMap;
@@ -628,7 +628,7 @@ export namespace LSPStatus {
     ) {
       super();
       this.trans = trans;
-      this.onIgnoreLanguage = () => undefined;
+      this.onIgnoreLanguage = async () => undefined;
       this._ignoredLanguages = new Set(DEFAULT_IGNORED_LANGUAGES);
       this._shortMessageByStatus = {
         noServerExtension: trans.__('Server extension missing'),
@@ -753,12 +753,10 @@ export namespace LSPStatus {
 
     ignoreLanguage(language: string): void {
       const result = this.onIgnoreLanguage(language.toLocaleLowerCase());
-      if (result instanceof Promise) {
-        void result.catch(error => {
-          // Prevent unhandled promise rejections from async implementations.
-          console.error('Failed to ignore language', error);
-        });
-      }
+      void result.catch(error => {
+        // Prevent unhandled promise rejections from async implementations.
+        console.error('Failed to ignore language', error);
+      });
     }
 
     get status(): IStatus {
