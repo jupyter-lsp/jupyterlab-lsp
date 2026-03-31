@@ -41,7 +41,8 @@ import { DocumentLocator, ServerLinksList } from './utils';
 
 import okButton = Dialog.okButton;
 
-export const DEFAULT_IGNORED_LANGUAGES = ['markdown'];
+// NOTE: Keep in sync with the "default" value for `ignored_languages` in schema/plugin.json.
+export const DEFAULT_IGNORED_LANGUAGES = Object.freeze(['markdown']);
 
 interface IServerStatusProps {
   server: SCHEMA.LanguageServerSession;
