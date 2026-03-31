@@ -228,13 +228,13 @@ export class LSPExtension {
     if (!this._settings) {
       return;
     }
-    const lowerCaseLanguage = language.toLocaleLowerCase();
+    const lowerCaseLanguage = language.toLowerCase();
     const ignoredLanguages = (
       (this._settings.composite.ignoredLanguages as string[] | undefined) || [
         ...DEFAULT_IGNORED_LANGUAGES
       ]
     )
-      .map(item => item.toLocaleLowerCase())
+      .map(item => item.toLowerCase())
       .filter((item, index, all) => all.indexOf(item) === index);
 
     if (ignoredLanguages.includes(lowerCaseLanguage)) {
