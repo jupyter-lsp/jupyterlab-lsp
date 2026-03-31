@@ -746,7 +746,13 @@ export namespace LSPStatus {
     }
 
     ignoreLanguage(language: string): void {
-      this.onIgnoreLanguage(language.toLocaleLowerCase());
+      const result = this.onIgnoreLanguage(language.toLocaleLowerCase());
+      if (result instanceof Promise) {
+        void result.catch(error => {
+          // Prevent unhandled promise rejections from async implementations.
+          console.error('Failed to ignore language', error);
+        });
+      }
     }
 
     get status(): IStatus {
