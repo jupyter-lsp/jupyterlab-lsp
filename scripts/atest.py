@@ -15,6 +15,7 @@ OS = platform.system()
 PY = "".join(map(str, sys.version_info[:2]))
 RETRIES = int(os.environ.get("ATEST_RETRIES") or "0")
 ATTEMPT = int(os.environ.get("ATEST_ATTEMPT") or "0")
+PROCESSES = int(os.environ.get("ATEST_PROCESSES") or "1")
 
 SCRIPTS = Path(__file__).parent
 ROOT = SCRIPTS.parent.resolve()
@@ -79,11 +80,46 @@ def atest(attempt, extra_args):
     try:
         # run in a "clean" directory
         os.chdir(str(out_dir))
-        rc = robot.run_cli(args, exit=False)
+        if _use_pabot(attempt, extra_args):
+            from pabot.pabot import main_program
+
+            _ensure_jupyterlab_settings_dir()
+            # main_program returns an integer exit code without calling sys.exit
+            rc = main_program(args)
+        else:
+            rc = robot.run_cli(args, exit=False)
     finally:
         os.chdir(str(old_cwd))
 
     return rc
+
+
+def _ensure_jupyterlab_settings_dir() -> None:
+    """Pre-create the global JupyterLab settings directory before pabot starts workers.
+
+    When PROCESSES > 1, parallel workers all try to copy overrides.json into
+    ``${jupyterlab_dir}/settings/``.  If that directory does not yet exist,
+    Robot Framework's ``Copy File`` keyword calls ``os.makedirs`` without
+    ``exist_ok=True``, so whichever worker loses the race gets
+    ``FileExistsError: [WinError 183]`` on Windows, causing the entire suite
+    setup to fail.  Creating the directory exactly once — before any worker
+    starts — eliminates the race entirely.
+    """
+    try:
+        from jupyterlab.commands import get_app_dir
+
+        (Path(get_app_dir()) / "settings").mkdir(parents=True, exist_ok=True)
+    except Exception as err:
+        print(
+            f"Warning: could not pre-create JupyterLab settings dir: {err}\n"
+            "Parallel workers may race to create it, "
+            "causing FileExistsError on Windows."
+        )
+
+
+def _use_pabot(attempt: int, extra_args: list) -> bool:
+    """Return True if pabot should be used for this attempt."""
+    return PROCESSES > 1 and "--dryrun" not in extra_args
 
 
 def build_args(out_dir: Path, attempt: int, extra_args):
@@ -96,6 +132,9 @@ def build_args(out_dir: Path, attempt: int, extra_args):
         *extra_args,
     ]
 
+    if _use_pabot(attempt, extra_args):
+        args += ["--processes", str(PROCESSES)]
+
     if attempt != 1:
         previous = OUT / get_stem(attempt - 1, extra_args) / "output.xml"
         if previous.exists():
@@ -106,7 +145,8 @@ def build_args(out_dir: Path, attempt: int, extra_args):
     # the tests to run _must_ come last
     args += [f"{SUITES}"]
 
-    print("Robot CLI Arguments:\n", "  ".join(["robot", *args]))
+    runner = "pabot" if _use_pabot(attempt, extra_args) else "robot"
+    print("Robot CLI Arguments:\n", "  ".join([runner, *args]))
 
     return args
 

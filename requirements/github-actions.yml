@@ -50,3 +50,4 @@ dependencies:
   - firefox
   - geckodriver
   - robotframework-seleniumlibrary
+  - robotframework-pabot >=2

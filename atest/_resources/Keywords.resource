@@ -39,12 +39,12 @@ Setup Server and Browser
     IF    ${wait_for_lsp_log}
         Wait Until File Contains    ${LAB LOG}
         ...    The following Language Servers will be available
-        ...    retries=40
+        ...    retries=80    # 80 × 0.5 s = 40 s; Windows startup under parallel load can exceed 20 s
     ELSE
         # Jupyter Server X.X.X is running at:
         Wait Until File Contains    ${LAB LOG}
         ...    is running at:
-        ...    retries=40
+        ...    retries=80    # 80 × 0.5 s = 40 s; Windows startup under parallel load can exceed 20 s
     END
     Open JupyterLab
     Read Page Config
