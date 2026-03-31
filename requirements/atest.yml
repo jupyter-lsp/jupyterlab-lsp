@@ -8,6 +8,7 @@ dependencies:
   - firefox
   - geckodriver
   - robotframework >=7
+  - robotframework-pabot >=2
   - robotframework-seleniumlibrary
   # TODO: handle upstream
   # - robotkernel
