@@ -532,9 +532,9 @@ export class StatusButtonExtension
   }
 
   setIgnoredLanguages(languages: string[]) {
-    this._ignoredLanguages = languages;
+    this._ignoredLanguages = [...languages];
     for (const item of this._items) {
-      item.model.ignoredLanguages = languages;
+      item.model.ignoredLanguages = this._ignoredLanguages;
     }
   }
 
