@@ -118,6 +118,7 @@ interface IHelpButtonProps {
 }
 
 interface IIgnoreButtonProps {
+  language: string;
   trans: TranslationBundle;
   onClick: () => void;
 }
@@ -243,6 +244,10 @@ class IgnoreButton extends React.Component<IIgnoreButtonProps, any> {
         type={'button'}
         className={'jp-Button lsp-ignore-button'}
         onClick={this.props.onClick}
+        title={this.props.trans.__(
+          'Ignore missing server for %1',
+          this.props.language
+        )}
       >
         {this.props.trans.__('Ignore')}
       </button>
@@ -345,6 +350,7 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
               </span>
             ) : (
               <IgnoreButton
+                language={language}
                 trans={this.model.trans}
                 onClick={() => this.model.ignoreLanguage(language)}
               />
