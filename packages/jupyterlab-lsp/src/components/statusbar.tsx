@@ -830,6 +830,7 @@ export namespace LSPStatus {
         status = 'initialized';
       } else if (
         initializedDocuments.size === documentsWithAvailableServers.size &&
+        documentsWithAvailableServers.size === documentsWithKnownServers.size &&
         missingLanguagesNotIgnored.length === 0
       ) {
         // Ignore languages configured by user when deciding readiness.
