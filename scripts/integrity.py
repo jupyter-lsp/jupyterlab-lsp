@@ -27,6 +27,8 @@ try:
 except ImportError:
     import ruamel_yaml as yaml
 
+SAFE_YAML = yaml.YAML(typ="safe", pure=True)
+
 ROOT = pathlib.Path.cwd()
 
 sys.path.insert(0, str(ROOT))
@@ -75,7 +77,7 @@ PY_FRONT_NAME = "jupyterlab-lsp"
 
 # CI stuff
 PIPE_FILE = ROOT / ".github/workflows/job.test.yml"
-PIPELINES = yaml.safe_load(PIPE_FILE.read_text(encoding="utf-8"))
+PIPELINES = SAFE_YAML.load(PIPE_FILE.read_text(encoding="utf-8"))
 PIPE_VARS = PIPELINES["env"]
 DOCS = ROOT / "docs"
 
@@ -106,7 +108,7 @@ def the_contributing_doc():
 
 @pytest.fixture(scope="module")
 def the_binder_env():
-    return yaml.safe_load(BINDER_ENV.read_text(encoding="utf-8"))
+    return SAFE_YAML.load(BINDER_ENV.read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="module")
