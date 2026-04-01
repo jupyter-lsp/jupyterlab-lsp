@@ -8,7 +8,7 @@
 
 - maintenance:
 
-  - Use public API of CodeMirror's `EditorView`  to find view from DOM ([#1163](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1163))
+  - Use public API of CodeMirror's `EditorView` to find view from DOM ([#1163](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1163))
   - Make integration tests faster ([#1174](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1174))
   - Improve reliability of robot integration tests ([#1169](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1169))
 
