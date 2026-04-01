@@ -1,12 +1,18 @@
 ## Changelog
 
-### `@jupyter-lsp/jupyterlab-lsp 5.3.0` (unreleased)
+### `@jupyter-lsp/jupyterlab-lsp 5.3.0`
 
 - enhancements:
 
   - allow ignoring missing LSP servers in the status indicator; ignore markdown by default ([#1176](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1176))
 
-### `jupyter-lsp 2.3.1` (unreleased)
+- maintenance:
+
+  - Use public API of CodeMirror's `EditorView` to find view from DOM ([#1163](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1163))
+  - Make integration tests faster ([#1174](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1174))
+  - Improve reliability of robot integration tests ([#1169](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1169))
+
+### `jupyter-lsp 2.3.1`
 
 - maintenance:
   - updated config schema for pylsp to include latest upstream changes ([#1156](https://github.com/jupyter-lsp/jupyterlab-lsp/issues/1156))
