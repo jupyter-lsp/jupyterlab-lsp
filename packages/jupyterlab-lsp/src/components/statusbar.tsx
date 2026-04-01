@@ -41,6 +41,9 @@ import { DocumentLocator, ServerLinksList } from './utils';
 
 import okButton = Dialog.okButton;
 
+// NOTE: Keep in sync with the "default" value for `ignored_languages` in schema/plugin.json.
+export const DEFAULT_IGNORED_LANGUAGES = Object.freeze(['markdown']);
+
 interface IServerStatusProps {
   server: SCHEMA.LanguageServerSession;
 }
@@ -113,6 +116,12 @@ interface IHelpButtonProps {
   language: string;
   servers: TSpecsMap;
   trans: TranslationBundle;
+}
+
+interface IIgnoreButtonProps {
+  language: string;
+  trans: TranslationBundle;
+  onClick: () => void;
 }
 
 interface ILanguageServerInfo {
@@ -229,6 +238,24 @@ class HelpButton extends React.Component<IHelpButtonProps, any> {
   }
 }
 
+class IgnoreButton extends React.Component<IIgnoreButtonProps, any> {
+  render() {
+    return (
+      <button
+        type={'button'}
+        className={'jp-Button lsp-ignore-button'}
+        onClick={this.props.onClick}
+        title={this.props.trans.__(
+          'Ignore missing server for %1',
+          this.props.language
+        )}
+      >
+        {this.props.trans.__('Ignore')}
+      </button>
+    );
+  }
+}
+
 class LSPPopup extends VDomRenderer<LSPStatus.Model> {
   constructor(model: LSPStatus.Model) {
     super(model);
@@ -304,21 +331,41 @@ class LSPPopup extends VDomRenderer<LSPStatus.Model> {
     }
 
     const missingLanguages = this.model.missingLanguages.map((language, i) => {
+      const isIgnored = this.model.isIgnoredLanguage(language);
       const specsForMissing = this.model.languageServerManager.getMatchingSpecs(
         { language }
       );
       return (
-        <div key={i} className={'lsp-missing-server'}>
-          {language}
-          {specsForMissing.size ? (
-            <HelpButton
-              language={language}
-              servers={specsForMissing}
-              trans={this.model.trans}
-            />
-          ) : (
-            ''
-          )}
+        <div
+          key={i}
+          className={
+            'lsp-missing-server ' +
+            (isIgnored ? 'lsp-missing-server-ignored' : '')
+          }
+        >
+          <span>{language}</span>
+          <span className={'lsp-missing-server-actions'}>
+            {isIgnored ? (
+              <span className={'lsp-ignored-language'}>
+                {this.model.trans.__('(ignored)')}
+              </span>
+            ) : (
+              <IgnoreButton
+                language={language}
+                trans={this.model.trans}
+                onClick={() => this.model.ignoreLanguage(language)}
+              />
+            )}
+            {specsForMissing.size ? (
+              <HelpButton
+                language={language}
+                servers={specsForMissing}
+                trans={this.model.trans}
+              />
+            ) : (
+              ''
+            )}
+          </span>
         </div>
       );
     });
@@ -460,6 +507,7 @@ export class StatusButtonExtension
       connectionManager: ILSPDocumentConnectionManager;
       shell: JupyterFrontEnd.IShell;
       translatorBundle: TranslationBundle;
+      onIgnoreLanguage: (language: string) => Promise<void>;
     }
   ) {}
 
@@ -475,7 +523,20 @@ export class StatusButtonExtension
     statusBarItem.model.languageServerManager =
       this.options.languageServerManager;
     statusBarItem.model.connectionManager = this.options.connectionManager;
+    statusBarItem.model.ignoredLanguages = this._ignoredLanguages;
+    statusBarItem.model.onIgnoreLanguage = this.options.onIgnoreLanguage;
+    this._items.add(statusBarItem);
+    statusBarItem.disposed.connect(() => {
+      this._items.delete(statusBarItem);
+    });
     return statusBarItem;
+  }
+
+  setIgnoredLanguages(languages: string[]) {
+    this._ignoredLanguages = [...languages];
+    for (const item of this._items) {
+      item.model.ignoredLanguages = this._ignoredLanguages;
+    }
   }
 
   /**
@@ -501,6 +562,9 @@ export class StatusButtonExtension
 
     return item;
   }
+
+  private _items = new Set<LSPStatus>();
+  private _ignoredLanguages: string[] = [...DEFAULT_IGNORED_LANGUAGES];
 }
 
 type StatusCode =
@@ -554,7 +618,9 @@ export namespace LSPStatus {
   export class Model extends VDomModel {
     languageServerManager: ILanguageServerManager;
     trans: TranslationBundle;
+    onIgnoreLanguage: (language: string) => Promise<void>;
     private _connectionManager: ILSPDocumentConnectionManager;
+    private _ignoredLanguages: Set<string>;
     private _shortMessageByStatus: StatusMap;
 
     constructor(
@@ -563,16 +629,27 @@ export namespace LSPStatus {
     ) {
       super();
       this.trans = trans;
+      this.onIgnoreLanguage = async () => undefined;
+      this._ignoredLanguages = new Set(DEFAULT_IGNORED_LANGUAGES);
       this._shortMessageByStatus = {
         noServerExtension: trans.__('Server extension missing'),
         waiting: trans.__('Waiting…'),
         initialized: trans.__('Fully initialized'),
-        initializedButSomeMissing: trans.__(
-          'Initialized (additional servers needed)'
-        ),
+        initializedButSomeMissing: trans.__('Initialized*'),
         initializing: trans.__('Initializing…'),
         connecting: trans.__('Connecting…')
       };
+    }
+
+    get ignoredLanguages(): string[] {
+      return [...this._ignoredLanguages.values()];
+    }
+
+    set ignoredLanguages(languages: string[]) {
+      this._ignoredLanguages = new Set(
+        (languages || []).map(language => language.toLocaleLowerCase())
+      );
+      this.stateChanged.emit(void 0);
     }
 
     get availableServers(): TSessionMap {
@@ -671,6 +748,18 @@ export namespace LSPStatus {
       );
     }
 
+    isIgnoredLanguage(language: string): boolean {
+      return this._ignoredLanguages.has(language.toLocaleLowerCase());
+    }
+
+    ignoreLanguage(language: string): void {
+      const result = this.onIgnoreLanguage(language.toLocaleLowerCase());
+      void result.catch(error => {
+        // Prevent unhandled promise rejections from async implementations.
+        console.error('Failed to ignore language', error);
+      });
+    }
+
     get status(): IStatus {
       let detectedDocuments: Map<string, VirtualDocument>;
 
@@ -729,6 +818,9 @@ export namespace LSPStatus {
       });
 
       let status: StatusCode;
+      const missingLanguagesNotIgnored = this.missingLanguages.filter(
+        language => !this.isIgnoredLanguage(language)
+      );
       if (this.languageServerManager.statusCode === 404) {
         status = 'noServerExtension';
       } else if (detectedDocuments.size === 0) {
@@ -737,7 +829,15 @@ export namespace LSPStatus {
         status = 'initialized';
       } else if (
         initializedDocuments.size === documentsWithAvailableServers.size &&
-        detectedDocuments.size > documentsWithKnownServers.size
+        documentsWithAvailableServers.size === documentsWithKnownServers.size &&
+        missingLanguagesNotIgnored.length === 0
+      ) {
+        // Ignore languages configured by user when deciding readiness.
+        status = 'initialized';
+      } else if (
+        initializedDocuments.size === documentsWithAvailableServers.size &&
+        detectedDocuments.size > documentsWithKnownServers.size &&
+        missingLanguagesNotIgnored.length > 0
       ) {
         status = 'initializedButSomeMissing';
       } else if (
