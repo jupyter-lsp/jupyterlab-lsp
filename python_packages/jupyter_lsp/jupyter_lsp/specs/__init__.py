@@ -14,6 +14,7 @@ from .pyrefly import PyreflyLanguageServer
 from .pyright import PyrightLanguageServer
 from .python_lsp_server import PythonLSPServer
 from .r_languageserver import RLanguageServer
+from .gopls import GoLanguageServer
 from .sql_language_server import SQLLanguageServer
 from .texlab import Texlab
 from .typescript_language_server import TypescriptLanguageServer
@@ -37,6 +38,7 @@ py_lsp_server = PythonLSPServer()
 pyrefly = PyreflyLanguageServer()
 pyright = PyrightLanguageServer()
 r = RLanguageServer()
+go = GoLanguageServer()
 tex = Texlab()
 ts_old = JavascriptTypescriptLanguageServer()
 ts = TypescriptLanguageServer()
