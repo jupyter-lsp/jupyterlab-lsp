@@ -3,6 +3,7 @@ import { Token } from '@lumino/coreutils';
 import * as lsProtocol from 'vscode-languageserver-protocol';
 
 import { PLUGIN_ID } from '../../tokens';
+import { VirtualDocument } from '../../virtual/document';
 
 /**
  * Diagnostic which is localized at a specific editor (cell) within a notebook
@@ -15,6 +16,7 @@ export interface IEditorDiagnostic {
     start: IEditorPosition;
     end: IEditorPosition;
   };
+  document: VirtualDocument
 }
 
 export interface IReadonlyDiagnosticsDatabase {
