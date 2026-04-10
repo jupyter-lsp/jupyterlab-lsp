@@ -104,13 +104,13 @@ In addition, if you wish to use javascript, html, markdown or any other NodeJS-b
 For the current stable version, the following steps are recommended.
 Use of a python `virtualenv` or a conda env is also recommended.
 
-1. install python 3
+1. Install python 3
 
    ```bash
    conda install -c conda-forge python=3
    ```
 
-1. install JupyterLab and the extensions
+1. Install JupyterLab and the extensions
 
    ```bash
    conda install -c conda-forge 'jupyterlab>=4.1.0,<5.0.0a0' jupyterlab-lsp
@@ -123,7 +123,7 @@ Use of a python `virtualenv` or a conda env is also recommended.
    > Note: With conda, you could take advantage of the bundles: `jupyter-lsp-python`
    > or `jupyter-lsp-r` to install both the server extension and the language server.
 
-1. install LSP servers for languages of your choice; for example, for Python
+1. Install LSP servers for languages of your choice; for example, for Python
    ([pylsp](https://github.com/python-lsp/python-lsp-server)) and
    R ([languageserver](https://github.com/REditorSupport/languageserver)) servers:
 
@@ -153,6 +153,13 @@ Use of a python `virtualenv` or a conda env is also recommended.
    If JupyterLab is running when you installed the extension, a restart is required
    for the server extension and any language servers to be recognized by JupyterLab.
 
+1. Activate the extension
+
+   From within Jupyterlab, go in Settings -> Settings Editor.
+   Under the "Language server" section, make sure your language servers have been correctly detected.
+
+   Open the "Code Completion" tab and check "Enable autocompletion".
+  
 1. (Optional, IPython users only) to improve the performance of autocompletion,
    disable Jedi in IPython (the LSP servers for Python use Jedi too).
    You can do that temporarily with:
@@ -163,6 +170,8 @@ Use of a python `virtualenv` or a conda env is also recommended.
 
    or permanently by setting `c.Completer.use_jedi = False` in your
    [`ipython_config.py` file](https://ipython.readthedocs.io/en/stable/config/intro.html?highlight=ipython_config.py#systemwide-configuration).
+
+   In your notebook, you can check whether jedi was disabled by running the magic command `%config IPCompleter.use_jedi`.
 
 1. (Optional, Linux/OSX-only) As a security measure by default Jupyter server only allows
    access to files under the Jupyter root directory (the place where you launch the Jupyter server).
