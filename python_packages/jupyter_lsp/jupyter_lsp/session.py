@@ -8,7 +8,6 @@ import string
 import subprocess
 from datetime import datetime, timezone
 
-from tornado.websocket import WebSocketHandler
 from traitlets import Bunch, Instance, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
 
@@ -40,9 +39,8 @@ class LanguageServerSession(LoggingConfigurable):
         asyncio.Queue, help="a queue for string message to the server", allow_none=True
     )
     handlers = Set(
-        trait=Instance(WebSocketHandler),
         default_value=[],
-        help="the currently subscribed websockets",
+        help="the currently subscribed message handlers",
     )
     status = UseEnum(SessionStatus, default_value=SessionStatus.NOT_STARTED)
     last_handler_message_at = Instance(datetime, allow_none=True)

@@ -34,6 +34,7 @@ from .schema import LANGUAGE_SERVER_SPEC_MAP
 from .session import LanguageServerSession
 from .trait_types import LoadableCallable, Schema
 from .types import (
+    HasWriteMessage,
     KeyedLanguageServerSpecs,
     LanguageServerManagerAPI,
     MessageScope,
@@ -189,7 +190,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
             for listener in listeners:
                 self.__class__.register_message_listener(scope=scope.value)(listener)
 
-    def subscribe(self, handler):
+    def subscribe(self, handler: HasWriteMessage):
         """subscribe a handler to session, or sta"""
         session = self.sessions.get(handler.language_server)
 
@@ -203,7 +204,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
         session.handlers = set([handler]) | session.handlers
 
-    async def on_client_message(self, message, handler):
+    async def on_client_message(self, message: Text, handler: HasWriteMessage):
         await self.wait_for_listeners(
             MessageScope.CLIENT, message, handler.language_server
         )
@@ -232,7 +233,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         for handler in session.handlers:
             handler.write_message(message)
 
-    def unsubscribe(self, handler):
+    def unsubscribe(self, handler: HasWriteMessage):
         session = self.sessions.get(handler.language_server)
 
         if session is None:

@@ -36,9 +36,25 @@ LanguageServerSpec = Dict[Text, Any]
 LanguageServerMessage = Dict[Text, Any]
 KeyedLanguageServerSpecs = Dict[Text, LanguageServerSpec]
 
-if TYPE_CHECKING:  # pragma: no cover
-    from typing_extensions import Protocol
+try:
+    from typing import Protocol, runtime_checkable
+except ImportError:  # pragma: no cover
+    from typing_extensions import (  # type: ignore[assignment]
+        Protocol,
+        runtime_checkable,
+    )
 
+
+@runtime_checkable
+class HasWriteMessage(Protocol):
+    """Structural interface for WebSocket-like message senders."""
+
+    language_server: Text
+
+    def write_message(self, message: Text) -> None: ...
+
+
+if TYPE_CHECKING:  # pragma: no cover
     class HandlerListenerCallback(Protocol):
         def __call__(
             self,
