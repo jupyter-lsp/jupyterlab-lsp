@@ -8,7 +8,6 @@ import string
 import subprocess
 from datetime import datetime, timezone
 
-from tornado.ioloop import IOLoop
 from tornado.websocket import WebSocketHandler
 from traitlets import Bunch, Instance, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
@@ -128,7 +127,7 @@ class LanguageServerSession(LoggingConfigurable):
     def write(self, message):
         """wrapper around the write queue to keep it mostly internal"""
         self.last_handler_message_at = self.now()
-        IOLoop.current().add_callback(self.to_lsp.put_nowait, message)
+        self.to_lsp.put_nowait(message)
 
     def now(self):
         return datetime.now(timezone.utc)

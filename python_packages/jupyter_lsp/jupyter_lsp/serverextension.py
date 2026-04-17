@@ -1,11 +1,11 @@
 """ add language server support to the running jupyter notebook application
 """
 
+import asyncio
 import json
 from pathlib import Path
 
 import traitlets
-from tornado import ioloop
 
 from .handlers import add_handlers
 from .manager import LanguageServerManager
@@ -82,9 +82,10 @@ def load_jupyter_server_extension(nbapp):
     add_handlers(nbapp)
 
     if hasattr(nbapp, "io_loop"):
-        io_loop = nbapp.io_loop
+        nbapp.io_loop.call_later(0, initialize, nbapp, virtual_documents_uri)
     else:
-        # handle jupyter_server 1.x
-        io_loop = ioloop.IOLoop.current()
-
-    io_loop.call_later(0, initialize, nbapp, virtual_documents_uri)
+        asyncio.get_event_loop().call_later(
+            0,
+            asyncio.ensure_future,
+            initialize(nbapp, virtual_documents_uri),
+        )
