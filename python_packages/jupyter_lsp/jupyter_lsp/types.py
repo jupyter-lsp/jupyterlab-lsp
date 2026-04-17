@@ -24,16 +24,13 @@ from typing import (
     cast,
 )
 
-try:
-    from jupyter_server.transutils import _i18n as _
-except ImportError:  # pragma: no cover
-    from jupyter_server.transutils import _
-
 from traitlets import Any as Any_
 from traitlets import Instance
 from traitlets import List as List_
 from traitlets import Unicode, default
 from traitlets.config import LoggingConfigurable
+
+_ = lambda x: x  # noqa: E731
 
 LanguageServerSpec = Dict[Text, Any]
 LanguageServerMessage = Dict[Text, Any]
