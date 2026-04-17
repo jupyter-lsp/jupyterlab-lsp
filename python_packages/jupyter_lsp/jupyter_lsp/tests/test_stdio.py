@@ -3,7 +3,6 @@ import subprocess
 import sys
 
 import pytest
-from tornado.queues import Queue
 
 from jupyter_lsp.stdio import LspStdIoReader
 
@@ -75,7 +74,7 @@ async def join_process(process: subprocess.Popen, headstart=1, timeout=1):
 )
 @pytest.mark.asyncio
 async def test_reader(message, repeats, interval, add_excess, communicator_spawner):
-    queue = Queue()
+    queue = asyncio.Queue()
 
     process = communicator_spawner.spawn_writer(
         message=message, repeats=repeats, interval=interval, add_excess=add_excess

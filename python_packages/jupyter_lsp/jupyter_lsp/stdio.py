@@ -19,7 +19,6 @@ from tornado.concurrent import run_on_executor
 from tornado.gen import convert_yielded
 from tornado.httputil import HTTPHeaders
 from tornado.ioloop import IOLoop
-from tornado.queues import Queue
 from traitlets import Float, Instance, default
 from traitlets.config import LoggingConfigurable
 
@@ -34,7 +33,7 @@ class LspStdIoBase(LoggingConfigurable):
     stream = Instance(  # type:ignore[assignment]
         io.RawIOBase, help="the stream to read/write"
     )  # type: io.RawIOBase
-    queue = Instance(Queue, help="queue to get/put")
+    queue = Instance(asyncio.Queue, help="queue to get/put")
 
     def __repr__(self):  # pragma: no cover
         return "<{}(parent={})>".format(self.__class__.__name__, self.parent)
