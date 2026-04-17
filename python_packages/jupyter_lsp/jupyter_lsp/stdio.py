@@ -17,7 +17,6 @@ from typing import List, Optional, Text
 
 from tornado.concurrent import run_on_executor
 from tornado.gen import convert_yielded
-from tornado.httputil import HTTPHeaders
 from tornado.ioloop import IOLoop
 from traitlets import Float, Instance, default
 from traitlets.config import LoggingConfigurable
@@ -147,13 +146,14 @@ class LspStdIoReader(LspStdIoBase):
     async def read_one(self) -> Text:
         """Read a single message"""
         message = ""
-        headers = HTTPHeaders()
+        headers: dict = {}
 
         line = await convert_yielded(self._readline())
 
         if line:
             while line and line.strip():
-                headers.parse_line(line)
+                key, _, value = line.partition(":")
+                headers[key.strip().lower()] = value.strip()
                 line = await convert_yielded(self._readline())
 
             content_length = int(headers.get("content-length", "0"))
