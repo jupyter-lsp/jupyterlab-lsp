@@ -56,8 +56,6 @@ def communicator_spawner(tmp_path):
 async def join_process(process: subprocess.Popen, headstart=1, timeout=1):
     await asyncio.sleep(headstart)
     result = process.wait(timeout=timeout)
-    if process.stdout:
-        process.stdout.close()
     return result
 
 

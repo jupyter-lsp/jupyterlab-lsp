@@ -15,9 +15,6 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Optional, Text
 
-from tornado.concurrent import run_on_executor
-from tornado.gen import convert_yielded
-from tornado.ioloop import IOLoop
 from traitlets import Float, Instance, default
 from traitlets.config import LoggingConfigurable
 
@@ -85,13 +82,16 @@ class LspStdIoReader(LspStdIoBase):
             try:
                 message = await self.read_one()
 
+                if message is None:  # EOF
+                    break
+
                 if not message:
                     await self.sleep()
                     continue
                 else:
                     self.wake()
 
-                IOLoop.current().add_callback(self.queue.put_nowait, message)
+                self.queue.put_nowait(message)
             except Exception as e:  # pragma: no cover
                 self.log.exception(
                     "%s couldn't enqueue message: %s (%s)", self, message, e
@@ -130,6 +130,8 @@ class LspStdIoReader(LspStdIoBase):
                 max_empties -= 1
                 await self.sleep()
                 continue
+            if part == b"":  # EOF
+                break
             received_size += len(part)
             raw_parts.append(part)
 
@@ -143,18 +145,24 @@ class LspStdIoReader(LspStdIoBase):
 
         return raw
 
-    async def read_one(self) -> Text:
-        """Read a single message"""
+    async def read_one(self) -> Optional[Text]:
+        """Read a single message, returning None on EOF"""
         message = ""
         headers: dict = {}
 
-        line = await convert_yielded(self._readline())
+        loop = asyncio.get_running_loop()
+        line = await loop.run_in_executor(self.executor, self._readline)
+
+        if line is None:  # EOF
+            return None
 
         if line:
             while line and line.strip():
                 key, _, value = line.partition(":")
                 headers[key.strip().lower()] = value.strip()
-                line = await convert_yielded(self._readline())
+                line = await loop.run_in_executor(self.executor, self._readline)
+                if line is None:  # EOF mid-headers
+                    return None
 
             content_length = int(headers.get("content-length", "0"))
 
@@ -171,12 +179,14 @@ class LspStdIoReader(LspStdIoBase):
 
         return message
 
-    @run_on_executor
-    def _readline(self) -> Text:
-        """Read a line (or immediately return None)"""
+    def _readline(self) -> Optional[Text]:
+        """Read a line, returning None on EOF or empty string on EAGAIN"""
         try:
-            return self.stream.readline().decode("utf-8").strip()
-        except OSError:  # pragma: no cover
+            line = self.stream.readline()
+            if line == b"":  # EOF
+                return None
+            return line.decode("utf-8").strip()
+        except OSError:  # EAGAIN - no data available yet
             return ""
 
 
@@ -185,18 +195,20 @@ class LspStdIoWriter(LspStdIoBase):
 
     async def write(self) -> None:
         """Write to a Language Server until it closes"""
+        loop = asyncio.get_running_loop()
         while not self.stream.closed:
             message = await self.queue.get()
             try:
                 body = message.encode("utf-8")
                 response = "Content-Length: {}\r\n\r\n{}".format(len(body), message)
-                await convert_yielded(self._write_one(response.encode("utf-8")))
+                await loop.run_in_executor(
+                    self.executor, self._write_one, response.encode("utf-8")
+                )
             except Exception:  # pragma: no cover
                 self.log.exception("%s couldn't write message: %s", self, response)
             finally:
                 self.queue.task_done()
 
-    @run_on_executor
     def _write_one(self, message) -> None:
         self.stream.write(message)
         self.stream.flush()
