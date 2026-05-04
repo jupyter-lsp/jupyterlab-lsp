@@ -79,7 +79,10 @@ async def test_reader(message, repeats, interval, add_excess, communicator_spawn
     )
     reader = LspStdIoReader(stream=process.stdout, queue=queue)
 
-    await asyncio.gather(join_process(process, headstart=3, timeout=1), reader.read())
+    try:
+        await asyncio.gather(join_process(process, headstart=3, timeout=1), reader.read())
+    finally:
+        process.stdout.close()
 
     result = queue.get_nowait()
     assert result == message * repeats
