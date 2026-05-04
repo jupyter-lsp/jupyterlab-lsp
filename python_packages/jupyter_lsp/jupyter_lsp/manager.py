@@ -5,7 +5,7 @@ import asyncio
 import os
 import sys
 import traceback
-from typing import Dict, Text, Tuple, cast
+from typing import Dict, Text, cast
 
 # See compatibility note on `group` keyword in
 # https://docs.python.org/3/library/importlib.metadata.html#entry-points
@@ -64,7 +64,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         True, help=_("try to find known language servers in sys.prefix (and elsewhere)")
     ).tag(config=True)
 
-    sessions: Dict[Tuple[Text], LanguageServerSession] = (
+    sessions: Dict[Text, LanguageServerSession] = (
         Dict_(  # type:ignore[assignment]
             trait=Instance(LanguageServerSession),
             default_value={},
@@ -244,7 +244,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
             )
             return
 
-        session.handlers = [h for h in session.handlers if h != handler]
+        session.handlers = {h for h in session.handlers if h != handler}
 
     def _autodetect_language_servers(self, only_installed: bool):
         _entry_points = None
