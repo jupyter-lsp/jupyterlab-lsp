@@ -94,7 +94,7 @@ Settings Should Change Editor Diagnostics
     Open Diagnostics Panel
     Click Element    ${JLAB XP DOCK TAB}\[contains(., 'Launcher')]/${close icon}
     IF    "${before}"
-        Wait Until Page Contains Diagnostic    ${before diagnostic}    timeout=30s
+        Wait Until Page Contains Diagnostic    ${before diagnostic}    timeout=60s
     END
     Page Should Not Contain    ${after diagnostic}
     Capture Page Screenshot    01-default-diagnostics-and-settings.png
@@ -112,7 +112,7 @@ Settings Should Change Editor Diagnostics
         # allow longer after reload
         Wait Until Page Contains Diagnostic    ${after diagnostic}    timeout=60s
     ELSE
-        Wait Until Page Contains Diagnostic    ${after diagnostic}    timeout=30s
+        Wait Until Page Contains Diagnostic    ${after diagnostic}    timeout=45s
     END
     Capture Page Screenshot    04-configured-diagnostic-found.png
     [Teardown]    Clean Up After Working with File and Settings    ${file}

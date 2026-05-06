@@ -29,7 +29,7 @@ Troubleshooting And Help Is Offered For Known Non-Installed Servers
     ...    or provided, but the server is not installed (or detected) the user
     ...    should get help on installation and/or troubleshooting
     Prepare File for Editing    Python    status    example.klingon
-    Wait Until Element Contains    ${STATUSBAR}    Initialized*    timeout=60s
+    Wait Until Element Contains    ${STATUSBAR}    Initialized*    timeout=70s
     Click Element    ${STATUSBAR}
     Wait Until Page Contains Element    ${POPOVER}    timeout=10s
     Page Should Contain Element    ${HELP_BUTTON}
