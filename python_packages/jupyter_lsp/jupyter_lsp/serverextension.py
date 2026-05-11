@@ -81,8 +81,11 @@ def load_jupyter_server_extension(nbapp):
 
     add_handlers(nbapp)
 
-    asyncio.get_event_loop().call_later(
-        0,
-        asyncio.ensure_future,
-        initialize(nbapp, virtual_documents_uri),
-    )
+    if hasattr(nbapp, "io_loop"):
+        nbapp.io_loop.call_later(
+            0,
+            asyncio.ensure_future,
+            initialize(nbapp, virtual_documents_uri),
+        )
+    else:
+        asyncio.ensure_future(initialize(nbapp, virtual_documents_uri))
