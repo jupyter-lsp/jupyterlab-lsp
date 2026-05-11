@@ -130,8 +130,8 @@ class LspStdIoReader(LspStdIoBase):
                 max_empties -= 1
                 await self.sleep()
                 continue
-            if part == b"":  # EOF
-                break
+            if part == b"":  # EOF before full content received
+                return None
             received_size += len(part)
             raw_parts.append(part)
 
@@ -170,12 +170,8 @@ class LspStdIoReader(LspStdIoBase):
                 raw = await self._read_content(length=content_length)
                 if raw is not None:
                     message = raw.decode("utf-8").strip()
-                else:  # pragma: no cover
-                    self.log.warning(
-                        "%s failed to read message of length %s",
-                        self,
-                        content_length,
-                    )
+                else:
+                    return None  # EOF mid-content
 
         return message
 
