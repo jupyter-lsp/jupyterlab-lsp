@@ -316,6 +316,8 @@ jobs:
 
       - name: Run browser tests
         run: python scripts/atest.py --exclude expect:fail
+        env:
+          ATEST_PROCESSES: ${{ runner.os == 'macOS' && '1' || '2' }}
 
       - name: Find and remove empty files
         # https://github.com/actions/upload-artifact/issues/150

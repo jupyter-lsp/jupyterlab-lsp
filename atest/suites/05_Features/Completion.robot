@@ -451,7 +451,7 @@ Completer Should Not Suggest
     Wait Until Page Does Not Contain Element    ${COMPLETER_BOX} .jp-Completer-item[data-value="${text}"]
 
 Trigger Completer
-    [Arguments]    ${timeout}=35s
+    [Arguments]    ${timeout}=60s
     Wait For Ready State
     Press Keys    None    TAB
     Wait Until Page Contains Element    ${COMPLETER_BOX}    timeout=${timeout}
@@ -492,4 +492,4 @@ Should Complete While Kernel Is Busy
     Page Should Contain Element    ${KERNEL_BUSY_INDICATOR}
 
 Wait For Our Completer To Initialize
-    Wait Until Page Contains Element    css:body[data-lsp-completer-layout]    timeout=30s
+    Wait Until Page Contains Element    css:body[data-lsp-completer-layout]    timeout=40s

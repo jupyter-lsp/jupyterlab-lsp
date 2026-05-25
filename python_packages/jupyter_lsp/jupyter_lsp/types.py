@@ -24,24 +24,37 @@ from typing import (
     cast,
 )
 
-try:
-    from jupyter_server.transutils import _i18n as _
-except ImportError:  # pragma: no cover
-    from jupyter_server.transutils import _
-
 from traitlets import Any as Any_
 from traitlets import Instance
 from traitlets import List as List_
 from traitlets import Unicode, default
 from traitlets.config import LoggingConfigurable
 
+_ = lambda x: x  # noqa: E731
+
 LanguageServerSpec = Dict[Text, Any]
 LanguageServerMessage = Dict[Text, Any]
 KeyedLanguageServerSpecs = Dict[Text, LanguageServerSpec]
 
-if TYPE_CHECKING:  # pragma: no cover
-    from typing_extensions import Protocol
+try:
+    from typing import Protocol, runtime_checkable
+except ImportError:  # pragma: no cover
+    from typing_extensions import (  # type: ignore[assignment]
+        Protocol,
+        runtime_checkable,
+    )
 
+
+@runtime_checkable
+class HasWriteMessage(Protocol):
+    """Structural interface for WebSocket-like message senders."""
+
+    language_server: Text
+
+    def write_message(self, message: Text) -> None: ...
+
+
+if TYPE_CHECKING:  # pragma: no cover
     class HandlerListenerCallback(Protocol):
         def __call__(
             self,

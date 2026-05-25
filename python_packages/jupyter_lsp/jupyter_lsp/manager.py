@@ -5,7 +5,7 @@ import asyncio
 import os
 import sys
 import traceback
-from typing import Dict, Text, Tuple, cast
+from typing import Dict, Text, cast
 
 # See compatibility note on `group` keyword in
 # https://docs.python.org/3/library/importlib.metadata.html#entry-points
@@ -16,11 +16,6 @@ else:  # pragma: no cover
 
 from jupyter_core.paths import jupyter_config_path
 from jupyter_server.services.config import ConfigManager
-
-try:
-    from jupyter_server.transutils import _i18n as _
-except ImportError:  # pragma: no cover
-    from jupyter_server.transutils import _
 
 from traitlets import Bool
 from traitlets import Dict as Dict_
@@ -39,12 +34,15 @@ from .schema import LANGUAGE_SERVER_SPEC_MAP
 from .session import LanguageServerSession
 from .trait_types import LoadableCallable, Schema
 from .types import (
+    HasWriteMessage,
     KeyedLanguageServerSpecs,
     LanguageServerManagerAPI,
     MessageScope,
     SpecBase,
     SpecMaker,
 )
+
+_ = lambda x: x  # noqa: E731
 
 
 class LanguageServerManager(LanguageServerManagerAPI):
@@ -66,7 +64,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         True, help=_("try to find known language servers in sys.prefix (and elsewhere)")
     ).tag(config=True)
 
-    sessions: Dict[Tuple[Text], LanguageServerSession] = (
+    sessions: Dict[Text, LanguageServerSession] = (
         Dict_(  # type:ignore[assignment]
             trait=Instance(LanguageServerSession),
             default_value={},
@@ -192,7 +190,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
             for listener in listeners:
                 self.__class__.register_message_listener(scope=scope.value)(listener)
 
-    def subscribe(self, handler):
+    def subscribe(self, handler: HasWriteMessage):
         """subscribe a handler to session, or sta"""
         session = self.sessions.get(handler.language_server)
 
@@ -206,7 +204,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
 
         session.handlers = set([handler]) | session.handlers
 
-    async def on_client_message(self, message, handler):
+    async def on_client_message(self, message: Text, handler: HasWriteMessage):
         await self.wait_for_listeners(
             MessageScope.CLIENT, message, handler.language_server
         )
@@ -235,7 +233,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
         for handler in session.handlers:
             handler.write_message(message)
 
-    def unsubscribe(self, handler):
+    def unsubscribe(self, handler: HasWriteMessage):
         session = self.sessions.get(handler.language_server)
 
         if session is None:
@@ -246,7 +244,7 @@ class LanguageServerManager(LanguageServerManagerAPI):
             )
             return
 
-        session.handlers = [h for h in session.handlers if h != handler]
+        session.handlers = {h for h in session.handlers if h != handler}
 
     def _autodetect_language_servers(self, only_installed: bool):
         _entry_points = None

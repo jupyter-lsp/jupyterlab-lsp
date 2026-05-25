@@ -8,9 +8,6 @@ import string
 import subprocess
 from datetime import datetime, timezone
 
-from tornado.ioloop import IOLoop
-from tornado.queues import Queue
-from tornado.websocket import WebSocketHandler
 from traitlets import Bunch, Instance, Set, Unicode, UseEnum, observe
 from traitlets.config import LoggingConfigurable
 
@@ -34,15 +31,16 @@ class LanguageServerSession(LoggingConfigurable):
     writer = Instance(stdio.LspStdIoWriter, help="the JSON-RPC writer", allow_none=True)
     reader = Instance(stdio.LspStdIoReader, help="the JSON-RPC reader", allow_none=True)
     from_lsp = Instance(
-        Queue, help="a queue for string messages from the server", allow_none=True
+        asyncio.Queue,
+        help="a queue for string messages from the server",
+        allow_none=True,
     )
     to_lsp = Instance(
-        Queue, help="a queue for string message to the server", allow_none=True
+        asyncio.Queue, help="a queue for string message to the server", allow_none=True
     )
     handlers = Set(
-        trait=Instance(WebSocketHandler),
         default_value=[],
-        help="the currently subscribed websockets",
+        help="the currently subscribed message handlers",
     )
     status = UseEnum(SessionStatus, default_value=SessionStatus.NOT_STARTED)
     last_handler_message_at = Instance(datetime, allow_none=True)
@@ -127,7 +125,7 @@ class LanguageServerSession(LoggingConfigurable):
     def write(self, message):
         """wrapper around the write queue to keep it mostly internal"""
         self.last_handler_message_at = self.now()
-        IOLoop.current().add_callback(self.to_lsp.put_nowait, message)
+        self.to_lsp.put_nowait(message)
 
     def now(self):
         return datetime.now(timezone.utc)
@@ -144,8 +142,8 @@ class LanguageServerSession(LoggingConfigurable):
 
     def init_queues(self):
         """create the queues"""
-        self.from_lsp = Queue()
-        self.to_lsp = Queue()
+        self.from_lsp = asyncio.Queue()
+        self.to_lsp = asyncio.Queue()
 
     def init_reader(self):
         """create the stdout reader (from the language server)"""
@@ -177,7 +175,8 @@ class LanguageServerSession(LoggingConfigurable):
         """loop for reading messages from the queue of messages from the language
         server
         """
-        async for message in self.from_lsp:
+        while True:
+            message = await self.from_lsp.get()
             self.last_server_message_at = self.now()
             await self.parent.on_server_message(message, self)
             self.from_lsp.task_done()
