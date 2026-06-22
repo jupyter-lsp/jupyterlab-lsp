@@ -9,6 +9,18 @@ export * as SCHEMA from './_schema';
 /** Component- and feature-specific APIs */
 export * from './api';
 
+/** Commands for programmatic access to language servers. */
+export {
+  ALLOWED_LSP_REQUESTS,
+  LSPCommandIDs,
+  type AllowedLSPRequest,
+  type ILSPConnectionInfo,
+  type ILSPConnectionsInfo,
+  type ILSPDocumentInfo,
+  type ILSPRequestArguments,
+  type ILSPServerInfo
+} from './commands';
+
 import { COMPLETION_THEME_MANAGER } from '@jupyter-lsp/completion-theme';
 import { plugin as THEME_MATERIAL } from '@jupyter-lsp/theme-material';
 import { plugin as THEME_VSCODE } from '@jupyter-lsp/theme-vscode';
@@ -34,6 +46,7 @@ import '../style/index.css';
 import { LanguageServers } from './_plugin';
 import { FILEEDITOR_ADAPTER_PLUGIN } from './adapters/fileeditor';
 import { NOTEBOOK_ADAPTER_PLUGIN } from './adapters/notebook';
+import { LSP_COMMANDS_PLUGIN } from './commands';
 import {
   DEFAULT_IGNORED_LANGUAGES,
   StatusButtonExtension
@@ -300,6 +313,7 @@ const plugins: JupyterFrontEndPlugin<any>[] = [
   THEME_VSCODE,
   THEME_MATERIAL,
   CODE_OVERRIDES_MANAGER,
+  LSP_COMMANDS_PLUGIN,
   NOTEBOOK_ADAPTER_PLUGIN,
   FILEEDITOR_ADAPTER_PLUGIN,
   plugin,
