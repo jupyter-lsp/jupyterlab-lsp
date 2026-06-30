@@ -31,14 +31,14 @@ AUTH_RESOURCE = "lsp"
 
 
 class BaseHandler(APIHandler):
-    manager = None  # type: LanguageServerManager
+    manager: LanguageServerManager
 
     def initialize(self, manager: LanguageServerManager):
         self.manager = manager
 
 
 class BaseJupyterHandler(JupyterHandler):
-    manager = None  # type: LanguageServerManager
+    manager: LanguageServerManager
 
     def initialize(self, manager: LanguageServerManager):
         self.manager = manager
