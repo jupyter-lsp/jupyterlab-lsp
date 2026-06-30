@@ -44,7 +44,7 @@ jobs:
       matrix:
         os: [ubuntu]
         nodejs: ['>=20,<21']
-        lab: ['>=4.1.0,<5.0.0a0']
+        lab: ['>=4.7.0a0,<5.0.0a0']
         r: ['>=4']
     steps:
       - uses: actions/checkout@v4
@@ -121,7 +121,7 @@ jobs:
       matrix:
         os: [ubuntu]
         nodejs: ['>=20,<21']
-        lab: ['>=4.1.0,<5.0.0a0']
+        lab: ['>=4.7.0a0,<5.0.0a0']
         r: ['>=4']
     steps:
       - uses: actions/checkout@v4
@@ -214,12 +214,12 @@ jobs:
             # Node 18 end-of-life: 2025-04-30
             nodejs: '>=18,<19.0.0.a0'
             r: '>=4'
-            lab: '>=4.1.0,<5'
+            lab: '>=4.7.0a0,<5.0.0a0'
           - python: '3.12'
             # Node 20 end-of-life: 2026-04-30
             nodejs: '>=20,<21.0.0.a0'
             r: '>=4'
-            lab: '>=4.1.0,<5'
+            lab: '>=4.7.0a0,<5.0.0a0'
 
     steps:
       - uses: actions/checkout@v4
@@ -319,7 +319,10 @@ jobs:
 
       - name: Find and remove empty files
         # https://github.com/actions/upload-artifact/issues/150
-        run: find ./build/reports -empty -delete
+        run: |
+          if [ -d ./build/reports ]; then
+            find ./build/reports -empty -delete
+          fi
         if: always()
         shell: bash
 
@@ -343,13 +346,13 @@ jobs:
         include:
           - python: '3.9'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=4.1.0,<5'
+            lab: '>=4.7.0a0,<5.0.0a0'
           - python: '3.9'
             dist: 'jupyter*lsp*.tar.gz'
-            lab: '>=4.1.0,<5'
+            lab: '>=4.7.0a0,<5.0.0a0'
           - python: '3.12'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=4.1.0,<5'
+            lab: '>=4.7.0a0,<5.0.0a0'
           - os: 'windows'
             py_cmd: python
           - os: 'macos'
@@ -410,9 +413,9 @@ jobs:
         nodejs: ['20.x']
         include:
           - python: '3.9'
-            lab: '>=4.1.0,<5'
+            lab: '>=4.7.0a0,<5.0.0a0'
           - python: '3.12'
-            lab: '>=4.1.0,<5'
+            lab: '>=4.7.0a0,<5.0.0a0'
     steps:
       - name: Install Python
         uses: actions/setup-python@v5
