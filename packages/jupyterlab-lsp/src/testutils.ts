@@ -111,7 +111,8 @@ class MockConnection extends LSPConnection {
   }
 
   connect(ws: any): void {
-    this.connection = new MockMessageConnection() as unknown as MessageConnection;
+    this.connection =
+      new MockMessageConnection() as unknown as MessageConnection;
     this.onServerInitialized({
       capabilities: this.options.serverCapabilities
     });
