@@ -4,9 +4,14 @@ import type {
 } from '@jupyterlab/application';
 import {
   ILSPDocumentConnectionManager,
-  ILSPFeatureManager
+  ILSPFeatureManager,
+  Method
 } from '@jupyterlab/lsp';
-import type { IDocumentInfo, ILSPConnection } from '@jupyterlab/lsp';
+import type {
+  IClientRequestParams,
+  IDocumentInfo,
+  ILSPConnection
+} from '@jupyterlab/lsp';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { JSONExt } from '@lumino/coreutils';
 import type {
@@ -27,12 +32,12 @@ export namespace LSPCommandIDs {
 }
 
 export const ALLOWED_LSP_REQUESTS = [
-  'textDocument/diagnostic',
-  'textDocument/signatureHelp',
-  'textDocument/references',
-  'workspace/symbol',
-  'textDocument/documentSymbol',
-  'textDocument/hover'
+  Method.ClientRequest.DIAGNOSTIC,
+  Method.ClientRequest.SIGNATURE_HELP,
+  Method.ClientRequest.REFERENCES,
+  Method.ClientRequest.WORKSPACE_SYMBOL,
+  Method.ClientRequest.DOCUMENT_SYMBOL,
+  Method.ClientRequest.HOVER
 ] as const;
 
 export type AllowedLSPRequest = (typeof ALLOWED_LSP_REQUESTS)[number];
@@ -77,12 +82,12 @@ const REQUEST_CAPABILITIES: Record<
   AllowedLSPRequest,
   keyof lsp.ServerCapabilities
 > = {
-  'textDocument/diagnostic': 'diagnosticProvider',
-  'textDocument/signatureHelp': 'signatureHelpProvider',
-  'textDocument/references': 'referencesProvider',
-  'workspace/symbol': 'workspaceSymbolProvider',
-  'textDocument/documentSymbol': 'documentSymbolProvider',
-  'textDocument/hover': 'hoverProvider'
+  [Method.ClientRequest.DIAGNOSTIC]: 'diagnosticProvider',
+  [Method.ClientRequest.SIGNATURE_HELP]: 'signatureHelpProvider',
+  [Method.ClientRequest.REFERENCES]: 'referencesProvider',
+  [Method.ClientRequest.WORKSPACE_SYMBOL]: 'workspaceSymbolProvider',
+  [Method.ClientRequest.DOCUMENT_SYMBOL]: 'documentSymbolProvider',
+  [Method.ClientRequest.HOVER]: 'hoverProvider'
 };
 
 const EMPTY_ARGS_SCHEMA: ReadonlyJSONObject = {
@@ -267,9 +272,13 @@ async function sendRequest(
   }, timeout);
 
   try {
-    return await connection.request(method, params, {
-      signal: controller.signal
-    });
+    return await connection.request(
+      method,
+      params as unknown as IClientRequestParams[AllowedLSPRequest],
+      {
+        signal: controller.signal
+      }
+    );
   } finally {
     clearTimeout(timeoutHandle);
   }
