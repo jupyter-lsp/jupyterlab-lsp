@@ -63,7 +63,7 @@ jobs:
         with:
           environment-file: requirements/github-actions.yml
           mamba-version: '*'
-          channels: conda-forge,nodefaults
+          channels: conda-forge/label/jupyterlab_alpha,conda-forge,nodefaults
           channel-priority: true
 
       - name: Install linting dependencies
@@ -139,11 +139,11 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           mamba-version: '*'
-          channels: conda-forge,nodefaults
+          channels: conda-forge/label/jupyterlab_alpha,conda-forge,nodefaults
           channel-priority: true
 
       - name: Install minimal build deps
-        run: mamba install -n test -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
+        run: mamba install -n test -c conda-forge/label/jupyterlab_alpha -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
 
       - name: Cache node_modules
         id: cache-node-modules
@@ -239,7 +239,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           environment-file: requirements/github-actions.yml
-          channels: conda-forge,nodefaults
+          channels: conda-forge/label/jupyterlab_alpha,conda-forge,nodefaults
           channel-priority: true
           miniforge-version: latest
 
@@ -387,7 +387,7 @@ jobs:
       - name: Install the prerequisites
         run: $VENV_PYTHON -m pip install pip wheel
       - name: Install the package
-        run: cd dist && "$VENV_PYTHON" -m pip install -vv ${{ matrix.dist }} 'jupyterlab${{ matrix.lab }}'
+        run: cd dist && "$VENV_PYTHON" -m pip install --pre -vv ${{ matrix.dist }} 'jupyterlab${{ matrix.lab }}'
       - name: Validate environment
         run: |
           set -eux
@@ -433,7 +433,7 @@ jobs:
       - name: Install the prerequisites
         run: python -m pip install --upgrade pip wheel setuptools
       - name: Install JupyterLab
-        run: python -m pip install 'jupyterlab${{ matrix.lab }}'
+        run: python -m pip install --pre 'jupyterlab${{ matrix.lab }}'
       - name: Install the server package
         run: cd dist && python -m pip install -vv jupyter_lsp*.whl
       - name: install the source extension
