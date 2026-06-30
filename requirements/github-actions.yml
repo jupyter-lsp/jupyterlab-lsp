@@ -6,6 +6,7 @@ channels:
   - nodefaults
 
 dependencies:
+  - python >=3.10,<3.13.0a0
   - jupyterlab {lab}
   # to test serverextension
   - notebook >=7
