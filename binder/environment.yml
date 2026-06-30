@@ -10,7 +10,6 @@ dependencies:
   - python >=3.10,<3.13.0a0
   - jupyterlab >=4.7.0a0,<5.0.0a0
   - jupyter_server >=1.1.2
-  - notebook >=7
   # build dependencies
   - nodejs >=22,<23.0.0a0
   # for python language server (and development)

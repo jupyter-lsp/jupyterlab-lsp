@@ -360,11 +360,13 @@ jobs:
           - os: 'ubuntu'
             py_cmd: python
     steps:
+      - name: Install macOS Python runtime dependencies
+        if: runner.os == 'macOS' && matrix.python == '3.10'
+        run: brew install gettext
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-          architecture: 'x64'
       - uses: actions/download-artifact@v4
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
@@ -413,12 +415,11 @@ jobs:
             lab: '>=4.7.0a0,<5.0.0a0'
     steps:
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-          architecture: 'x64'
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.nodejs }}
       - uses: actions/download-artifact@v4
