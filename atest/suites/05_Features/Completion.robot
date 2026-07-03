@@ -13,6 +13,8 @@ ${COMPLETER_BOX}            css:.jp-Completer.jp-HoverBox
 ${DOCUMENTATION_PANEL}      css:.jp-Completer-docpanel
 ${KERNEL_BUSY_INDICATOR}    css:.jp-Notebook-ExecutionIndicator[data-status="busy"]
 ${MANAGER PLUGIN ID}        @jupyterlab/completer-extension:manager
+${COMPLETER PROVIDERS}
+...                         "availableProviders": {"lsp": 1000, "CompletionProvider:kernel": 550, "CompletionProvider:context": 500}
 
 
 *** Test Cases ***
@@ -35,6 +37,9 @@ Works When Kernel Is Idle
     Should Contain    ${content}    TabError
 
 Does Not Break Native Completions When Disabled
+    [Teardown]    Run Keywords
+    ...    Configure JupyterLab Plugin    {}    plugin id=${COMPLETION PLUGIN ID}
+    ...    AND    Clean Up After Working With File    Completion.ipynb
     Configure JupyterLab Plugin    {"disable": true}    plugin id=${COMPLETION PLUGIN ID}
     Enter Cell Editor    1    line=2
     Trigger Completer
@@ -159,7 +164,9 @@ Continuous Hinting Works
     [Setup]    Prepare File for Editing    Python    completion    completion.py
     Configure JupyterLab Plugin    {"continuousHinting": true}    plugin id=${COMPLETION PLUGIN ID}
     # TODO: remove once we resolve https://github.com/jupyterlab/jupyterlab/issues/15022
-    Configure JupyterLab Plugin    {"autoCompletion": true, "providerTimeout": 2500}    plugin id=${MANAGER PLUGIN ID}
+    Configure JupyterLab Plugin
+    ...    {${COMPLETER PROVIDERS}, "autoCompletion": true, "providerTimeout": 2500}
+    ...    plugin id=${MANAGER PLUGIN ID}
     Place Cursor In File Editor At    9    2
     Wait For Ready State
     Press Keys    None    d
@@ -243,7 +250,9 @@ Kernel And LSP Completions Merge Prefix Conflicts Are Resolved
     Wait Until Keyword Succeeds    40x    0.5s    Cell Editor Should Equal    15    import os.path
 
 Triggers Completer On Dot
-    Configure JupyterLab Plugin    {"autoCompletion": true}    plugin id=${MANAGER PLUGIN ID}
+    Configure JupyterLab Plugin
+    ...    {${COMPLETER PROVIDERS}, "autoCompletion": true, "providerTimeout": 2500}
+    ...    plugin id=${MANAGER PLUGIN ID}
     Enter Cell Editor    2    line=1
     Press Keys    None    .
     Wait Until Keyword Succeeds    10x    0.5s    Cell Editor Should Equal    2    list.
@@ -331,7 +340,9 @@ Completes Large Namespaces
 
 Shows Documentation With CompletionItem Resolve
     [Setup]    Prepare File for Editing    R    completion    completion.R
-    Configure JupyterLab Plugin    {"showDocumentationPanel": true}    plugin id=${MANAGER PLUGIN ID}
+    Configure JupyterLab Plugin
+    ...    {${COMPLETER PROVIDERS}, "showDocumentationPanel": true, "providerTimeout": 2500}
+    ...    plugin id=${MANAGER PLUGIN ID}
     Place Cursor In File Editor At    8    7
     Wait Until Fully Initialized
     Wait For Our Completer To Initialize
@@ -386,7 +397,7 @@ Completes Paths In Strings
 Setup Completion Test
     Setup Notebook    Python    Completion.ipynb
     # TODO: this should be per-provider (upstream issue)
-    Configure JupyterLab Plugin    {"providerTimeout": 2500}    plugin id=${MANAGER PLUGIN ID}
+    Configure JupyterLab Plugin    {${COMPLETER PROVIDERS}, "providerTimeout": 2500}    plugin id=${MANAGER PLUGIN ID}
 
 Get Cell Editor Content
     [Arguments]    ${cell_nr}
