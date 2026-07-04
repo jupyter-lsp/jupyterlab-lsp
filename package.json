@@ -76,7 +76,8 @@
     "@jupyterlab/tooltip": "4.7.0-alpha.0",
     "@jupyterlab/translation": "4.7.0-alpha.0",
     "@jupyterlab/ui-components": "4.7.0-alpha.0",
-    "@rspack/core": "1.7.8"
+    "@rspack/core": "1.7.8",
+    "sqlite3": "6.0.1"
   },
   "scripts": {
     "bootstrap": "jlpm & jlpm deduplicate && jlpm clean && jlpm build && jlpm lint",
