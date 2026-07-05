@@ -457,10 +457,14 @@ Configure JupyterLab Plugin
     Wait Until Page Contains    No errors found
     Click Element    ${JLAB XP CLOSE SETTINGS}
 
+Reset JupyterLab Plugin
+    [Arguments]    ${plugin id}=${LSP PLUGIN ID}
+    Configure JupyterLab Plugin    {}    plugin id=${plugin id}
+
 Clean Up After Working with File and Settings
     [Arguments]    ${file}
+    Reset JupyterLab Plugin
     Clean Up After Working With File    ${file}
-    Reset Plugin Settings
 
 Jump To Definition
     [Arguments]    ${symbol}

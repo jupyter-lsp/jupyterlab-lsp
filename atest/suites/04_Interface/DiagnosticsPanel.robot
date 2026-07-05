@@ -164,6 +164,6 @@ Set Up
     Open Notebook And Panel    Panel.ipynb
 
 Clean Up
+    Reset JupyterLab Plugin    ${DIAGNOSTICS PLUGIN ID}
     Clean Up After Working With File    Panel.ipynb
-    Reset Plugin Settings    plugin=diagnostics
     Reset Application State
