@@ -185,13 +185,16 @@ export class LSPExtension {
     let languageServerSettings = (options.language_servers ||
       {}) as TLanguageServerConfigurations;
 
-    // Rename `serverSettings` to `configuration` to work with changed name upstream,
-    // rename `priority` to `rank` for the same reason.
+    // Rename legacy jupyterlab-lsp settings to the JupyterLab LSP names.
     languageServerSettings = Object.fromEntries(
       Object.entries(languageServerSettings).map(([key, value]) => {
-        const copy = JSONExt.deepCopy(value);
-        copy.configuration = copy.serverSettings;
-        copy.rank = copy.priority;
+        const copy = JSONExt.deepCopy(value || {});
+        if ('serverSettings' in copy) {
+          copy.configuration = copy.serverSettings;
+        }
+        if ('priority' in copy) {
+          copy.rank = copy.priority;
+        }
         delete copy.priority;
         delete copy.serverSettings;
         return [key, copy];

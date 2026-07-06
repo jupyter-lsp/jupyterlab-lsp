@@ -1,4 +1,7 @@
-import type { ILSPConnection } from '@jupyterlab/lsp';
+import {
+  ILSPDocumentConnectionManager,
+  type ILSPConnection
+} from '@jupyterlab/lsp';
 import { nullTranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
 
@@ -10,7 +13,6 @@ import {
 
 function createEnvironment() {
   const commands = new CommandRegistry();
-  const featureManager = { register: jest.fn() };
   const languageServerManager = {
     ready: Promise.resolve(),
     specs: new Map(),
@@ -25,12 +27,11 @@ function createEnvironment() {
 
   void LSP_COMMANDS_PLUGIN.activate!(
     app as any,
-    featureManager as any,
     connectionManager as any,
     nullTranslator
   );
 
-  return { commands, connectionManager, featureManager, languageServerManager };
+  return { commands, connectionManager, languageServerManager };
 }
 
 function createConnection(
@@ -58,20 +59,10 @@ describe('LSP commands', () => {
     jest.useRealTimers();
   });
 
-  it('registers pull diagnostics capabilities', () => {
-    const { featureManager } = createEnvironment();
-
-    expect(featureManager.register).toHaveBeenCalledWith({
-      id: LSP_COMMANDS_PLUGIN.id,
-      capabilities: {
-        textDocument: {
-          diagnostic: {
-            dynamicRegistration: false,
-            relatedDocumentSupport: true
-          }
-        }
-      }
-    });
+  it('only depends on the connection manager', () => {
+    expect(LSP_COMMANDS_PLUGIN.requires).toEqual([
+      ILSPDocumentConnectionManager
+    ]);
   });
 
   it('describes the allowed request arguments', async () => {

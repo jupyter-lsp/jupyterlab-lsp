@@ -2,11 +2,7 @@ import type {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import {
-  ILSPDocumentConnectionManager,
-  ILSPFeatureManager,
-  Method
-} from '@jupyterlab/lsp';
+import { ILSPDocumentConnectionManager, Method } from '@jupyterlab/lsp';
 import type {
   IClientRequestParams,
   IDocumentInfo,
@@ -286,28 +282,15 @@ async function sendRequest(
 
 export const LSP_COMMANDS_PLUGIN: JupyterFrontEndPlugin<void> = {
   id: PLUGIN_ID + ':commands',
-  requires: [ILSPFeatureManager, ILSPDocumentConnectionManager],
+  requires: [ILSPDocumentConnectionManager],
   optional: [ITranslator],
   autoStart: true,
   activate: (
     app: JupyterFrontEnd,
-    featureManager: ILSPFeatureManager,
     connectionManager: ILSPDocumentConnectionManager,
     translator: ITranslator | null
   ) => {
     const trans = (translator || nullTranslator).load('jupyterlab_lsp');
-
-    featureManager.register({
-      id: LSP_COMMANDS_PLUGIN.id,
-      capabilities: {
-        textDocument: {
-          diagnostic: {
-            dynamicRegistration: false,
-            relatedDocumentSupport: true
-          }
-        }
-      }
-    });
 
     app.commands.addCommand(LSPCommandIDs.serverInfo, {
       describedBy: { args: EMPTY_ARGS_SCHEMA },

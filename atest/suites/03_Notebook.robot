@@ -48,14 +48,19 @@ Moving Cells Around
 
 Foreign Extractors
     ${file} =    Set Variable    Foreign extractors.ipynb
-    Configure JupyterLab Plugin
-    ...    {"language_servers": {"texlab": {"serverSettings": {"chktex.onOpenAndSave": true}}, "bash-langauge-server": {"bashIde.enableSourceErrorDiagnostics": true}}, "pylsp": {"priority": 1000}}
+    ${settings} =    Catenate    SEPARATOR=${EMPTY}
+    ...    {"language_servers": {
+    ...    "texlab": {"serverSettings": {"chktex.onOpenAndSave": true, "chktex.onEdit": true}},
+    ...    "bash-language-server": {"bashIde.enableSourceErrorDiagnostics": true},
+    ...    "pylsp": {"priority": 10000}}}
+    Configure JupyterLab Plugin    ${settings}
     Capture Page Screenshot    10-configured.png
     Reset Application State
-    Setup Notebook    Python    ${file}
+    Setup Notebook    Python    ${file}    wait=${False}
+    Lab Command    Save Notebook
     @{diagnostics} =    Create List
     ...    Double quote to prevent globbing and word splitting    # bash, configured by spec.env
-    ...    ame 'valid'    # python, mypy and pyflakes will fight over `(N|n)ame 'valid'`, just hope for the best
+    ...    valid    # python, servers differ in quoting and source labels
     ...    (lintr)    # r
     ...    `frob` is misspelt    # markdown
     ...    Command terminated with space    # latex

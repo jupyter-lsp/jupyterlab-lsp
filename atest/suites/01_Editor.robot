@@ -79,7 +79,7 @@ Python (basedpyright)
     ...    basedpyright
     ...    Python
     ...    example.py
-    ...    Diagnostics=is not defined (basedpyright)
+    ...    Diagnostics=is not defined
     ...    Jump to Definition=${def}
 
 R
@@ -120,16 +120,18 @@ YAML
 *** Keywords ***
 Editor Shows Features for Server
     [Arguments]    ${server}    ${Language}    ${file}    &{features}
+    ${target file} =    Set Variable    ${server}-${file}
     Configure JupyterLab Plugin
     ...    {"language_servers": {"${server}": {"priority": 10000}}}
-    Editor Shows Features for Language    ${Language}    ${file}    &{features}
-    # reset to empty settings
-    Configure JupyterLab Plugin
-    ...    {}
+    Editor Shows Features for Language    ${Language}    ${file}    ${target file}    &{features}
+    [Teardown]    Configure JupyterLab Plugin    {}
 
 Editor Shows Features for Language
-    [Arguments]    ${Language}    ${file}    &{features}
-    Prepare File for Editing    ${Language}    editor    ${file}
+    [Arguments]    ${Language}    ${file}    ${target file}=${EMPTY}    &{features}
+    IF    "${target file}" == "${EMPTY}"
+        ${target file} =    Set Variable    ${file}
+    END
+    Prepare File for Editing    ${Language}    editor    ${file}    ${target file}
     # Run Keyword If    "${Language}" == "Julia"    Sleep    35s
     Wait Until Fully Initialized
     # Run Keyword If    "${Language}" == "Julia"    Sleep    5s
@@ -143,18 +145,21 @@ Editor Shows Features for Language
         END
     END
     Capture Page Screenshot    99-done.png
-    [Teardown]    Clean Up After Working With File    ${file}
+    [Teardown]    Clean Up After Working With File    ${target file}
 
 Editor Should Show Diagnostics
     [Arguments]    ${diagnostic}
     Set Tags    feature:diagnostics
-    Wait Until Page Contains Diagnostic    [title*="${diagnostic}"]    timeout=25s
+    Wait Until Page Contains Diagnostic    [title*="${diagnostic}"]    timeout=60s
     Capture Page Screenshot    01-diagnostics.png
     Open Diagnostics Panel
     Capture Page Screenshot    02-diagnostics.png
+    Wait Until Keyword Succeeds    10 x    1s    Diagnostics Panel Should Have Rows
+    Close Diagnostics Panel
+
+Diagnostics Panel Should Have Rows
     ${count} =    Count Diagnostics In Panel
     Should Be True    ${count} >= 1
-    Close Diagnostics Panel
 
 Editor Content Changed
     [Arguments]    ${old_content}

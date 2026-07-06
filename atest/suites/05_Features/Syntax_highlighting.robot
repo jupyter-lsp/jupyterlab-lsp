@@ -10,26 +10,19 @@ Test Tags           feature:syntax_highlighting
 
 *** Test Cases ***
 Syntax Highlighting Mode Stays Normal In Normal Cells
-    ${mode} =    Get Mode Of A Cell    1
-    should be equal    ${mode}    python
+    Wait Until Keyword Succeeds    20x    2s    Mode Of A Cell Should Equal    1    python
 
 Syntax Highlighting Mode Changes In Cells Dominated By Foreign Documents
-    ${mode} =    Get Mode Of A Cell    2
-    should be equal    ${mode}    markdown
-    ${mode} =    Get Mode Of A Cell    3
-    should be equal    ${mode}    html
-    ${mode} =    Get Mode Of A Cell    4
-    should be equal    ${mode}    javascript
+    Wait Until Keyword Succeeds    20x    2s    Mode Of A Cell Should Equal    2    markdown
+    Wait Until Keyword Succeeds    20x    2s    Mode Of A Cell Should Equal    3    html
+    Wait Until Keyword Succeeds    20x    2s    Mode Of A Cell Should Equal    4    javascript
 
 Highlighing Mode Works For Multiple Documents
-    ${mode} =    Get Mode Of A Cell    4
-    should be equal    ${mode}    javascript
-    ${mode} =    Get Mode Of A Cell    6
-    should be equal    ${mode}    javascript
+    Wait Until Keyword Succeeds    20x    2s    Mode Of A Cell Should Equal    4    javascript
+    Wait Until Keyword Succeeds    20x    2s    Mode Of A Cell Should Equal    6    javascript
 
 Highlighting Mode Changes Back And Forth After Edits
-    ${mode} =    Get Mode Of A Cell    2
-    should be equal    ${mode}    markdown
+    Wait Until Keyword Succeeds    20x    2s    Mode Of A Cell Should Equal    2    markdown
     Enter Cell Editor    2    line=1
     Press Keys    None    BACKSPACE
     Capture Page Screenshot    backapse.png
@@ -42,8 +35,7 @@ Highlighting Mode Changes Back And Forth After Edits
 *** Keywords ***
 Get Mode Of A Cell
     [Arguments]    ${cell_number}
-    Click Element    css:.jp-Cell:nth-child(${cell_number})
-    Wait Until Page Contains Element    css:.jp-Cell:nth-child(${cell_number}) .cm-focused
+    Enter Cell Editor    ${cell_number}
     ${mode} =    Execute JavaScript
     ...    return document.querySelector('.jp-Cell:nth-child(${cell_number}) .cm-content').dataset.language
     RETURN    ${mode}
