@@ -409,16 +409,19 @@ Close Context Menu
     Press Keys    None    ESCAPE
 
 Prepare File for Editing
-    [Arguments]    ${Language}    ${Screenshots}    ${file}
+    [Arguments]    ${Language}    ${Screenshots}    ${file}    ${target file}=${EMPTY}
     Set Tags    language:${Language.lower()}
     Set Screenshot Directory    ${SCREENSHOTS DIR}${/}${Screenshots}${/}${Language.lower()}
     Try to Close All Tabs
-    Open File    ${file}
+    Open File    ${file}    ${target file}
 
 Open File
-    [Arguments]    ${file}
-    Copy File    ${EXAMPLES}${/}${file}    ${NOTEBOOK DIR}${/}${file}
-    Open ${file} in ${MENU EDITOR}
+    [Arguments]    ${file}    ${target file}=${EMPTY}
+    IF    "${target file}" == "${EMPTY}"
+        ${target file} =    Set Variable    ${file}
+    END
+    Copy File    ${EXAMPLES}${/}${file}    ${NOTEBOOK DIR}${/}${target file}
+    Open ${target file} in ${MENU EDITOR}
     Capture Page Screenshot    00-opened.png
 
 Open in Advanced Settings
@@ -457,10 +460,14 @@ Configure JupyterLab Plugin
     Wait Until Page Contains    No errors found
     Click Element    ${JLAB XP CLOSE SETTINGS}
 
+Reset JupyterLab Plugin
+    [Arguments]    ${plugin id}=${LSP PLUGIN ID}
+    Configure JupyterLab Plugin    {}    plugin id=${plugin id}
+
 Clean Up After Working with File and Settings
     [Arguments]    ${file}
+    Reset JupyterLab Plugin
     Clean Up After Working With File    ${file}
-    Reset Plugin Settings
 
 Jump To Definition
     [Arguments]    ${symbol}

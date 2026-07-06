@@ -43,8 +43,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-        nodejs: ['>=20,<21']
-        lab: ['>=4.1.0,<5.0.0a0']
+        nodejs: ['>=22,<23']
+        lab: ['>=4.7.0a0,<5.0.0a0']
         r: ['>=4']
     steps:
       - uses: actions/checkout@v4
@@ -63,7 +63,7 @@ jobs:
         with:
           environment-file: requirements/github-actions.yml
           mamba-version: '*'
-          channels: conda-forge,nodefaults
+          channels: conda-forge/label/jupyterlab_alpha,conda-forge,nodefaults
           channel-priority: true
 
       - name: Install linting dependencies
@@ -120,8 +120,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-        nodejs: ['>=20,<21']
-        lab: ['>=4.1.0,<5.0.0a0']
+        nodejs: ['>=22,<23']
+        lab: ['>=4.7.0a0,<5.0.0a0']
         r: ['>=4']
     steps:
       - uses: actions/checkout@v4
@@ -139,11 +139,11 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           mamba-version: '*'
-          channels: conda-forge,nodefaults
+          channels: conda-forge/label/jupyterlab_alpha,conda-forge,nodefaults
           channel-priority: true
 
       - name: Install minimal build deps
-        run: mamba install -n test -c conda-forge setuptools wheel 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
+        run: mamba install -n test -c conda-forge/label/jupyterlab_alpha -c conda-forge setuptools wheel 'python>=3.10,<3.13.0a0' 'jupyterlab${{ matrix.lab }}' 'nodejs${{ matrix.nodejs }}'
 
       - name: Cache node_modules
         id: cache-node-modules
@@ -208,18 +208,18 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu', 'macos', 'windows']
-        python: ['3.9', '3.12']
+        python: ['3.10', '3.12']
         include:
-          - python: '3.9'
-            # Node 18 end-of-life: 2025-04-30
-            nodejs: '>=18,<19.0.0.a0'
+          - python: '3.10'
+            # JupyterLab 4.7 prerelease requires jupyter-builder with Node 22
+            nodejs: '>=22,<23.0.0.a0'
             r: '>=4'
-            lab: '>=4.1.0,<5'
+            lab: '>=4.7.0a0,<5.0.0a0'
           - python: '3.12'
-            # Node 20 end-of-life: 2026-04-30
-            nodejs: '>=20,<21.0.0.a0'
+            # JupyterLab 4.7 prerelease requires jupyter-builder with Node 22
+            nodejs: '>=22,<23.0.0.a0'
             r: '>=4'
-            lab: '>=4.1.0,<5'
+            lab: '>=4.7.0a0,<5.0.0a0'
 
     steps:
       - uses: actions/checkout@v4
@@ -239,7 +239,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           environment-file: requirements/github-actions.yml
-          channels: conda-forge,nodefaults
+          channels: conda-forge/label/jupyterlab_alpha,conda-forge,nodefaults
           channel-priority: true
           miniforge-version: latest
 
@@ -319,7 +319,10 @@ jobs:
 
       - name: Find and remove empty files
         # https://github.com/actions/upload-artifact/issues/150
-        run: find ./build/reports -empty -delete
+        run: |
+          if [ -d ./build/reports ]; then
+            find ./build/reports -empty -delete
+          fi
         if: always()
         shell: bash
 
@@ -339,34 +342,31 @@ jobs:
       max-parallel: 3
       matrix:
         os: ['ubuntu', 'macos', 'windows']
-        python: ['3.9', '3.12']
+        python: ['3.10', '3.12']
         include:
-          - python: '3.9'
+          - python: '3.10'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=4.1.0,<5'
-          - python: '3.9'
+            lab: '>=4.7.0a0,<5.0.0a0'
+          - python: '3.10'
             dist: 'jupyter*lsp*.tar.gz'
-            lab: '>=4.1.0,<5'
+            lab: '>=4.7.0a0,<5.0.0a0'
           - python: '3.12'
             dist: 'jupyter*lsp*.whl'
-            lab: '>=4.1.0,<5'
+            lab: '>=4.7.0a0,<5.0.0a0'
           - os: 'windows'
             py_cmd: python
           - os: 'macos'
             py_cmd: python3
           - os: 'ubuntu'
             py_cmd: python
-        exclude:
-          # Exclude macOS with Python versions older than 3.11 as setup-python does not support it
-          # see https://github.com/actions/setup-python/issues/906
-          - os: macos
-            python: '3.9'
     steps:
+      - name: Install macOS Python runtime dependencies
+        if: runner.os == 'macOS' && matrix.python == '3.10'
+        run: brew install gettext
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-          architecture: 'x64'
       - uses: actions/download-artifact@v4
         with:
           name: jupyterlab-lsp dist ${{ github.run_number }}
@@ -384,7 +384,7 @@ jobs:
       - name: Install the prerequisites
         run: $VENV_PYTHON -m pip install pip wheel
       - name: Install the package
-        run: cd dist && "$VENV_PYTHON" -m pip install -vv ${{ matrix.dist }} 'jupyterlab${{ matrix.lab }}'
+        run: cd dist && "$VENV_PYTHON" -m pip install --pre -vv ${{ matrix.dist }} 'jupyterlab${{ matrix.lab }}'
       - name: Validate environment
         run: |
           set -eux
@@ -406,21 +406,20 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu]
-        python: ['3.9', '3.12']
-        nodejs: ['20.x']
+        python: ['3.10', '3.12']
+        nodejs: ['22.x']
         include:
-          - python: '3.9'
-            lab: '>=4.1.0,<5'
+          - python: '3.10'
+            lab: '>=4.7.0a0,<5.0.0a0'
           - python: '3.12'
-            lab: '>=4.1.0,<5'
+            lab: '>=4.7.0a0,<5.0.0a0'
     steps:
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-          architecture: 'x64'
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.nodejs }}
       - uses: actions/download-artifact@v4
@@ -430,7 +429,7 @@ jobs:
       - name: Install the prerequisites
         run: python -m pip install --upgrade pip wheel setuptools
       - name: Install JupyterLab
-        run: python -m pip install 'jupyterlab${{ matrix.lab }}'
+        run: python -m pip install --pre 'jupyterlab${{ matrix.lab }}'
       - name: Install the server package
         run: cd dist && python -m pip install -vv jupyter_lsp*.whl
       - name: install the source extension

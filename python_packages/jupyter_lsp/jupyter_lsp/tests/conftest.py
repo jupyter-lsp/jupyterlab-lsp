@@ -127,8 +127,8 @@ def app():
 
 # mocks
 class MockWebsocketHandler(LanguageServerWebSocketHandler):
-    _messages_wrote = None  # type: Queue
-    _ping_sent = None  # type: bool
+    _messages_wrote: Queue[Text]
+    _ping_sent: bool
 
     def __init__(self):
         self.request = HTTPServerRequest()

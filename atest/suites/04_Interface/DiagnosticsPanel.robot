@@ -9,7 +9,7 @@ Test Tags           ui:notebook    aspect:ls:features
 
 
 *** Variables ***
-${DIAGNOSTIC MESSAGE R}     Opening curly braces should never go on their own line
+${DIAGNOSTIC MESSAGE R}     lintr
 ${DIAGNOSTIC MESSAGE}       trailing whitespace
 ${DIAGNOSTIC}               W291 trailing whitespace (pycodestyle)
 ${EXPECTED_COUNT}           4
@@ -143,7 +143,7 @@ Open Context Menu Over W291
 
 Open Notebook And Panel
     [Arguments]    ${notebook}
-    Setup Notebook    Python    ${notebook}
+    Setup Notebook    Python    ${notebook}    wait=${False}
     Capture Page Screenshot    00-notebook-and-panel-opening.png
     Wait Until Page Contains Diagnostic    [title*="${DIAGNOSTIC}"]    timeout=35s
     Open Diagnostics Panel
@@ -160,10 +160,12 @@ Table Cell Should Equal
     Should Be Equal As Strings    ${cell}    ${expected}
 
 Set Up
+    Configure JupyterLab Plugin    {"language_servers": {"pylsp": {"priority": 10000}}}
     Gently Reset Workspace
     Open Notebook And Panel    Panel.ipynb
 
 Clean Up
+    Reset JupyterLab Plugin
+    Reset JupyterLab Plugin    ${DIAGNOSTICS PLUGIN ID}
     Clean Up After Working With File    Panel.ipynb
-    Reset Plugin Settings    plugin=diagnostics
     Reset Application State

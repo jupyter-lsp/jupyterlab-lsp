@@ -6,7 +6,7 @@ import {
 } from '@codemirror/lint';
 import { EditorState } from '@codemirror/state';
 import { CodeMirrorEditor } from '@jupyterlab/codemirror';
-import { CodeExtractorsManager, isEqual } from '@jupyterlab/lsp';
+import { CodeExtractorsManager, isEqual, Method } from '@jupyterlab/lsp';
 import { framePromise } from '@jupyterlab/testing';
 import { nullTranslator } from '@jupyterlab/translation';
 import { Signal } from '@lumino/signaling';
@@ -49,6 +49,10 @@ function getDiagnostics(state: EditorState): Diagnostic[] {
   const markers: Diagnostic[] = [];
   forEachDiagnostic(state, d => markers.push(d));
   return markers;
+}
+
+function settleTimers(): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, 0));
 }
 
 describe('Diagnostics', () => {
@@ -122,6 +126,115 @@ describe('Diagnostics', () => {
 
       markers = diagnosticCount(env.activeEditor.editor.state);
       expect(markers).toBe(2);
+    });
+
+    it('renders pull diagnostics from diagnosticProvider servers', async () => {
+      env.dispose();
+
+      const requestHandler = jest.fn((method: string) => {
+        if (method === Method.ClientRequest.DIAGNOSTIC) {
+          return {
+            kind: 'full',
+            items: diagnostics
+          };
+        }
+        return undefined;
+      });
+
+      env = new FileEditorTestEnvironment({
+        connection: {
+          serverCapabilities: {
+            diagnosticProvider: {
+              interFileDependencies: false,
+              workspaceDiagnostics: false
+            }
+          },
+          requestHandler
+        }
+      });
+      feature = new ConfigurableDiagnosticsFeature({
+        trans: nullTranslator.load(''),
+        settings: defaultSettings,
+        connectionManager: env.connectionManager,
+        shell: new ShellMock() as any,
+        editorExtensionRegistry: env.editorExtensionRegistry,
+        themeManager: null
+      });
+      env.featureManager.register(feature);
+      await env.init();
+
+      env.activeEditor.model.sharedModel.setSource(text);
+      await env.adapter.updateDocuments();
+      forceLinting(env.activeEditor.editor);
+      await settleTimers();
+      await settleTimers();
+      await framePromise();
+
+      expect(requestHandler).toHaveBeenCalledWith(
+        Method.ClientRequest.DIAGNOSTIC,
+        expect.objectContaining({
+          textDocument: {
+            uri: env.adapter.virtualDocument!.documentInfo.uri
+          }
+        })
+      );
+      expect(diagnosticCount(env.activeEditor.editor.state)).toBe(2);
+    });
+
+    it('renders pull diagnostics after diagnostic refresh request', async () => {
+      env.dispose();
+
+      const requestHandler = jest.fn((method: string) => {
+        if (method === Method.ClientRequest.DIAGNOSTIC) {
+          return {
+            kind: 'full',
+            items: diagnostics
+          };
+        }
+        return undefined;
+      });
+
+      env = new FileEditorTestEnvironment({
+        connection: {
+          serverCapabilities: {},
+          requestHandler
+        }
+      });
+      feature = new ConfigurableDiagnosticsFeature({
+        trans: nullTranslator.load(''),
+        settings: defaultSettings,
+        connectionManager: env.connectionManager,
+        shell: new ShellMock() as any,
+        editorExtensionRegistry: env.editorExtensionRegistry,
+        themeManager: null
+      });
+      env.featureManager.register(feature);
+      await env.init();
+
+      env.activeEditor.model.sharedModel.setSource(text);
+      await env.adapter.updateDocuments();
+      forceLinting(env.activeEditor.editor);
+      await settleTimers();
+
+      expect(requestHandler).not.toHaveBeenCalled();
+
+      const connection = [...env.connectionManager.connections.values()][0];
+      await (connection as any).connection.sendServerRequest(
+        'workspace/diagnostic/refresh'
+      );
+      await settleTimers();
+      await settleTimers();
+      await framePromise();
+
+      expect(requestHandler).toHaveBeenCalledWith(
+        Method.ClientRequest.DIAGNOSTIC,
+        expect.objectContaining({
+          textDocument: {
+            uri: env.adapter.virtualDocument!.documentInfo.uri
+          }
+        })
+      );
+      expect(diagnosticCount(env.activeEditor.editor.state)).toBe(2);
     });
 
     it('filters out inspections by code', async () => {

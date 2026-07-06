@@ -14,6 +14,7 @@ import {
   IEditorPosition,
   IVirtualPosition,
   ILSPConnection,
+  Method,
   VirtualDocument
 } from '@jupyterlab/lsp';
 import { TranslationBundle } from '@jupyterlab/translation';
@@ -44,14 +45,30 @@ const SeverityMap: Record<
   4: 'hint'
 };
 
+const WORKSPACE_DIAGNOSTIC_REFRESH = 'workspace/diagnostic/refresh';
+
+interface IPullDiagnosticsContext {
+  document: VirtualDocument;
+  getAdapter: () => WidgetLSPAdapter<any> | undefined;
+}
+
 export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
   readonly id = DiagnosticsFeature.id;
   readonly capabilities: lsProtocol.ClientCapabilities = {
     textDocument: {
+      diagnostic: {
+        dynamicRegistration: false,
+        relatedDocumentSupport: false
+      },
       publishDiagnostics: {
         tagSupport: {
           valueSet: [DiagnosticTag.Deprecated, DiagnosticTag.Unnecessary]
         }
+      }
+    },
+    workspace: {
+      diagnostics: {
+        refreshSupport: true
       }
     }
   };
@@ -66,17 +83,42 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
   constructor(options: DiagnosticsFeature.IOptions) {
     super(options);
     this.settings = options.settings;
+    const connectionManager = options.connectionManager;
 
-    options.connectionManager.connected.connect((manager, connectionData) => {
+    connectionManager.initialized.connect((_, connectionData) => {
+      this._registerDiagnosticRefreshHandler(connectionData.connection);
+    });
+
+    connectionManager.connected.connect((manager, connectionData) => {
       const { connection, virtualDocument } = connectionData;
-      const adapter = manager.adapters.get(virtualDocument.root.path)!;
+      const getAdapter = () => manager.adapters.get(virtualDocument.root.path);
       // TODO: unregister
       connection.serverNotifications['textDocument/publishDiagnostics'].connect(
         async (connection: ILSPConnection, diagnostics) => {
+          const adapter = getAdapter();
+          if (!adapter) {
+            return;
+          }
           await this.handleDiagnostic(diagnostics, virtualDocument, adapter);
         }
       );
+      this._registerPullDiagnosticsContext(connection, {
+        document: virtualDocument,
+        getAdapter
+      });
+      if (this._canPullDiagnostics(connection)) {
+        this._queuePullDiagnostics(connection, virtualDocument, getAdapter);
+      }
+      virtualDocument.changed.connect(() => {
+        if (this._canPullDiagnostics(connection)) {
+          this._queuePullDiagnostics(connection, virtualDocument, getAdapter);
+        }
+      });
       virtualDocument.foreignDocumentClosed.connect((document, context) => {
+        const adapter = getAdapter();
+        if (!adapter) {
+          return;
+        }
         // TODO: check if we need to cast
         this.clearDocumentDiagnostics(adapter, context.foreignDocument);
       });
@@ -98,7 +140,6 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
       }
     });
 
-    const connectionManager = options.connectionManager;
     // https://github.com/jupyterlab/jupyterlab/issues/14783
     options.shell.currentChanged.connect(shell => {
       if (shell.currentWidget == diagnosticsPanel.widget) {
@@ -253,6 +294,127 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
         return EditorExtensionRegistry.createImmutableExtension(extensions);
       }
     };
+  }
+
+  private _registerPullDiagnosticsContext(
+    connection: ILSPConnection,
+    context: IPullDiagnosticsContext
+  ): void {
+    let contexts = this._pullDiagnosticsContexts.get(connection);
+    if (!contexts) {
+      contexts = new Set();
+      this._pullDiagnosticsContexts.set(connection, contexts);
+      this._registerDiagnosticRefreshHandler(connection);
+    }
+    contexts.add(context);
+  }
+
+  private _registerDiagnosticRefreshHandler(
+    connection: ILSPConnection
+  ): void {
+    if (this._diagnosticRefreshHandlers.has(connection)) {
+      return;
+    }
+    const rpcConnection = (connection as any).connection;
+    if (!rpcConnection?.onRequest) {
+      return;
+    }
+    this._diagnosticRefreshHandlers.add(connection);
+    rpcConnection.onRequest(WORKSPACE_DIAGNOSTIC_REFRESH, () => {
+      this._diagnosticRefreshRequested.add(connection);
+      const contexts = this._pullDiagnosticsContexts.get(connection);
+      if (!contexts) {
+        return null;
+      }
+      for (const { document, getAdapter } of contexts) {
+        this._queuePullDiagnostics(connection, document, getAdapter);
+      }
+      return null;
+    });
+  }
+
+  private _canPullDiagnostics(connection: ILSPConnection): boolean {
+    // Some servers request a diagnostic refresh before their pull diagnostics
+    // capability is observable through serverCapabilities.
+    return (
+      connection.provides('diagnosticProvider') ||
+      this._diagnosticRefreshRequested.has(connection)
+    );
+  }
+
+  private _queuePullDiagnostics(
+    connection: ILSPConnection,
+    document: VirtualDocument,
+    getAdapter: () => WidgetLSPAdapter<any> | undefined
+  ): void {
+    if (document.isDisposed || this._queuedPullDiagnostics.has(document)) {
+      return;
+    }
+    this._queuedPullDiagnostics.add(document);
+    window.setTimeout(() => {
+      this._queuedPullDiagnostics.delete(document);
+      void this._requestPullDiagnostics(connection, document, getAdapter);
+    }, 0);
+  }
+
+  private async _requestPullDiagnostics(
+    connection: ILSPConnection,
+    document: VirtualDocument,
+    getAdapter: () => WidgetLSPAdapter<any> | undefined
+  ): Promise<void> {
+    const adapter = getAdapter();
+    if (
+      !adapter ||
+      document.isDisposed ||
+      connection.isDisposed ||
+      !connection.isReady ||
+      !this._canPullDiagnostics(connection) ||
+      this._pullDiagnosticsInFlight.has(document)
+    ) {
+      return;
+    }
+
+    this._pullDiagnosticsInFlight.add(document);
+    try {
+      const params: lsProtocol.DocumentDiagnosticParams = {
+        textDocument: {
+          uri: document.documentInfo.uri
+        }
+      };
+      const previousResultId = this._pullDiagnosticResultIds.get(document);
+      if (previousResultId) {
+        params.previousResultId = previousResultId;
+      }
+
+      const report = await connection.request(
+        Method.ClientRequest.DIAGNOSTIC,
+        params
+      );
+
+      if (report.resultId) {
+        this._pullDiagnosticResultIds.set(document, report.resultId);
+      } else {
+        this._pullDiagnosticResultIds.delete(document);
+      }
+
+      if (report.kind === 'full') {
+        await this.handleDiagnostic(
+          {
+            uri: document.documentInfo.uri,
+            diagnostics: report.items
+          },
+          document,
+          adapter
+        );
+      } else {
+        this._firstResponseReceived.resolve();
+      }
+    } catch (error) {
+      this.console.warn('Pull diagnostics request failed', error);
+      this._firstResponseReceived.resolve();
+    } finally {
+      this._pullDiagnosticsInFlight.delete(document);
+    }
   }
 
   private _reconfigureTheme() {
@@ -608,6 +770,15 @@ export class DiagnosticsFeature extends Feature implements IDiagnosticsFeature {
   private _trans: TranslationBundle;
   private _invalidate: StateEffectType<void>;
   private _invalidationCounter: StateField<number>;
+  private _pullDiagnosticResultIds = new WeakMap<VirtualDocument, string>();
+  private _pullDiagnosticsInFlight = new WeakSet<VirtualDocument>();
+  private _queuedPullDiagnostics = new WeakSet<VirtualDocument>();
+  private _pullDiagnosticsContexts = new WeakMap<
+    ILSPConnection,
+    Set<IPullDiagnosticsContext>
+  >();
+  private _diagnosticRefreshHandlers = new WeakSet<ILSPConnection>();
+  private _diagnosticRefreshRequested = new WeakSet<ILSPConnection>();
   private _styleElement: HTMLStyleElement = document.createElement('style');
 }
 

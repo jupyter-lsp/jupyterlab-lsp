@@ -1,13 +1,13 @@
 name: jupyterlab-lsp
 
 channels:
+  - conda-forge/label/jupyterlab_alpha
   - conda-forge
   - nodefaults
 
 dependencies:
+  - python >=3.10,<3.13.0a0
   - jupyterlab {lab}
-  # to test serverextension
-  - notebook >=7
   # build dependencies
   - pip
   - nodejs {nodejs}

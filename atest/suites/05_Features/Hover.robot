@@ -4,7 +4,7 @@ Library             ../../_libraries/mouse_over_extension.py
 
 Suite Setup         Setup Suite For Screenshots    hover
 Test Setup          Setup Hover Test
-Test Teardown       Clean Up After Working With File    Hover.ipynb
+Test Teardown       Clean Up Hover Test
 
 Test Tags           feature:hover
 
@@ -115,3 +115,7 @@ Trigger Tooltip
 
 Setup Hover Test
     Setup Notebook    Python    Hover.ipynb
+
+Clean Up Hover Test
+    Reset JupyterLab Plugin    ${HOVER PLUGIN ID}
+    Clean Up After Working With File    Hover.ipynb

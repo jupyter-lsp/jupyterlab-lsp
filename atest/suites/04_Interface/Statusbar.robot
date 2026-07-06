@@ -80,7 +80,9 @@ Ignoring Missing Language Changes Status
     Click Element    ${IGNORE_BUTTON}
     Wait Until Element Does Not Contain    ${STATUSBAR}    Initialized*    timeout=60s
     Wait Until Element Contains    ${STATUSBAR}    Fully initialized    timeout=60s
-    [Teardown]    Clean Up After Working With File    example.klingon
+    [Teardown]    Run Keywords
+    ...    Reset JupyterLab Plugin
+    ...    AND    Clean Up After Working With File    example.klingon
 
 
 *** Keywords ***

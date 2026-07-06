@@ -102,6 +102,10 @@ export class MockSettings<T> implements IFeatureSettings<T> {
 namespace MockConnection {
   export interface IOptions extends ILSPOptions {
     serverCapabilities: lsProtocol.ServerCapabilities;
+    requestHandler?: (
+      method: string,
+      params: unknown
+    ) => Promise<unknown> | unknown;
   }
 }
 
@@ -111,7 +115,10 @@ class MockConnection extends LSPConnection {
   }
 
   connect(ws: any): void {
-    this.connection = new MockMessageConnection() as MessageConnection;
+    this.connection =
+      new MockMessageConnection(
+        this.options.requestHandler
+      ) as unknown as MessageConnection;
     this.onServerInitialized({
       capabilities: this.options.serverCapabilities
     });
@@ -125,18 +132,43 @@ namespace MockDocumentConnectionManager {
   }
 }
 
-class MockMessageConnection implements Partial<MessageConnection> {
+class MockMessageConnection {
+  private serverRequestHandlers = new Map<string, (params?: any) => any>();
+
+  constructor(
+    private requestHandler?: (
+      method: string,
+      params: unknown
+    ) => Promise<unknown> | unknown
+  ) {}
+
   onError(handler: any): any {
-    // no-op
+    return { dispose: () => undefined };
   }
   onNotification(handler: any): any {
-    // no-op
+    return { dispose: () => undefined };
   }
-  onRequest(hander: any): any {
-    // no-op
+  onRequest(method: any, handler: any): any {
+    const requestMethod = typeof method === 'string' ? method : method.method;
+    this.serverRequestHandlers.set(requestMethod, handler);
+    return {
+      dispose: () => {
+        this.serverRequestHandlers.delete(requestMethod);
+      }
+    };
   }
+
+  sendServerRequest(method: string, params?: any): Promise<any> {
+    return Promise.resolve(this.serverRequestHandlers.get(method)?.(params));
+  }
+
   sendNotification(handler: any): Promise<void> {
     return Promise.resolve();
+  }
+
+  sendRequest(...args: any[]): Promise<any> {
+    const [method, params] = args;
+    return Promise.resolve(this.requestHandler?.(method, params));
   }
 }
 
@@ -180,6 +212,8 @@ class MockDocumentConnectionManager extends DocumentConnectionManager {
       ...this.options.connection
     });
     connection.connect(null);
+    this.connections.set(virtualDocument.uri, connection);
+    this.documents.set(virtualDocument.uri, virtualDocument);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     this._connected.emit({ connection, virtualDocument });

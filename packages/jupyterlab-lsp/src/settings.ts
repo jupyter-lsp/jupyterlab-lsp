@@ -37,6 +37,11 @@ interface IJSONProperty {
   $ref?: string;
 }
 
+interface ILanguageServerConfigSchema extends PartialJSONObject {
+  properties: Record<string, PartialJSONObject>;
+  definitions?: PartialJSONObject;
+}
+
 function isJSONProperty(obj: unknown): obj is IJSONProperty {
   return (
     typeof obj === 'object' && obj !== null && ('type' in obj || '$ref' in obj)
@@ -345,7 +350,9 @@ export class SettingsSchemaManager {
         continue;
       }
 
-      const configSchema = serverSpec.config_schema;
+      const configSchema = serverSpec.config_schema as
+        | ILanguageServerConfigSchema
+        | undefined;
       if (!configSchema) {
         console.warn(
           `No config schema - skipping transformation for ${serverKey}`
@@ -374,25 +381,29 @@ export class SettingsSchemaManager {
       configSchema.title = trans.__('Workspace Configuration');
 
       // resolve refs
-      for (let [key, value] of Object.entries(configSchema.properties)) {
+      for (const value of Object.values(configSchema.properties)) {
         if (!isJSONProperty(value)) {
           continue;
         }
-        if (typeof value.$ref === 'undefined') {
+        const reference = value.$ref;
+        if (typeof reference !== 'string') {
           continue;
         }
-        if (value.$ref.startsWith('#/definitions/')) {
-          const definitionID = value['$ref'].substring(14);
-          const definition = configSchema.definitions[definitionID];
+        if (reference.startsWith('#/definitions/')) {
+          const definitionID = reference.substring(14);
+          const definition = configSchema.definitions?.[definitionID] as
+            | PartialJSONObject
+            | undefined;
           if (definition == null) {
             console.warn('Definition not found');
+            continue;
           }
           for (let [defKey, defValue] of Object.entries(definition)) {
-            configSchema.properties[key][defKey] = defValue;
+            (value as PartialJSONObject)[defKey] = defValue;
           }
           delete value.$ref;
         } else {
-          console.warn('Unsupported $ref', value['$ref']);
+          console.warn('Unsupported $ref', reference);
         }
       }
 
@@ -470,7 +481,9 @@ export class SettingsSchemaManager {
     const partiallyUncollapsed = JSONExt.deepCopy(options.dottedSettings);
 
     for (let [serverKey, serverSpec] of specs.entries()) {
-      const configSchema = serverSpec.config_schema;
+      const configSchema = serverSpec.config_schema as
+        | ILanguageServerConfigSchema
+        | undefined;
       if (!partiallyUncollapsed.hasOwnProperty(serverKey)) {
         continue;
       }
@@ -480,9 +493,7 @@ export class SettingsSchemaManager {
       }
       const expanded = expandDottedPaths(settings);
 
-      for (const [path, property] of Object.entries<PartialJSONObject>(
-        configSchema.properties
-      )) {
+      for (const [path, property] of Object.entries(configSchema.properties)) {
         if (property.type === 'object') {
           let value = expanded;
           for (const part of path.split('.')) {

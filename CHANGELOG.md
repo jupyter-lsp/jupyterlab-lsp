@@ -4,6 +4,7 @@
 
 - enhancements:
 
+  - add commands for extensions and agents to inspect LSP connections and send allowlisted read-only LSP requests
   - allow ignoring missing LSP servers in the status indicator; ignore markdown by default ([#1176](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1176))
 
 - maintenance:
