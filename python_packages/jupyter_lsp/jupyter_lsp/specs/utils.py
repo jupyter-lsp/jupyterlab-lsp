@@ -2,7 +2,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from subprocess import check_output
+from subprocess import CalledProcessError, check_output
 from typing import List, Text, Union
 
 from ..schema import SPEC_VERSION
@@ -42,9 +42,12 @@ class ShellSpec(SpecBase):  # pragma: no cover
         if not self.is_installed_args:
             return bool(cmd)
         else:
-            check_result = check_output([cmd, *self.is_installed_args]).decode(
-                encoding="utf-8"
-            )
+            try:
+                check_result = check_output([cmd, *self.is_installed_args]).decode(
+                    encoding="utf-8"
+                )
+            except (CalledProcessError, OSError):
+                return False
             return check_result != ""
 
     def solve(self) -> Union[str, None]:
