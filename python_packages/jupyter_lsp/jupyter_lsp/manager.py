@@ -1,5 +1,4 @@
-""" A configurable frontend for stdio-based Language Servers
-"""
+"""A configurable frontend for stdio-based Language Servers"""
 
 import asyncio
 import os
@@ -50,24 +49,24 @@ from .types import (
 class LanguageServerManager(LanguageServerManagerAPI):
     """Manage language servers"""
 
-    conf_d_language_servers = Schema(  # type:ignore[assignment]
+    conf_d_language_servers = Schema(  # type: ignore[assignment]
         validator=LANGUAGE_SERVER_SPEC_MAP,
         help=_("extra language server specs, keyed by implementation, from conf.d"),
     )  # type: KeyedLanguageServerSpecs
 
-    language_servers = Schema(  # type:ignore[assignment]
+    language_servers = Schema(  # type: ignore[assignment]
         validator=LANGUAGE_SERVER_SPEC_MAP,
         help=_("a dict of language server specs, keyed by implementation"),
     ).tag(
         config=True
     )  # type: KeyedLanguageServerSpecs
 
-    autodetect: bool = Bool(  # type:ignore[assignment]
+    autodetect: bool = Bool(  # type: ignore[assignment]
         True, help=_("try to find known language servers in sys.prefix (and elsewhere)")
     ).tag(config=True)
 
     sessions: Dict[Tuple[Text], LanguageServerSession] = (
-        Dict_(  # type:ignore[assignment]
+        Dict_(  # type: ignore[assignment]
             trait=Instance(LanguageServerSession),
             default_value={},
             help="sessions keyed by language server name",
@@ -87,14 +86,14 @@ class LanguageServerManager(LanguageServerManagerAPI):
         help="""Whether the manager has been initialized""", default_value=False
     )
 
-    all_listeners = List_(  # type:ignore[var-annotated]
-        trait=LoadableCallable  # type:ignore[arg-type]
+    all_listeners = List_(  # type: ignore[var-annotated]
+        trait=LoadableCallable  # type: ignore[arg-type]
     ).tag(config=True)
-    server_listeners = List_(  # type:ignore[var-annotated]
-        trait=LoadableCallable  # type:ignore[arg-type]
+    server_listeners = List_(  # type: ignore[var-annotated]
+        trait=LoadableCallable  # type: ignore[arg-type]
     ).tag(config=True)
-    client_listeners = List_(  # type:ignore[var-annotated]
-        trait=LoadableCallable  # type:ignore[arg-type]
+    client_listeners = List_(  # type: ignore[var-annotated]
+        trait=LoadableCallable  # type: ignore[arg-type]
     ).tag(config=True)
 
     @default("language_servers")

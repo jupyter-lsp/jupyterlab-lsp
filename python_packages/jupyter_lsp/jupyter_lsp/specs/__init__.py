@@ -1,5 +1,4 @@
-""" default specs
-"""
+"""default specs"""
 
 # flake8: noqa: F401
 

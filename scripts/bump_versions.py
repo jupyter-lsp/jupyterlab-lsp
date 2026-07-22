@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Bump version of selected packages or core requirements (JupyterLab)"""
+
 import sys
 from argparse import ArgumentParser
 from dataclasses import dataclass

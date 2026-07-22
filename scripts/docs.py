@@ -1,5 +1,4 @@
-""" antidisinformationarianism
-"""
+"""antidisinformationarianism"""
 
 import shutil
 import sys

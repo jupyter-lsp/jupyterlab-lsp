@@ -149,7 +149,7 @@ class MockWebsocketHandler(LanguageServerWebSocketHandler):
 
 class MockHandler(LanguageServersHandler):
     _payload = None
-    _jupyter_current_user = "foo"  # type:ignore[assignment]
+    _jupyter_current_user = "foo"  # type: ignore[assignment]
 
     def __init__(self):
         self.request = HTTPRequest("GET")

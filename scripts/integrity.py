@@ -1,6 +1,6 @@
-""" check internal version consistency
+"""check internal version consistency
 
-    these should be quick to run (not invoke any other process)
+these should be quick to run (not invoke any other process)
 """
 
 # pylint: disable=redefined-outer-name,unused-variable

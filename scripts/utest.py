@@ -1,5 +1,4 @@
-""" run python unit tests with pytest
-"""
+"""run python unit tests with pytest"""
 
 import json
 import os
