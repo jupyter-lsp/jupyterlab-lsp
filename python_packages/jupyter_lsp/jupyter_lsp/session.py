@@ -1,5 +1,4 @@
-""" A session for managing a language server process
-"""
+"""A session for managing a language server process"""
 
 import asyncio
 import atexit

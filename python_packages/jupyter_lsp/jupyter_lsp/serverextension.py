@@ -1,5 +1,4 @@
-""" add language server support to the running jupyter notebook application
-"""
+"""add language server support to the running jupyter notebook application"""
 
 import json
 from pathlib import Path

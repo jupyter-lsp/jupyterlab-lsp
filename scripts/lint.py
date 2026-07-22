@@ -1,5 +1,4 @@
-""" code quality countermeasures
-"""
+"""code quality countermeasures"""
 
 # flake8: noqa: W503
 import sys

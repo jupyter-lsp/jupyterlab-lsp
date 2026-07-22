@@ -1,5 +1,4 @@
-""" Run acceptance tests with robot framework
-"""
+"""Run acceptance tests with robot framework"""
 
 # pylint: disable=broad-except
 import os

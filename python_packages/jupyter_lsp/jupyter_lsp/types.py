@@ -1,5 +1,4 @@
-""" API used by spec finders and manager
-"""
+"""API used by spec finders and manager"""
 
 import asyncio
 import enum

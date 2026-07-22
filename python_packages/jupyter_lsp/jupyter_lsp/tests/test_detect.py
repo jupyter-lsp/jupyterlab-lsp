@@ -1,5 +1,9 @@
+import subprocess
+
+import pytest
+
 from jupyter_lsp.specs.r_languageserver import RLanguageServer
-from jupyter_lsp.specs.utils import PythonModuleSpec
+from jupyter_lsp.specs.utils import PythonModuleSpec, ShellSpec
 
 
 def test_no_detect(manager):
@@ -39,3 +43,29 @@ def test_missing_python_module_spec():
 
     # we ant the spec even when not installed
     assert "languages" in not_installed_server(mgr=None)["a_module"]
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        OSError("bad executable"),
+        subprocess.CalledProcessError(1, ["broken-language-server"]),
+    ],
+)
+def test_shell_spec_check_failure_is_not_installed(monkeypatch, error):
+    """Prevent broken executables on PATH from failing language server detection."""
+
+    class BrokenServer(ShellSpec):
+        cmd = "broken-language-server"
+        key = "broken-language-server"
+        is_installed_args = ["--version"]
+
+        def solve(self):
+            return self.cmd
+
+    def fail_to_check(*args, **kwargs):
+        raise error
+
+    monkeypatch.setattr("jupyter_lsp.specs.utils.check_output", fail_to_check)
+
+    assert BrokenServer().is_installed(mgr=None) is False

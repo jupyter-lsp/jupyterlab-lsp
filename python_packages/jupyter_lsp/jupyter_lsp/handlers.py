@@ -1,5 +1,4 @@
-""" tornado handler for managing and communicating with language servers
-"""
+"""tornado handler for managing and communicating with language servers"""
 
 from typing import Optional, Text
 

@@ -1,4 +1,4 @@
-""" Language Server stdio-mode readers
+"""Language Server stdio-mode readers
 
 Parts of this code are derived from:
 
@@ -31,7 +31,7 @@ class LspStdIoBase(LoggingConfigurable):
 
     executor = None
 
-    stream = Instance(  # type:ignore[assignment]
+    stream = Instance(  # type: ignore[assignment]
         io.RawIOBase, help="the stream to read/write"
     )  # type: io.RawIOBase
     queue = Instance(Queue, help="queue to get/put")

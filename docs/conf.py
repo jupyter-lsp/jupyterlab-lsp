@@ -1,5 +1,4 @@
-""" Documentation configuration and workflow for jupyter-starters
-"""
+"""Documentation configuration and workflow for jupyter-starters"""
 
 # pylint: disable=invalid-name,redefined-builtin,import-error
 

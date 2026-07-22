@@ -1,5 +1,10 @@
 ## Changelog
 
+### `jupyter-lsp 2.3.2`
+
+- bug fixes:
+  - skip broken executables during shell-based language server autodetection
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.3.0`
 
 - enhancements:

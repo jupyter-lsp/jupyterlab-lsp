@@ -1,4 +1,4 @@
-""" utility script to warm up/validate the jedi cache
+"""utility script to warm up/validate the jedi cache
 what does it do:
 - Deletes the jedi cache (usually already empty on CI)
 - Imports a bunch of libraries
