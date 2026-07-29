@@ -8,6 +8,7 @@ These are configuration schemas extracted from canonical upstreams:
 - [yaml-language-server](https://github.com/redhat-developer/vscode-yaml/blob/master/package.json)
 - [pyright](https://github.com/microsoft/pyright/blob/main/packages/vscode-pyright/package.json)
 - [pyrefly](https://github.com/facebook/pyrefly/blob/main/lsp/package.json)
+- [zuban](https://docs.zubanls.com/en/latest/usage.html#language-server-lsp)
 
 > All of the configurations are sent to the Language Server, but only some of them
 > are actually acted upon, but we don't know which is which, yet.

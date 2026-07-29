@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Zuban Language Server Configuration",
+  "type": "object",
+  "properties": {
+    "typeCheckingMode": {
+      "type": "string",
+      "enum": ["auto", "off", "default", "mypy"],
+      "default": "auto",
+      "description": "Controls the type checking mode; use 'off' to disable type checking.",
+      "scope": "resource"
+    },
+    "disableLanguageServices": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, disables all language services except type checking.",
+      "scope": "resource"
+    },
+    "diagnosticMode": {
+      "type": "string",
+      "enum": ["open-files-only", "workspace"],
+      "default": "open-files-only",
+      "description": "Report errors for open files only, or for the whole workspace.",
+      "scope": "resource"
+    },
+    "pythonExecutable": {
+      "type": "string",
+      "description": "Path to the python executable of the target environment (same as `zuban check --python-executable`).",
+      "scope": "resource"
+    }
+  }
+}

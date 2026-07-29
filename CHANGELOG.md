@@ -1,5 +1,10 @@
 ## Changelog
 
+### `jupyter-lsp (next)`
+
+- features:
+  - add auto-detection of Zuban language server ([#1178](https://github.com/jupyter-lsp/jupyterlab-lsp/pull/1178))
+
 ### `@jupyter-lsp/jupyterlab-lsp 5.3.0`
 
 - enhancements:
